@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -28,8 +29,10 @@ import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:sentry/sentry.dart';
 
 enum ArtworkModel {
   multi,
@@ -175,8 +178,6 @@ abstract class FeralFileService {
   Future<Artwork> getArtwork(String artworkId);
 
   Future<DailyToken?> getCurrentDailiesToken();
-
-  Future<DailyToken?> getNextDailiesToken();
 
   Future<FeralFileListResponse<FFSeries>> exploreArtworks({
     String? sortBy,
@@ -750,27 +751,32 @@ class FeralFileServiceImpl extends FeralFileService {
         null);
   }
 
-  Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
-    final resp = await _feralFileApi.getDailiesToken(limit: limit);
-    final dailiesTokens = resp.result;
+  Future<List<DailyToken>> _fetchDailiesTokens() async {
+    final currentDailyTokens = await _fetchDailyTokenByDate(DateTime.now());
+    if (currentDailyTokens.isEmpty) {
+      unawaited(Sentry.captureMessage('Failed to get current daily token'));
+      return [];
+    }
+    DailiesHelper.updateDailies([currentDailyTokens.first]);
+    return currentDailyTokens;
+  }
 
-    DailiesHelper.updateDailies(dailiesTokens);
+  Future<List<DailyToken>> _fetchDailyTokenByDate(DateTime localTime) async {
+    // the daily artwork change at 6 AM, so we will subtract 6 hours to get the correct date
+    final date = localTime.subtract(const Duration(hours: 6));
+    final dateFormatter = DateFormat('yyyy-MM-dd');
+
+    final resp = await _feralFileApi.getDailiesTokenByDate(
+        date: dateFormatter.format(date));
+    final dailiesTokens = resp.result;
     return dailiesTokens;
   }
 
   @override
   Future<DailyToken?> getCurrentDailiesToken() async {
     // call nextDailies to make daily tokens up to date
-    DailiesHelper.nextDailies;
     await _fetchDailiesTokens();
     DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
-    return currentDailiesToken;
-  }
-
-  @override
-  Future<DailyToken?> getNextDailiesToken() async {
-    await _fetchDailiesTokens();
-    DailyToken? currentDailiesToken = DailiesHelper.nextDailies;
     return currentDailiesToken;
   }
 

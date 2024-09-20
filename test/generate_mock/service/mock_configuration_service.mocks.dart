@@ -73,14 +73,6 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  _i2.ValueNotifier<bool> get showCreatePlaylistTip => (super.noSuchMethod(
-        Invocation.getter(#showCreatePlaylistTip),
-        returnValue: _FakeValueNotifier_0<bool>(
-          this,
-          Invocation.getter(#showCreatePlaylistTip),
-        ),
-      ) as _i2.ValueNotifier<bool>);
-  @override
   bool isDoneNewOnboarding() => (super.noSuchMethod(
         Invocation.method(
           #isDoneNewOnboarding,
@@ -639,81 +631,6 @@ class MockConfigurationService extends _i1.Mock
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
-  _i5.Future<dynamic> setAlreadyShowProTip(bool? show) => (super.noSuchMethod(
-        Invocation.method(
-          #setAlreadyShowProTip,
-          [show],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
-  @override
-  _i5.Future<dynamic> setAlreadyShowTvAppTip(bool? show) => (super.noSuchMethod(
-        Invocation.method(
-          #setAlreadyShowTvAppTip,
-          [show],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
-  @override
-  _i5.Future<dynamic> setAlreadyShowCreatePlaylistTip(bool? show) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setAlreadyShowCreatePlaylistTip,
-          [show],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
-  @override
-  _i5.Future<dynamic> setAlreadyShowLinkOrImportTip(bool? show) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setAlreadyShowLinkOrImportTip,
-          [show],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
-  @override
-  bool getAlreadyShowProTip() => (super.noSuchMethod(
-        Invocation.method(
-          #getAlreadyShowProTip,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  bool getAlreadyShowTvAppTip() => (super.noSuchMethod(
-        Invocation.method(
-          #getAlreadyShowTvAppTip,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  bool getAlreadyShowCreatePlaylistTip() => (super.noSuchMethod(
-        Invocation.method(
-          #getAlreadyShowCreatePlaylistTip,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  bool getAlreadyShowLinkOrImportTip() => (super.noSuchMethod(
-        Invocation.method(
-          #getAlreadyShowLinkOrImportTip,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i5.Future<dynamic> setShowBackupSettingTip(DateTime? time) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setShowBackupSettingTip,
-          [time],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
-  @override
   _i5.Future<dynamic> setSentTezosArtworkMetric(int? hashedAddresses) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -942,23 +859,6 @@ class MockConfigurationService extends _i1.Mock
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> setDidSyncArtists(bool? value) => (super.noSuchMethod(
-        Invocation.method(
-          #setDidSyncArtists,
-          [value],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  bool getDidSyncArtists() => (super.noSuchMethod(
-        Invocation.method(
-          #getDidSyncArtists,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
   @override
   List<String> getHiddenOrSentTokenIDs() => (super.noSuchMethod(
         Invocation.method(

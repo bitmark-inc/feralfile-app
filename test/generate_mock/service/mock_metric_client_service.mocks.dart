@@ -3,11 +3,9 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i3;
 
-import 'package:autonomy_flutter/service/metric_client_service.dart' as _i3;
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart' as _i2;
-import 'package:flutter/material.dart' as _i5;
+import 'package:autonomy_flutter/service/metric_client_service.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -23,34 +21,15 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeMixPanelClientService_0 extends _i1.SmartFake
-    implements _i2.MixPanelClientService {
-  _FakeMixPanelClientService_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
 /// A class which mocks [MetricClientService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockMetricClientService extends _i1.Mock
-    implements _i3.MetricClientService {
+    implements _i2.MetricClientService {
   MockMetricClientService() {
     _i1.throwOnMissingStub(this);
   }
 
-  @override
-  _i2.MixPanelClientService get mixPanelClient => (super.noSuchMethod(
-        Invocation.getter(#mixPanelClient),
-        returnValue: _FakeMixPanelClientService_0(
-          this,
-          Invocation.getter(#mixPanelClient),
-        ),
-      ) as _i2.MixPanelClientService);
   @override
   bool get isFinishInit => (super.noSuchMethod(
         Invocation.getter(#isFinishInit),
@@ -65,23 +44,14 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i4.Future<void> initService() => (super.noSuchMethod(
+  _i3.Future<void> initService() => (super.noSuchMethod(
         Invocation.method(
           #initService,
           [],
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> migrateFromDidKeyToPrimaryAddress() => (super.noSuchMethod(
-        Invocation.method(
-          #migrateFromDidKeyToPrimaryAddress,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
   @override
   void addEvent(
     String? name, {
@@ -110,34 +80,14 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i4.Future<void> sendAndClearMetrics() => (super.noSuchMethod(
+  _i3.Future<void> mergeUser(String? oldUserId) => (super.noSuchMethod(
         Invocation.method(
-          #sendAndClearMetrics,
-          [],
+          #mergeUser,
+          [oldUserId],
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> trackStartScreen(_i5.Route<dynamic>? route) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #trackStartScreen,
-          [route],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> trackEndScreen(_i5.Route<dynamic>? route) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #trackEndScreen,
-          [route],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
   @override
   void setLabel(
     String? prop,
@@ -169,53 +119,9 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i4.Future<void> initConfigIfNeed(Map<String, dynamic>? config) =>
-      (super.noSuchMethod(
+  void reset() => super.noSuchMethod(
         Invocation.method(
-          #initConfigIfNeed,
-          [config],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  dynamic getConfig(
-    String? key, {
-    dynamic defaultValue,
-  }) =>
-      super.noSuchMethod(Invocation.method(
-        #getConfig,
-        [key],
-        {#defaultValue: defaultValue},
-      ));
-  @override
-  _i4.Future<void> setConfig(
-    String? key,
-    dynamic value,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setConfig,
-          [
-            key,
-            value,
-          ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  void onBackground() => super.noSuchMethod(
-        Invocation.method(
-          #onBackground,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void onForeground() => super.noSuchMethod(
-        Invocation.method(
-          #onForeground,
+          #reset,
           [],
         ),
         returnValueForMissingStub: null,
