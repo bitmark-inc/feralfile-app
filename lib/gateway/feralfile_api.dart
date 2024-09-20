@@ -105,6 +105,13 @@ abstract class FeralFileApi {
     @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
   });
 
+  // get list daily token by date with local time
+  @GET('/api/dailies/date/{date}')
+  Future<FeralFileListResponse<DailyToken>> getDailiesTokenByDate({
+    @Path('date') required String date,
+    @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
+  });
+
   @GET('/api/series')
   Future<FeralFileListResponse<FFSeries>> exploreArtwork({
     @Query('sortBy') String? sortBy,
