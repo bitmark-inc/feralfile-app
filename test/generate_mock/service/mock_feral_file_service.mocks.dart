@@ -356,14 +356,6 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
         returnValue: _i10.Future<_i12.DailyToken?>.value(),
       ) as _i10.Future<_i12.DailyToken?>);
   @override
-  _i10.Future<_i12.DailyToken?> getNextDailiesToken() => (super.noSuchMethod(
-        Invocation.method(
-          #getNextDailiesToken,
-          [],
-        ),
-        returnValue: _i10.Future<_i12.DailyToken?>.value(),
-      ) as _i10.Future<_i12.DailyToken?>);
-  @override
   _i10.Future<_i5.FeralFileListResponse<_i2.FFSeries>> exploreArtworks({
     String? sortBy,
     String? sortOrder,

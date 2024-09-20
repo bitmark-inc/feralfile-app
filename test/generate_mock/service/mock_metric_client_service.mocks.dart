@@ -31,35 +31,32 @@ class MockMetricClientService extends _i1.Mock
   }
 
   @override
-  bool get _isFinishInit => (super.noSuchMethod(
-        Invocation.getter(#isFinishInit),
-        returnValue: false,
-      ) as bool);
-  @override
-  set _isFinishInit(bool? _isFinishInit) => super.noSuchMethod(
-        Invocation.setter(
-          #isFinishInit,
-          _isFinishInit,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i3.Future<void> initService() => (super.noSuchMethod(
+  _i3.Future<void> initService({String? identifier}) => (super.noSuchMethod(
         Invocation.method(
           #initService,
+          [],
+          {#identifier: identifier},
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+  @override
+  _i3.Future<void> identity() => (super.noSuchMethod(
+        Invocation.method(
+          #identity,
           [],
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
   @override
-  void addEvent(
+  _i3.Future<void> addEvent(
     String? name, {
     String? message,
     Map<String, dynamic>? data = const {},
     Map<String, dynamic>? hashedData = const {},
   }) =>
-      super.noSuchMethod(
+      (super.noSuchMethod(
         Invocation.method(
           #addEvent,
           [name],
@@ -69,8 +66,9 @@ class MockMetricClientService extends _i1.Mock
             #hashedData: hashedData,
           },
         ),
-        returnValueForMissingStub: null,
-      );
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
   @override
   void timerEvent(String? name) => super.noSuchMethod(
         Invocation.method(
@@ -119,11 +117,12 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  void reset() => super.noSuchMethod(
+  _i3.Future<void> reset() => (super.noSuchMethod(
         Invocation.method(
           #reset,
           [],
         ),
-        returnValueForMissingStub: null,
-      );
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }
