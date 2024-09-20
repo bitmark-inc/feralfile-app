@@ -193,9 +193,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } catch (e) {
       log.info('[DeeplinkService] handleDeeplinkBeforeOnboarding error $e');
       unawaited(Sentry.captureException(e));
-      if (referralCodeCompleter.isCompleted) {
-        referralCodeCompleter.complete(null);
-      }
+      _completeReferralCodeCompleter(null);
     }
   }
 
