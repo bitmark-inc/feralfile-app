@@ -140,6 +140,7 @@ enum ConfigGroup {
   exhibition,
   johnGerrard,
   membership,
+  daily,
 }
 
 // ConfigGroup getString extension
@@ -168,6 +169,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'john_gerrard';
       case ConfigGroup.membership:
         return 'membership';
+      case ConfigGroup.daily:
+        return 'daily';
     }
   }
 }
@@ -207,6 +210,7 @@ enum ConfigKey {
   assetIds,
   customNote,
   lifetime,
+  scheduleTime,
 }
 
 // ConfigKey getString extension
@@ -281,6 +285,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'custom_notes';
       case ConfigKey.lifetime:
         return 'lifetime';
+      case ConfigKey.scheduleTime:
+        return 'scheduleTime';
     }
   }
 }

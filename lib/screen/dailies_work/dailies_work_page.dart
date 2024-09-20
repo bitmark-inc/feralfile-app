@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -91,10 +92,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
       _remainingDuration = _calcRemainingDuration;
     });
     const defaultDuration = Duration(hours: 1);
-    final nextDailyduration = _calcRemainingDuration;
-    final duration = nextDailyduration > defaultDuration
+    final nextDailyDuration = _calcRemainingDuration;
+    final duration = nextDailyDuration > defaultDuration
         ? defaultDuration
-        : nextDailyduration;
+        : nextDailyDuration;
     _timer?.cancel();
     _timer = Timer(duration, () {
       log.info('Get Daily Asset Token');
@@ -103,9 +104,14 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   DateTime get _nextDailyDateTime {
-    final now = DateTime.now().subtract(const Duration(hours: 6));
+    const defaultScheduleTime = 6;
+    final configScheduleTime = injector<RemoteConfigService>()
+        .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
+            defaultScheduleTime.toString());
+    final now =
+        DateTime.now().subtract(Duration(hours: int.parse(configScheduleTime)));
     final startNextDay = DateTime(now.year, now.month, now.day + 1).add(
-      const Duration(hours: 6, seconds: 3),
+      Duration(hours: int.parse(configScheduleTime), seconds: 3),
       // add 3 seconds to avoid the same artwork
     );
     return startNextDay;

@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
@@ -762,8 +764,15 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<List<DailyToken>> _fetchDailyTokenByDate(DateTime localTime) async {
-    // the daily artwork change at 6 AM, so we will subtract 6 hours to get the correct date
-    final date = localTime.subtract(const Duration(hours: 6));
+    const defaultScheduleTime = 6;
+    final configScheduleTime = injector<RemoteConfigService>()
+        .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
+            defaultScheduleTime.toString());
+
+    // the daily artwork change at configScheduleTime
+    // so we will subtract configScheduleTime hours to get the correct date
+    final date =
+        localTime.subtract(Duration(hours: int.parse(configScheduleTime)));
     final dateFormatter = DateFormat('yyyy-MM-dd');
 
     final resp = await _feralFileApi.getDailiesTokenByDate(
