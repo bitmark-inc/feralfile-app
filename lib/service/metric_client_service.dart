@@ -19,9 +19,6 @@ class MetricClientService {
 
   Future<void> initService({String? identifier}) async {
     _identifier = identifier ?? _defaultIdentifier();
-
-    // count open app
-    await addEvent(MetricEventName.openApp.name);
   }
 
   Future<void> identity() async {
