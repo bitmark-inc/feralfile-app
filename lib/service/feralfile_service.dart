@@ -751,7 +751,7 @@ class FeralFileServiceImpl extends FeralFileService {
         null);
   }
 
-  Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
+  Future<List<DailyToken>> _fetchDailiesTokens() async {
     final currentDailyTokens = await _fetchDailyTokenByDate(DateTime.now());
     if (currentDailyTokens.isEmpty) {
       unawaited(Sentry.captureMessage('Failed to get current daily token'));
