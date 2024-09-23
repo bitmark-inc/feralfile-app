@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:crypto/crypto.dart';
@@ -139,9 +138,6 @@ abstract class FeralFileService {
   Future<FFSeries> getSeries(String id,
       {String? exhibitionID, bool includeFirstArtwork = false});
 
-  Future<List<FFSeries>> getListSeries(String exhibitionId,
-      {bool includeFirstArtwork = false});
-
   Future<Exhibition?> getExhibitionFromTokenID(String artworkID);
 
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
@@ -156,18 +152,12 @@ abstract class FeralFileService {
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
-    String keywork = '',
+    String keyword = '',
     List<String> relatedAccountIDs = const [],
     Map<FilterType, FilterValue> filters = const {},
   });
 
   Future<Exhibition> getSourceExhibition();
-
-  Future<Exhibition?> getUpcomingExhibition();
-
-  Future<Exhibition> getFeaturedExhibition();
-
-  Future<List<Exhibition>> getOngoingExhibitions();
 
   Future<List<Artwork>> getFeaturedArtworks();
 
@@ -323,7 +313,7 @@ class FeralFileServiceImpl extends FeralFileService {
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
-    String keywork = '',
+    String keyword = '',
     List<String> relatedAccountIDs = const [],
     Map<FilterType, FilterValue> filters = const {},
   }) async {
@@ -334,7 +324,7 @@ class FeralFileServiceImpl extends FeralFileService {
       sortOrder: sortOrder,
       limit: limit,
       offset: offset,
-      keyword: keywork,
+      keyword: keyword,
       relatedAccountIDs: relatedAccountIDs,
       customQueryParam: customParams,
     );
@@ -344,35 +334,6 @@ class FeralFileServiceImpl extends FeralFileService {
       ..info('[FeralFileService] Get all exhibitions: '
           '${listExhibition.map((e) => e.id).toList()}');
     return listExhibition;
-  }
-
-  @override
-  Future<Exhibition?> getUpcomingExhibition() async {
-    final exhibitionResponse = await _feralFileApi.getUpcomingExhibition();
-    return exhibitionResponse.result;
-  }
-
-  @override
-  Future<Exhibition> getFeaturedExhibition() async {
-    final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
-    return exhibitionResponse.result!;
-  }
-
-  @override
-  Future<List<Exhibition>> getOngoingExhibitions() async {
-    final ongoingExhibitionIDs = FeralFileHelper.ongoingExhibitionIDs;
-
-    final ongoingExhibitions = <Exhibition>[];
-    for (final exhibitionID in ongoingExhibitionIDs) {
-      try {
-        final exhibition = await getExhibition(exhibitionID);
-        ongoingExhibitions.add(exhibition);
-      } catch (e) {
-        log.info('[FeralFileService] Failed to get ongoing exhibition: $e');
-      }
-    }
-
-    return ongoingExhibitions;
   }
 
   @override
@@ -589,18 +550,6 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<Artwork> getArtwork(String artworkId) async {
     final response = await _feralFileApi.getArtworks(artworkId);
-    return response.result;
-  }
-
-  @override
-  Future<List<FFSeries>> getListSeries(String exhibitionId,
-      {bool includeFirstArtwork = false}) async {
-    if (exhibitionId == SOURCE_EXHIBITION_ID) {
-      final exhibition = await getSourceExhibition();
-      return exhibition.series ?? [];
-    }
-    final response = await _feralFileApi.getListSeries(
-        exhibitionID: exhibitionId, sortBy: 'displayIndex', sortOrder: 'ASC');
     return response.result;
   }
 

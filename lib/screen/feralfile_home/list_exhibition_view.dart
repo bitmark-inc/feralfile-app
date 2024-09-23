@@ -130,7 +130,7 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
       {int offset = 0, int pageSize = 50}) async {
     final sortBy = widget.sortBy;
     final exhibitions = await injector<FeralFileService>().getAllExhibitions(
-      keywork: widget.searchText ?? '',
+      keyword: widget.searchText ?? '',
       offset: offset,
       limit: pageSize,
       sortBy: sortBy.queryParam,

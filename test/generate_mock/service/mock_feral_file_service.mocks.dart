@@ -211,7 +211,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
     String? sortOrder = r'DESC',
     int? limit = 8,
     int? offset = 0,
-    String? keywork = r'',
+    String? keyword = r'',
     List<String>? relatedAccountIDs = const [],
     Map<_i11.FilterType, _i11.FilterValue>? filters = const {},
   }) =>
@@ -224,7 +224,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #sortOrder: sortOrder,
             #limit: limit,
             #offset: offset,
-            #keywork: keywork,
+            #keywork: keyword,
             #relatedAccountIDs: relatedAccountIDs,
             #filters: filters,
           },

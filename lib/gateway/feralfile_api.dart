@@ -36,15 +36,6 @@ abstract class FeralFileApi {
     @Query('includeFirstArtwork') bool includeFirstArtwork = true,
   });
 
-  @GET('/api/series')
-  Future<FFListSeriesResponse> getListSeries({
-    @Query('exhibitionID') required String exhibitionID,
-    @Query('sortBy') String? sortBy,
-    @Query('sortOrder') String? sortOrder,
-    @Query('includeArtist') bool includeArtist = true,
-    @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
-  });
-
   @GET('/api/exhibitions/{exhibitionID}/revenue-setting/resale')
   Future<ResaleResponse> getResaleInfo(
       @Path('exhibitionID') String exhibitionID);
@@ -69,9 +60,6 @@ abstract class FeralFileApi {
     Map<String, dynamic> customQueryParam = const {},
   });
 
-  @GET('/api/exhibitions/featured')
-  Future<ExhibitionResponse> getFeaturedExhibition();
-
   @GET('/api/artworks/featured')
   Future<FFListArtworksResponse> getFeaturedArtworks({
     @Query('includeArtist') bool includeArtist = true,
@@ -79,9 +67,6 @@ abstract class FeralFileApi {
     @Query('includeExhibitionContract') bool includeExhibitionContract = true,
     @Query('includeSuccessfulSwap') bool includeSuccessfulSwap = true,
   });
-
-  @GET('/api/exhibitions/upcoming')
-  Future<ExhibitionResponse> getUpcomingExhibition();
 
   @GET('/api/artworks')
   Future<FeralFileListResponse<Artwork>> getListArtworks({

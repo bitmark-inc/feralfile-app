@@ -15,9 +15,7 @@ import 'package:uuid/uuid.dart';
 class IsolatedUtil {
   static final IsolatedUtil _singleton = IsolatedUtil._internal();
 
-  factory IsolatedUtil() {
-    return _singleton;
-  }
+  factory IsolatedUtil() => _singleton;
 
   IsolatedUtil._internal();
 

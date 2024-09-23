@@ -1,7 +1,5 @@
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 
 class FeralFileHelper {
   static final String _baseUrl = Environment.feralFileAPIURL;
@@ -15,11 +13,4 @@ class FeralFileHelper {
 
   static String getPostUrl(Post post, String exhibitionID) =>
       '$_baseUrl/journal/${post.type}/${post.slug}/?exhibitionID=$exhibitionID';
-
-  static List<String> get ongoingExhibitionIDs {
-    final listOngoingExhibitionIDs = injector<RemoteConfigService>()
-        .getConfig<List<dynamic>?>(
-            ConfigGroup.exhibition, ConfigKey.ongoingExhibitionIDs, []);
-    return listOngoingExhibitionIDs?.map((id) => id.toString()).toList() ?? [];
-  }
 }
