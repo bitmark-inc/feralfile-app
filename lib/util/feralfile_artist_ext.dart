@@ -16,6 +16,14 @@ extension FFUserExt on FFUser {
       return null;
     }
 
+    if (instagramID!.startsWith('http') || instagramID.startsWith('www')) {
+      return instagramID;
+    }
+
+    if (instagramID.startsWith('@')) {
+      return 'https://www.instagram.com/${instagramID.substring(1)}';
+    }
+
     return 'https://www.instagram.com/$instagramID';
   }
 
@@ -23,6 +31,14 @@ extension FFUserExt on FFUser {
     final twitterID = metadata?['twitterID'];
     if (twitterID == null || twitterID.isEmpty) {
       return null;
+    }
+
+    if (twitterID!.startsWith('http') || twitterID.startsWith('www')) {
+      return twitterID;
+    }
+
+    if (twitterID.startsWith('@')) {
+      return 'https://twitter.com/${twitterID.substring(1)}';
     }
 
     return 'https://twitter.com/$twitterID';
