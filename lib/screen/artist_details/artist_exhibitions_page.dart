@@ -33,8 +33,7 @@ class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
   Future<List<Exhibition>> _fetchExhibitions() async {
     final artist = widget.payload.user;
     final artistId = artist.id;
-    final linkedAccountIds =
-        artist.linkedAccounts.map((account) => account.id).toList();
+    final linkedAccountIds = artist.alumniAccount?.linkedAddresses ?? [];
     final response = await injector<FeralFileService>().getAllExhibitions(
       relatedAccountIDs: [artistId, ...linkedAccountIds],
     );

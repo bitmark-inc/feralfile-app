@@ -92,11 +92,8 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
       ListUserView(
           users: artists,
           onUserSelected: (user) {
-            if (user is FFUserDetails) {
-              final artist = user.toFFArtist();
-              unawaited(injector<NavigationService>()
-                  .openFeralFileArtistPage(artist.id));
-            }
+            unawaited(injector<NavigationService>()
+                .openFeralFileArtistPage(user.alumniAccount?.slug ?? user.id));
           },
           scrollController: _scrollController,
           padding: const EdgeInsets.only(
@@ -116,7 +113,7 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     }
   }
 
-  Future<List<FFArtist>> _fetchArtists(BuildContext context) async {
+  Future<List<FFUser>> _fetchArtists(BuildContext context) async {
     if (_isLoading) {
       return [];
     }
@@ -242,11 +239,8 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       ListUserView(
         users: curators,
         onUserSelected: (user) {
-          if (user is FFUserDetails) {
-            final curator = user.toFFCurator();
-            unawaited(injector<NavigationService>()
-                .openFeralFileCuratorPage(curator.id));
-          }
+          unawaited(injector<NavigationService>()
+              .openFeralFileCuratorPage(user.alumniAccount?.slug ?? user.id));
         },
         scrollController: _scrollController,
         padding: const EdgeInsets.only(
@@ -267,7 +261,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     }
   }
 
-  Future<List<FFCurator>> _fetchCurators(BuildContext context) async {
+  Future<List<FFUser>> _fetchCurators(BuildContext context) async {
     if (_isLoading) {
       return [];
     }

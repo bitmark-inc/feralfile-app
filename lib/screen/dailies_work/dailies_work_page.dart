@@ -553,7 +553,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
-  Widget _shortArtistProfile(BuildContext context, FFArtist artist) => Column(
+  Widget _shortArtistProfile(BuildContext context, FFUser artist) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
