@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart'
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -568,6 +569,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
+    unawaited(_checkForReferralCode());
+  }
+
+  Future<void> _checkForReferralCode() async {
+    final referralCode = injector<ConfigurationService>().getReferralCode();
+    if (referralCode != null && referralCode.isNotEmpty) {
+      await injector<AddressService>()
+          .registerReferralCode(referralCode: referralCode);
+      await injector<ConfigurationService>().setReferralCode('');
+    }
   }
 
   void _triggerShowAnnouncement() {

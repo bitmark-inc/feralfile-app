@@ -612,9 +612,22 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final giftCode = data['gift_code'];
         await GiftHandler.handleGiftMembership(giftCode);
 
+      case 'referral_code':
+        final referralCode = data['referral_code'];
+        await _handleReferralCode(referralCode);
+
       default:
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
+  }
+
+  Future<void> _handleReferralCode(String referralCode) async {
+    // save referral code to local storage, for case when user register failed
+    await _configurationService.setReferralCode(referralCode);
+    await injector<AddressService>()
+        .registerReferralCode(referralCode: referralCode);
+    // clear referral code after register success
+    await _configurationService.setReferralCode('');
   }
 
   Future<void> _handlePostcardDeeplink(String shareCode) async {

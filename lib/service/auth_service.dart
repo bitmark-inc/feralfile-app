@@ -144,4 +144,8 @@ class AuthService {
     final response = await _authApi.redeemGiftCode(giftCode);
     return response.ok == 1;
   }
+
+  Future<void> registerReferralCode({required String referralCode}) async {
+    await _authApi.registerReferralCode(referralCode);
+  }
 }

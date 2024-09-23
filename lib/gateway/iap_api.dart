@@ -80,4 +80,9 @@ abstract class IAPApi {
   Future<void> deleteMetrics(
     @Path('id') String deviceId,
   );
+
+  @POST('/apis/v2/addresses/referral-code/{referralCode}')
+  Future<void> registerReferralCode(
+    @Path('referralCode') String referralCode,
+  );
 }
