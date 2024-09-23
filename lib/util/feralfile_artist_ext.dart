@@ -17,7 +17,7 @@ extension FFUserExt on FFUser {
       return null;
     }
 
-    if (instagramID!.startsWith('http') || instagramID.startsWith('www')) {
+    if (instagramID.startsWith('http') || instagramID.startsWith('www')) {
       return instagramID;
     }
 
@@ -34,7 +34,7 @@ extension FFUserExt on FFUser {
       return null;
     }
 
-    if (twitterID!.startsWith('http') || twitterID.startsWith('www')) {
+    if (twitterID.startsWith('http') || twitterID.startsWith('www')) {
       return twitterID;
     }
 
