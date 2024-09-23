@@ -105,6 +105,13 @@ abstract class FeralFileApi {
     @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
   });
 
+  // get list daily token by date with local time
+  @GET('/api/dailies/date/{date}')
+  Future<FeralFileListResponse<DailyToken>> getDailiesTokenByDate({
+    @Path('date') required String date,
+    @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
+  });
+
   @GET('/api/series')
   Future<FeralFileListResponse<FFSeries>> exploreArtwork({
     @Query('sortBy') String? sortBy,
@@ -124,7 +131,7 @@ abstract class FeralFileApi {
   });
 
   @GET('/api/artists')
-  Future<FeralFileListResponse<FFArtist>> getArtists({
+  Future<FeralFileListResponse<FFUser>> getArtists({
     @Query('limit') int limit = 20,
     @Query('offset') int offset = 0,
     @Query('sortBy') String sortBy = 'relevance',
@@ -134,7 +141,7 @@ abstract class FeralFileApi {
   });
 
   @GET('/api/curators')
-  Future<FeralFileListResponse<FFCurator>> getCurators({
+  Future<FeralFileListResponse<FFUser>> getCurators({
     @Query('limit') int limit = 20,
     @Query('offset') int offset = 0,
     @Query('sortBy') String sortBy = 'relevance',
@@ -151,7 +158,7 @@ abstract class FeralFileApi {
   });
 
   @GET('/api/accounts/{accountId}')
-  Future<FeralFileResponse<FFUserDetails>> getUser({
+  Future<FeralFileResponse<FFUser>> getUser({
     @Path('accountId') String accountId = '',
     @Query('includeLinkedAccounts') bool includeLinkedAccounts = true,
     @Query('includeCollaborationAccounts')

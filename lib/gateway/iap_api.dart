@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
-import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/ok_response.dart';
 import 'package:dio/dio.dart';
@@ -64,5 +63,21 @@ abstract class IAPApi {
   @POST('/apis/v2/gift-code/{id}/redeem')
   Future<OkResponse> redeemGiftCode(
     @Path('id') String id,
+  );
+
+  @PATCH('/apis/metric-devices/{id}')
+  Future<void> updateMetrics(
+    @Path('id') String deviceId,
+  );
+
+  @POST('/apis/metrics')
+  Future<void> sendEvent(
+    @Body() Map<String, dynamic> metrics,
+    @Header('x-device-id') String deviceId,
+  );
+
+  @DELETE('/apis/metric-devices/{id}')
+  Future<void> deleteMetrics(
+    @Path('id') String deviceId,
   );
 }

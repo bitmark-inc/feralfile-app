@@ -78,7 +78,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
         'https://rpc.tzbeta.net',
         'https://mainnet.tezos.marigold.dev'
       ]
-    }
+    },
+    'membership': {
+      'lifetime': '2100-01-01T00:00:00Z',
+    },
   };
 
   static Map<String, dynamic>? _configs;
@@ -136,6 +139,8 @@ enum ConfigGroup {
   dAppUrls,
   exhibition,
   johnGerrard,
+  membership,
+  daily,
 }
 
 // ConfigGroup getString extension
@@ -162,6 +167,10 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'exhibition';
       case ConfigGroup.johnGerrard:
         return 'john_gerrard';
+      case ConfigGroup.membership:
+        return 'membership';
+      case ConfigGroup.daily:
+        return 'daily';
     }
   }
 }
@@ -200,6 +209,8 @@ enum ConfigKey {
   seriesIds,
   assetIds,
   customNote,
+  lifetime,
+  scheduleTime,
 }
 
 // ConfigKey getString extension
@@ -272,6 +283,10 @@ extension ConfigKeyExtension on ConfigKey {
         return 'asset_ids';
       case ConfigKey.customNote:
         return 'custom_notes';
+      case ConfigKey.lifetime:
+        return 'lifetime';
+      case ConfigKey.scheduleTime:
+        return 'scheduleTime';
     }
   }
 }

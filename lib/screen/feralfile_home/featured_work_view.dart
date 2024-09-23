@@ -5,10 +5,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
@@ -282,28 +282,37 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
         ..add(token.artistName ?? '');
     }
     bloc.add(GetIdentityEvent(addresses));
-    await Future.wait(tokens.map((token) async {
-      final uri = Uri.tryParse(token.thumbnailURL ?? '');
-      if (uri != null) {
-        final response = await http.get(uri);
+    await Future.wait(
+      tokens.map(
+        (token) async {
+          try {
+            final uri = Uri.tryParse(token.thumbnailURL ?? '');
+            if (uri != null) {
+              final response = await http.get(uri);
 
-        if (response.statusCode == 200) {
-          final bytes = response.bodyBytes;
+              if (response.statusCode == 200) {
+                final bytes = response.bodyBytes;
 
-          // Decode the image
-          final image = await decodeImageFromList(bytes);
+                // Decode the image
+                final image = await decodeImageFromList(bytes);
 
-          // Get width and height
-          final width = image.width;
-          final height = image.height;
-          _imageSize.addEntries([
-            MapEntry(token.thumbnailURL ?? '', Size(width * 1.0, height * 1.0))
-          ]);
-        } else {
-          log.info('Failed to load image at ${token.thumbnailURL}');
-        }
-      }
-    }));
+                // Get width and height
+                final width = image.width;
+                final height = image.height;
+                _imageSize.addEntries([
+                  MapEntry(
+                      token.thumbnailURL ?? '', Size(width * 1.0, height * 1.0))
+                ]);
+              } else {
+                log.info('Failed to load image at ${token.thumbnailURL}');
+              }
+            }
+          } catch (e) {
+            log.info('Failed to load image at ${token.thumbnailURL}');
+          }
+        },
+      ),
+    );
     return tokens;
   }
 
@@ -432,11 +441,8 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
               onTitleTap: () => _onTapArtwork(context, asset),
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null && asset.isFeralfile
-                  ? () => unawaited(Navigator.of(context).pushNamed(
-                        AppRouter.userDetailsPage,
-                        arguments:
-                            UserDetailsPagePayload(userId: asset.artistID!),
-                      ))
+                  ? () => unawaited(injector<NavigationService>()
+                      .openFeralFileArtistPage(asset.artistID!))
                   : null,
             ),
           ),

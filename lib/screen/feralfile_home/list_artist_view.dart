@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/loading.dart';
@@ -93,9 +92,8 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
       ListUserView(
           users: artists,
           onUserSelected: (user) {
-            if (user is FFUserDetails) {
-              _gotoArtistDetails(context, user.toFFArtist());
-            }
+            unawaited(injector<NavigationService>()
+                .openFeralFileArtistPage(user.alumniAccount?.slug ?? user.id));
           },
           scrollController: _scrollController,
           padding: const EdgeInsets.only(
@@ -103,13 +101,6 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
             right: 12,
             bottom: 100,
           ));
-
-  void _gotoArtistDetails(BuildContext context, FFArtist artist) {
-    unawaited(Navigator.of(context).pushNamed(
-      AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(userId: artist.slug ?? artist.id),
-    ));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +113,7 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     }
   }
 
-  Future<List<FFArtist>> _fetchArtists(BuildContext context) async {
+  Future<List<FFUser>> _fetchArtists(BuildContext context) async {
     if (_isLoading) {
       return [];
     }
@@ -240,7 +231,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      child: Text('No curators found', style: theme.textTheme.ppMori400White14),
+      child: Text('no_curator_found', style: theme.textTheme.ppMori400White14),
     );
   }
 
@@ -248,9 +239,8 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       ListUserView(
         users: curators,
         onUserSelected: (user) {
-          if (user is FFUserDetails) {
-            _gotoCuratorDetails(context, user.toFFCurator());
-          }
+          unawaited(injector<NavigationService>()
+              .openFeralFileCuratorPage(user.alumniAccount?.slug ?? user.id));
         },
         scrollController: _scrollController,
         padding: const EdgeInsets.only(
@@ -259,13 +249,6 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
           bottom: 100,
         ),
       );
-
-  void _gotoCuratorDetails(BuildContext context, FFCurator curator) {
-    unawaited(Navigator.of(context).pushNamed(
-      AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(userId: curator.slug ?? curator.id),
-    ));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -278,7 +261,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     }
   }
 
-  Future<List<FFCurator>> _fetchCurators(BuildContext context) async {
+  Future<List<FFUser>> _fetchCurators(BuildContext context) async {
     if (_isLoading) {
       return [];
     }

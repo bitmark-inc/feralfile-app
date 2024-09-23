@@ -58,6 +58,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
@@ -138,6 +139,7 @@ import 'package:page_transition/page_transition.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
+GlobalKey<FeralfileHomePageState> feralFileHomeKey = GlobalKey();
 
 class AppRouter {
   static const createPlayListPage = 'create_playlist_page';
@@ -232,6 +234,11 @@ class AppRouter {
   static const artistWorksPage = 'artist_works_page';
   static const artistExhibitionsPage = 'artist_exhibitions_page';
   static const artistPostsPage = 'artist_posts_page';
+  static const featuredPage = 'featured_page';
+  static const artworksPage = 'artworks_page';
+  static const artistsPage = 'artists_page';
+  static const curatorsPage = 'curators_page';
+  static const rAndDPage = 'r_and_d_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -989,7 +996,11 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(
-                    create: (_) => UpgradesBloc(injector(), injector()),
+                    create: (_) => UpgradesBloc(
+                      injector(),
+                      injector(),
+                      injector(),
+                    ),
                   ),
                 ], child: const SubscriptionPage()));
 

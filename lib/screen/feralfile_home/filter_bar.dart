@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/screen/feralfile_home/filter_expanded_item.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_home.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class FilterBar extends StatefulWidget {
@@ -89,11 +90,11 @@ enum FilterType {
   String get name {
     switch (this) {
       case FilterType.type:
-        return 'Type';
+        return 'type'.tr();
       case FilterType.chain:
-        return 'Chain';
+        return 'chain'.tr();
       case FilterType.medium:
-        return 'Medium';
+        return 'medium'.tr();
     }
   }
 
@@ -136,35 +137,35 @@ enum FilterValue {
   String get name {
     switch (this) {
       case FilterValue.edition:
-        return 'Edition';
+        return 'edition'.tr();
       case FilterValue.series:
-        return 'Series';
+        return 'series'.tr();
       case FilterValue.oneofone:
-        return '1 of 1';
+        return '1_of_1'.tr();
       case FilterValue.solo:
-        return 'Solo';
+        return 'solo'.tr();
       case FilterValue.group:
-        return 'Group';
+        return 'group'.tr();
       case FilterValue.ethereum:
-        return 'Ethereum';
+        return 'ethereum'.tr();
       case FilterValue.tezos:
-        return 'Tezos';
+        return 'tezos'.tr();
       case FilterValue.image:
-        return 'Image';
+        return 'image'.tr();
       case FilterValue.video:
-        return 'Video';
+        return 'video'.tr();
       case FilterValue.software:
-        return 'Software';
+        return 'software'.tr();
       case FilterValue.pdf:
-        return 'PDF';
+        return 'pdf'.tr();
       case FilterValue.audio:
-        return 'Audio';
+        return 'audio'.tr();
       case FilterValue.threeD:
-        return '3D';
+        return '3d'.tr();
       case FilterValue.animatedGif:
-        return 'Animated GIF';
+        return 'animated_gif'.tr();
       case FilterValue.text:
-        return 'TXT';
+        return 'txt'.tr();
     }
   }
 
@@ -234,12 +235,12 @@ enum SortBy {
       case SortBy.firstExhibitionJoinedAt:
       case SortBy.createdAt:
       case SortBy.openAt:
-        return 'Recent';
+        return 'recent'.tr();
       case SortBy.alias:
       case SortBy.title:
-        return 'A to Z';
+        return 'a_to_z'.tr();
       case SortBy.relevance:
-        return 'Relevance';
+        return 'relevance'.tr();
     }
   }
 

@@ -622,6 +622,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                 ),
                 const SizedBox(height: 8),
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400White14,
                     children: [

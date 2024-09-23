@@ -175,7 +175,8 @@ class _FFCastButtonState extends State<FFCastButton> {
               return MembershipCard(
                 type: MembershipCardType.premium,
                 price: price,
-                isProcessing: upgradeState.isProcessing,
+                isProcessing: upgradeState.isProcessing ||
+                    subscriptionDetail?.status == IAPProductStatus.pending,
                 isEnable: subscriptionDetail != null,
                 onTap: (_) {
                   _onPressSubscribe(subscriptionDetails: subscriptionDetail!);

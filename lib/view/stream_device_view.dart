@@ -66,6 +66,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   Expanded(
                       child: (connectedDevice != null)
                           ? RichText(
+                              textScaler: MediaQuery.textScalerOf(context),
                               text: TextSpan(
                                 style: theme.textTheme.ppMori700White24,
                                 children: <TextSpan>[

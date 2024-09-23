@@ -106,20 +106,23 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                       ),
                       const SizedBox(height: 20),
                       RichText(
+                        textScaler: MediaQuery.textScalerOf(context),
                         text: TextSpan(
                           children: <TextSpan>[
                             TextSpan(
-                              text: 'enter_passphrase'.tr().split('only')[0],
+                              text:
+                                  'enter_passphrase'.tr().split('only'.tr())[0],
                               style:
                                   Theme.of(context).textTheme.ppMori400Black14,
                             ),
                             TextSpan(
-                              text: 'only',
+                              text: 'only'.tr(),
                               style:
                                   Theme.of(context).textTheme.ppMori700Black14,
                             ),
                             TextSpan(
-                              text: 'enter_passphrase'.tr().split('only')[1],
+                              text:
+                                  'enter_passphrase'.tr().split('only'.tr())[1],
                               style:
                                   Theme.of(context).textTheme.ppMori400Black14,
                             ),

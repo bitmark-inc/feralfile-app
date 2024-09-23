@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -25,7 +24,6 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -998,14 +996,17 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             title: 'title'.tr(),
             value: artwork.series!.displayTitle,
           ),
-          if (artwork.series!.artist?.alias != null) ...[
+          if (artwork.series!.artist?.alumniAccount?.alias != null) ...[
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
               value: artwork.series!.artist!.displayAlias,
-              tapLink:
-                  FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
-              forceSafariVC: true,
+              onTap: () async {
+                if (artwork.series!.artist!.alumniAccount!.slug != null) {
+                  await injector<NavigationService>().openFeralFileArtistPage(
+                      artwork.series!.artist!.alumniAccount!.slug!);
+                }
+              },
             ),
           ],
           if (!artwork.isYokoOnoPublicVersion) ...[
@@ -1027,8 +1028,17 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             MetaDataItem(
               title: 'exhibition'.tr(),
               value: artwork.series!.exhibition!.title,
-              tapLink: feralFileExhibitionUrl(artwork.series!.exhibition!.slug),
-              forceSafariVC: true,
+              onTap: () {
+                unawaited(
+                  Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions: [artwork.series!.exhibition!],
+                      index: 0,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
           divider,
@@ -1088,11 +1098,8 @@ Widget artworkDetailsMetadataSection(
                     assetToken.artistURL?.split(' & ').firstOrNull ?? '');
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               } else {
-                final artist = await injector<FeralFileService>()
-                    .getUser(assetToken.artistID!);
-                unawaited(Navigator.of(context).pushNamed(
-                    AppRouter.userDetailsPage,
-                    arguments: UserDetailsPagePayload(userId: artist.id)));
+                unawaited(injector<NavigationService>()
+                    .openFeralFileArtistPage(assetToken.artistID!));
               }
             },
             forceSafariVC: true,

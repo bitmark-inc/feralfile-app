@@ -120,6 +120,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
   final _exhibitionViewKey = GlobalKey<ExploreExhibitionState>();
   final _artistViewKey = GlobalKey<ExploreArtistViewState>();
   final _curatorViewKey = GlobalKey<ExploreCuratorViewState>();
+  final GlobalKey<_ItemExpandedWidgetState> _itemExpandedKey = GlobalKey();
 
   @override
   void initState() {
@@ -188,6 +189,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             builder: (context, state) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: ItemExpandedWidget(
+                key: _itemExpandedKey,
                 items: _getItemList(state),
                 selectedIndex: _selectedIndex,
                 iconOnExpanded: RotatedBox(
@@ -217,6 +219,17 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     );
   }
 
+  void jumpToTab(FeralfileHomeTab tab) {
+    _selectTab(tab);
+    _itemExpandedKey.currentState?.selectItem(tab.index);
+  }
+
+  void _selectTab(FeralfileHomeTab tab) {
+    setState(() {
+      _selectedIndex = tab.index;
+    });
+  }
+
   List<Item> _getItemList(FeralfileHomeBlocState state) {
     final numberFormater = NumberFormat('#,###', 'en_US');
     return [
@@ -227,9 +240,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             ? numberFormater.format(state.featuredArtworks!.length)
             : '-',
         onSelected: () {
-          setState(() {
-            _selectedIndex = FeralfileHomeTab.featured.index;
-          });
+          _selectTab(FeralfileHomeTab.featured);
         },
       ),
       Item(
@@ -239,9 +250,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             ? numberFormater.format(state.exploreStatisticsData!.totalArtwork)
             : '-',
         onSelected: () {
-          setState(() {
-            _selectedIndex = FeralfileHomeTab.artworks.index;
-          });
+          _selectTab(FeralfileHomeTab.artworks);
         },
       ),
       Item(
@@ -252,9 +261,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
                 .format(state.exploreStatisticsData!.totalExhibition)
             : '-',
         onSelected: () {
-          setState(() {
-            _selectedIndex = FeralfileHomeTab.exhibitions.index;
-          });
+          _selectTab(FeralfileHomeTab.exhibitions);
         },
       ),
       Item(
@@ -264,9 +271,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
               ? numberFormater.format(state.exploreStatisticsData!.totalArtist)
               : '-',
           onSelected: () {
-            setState(() {
-              _selectedIndex = FeralfileHomeTab.artists.index;
-            });
+            _selectTab(FeralfileHomeTab.artists);
           }),
       Item(
         id: FeralfileHomeTab.curators.index.toString(),
@@ -275,9 +280,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             ? numberFormater.format(state.exploreStatisticsData!.totalCurator)
             : '-',
         onSelected: () {
-          setState(() {
-            _selectedIndex = FeralfileHomeTab.curators.index;
-          });
+          _selectTab(FeralfileHomeTab.curators);
         },
       ),
     ];
@@ -374,7 +377,8 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     return Container(
       padding: const EdgeInsets.all(16),
       child: Center(
-        child: Text('R&D coming soon', style: theme.textTheme.ppMori700White24),
+        child: Text('rnd_coming_soon'.tr(),
+            style: theme.textTheme.ppMori700White24),
       ),
     );
   }
@@ -427,6 +431,13 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
   void initState() {
     super.initState();
     _selectedIndex = widget.selectedIndex;
+  }
+
+  void selectItem(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _isExpanded = false;
+    });
   }
 
   @override

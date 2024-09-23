@@ -10,8 +10,6 @@ import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -34,6 +32,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shake/shake.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -52,7 +51,6 @@ class _FeralFileArtworkPreviewPageState
     with
         AfterLayoutMixin<FeralFileArtworkPreviewPage>,
         SingleTickerProviderStateMixin {
-  final _metricClient = injector.get<MetricClientService>();
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
   late bool isCrystallineWork;
 
@@ -70,13 +68,6 @@ class _FeralFileArtworkPreviewPageState
 
   ScrollController? _scrollController;
   late AnimationController _animationController;
-
-  void _sendViewArtworkEvent(Artwork artwork) {
-    final data = {
-      MixpanelProp.tokenId: artwork.metricTokenId,
-    };
-    _metricClient.addEvent(MixpanelEvent.viewArtwork, data: data);
-  }
 
   @override
   void initState() {
@@ -96,7 +87,6 @@ class _FeralFileArtworkPreviewPageState
   @override
   void afterFirstLayout(BuildContext context) {
     _appBarBottomDy ??= MediaQuery.of(context).padding.top + kToolbarHeight;
-    _sendViewArtworkEvent(widget.payload.artwork);
     _detector = ShakeDetector.autoStart(
       onPhoneShake: () async {
         await _exitFullScreen();
@@ -447,6 +437,11 @@ class _FeralFileArtworkPreviewPageState
                           customStylesBuilder: auHtmlStyle,
                           artwork.series!.description ?? '',
                           textStyle: theme.textTheme.ppMori400White14,
+                          onTapUrl: (url) async {
+                            await launchUrl(Uri.parse(url),
+                                mode: LaunchMode.externalApplication);
+                            return true;
+                          },
                         ),
                       ),
                       const SizedBox(height: 40),

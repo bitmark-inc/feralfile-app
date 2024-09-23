@@ -181,8 +181,8 @@ class _SettingsPageState extends State<SettingsPage>
                     ),
                     addOnlyDivider(),
                     _settingItem(
-                      title: 'go_premium'.tr(),
-                      icon: const Icon(AuIcon.add),
+                      title: 'membership'.tr(),
+                      icon: SvgPicture.asset('assets/images/icon_membership.svg'),
                       onTap: () async {
                         await Navigator.of(context)
                             .pushNamed(AppRouter.subscriptionPage);

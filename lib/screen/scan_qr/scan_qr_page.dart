@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -47,8 +46,6 @@ enum QRScanTab {
         return AppRouter.scanQRPage;
     }
   }
-
-  String get screenName => getPageName(routerName);
 }
 
 class ScanQRPagePayload {
@@ -497,10 +494,12 @@ class QRScanViewState extends State<QRScanView>
     }
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 44),
-        child: SplittedBanner(
-            headerWidget: _instructionHeader(context),
-            bodyWidget:
-                _instructionBody(context, widget.scannerItem.instructions)));
+        child: SingleChildScrollView(
+          child: SplittedBanner(
+              headerWidget: _instructionHeader(context),
+              bodyWidget:
+                  _instructionBody(context, widget.scannerItem.instructions)),
+        ));
   }
 
   Widget _instructionHeader(BuildContext context) {
@@ -511,20 +510,23 @@ class QRScanViewState extends State<QRScanView>
           'assets/images/icon_scan.svg',
         ),
         const SizedBox(width: 20),
-        RichText(
-          text: TextSpan(
-            text: 'scan_qr_code'.tr(),
-            children: [
-              TextSpan(
-                text: ' ',
-                style: theme.textTheme.ppMori400Grey14,
-              ),
-              TextSpan(
-                text: 'in_order_to'.tr(),
-                style: theme.textTheme.ppMori400Grey14,
-              ),
-            ],
-            style: theme.textTheme.ppMori400White14,
+        Expanded(
+          child: RichText(
+            textScaler: MediaQuery.textScalerOf(context),
+            text: TextSpan(
+              text: 'scan_qr_code'.tr(),
+              children: [
+                TextSpan(
+                  text: ' ',
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+                TextSpan(
+                  text: 'in_order_to'.tr(),
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+              ],
+              style: theme.textTheme.ppMori400White14,
+            ),
           ),
         ),
       ],
@@ -542,18 +544,20 @@ class QRScanViewState extends State<QRScanView>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        instruction.name,
-                        style: theme.textTheme.ppMori700White14,
-                      ),
-                      Text(
-                        instruction.detail,
-                        style: theme.textTheme.ppMori400Grey14,
-                      )
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          instruction.name,
+                          style: theme.textTheme.ppMori700White14,
+                        ),
+                        Text(
+                          instruction.detail,
+                          style: theme.textTheme.ppMori400Grey14,
+                        )
+                      ],
+                    ),
                   ),
                   instruction.icon ?? const SizedBox(),
                 ],
@@ -594,6 +598,7 @@ class QRScanViewState extends State<QRScanView>
         injector<DeeplinkService>().handleDeeplink(
           code,
           delay: const Duration(seconds: 1),
+          // ignore: avoid_annotating_with_dynamic
           onFinished: (dynamic object) {
             if (mounted) {
               setState(() {

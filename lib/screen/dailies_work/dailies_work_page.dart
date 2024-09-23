@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
@@ -15,8 +14,10 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -37,7 +38,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:sentry/sentry.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DailyWorkPage extends StatefulWidget {
   const DailyWorkPage({super.key});
@@ -49,8 +50,6 @@ class DailyWorkPage extends StatefulWidget {
 class DailyWorkPageState extends State<DailyWorkPage>
     with AutomaticKeepAliveClientMixin, RouteAware {
   Timer? _timer;
-  DailyToken? _currentDailyToken;
-  DailyToken? _nextDailyToken;
   Duration? _remainingDuration;
   Timer? _progressTimer;
   PageController? _pageController;
@@ -89,26 +88,30 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {
-    _nextDailyToken = await injector<FeralFileService>().getNextDailiesToken();
     setState(() {
-      _nextDailyToken = _nextDailyToken;
       _remainingDuration = _calcRemainingDuration;
     });
-    if (_nextDailyToken == null) {
-      unawaited(Sentry.captureMessage('nextDailyToken is null'));
-    }
-    final duration =
-        _calcRemainingDuration ?? (_nextDay.difference(DateTime.now()));
+    const defaultDuration = Duration(hours: 1);
+    final nextDailyDuration = _calcRemainingDuration;
+    final duration = nextDailyDuration > defaultDuration
+        ? defaultDuration
+        : nextDailyDuration;
     _timer?.cancel();
     _timer = Timer(duration, () {
+      log.info('Get Daily Asset Token');
       context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
     });
   }
 
-  DateTime get _nextDay {
-    final now = DateTime.now();
+  DateTime get _nextDailyDateTime {
+    const defaultScheduleTime = 6;
+    final configScheduleTime = injector<RemoteConfigService>()
+        .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
+            defaultScheduleTime.toString());
+    final now =
+        DateTime.now().subtract(Duration(hours: int.parse(configScheduleTime)));
     final startNextDay = DateTime(now.year, now.month, now.day + 1).add(
-      const Duration(seconds: 3),
+      Duration(hours: int.parse(configScheduleTime), seconds: 3),
       // add 3 seconds to avoid the same artwork
     );
     return startNextDay;
@@ -137,13 +140,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut));
   }
 
-  Duration? get _calcTotalDuration => (_nextDailyToken?.displayTime != null &&
-          _currentDailyToken?.displayTime != null)
-      ? _nextDailyToken?.displayTime.difference(_currentDailyToken!.displayTime)
-      : null;
+  Duration? get _calcTotalDuration => const Duration(hours: 24);
 
-  Duration? get _calcRemainingDuration =>
-      _nextDailyToken?.displayTime.difference(DateTime.now());
+  Duration get _calcRemainingDuration =>
+      _nextDailyDateTime.difference(DateTime.now());
 
   void updateProgressStatus() {
     _progressTimer?.cancel();
@@ -281,9 +281,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   context
                       .read<IdentityBloc>()
                       .add(GetIdentityEvent(identitiesList));
-                  setState(() {
-                    _currentDailyToken = state.currentDailyToken;
-                  });
                   unawaited(scheduleNextDailyWork(context));
                   updateProgressStatus();
                 }
@@ -349,11 +346,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
             title: assetToken.displayTitle ?? '',
             subTitle: artistName,
             onSubTitleTap: assetToken.artistID != null && assetToken.isFeralfile
-                ? () => unawaited(Navigator.of(context).pushNamed(
-                      AppRouter.userDetailsPage,
-                      arguments:
-                          UserDetailsPagePayload(userId: assetToken.artistID!),
-                    ))
+                ? () => unawaited(injector<NavigationService>()
+                    .openFeralFileArtistPage(assetToken.artistID!))
                 : null,
           ),
         ),
@@ -417,6 +411,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     customStylesBuilder: auHtmlStyle,
                     assetToken.description ?? '',
                     textStyle: theme.textTheme.ppMori400White14,
+                    onTapUrl: (url) async {
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
+                      return true;
+                    },
                   ),
                 ),
               ),
@@ -448,10 +447,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 SliverToBoxAdapter(
                   child: GestureDetector(
                       onTap: () {
-                        unawaited(Navigator.of(context).pushNamed(
-                            AppRouter.userDetailsPage,
-                            arguments: UserDetailsPagePayload(
-                                userId: state.currentArtist!.id)));
+                        unawaited(injector<NavigationService>()
+                            .openFeralFileArtistPage(state.currentArtist!.id));
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -556,7 +553,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
-  Widget _shortArtistProfile(BuildContext context, FFArtist artist) => Column(
+  Widget _shortArtistProfile(BuildContext context, FFUser artist) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -570,7 +567,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
           ),
           const SizedBox(height: 32),
           Text(
-            'Read more',
+            'read_more'.tr(),
             style: Theme.of(context).textTheme.ppMori400White14.copyWith(
                   decoration: TextDecoration.underline,
                 ),
@@ -590,16 +587,23 @@ class DailyWorkPageState extends State<DailyWorkPage>
         const SizedBox(height: 16),
         ExhibitionCard(
           exhibition: exhibition,
+          viewableExhibitions: [exhibition],
+          horizontalMargin: 16,
         ),
         const SizedBox(height: 48),
         HtmlWidget(
           exhibition.noteBrief,
           customStylesBuilder: auHtmlStyle,
           textStyle: theme.textTheme.ppMori400White14,
+          onTapUrl: (url) async {
+            await launchUrl(Uri.parse(url),
+                mode: LaunchMode.externalApplication);
+            return true;
+          },
         ),
         const SizedBox(height: 16),
         Text(
-          'Read more',
+          'read_more'.tr(),
           style: theme.textTheme.ppMori400White14.copyWith(
             decoration: TextDecoration.underline,
           ),

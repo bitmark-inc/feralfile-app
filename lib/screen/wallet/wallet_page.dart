@@ -128,7 +128,7 @@ class _WalletPageState extends State<WalletPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: getBackAppBar(context, title: 'addresses'.tr(), onBack: () {
+        appBar: getBackAppBar(context, title: 'wallet'.tr(), onBack: () {
           Navigator.of(context).pop();
         },
             icon: Semantics(

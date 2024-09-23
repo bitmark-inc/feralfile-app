@@ -15,12 +15,9 @@ import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
@@ -441,30 +438,6 @@ extension AssetTokenExtension on AssetToken {
     }
 
     return null;
-  }
-
-  Future<void> sendViewArtworkEvent() async {
-    String tokenId = id;
-    if (isFeralfile) {
-      try {
-        final artworkId = feralfileArtworkId;
-        if (artworkId != null && artworkId.isNotEmpty) {
-          final artwork =
-              await injector<FeralFileService>().getArtwork(artworkId);
-          tokenId = artwork.metricTokenId;
-        }
-      } catch (e, stackTrace) {
-        await Sentry.captureException(
-          e,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-    final data = {
-      MixpanelProp.tokenId: tokenId,
-    };
-    injector<MetricClientService>()
-        .addEvent(MixpanelEvent.viewArtwork, data: data);
   }
 }
 

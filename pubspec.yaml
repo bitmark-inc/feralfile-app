@@ -69,7 +69,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: ee2fc1780a6c854390edfd97da935596e1673680
+      ref: 9f68142e2be8f75df201633fbd9bbfc632189acc
   local_auth: ^2.2.0
   logging: ^1.2.0
   measured_size: ^1.0.0
@@ -98,7 +98,7 @@ dependencies:
       url: https://github.com/autonomy-system/tezart.git
       ref: 85070e8ddafe5140c0bfd2cb9d569ecf986e7234
   uni_links: ^0.5.1
-  url_launcher: ^6.0.20
+  url_launcher: ^6.2.2
   uuid:
   web3dart: ^2.5.1
   web_socket_channel:
@@ -115,7 +115,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: adbf117dc53ffbc2a7c9eda4dd5a1aeec573cc06
+      ref: a31136a1c8a7779d0c87b14daa02e40635737b2f
   flutter_branch_sdk: ^7.0.2
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2

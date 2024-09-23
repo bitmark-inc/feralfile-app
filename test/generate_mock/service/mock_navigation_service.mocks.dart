@@ -499,21 +499,19 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> openFeralFileArtistPage(String? alias) =>
-      (super.noSuchMethod(
+  _i4.Future<void> openFeralFileArtistPage(String? id) => (super.noSuchMethod(
         Invocation.method(
           #openFeralFileArtistPage,
-          [alias],
+          [id],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> openFeralFileCuratorPage(String? alias) =>
-      (super.noSuchMethod(
+  _i4.Future<void> openFeralFileCuratorPage(String? id) => (super.noSuchMethod(
         Invocation.method(
           #openFeralFileCuratorPage,
-          [alias],
+          [id],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

@@ -78,11 +78,10 @@ class AddressService {
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
     final res = await setPrimaryAddressInfo(info: info);
-    if (withDidKey) {
-      await injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress();
-    }
     // when register primary address, we need to update the auth token
     await injector<AuthService>().getAuthToken(forceRefresh: true);
+    // we also need to identity the metric client
+    await injector<MetricClientService>().identity();
     return res;
   }
 

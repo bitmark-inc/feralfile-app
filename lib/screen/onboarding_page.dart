@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -73,6 +74,9 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _createAccountOrRestoreIfNeeded() async {
     await injector<AccountService>().restoreIfNeeded();
+    await metricClient.identity();
+    // count open app
+    await metricClient.addEvent(MetricEventName.openApp.name);
     if (!mounted) {
       return;
     }

@@ -84,6 +84,7 @@ class HowToDisplayOnTV extends StatelessWidget {
             children: [
               Expanded(
                 child: RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori700White24,
                     children: <TextSpan>[
@@ -118,17 +119,18 @@ class HowToDisplayOnTV extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
-                      const TextSpan(
-                        text: 'Step 1: ',
-                        style: TextStyle(
+                      TextSpan(
+                        text: "${'step'.tr()} 1: ",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const TextSpan(
-                        text: 'Search ',
+                      TextSpan(
+                        text: "${'search_by_'.tr()} ",
                       ),
                       WidgetSpan(
                         baseline: TextBaseline.alphabetic,
@@ -140,26 +142,27 @@ class HowToDisplayOnTV extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: Text(
-                            'Feral File',
+                            textScaler: const TextScaler.linear(1),
+                            'feral_file'.tr(),
                             style: theme.textTheme.ppMori700Black14,
                           ),
                         ),
                       ),
-                      const TextSpan(
-                        text:
-                            ' in Google Play Store on your TV, install and open the app.',
+                      TextSpan(
+                        text: " ${'in_google_play_store'.tr()}.",
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 10),
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
-                      const TextSpan(
-                        text: 'Step 2: ',
-                        style: TextStyle(
+                      TextSpan(
+                        text: "${'step'.tr()} 2: ",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -168,15 +171,15 @@ class HowToDisplayOnTV extends StatelessWidget {
                           ..onTap = () {
                             onScanQRTap?.call();
                           },
-                        text: 'Scan the QR code',
+                        text: 'scan_the_qr_code'.tr(),
                         style: onScanQRTap != null
                             ? const TextStyle(
                                 decoration: TextDecoration.underline,
                               )
                             : null,
                       ),
-                      const TextSpan(
-                        text: ' on your TV.',
+                      TextSpan(
+                        text: " ${'on_your_TV'.tr()}.",
                       )
                     ],
                   ),
@@ -209,6 +212,7 @@ class HowToDisplayOnBrowser extends StatelessWidget {
             children: [
               Expanded(
                 child: RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori700White24,
                     children: <TextSpan>[
@@ -244,17 +248,18 @@ class HowToDisplayOnBrowser extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
-                      const TextSpan(
-                        text: 'Step 1: ',
-                        style: TextStyle(
+                      TextSpan(
+                        text: "${'step'.tr()} 1: ",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const TextSpan(
-                        text: 'Open ',
+                      TextSpan(
+                        text: "${'open'.tr()} ",
                       ),
                       WidgetSpan(
                         baseline: TextBaseline.alphabetic,
@@ -267,24 +272,26 @@ class HowToDisplayOnBrowser extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: Text(
                             'https://display.feralfile.com',
+                            textScaler: const TextScaler.linear(1),
                             style: theme.textTheme.ppMori700Black14,
                           ),
                         ),
                       ),
-                      const TextSpan(
-                        text: ' on your TV web browser.',
+                      TextSpan(
+                        text: " ${'on_your_TV_web_browser'.tr()}.",
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 10),
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
-                      const TextSpan(
-                        text: 'Step 2: ',
-                        style: TextStyle(
+                      TextSpan(
+                        text: "${'step'.tr()} 2: ",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -293,15 +300,15 @@ class HowToDisplayOnBrowser extends StatelessWidget {
                           ..onTap = () {
                             onScanQRTap?.call();
                           },
-                        text: 'Scan the QR code',
+                        text: 'scan_the_qr_code'.tr(),
                         style: onScanQRTap != null
                             ? const TextStyle(
                                 decoration: TextDecoration.underline,
                               )
                             : null,
                       ),
-                      const TextSpan(
-                        text: ' on your TV.',
+                      TextSpan(
+                        text: " ${'on_your_TV'.tr()}.",
                       )
                     ],
                   ),
