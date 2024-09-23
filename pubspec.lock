@@ -998,7 +998,7 @@ packages:
     source: hosted
     version: "2.2.1"
   flutter_pdfview:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_pdfview
       sha256: a9055bf920c7095bf08c2781db431ba23577aa5da5a056a7152dc89a18fbec6f
