@@ -146,6 +146,7 @@ class AuthService {
   }
 
   Future<void> registerReferralCode({required String referralCode}) async {
-    await _authApi.registerReferralCode(referralCode);
+    final body = {'code': referralCode};
+    await _authApi.registerReferralCode(body);
   }
 }

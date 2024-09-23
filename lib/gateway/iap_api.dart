@@ -81,8 +81,6 @@ abstract class IAPApi {
     @Path('id') String deviceId,
   );
 
-  @POST('/apis/v2/addresses/referral-code/{referralCode}')
-  Future<void> registerReferralCode(
-    @Path('referralCode') String referralCode,
-  );
+  @PATCH('/apis/v2/addresses/referral')
+  Future<void> registerReferralCode(@Body() Map<String, dynamic> body);
 }

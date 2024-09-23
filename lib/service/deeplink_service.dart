@@ -55,6 +55,8 @@ abstract class DeeplinkService {
 
   void activateDeepLinkListener();
 
+  Future<void> handleReferralCode(String referralCode);
+
   ValueNotifier<bool?> get didOpenWithGiftMembership;
 }
 
@@ -613,21 +615,34 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await GiftHandler.handleGiftMembership(giftCode);
 
       case 'referral_code':
-        final referralCode = data['referral_code'];
-        await _handleReferralCode(referralCode);
+        final referralCode = data['referralCode'];
+        await handleReferralCode(referralCode);
 
       default:
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
   }
 
-  Future<void> _handleReferralCode(String referralCode) async {
+  @override
+  Future<void> handleReferralCode(String referralCode) async {
     // save referral code to local storage, for case when user register failed
     await _configurationService.setReferralCode(referralCode);
-    await injector<AddressService>()
-        .registerReferralCode(referralCode: referralCode);
-    // clear referral code after register success
-    await _configurationService.setReferralCode('');
+    try {
+      await injector<AddressService>()
+          .registerReferralCode(referralCode: referralCode);
+      // clear referral code after register success
+      await _configurationService.setReferralCode('');
+    } catch (e, s) {
+      log.info('[DeeplinkService] _handleReferralCode error $e');
+      unawaited(
+          Sentry.captureException('Referral code error: $e', stackTrace: s));
+      if (e is DioException) {
+        if (e.isAlreadySetReferralCode) {
+          // if referral code is already set, clear it
+          await _configurationService.setReferralCode('');
+        }
+      }
+    }
   }
 
   Future<void> _handlePostcardDeeplink(String shareCode) async {
