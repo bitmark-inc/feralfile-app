@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
@@ -16,7 +17,6 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -244,7 +244,7 @@ class _SupportListPageState extends State<SupportListPage>
       }
 
       message = Message(
-        id: random.nextInt(100000),
+        id: Random.secure().nextInt(100000),
         read: true,
         from: 'did:key:user',
         message: draftData.text ?? '',
