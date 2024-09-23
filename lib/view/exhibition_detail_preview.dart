@@ -32,7 +32,7 @@ class ExhibitionPreview extends StatelessWidget {
             ? exhibition.id == SOURCE_EXHIBITION_ID
                 ? exhibition.curators!
                 : [exhibition.curator!]
-            : <FFCurator>[];
+            : <FFUser>[];
 
     return Container(
       padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),

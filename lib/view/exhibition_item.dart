@@ -48,7 +48,7 @@ class ExhibitionCard extends StatelessWidget {
             ? exhibition.id == SOURCE_EXHIBITION_ID
                 ? exhibition.curators!
                 : [exhibition.curator!]
-            : <FFCurator>[];
+            : <FFUser>[];
 
     return GestureDetector(
       onTap: () async => _onExhibitionTap(context, viewableExhibitions, index),

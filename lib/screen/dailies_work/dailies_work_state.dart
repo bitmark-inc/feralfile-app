@@ -6,7 +6,7 @@ import 'package:nft_collection/models/asset_token.dart';
 class DailiesWorkState {
   final List<AssetToken> assetTokens;
   final DailyToken? currentDailyToken;
-  final FFArtist? currentArtist;
+  final FFUser? currentArtist;
   final Exhibition? currentExhibition;
 
   DailiesWorkState({

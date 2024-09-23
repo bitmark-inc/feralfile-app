@@ -185,9 +185,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         const SizedBox(
           height: 24,
         ),
-        if (user is FFUserDetails && user.location != null) ...[
+        if (user.alumniAccount?.location != null) ...[
           Text(
-            user.location!,
+            user.alumniAccount!.location!,
             style: subTitleStyle.copyWith(
               fontStyle: FontStyle.italic,
             ),
@@ -196,10 +196,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             height: 24,
           ),
         ],
-        if (user is FFUserDetails &&
-            user.website != null &&
-            user.website!.isNotEmpty) ...[
-          _artistUrl(context, user.website!),
+        if (user.alumniAccount?.website != null &&
+            user.alumniAccount!.website!.isNotEmpty) ...[
+          _artistUrl(context, user.alumniAccount!.website!),
           const SizedBox(
             height: 12,
           ),
@@ -220,9 +219,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         const SizedBox(
           height: 32,
         ),
-        if (user.bio != null) ...[
+        if (user.alumniAccount?.bio != null) ...[
           ReadMoreText(
-            text: user.bio!,
+            text: user.alumniAccount!.bio!,
             style: theme.textTheme.ppMori400White14,
           ),
           const SizedBox(
@@ -262,7 +261,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     );
   }
 
-  void _gotoUserWork(BuildContext context, FFUserDetails user) {
+  void _gotoUserWork(BuildContext context, FFUser user) {
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artistWorksPage,
       arguments: ArtistWorksPagePayload(user),
@@ -270,7 +269,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   }
 
   List<Widget> _workSection(
-      BuildContext context, FFUserDetails user, List<FFSeries> series) {
+      BuildContext context, FFUser user, List<FFSeries> series) {
     final header =
         _header(context, title: 'works'.tr(), subtitle: '${series.length}');
     final viewAll = PrimaryAsyncButton(
@@ -318,7 +317,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     ];
   }
 
-  void _viewAllArtistExhibitions(BuildContext context, FFUserDetails user) {
+  void _viewAllArtistExhibitions(BuildContext context, FFUser user) {
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artistExhibitionsPage,
       arguments: ArtistExhibitionsPagePayload(user),
@@ -326,7 +325,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   }
 
   List<Widget> _exhibitionSection(
-      BuildContext context, FFUserDetails user, List<Exhibition> exhibitions) {
+      BuildContext context, FFUser user, List<Exhibition> exhibitions) {
     final header = _header(context,
         title: 'exhibitions'.tr(), subtitle: '${exhibitions.length}');
     final viewAll = PrimaryAsyncButton(
@@ -374,7 +373,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     ];
   }
 
-  void _viewAllArtistPosts(BuildContext context, FFUserDetails user) {
+  void _viewAllArtistPosts(BuildContext context, FFUser user) {
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artistPostsPage,
       arguments: ArtistPostsPagePayload(user),
@@ -382,7 +381,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   }
 
   List<Widget> _postSection(
-      BuildContext context, FFUserDetails user, List<Post> posts) {
+      BuildContext context, FFUser user, List<Post> posts) {
     final header = _header(context,
         title: 'publications'.tr(), subtitle: '${posts.length}');
     final viewAll = PrimaryAsyncButton(

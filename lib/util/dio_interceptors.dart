@@ -163,13 +163,10 @@ class AutonomyAuthInterceptor extends Interceptor {
 class MetricsInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    options.headers['x-api-key'] = Environment.metricSecretKey;
+    if (options.headers['x-api-key'] == null) {
+      options.headers['x-api-key'] = Environment.metricSecretKey;
+    }
     handler.next(options);
-  }
-
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    handler.next(response);
   }
 }
 

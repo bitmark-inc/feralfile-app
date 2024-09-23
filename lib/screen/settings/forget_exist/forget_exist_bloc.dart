@@ -58,6 +58,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       unawaited(_addressService.clearPrimaryAddress());
       unawaited(deregisterPushNotification());
+
+      await injector<MetricClientService>().reset();
       try {
         await _iapApi.deleteUserData();
       } catch (e) {
@@ -85,7 +87,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       _authService.reset();
       unawaited(injector<CacheManager>().emptyCache());
       unawaited(DefaultCacheManager().emptyCache());
-      injector<MetricClientService>().reset();
       memoryValues = MemoryValues();
 
       emit(ForgetExistState(state.isChecked, false));
