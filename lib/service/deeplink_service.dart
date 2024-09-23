@@ -426,6 +426,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (navigatePath != null) {
       await _navigationService.navigatePath(navigatePath);
     }
+    log.info('[DeeplinkService] handleBranchDeeplinkData $data');
+    log.info('source: ${data['source']}');
     final source = data['source'];
     switch (source) {
       case 'Postcard':
@@ -616,6 +618,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'referral_code':
         final referralCode = data['referralCode'];
+        log.info('[DeeplinkService] referralCode: $referralCode');
         await handleReferralCode(referralCode);
 
       default:
@@ -625,6 +628,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future<void> handleReferralCode(String referralCode) async {
+    log.info('[DeeplinkService] handleReferralCode $referralCode');
     // save referral code to local storage, for case when user register failed
     await _configurationService.setReferralCode(referralCode);
     try {
@@ -638,6 +642,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           Sentry.captureException('Referral code error: $e', stackTrace: s));
       if (e is DioException) {
         if (e.isAlreadySetReferralCode) {
+          log.info('[DeeplinkService] referral code already set');
           // if referral code is already set, clear it
           await _configurationService.setReferralCode('');
         }
