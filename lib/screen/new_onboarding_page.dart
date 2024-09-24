@@ -39,7 +39,8 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
   final VideoPlayerController _controller2 =
       VideoPlayerController.asset('assets/videos/onboarding_2.mov');
 
-  static const double _videoHeight = 514;
+  static const double _horizontalPadding = 15;
+  static const double _bottomPadding = 40;
 
   @override
   void initState() {
@@ -85,8 +86,8 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     BuildContext context, {
     required String title,
     required String desc,
-    required Widget subscriptionInfo,
-    Widget? subWidget,
+    Widget? subscriptionInfo,
+    Widget? fixedWidgetWidget,
   }) =>
       _getScrollableWidget(
         context,
@@ -95,57 +96,53 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
           children: [
             _getTitleAndDesc(title, desc),
             const SizedBox(height: 30),
-            subscriptionInfo,
+            if (subscriptionInfo != null) subscriptionInfo,
           ],
         ),
-        fixedWidget: subWidget,
+        fixedWidget: fixedWidgetWidget,
       );
 
   Widget _getScrollableWidget(BuildContext context,
           {required Widget scrollable, Widget? fixedWidget}) =>
-      Stack(
+      Column(
         children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(15, 0, 15, 40),
-              child: scrollable,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    _horizontalPadding, 0, _horizontalPadding, _bottomPadding),
+                child: scrollable,
+              ),
             ),
           ),
-          if (fixedWidget != null)
-            Positioned(
-              bottom: 0,
-              child: fixedWidget,
-            ),
+          if (fixedWidget != null) fixedWidget,
         ],
       );
 
   Widget _getTitleAndDesc(String title, String desc) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 59,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 59,
+        ),
+        Text(
+          title,
+          style: theme.textTheme.ppMori700Black36.copyWith(
+            color: AppColor.white,
           ),
-          Text(
-            title,
-            style: theme.textTheme.ppMori700Black36.copyWith(
-              color: AppColor.white,
-            ),
+        ),
+        Container(
+          height: 30,
+        ),
+        Text(
+          desc,
+          style: theme.textTheme.ppMori700White18.copyWith(
+            fontWeight: FontWeight.w400,
           ),
-          Container(
-            height: 30,
-          ),
-          Text(
-            desc,
-            style: theme.textTheme.ppMori700White18.copyWith(
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -156,8 +153,8 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       _onboardingItemWidget(context,
           title: title,
           desc: desc,
-          subscriptionInfo: const SizedBox(height: _videoHeight),
-          subWidget: SizedBox(
+          subscriptionInfo: const SizedBox(),
+          fixedWidgetWidget: SizedBox(
             width: double.infinity,
             child: controller.value.isInitialized
                 ? AspectRatio(
@@ -271,17 +268,17 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
           desc: didUserBuy
               ? 'thank_for_being_pro_desc'.tr()
               : 'you_received_premium_desc'.tr(),
-          subscriptionInfo: Padding(
-            padding: const EdgeInsets.only(bottom: 50),
-            child: MembershipCard(
-              type: MembershipCardType.premium,
-              price: _getPremiumPrice(subscriptionDetails),
-              isProcessing: false,
-              isEnable: false,
-            ),
+          subscriptionInfo: MembershipCard(
+            type: MembershipCardType.premium,
+            price: _getPremiumPrice(subscriptionDetails),
+            isProcessing: false,
+            isEnable: false,
           ),
-          subWidget: Padding(
-            padding: const EdgeInsets.only(right: 15, left: 15, bottom: 40),
+          fixedWidgetWidget: Padding(
+            padding: const EdgeInsets.only(
+                right: _horizontalPadding,
+                left: _horizontalPadding,
+                bottom: _bottomPadding),
             child: PrimaryButton(
               text: 'continue'.tr(),
               onTap: () {
