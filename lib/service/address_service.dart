@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:sentry/sentry.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
@@ -62,6 +63,18 @@ class AddressService {
     // we also need to identity the metric client
     await injector<MetricClientService>().identity();
     return res;
+  }
+
+  Future<bool> registerReferralCode({required String referralCode}) async {
+    try {
+      await injector<AuthService>()
+          .registerReferralCode(referralCode: referralCode);
+      return true;
+    } catch (e) {
+      log.info('Failed to register referral code: $e');
+      unawaited(Sentry.captureException(e));
+      rethrow;
+    }
   }
 
   Future<bool> clearPrimaryAddress() async {

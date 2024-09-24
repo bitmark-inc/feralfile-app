@@ -45,6 +45,14 @@ extension DioExceptionExt on DioException {
 
   FeralfileError get branchError =>
       FeralfileError(StatusCode.badRequest.value, 'Branch.io error');
+
+  bool get isAlreadySetReferralCode {
+    if (response?.data is Map) {
+      return response!.statusCode == 400 &&
+          (response!.data as Map)['error']?['code'] == 3002;
+    }
+    return false;
+  }
 }
 
 enum PostcardExceptionType {

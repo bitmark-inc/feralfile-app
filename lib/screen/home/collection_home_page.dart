@@ -18,12 +18,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/locale_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -35,7 +30,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +37,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class CollectionHomePage extends StatefulWidget {
   const CollectionHomePage({super.key});
@@ -457,27 +450,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   Future<void> _handleForeground() async {
-    final locale = Localizations.localeOf(context);
-    unawaited(LocaleService.refresh(locale));
-    memoryValues.inForegroundAt = DateTime.now();
-    await injector<ConfigurationService>().reload();
-    try {
-      await injector<SettingsDataService>().restoreSettingsData();
-    } catch (exception) {
-      if (exception is DioException && exception.response?.statusCode == 404) {
-        // if there is no backup, upload one.
-        await injector<SettingsDataService>().backup();
-      } else {
-        unawaited(Sentry.captureException(exception));
-      }
-    }
-
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-    unawaited(injector<VersionService>().checkForUpdate());
-    // Reload token in Isolate
-
-    unawaited(injector<CustomerSupportService>().getIssues());
-    unawaited(injector<CustomerSupportService>().processMessages());
   }
 
   Future<void> _hidePostcardBanner() async {

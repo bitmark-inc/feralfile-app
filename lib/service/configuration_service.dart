@@ -237,6 +237,10 @@ abstract class ConfigurationService {
       {bool override = false});
 
   List<String> getMerchandiseOrderIds();
+
+  Future<void> setReferralCode(String referralCode);
+
+  String? getReferralCode();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -319,6 +323,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_ADD_ADDRESS_BANNER = 'show_add_address_banner';
 
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
+
+  static const String KEY_REFERRAL_CODE = 'referral_code';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -1076,6 +1082,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setMigrateToAccountSetting(bool value) =>
       _preferences.setBool(keyDidMigrateToAccountSetting, value);
+
+  @override
+  String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);
+
+  @override
+  Future<void> setReferralCode(String referralCode) =>
+      _preferences.setString(KEY_REFERRAL_CODE, referralCode);
 }
 
 enum ConflictAction {
