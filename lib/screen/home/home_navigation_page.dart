@@ -568,6 +568,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
+    unawaited(_checkForReferralCode());
+  }
+
+  Future<void> _checkForReferralCode() async {
+    final referralCode = injector<ConfigurationService>().getReferralCode();
+    if (referralCode != null && referralCode.isNotEmpty) {
+      await injector<DeeplinkService>().handleReferralCode(referralCode);
+    }
   }
 
   void _triggerShowAnnouncement() {
