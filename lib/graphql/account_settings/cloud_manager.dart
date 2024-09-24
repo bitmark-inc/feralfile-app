@@ -18,10 +18,8 @@ class CloudManager {
   late final String _flavor;
 
   late final WalletAddressCloudObject _walletAddressObject;
-  late final AccountSettingsDB _addressAccountSettingsDB;
 
   late final ConnectionCloudObject _connectionObject;
-  late final AccountSettingsDB _connectionAccountSettingsDB;
 
   late final AccountSettingsDB _settingsDataDB;
 
@@ -43,14 +41,14 @@ class CloudManager {
     await _getBackupId();
 
     /// Wallet Address
-    _addressAccountSettingsDB = AccountSettingsDBImpl(injector(),
+    final addressAccountSettingsDB = AccountSettingsDBImpl(injector(),
         [_flavor, _commonKeyPrefix, _db, _walletAddressKeyPrefix].join('.'));
-    _walletAddressObject = WalletAddressCloudObject(_addressAccountSettingsDB);
+    _walletAddressObject = WalletAddressCloudObject(addressAccountSettingsDB);
 
     /// Connection
-    _connectionAccountSettingsDB = AccountSettingsDBImpl(
+    final connectionAccountSettingsDB = AccountSettingsDBImpl(
         injector(), [_flavor, _deviceId, _db, _connectionKeyPrefix].join('.'));
-    _connectionObject = ConnectionCloudObject(_connectionAccountSettingsDB);
+    _connectionObject = ConnectionCloudObject(connectionAccountSettingsDB);
 
     /// Settings
     _settingsDataDB = AccountSettingsDBImpl(injector(),
@@ -88,13 +86,13 @@ class CloudManager {
         'value': 'true'
       },
       {
-        'key': _addressAccountSettingsDB
-            .getFullKey(_addressAccountSettingsDB.migrateKey),
+        'key': _walletAddressObject.db
+            .getFullKey(_walletAddressObject.db.migrateKey),
         'value': 'true'
       },
       {
-        'key': _connectionAccountSettingsDB
-            .getFullKey(_connectionAccountSettingsDB.migrateKey),
+        'key': _connectionObject.db
+            .getFullKey(_connectionObject.db.migrateKey),
         'value': 'true'
       }
     ];
@@ -107,12 +105,12 @@ class CloudManager {
   Future<void> copyDataFrom(CloudDatabase source) async {
     await source.addressDao.getAllAddresses().then((addresses) async {
       final data = addresses.map((e) => e.toKeyValue).toList();
-      await _addressAccountSettingsDB.write(data);
+      await _walletAddressObject.db.write(data);
     });
 
     await source.connectionDao.getConnections().then((connections) async {
       final data = connections.map((e) => e.toKeyValue).toList();
-      await _connectionAccountSettingsDB.write(data);
+      await _connectionObject.db.write(data);
     });
 
     try {
@@ -122,15 +120,15 @@ class CloudManager {
 
   Future<void> downloadAll() async {
     await Future.wait([
-      _addressAccountSettingsDB.download(),
-      _connectionAccountSettingsDB.download(),
+      _walletAddressObject.db.download(),
+      _connectionObject.db.download(),
       injector<SettingsDataService>().restoreSettingsData(),
     ]);
   }
 
   void clearCache() {
-    _addressAccountSettingsDB.clearCache();
-    _connectionAccountSettingsDB.clearCache();
+    _walletAddressObject.db.clearCache();
+    _connectionObject.db.clearCache();
     _settingsDataDB.clearCache();
   }
 
@@ -139,8 +137,8 @@ class CloudManager {
   }
 
   Future<void> uploadCurrentCache() async {
-    await _addressAccountSettingsDB.uploadCurrentCache();
-    await _connectionAccountSettingsDB.uploadCurrentCache();
+    await _walletAddressObject.db.uploadCurrentCache();
+    await _connectionObject.db.uploadCurrentCache();
     await _settingsDataDB.uploadCurrentCache();
   }
 }

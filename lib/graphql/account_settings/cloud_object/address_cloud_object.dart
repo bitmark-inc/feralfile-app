@@ -8,6 +8,8 @@ class WalletAddressCloudObject {
 
   WalletAddressCloudObject(this._accountSettingsDB);
 
+  AccountSettingsDB get db => _accountSettingsDB;
+
   Future<void> deleteAddress(WalletAddress address) async {
     await _accountSettingsDB.delete([address.key]);
   }

@@ -8,6 +8,8 @@ class ConnectionCloudObject {
 
   ConnectionCloudObject(this._accountSettingsDB);
 
+  AccountSettingsDB get db => _accountSettingsDB;
+
   Future<void> deleteConnections(List<Connection> connections) =>
       _accountSettingsDB.delete(connections.map((e) => e.key).toList());
 
