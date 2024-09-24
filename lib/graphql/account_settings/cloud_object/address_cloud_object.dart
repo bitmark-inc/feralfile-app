@@ -11,6 +11,7 @@ class WalletAddressCloudObject {
   AccountSettingsDB get db => _accountSettingsDB;
 
   Future<void> deleteAddress(WalletAddress address) async {
+    // address is also the key
     await _accountSettingsDB.delete([address.key]);
   }
 
@@ -28,6 +29,7 @@ class WalletAddressCloudObject {
   }
 
   WalletAddress? findByAddress(String address) {
+    // address is also the key
     final value = _accountSettingsDB.query([address]);
     if (value.isEmpty) {
       return null;

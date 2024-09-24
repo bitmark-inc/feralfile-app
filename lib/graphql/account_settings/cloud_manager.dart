@@ -91,8 +91,7 @@ class CloudManager {
         'value': 'true'
       },
       {
-        'key': _connectionObject.db
-            .getFullKey(_connectionObject.db.migrateKey),
+        'key': _connectionObject.db.getFullKey(_connectionObject.db.migrateKey),
         'value': 'true'
       }
     ];
