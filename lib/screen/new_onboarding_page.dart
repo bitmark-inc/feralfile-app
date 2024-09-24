@@ -85,6 +85,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     required String desc,
     required Widget subDesc,
     bool subDescFixedSized = true,
+    bool subDescExpandable = false,
   }) {
     final theme = Theme.of(context);
     final commonHeader = Padding(
@@ -125,8 +126,8 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
         ],
       );
     } else {
-      return SingleChildScrollView(
-        child: Column(
+      if (subDescExpandable) {
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             commonHeader,
@@ -134,8 +135,20 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
             subDesc,
             const SizedBox(height: 40),
           ],
-        ),
-      );
+        );
+      } else {
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              commonHeader,
+              const SizedBox(height: 30),
+              subDesc,
+              const SizedBox(height: 40),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -262,27 +275,30 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
               ? 'thank_for_being_pro_desc'.tr()
               : 'you_received_premium_desc'.tr(),
           subDescFixedSized: false,
-          subDesc: Padding(
-            padding: const EdgeInsets.only(top: 30, right: 15, left: 15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                MembershipCard(
-                  type: MembershipCardType.premium,
-                  price: _getPremiumPrice(subscriptionDetails),
-                  isProcessing: false,
-                  isEnable: false,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: PrimaryButton(
-                    text: 'continue'.tr(),
-                    onTap: () {
-                      _goToHomePage(context);
-                    },
+          subDescExpandable: true,
+          subDesc: Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 30, right: 15, left: 15),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  MembershipCard(
+                    type: MembershipCardType.premium,
+                    price: _getPremiumPrice(subscriptionDetails),
+                    isProcessing: false,
+                    isEnable: false,
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 40),
+                    child: PrimaryButton(
+                      text: 'continue'.tr(),
+                      onTap: () {
+                        _goToHomePage(context);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ));
 
