@@ -272,6 +272,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         default:
       }
     });
+    unawaited(injector<VersionService>().checkForUpdate());
     unawaited(
         _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
