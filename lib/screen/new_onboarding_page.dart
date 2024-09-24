@@ -87,7 +87,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     required String title,
     required String desc,
     Widget? subscriptionInfo,
-    Widget? fixedWidgetWidget,
+    Widget? fixedWidget,
   }) =>
       _getScrollableWidget(
         context,
@@ -99,7 +99,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
             if (subscriptionInfo != null) subscriptionInfo,
           ],
         ),
-        fixedWidget: fixedWidgetWidget,
+        fixedWidget: fixedWidget,
       );
 
   Widget _getScrollableWidget(BuildContext context,
@@ -153,8 +153,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       _onboardingItemWidget(context,
           title: title,
           desc: desc,
-          subscriptionInfo: const SizedBox(),
-          fixedWidgetWidget: SizedBox(
+          fixedWidget: SizedBox(
             width: double.infinity,
             child: controller.value.isInitialized
                 ? AspectRatio(
@@ -274,7 +273,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
             isProcessing: false,
             isEnable: false,
           ),
-          fixedWidgetWidget: Padding(
+          fixedWidget: Padding(
             padding: const EdgeInsets.only(
                 right: _horizontalPadding,
                 left: _horizontalPadding,
