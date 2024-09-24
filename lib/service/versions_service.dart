@@ -45,12 +45,12 @@ class VersionService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String currentVersion = packageInfo.version;
 
-    if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
-      await showForceUpdateDialog(versionInfo.link);
-    } else {
-      // check to show Release Notes
-      await showReleaseNotes(currentVersion: currentVersion);
-    }
+    // if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
+    //   await showForceUpdateDialog(versionInfo.link);
+    // } else {
+    //   // check to show Release Notes
+    //   await showReleaseNotes(currentVersion: currentVersion);
+    // }
   }
 
   Future showReleaseNotes({String? currentVersion}) async {
