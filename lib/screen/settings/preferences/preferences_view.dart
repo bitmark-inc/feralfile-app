@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -100,11 +101,12 @@ class PreferenceView extends StatelessWidget {
                       ),
                       onTap: () => unawaited(Navigator.of(context).pushNamed(
                             AppRouter.githubDocPage,
-                            arguments: {
-                              'document': 'protect_your_usage_data.md',
-                              'title': 'how_protect_data'.tr()
-                              // "How we protect your usage data"
-                            },
+                            arguments: GithubDocPayload(
+                              title: 'how_protect_data'.tr(),
+                              prefix: GithubDocPage.ffDocsAgreementsPrefix,
+                              document: 'ff-app-data-usage/',
+                              fileNameAsLanguage: true,
+                            ),
                           ))),
                 ],
               ),

@@ -929,7 +929,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GithubDocPage(
-                payload: settings.arguments! as Map<String, String>));
+                payload: settings.arguments! as GithubDocPayload));
 
       case keySyncPage:
         return CupertinoPageRoute(

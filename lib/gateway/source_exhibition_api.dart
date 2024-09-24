@@ -18,10 +18,10 @@ part 'source_exhibition_api.g.dart';
 abstract class SourceExhibitionAPI {
   factory SourceExhibitionAPI(Dio dio, {String baseUrl}) = _SourceExhibitionAPI;
 
-  @GET('/source_exhibition/exhibition.json')
+  @GET('/app/source_exhibition/exhibition.json')
   Future<String> getSourceExhibition();
 
-  @GET('/source_exhibition/series.json')
+  @GET('/app/source_exhibition/series.json')
   Future<String> getSourceSeries();
 }
 

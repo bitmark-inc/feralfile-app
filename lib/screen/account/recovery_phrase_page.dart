@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
@@ -249,6 +250,34 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
       decoration: TextDecoration.underline,
       decorationColor: AppColor.primaryBlack,
     );
+    final iCloudKeychain = TextSpan(
+      text: 'icloud_keychain'.tr(),
+      style: customLinkStyle,
+      recognizer: TapGestureRecognizer()
+        ..onTap = () =>
+            unawaited(Navigator.of(context).pushNamed(AppRouter.githubDocPage,
+                arguments: GithubDocPayload(
+                  title: 'ff_app_security'.tr(),
+                  prefix: GithubDocPage.ffDocsAppsPrefix,
+                  document: 'security/ios/',
+                  fileNameAsLanguage: true,
+                ))),
+    );
+
+    final androidBlockStore = TextSpan(
+      text: 'android_block_store'.tr(),
+      style: customLinkStyle,
+      recognizer: TapGestureRecognizer()
+        ..onTap = () =>
+            unawaited(Navigator.of(context).pushNamed(AppRouter.githubDocPage,
+                arguments: GithubDocPayload(
+                  title: 'ff_app_security'.tr(),
+                  prefix: GithubDocPage.ffDocsAppsPrefix,
+                  document: 'security/android/',
+                  fileNameAsLanguage: true,
+                ))),
+    );
+
     if (_isBackUpAvailable == null) {
       return const SizedBox();
     }
@@ -277,32 +306,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                 TextSpan(
                   text: 'yrp_we’ve_safely'.tr(),
                 ),
-                if (Platform.isIOS)
-                  TextSpan(
-                    text: 'icloud_keychain'.tr(),
-                    style: customLinkStyle,
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => unawaited(Navigator.of(context)
-                              .pushNamed(AppRouter.githubDocPage, arguments: {
-                            'prefix':
-                                '/bitmark-inc/autonomy.io/main/apps/docs/',
-                            'document': 'security-ios.md',
-                            'title': ''
-                          })),
-                  )
-                else
-                  TextSpan(
-                    text: 'android_block_store'.tr(),
-                    style: customLinkStyle,
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => unawaited(Navigator.of(context)
-                              .pushNamed(AppRouter.githubDocPage, arguments: {
-                            'prefix':
-                                '/bitmark-inc/autonomy.io/main/apps/docs/',
-                            'document': 'security-android.md',
-                            'title': ''
-                          })),
-                  ),
+                if (Platform.isIOS) iCloudKeychain else androidBlockStore,
                 TextSpan(
                   text: 'yrp_you_may_also'.tr(),
                 ),
@@ -315,32 +319,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
               children: [
-                if (Platform.isIOS)
-                  TextSpan(
-                    text: 'icloud_keychain'.tr(),
-                    style: customLinkStyle,
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => unawaited(Navigator.of(context)
-                              .pushNamed(AppRouter.githubDocPage, arguments: {
-                            'prefix':
-                                '/bitmark-inc/autonomy.io/main/apps/docs/',
-                            'document': 'security-ios.md',
-                            'title': ''
-                          })),
-                  )
-                else
-                  TextSpan(
-                    text: 'android_block_store'.tr(),
-                    style: customLinkStyle,
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => unawaited(Navigator.of(context)
-                              .pushNamed(AppRouter.githubDocPage, arguments: {
-                            'prefix':
-                                '/bitmark-inc/autonomy.io/main/apps/docs/',
-                            'document': 'security-android.md',
-                            'title': ''
-                          })),
-                  ),
+                if (Platform.isIOS) iCloudKeychain else androidBlockStore,
                 TextSpan(
                   text: '_is_'.tr(),
                 ),

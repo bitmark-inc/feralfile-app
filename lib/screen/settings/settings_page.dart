@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
+import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -46,8 +47,6 @@ class _SettingsPageState extends State<SettingsPage>
   PackageInfo? _packageInfo;
   VersionCheck? _versionCheck;
   late ScrollController _controller;
-  int _lastTap = 0;
-  int _consecutiveTaps = 0;
 
   final GlobalKey<State> _preferenceKey = GlobalKey();
   bool _pendingSettingsCleared = false;
@@ -153,7 +152,7 @@ class _SettingsPageState extends State<SettingsPage>
                           final isAndroidEndToEndEncryptionAvailable =
                               await injector<AccountService>()
                                   .isAndroidEndToEndEncryptionAvailable();
-                          if (!mounted) {
+                          if (!context.mounted) {
                             return;
                           }
                           await Navigator.of(context).pushNamed(
@@ -182,7 +181,8 @@ class _SettingsPageState extends State<SettingsPage>
                     addOnlyDivider(),
                     _settingItem(
                       title: 'membership'.tr(),
-                      icon: SvgPicture.asset('assets/images/icon_membership.svg'),
+                      icon:
+                          SvgPicture.asset('assets/images/icon_membership.svg'),
                       onTap: () async {
                         await Navigator.of(context)
                             .pushNamed(AppRouter.subscriptionPage);
@@ -276,12 +276,15 @@ class _SettingsPageState extends State<SettingsPage>
                 decorationColor: AppColor.disabledColor,
               ),
             ),
-            onTap: () async => Navigator.of(context)
-                .pushNamed(AppRouter.githubDocPage, arguments: {
-              'prefix': '/bitmark-inc/autonomy.io/main/apps/docs/',
-              'document': 'eula.md',
-              'title': 'eula'.tr(),
-            }),
+            onTap: () async => Navigator.of(context).pushNamed(
+              AppRouter.githubDocPage,
+              arguments: GithubDocPayload(
+                title: 'eula'.tr(),
+                prefix: GithubDocPage.ffDocsAgreementsPrefix,
+                document: 'ff-app-eula/',
+                fileNameAsLanguage: true,
+              ),
+            ),
           ),
           Text(
             '_and'.tr(),
@@ -295,12 +298,15 @@ class _SettingsPageState extends State<SettingsPage>
                 decorationColor: AppColor.disabledColor,
               ),
             ),
-            onTap: () async => Navigator.of(context)
-                .pushNamed(AppRouter.githubDocPage, arguments: {
-              'prefix': '/bitmark-inc/autonomy.io/main/apps/docs/',
-              'document': 'privacy.md',
-              'title': 'privacy_policy'.tr(),
-            }),
+            onTap: () async => Navigator.of(context).pushNamed(
+              AppRouter.githubDocPage,
+              arguments: GithubDocPayload(
+                title: 'privacy_policy'.tr(),
+                prefix: GithubDocPage.ffDocsAgreementsPrefix,
+                document: 'ff-app-privacy/',
+                fileNameAsLanguage: true,
+              ),
+            ),
           ),
         ],
       ),
@@ -335,29 +341,7 @@ class _SettingsPageState extends State<SettingsPage>
             0;
         return GestureDetector(
           onTap: () async {
-            if (isLatestVersion) {
-              int now = DateTime.now().millisecondsSinceEpoch;
-              if (now - _lastTap < 1000) {
-                _consecutiveTaps++;
-                if (_consecutiveTaps == 3) {
-                  final newValue = await injector<ConfigurationService>()
-                      .toggleDemoArtworksMode();
-                  if (!mounted) {
-                    return;
-                  }
-                  await UIHelper.showInfoDialog(
-                      context,
-                      'demo_mode'.tr(),
-                      'demo_mode_en'.tr(args: [
-                        if (newValue) 'enable'.tr() else 'disable'.tr()
-                      ]),
-                      autoDismissAfter: 1);
-                }
-              } else {
-                _consecutiveTaps = 0;
-              }
-              _lastTap = now;
-            } else {
+            if (!isLatestVersion) {
               await UIHelper.showMessageAction(
                 context,
                 'update_available'.tr(),

@@ -242,9 +242,6 @@ Future<bool> isAppCenterBuild() async {
   return info.packageName.contains('inhouse');
 }
 
-Future<String> getDemoAccount() async =>
-    await isAppCenterBuild() ? 'demo' : 'tv';
-
 Future<String> getAppVariant() async =>
     await isAppCenterBuild() ? 'inhouse' : 'production';
 
