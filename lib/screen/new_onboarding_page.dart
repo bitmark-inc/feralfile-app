@@ -86,7 +86,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     BuildContext context, {
     required String title,
     required String desc,
-    Widget? subscriptionInfo,
+    Widget? subscriptionInfoWidget,
     Widget? fixedWidget,
   }) =>
       _getScrollableWidget(
@@ -96,7 +96,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
           children: [
             _getTitleAndDesc(title, desc),
             const SizedBox(height: 30),
-            if (subscriptionInfo != null) subscriptionInfo,
+            if (subscriptionInfoWidget != null) subscriptionInfoWidget,
           ],
         ),
         fixedWidget: fixedWidget,
@@ -215,7 +215,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                   context,
                   title: 'membership'.tr(),
                   desc: 'membership_desc'.tr(),
-                  subscriptionInfo: Column(
+                  subscriptionInfoWidget: Column(
                     children: [
                       if (!isSubscribed)
                         MembershipCard(
@@ -267,7 +267,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
           desc: didUserBuy
               ? 'thank_for_being_pro_desc'.tr()
               : 'you_received_premium_desc'.tr(),
-          subscriptionInfo: MembershipCard(
+          subscriptionInfoWidget: MembershipCard(
             type: MembershipCardType.premium,
             price: _getPremiumPrice(subscriptionDetails),
             isProcessing: false,
