@@ -39,6 +39,9 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
   final VideoPlayerController _controller2 =
       VideoPlayerController.asset('assets/videos/onboarding_2.mov');
 
+  static const double _horizontalPadding = 15;
+  static const double _bottomPadding = 40;
+
   @override
   void initState() {
     super.initState();
@@ -83,60 +86,64 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     BuildContext context, {
     required String title,
     required String desc,
-    required Widget subDesc,
-    bool subDescFixedSized = true,
-  }) {
-    final theme = Theme.of(context);
-    final commonHeader = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 59,
-          ),
-          Text(
-            title,
-            style: theme.textTheme.ppMori700Black36.copyWith(
-              color: AppColor.white,
-            ),
-          ),
-          Container(
-            height: 30,
-          ),
-          Text(
-            desc,
-            style: theme.textTheme.ppMori700White18.copyWith(
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
-    );
-    if (subDescFixedSized) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: SingleChildScrollView(child: commonHeader)),
-          SizedBox(
-            height: 514,
-            child: subDesc,
-          )
-        ],
-      );
-    } else {
-      return SingleChildScrollView(
-        child: Column(
+    Widget? subscriptionInfoWidget,
+    Widget? fixedWidget,
+  }) =>
+      _getScrollableWidget(
+        context,
+        scrollable: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            commonHeader,
+            _getTitleAndDesc(title, desc),
             const SizedBox(height: 30),
-            subDesc,
-            const SizedBox(height: 40),
+            if (subscriptionInfoWidget != null) subscriptionInfoWidget,
           ],
         ),
+        fixedWidget: fixedWidget,
       );
-    }
+
+  Widget _getScrollableWidget(BuildContext context,
+          {required Widget scrollable, Widget? fixedWidget}) =>
+      Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    _horizontalPadding, 0, _horizontalPadding, _bottomPadding),
+                child: scrollable,
+              ),
+            ),
+          ),
+          if (fixedWidget != null) fixedWidget,
+        ],
+      );
+
+  Widget _getTitleAndDesc(String title, String desc) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 59,
+        ),
+        Text(
+          title,
+          style: theme.textTheme.ppMori700Black36.copyWith(
+            color: AppColor.white,
+          ),
+        ),
+        Container(
+          height: 30,
+        ),
+        Text(
+          desc,
+          style: theme.textTheme.ppMori700White18.copyWith(
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _onboardingItemVideo(BuildContext context,
@@ -146,7 +153,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       _onboardingItemWidget(context,
           title: title,
           desc: desc,
-          subDesc: SizedBox(
+          fixedWidget: SizedBox(
             width: double.infinity,
             child: controller.value.isInitialized
                 ? AspectRatio(
@@ -208,8 +215,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                   context,
                   title: 'membership'.tr(),
                   desc: 'membership_desc'.tr(),
-                  subDescFixedSized: false,
-                  subDesc: Column(
+                  subscriptionInfoWidget: Column(
                     children: [
                       if (!isSubscribed)
                         MembershipCard(
@@ -261,28 +267,22 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
           desc: didUserBuy
               ? 'thank_for_being_pro_desc'.tr()
               : 'you_received_premium_desc'.tr(),
-          subDescFixedSized: false,
-          subDesc: Padding(
-            padding: const EdgeInsets.only(top: 30, right: 15, left: 15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                MembershipCard(
-                  type: MembershipCardType.premium,
-                  price: _getPremiumPrice(subscriptionDetails),
-                  isProcessing: false,
-                  isEnable: false,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: PrimaryButton(
-                    text: 'continue'.tr(),
-                    onTap: () {
-                      _goToHomePage(context);
-                    },
-                  ),
-                ),
-              ],
+          subscriptionInfoWidget: MembershipCard(
+            type: MembershipCardType.premium,
+            price: _getPremiumPrice(subscriptionDetails),
+            isProcessing: false,
+            isEnable: false,
+          ),
+          fixedWidget: Padding(
+            padding: const EdgeInsets.only(
+                right: _horizontalPadding,
+                left: _horizontalPadding,
+                bottom: _bottomPadding),
+            child: PrimaryButton(
+              text: 'continue'.tr(),
+              onTap: () {
+                _goToHomePage(context);
+              },
             ),
           ));
 
