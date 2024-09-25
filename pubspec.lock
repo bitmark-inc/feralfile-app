@@ -82,7 +82,7 @@ packages:
     source: hosted
     version: "2.11.0"
   audio_session:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: audio_session
       sha256: "6fdf255ed3af86535c96452c33ecff1245990bb25a605bfb1958661ccc3d467f"
@@ -619,15 +619,6 @@ packages:
       url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
-  feralfile_app_tv_proto:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "5bf6bf7ee37506202e675a3c91253a036cbeb43d"
-      resolved-ref: "5bf6bf7ee37506202e675a3c91253a036cbeb43d"
-      url: "https://github.com/autonomy-system/feralfile-app-tv-proto-communication"
-    source: git
-    version: "0.0.1"
   ffi:
     dependency: transitive
     description:
@@ -895,15 +886,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-  flutter_inline_webview_macos:
-    dependency: transitive
-    description:
-      path: "."
-      ref: "65f1aba648425aa410c6965f89f50f0120049a50"
-      resolved-ref: "65f1aba648425aa410c6965f89f50f0120049a50"
-      url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
-    source: git
-    version: "0.0.7"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
@@ -1001,10 +983,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_pdfview
-      sha256: a9055bf920c7095bf08c2781db431ba23577aa5da5a056a7152dc89a18fbec6f
+      sha256: "6b625b32a9102780236554dff42f2d798b4627704ab4a3153c07f2134a52b697"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
+    version: "1.3.3"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -1634,7 +1616,7 @@ packages:
     source: hosted
     version: "6.7.1"
   just_audio:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: just_audio
       sha256: b607cd1a43bac03d85c3aaee00448ff4a589ef2a77104e3d409889ff079bf823
@@ -1661,18 +1643,18 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: "7f0df31977cb2c0b88585095d168e689669a2cc9b97c309665e3386f3e9d341a"
+      sha256: "3f87a60e8c63aecc975dda1ceedbc8f24de75f09e4856ea27daf8958f2f0ce05"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.4"
+    version: "10.0.5"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
       name: leak_tracker_flutter_testing
-      sha256: "06e98f569d004c1315b991ded39924b21af84cf14cc94791b8aea337d25b57f8"
+      sha256: "932549fb305594d82d7183ecd9fa93463e9914e1b67cacc34bc40906594a1806"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.5"
   leak_tracker_testing:
     dependency: transitive
     description:
@@ -1790,10 +1772,10 @@ packages:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: "0e0a020085b65b6083975e499759762399b4475f766c21668c4ecca34ea74e5a"
+      sha256: f7142bb1154231d7ea5f96bc7bde4bda2a0945d2806bb11670e30b850d56bdec
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.0"
+    version: "0.11.1"
   measured_size:
     dependency: "direct main"
     description:
@@ -1814,10 +1796,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "7687075e408b093f36e6bbf6c91878cc0d4cd10f409506f7bc996f68220b9136"
+      sha256: bdb68674043280c3428e9ec998512fb681678676b3c54e773629ffe74419f8c7
       url: "https://pub.dev"
     source: hosted
-    version: "1.12.0"
+    version: "1.15.0"
   mime:
     dependency: "direct main"
     description:
@@ -1826,6 +1808,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  mixpanel_flutter:
+    dependency: "direct main"
+    description:
+      name: mixpanel_flutter
+      sha256: "7ecd7169acfbda58d9afb35cc4fab8db57410b5f26907206e53d72a86955eb8e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   mockito:
     dependency: "direct dev"
     description:
@@ -1835,7 +1825,7 @@ packages:
     source: hosted
     version: "5.4.4"
   model_viewer_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: model_viewer_plus
       sha256: eec6de3d1d85533dcc5a8deb4a2b961126138973d26b66cdc55b44ab4fd80f59
@@ -1883,15 +1873,6 @@ packages:
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
-  nft_rendering:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "72f3eee694c66161f31ac63d0a5fc4c475130d34"
-      resolved-ref: "72f3eee694c66161f31ac63d0a5fc4c475130d34"
-      url: "https://github.com/autonomy-system/nft-rendering.git"
-    source: git
-    version: "1.0.9"
   nm:
     dependency: transitive
     description:
@@ -2112,10 +2093,10 @@ packages:
     dependency: transitive
     description:
       name: platform
-      sha256: "12220bb4b65720483f8fa9450b4332347737cf8213dd2840d8b2c823e47243ec"
+      sha256: "9b71283fc13df574056616011fb138fd3b793ea47cc509c189a6c3fa5f8a1a65"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.4"
+    version: "3.1.5"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -2253,7 +2234,7 @@ packages:
     source: hosted
     version: "7.0.8"
   retry:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: retry
       sha256: "822e118d5b3aafed083109c72d5f484c6dc66707885e07c0fbcb8b986bba7efc"
@@ -2661,26 +2642,26 @@ packages:
     dependency: "direct dev"
     description:
       name: test
-      sha256: "7ee446762c2c50b3bd4ea96fe13ffac69919352bd3b4b17bac3f3465edc58073"
+      sha256: "7ee44229615f8f642b68120165ae4c2a75fe77ae2065b1e55ae4711f6cf0899e"
       url: "https://pub.dev"
     source: hosted
-    version: "1.25.2"
+    version: "1.25.7"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "9955ae474176f7ac8ee4e989dadfb411a58c30415bcfb648fa04b2b8a03afa7f"
+      sha256: "5b8a98dafc4d5c4c9c72d8b31ab2b23fc13422348d2997120294d3bac86b4ddb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.0"
+    version: "0.7.2"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "2bc4b4ecddd75309300d8096f781c0e3280ca1ef85beda558d33fcbedc2eead4"
+      sha256: "55ea5a652e38a1dfb32943a7973f3681a60f872f8c3a05a14664ad54ef9c6696"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.4"
   tezart:
     dependency: "direct main"
     description:
@@ -2859,7 +2840,7 @@ packages:
     source: hosted
     version: "1.1.9+2"
   vector_graphics_compiler:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: vector_graphics_compiler
       sha256: "03012b0a33775c5530576b70240308080e1d5050f0faf000118c20e6463bc0ad"
@@ -2898,14 +2879,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.6"
-  video_player_macos:
-    dependency: transitive
-    description:
-      name: video_player_macos
-      sha256: "038aec5bbb3789be4bc12f08e2eb730940350ce5f3ce790cee9d897c0f6aacb7"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   video_player_platform_interface:
     dependency: transitive
     description:
@@ -2934,10 +2907,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "3923c89304b715fb1eb6423f017651664a03bf5f4b29983627c4da791f74a4ec"
+      sha256: "5c5f338a667b4c644744b661f309fb8080bb94b18a7e91ef1dbd343bed00ed6d"
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.1"
+    version: "14.2.5"
   wakelock_plus:
     dependency: "direct main"
     description:
@@ -3019,37 +2992,37 @@ packages:
     source: hosted
     version: "1.2.1"
   webview_flutter:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: webview_flutter
-      sha256: "789d52bd789373cc1e100fb634af2127e86c99cf9abde09499743270c5de8d00"
+      sha256: ec81f57aa1611f8ebecf1d2259da4ef052281cb5ad624131c93546c79ccc7736
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.2"
+    version: "4.9.0"
   webview_flutter_android:
     dependency: transitive
     description:
       name: webview_flutter_android
-      sha256: d936a09fbfd08cb78f7329e0bbacf6158fbdfe24ffc908b22444c07d295eb193
+      sha256: "6e64fcb1c19d92024da8f33503aaeeda35825d77142c01d0ea2aa32edc79fdc8"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.2"
+    version: "3.16.7"
   webview_flutter_platform_interface:
     dependency: transitive
     description:
       name: webview_flutter_platform_interface
-      sha256: "564ef378cafc1a0e29f1d76ce175ef517a0a6115875dff7b43fccbef2b0aeb30"
+      sha256: d937581d6e558908d7ae3dc1989c4f87b786891ab47bb9df7de548a151779d8d
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "2.10.0"
   webview_flutter_wkwebview:
     dependency: transitive
     description:
       name: webview_flutter_wkwebview
-      sha256: "5fa098f28b606f699e8ca52d9e4e11edbbfef65189f5f77ae92703ba5408fd25"
+      sha256: "1942a12224ab31e9508cf00c0c6347b931b023b8a4f0811e5dec3b06f94f117d"
       url: "https://pub.dev"
     source: hosted
-    version: "3.7.2"
+    version: "3.15.0"
   widgets_to_image:
     dependency: "direct main"
     description:
@@ -3091,7 +3064,7 @@ packages:
     source: hosted
     version: "1.0.1"
   xml:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: xml
       sha256: "5bc72e1e45e941d825fd7468b9b4cc3b9327942649aeb6fc5cdbf135f0a86e84"
@@ -3107,5 +3080,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.4.0 <4.0.0"
-  flutter: ">=3.22.0"
+  dart: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"

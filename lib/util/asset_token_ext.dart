@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -30,7 +31,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/attributes.dart';
 import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:web3dart/crypto.dart';
@@ -224,12 +224,6 @@ extension AssetTokenExtension on AssetToken {
       case 'MAINNET_tezos':
       case 'TESTNET_tezos':
         return 'https://tzkt.io/$contractAddress';
-
-      case 'MAINNET_bitmark':
-        return 'https://registry.bitmark.com/bitmark/$tokenId';
-
-      case 'TESTNET_bitmark':
-        return 'https://registry.test.bitmark.com/bitmark/$tokenId';
     }
     return null;
   }

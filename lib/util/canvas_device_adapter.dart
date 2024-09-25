@@ -1,4 +1,4 @@
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:hive/hive.dart';
 
 class CanvasDeviceAdapter extends TypeAdapter<CanvasDevice> {

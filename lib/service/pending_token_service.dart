@@ -3,15 +3,15 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/tzkt_api.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:nft_collection/data/api/tzkt_api.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/models/pending_tx_params.dart';
+import 'package:nft_collection/models/tzkt_operation.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:web3dart/web3dart.dart';
 

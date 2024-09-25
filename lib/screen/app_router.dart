@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
-import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
@@ -60,8 +59,6 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
@@ -113,7 +110,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wal
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -165,7 +161,6 @@ class AppRouter {
   static const tbConnectPage = 'tb_connect_page';
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
-  static const linkManually = 'link_manually';
   static const testArtwork = 'test_artwork';
   static const autonomySecurityPage = 'security_page';
   static const releaseNotesPage = 'release_notes_page';
@@ -183,7 +178,6 @@ class AppRouter {
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
-  static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const promptPage = 'prompt_page';
@@ -688,19 +682,6 @@ class AppRouter {
             builder: (context) => AddressAlias(
                 payload: settings.arguments! as AddressAliasPayload));
 
-      case galleryPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider(
-                          create: (_) => GalleryBloc(injector(), injector())),
-                      BlocProvider(create: (_) => identityBloc),
-                    ],
-                    child: GalleryPage(
-                      payload: settings.arguments! as GalleryPagePayload,
-                    )));
-
       case artworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,
@@ -943,12 +924,6 @@ class AppRouter {
           ),
         );
 
-      case linkManually:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) =>
-                LinkManuallyPage(type: settings.arguments! as String));
-
       case walletPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -989,15 +964,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(create: (_) => identityBloc),
                 ], child: const DataManagementPage()));
-      case inappWebviewPage:
-        return PageTransition(
-            settings: settings,
-            type: PageTransitionType.rightToLeft,
-            curve: Curves.easeIn,
-            duration: const Duration(milliseconds: 300),
-            reverseDuration: const Duration(milliseconds: 300),
-            child: InAppWebViewPage(
-                payload: settings.arguments! as InAppWebViewPayload));
       case claimEmptyPostCard:
         final claimRequest = settings.arguments! as RequestPostcardResponse;
         return PageTransition(
