@@ -47,8 +47,6 @@ const DEEP_LINKS = [
   ...Constants.branchDeepLinks,
   'feralfile://',
 ];
-const FF_ARTIST_COLLECTOR =
-    'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
     '/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md';
