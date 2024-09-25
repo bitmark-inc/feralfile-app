@@ -30,10 +30,13 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -58,6 +61,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeNavigationPagePayload {
@@ -268,6 +272,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         default:
       }
     });
+    unawaited(injector<VersionService>().checkForUpdate());
     unawaited(
         _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
@@ -364,12 +369,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future refreshNotification() async {
     await injector<CustomerSupportService>().getIssues();
+    await injector<CustomerSupportService>().processMessages();
   }
 
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    unawaited(injector<CustomerSupportService>().getIssues());
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -568,6 +573,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
+    unawaited(_checkForReferralCode());
+  }
+
+  Future<void> _checkForReferralCode() async {
+    final referralCode = injector<ConfigurationService>().getReferralCode();
+    if (referralCode != null && referralCode.isNotEmpty) {
+      await injector<DeeplinkService>().handleReferralCode(referralCode);
+    }
   }
 
   void _triggerShowAnnouncement() {
@@ -593,6 +606,21 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
+    final locale = Localizations.localeOf(context);
+    unawaited(LocaleService.refresh(locale));
+    memoryValues.inForegroundAt = DateTime.now();
+    await injector<ConfigurationService>().reload();
+    try {
+      await injector<SettingsDataService>().restoreSettingsData();
+    } catch (exception) {
+      if (exception is DioException && exception.response?.statusCode == 404) {
+        // if there is no backup, upload one.
+        await injector<SettingsDataService>().backup();
+      } else {
+        unawaited(Sentry.captureException(exception));
+      }
+    }
+    unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();
     _triggerShowAnnouncement();
