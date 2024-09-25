@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
@@ -35,10 +36,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 void main() async {
   unawaited(runZonedGuarded(() async {
@@ -89,6 +96,11 @@ void main() async {
 
 Future<void> runFeralFileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeTimeZones();
+
+  // Initialize notifications
+  await initializeNotifications();
+
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
 
@@ -122,6 +134,71 @@ Future<void> runFeralFileApp() async {
   await _setupApp();
 }
 
+void initializeTimeZones() {
+  tz.initializeTimeZones();
+}
+
+Future<void> initializeNotifications() async {
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  const DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings();
+
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
+}
+
+Future<void> scheduleDailyNotification() async {
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    0,
+    'Daily Artwork Updated',
+    'The daily artwork has been updated for today!',
+    _nextInstanceOfSixAM(),
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'daily_artwork_channel_id',
+        'Daily Artwork',
+        channelDescription: 'Channel for daily artwork notifications',
+      ),
+      iOS: DarwinNotificationDetails(
+        presentBadge: true,
+        badgeNumber: 1,
+      ),
+    ),
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+    androidScheduleMode: AndroidScheduleMode.alarmClock,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
+}
+
+tz.TZDateTime _nextInstanceOfSixAM() {
+  const defaultScheduleTime = 6;
+  final configScheduleHour = injector<RemoteConfigService>().getConfig<String>(
+      ConfigGroup.daily,
+      ConfigKey.scheduleTime,
+      defaultScheduleTime.toString());
+
+  final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+  tz.TZDateTime scheduledDate = tz.TZDateTime(
+          tz.local, now.year, now.month, now.day, int.parse(configScheduleHour))
+      .subtract(DateTime.now().timeZoneOffset);
+
+  if (scheduledDate.isBefore(now)) {
+    scheduledDate = scheduledDate.add(const Duration(days: 1));
+  }
+  return scheduledDate;
+}
+
 void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
@@ -138,6 +215,7 @@ Future<void> _setupApp() async {
     Sentry.captureException(e);
   }
   await setupInjector();
+  await scheduleDailyNotification();
 
   runApp(
     EasyLocalization(
