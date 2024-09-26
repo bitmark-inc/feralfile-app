@@ -19,51 +19,6 @@ class _TZKTApi implements TZKTApi {
   String? baseUrl;
 
   @override
-  Future<List<TZKTOperation>> getOperations(
-    String address, {
-    String type = "transaction",
-    String quote = "usd",
-    int sort = 1,
-    int limit = 100,
-    int? lastId,
-    String? initiator,
-  }) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'type': type,
-      r'quote': quote,
-      r'sort': sort,
-      r'limit': limit,
-      r'lastId': lastId,
-      r'initiator.ne': initiator,
-    };
-    queryParameters.removeWhere((k, v) => v == null);
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio
-        .fetch<List<dynamic>>(_setStreamType<List<TZKTOperation>>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/v1/accounts/${address}/operations',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    var value = _result.data!
-        .map((dynamic i) => TZKTOperation.fromJson(i as Map<String, dynamic>))
-        .toList();
-    return value;
-  }
-
-  @override
   Future<List<TZKTTokenTransfer>> getTokenTransfer({
     String? anyOf,
     String? to,

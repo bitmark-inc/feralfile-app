@@ -241,8 +241,8 @@ class _AddressViewState extends State<AddressView> {
                       name.isNotEmpty
                           ? name
                           : _cryptoType == CryptoType.ETH
-                              ? 'Ethereum'
-                              : 'Tezos',
+                              ? 'ethereum'.tr()
+                              : 'tezos'.tr(),
                       style: style,
                     ),
                     Text(balance, style: style),

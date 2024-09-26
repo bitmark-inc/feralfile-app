@@ -19,7 +19,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
-import 'package:libauk_dart/libauk_dart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -102,6 +102,8 @@ class AuthService {
     } on DioException catch (e) {
       if (e.ffErrorCode == 998 && primaryAddress != null) {
         log.warning('Primary address not registered, retrying');
+        unawaited(Sentry.captureMessage('Primary address not registered,'
+            ' register then retrying'));
         await injector<AddressService>()
             .registerPrimaryAddress(info: primaryAddress);
         return await _authApi.authAddress(payload);
@@ -111,46 +113,17 @@ class AuthService {
     }
   }
 
-  Future<JWT?> getAuthToken(
-      {String? messageToSign,
-      String? receiptData,
-      bool forceRefresh = false,
-      bool shouldGetDidKeyInstead = false}) async {
+  Future<JWT?> getAuthToken({
+    String? messageToSign,
+    String? receiptData,
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
     final primaryAddressAuthToken =
         await _getPrimaryAddressAuthToken(receiptData: receiptData);
-    final newJwt = primaryAddressAuthToken ??
-        (shouldGetDidKeyInstead ? await getDidKeyAuthToken() : null);
-    return newJwt;
-  }
-
-  Future<JWT> _getAuthTokenByAccount(WalletStorage account) async {
-    final didKey = await account.getAccountDID();
-    final message = DateTime.now().millisecondsSinceEpoch.toString();
-    _addressService.getFeralfileAccountMessage(
-      address: didKey,
-      timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
-    );
-    final signature = await account.getAccountDIDSignature(message);
-
-    Map<String, dynamic> payload = {
-      'requester': didKey,
-      'timestamp': message,
-      'signature': signature,
-    };
-    try {
-      var newJwt = await _authApi.auth(payload);
-      return newJwt;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<JWT> getDidKeyAuthToken() async {
-    final defaultAccount = await injector<AccountService>().getDefaultAccount();
-    return _getAuthTokenByAccount(defaultAccount);
+    return primaryAddressAuthToken;
   }
 
   Future<void> registerPrimaryAddress(
@@ -197,5 +170,10 @@ class AuthService {
   Future<bool> redeemGiftCode(String giftCode) async {
     final response = await _authApi.redeemGiftCode(giftCode);
     return response.ok == 1;
+  }
+
+  Future<void> registerReferralCode({required String referralCode}) async {
+    final body = {'code': referralCode};
+    await _authApi.registerReferralCode(body);
   }
 }

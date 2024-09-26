@@ -1,7 +1,7 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -12,7 +12,7 @@ class SeriesTitleView extends StatelessWidget {
       {required this.series, super.key, this.crossAxisAlignment, this.artist});
 
   final FFSeries series;
-  final FFArtist? artist;
+  final FFUser? artist;
   final CrossAxisAlignment? crossAxisAlignment;
 
   @override
@@ -26,10 +26,13 @@ class SeriesTitleView extends StatelessWidget {
             artist?.displayAlias ?? '',
             style: theme.textTheme.ppMori400White14,
           ),
-          onTap: () async => Navigator.of(context).pushNamed(
-            AppRouter.userDetailsPage,
-            arguments: UserDetailsPagePayload(userId: series.artistID),
-          ),
+          onTap: () async => {
+            if (artist?.alumniAccount?.slug != null)
+              {
+                injector<NavigationService>()
+                    .openFeralFileArtistPage(artist!.alumniAccount!.slug!)
+              }
+          },
         ),
         const SizedBox(height: 3),
         Text(

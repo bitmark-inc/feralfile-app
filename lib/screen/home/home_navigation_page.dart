@@ -30,11 +30,13 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -57,9 +59,9 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeNavigationPagePayload {
@@ -93,13 +95,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
-  final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _notificationService = injector<nc.NotificationService>();
   final _remoteConfig = injector<RemoteConfigService>();
-  final _metricClientService = injector<MetricClientService>();
   final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
@@ -112,32 +112,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
-  void sendVisitPageEvent() {
-    if (_selectedIndex != HomeNavigatorTab.menu.index) {
-      final title = HomeNavigatorTab.values[_selectedIndex].screenName;
-      _metricClientService
-        ..addEvent(
-          MixpanelEvent.visitPage,
-          data: {
-            MixpanelProp.title: title,
-          },
-        )
-        ..timerEvent(
-          MixpanelEvent.visitPage,
-        );
-    }
-  }
-
   Future<void> openExhibition(String exhibitionId) async {
-    await _onItemTapped(HomeNavigatorTab.explore.index);
+    await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
-  Future<void> _onItemTapped(int index) async {
+  Future<void> onItemTapped(int index) async {
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
         if (index == HomeNavigatorTab.explore.index) {
-          _feralfileHomePageKey.currentState?.scrollToTop();
+          feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
           _dailyWorkKey.currentState?.scrollToTop();
         }
@@ -151,8 +135,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         } else {
           _dailyWorkKey.currentState?.pauseDailyWork();
         }
-
-        sendVisitPageEvent();
       }
       setState(() {
         _selectedIndex = index;
@@ -162,13 +144,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // handle hamburger menu
     else {
       final currentIndex = _selectedIndex;
-      _metricClientService.addEvent(
-        MixpanelEvent.visitPage,
-        data: {
-          MixpanelProp.title:
-              HomeNavigatorTab.values[_selectedIndex].screenName,
-        },
-      );
       setState(() {
         _selectedIndex = index;
       });
@@ -218,11 +193,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.scanQRPage,
                   arguments:
-                      ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
+                      const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
             },
           ),
           OptionItem(
-            title: 'addresses'.tr(),
+            title: 'wallet'.tr(),
             icon: const Icon(
               AuIcon.wallet,
             ),
@@ -231,7 +206,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
-            title: 'Settings',
+            title: 'settings'.tr(),
             icon: const Icon(
               AuIcon.settings,
             ),
@@ -240,7 +215,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
-              title: 'Help',
+              title: 'help'.tr(),
               icon: ValueListenableBuilder<List<int>?>(
                 valueListenable:
                     injector<CustomerSupportService>().numberOfIssuesInfo,
@@ -297,6 +272,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         default:
       }
     });
+    unawaited(injector<VersionService>().checkForUpdate());
     unawaited(
         _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
@@ -328,7 +304,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             ),
           ],
           child: FeralfileHomePage(
-            key: _feralfileHomePageKey,
+            key: feralFileHomeKey,
           )),
     ];
     if (!_configurationService.isReadRemoveSupport()) {
@@ -389,26 +365,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
-    unawaited(_syncArtist());
-  }
-
-  Future<void> _syncArtist() async {
-    if (_configurationService.getDidSyncArtists()) {
-      return;
-    }
-    final artists = await injector<AssetTokenDao>().findAllArtists();
-    NftCollectionBloc.addEventFollowing(AddArtistsEvent(artists: artists));
-    unawaited(_configurationService.setDidSyncArtists(true));
   }
 
   Future refreshNotification() async {
     await injector<CustomerSupportService>().getIssues();
+    await injector<CustomerSupportService>().processMessages();
   }
 
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    unawaited(injector<CustomerSupportService>().getIssues());
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -421,23 +387,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         nftBloc
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
-    }
-    _metricClientService.timerEvent(
-      MixpanelEvent.visitPage,
-    );
-  }
-
-  @override
-  Future<void> didPushNext() async {
-    super.didPushNext();
-    if (_selectedIndex != HomeNavigatorTab.menu.index) {
-      _metricClientService.addEvent(
-        MixpanelEvent.visitPage,
-        data: {
-          MixpanelProp.title:
-              HomeNavigatorTab.values[_selectedIndex].screenName,
-        },
-      );
     }
   }
 
@@ -611,7 +560,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       selectedItemColor: selectedColor,
       unselectedItemColor: unselectedColor,
       backgroundColor: AppColor.auGreyBackground,
-      onSelectTab: _onItemTapped,
+      onSelectTab: onItemTapped,
       currentIndex: _selectedIndex,
     );
   }
@@ -624,7 +573,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
-    _metricClientService.onBackground();
+    unawaited(_checkForReferralCode());
+  }
+
+  Future<void> _checkForReferralCode() async {
+    final referralCode = injector<ConfigurationService>().getReferralCode();
+    if (referralCode != null && referralCode.isNotEmpty) {
+      await injector<DeeplinkService>().handleReferralCode(referralCode);
+    }
   }
 
   void _triggerShowAnnouncement() {
@@ -650,7 +606,21 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
-    _metricClientService.onForeground();
+    final locale = Localizations.localeOf(context);
+    unawaited(LocaleService.refresh(locale));
+    memoryValues.inForegroundAt = DateTime.now();
+    await injector<ConfigurationService>().reload();
+    try {
+      await injector<SettingsDataService>().restoreSettingsData();
+    } catch (exception) {
+      if (exception is DioException && exception.response?.statusCode == 404) {
+        // if there is no backup, upload one.
+        await injector<SettingsDataService>().backup();
+      } else {
+        unawaited(Sentry.captureException(exception));
+      }
+    }
+    unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();
     _triggerShowAnnouncement();
@@ -659,7 +629,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) async {
     if (widget.payload.startedTab != _initialTab) {
-      await _onItemTapped(widget.payload.startedTab.index);
+      await onItemTapped(widget.payload.startedTab.index);
     }
     await _cloudBackup();
     final initialAction = _notificationService.initialAction;

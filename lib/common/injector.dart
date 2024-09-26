@@ -30,7 +30,6 @@ import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
@@ -64,7 +63,6 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
@@ -175,6 +173,7 @@ Future<void> setup() async {
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
   authenticatedDio.interceptors.add(ConnectingExceptionInterceptor());
+  authenticatedDio.interceptors.add(MetricsInterceptor());
   (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
       parseJson;
   authenticatedDio.addSentry();
@@ -189,8 +188,6 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => http.Client());
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
-  injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
@@ -408,7 +405,6 @@ Future<void> setup() async {
       ));
   injector.registerLazySingleton<CanvasDeviceBloc>(
       () => CanvasDeviceBloc(injector()));
-  injector.registerFactory<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
   injector.registerLazySingleton<DailyWorkBloc>(
@@ -421,5 +417,5 @@ Future<void> setup() async {
       () => AnnouncementServiceImpl(injector(), injector(), injector()));
 
   injector.registerLazySingleton<UpgradesBloc>(
-      () => UpgradesBloc(injector(), injector()));
+      () => UpgradesBloc(injector(), injector(), injector()));
 }

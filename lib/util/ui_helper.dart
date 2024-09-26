@@ -65,8 +65,6 @@ Future<void> doneOnboarding(BuildContext context) async {
   unawaited(injector<IAPService>().restore());
   await injector<ConfigurationService>().setPendingSettings(true);
   await injector<ConfigurationService>().setDoneOnboarding(true);
-  unawaited(
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
   await injector<NavigationService>()
       .navigateUntil(AppRouter.homePageNoTransition, (route) => false);
 }
@@ -966,6 +964,7 @@ class UIHelper {
           children: [
             if (isHidden)
               RichText(
+                textScaler: MediaQuery.textScalerOf(context),
                 text: TextSpan(children: [
                   TextSpan(
                     style: theme.textTheme.ppMori400White14,

@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -315,21 +314,21 @@ class ReportIssueType {
   static String toTitle(String item) {
     switch (item) {
       case Feature:
-        return 'Request a feature';
+        return 'request_a_feature'.tr();
       case Bug:
-        return 'Report a bug';
+        return 'report_a_bug'.tr();
       case Feedback:
-        return 'Share feedback';
+        return 'share_feedback'.tr();
       case Exception:
-        return 'Report a bug';
+        return 'report_a_bug'.tr();
       case ReportNFTIssue:
-        return 'Report NFT issue';
+        return 'report_nft_issue'.tr();
       case Announcement:
-        return 'Announcement';
+        return 'announcement'.tr();
       case MerchandiseIssue:
-        return 'Merchandise issue';
+        return 'merchandise'.tr();
       default:
-        return 'Something else?';
+        return 'something_else'.tr();
     }
   }
 
@@ -556,57 +555,6 @@ Map<String, String> specifiedSeriesTitle = {
       ExtendedArtworkModel.interactiveInstruction.title,
 };
 
-class MixpanelEvent {
-  static const String visitPage = 'Visit page';
-  static const String viewExhibition = 'View exhibition';
-  static const String viewArtwork = 'View artwork';
-  static const String deliveredNotification = 'Delivered notification';
-  static const String tappedNotification = 'Tapped notification';
-  static const String dismissedNotification = 'Dismissed notification';
-  static const String expiredBeforeViewing = 'Expired before viewing';
-}
-
-class MixpanelEventProp {}
-
-class MixpanelProp {
-  static const platform = 'platform';
-  static const tokenId = 'tokenId';
-  static const artworkId = 'artworkId';
-  static const exhibitionId = 'exhibitionId';
-  static const ownerAddress = 'ownerAddress';
-  static const title = 'title';
-  static const playlistId = 'playlistId';
-  static const address = 'address';
-  static const type = 'type';
-  static const url = 'url';
-  static const message = 'message';
-  static const section = 'section';
-  static const recipientAddress = 'recipientAddress';
-  static const seriesId = 'seriesId';
-  static const method = 'method';
-  static const isOnboarding = 'isOnboarding';
-  static const id = 'id';
-  static const notificationId = 'notification_id';
-  static const content = 'content';
-  static const category = 'category';
-  static const channel = 'channel';
-  static const firstAppOpenDate = 'First App Open Date';
-}
-
-class MixpanelConfig {}
-
-class MixpanelExtendScreen {
-  static const String collection = 'Collection';
-  static const String organization = 'Organization';
-  static const String exhibition = 'Exhibition';
-  static const String showMyCode = 'Show My Code';
-}
-
-const List<String> metricVisitPageIgnoreScreen = [
-  AppRouter.homePage,
-  AppRouter.homePageNoTransition,
-];
-
 class LinkType {
   static const local = 'Local Deep Link';
   static const dAppConnect = 'Dapp Connect Deeplink';
@@ -633,8 +581,6 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = '_closeWebview';
 }
-
-const Duration USE_APP_MIN_DURATION = Duration(seconds: 15);
 
 const chatPrivateBannerId = 'chat_private_banner_id';
 final chatPrivateBannerMessage = SystemMessage(

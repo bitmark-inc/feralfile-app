@@ -162,31 +162,7 @@ abstract class ConfigurationService {
 
   Future setDoneOnboardingTime(DateTime time);
 
-  DateTime? getDoneOnboardingTime();
-
   Future setSubscriptionTime(DateTime time);
-
-  DateTime? getSubscriptionTime();
-
-  Future setAlreadyShowProTip(bool show);
-
-  Future setAlreadyShowTvAppTip(bool show);
-
-  Future setAlreadyShowCreatePlaylistTip(bool show);
-
-  Future setAlreadyShowLinkOrImportTip(bool show);
-
-  bool getAlreadyShowProTip();
-
-  bool getAlreadyShowTvAppTip();
-
-  bool getAlreadyShowCreatePlaylistTip();
-
-  bool getAlreadyShowLinkOrImportTip();
-
-  DateTime? getShowBackupSettingTip();
-
-  Future setShowBackupSettingTip(DateTime time);
 
   // Do at once
 
@@ -202,8 +178,6 @@ abstract class ConfigurationService {
   Future<void> removeAll();
 
   ValueNotifier<bool> get showingNotification;
-
-  ValueNotifier<bool> get showCreatePlaylistTip;
 
   List<SharedPostcard> getSharedPostcard();
 
@@ -245,11 +219,6 @@ abstract class ConfigurationService {
 
   Future<void> setVersionInfo(String version);
 
-  // set and get for did_sync_artists
-  Future<void> setDidSyncArtists(bool value);
-
-  bool getDidSyncArtists();
-
   List<String> getHiddenOrSentTokenIDs();
 
   Future<void> setShowPostcardBanner(bool bool);
@@ -264,6 +233,10 @@ abstract class ConfigurationService {
       {bool override = false});
 
   List<String> getMerchandiseOrderIds();
+
+  Future<void> setReferralCode(String referralCode);
+
+  String? getReferralCode();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -276,7 +249,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_POSTCARD_CHAT_CONFIG = 'postcard_chat_config';
   static const String KEY_DID_MIGRATE_ADDRESS = 'did_migrate_address';
   static const String KEY_HIDDEN_FEEDS = 'hidden_feeds';
-  static const String KEY_DID_SYNC_ARTISTS = 'did_sync_artists';
   static const String KEY_IAP_RECEIPT = 'key_iap_receipt';
   static const String KEY_IAP_JWT = 'key_iap_jwt';
   static const String IS_PREMIUM = 'is_premium';
@@ -321,19 +293,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_SUBSCRIPTION_TIME = 'subscription_time';
 
-  static const String KEY_CAN_SHOW_PRO_TIP = 'show_pro_tip';
-
-  static const String KEY_CAN_SHOW_TV_APP_TIP = 'show_tv_app_tip';
-
-  static const String KEY_CAN_SHOW_CREATE_PLAYLIST_TIP =
-      'show_create_playlist_tip';
-
-  static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
-      'show_link_or_import_tip';
-
-  static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
-      'show_back_up_settings_tip';
-
   static const String KEY_STAMPING_POSTCARD = 'stamping_postcard';
 
   static const String KEY_AUTO_SHOW_POSTCARD = 'auto_show_postcard';
@@ -359,41 +318,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
-  @override
-  Future setAlreadyShowProTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_PRO_TIP, show);
-  }
-
-  @override
-  Future setAlreadyShowTvAppTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_TV_APP_TIP, show);
-  }
-
-  @override
-  Future setAlreadyShowCreatePlaylistTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP, show);
-  }
-
-  @override
-  Future setAlreadyShowLinkOrImportTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP, show);
-  }
-
-  @override
-  bool getAlreadyShowProTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_PRO_TIP) ?? false;
-
-  @override
-  bool getAlreadyShowTvAppTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_TV_APP_TIP) ?? false;
-
-  @override
-  bool getAlreadyShowCreatePlaylistTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP) ?? false;
-
-  @override
-  bool getAlreadyShowLinkOrImportTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP) ?? false;
+  static const String KEY_REFERRAL_CODE = 'referral_code';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -780,28 +705,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  ValueNotifier<bool> showProTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(false);
-
-  @override
   ValueNotifier<bool> showingNotification = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
-
-  @override
-  DateTime? getDoneOnboardingTime() {
-    final timeString = _preferences.getString(KEY_DONE_ON_BOARDING_TIME);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
 
   @override
   Future setDoneOnboardingTime(DateTime time) async {
@@ -810,36 +714,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  DateTime? getSubscriptionTime() {
-    final timeString = _preferences.getString(KEY_SUBSCRIPTION_TIME);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
   Future setSubscriptionTime(DateTime time) async {
     await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
-
-  @override
-  DateTime? getShowBackupSettingTip() {
-    final timeString = _preferences.getString(KEY_SHOW_BACK_UP_SETTINGS_TIP);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
-  Future setShowBackupSettingTip(DateTime time) async {
-    await _preferences.setString(
-        KEY_SHOW_BACK_UP_SETTINGS_TIP, time.toIso8601String());
-  }
-
-  @override
-  ValueNotifier<bool> showBackupSettingTip = ValueNotifier(false);
 
   @override
   List<SharedPostcard> getSharedPostcard() {
@@ -1013,14 +890,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setVersionInfo(String version) async {
     await _preferences.setString(KEY_PACKAGE_INFO, version);
   }
-
-  @override
-  bool getDidSyncArtists() =>
-      _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
-
-  @override
-  Future<void> setDidSyncArtists(bool value) =>
-      _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
 
   @override
   bool getDidMigrateAddress() =>
@@ -1199,6 +1068,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setDoneNewOnboarding(bool value) async {
     await _preferences.setBool(keyDoneNewOnboarding, value);
   }
+
+  @override
+  String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);
+
+  @override
+  Future<void> setReferralCode(String referralCode) =>
+      _preferences.setString(KEY_REFERRAL_CODE, referralCode);
 }
 
 enum ConflictAction {

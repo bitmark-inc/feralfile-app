@@ -141,6 +141,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                 borderRadius: BorderRadius.circular(5),
                               ),
                               child: RichText(
+                                textScaler: MediaQuery.textScalerOf(context),
                                 text: TextSpan(
                                   children: <TextSpan>[
                                     TextSpan(
@@ -243,7 +244,8 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
 
   Widget _getBackUpState(BuildContext context) {
     final theme = Theme.of(context);
-    final customLinkStyle = theme.textTheme.ppMori400Black14.copyWith(
+    final commonStyle = theme.textTheme.ppMori400Black14;
+    final customLinkStyle = commonStyle.copyWith(
       decoration: TextDecoration.underline,
       decorationColor: AppColor.primaryBlack,
     );
@@ -255,12 +257,12 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
       children: [
         Text(
           'SRP_is_crucial'.tr(),
-          style: theme.textTheme.ppMori400Black14,
+          style: commonStyle,
         ),
         const SizedBox(height: 12),
         Text(
           'as_a_non_custodial_wallet'.tr(),
-          style: theme.textTheme.ppMori400Black14,
+          style: commonStyle,
         ),
         const SizedBox(height: 12),
         Text('remember_if_you_lose_your_SRP'.tr(),
@@ -268,6 +270,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
         const SizedBox(height: 12),
         if (_isBackUpAvailable == true) ...[
           RichText(
+            textScaler: MediaQuery.textScalerOf(context),
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
               children: <TextSpan>[
@@ -308,9 +311,10 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
           ),
         ] else ...[
           RichText(
+            textScaler: MediaQuery.textScalerOf(context),
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
-              children: <TextSpan>[
+              children: [
                 if (Platform.isIOS)
                   TextSpan(
                     text: 'icloud_keychain'.tr(),

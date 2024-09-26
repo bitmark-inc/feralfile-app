@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -18,6 +19,7 @@ import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:sentry/sentry.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
@@ -78,12 +80,23 @@ class AddressService {
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
     final res = await setPrimaryAddressInfo(info: info);
-    if (withDidKey) {
-      await injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress();
-    }
     // when register primary address, we need to update the auth token
     await injector<AuthService>().getAuthToken(forceRefresh: true);
+    // we also need to identity the metric client
+    await injector<MetricClientService>().identity();
     return res;
+  }
+
+  Future<bool> registerReferralCode({required String referralCode}) async {
+    try {
+      await injector<AuthService>()
+          .registerReferralCode(referralCode: referralCode);
+      return true;
+    } catch (e) {
+      log.info('Failed to register referral code: $e');
+      unawaited(Sentry.captureException(e));
+      rethrow;
+    }
   }
 
   Future<bool> clearPrimaryAddress() async {

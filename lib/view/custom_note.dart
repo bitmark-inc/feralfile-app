@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ExhibitionCustomNote extends StatelessWidget {
   const ExhibitionCustomNote({
@@ -45,6 +46,11 @@ class ExhibitionCustomNote extends StatelessWidget {
                       : '<div style="max-lines: 16; text-overflow: ellipsis">${info.content.split('<br />').first}</div>',
                   textStyle: theme.textTheme.ppMori400White14,
                   customStylesBuilder: auHtmlStyle,
+                  onTapUrl: (url) async {
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
+                    return true;
+                  },
                 ),
               ),
             ),

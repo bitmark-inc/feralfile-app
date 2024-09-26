@@ -41,6 +41,7 @@ class ForgetExistView extends StatelessWidget {
                     ),
                     Expanded(
                       child: RichText(
+                        textScaler: MediaQuery.textScalerOf(context),
                         text: TextSpan(
                           style: theme.primaryTextTheme.ppMori400White14,
                           children: <TextSpan>[

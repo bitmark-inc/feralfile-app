@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
@@ -26,6 +25,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -114,8 +114,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _infoShrink();
     _bloc = context.read<ArtworkDetailBloc>();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    _bloc.add(ArtworkDetailGetInfoEvent(
-        widget.payload.identities[widget.payload.currentIndex],
+    _bloc.add(ArtworkDetailGetInfoEvent(widget.payload.identity,
         useIndexer: widget.payload.useIndexer));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
@@ -263,13 +262,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listenWhen: (previous, current) {
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        unawaited(current.assetToken?.sendViewArtworkEvent());
-      }
-      return true;
-    }, listener: (context, state) {
+        listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
@@ -379,8 +372,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   Expanded(
                     child: ArtworkPreviewWidget(
                       useIndexer: widget.payload.useIndexer,
-                      identity: widget
-                          .payload.identities[widget.payload.currentIndex],
+                      identity: widget.payload.identity,
                       onLoaded: _onLoaded,
                     ),
                   ),
@@ -505,11 +497,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               title: asset.displayTitle ?? '',
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null && asset.isFeralfile
-                  ? () => unawaited(Navigator.of(context).pushNamed(
-                        AppRouter.userDetailsPage,
-                        arguments:
-                            UserDetailsPagePayload(userId: asset.artistID!),
-                      ))
+                  ? () => unawaited(injector<NavigationService>()
+                      .openFeralFileArtistPage(asset.artistID!))
                   : null,
             ),
           ),
@@ -604,6 +593,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           customStylesBuilder: auHtmlStyle,
                           asset.description ?? '',
                           textStyle: theme.textTheme.ppMori400White14,
+                          onTapUrl: (url) async {
+                            await launchUrl(Uri.parse(url),
+                                mode: LaunchMode.externalApplication);
+                            return true;
+                          },
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -728,7 +722,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        if (!widget.payload.isLocalToken)
+        if (widget.payload.isLocalToken)
           OptionItem(
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
@@ -864,8 +858,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
 class ArtworkDetailPayload {
   final Key? key;
-  final List<ArtworkIdentity> identities;
-  final int currentIndex;
+  final ArtworkIdentity identity;
   final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
@@ -873,8 +866,7 @@ class ArtworkDetailPayload {
       isLocalToken; // if local token, it can be hidden and refresh metadata
 
   ArtworkDetailPayload(
-    this.identities,
-    this.currentIndex, {
+    this.identity, {
     this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
@@ -883,16 +875,14 @@ class ArtworkDetailPayload {
   });
 
   ArtworkDetailPayload copyWith({
-    List<ArtworkIdentity>? ids,
-    int? currentIndex,
+    ArtworkIdentity? identity,
     PlayListModel? playlist,
     String? twitterCaption,
     bool? useIndexer,
     bool? isLocalToken,
   }) =>
       ArtworkDetailPayload(
-        ids ?? identities,
-        currentIndex ?? this.currentIndex,
+        identity ?? this.identity,
         twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
@@ -913,4 +903,15 @@ class ArtworkIdentity {
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 
   String get key => '$id||$owner';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is ArtworkIdentity && id == other.id && owner == other.owner;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ owner.hashCode;
 }

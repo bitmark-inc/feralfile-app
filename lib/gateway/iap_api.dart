@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
-import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/ok_response.dart';
 import 'package:dio/dio.dart';
@@ -19,14 +18,10 @@ part 'iap_api.g.dart';
 
 @RestApi(baseUrl: '')
 abstract class IAPApi {
-  static const authenticationPath = '/apis/v1/auth';
   static const addressAuthenticationPath = '/apis/v2/addresses/auth';
   static const registerPrimaryAddressPath = '/apis/v2/addresses/primary';
 
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
-
-  @POST(authenticationPath)
-  Future<JWT> auth(@Body() Map<String, dynamic> body);
 
   @POST(addressAuthenticationPath)
   Future<JWT> authAddress(@Body() Map<String, dynamic> body);
@@ -41,12 +36,6 @@ abstract class IAPApi {
     @Part(name: 'filename') String filename,
     @Part(name: 'appVersion') String appVersion,
     @Part(name: 'data') File data,
-  );
-
-  @GET('/apis/v1/premium/profile-data/versions')
-  Future<BackupVersions> getProfileVersions(
-    @Header('requester') String requester,
-    @Query('filename') String filename,
   );
 
   @GET('/apis/v1/premium/profile-data')
@@ -75,4 +64,23 @@ abstract class IAPApi {
   Future<OkResponse> redeemGiftCode(
     @Path('id') String id,
   );
+
+  @PATCH('/apis/metric-devices/{id}')
+  Future<void> updateMetrics(
+    @Path('id') String deviceId,
+  );
+
+  @POST('/apis/metrics')
+  Future<void> sendEvent(
+    @Body() Map<String, dynamic> metrics,
+    @Header('x-device-id') String deviceId,
+  );
+
+  @DELETE('/apis/metric-devices/{id}')
+  Future<void> deleteMetrics(
+    @Path('id') String deviceId,
+  );
+
+  @PATCH('/apis/v2/addresses/referral')
+  Future<void> registerReferralCode(@Body() Map<String, dynamic> body);
 }

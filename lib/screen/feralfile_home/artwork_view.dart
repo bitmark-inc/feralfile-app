@@ -271,7 +271,7 @@ class _SeriesViewState extends State<SeriesView> {
               if (series.exhibition != null) ...[
                 const SizedBox(height: 12),
                 RichText(
-                  overflow: TextOverflow.ellipsis,
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: defaultStyle.copyWith(color: AppColor.auQuickSilver),
                     children: [

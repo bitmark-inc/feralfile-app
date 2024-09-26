@@ -59,13 +59,13 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
@@ -145,6 +145,7 @@ import 'package:page_transition/page_transition.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
+GlobalKey<FeralfileHomePageState> feralFileHomeKey = GlobalKey();
 
 class AppRouter {
   static const createPlayListPage = 'create_playlist_page';
@@ -241,6 +242,11 @@ class AppRouter {
   static const artistWorksPage = 'artist_works_page';
   static const artistExhibitionsPage = 'artist_exhibitions_page';
   static const artistPostsPage = 'artist_posts_page';
+  static const featuredPage = 'featured_page';
+  static const artworksPage = 'artworks_page';
+  static const artistsPage = 'artists_page';
+  static const curatorsPage = 'curators_page';
+  static const rAndDPage = 'r_and_d_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -805,18 +811,6 @@ class AppRouter {
                   payload: settings.arguments! as CloudAndroidPagePayload,
                 ));
 
-      case globalReceivePage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                  BlocProvider.value(value: ethereumBloc),
-                  BlocProvider.value(value: tezosBloc),
-                ], child: const GlobalReceivePage()));
-
       case globalReceiveDetailPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1037,7 +1031,11 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(
-                    create: (_) => UpgradesBloc(injector(), injector()),
+                    create: (_) => UpgradesBloc(
+                      injector(),
+                      injector(),
+                      injector(),
+                    ),
                   ),
                 ], child: const SubscriptionPage()));
 

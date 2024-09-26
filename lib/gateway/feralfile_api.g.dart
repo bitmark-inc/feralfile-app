@@ -416,6 +416,40 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
+  Future<FeralFileListResponse<DailyToken>> getDailiesTokenByDate({
+    required String date,
+    bool? includeSuccessfulSwap = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeSuccessfulSwap': includeSuccessfulSwap
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<DailyToken>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/dailies/date/${date}',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FeralFileListResponse<DailyToken>.fromJson(
+        _result.data!, DailyToken.fromJson);
+    return value;
+  }
+
+  @override
   Future<FeralFileListResponse<FFSeries>> exploreArtwork({
     String? sortBy,
     String? sortOrder,
@@ -472,7 +506,7 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<FeralFileListResponse<FFArtist>> getArtists({
+  Future<FeralFileListResponse<FFUser>> getArtists({
     int limit = 20,
     int offset = 0,
     String sortBy = 'relevance',
@@ -492,7 +526,7 @@ class _FeralFileApi implements FeralFileApi {
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<FeralFileListResponse<FFArtist>>(Options(
+        _setStreamType<FeralFileListResponse<FFUser>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -508,13 +542,13 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = FeralFileListResponse<FFArtist>.fromJson(
-        _result.data!, FFArtist.fromJson);
+    final value =
+        FeralFileListResponse<FFUser>.fromJson(_result.data!, FFUser.fromJson);
     return value;
   }
 
   @override
-  Future<FeralFileListResponse<FFCurator>> getCurators({
+  Future<FeralFileListResponse<FFUser>> getCurators({
     int limit = 20,
     int offset = 0,
     String sortBy = 'relevance',
@@ -536,7 +570,7 @@ class _FeralFileApi implements FeralFileApi {
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<FeralFileListResponse<FFCurator>>(Options(
+        _setStreamType<FeralFileListResponse<FFUser>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -552,8 +586,8 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = FeralFileListResponse<FFCurator>.fromJson(
-        _result.data!, FFCurator.fromJson);
+    final value =
+        FeralFileListResponse<FFUser>.fromJson(_result.data!, FFUser.fromJson);
     return value;
   }
 
@@ -591,7 +625,7 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<FeralFileResponse<FFUserDetails>> getUser({
+  Future<FeralFileResponse<FFUser>> getUser({
     String accountId = '',
     bool includeLinkedAccounts = true,
     bool includeCollaborationAccounts = true,
@@ -604,7 +638,7 @@ class _FeralFileApi implements FeralFileApi {
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<FeralFileResponse<FFUserDetails>>(Options(
+        _setStreamType<FeralFileResponse<FFUser>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -620,8 +654,8 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = FeralFileResponse<FFUserDetails>.fromJson(_result.data!,
-        fromJson: FFUserDetails.fromJson);
+    final value = FeralFileResponse<FFUser>.fromJson(_result.data!,
+        fromJson: FFUser.fromJson);
     return value;
   }
 

@@ -55,6 +55,8 @@ abstract class DeeplinkService {
 
   void activateDeepLinkListener();
 
+  Future<void> handleReferralCode(String referralCode);
+
   ValueNotifier<bool?> get didOpenWithGiftMembership;
 }
 
@@ -118,6 +120,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     try {
       final initialLink = await getInitialLink();
+      log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }
@@ -423,6 +426,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (navigatePath != null) {
       await _navigationService.navigatePath(navigatePath);
     }
+    log.info('[DeeplinkService] handleBranchDeeplinkData $data');
+    log.info('source: ${data['source']}');
     final source = data['source'];
     switch (source) {
       case 'Postcard':
@@ -611,9 +616,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final giftCode = data['gift_code'];
         await GiftHandler.handleGiftMembership(giftCode);
 
+      case 'referral_code':
+        final referralCode = data['referralCode'];
+        log.info('[DeeplinkService] referralCode: $referralCode');
+        await handleReferralCode(referralCode);
+
       default:
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
+  }
+
+  @override
+  Future<void> handleReferralCode(String referralCode) async {
+    log.info('[DeeplinkService] handleReferralCode $referralCode');
+    // save referral code to local storage, for case when user register failed
+    await _configurationService.setReferralCode(referralCode);
+    try {
+      await injector<AddressService>()
+          .registerReferralCode(referralCode: referralCode);
+      // clear referral code after register success
+      await _configurationService.setReferralCode('');
+    } catch (e, s) {
+      log.info('[DeeplinkService] _handleReferralCode error $e');
+      unawaited(
+          Sentry.captureException('Referral code error: $e', stackTrace: s));
+      if (e is DioException) {
+        if (e.isAlreadySetReferralCode) {
+          log.info('[DeeplinkService] referral code already set');
+          // if referral code is already set, clear it
+          await _configurationService.setReferralCode('');
+        }
+      }
+    }
   }
 
   Future<void> _handlePostcardDeeplink(String shareCode) async {

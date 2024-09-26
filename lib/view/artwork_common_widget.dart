@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -485,55 +483,6 @@ class RetryCubit extends Cubit<int> {
   }
 }
 
-class PreviewUnSupportedTokenWidget extends StatelessWidget {
-  final AssetToken token;
-
-  const PreviewUnSupportedTokenWidget({required this.token, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.width,
-      padding: const EdgeInsets.all(10),
-      color: AppColor.auGreyBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: SvgPicture.asset(
-              'assets/images/unsupported_token.svg',
-              width: 40,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Row(
-              children: [
-                Text(
-                  'unsupported_token'.tr(),
-                  style: theme.textTheme.ppMori700QuickSilver8
-                      .copyWith(fontSize: 12),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    'hide_from_collection'.tr(),
-                    style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.feralFileHighlight),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class BrokenTokenWidget extends StatefulWidget {
   final AssetToken token;
 
@@ -587,50 +536,6 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
                         .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CurrentlyCastingArtwork extends StatefulWidget {
-  const CurrentlyCastingArtwork({super.key});
-
-  @override
-  State<CurrentlyCastingArtwork> createState() =>
-      _CurrentlyCastingArtworkState();
-}
-
-class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.width,
-      padding: const EdgeInsets.all(10),
-      color: AppColor.auGreyBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: SvgPicture.asset(
-              'assets/images/ipfs_error_icon.svg',
-              width: 40,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Row(
-              children: [
-                Text(
-                  'currently_casting'.tr(),
-                  style: theme.textTheme.ppMori700QuickSilver8
-                      .copyWith(fontSize: 12),
-                ),
               ],
             ),
           ),
@@ -1090,14 +995,17 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             title: 'title'.tr(),
             value: artwork.series!.displayTitle,
           ),
-          if (artwork.series!.artist?.alias != null) ...[
+          if (artwork.series!.artist?.alumniAccount?.alias != null) ...[
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
               value: artwork.series!.artist!.displayAlias,
-              tapLink:
-                  FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
-              forceSafariVC: true,
+              onTap: () async {
+                if (artwork.series!.artist!.alumniAccount!.slug != null) {
+                  await injector<NavigationService>().openFeralFileArtistPage(
+                      artwork.series!.artist!.alumniAccount!.slug!);
+                }
+              },
             ),
           ],
           if (!artwork.isYokoOnoPublicVersion) ...[
@@ -1119,8 +1027,17 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             MetaDataItem(
               title: 'exhibition'.tr(),
               value: artwork.series!.exhibition!.title,
-              tapLink: feralFileExhibitionUrl(artwork.series!.exhibition!.slug),
-              forceSafariVC: true,
+              onTap: () {
+                unawaited(
+                  Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions: [artwork.series!.exhibition!],
+                      index: 0,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
           divider,
@@ -1180,11 +1097,8 @@ Widget artworkDetailsMetadataSection(
                     assetToken.artistURL?.split(' & ').firstOrNull ?? '');
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               } else {
-                final artist = await injector<FeralFileService>()
-                    .getUser(assetToken.artistID!);
-                unawaited(Navigator.of(context).pushNamed(
-                    AppRouter.userDetailsPage,
-                    arguments: UserDetailsPagePayload(userId: artist.id)));
+                unawaited(injector<NavigationService>()
+                    .openFeralFileArtistPage(assetToken.artistID!));
               }
             },
             forceSafariVC: true,
@@ -1634,43 +1548,6 @@ class ProvenanceItem extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class HeaderData extends StatelessWidget {
-  final String text;
-
-  const HeaderData({required this.text, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Divider(
-          color: theme.colorScheme.secondary,
-          thickness: 1,
-        ),
-        Row(
-          children: [
-            Text(
-              text,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const Spacer(),
-            RotatedBox(
-              quarterTurns: 1,
-              child: Icon(
-                AuIcon.chevron_Sm,
-                size: 12,
-                color: theme.colorScheme.secondary,
-              ),
-            )
-          ],
         ),
       ],
     );

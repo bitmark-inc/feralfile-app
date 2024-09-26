@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 
 class UserDetailsState {
-  final FFUserDetails? artist;
+  final FFUser? artist;
   final List<FFSeries>? series;
   final List<Exhibition>? exhibitions;
   final List<Post>? posts;
@@ -16,7 +16,7 @@ class UserDetailsState {
   });
 
   UserDetailsState copyWith({
-    FFUserDetails? artist,
+    FFUser? artist,
     List<FFSeries>? series,
     List<Exhibition>? exhibitions,
     List<Post>? posts,

@@ -39,20 +39,5 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
       }
       emit(state.copyWith(isRename: false));
     });
-
-    on<UpdatePlayControl>((event, emit) async {
-      final playListModel = state.playListModel;
-      playListModel?.playControlModel = event.playControlModel;
-
-      final playlists = await _playlistService.getPlayList();
-      final index =
-          playlists.indexWhere((element) => element.id == playListModel?.id);
-      if (index != -1 && playListModel != null) {
-        playlists[index] = playListModel;
-        await _playlistService.setPlayList(playlists, override: true);
-        unawaited(injector.get<SettingsDataService>().backup());
-      }
-      emit(state.copyWith(playListModel: playListModel));
-    });
   }
 }

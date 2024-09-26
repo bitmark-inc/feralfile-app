@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
@@ -219,25 +220,29 @@ void _showUpdateDialog(VersionCheck versionCheck) {
     context: injector<NavigationService>().navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      title: const Text('Update Available'),
+      title: Text('update_available'.tr()),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
-            Text('Do you want to update to ${versionCheck.storeVersion}?'),
-            Text('(current version ${versionCheck.packageVersion})'),
+            Text('want_to_update'.tr(
+              args: [versionCheck.storeVersion!],
+            )),
+            Text('current_version'.tr(
+              args: [versionCheck.packageVersion!],
+            )),
           ],
         ),
       ),
       actions: <Widget>[
         TextButton(
-          child: const Text('Update'),
+          child: Text('update'.tr()),
           onPressed: () async {
             Navigator.of(context).pop();
             await versionCheck.launchStore();
           },
         ),
         TextButton(
-          child: const Text('Close'),
+          child: Text('close'.tr()),
           onPressed: () {
             Navigator.of(context).pop();
           },
