@@ -78,7 +78,7 @@ extension DioErrorEvent on DioException {
   }
 }
 
-ErrorEvent? translateError(Object exception) {
+ErrorEvent translateError(Object exception) {
   if (exception is DioException) {
     final dioErrorEvent = exception.errorEvent;
     if (dioErrorEvent != null) {
@@ -100,7 +100,11 @@ ErrorEvent? translateError(Object exception) {
         ErrorItemState.getReport);
   }
 
-  return null;
+  return ErrorEvent(
+      exception,
+      'Oops! Something went wrong',
+      'It looks like there’s a small hiccup on our end. We’re on it and should have things fixed soon. Apologies for any inconvenience!',
+      ErrorItemState.close);
 }
 
 bool onlySentryException(Object exception) {
@@ -290,7 +294,7 @@ Future<bool> showErrorDialogFromException(Object exception,
 
   final event = translateError(exception);
 
-  if (context != null && event != null) {
+  if (context != null) {
     if (event.state == ErrorItemState.getReport) {
       final sentryID = await reportSentry(
           {'exception': exception, 'stackTrace': stackTrace});
