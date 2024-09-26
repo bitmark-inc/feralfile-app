@@ -5,10 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry/sentry.dart';
 
 enum DeviceType { phone, tablet, desktop }
 
@@ -37,14 +39,14 @@ abstract class IDeviceInfo {
 }
 
 class _MobileInfo extends IDeviceInfo {
-  late bool _isTablet;
+  bool _isTablet = false;
 
   @override
   bool get isPhone => !_isTablet;
 
   @override
   bool get isDesktop =>
-      (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
   @override
   bool get isTablet => _isTablet;
@@ -62,8 +64,7 @@ class _MobileInfo extends IDeviceInfo {
 
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
-  @override
-  Future<String?> getMachineName() async {
+  Future<String?> _getMachineName() async {
     if (isIOS) {
       return (await _deviceInfo.iosInfo).utsname.machine;
     }
@@ -71,6 +72,16 @@ class _MobileInfo extends IDeviceInfo {
       return (await _deviceInfo.androidInfo).model;
     }
     return null;
+  }
+
+  @override
+  Future<String?> getMachineName() async {
+    try {
+      return await _getMachineName();
+    } catch (e) {
+      unawaited(Sentry.captureException(e));
+      return null;
+    }
   }
 
   Future<bool> _checkIsTablet() async {
@@ -103,11 +114,11 @@ class _MobileInfo extends IDeviceInfo {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
       final version = androidInfo.version.release;
-      return version.isEmpty || int.parse(version.split(".")[0]) > 8;
+      return version.isEmpty || int.parse(version.split('.')[0]) > 8;
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
       final version = iOSInfo.systemVersion;
-      return version.isEmpty || int.parse(version.split(".")[0]) > 14;
+      return version.isEmpty || int.parse(version.split('.')[0]) > 14;
     }
   }
 

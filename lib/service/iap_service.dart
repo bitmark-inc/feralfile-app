@@ -279,9 +279,7 @@ class IAPServiceImpl implements IAPService {
           ..info('[IAPService] verifying the receipt');
         if (subscriptionStatus?.isPremium == true) {
           unawaited(_configurationService.setIAPJWT(jwt));
-          if (!_configurationService.isPremium()) {
-            unawaited(_configurationService.setPremium(true));
-          }
+
           final status = subscriptionStatus!;
           if (status.productDetails?.id == purchaseDetails.productID) {
             if (status.isTrial) {
@@ -304,7 +302,6 @@ class IAPServiceImpl implements IAPService {
           }
         } else {
           log.info('[IAPService] the receipt is invalid');
-          unawaited(_configurationService.setPremium(false));
           purchases.value[purchaseDetails.productID] = IAPProductStatus.expired;
           _purchases.remove(purchaseDetails);
           unawaited(_configurationService.setIAPReceipt(null));
@@ -323,7 +320,6 @@ class IAPServiceImpl implements IAPService {
     if (purchaseDetailsList.isEmpty) {
       // Remove purchase status
       unawaited(_configurationService.setIAPReceipt(null));
-      unawaited(_configurationService.setPremium(false));
       return;
     }
 
