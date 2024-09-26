@@ -30,6 +30,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry/sentry.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -83,15 +84,10 @@ class _OnboardingPageState extends State<OnboardingPage>
       await disableLandscapeMode();
       await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
       DailiesHelper.updateDailies([]);
-    } catch (e) {
-      log.info('Setup error: $e');
-    }
-
-    try {
       await injector<DeeplinkService>().setup();
-    } catch (e) {
+    } catch (e, s) {
       log.info('Setup error: $e');
-      rethrow;
+      unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
     }
   }
 
