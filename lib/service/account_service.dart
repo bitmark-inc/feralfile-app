@@ -724,18 +724,30 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> restoreIfNeeded() async {
+    log.info('[AccountService] restoreIfNeeded');
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
     final migrationUtil = MigrationUtil(_cloudDB, auditService);
-    await androidRestoreKeys();
-    await migrationUtil.migrationFromKeychain();
+    try {
+      await androidRestoreKeys();
+      await migrationUtil.migrationFromKeychain();
+    } catch (e, stacktrace) {
+      log.info('Error while restoring keys', e, stacktrace);
+      unawaited(Sentry.captureException('Error while restoring keys: $e',
+          stackTrace: stacktrace));
+    }
+    log.info('[AccountService] restoreIfNeeded - done restoring keys');
+
     final personas = await _cloudDB.personaDao.getPersonas();
+
+    log.info('[AccountService] restoreIfNeeded - personas: ${personas.length}');
 
     final hasPersona = personas.isNotEmpty;
     if (!hasPersona) {
       await _configurationService.setDoneOnboarding(hasPersona);
     }
     if (_configurationService.isDoneOnboarding()) {
+      log.info('[AccountService] restoreIfNeeded - case 1: done onboarding');
       // dont need to force update, because
       await injector<AddressService>().migrateToEthereumAddress();
       await injector<AuthService>().getAuthToken();
@@ -746,8 +758,18 @@ class AccountServiceImpl extends AccountService {
       unawaited(_configurationService.setOldUser());
       final backupVersion = await _backupService.getBackupVersion();
       if (backupVersion.isNotEmpty) {
+        log.info('[AccountService] restoreIfNeeded - user has backup version: '
+            '$backupVersion');
         // if user has backup, restore from cloud
-        unawaited(_backupService.restoreCloudDatabase());
+        try {
+          await _backupService.restoreCloudDatabase();
+        } catch (e, s) {
+          // ignore when error while restoring cloud database
+          log.info('Error while restoring cloud database', e);
+          unawaited(Sentry.captureException(
+              'Error wwhile restoreing cloud database',
+              stackTrace: s));
+        }
         for (var persona in personas) {
           if (persona.name != '') {
             await persona.wallet().updateName(persona.name);

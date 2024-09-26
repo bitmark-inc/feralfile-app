@@ -201,8 +201,12 @@ class BackupService {
         unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
         return;
       }
+    } else {
+      log.info(
+          '[BackupService] failed to restore Cloud Database: ${resp.body}');
+      unawaited(Sentry.captureException(
+          '[BackupService] failed to restore Cloud Database'));
     }
-    log.info('[BackupService] done database restore');
   }
 
   Future<String> getBackupId() async {

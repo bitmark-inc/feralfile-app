@@ -89,6 +89,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
     }
+    log.info('Setup done');
   }
 
   @override
@@ -98,6 +99,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _goToTargetScreen(BuildContext context) async {
+    log.info('Go to target screen');
     final configService = injector<ConfigurationService>();
     if (!context.mounted) {
       return;
@@ -106,10 +108,12 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (configService.isDoneNewOnboarding()) {
       await Navigator.of(context)
           .pushReplacementNamed(AppRouter.homePageNoTransition);
+      log.info('Go to home page');
     } else {
       await Navigator.of(context).pushReplacementNamed(
         AppRouter.newOnboardingPage,
       );
+      log.info('Go to new onboarding page');
     }
   }
 

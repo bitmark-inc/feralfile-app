@@ -77,14 +77,22 @@ class AddressService {
 
   Future<bool> registerPrimaryAddress(
       {required AddressInfo info, bool withDidKey = false}) async {
-    await injector<AuthService>().registerPrimaryAddress(
-        primaryAddressInfo: info, withDidKey: withDidKey);
-    final res = await setPrimaryAddressInfo(info: info);
-    // when register primary address, we need to update the auth token
-    await injector<AuthService>().getAuthToken(forceRefresh: true);
-    // we also need to identity the metric client
-    await injector<MetricClientService>().identity();
-    return res;
+    try {
+      await injector<AuthService>().registerPrimaryAddress(
+          primaryAddressInfo: info, withDidKey: withDidKey);
+      final res = await setPrimaryAddressInfo(info: info);
+      // when register primary address, we need to update the auth token
+      await injector<AuthService>().getAuthToken(forceRefresh: true);
+      // we also need to identity the metric client
+      await injector<MetricClientService>().identity();
+      return res;
+    } catch (e, s) {
+      log.info('Failed to register primary address: $e');
+      unawaited(Sentry.captureException(
+          'Failed to register primary address: $e',
+          stackTrace: s));
+      return false;
+    }
   }
 
   Future<bool> registerReferralCode({required String referralCode}) async {
