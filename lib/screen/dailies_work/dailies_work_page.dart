@@ -225,13 +225,25 @@ class DailyWorkPageState extends State<DailyWorkPage>
         ),
         const SizedBox(width: 32),
         Text(
-          'next_daily'.tr(namedArgs: {
-            'duration': '${remainingDuration.inHours}h',
-          }),
+          _nextDailyDurationText(remainingDuration),
           style: Theme.of(context).textTheme.ppMori400Grey12,
         ),
       ],
     );
+  }
+
+  String _nextDailyDurationText(Duration remainingDuration) {
+    final hours = remainingDuration.inHours;
+    if (hours > 0) {
+      return 'next_daily'.tr(namedArgs: {
+        'duration': '${hours}h',
+      });
+    } else {
+      final minutes = remainingDuration.inMinutes;
+      return 'next_daily'.tr(namedArgs: {
+        'duration': '${minutes}m',
+      });
+    }
   }
 
   Widget _artworkInfoIcon() => Semantics(
