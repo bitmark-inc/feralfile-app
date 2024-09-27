@@ -31,7 +31,6 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -1052,67 +1051,60 @@ class UIHelper {
         builder: (context) => Scaffold(
               backgroundColor: Colors.transparent,
               body: Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding, vertical: 128),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: backgroundColor,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Scrollbar(
-                              thumbVisibility: true,
-                              trackVisibility: true,
-                              thickness: 5,
-                              radius: const Radius.circular(10),
-                              scrollbarOrientation: ScrollbarOrientation.right,
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      content,
-                                      const SizedBox(height: 10),
-                                    ],
-                                  ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height - 256,
+                  ),
+                  child: Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    content,
+                                    const SizedBox(height: 20),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                          if (actionButtonOnTap != null)
-                            Column(
-                              children: [
-                                AuSecondaryButton(
-                                  text: actionButton ?? '',
-                                  onPressed: actionButtonOnTap,
-                                  borderColor: AppColor.primaryBlack,
-                                  textColor: AppColor.primaryBlack,
-                                  backgroundColor: AppColor.feralFileHighlight,
-                                ),
-                                const SizedBox(
-                                  height: 15,
-                                )
-                              ],
+                            if (actionButtonOnTap != null)
+                              Column(
+                                children: [
+                                  PrimaryButton(
+                                    text: actionButton ?? '',
+                                    onTap: actionButtonOnTap,
+                                    textColor: AppColor.primaryBlack,
+                                    color: AppColor.feralFileLightBlue,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  )
+                                ],
+                              ),
+                            PrimaryButton(
+                              text: exitButton ?? 'close'.tr(),
+                              onTap: exitButtonOnTap ??
+                                  () {
+                                    Navigator.pop(context);
+                                  },
+                              textColor: AppColor.primaryBlack,
+                              color: AppColor.feralFileLightBlue,
                             ),
-                          AuSecondaryButton(
-                            text: exitButton ?? 'close'.tr(),
-                            onPressed: exitButtonOnTap ??
-                                () {
-                                  Navigator.pop(context);
-                                },
-                            borderColor: AppColor.primaryBlack,
-                            textColor: AppColor.primaryBlack,
-                            backgroundColor: AppColor.feralFileHighlight,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
