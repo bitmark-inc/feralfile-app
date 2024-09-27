@@ -92,10 +92,7 @@ import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:sentry/sentry.dart';
-import 'package:sentry_dio/sentry_dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:sentry/sentryart/web3dart.dart';
 
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
@@ -176,15 +173,10 @@ Future<void> setupInjector() async {
       () => NftCollection.database.predefinedCollectionDao);
   injector.registerLazySingleton(() => cloudDB);
 
-  final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
+  final authenticatedDio =
+      baseDio(dioOptions); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
-  authenticatedDio.interceptors.add(LoggingInterceptor());
-  authenticatedDio.interceptors.add(ConnectingExceptionInterceptor());
   authenticatedDio.interceptors.add(MetricsInterceptor());
-  (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
-      parseJson;
-  authenticatedDio.addSentry();
-  authenticatedDio.options = dioOptions;
 
   injector.registerLazySingleton<NetworkService>(() => NetworkService());
   // Services
