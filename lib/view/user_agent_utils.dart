@@ -33,8 +33,6 @@ abstract class IDeviceInfo {
 
   Future<String?> getMachineName();
 
-  Future<bool> isSupportOS();
-
   Future<UserDeviceInfo> getUserDeviceInfo();
 }
 
@@ -106,19 +104,6 @@ class _MobileInfo extends IDeviceInfo {
       return androidInfo.version.sdkInt;
     } else {
       return -1;
-    }
-  }
-
-  @override
-  Future<bool> isSupportOS() async {
-    if (isAndroid) {
-      final androidInfo = await _deviceInfo.androidInfo;
-      final version = androidInfo.version.release;
-      return version.isEmpty || int.parse(version.split('.')[0]) > 8;
-    } else {
-      final iOSInfo = await _deviceInfo.iosInfo;
-      final version = iOSInfo.systemVersion;
-      return version.isEmpty || int.parse(version.split('.')[0]) > 14;
     }
   }
 
