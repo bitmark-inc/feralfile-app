@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:sentry/sentry.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -58,7 +59,7 @@ abstract class EthereumService {
       int quantity,
       {FeeOption? feeOption});
 
-  Future<BigInt> getERC20TokenBalance(
+  Future<BigInt?> getERC20TokenBalance(
       EthereumAddress contractAddress, EthereumAddress owner);
 
   Future<String?> getERC20TransferTransactionData(
@@ -343,7 +344,7 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<BigInt> getERC20TokenBalance(
+  Future<BigInt?> getERC20TokenBalance(
     EthereumAddress contractAddress,
     EthereumAddress owner, {
     bool doRetry = false,
@@ -352,16 +353,23 @@ class EthereumServiceImpl extends EthereumService {
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, 'ERC20'), contractAddress);
     ContractFunction balanceFunction() => contract.function('balanceOf');
+    try {
+      var response = await _networkIssueManager.retryOnConnectIssueTx(() {
+        throw Exception('test');
+        _web3Client.call(
+          contract: contract,
+          function: balanceFunction(),
+          params: [owner],
+        );
+      }, maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0);
 
-    var response = await _networkIssueManager.retryOnConnectIssueTx(
-        () => _web3Client.call(
-              contract: contract,
-              function: balanceFunction(),
-              params: [owner],
-            ),
-        maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0);
-
-    return response.first as BigInt;
+      return response.first as BigInt;
+    } catch (e) {
+      log.info(
+          '[EthereumService] getERC20TokenBalance failed - fallback RPC $e');
+      unawaited(Sentry.captureException('Failed to get ERC20 balance: $e'));
+      return null;
+    }
   }
 
   @override
