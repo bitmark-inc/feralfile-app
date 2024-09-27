@@ -43,6 +43,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
+  Timer? _timer;
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -56,6 +57,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void initState() {
     super.initState();
+    _timer = Timer(const Duration(seconds: 10), () {
+      log.info('OnboardingPage loading more than 10s');
+      unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
+    });
     unawaited(setup(context).then((_) => _createAccountOrRestoreIfNeeded()));
   }
 
@@ -98,6 +103,9 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _goToTargetScreen(BuildContext context) async {
+    if (_timer?.isActive ?? false) {
+      _timer?.cancel();
+    }
     final configService = injector<ConfigurationService>();
     if (!context.mounted) {
       return;
@@ -114,7 +122,15 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _createAccountOrRestoreIfNeeded() async {
+    final timer = Timer(const Duration(seconds: 10), () {
+      log.info('[_createAccountOrRestoreIfNeeded] Loading more than 10s');
+      unawaited(Sentry.captureMessage(
+          '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
+    });
     await injector<AccountService>().restoreIfNeeded();
+    if (timer.isActive) {
+      timer.cancel();
+    }
     await metricClient.identity();
     // count open app
     await metricClient.addEvent(MetricEventName.openApp.name);
