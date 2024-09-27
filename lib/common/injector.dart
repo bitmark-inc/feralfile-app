@@ -92,6 +92,7 @@ import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:sentry/sentry.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
@@ -99,15 +100,21 @@ import 'package:web3dart/web3dart.dart';
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
-Future<void> setup() async {
+Future<void> setupLogger() async {
   await FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
-    FileLogger.log(record);
-    SentryBreadcrumbLogger.log(record);
+    try {
+      FileLogger.log(record);
+      SentryBreadcrumbLogger.log(record);
+    } catch (e, s) {
+      Sentry.captureException('Error logging record: $e', stackTrace: s);
+    }
   });
+}
 
+Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   final mainnetDB =
