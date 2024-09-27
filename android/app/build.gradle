@@ -161,7 +161,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth-blockstore:16.2.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation('com.github.bitmark-inc:libauk-kotlin:323a73093f') {
+    implementation('com.github.bitmark-inc:libauk-kotlin:d6e812002c') {
         exclude group: 'com.google.protobuf'
         exclude module: 'jetified-protobuf-java'
     }
