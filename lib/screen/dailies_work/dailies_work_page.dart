@@ -246,13 +246,13 @@ class DailyWorkPageState extends State<DailyWorkPage>
       });
     } else {
       final minutes = remainingDuration.inMinutes;
-      if (minutes == 0) {
+      if (minutes <= 1) {
         return 'next_daily'.tr(namedArgs: {
           'duration': 'in a minute',
         });
       } else {
         return 'next_daily'.tr(namedArgs: {
-          'duration': '${minutes}mins',
+          'duration': '$minutes mins',
         });
       }
     }
