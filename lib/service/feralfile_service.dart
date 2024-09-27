@@ -313,8 +313,15 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<Exhibition?> getExhibitionFromTokenID(String artworkID) async {
-    final artwork = await _feralFileApi.getArtworks(artworkID);
-    return getExhibition(artwork.result.series?.exhibitionID ?? '');
+    try {
+      final artwork = await _feralFileApi.getArtworks(artworkID);
+      return getExhibition(artwork.result.series?.exhibitionID ?? '');
+    } catch (e) {
+      log.info('[FeralFileService] Failed to get exhibition from token ID: $e');
+      unawaited(Sentry.captureException(
+          '[FeralFileService] getExhibitionFromTokenID: $e'));
+      return null;
+    }
   }
 
   @override

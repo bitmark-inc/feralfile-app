@@ -33,7 +33,9 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
             .getNftTokens(QueryListTokensRequest(ids: [dailiesToken.indexId]));
         assetTokens.addAll(tokens);
       }
-
+      if (assetTokens.isEmpty) {
+        return;
+      }
       final token = assetTokens.first;
       if (token.isFeralfile) {
         if (token.artistID != null) {
