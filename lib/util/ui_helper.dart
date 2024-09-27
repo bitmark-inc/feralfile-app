@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -61,31 +60,13 @@ enum ActionState { notRequested, loading, error, done }
 const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
-Future<void> doneOnboarding(BuildContext context) async {
-  unawaited(injector<IAPService>().restore());
-  await injector<ConfigurationService>().setPendingSettings(true);
-  await injector<ConfigurationService>().setDoneOnboarding(true);
-  await injector<NavigationService>()
-      .navigateUntil(AppRouter.homePageNoTransition, (route) => false);
-}
-
 void nameContinue(BuildContext context) {
-  final configurationService = injector<ConfigurationService>();
-  final isDoneNewOnboarding = configurationService.isDoneNewOnboarding();
-  if (!isDoneNewOnboarding) {
-    injector<ConfigurationService>().setDoneNewOnboarding(true);
-    unawaited(doneOnboarding(context));
-  }
-  if (injector<ConfigurationService>().isDoneOnboarding()) {
-    Navigator.of(context).popUntil((route) =>
-        route.settings.name == AppRouter.tbConnectPage ||
-        route.settings.name == AppRouter.wc2ConnectPage ||
-        route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition ||
-        route.settings.name == AppRouter.walletPage);
-  } else {
-    unawaited(doneOnboarding(context));
-  }
+  Navigator.of(context).popUntil((route) =>
+      route.settings.name == AppRouter.tbConnectPage ||
+      route.settings.name == AppRouter.wc2ConnectPage ||
+      route.settings.name == AppRouter.homePage ||
+      route.settings.name == AppRouter.homePageNoTransition ||
+      route.settings.name == AppRouter.walletPage);
 }
 
 class UIHelper {

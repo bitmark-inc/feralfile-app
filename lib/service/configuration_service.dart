@@ -25,9 +25,9 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  bool isDoneNewOnboarding();
+  Future<void> setDidShowLiveWithArt(bool value);
 
-  Future<void> setDoneNewOnboarding(bool value);
+  bool didShowLiveWithArt();
 
   Future<void> setLastPullAnnouncementTime(int lastPullTime);
 
@@ -236,7 +236,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyDoneNewOnboarding = 'done_new_onboarding';
+  static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
   static const String keyLastPullAnnouncementTime =
       'last_pull_announcement_time';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
@@ -1049,20 +1049,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.setInt(keyLastPullAnnouncementTime, lastPullTime);
 
   @override
-  bool isDoneNewOnboarding() =>
-      _preferences.getBool(keyDoneNewOnboarding) ?? false;
-
-  @override
-  Future<void> setDoneNewOnboarding(bool value) async {
-    await _preferences.setBool(keyDoneNewOnboarding, value);
-  }
-
-  @override
   String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);
 
   @override
   Future<void> setReferralCode(String referralCode) =>
       _preferences.setString(KEY_REFERRAL_CODE, referralCode);
+
+  @override
+  bool didShowLiveWithArt() =>
+      _preferences.getBool(keyDidShowLiveWithArt) ?? false;
+
+  @override
+  Future<void> setDidShowLiveWithArt(bool value) async =>
+      await _preferences.setBool(keyDidShowLiveWithArt, value);
 }
 
 enum ConflictAction {
