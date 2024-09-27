@@ -355,7 +355,6 @@ class EthereumServiceImpl extends EthereumService {
     ContractFunction balanceFunction() => contract.function('balanceOf');
     try {
       var response = await _networkIssueManager.retryOnConnectIssueTx(() {
-        throw Exception('test');
         _web3Client.call(
           contract: contract,
           function: balanceFunction(),
