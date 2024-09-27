@@ -148,7 +148,13 @@ class DailyWorkPageState extends State<DailyWorkPage>
   void updateProgressStatus() {
     _progressTimer?.cancel();
     // Update After Each 5 Minutes
-    _progressTimer = Timer(const Duration(seconds: 300), () {
+    final remainingDuration = _calcRemainingDuration;
+    final timerDuration = remainingDuration.inHours >= 1
+        ? const Duration(minutes: 5)
+        : remainingDuration.inMinutes >= 1
+            ? const Duration(minutes: 1)
+            : const Duration(seconds: 3);
+    _progressTimer = Timer(timerDuration, () {
       setState(() {
         _remainingDuration = _calcRemainingDuration;
       });
@@ -236,13 +242,19 @@ class DailyWorkPageState extends State<DailyWorkPage>
     final hours = remainingDuration.inHours;
     if (hours > 0) {
       return 'next_daily'.tr(namedArgs: {
-        'duration': '${hours}h',
+        'duration': '${hours}hr',
       });
     } else {
       final minutes = remainingDuration.inMinutes;
-      return 'next_daily'.tr(namedArgs: {
-        'duration': '${minutes}m',
-      });
+      if (minutes == 0) {
+        return 'next_daily'.tr(namedArgs: {
+          'duration': 'in a minute',
+        });
+      } else {
+        return 'next_daily'.tr(namedArgs: {
+          'duration': '${minutes}mins',
+        });
+      }
     }
   }
 
