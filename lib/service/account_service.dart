@@ -750,8 +750,8 @@ class AccountServiceImpl extends AccountService {
       unawaited(_configurationService.setOldUser());
       final backupVersion = await _backupService.getBackupVersion();
       if (backupVersion.isNotEmpty) {
-        log.info(
-            '[AccountService] restoreIfNeeded - has backup version $backupVersion');
+        log.info('[AccountService] restoreIfNeeded - '
+            'has backup version $backupVersion');
         // if user has backup, restore from cloud
         unawaited(_backupService.restoreCloudDatabase());
         for (var persona in personas) {
@@ -793,14 +793,14 @@ class AccountServiceImpl extends AccountService {
       }
     } else {
       // for new user, create default persona
-      log.info(
-          '[AccountService] restoreIfNeeded - new user, create default persona');
+      log.info('[AccountService] restoreIfNeeded - '
+          'new user, create default persona');
       final persona = await createPersona(isDefault: true);
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
       await _configurationService.setDoneOnboarding(true);
-      log.info(
-          '[AccountService] restoreIfNeeded - new user, created default persona');
+      log.info('[AccountService] restoreIfNeeded - '
+          'new user, created default persona');
     }
     unawaited(iapService.restore());
     log.info('[AccountService] restoreIfNeeded - done');
