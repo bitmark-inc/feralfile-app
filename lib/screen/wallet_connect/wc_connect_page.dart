@@ -653,7 +653,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     await persona.insertNextAddress(connectionRequest.isBeaconConnect
         ? WalletType.Tezos
         : WalletType.Ethereum);
-    unawaited(configurationService.setDoneOnboarding(true));
     if (!mounted) {
       return;
     }

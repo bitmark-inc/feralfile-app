@@ -56,8 +56,6 @@ abstract class DeeplinkService {
   void activateDeepLinkListener();
 
   Future<void> handleReferralCode(String referralCode);
-
-  ValueNotifier<bool?> get didOpenWithGiftMembership;
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -93,11 +91,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   late final Stream<String> _linkStream;
 
   @override
-  final ValueNotifier<bool?> didOpenWithGiftMembership = ValueNotifier(null);
-  bool? _isBranchDataGiftMembership;
-  bool? _isInitialLinkGiftMembership;
-
-  @override
   Future setup() async {
     await FlutterBranchSdk.init(enableLogging: true);
     FlutterBranchSdk.listSession().listen((data) async {
@@ -109,13 +102,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
         _deepLinkHandlingMap[data['~referring_link']] = true;
 
         _branchDataStreamController.add(data);
-        _checkIfInitialDataGiftMembership(data);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
       log.warning('[DeeplinkService] InitBranchSession error: $error');
-      _isBranchDataGiftMembership = false;
-      _notifyGiftMembershipFlag();
     });
 
     try {
@@ -124,45 +114,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }
-      await _checkIfInitialLinkGiftMembership(initialLink);
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
-    }
-  }
-
-  bool _isThisGiftMembership(Map<dynamic, dynamic> data) {
-    final source = data['source'];
-    return source == 'gift_membership';
-  }
-
-  void _checkIfInitialDataGiftMembership(Map<dynamic, dynamic> data) {
-    _isBranchDataGiftMembership = _isThisGiftMembership(data);
-    _notifyGiftMembershipFlag();
-  }
-
-  Future<void> _checkIfInitialLinkGiftMembership(String? link) async {
-    if (link == null) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-      return;
-    }
-    try {
-      final data = await _branchApi.getParams(Environment.branchKey, link);
-      _isInitialLinkGiftMembership = _isThisGiftMembership(data);
-      _notifyGiftMembershipFlag();
-    } catch (e) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-    }
-  }
-
-  void _notifyGiftMembershipFlag() {
-    if (_isBranchDataGiftMembership != null &&
-        _isInitialLinkGiftMembership != null) {
-      didOpenWithGiftMembership.value =
-          _isBranchDataGiftMembership! || _isInitialLinkGiftMembership!;
     }
   }
 

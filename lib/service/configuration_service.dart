@@ -25,9 +25,9 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  bool isDoneNewOnboarding();
+  Future<void> setDidShowLiveWithArt(bool value);
 
-  Future<void> setDoneNewOnboarding(bool value);
+  bool didShowLiveWithArt();
 
   Future<void> setLastPullAnnouncementTime(int lastPullTime);
 
@@ -98,10 +98,6 @@ abstract class ConfigurationService {
   Future<void> setDoneOnboardingOnce(bool value);
 
   bool isDoneOnboardingOnce();
-
-  Future<void> readRemoveSupport(bool value);
-
-  bool isReadRemoveSupport();
 
   Future<void> setHideLinkedAccountInGallery(
       List<String> address, bool isEnabled,
@@ -240,7 +236,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyDoneNewOnboarding = 'done_new_onboarding';
+  static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
   static const String keyLastPullAnnouncementTime =
       'last_pull_announcement_time';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
@@ -257,7 +253,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
   static const String KEY_PENDING_SETTINGS = 'has_pending_settings';
-  static const String READ_REMOVE_SUPPORT = 'read_remove_support';
   static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
       'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
@@ -690,15 +685,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isReadRemoveSupport() =>
-      _preferences.getBool(READ_REMOVE_SUPPORT) ?? false;
-
-  @override
-  Future<void> readRemoveSupport(bool value) async {
-    await _preferences.setBool(READ_REMOVE_SUPPORT, value);
-  }
-
-  @override
   ValueNotifier<bool> showingNotification = ValueNotifier(false);
 
   @override
@@ -1055,20 +1041,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.setInt(keyLastPullAnnouncementTime, lastPullTime);
 
   @override
-  bool isDoneNewOnboarding() =>
-      _preferences.getBool(keyDoneNewOnboarding) ?? false;
-
-  @override
-  Future<void> setDoneNewOnboarding(bool value) async {
-    await _preferences.setBool(keyDoneNewOnboarding, value);
-  }
-
-  @override
   String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);
 
   @override
   Future<void> setReferralCode(String referralCode) =>
       _preferences.setString(KEY_REFERRAL_CODE, referralCode);
+
+  @override
+  bool didShowLiveWithArt() =>
+      _preferences.getBool(keyDidShowLiveWithArt) ?? false;
+
+  @override
+  Future<void> setDidShowLiveWithArt(bool value) async =>
+      await _preferences.setBool(keyDidShowLiveWithArt, value);
 
   @override
   bool didRunSetup() => _preferences.getBool(DID_RUN_SETUP) ?? false;
