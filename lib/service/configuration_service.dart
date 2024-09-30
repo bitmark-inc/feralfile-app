@@ -233,6 +233,10 @@ abstract class ConfigurationService {
   Future<void> setReferralCode(String referralCode);
 
   String? getReferralCode();
+
+  bool didRunSetup();
+
+  Future<void> setDidRunSetup(bool value);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -272,6 +276,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
       'announcement_last_pull_time';
   static const String OLD_USER = 'old_user';
+
+  static const String DID_RUN_SETUP = 'did_run_setup';
 
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
@@ -1063,6 +1069,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setReferralCode(String referralCode) =>
       _preferences.setString(KEY_REFERRAL_CODE, referralCode);
+
+  @override
+  bool didRunSetup() => _preferences.getBool(DID_RUN_SETUP) ?? false;
+
+  @override
+  Future<void> setDidRunSetup(bool value) async {
+    await _preferences.setBool(DID_RUN_SETUP, value);
+  }
 }
 
 enum ConflictAction {

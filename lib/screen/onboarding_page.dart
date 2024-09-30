@@ -69,11 +69,16 @@ class _OnboardingPageState extends State<OnboardingPage>
     // if something goes wrong, we will catch it in the try catch block,
     // those issue can be ignored, let user continue to use the app
     try {
+      final didRunSetup = injector<ConfigurationService>().didRunSetup();
+      if (didRunSetup) {
+        log.info('Setup already run');
+        return;
+      }
       unawaited(DeviceInfo.instance.init());
       unawaited(injector<DeviceInfoService>().init().then((_) {
         injector<MetricClientService>().initService();
       }));
-      unawaited(injector<RemoteConfigService>().loadConfigs());
+      await injector<RemoteConfigService>().loadConfigs();
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
       unawaited(
           injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
@@ -91,6 +96,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
       DailiesHelper.updateDailies([]);
       unawaited(injector<DeeplinkService>().setup());
+      unawaited(injector<ConfigurationService>().setDidRunSetup(true));
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
@@ -134,7 +140,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
     await metricClient.identity();
     // count open app
-    await metricClient.addEvent(MetricEventName.openApp.name);
+    unawaited(metricClient.addEvent(MetricEventName.openApp.name));
     if (!mounted) {
       return;
     }
