@@ -68,14 +68,18 @@ class _IRLSelectAddressViewState extends State<IRLSelectAddressView> {
                           address: e,
                           selectedAddress: _selectedAddress,
                           onTap: () {
-                            setState(() {
-                              _selectedAddress = e.address;
-                            });
+                            if (context.mounted) {
+                              setState(() {
+                                _selectedAddress = e.address;
+                              });
+                            }
                           },
                           onDoneLoading: (notShowing) {
-                            setState(() {
-                              _isViewing[e.address] = !notShowing;
-                            });
+                            if (context.mounted) {
+                              setState(() {
+                                _isViewing[e.address] = !notShowing;
+                              });
+                            }
                           },
                           minimumCryptoBalance: minimumCryptoBalance,
                         ))
@@ -146,10 +150,10 @@ class _AddressViewState extends State<AddressView> {
   void initState() {
     super.initState();
     _cryptoType = CryptoType.fromSource(widget.address.cryptoType);
-    unawaited(_loadBalance());
+    unawaited(_loadBalance(context));
   }
 
-  Future<void> _loadBalance() async {
+  Future<void> _loadBalance(BuildContext context) async {
     switch (_cryptoType) {
       case CryptoType.ETH:
         _ethBalance = await injector<EthereumService>()
@@ -159,9 +163,11 @@ class _AddressViewState extends State<AddressView> {
             await injector<TezosService>().getBalance(widget.address.address);
       default:
     }
-    setState(() {
-      _didLoad = true;
-    });
+    if (context.mounted) {
+      setState(() {
+        _didLoad = true;
+      });
+    }
   }
 
   bool _isEnoughBalance() {
