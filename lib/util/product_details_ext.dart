@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
@@ -23,6 +24,13 @@ extension ProductDetailsExt on ProductDetails {
     } else {
       throw Exception('Unsupported platform');
     }
+  }
+
+  String get renewPolicyText {
+    if (Platform.isAndroid && currencyCode == 'IND') {
+      return 'renew_policy_india'.tr();
+    }
+    return 'auto_renews_unless_cancelled'.tr();
   }
 
   String get price {
