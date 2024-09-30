@@ -724,11 +724,13 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> restoreIfNeeded() async {
+    log.info('[AccountService] restoreIfNeeded');
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
     final migrationUtil = MigrationUtil(_cloudDB, auditService);
     await androidRestoreKeys();
     await migrationUtil.migrationFromKeychain();
+    log.info('[AccountService][restoreIfNeeded] migrationFromKeychain done');
     final personas = await _cloudDB.personaDao.getPersonas();
 
     final hasPersona = personas.isNotEmpty;
@@ -736,6 +738,7 @@ class AccountServiceImpl extends AccountService {
       await _configurationService.setDoneOnboarding(hasPersona);
     }
     if (_configurationService.isDoneOnboarding()) {
+      log.info('[AccountService] restoreIfNeeded - done onboarding');
       // dont need to force update, because
       await injector<AddressService>().migrateToEthereumAddress();
       await injector<AuthService>().getAuthToken();
@@ -743,9 +746,12 @@ class AccountServiceImpl extends AccountService {
     }
     // for user who did not onboarded before
     if (hasPersona) {
+      log.info('[AccountService] restoreIfNeeded - has persona');
       unawaited(_configurationService.setOldUser());
       final backupVersion = await _backupService.getBackupVersion();
       if (backupVersion.isNotEmpty) {
+        log.info(
+            '[AccountService] restoreIfNeeded - has backup version $backupVersion');
         // if user has backup, restore from cloud
         unawaited(_backupService.restoreCloudDatabase());
         for (var persona in personas) {
@@ -754,6 +760,8 @@ class AccountServiceImpl extends AccountService {
           }
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+      } else {
+        log.info('[AccountService] restoreIfNeeded - no backup version');
       }
 
       // make sure has addresses
@@ -761,6 +769,7 @@ class AccountServiceImpl extends AccountService {
       // case 2: user has backup but no addresses
       final addresses = await _addressService.getAllEthereumAddress();
       if (addresses.isEmpty) {
+        log.info('[AccountService] restoreIfNeeded - no addresses');
         // if user has no backup, derive addresses from keychain
         await _addressService.deriveAddressesFromAllPersona();
 
@@ -775,6 +784,7 @@ class AccountServiceImpl extends AccountService {
 
       // if primary address is not exist, pick one and register as primary
       if (primaryAddressInfo == null) {
+        log.info('[AccountService] restoreIfNeeded - no primary address');
         final primaryAddressInfo = await _addressService.pickAddressAsPrimary();
         await _addressService.registerPrimaryAddress(
             info: primaryAddressInfo, withDidKey: true);
@@ -783,13 +793,17 @@ class AccountServiceImpl extends AccountService {
       }
     } else {
       // for new user, create default persona
+      log.info(
+          '[AccountService] restoreIfNeeded - new user, create default persona');
       final persona = await createPersona(isDefault: true);
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
       await _configurationService.setDoneOnboarding(true);
+      log.info(
+          '[AccountService] restoreIfNeeded - new user, created default persona');
     }
-
     unawaited(iapService.restore());
+    log.info('[AccountService] restoreIfNeeded - done');
   }
 
   @override

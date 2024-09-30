@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
@@ -60,6 +61,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     _timer = Timer(const Duration(seconds: 10), () {
       log.info('OnboardingPage loading more than 10s');
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
+      unawaited(injector<NavigationService>().showAppLoadError());
     });
     unawaited(setup(context).then((_) => _createAccountOrRestoreIfNeeded()));
   }
@@ -68,6 +70,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     // can ignore if error
     // if something goes wrong, we will catch it in the try catch block,
     // those issue can be ignored, let user continue to use the app
+    log.info('[OnboardingPage] setup start');
     try {
       final didRunSetup = injector<ConfigurationService>().didRunSetup();
       if (didRunSetup) {
@@ -110,6 +113,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _goToTargetScreen(BuildContext context) async {
+    log.info('[_goToTargetScreen] start');
     if (_timer?.isActive ?? false) {
       _timer?.cancel();
     }
@@ -124,7 +128,9 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureMessage(
           '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
     });
+    log.info('[_createAccountOrRestoreIfNeeded] start');
     await injector<AccountService>().restoreIfNeeded();
+    log.info('[_createAccountOrRestoreIfNeeded] end');
     if (timer.isActive) {
       timer.cancel();
     }

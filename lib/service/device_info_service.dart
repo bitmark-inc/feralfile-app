@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -17,7 +18,9 @@ class DeviceInfoService {
   // If the device name and id are not available, set default values
   // Errors can be ignored when opening the app
   Future<void> init() async {
+    log.info('[DeviceInfoService] init');
     if (_didInitialized) {
+      log.info('[DeviceInfoService] already initialized');
       return;
     }
     // Get device name and id
@@ -37,6 +40,7 @@ class DeviceInfoService {
 
     // set didInitialized to true
     _didInitialized = true;
+    log.info('[DeviceInfoService] initialized');
   }
 
   String get deviceId => _deviceId;

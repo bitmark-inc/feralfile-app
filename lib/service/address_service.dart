@@ -35,8 +35,10 @@ class AddressService {
   }
 
   Future<AddressInfo?> migrateToEthereumAddress() async {
+    log.info('[AddressService] Migrating to Ethereum address');
     final currentPrimaryAddress = await getPrimaryAddressInfo();
     if (currentPrimaryAddress == null || currentPrimaryAddress.isEthereum) {
+      log.info('[AddressService] No need to migrate');
       return null;
     }
     final allEthAddresses = await getAllEthereumAddress();
@@ -45,28 +47,39 @@ class AddressService {
     }
     final addressInfo = await pickAddressAsPrimary();
     await registerPrimaryAddress(info: addressInfo);
+    log.info(
+        '[AddressService] Migrated to Ethereum address: ${addressInfo.toJson()}');
     return addressInfo;
   }
 
   Future<void> deriveAddressesFromAllPersona() async {
+    log.info('[AddressService] Deriving addresses from all persona');
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
+      log.info(
+          '[AddressService] Deriving addresses for persona: ${persona.uuid}');
       await Future.wait([
         persona.insertAddressAtIndex(walletType: WalletType.Ethereum, index: 0),
         persona.insertAddressAtIndex(walletType: WalletType.Tezos, index: 0),
       ]);
+      log.info(
+          '[AddressService] Addresses derived for persona: ${persona.uuid}');
     }
+    log.info('[AddressService] Addresses derived from all persona');
   }
 
   Future<void> derivePrimaryAddress() async {
+    log.info('[AddressService] Deriving primary address');
     final primaryAddressInfo = await getPrimaryAddressInfo();
     if (primaryAddressInfo == null) {
+      log.info('[AddressService] Primary address not found');
       return;
     }
     final persona = await _cloudDB.personaDao.findById(primaryAddressInfo.uuid);
     await persona?.insertAddressAtIndex(
         walletType: primaryAddressInfo.walletType,
         index: primaryAddressInfo.index);
+    log.info('[AddressService] Primary address derived');
   }
 
   Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {
@@ -77,10 +90,14 @@ class AddressService {
 
   Future<bool> registerPrimaryAddress(
       {required AddressInfo info, bool withDidKey = false}) async {
+    log.info('[AddressService] Registering primary address: ${info.toJson()}');
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
+    log.info('[AddressService] Primary address registered: ${info.toJson()}');
     final res = await setPrimaryAddressInfo(info: info);
     // when register primary address, we need to update the auth token
+    log.info(
+        '[AddressService] Getting auth token after primary address registered');
     await injector<AuthService>().getAuthToken(forceRefresh: true);
     // we also need to identity the metric client
     await injector<MetricClientService>().identity();
@@ -209,11 +226,14 @@ class AddressService {
   }
 
   Future<AddressInfo> pickAddressAsPrimary() async {
+    log.info('[AddressService] Picking address as primary');
     final ethAddresses = await getAllEthereumAddress();
     if (ethAddresses.isEmpty) {
+      log.info('[AddressService] No address found');
       throw UnsupportedError('No address found');
     }
     final selectedAddress = ethAddresses.first;
+    log.info('[AddressService] Selected address: $selectedAddress');
     return AddressInfo(
         uuid: selectedAddress.uuid,
         index: selectedAddress.index,
