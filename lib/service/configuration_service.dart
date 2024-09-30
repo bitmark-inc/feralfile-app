@@ -71,10 +71,6 @@ abstract class ConfigurationService {
 
   JWT? getIAPJWT();
 
-  Future<void> setPremium(bool value);
-
-  bool isPremium();
-
   Future<void> setDevicePasscodeEnabled(bool value);
 
   bool isDevicePasscodeEnabled();
@@ -691,14 +687,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setOldUser() async {
     await _preferences.setBool(OLD_USER, true);
-  }
-
-  @override
-  bool isPremium() => _preferences.getBool(IS_PREMIUM) ?? false;
-
-  @override
-  Future<void> setPremium(bool value) async {
-    await _preferences.setBool(IS_PREMIUM, value);
   }
 
   @override

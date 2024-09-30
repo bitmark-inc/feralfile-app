@@ -95,7 +95,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   Future<List<Issue>> getIssues() async {
-    final issues = await _customerSupportApi.getIssues();
+    final issues = <Issue>[];
+    try {
+      final listIssues = await _customerSupportApi.getIssues();
+      issues.addAll(listIssues);
+    } catch (e) {
+      log.info('[CS-Service] getIssues error: $e');
+      unawaited(Sentry.captureException(e));
+    }
     final drafts = await _draftCustomerSupportDao.getAllDrafts();
 
     for (var draft in drafts) {

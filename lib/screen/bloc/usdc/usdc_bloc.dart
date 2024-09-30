@@ -33,12 +33,13 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
     on<GetUSDCBalanceWithAddressEvent>((event, emit) async {
       final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
       final owner = EthereumAddress.fromHex(event.address);
-
       final usdcBalance =
           await _ethereumService.getERC20TokenBalance(contractAddress, owner);
 
       var ethBalances = state.usdcBalances;
-      state.usdcBalances[event.address] = usdcBalance;
+      if (usdcBalance != null) {
+        state.usdcBalances[event.address] = usdcBalance;
+      }
 
       emit(state.copyWith(usdcBalances: ethBalances));
     });
@@ -53,8 +54,9 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
           await _ethereumService.getERC20TokenBalance(contractAddress, owner);
 
       var ethBalances = state.copyWith().usdcBalances;
-      ethBalances[address] = usdcBalance;
-
+      if (usdcBalance != null) {
+        ethBalances[address] = usdcBalance;
+      }
       emit(state.copyWith(usdcBalances: ethBalances));
     });
   }

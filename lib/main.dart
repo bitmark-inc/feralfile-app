@@ -20,25 +20,14 @@ import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
-import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
-import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:floor/floor.dart';
@@ -49,7 +38,6 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
@@ -111,7 +99,11 @@ Future<void> runFeralFileApp() async {
   _registerHiveAdapter();
 
   FlutterDownloader.registerCallback(downloadCallback);
-  await AuFileService().setup();
+  try {
+    await AuFileService().setup();
+  } catch (e) {
+    log.info('Error in AuFileService setup: $e');
+  }
 
   OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
   OneSignal.shared.setAppId(Environment.onesignalAppID);
@@ -139,33 +131,13 @@ void _registerHiveAdapter() {
 }
 
 Future<void> _setupApp() async {
-  await setup();
-
-  await DeviceInfo.instance.init();
-
-  await injector<DeviceInfoService>().init();
-  final packageInfo = await PackageInfo.fromPlatform();
-  injector.get<MetricClientService>().initService();
-
-  final notificationService = injector<NotificationService>();
-  await notificationService.initNotification();
-  unawaited(notificationService.startListeningNotificationEvents());
-  notificationService.startListeningNotificationEvents();
-  final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
-  await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
-  await disableLandscapeMode();
-
-  injector<RemoteConfigService>().loadConfigs().then((_) {
-    unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
-  });
-
-  final isPremium = await injector.get<IAPService>().isSubscribed();
-  await injector<ConfigurationService>().setPremium(isPremium);
-  DailiesHelper.updateDailies([]);
-
-  // since we postpone handling deeplink until home, we don't need to delay this
-  await injector<DeeplinkService>().setup();
+  try {
+    await setupLogger();
+  } catch (e) {
+    log.info('Error in setupLogger: $e');
+    Sentry.captureException(e);
+  }
+  await setupInjector();
 
   runApp(
     EasyLocalization(
