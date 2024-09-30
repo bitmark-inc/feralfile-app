@@ -227,9 +227,11 @@ class IAPServiceImpl implements IAPService {
   Future<void> restore() async {
     log.info('[IAPService] restore purchases');
     if (!(await _inAppPurchase.isAvailable()) || await isAppCenterBuild()) {
+      log.info('[IAPService] restore purchases not available');
       return;
     }
     await _inAppPurchase.restorePurchases();
+    log.info('[IAPService] restore purchases completed');
   }
 
   Future<JWT?> _verifyPurchase(String receiptData) async {

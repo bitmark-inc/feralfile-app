@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
@@ -53,6 +54,7 @@ class _MobileInfo extends IDeviceInfo {
 
   @override
   Future<void> init() async {
+    log.info('[DeviceInfo] init');
     _isTablet = await _checkIsTablet();
   }
 

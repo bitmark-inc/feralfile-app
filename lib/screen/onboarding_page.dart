@@ -68,6 +68,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     // can ignore if error
     // if something goes wrong, we will catch it in the try catch block,
     // those issue can be ignored, let user continue to use the app
+    log.info('[OnboardingPage] setup start');
     try {
       await DeviceInfo.instance.init();
       await injector<DeviceInfoService>().init();
@@ -79,6 +80,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
 
       // set version info for user agent
+      log.info('[Setup] get version info from platform');
       final packageInfo = await PackageInfo.fromPlatform();
       await injector<ConfigurationService>()
           .setVersionInfo(packageInfo.version);
@@ -103,11 +105,13 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _goToTargetScreen(BuildContext context) async {
+    log.info('[_goToTargetScreen] start');
     if (_timer?.isActive ?? false) {
       _timer?.cancel();
     }
     final configService = injector<ConfigurationService>();
     if (!context.mounted) {
+      log.info('[_goToTargetScreen] context is not mounted');
       return;
     }
 
@@ -127,7 +131,9 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureMessage(
           '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
     });
+    log.info('[_createAccountOrRestoreIfNeeded] start');
     await injector<AccountService>().restoreIfNeeded();
+    log.info('[_createAccountOrRestoreIfNeeded] end');
     if (timer.isActive) {
       timer.cancel();
     }
