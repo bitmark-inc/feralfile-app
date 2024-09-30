@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InAppWebViewPage extends StatefulWidget {
@@ -76,7 +77,13 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
 
   Future<void> clearCache() async {
     WebStorageManager webStorageManager = WebStorageManager.instance();
-    await webStorageManager.deleteAllData();
+    try {
+      await webStorageManager.deleteAllData();
+    } catch (e) {
+      log.info('[InAppWebViewPage] clearCache error: $e');
+      unawaited(
+          Sentry.captureException('[InAppWebViewPage] clearCache error: $e'));
+    }
   }
 
   @override
