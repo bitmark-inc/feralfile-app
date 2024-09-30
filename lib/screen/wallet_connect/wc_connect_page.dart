@@ -596,7 +596,6 @@ class _WCConnectPageState extends State<WCConnectPage>
         connectionRequest.isBeaconConnect
             ? WalletType.Tezos
             : WalletType.Ethereum);
-    unawaited(configurationService.setDoneOnboarding(true));
     if (!mounted) {
       return;
     }

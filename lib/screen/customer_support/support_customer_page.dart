@@ -18,10 +18,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
-import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -36,21 +34,10 @@ class SupportCustomerPage extends StatefulWidget {
 
 class _SupportCustomerPageState extends State<SupportCustomerPage>
     with RouteAware, WidgetsBindingObserver {
-  bool isCustomerSupportAvailable = true;
-
   @override
   void initState() {
     super.initState();
-    unawaited(_fetchCustomerSupportAvailability());
     unawaited(injector<CustomerSupportService>().getIssues());
-  }
-
-  Future<void> _fetchCustomerSupportAvailability() async {
-    final device = DeviceInfo.instance;
-    final isAvailable = await device.isSupportOS();
-    setState(() {
-      isCustomerSupportAvailable = isAvailable;
-    });
   }
 
   @override
@@ -84,19 +71,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (isCustomerSupportAvailable)
-              addTitleSpace()
-            else
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    ImportantNoteView(note: 'inform_remove_cs'.tr()),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
+            addTitleSpace(),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: _reportItemsWidget(),
@@ -118,20 +93,14 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                   AuSecondaryButton(
                     text: ReportIssueType.toTitle(item),
                     onPressed: () async {
-                      if (isCustomerSupportAvailable) {
-                        await Navigator.of(context).pushNamed(
-                          AppRouter.supportThreadPage,
-                          arguments: NewIssuePayload(reportIssueType: item),
-                        );
-                      }
+                      await Navigator.of(context).pushNamed(
+                        AppRouter.supportThreadPage,
+                        arguments: NewIssuePayload(reportIssueType: item),
+                      );
                     },
                     backgroundColor: Colors.white,
-                    borderColor: isCustomerSupportAvailable
-                        ? AppColor.primaryBlack
-                        : AppColor.auGrey,
-                    textColor: isCustomerSupportAvailable
-                        ? AppColor.primaryBlack
-                        : AppColor.auGrey,
+                    borderColor: AppColor.primaryBlack,
+                    textColor: AppColor.primaryBlack,
                   ),
                   const SizedBox(height: 10),
                 ],

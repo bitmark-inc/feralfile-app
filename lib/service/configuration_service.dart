@@ -29,9 +29,9 @@ abstract class ConfigurationService {
 
   Future<void> setMigrateToAccountSetting(bool value);
 
-  bool isDoneNewOnboarding();
+  Future<void> setDidShowLiveWithArt(bool value);
 
-  Future<void> setDoneNewOnboarding(bool value);
+  bool didShowLiveWithArt();
 
   Future<void> setLastPullAnnouncementTime(int lastPullTime);
 
@@ -98,14 +98,6 @@ abstract class ConfigurationService {
   DateTime? getLastTimeAskForSubscription();
 
   Future setLastTimeAskForSubscription(DateTime date);
-
-  Future<void> setDoneOnboardingOnce(bool value);
-
-  bool isDoneOnboardingOnce();
-
-  Future<void> readRemoveSupport(bool value);
-
-  bool isReadRemoveSupport();
 
   Future<void> setHideLinkedAccountInGallery(
       List<String> address, bool isEnabled,
@@ -240,9 +232,9 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyDoneNewOnboarding = 'done_new_onboarding';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
+  static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
   static const String keyLastPullAnnouncementTime =
       'last_pull_announcement_time';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
@@ -259,12 +251,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
   static const String KEY_PENDING_SETTINGS = 'has_pending_settings';
-  static const String READ_REMOVE_SUPPORT = 'read_remove_support';
   static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
       'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
       'last_time_ask_subscription';
-  static const String KEY_DONE_ONBOARING_ONCE = 'done_onboarding_once';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
@@ -394,10 +384,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDoneOnboardingOnce() =>
-      _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
-
-  @override
   Future<void> setAnalyticEnabled(bool value) async {
     log.info('setAnalyticEnabled: $value');
     await _preferences.setBool(KEY_ANALYTICS, value);
@@ -413,12 +399,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
     }
-  }
-
-  @override
-  Future<void> setDoneOnboardingOnce(bool value) async {
-    log.info('setDoneOnboardingOnce: $value');
-    await _preferences.setBool(KEY_DONE_ONBOARING_ONCE, value);
   }
 
   @override
@@ -687,15 +667,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setOldUser() async {
     await _preferences.setBool(OLD_USER, true);
-  }
-
-  @override
-  bool isReadRemoveSupport() =>
-      _preferences.getBool(READ_REMOVE_SUPPORT) ?? false;
-
-  @override
-  Future<void> readRemoveSupport(bool value) async {
-    await _preferences.setBool(READ_REMOVE_SUPPORT, value);
   }
 
   @override
@@ -1055,15 +1026,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.setInt(keyLastPullAnnouncementTime, lastPullTime);
 
   @override
-  bool isDoneNewOnboarding() =>
-      _preferences.getBool(keyDoneNewOnboarding) ?? false;
-
-  @override
-  Future<void> setDoneNewOnboarding(bool value) async {
-    await _preferences.setBool(keyDoneNewOnboarding, value);
-  }
-
-  @override
   bool didMigrateToAccountSetting() =>
       _preferences.getBool(keyDidMigrateToAccountSetting) ?? false;
 
@@ -1077,6 +1039,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setReferralCode(String referralCode) =>
       _preferences.setString(KEY_REFERRAL_CODE, referralCode);
+
+  @override
+  bool didShowLiveWithArt() =>
+      _preferences.getBool(keyDidShowLiveWithArt) ?? false;
+
+  @override
+  Future<void> setDidShowLiveWithArt(bool value) async =>
+      await _preferences.setBool(keyDidShowLiveWithArt, value);
 }
 
 enum ConflictAction {
