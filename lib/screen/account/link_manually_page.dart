@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -129,11 +128,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
     }
 
     Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        _navigationService.popUntilHome();
-      } else {
-        doneOnboarding(context);
-      }
+      _navigationService.popUntilHome();
     });
   }
 }
