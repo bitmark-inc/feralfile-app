@@ -8,6 +8,8 @@ import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 extension ProductDetailsExt on ProductDetails {
+  static const _indiaCurrencyCode = 'INR';
+
   SKSubscriptionPeriodUnit get period {
     if (Platform.isAndroid) {
       if (id == premiumId()) {
@@ -27,7 +29,7 @@ extension ProductDetailsExt on ProductDetails {
   }
 
   String get renewPolicyText {
-    if (Platform.isAndroid && currencyCode == 'IND') {
+    if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) {
       return 'renew_policy_india'.tr();
     }
     return 'auto_renews_unless_cancelled'.tr();
