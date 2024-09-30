@@ -111,20 +111,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (_timer?.isActive ?? false) {
       _timer?.cancel();
     }
-    final configService = injector<ConfigurationService>();
-    if (!context.mounted) {
-      log.info('[_goToTargetScreen] context is not mounted');
-      return;
-    }
-
-    if (configService.isDoneNewOnboarding()) {
-      await Navigator.of(context)
-          .pushReplacementNamed(AppRouter.homePageNoTransition);
-    } else {
-      await Navigator.of(context).pushReplacementNamed(
-        AppRouter.newOnboardingPage,
-      );
-    }
+    unawaited(Navigator.of(context)
+        .pushReplacementNamed(AppRouter.homePageNoTransition));
+    await injector<ConfigurationService>().setDoneOnboarding(true);
   }
 
   Future<void> _createAccountOrRestoreIfNeeded() async {

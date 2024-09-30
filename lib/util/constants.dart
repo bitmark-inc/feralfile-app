@@ -143,8 +143,6 @@ const artworkSectionDivider = Divider(
   thickness: 1,
 );
 
-const REMOVE_CUSTOMER_SUPPORT =
-    '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3;

@@ -29,7 +29,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:bubble/bubble.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -103,7 +102,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _reportIssueType = '';
   String? _issueID;
 
-  bool isCustomerSupportAvailable = true;
   List<types.Message> _messages = [];
   List<types.Message> _draftMessages = [];
   final _user = const types.User(id: 'user');
@@ -150,7 +148,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   @override
   void initState() {
     unawaited(_getUserId());
-    unawaited(_fetchCustomerSupportAvailability());
     unawaited(injector<CustomerSupportService>().processMessages());
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -165,6 +162,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       if (_reportIssueType == ReportIssueType.Bug &&
           (payload.defaultMessage?.isEmpty ?? true)) {
         Future.delayed(const Duration(milliseconds: 300), () {
+          if (!mounted) {
+            return;
+          }
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
               unawaited(_addDebugLog());
@@ -183,6 +183,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
       Future.delayed(const Duration(milliseconds: 300), () {
+        if (!mounted) {
+          return;
+        }
         _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
           if (attachCrashLog) {
             unawaited(_addDebugLog());
@@ -215,14 +218,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final data = parseJwt(jwt!.jwtToken);
     _userId = data['sub'] ?? '';
     return _userId!;
-  }
-
-  Future<void> _fetchCustomerSupportAvailability() async {
-    final device = DeviceInfo.instance;
-    final isAvailable = await device.isSupportOS();
-    setState(() {
-      isCustomerSupportAvailable = isAvailable;
-    });
   }
 
   Future<void> _addDebugLog() async {
@@ -351,28 +346,25 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               }).toList(),
               onSendPressed: _handleSendPressed,
               user: _user,
-              customBottomWidget: !isCustomerSupportAvailable
-                  ? const SizedBox()
-                  : _status == 'closed'
-                      ? _isRated
-                          ? const SizedBox()
-                          : MyRatingBar(
-                              submit: (String messageType,
-                                      DraftCustomerSupportData data,
-                                      {bool isRating = false}) =>
-                                  // ignore: discarded_futures
-                                  _submit(messageType, data,
-                                      isRating: isRating))
-                      : Column(
-                          children: [
-                            if (_isFileAttached) debugLogView(),
-                            Input(
-                              onSendPressed: _handleSendPressed,
-                              onAttachmentPressed: _handleAttachmentPressed,
-                              options: _inputOption(),
-                            ),
-                          ],
+              customBottomWidget: _status == 'closed'
+                  ? _isRated
+                      ? const SizedBox()
+                      : MyRatingBar(
+                          submit: (String messageType,
+                                  DraftCustomerSupportData data,
+                                  {bool isRating = false}) =>
+                              // ignore: discarded_futures
+                              _submit(messageType, data, isRating: isRating))
+                  : Column(
+                      children: [
+                        if (_isFileAttached) debugLogView(),
+                        Input(
+                          onSendPressed: _handleSendPressed,
+                          onAttachmentPressed: _handleAttachmentPressed,
+                          options: _inputOption(),
                         ),
+                      ],
+                    ),
             )));
   }
 
