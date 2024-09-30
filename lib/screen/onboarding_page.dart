@@ -69,27 +69,28 @@ class _OnboardingPageState extends State<OnboardingPage>
     // if something goes wrong, we will catch it in the try catch block,
     // those issue can be ignored, let user continue to use the app
     try {
-      await DeviceInfo.instance.init();
-      await injector<DeviceInfoService>().init();
-      final metricClient = injector.get<MetricClientService>();
-      await metricClient.initService();
-      await injector<RemoteConfigService>().loadConfigs();
+      unawaited(DeviceInfo.instance.init());
+      unawaited(injector<DeviceInfoService>().init().then((_) {
+        injector<MetricClientService>().initService();
+      }));
+      unawaited(injector<RemoteConfigService>().loadConfigs());
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
       unawaited(
           injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
 
       // set version info for user agent
-      final packageInfo = await PackageInfo.fromPlatform();
-      await injector<ConfigurationService>()
-          .setVersionInfo(packageInfo.version);
+      unawaited(PackageInfo.fromPlatform().then((packageInfo) =>
+          injector<ConfigurationService>()
+              .setVersionInfo(packageInfo.version)));
 
       final notificationService = injector<NotificationService>();
-      await notificationService.initNotification();
-      await notificationService.startListeningNotificationEvents();
-      await disableLandscapeMode();
-      await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
+      unawaited(notificationService.initNotification().then((_) {
+        notificationService.startListeningNotificationEvents();
+      }));
+      unawaited(disableLandscapeMode());
+      unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
       DailiesHelper.updateDailies([]);
-      await injector<DeeplinkService>().setup();
+      unawaited(injector<DeeplinkService>().setup());
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
