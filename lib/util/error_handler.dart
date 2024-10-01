@@ -78,7 +78,7 @@ extension DioErrorEvent on DioException {
   }
 }
 
-ErrorEvent? translateError(Object exception) {
+ErrorEvent translateError(Object exception) {
   if (exception is DioException) {
     final dioErrorEvent = exception.errorEvent;
     if (dioErrorEvent != null) {
@@ -100,7 +100,12 @@ ErrorEvent? translateError(Object exception) {
         ErrorItemState.getReport);
   }
 
-  return null;
+  return ErrorEvent(
+      exception,
+      'Oops! Something went wrong',
+      'It looks like there’s a small hiccup on our end. We’re on it and should '
+          'have things fixed soon. Apologies for any inconvenience!',
+      ErrorItemState.close);
 }
 
 bool onlySentryException(Object exception) {
@@ -243,6 +248,9 @@ void showErrorDiablog(
 
 Future<bool> showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
+  unawaited(Sentry.captureException(exception,
+      stackTrace: stackTrace,
+      withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
   final navigationService = injector<NavigationService>();
   final context = navigationService.navigatorKey.currentContext;
 
@@ -270,9 +278,6 @@ Future<bool> showErrorDialogFromException(Object exception,
               .subtract(const Duration(seconds: 5))
               .compareTo(memoryValues.inForegroundAt!) <
           0) {
-    unawaited(Sentry.captureException(exception,
-        stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return true;
   }
 
@@ -282,15 +287,12 @@ Future<bool> showErrorDialogFromException(Object exception,
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries
-    unawaited(Sentry.captureException(exception,
-        stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return true;
   }
 
   final event = translateError(exception);
 
-  if (context != null && event != null) {
+  if (context != null) {
     if (event.state == ErrorItemState.getReport) {
       final sentryID = await reportSentry(
           {'exception': exception, 'stackTrace': stackTrace});
@@ -313,9 +315,6 @@ Future<bool> showErrorDialogFromException(Object exception,
       return true;
     }
   } else {
-    unawaited(Sentry.captureException(exception,
-        stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return false;
   }
 }

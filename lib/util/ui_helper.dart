@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -32,7 +31,6 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -40,7 +38,6 @@ import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
@@ -61,31 +58,13 @@ enum ActionState { notRequested, loading, error, done }
 const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
-Future<void> doneOnboarding(BuildContext context) async {
-  unawaited(injector<IAPService>().restore());
-  await injector<ConfigurationService>().setPendingSettings(true);
-  await injector<ConfigurationService>().setDoneOnboarding(true);
-  await injector<NavigationService>()
-      .navigateUntil(AppRouter.homePageNoTransition, (route) => false);
-}
-
 void nameContinue(BuildContext context) {
-  final configurationService = injector<ConfigurationService>();
-  final isDoneNewOnboarding = configurationService.isDoneNewOnboarding();
-  if (!isDoneNewOnboarding) {
-    injector<ConfigurationService>().setDoneNewOnboarding(true);
-    unawaited(doneOnboarding(context));
-  }
-  if (injector<ConfigurationService>().isDoneOnboarding()) {
-    Navigator.of(context).popUntil((route) =>
-        route.settings.name == AppRouter.tbConnectPage ||
-        route.settings.name == AppRouter.wc2ConnectPage ||
-        route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition ||
-        route.settings.name == AppRouter.walletPage);
-  } else {
-    unawaited(doneOnboarding(context));
-  }
+  Navigator.of(context).popUntil((route) =>
+      route.settings.name == AppRouter.tbConnectPage ||
+      route.settings.name == AppRouter.wc2ConnectPage ||
+      route.settings.name == AppRouter.homePage ||
+      route.settings.name == AppRouter.homePageNoTransition ||
+      route.settings.name == AppRouter.walletPage);
 }
 
 class UIHelper {
@@ -861,17 +840,13 @@ class UIHelper {
           ),
           onTap: () async {
             Navigator.of(context).pop();
-            final device = DeviceInfo.instance;
-            final isSupportAvailable = await device.isSupportOS();
-            if (isSupportAvailable) {
-              unawaited(injector<NavigationService>().navigateTo(
-                AppRouter.supportThreadPage,
-                arguments: NewIssuePayload(
-                  reportIssueType: ReportIssueType.Bug,
-                  defaultMessage: buildReportMessage(),
-                ),
-              ));
-            }
+            unawaited(injector<NavigationService>().navigateTo(
+              AppRouter.supportThreadPage,
+              arguments: NewIssuePayload(
+                reportIssueType: ReportIssueType.Bug,
+                defaultMessage: buildReportMessage(),
+              ),
+            ));
           },
         ),
         OptionItem(),
@@ -1067,76 +1042,124 @@ class UIHelper {
       String? actionButton,
       Function()? actionButtonOnTap,
       String? exitButton,
-      Function()? exitButtonOnTap}) async {
+      Function()? exitButtonOnTap,
+      double horizontalPadding = 15,
+      Color backgroundColor = AppColor.feralFileHighlight}) async {
     UIHelper.hideInfoDialog(context);
     await showCupertinoModalPopup(
         context: context,
-        builder: (context) => Center(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: AppColor.feralFileHighlight,
-                    borderRadius: BorderRadius.circular(5),
+        builder: (context) => Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height - 256,
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: Scrollbar(
-                            thumbVisibility: true,
-                            trackVisibility: true,
-                            thickness: 5,
-                            radius: const Radius.circular(10),
-                            scrollbarOrientation: ScrollbarOrientation.right,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 10),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
                               child: SingleChildScrollView(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     content,
-                                    const SizedBox(height: 10),
+                                    const SizedBox(height: 20),
                                   ],
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        if (actionButtonOnTap != null)
-                          Column(
-                            children: [
-                              AuSecondaryButton(
-                                text: actionButton ?? '',
-                                onPressed: actionButtonOnTap,
-                                borderColor: AppColor.primaryBlack,
-                                textColor: AppColor.primaryBlack,
-                                backgroundColor: AppColor.feralFileHighlight,
+                            if (actionButtonOnTap != null)
+                              Column(
+                                children: [
+                                  PrimaryButton(
+                                    text: actionButton ?? '',
+                                    onTap: actionButtonOnTap,
+                                    textColor: AppColor.primaryBlack,
+                                    color: AppColor.feralFileLightBlue,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  )
+                                ],
                               ),
-                              const SizedBox(
-                                height: 15,
-                              )
-                            ],
-                          ),
-                        AuSecondaryButton(
-                          text: exitButton ?? 'close'.tr(),
-                          onPressed: exitButtonOnTap ??
-                              () {
-                                Navigator.pop(context);
-                              },
-                          borderColor: AppColor.primaryBlack,
-                          textColor: AppColor.primaryBlack,
-                          backgroundColor: AppColor.feralFileHighlight,
+                            PrimaryButton(
+                              text: exitButton ?? 'close'.tr(),
+                              onTap: exitButtonOnTap ??
+                                  () {
+                                    Navigator.pop(context);
+                                  },
+                              textColor: AppColor.primaryBlack,
+                              color: AppColor.feralFileLightBlue,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ));
+  }
+
+  static Future<dynamic> showLiveWithArtIntro(BuildContext context) async {
+    final theme = Theme.of(context);
+    final infoStyle = theme.textTheme.ppMori400White14;
+    return await showCenterSheet(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'live_with_art'.tr(),
+            style: theme.textTheme.ppMori700White18,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'welcome_to_feral_file'.tr(),
+            style: infoStyle,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'live_with_art_intro_1'.tr(),
+            style: infoStyle,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'live_with_art_intro_2'.tr(),
+            style: infoStyle,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'live_with_art_intro_3'.tr(),
+            style: infoStyle,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'live_with_art_intro_4'.tr(),
+            style: infoStyle,
+          ),
+        ],
+      ),
+      backgroundColor: AppColor.auGreyBackground,
+      horizontalPadding: 30,
+      exitButton: 'got_it'.tr(),
+      exitButtonOnTap: () {
+        Navigator.pop(context);
+        injector<ConfigurationService>().setDidShowLiveWithArt(true);
+      },
+    );
   }
 
   static Future<dynamic> showCenterEmptySheet(BuildContext context,

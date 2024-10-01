@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/version_check.dart';
@@ -34,6 +35,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry/sentry.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -256,10 +258,15 @@ class _SettingsPageState extends State<SettingsPage>
 
   Future<void> _checkVersion() async {
     final versionCheck = VersionCheck(showUpdateDialog: (versionCheck) {});
-    await versionCheck.checkVersion(context);
-    setState(() {
-      _versionCheck = versionCheck;
-    });
+    try {
+      await versionCheck.checkVersion(context);
+      setState(() {
+        _versionCheck = versionCheck;
+      });
+    } catch (e) {
+      log.info('Failed to check version: $e');
+      unawaited(Sentry.captureException('Failed to check version: $e'));
+    }
   }
 
   Widget _versionSection() {

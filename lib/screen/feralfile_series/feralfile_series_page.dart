@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
@@ -8,6 +10,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -18,6 +21,7 @@ import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:sentry/sentry.dart';
 
 class FeralFileSeriesPage extends StatefulWidget {
   const FeralFileSeriesPage({required this.payload, super.key});
@@ -63,7 +67,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         _pagingController.appendPage(newItems.result, nextPageKey);
       }
     } catch (error) {
-      _pagingController.error = error;
+      log.info('Error fetching series page: $error');
+      unawaited(Sentry.captureException(error));
     }
   }
 
