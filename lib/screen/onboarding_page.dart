@@ -61,7 +61,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       log.info('OnboardingPage loading more than 10s');
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
     });
-    unawaited(setup(context).then((_) => _createAccountOrRestoreIfNeeded()));
+    unawaited(setup(context).then((_) => _fetchRuntimeCache()));
   }
 
   Future<void> setup(BuildContext context) async {
@@ -111,13 +111,14 @@ class _OnboardingPageState extends State<OnboardingPage>
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }
 
-  Future<void> _createAccountOrRestoreIfNeeded() async {
+  Future<void> _fetchRuntimeCache() async {
     final timer = Timer(const Duration(seconds: 10), () {
       log.info('[_createAccountOrRestoreIfNeeded] Loading more than 10s');
       unawaited(Sentry.captureMessage(
           '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
     });
-    await injector<AccountService>().restoreIfNeeded();
+    await injector<AccountService>().migrateAccount();
+    unawaited(injector<ConfigurationService>().setDoneOnboarding(true));
     if (timer.isActive) {
       timer.cancel();
     }

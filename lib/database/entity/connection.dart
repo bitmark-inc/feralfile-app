@@ -7,9 +7,8 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/address_index.dart';
 
@@ -17,7 +16,6 @@ enum ConnectionType {
   beaconP2PPeer, // Autonomy connect to TZ Dapp
   manuallyAddress,
   manuallyIndexerTokenID,
-  walletConnect2, // Autonomy connect
   dappConnect2,
 }
 
@@ -26,7 +24,8 @@ extension RawValue on ConnectionType {
 }
 
 @entity
-class Connection {
+class Connection implements SettingObject {
+  @override
   @primaryKey
   String key;
   String name;
@@ -87,8 +86,7 @@ class Connection {
   }
 
   String? get wc2ConnectedSession {
-    if (connectionType != ConnectionType.walletConnect2.rawValue &&
-        connectionType != ConnectionType.dappConnect2.rawValue) {
+    if (connectionType != ConnectionType.dappConnect2.rawValue) {
       return null;
     }
     return data;
@@ -126,27 +124,6 @@ class Connection {
         other.createdAt == createdAt;
   }
 
-  static Connection? getManuallyAddress(String? address) {
-    if (address == null) {
-      return null;
-    }
-    String checkAddress = address;
-    final cryptoType = CryptoType.fromAddress(address);
-    if (cryptoType == CryptoType.ETH) {
-      checkAddress = address.getETHEip55Address();
-    }
-    if (cryptoType == CryptoType.UNKNOWN) {
-      return null;
-    }
-    return Connection(
-        key: checkAddress,
-        name: cryptoType.source,
-        data: '',
-        connectionType: ConnectionType.manuallyAddress.rawValue,
-        accountNumber: checkAddress,
-        createdAt: DateTime.now());
-  }
-
   @override
   int get hashCode =>
       key.hashCode ^
@@ -155,4 +132,34 @@ class Connection {
       connectionType.hashCode ^
       accountNumber.hashCode ^
       createdAt.hashCode;
+
+  // fromJson, toJson methods
+  factory Connection.fromJson(Map<String, dynamic> json) => Connection(
+        key: json['key'] as String,
+        name: json['name'] as String,
+        data: json['data'] as String,
+        connectionType: json['connectionType'] as String,
+        accountNumber: json['accountNumber'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        accountOrder: json['accountOrder'] as int?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'name': name,
+        'data': data,
+        'connectionType': connectionType,
+        'accountNumber': accountNumber,
+        'createdAt': createdAt.toIso8601String(),
+        'accountOrder': accountOrder,
+      };
+
+  @override
+  Map<String, String> get toKeyValue => {
+        'key': key,
+        'value': value,
+      };
+
+  @override
+  String get value => jsonEncode(toJson());
 }

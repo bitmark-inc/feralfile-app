@@ -8,7 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -147,7 +147,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
             (previousValue, element) =>
                 (previousValue ?? 0) + (element.amount ?? 0)) ??
         0;
-    unawaited(fetchPersona());
+    fetchPersona();
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
     appMetadata = PairingMetadata(
@@ -164,11 +164,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     });
   }
 
-  Future fetchPersona() async {
+  void fetchPersona() {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      final walletAddress = await injector<CloudDatabase>()
-          .addressDao
+      final walletAddress = injector<CloudManager>()
+          .addressObject
           .findByAddress(widget.request.sourceAddress!);
       if (walletAddress != null) {
         currentWallet =

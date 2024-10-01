@@ -11,8 +11,9 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -26,16 +27,12 @@ import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;
-  final AccountService _accountService;
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
   final AppDatabase _appDatabase;
@@ -45,7 +42,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
   ForgetExistBloc(
     this._authService,
-    this._accountService,
     this._iapApi,
     this._cloudDatabase,
     this._appDatabase,
@@ -62,20 +58,16 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       unawaited(_addressService.clearPrimaryAddress());
       unawaited(deregisterPushNotification());
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String? deviceId = await MigrationUtil.getBackupDeviceID();
-      final requester = '${deviceId}_${packageInfo.packageName}';
+
       await injector<MetricClientService>().reset();
-
-      unawaited(_iapApi.deleteAllProfiles(requester));
-      unawaited(_iapApi.deleteUserData());
-
-      final List<Persona> personas =
-          await _cloudDatabase.personaDao.getPersonas();
-      for (var persona in personas) {
-        await _accountService.deletePersona(persona);
+      try {
+        await _iapApi.deleteUserData();
+      } catch (e) {
+        log.info('Error when delete all profiles: $e');
       }
 
+      injector<CloudManager>().clearCache();
+      unawaited(injector<CloudManager>().deleteAll());
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -16,11 +18,11 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class PreviewPrimerPage extends StatefulWidget {
   final AssetToken token;
@@ -38,7 +40,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     with AfterLayoutMixin, WidgetsBindingObserver {
   bool isFullScreen = false;
   ShakeDetector? _detector;
-  InAppWebViewController? _controller;
+  WebViewController? _controller;
   final _configurationService = injector<ConfigurationService>();
 
   @override
@@ -196,15 +198,13 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
           child: Column(
             children: [
               Expanded(
-                child: InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri(WEB3_PRIMER_URL)),
-                  initialSettings: InAppWebViewSettings(
-                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
-                  ),
-                  onWebViewCreated: (controller) {
+                child: FeralFileWebview(
+                  uri: Uri.parse(WEB3_PRIMER_URL),
+                  userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
+                  onStarted: (controller) {
                     _controller = controller;
                   },
-                  onLoadStop: (controller, uri) {
+                  onLoaded: (controller) {
                     EasyDebounce.debounce(
                       'screen_rotate',
                       const Duration(milliseconds: 100),

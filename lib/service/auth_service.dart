@@ -102,8 +102,8 @@ class AuthService {
     } on DioException catch (e) {
       if (e.ffErrorCode == 998 && primaryAddress != null) {
         log.warning('Primary address not registered, retrying');
-        unawaited(Sentry.captureMessage('Primary address not registered,'
-            ' register then retrying'));
+        unawaited(Sentry.captureMessage('Primary address not registered, '
+            'registerPrimaryAddress ${primaryAddress.uuid}'));
         await injector<AddressService>()
             .registerPrimaryAddress(info: primaryAddress);
         return await _authApi.authAddress(payload);
@@ -130,8 +130,6 @@ class AuthService {
       {required AddressInfo primaryAddressInfo,
       bool withDidKey = false}) async {
     final address = await _addressService.getAddress(info: primaryAddressInfo);
-    final publicKey = await _addressService.getAddressPublicKey(
-        addressInfo: primaryAddressInfo);
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final messageForAddress = _addressService.getFeralfileAccountMessage(
       address: address,
@@ -145,7 +143,6 @@ class AuthService {
     Map<String, dynamic> payload = {
       'requester': address,
       'type': primaryAddressInfo.chain,
-      'publicKey': publicKey,
       'signature': signatureForAddress,
       'timestamp': timestamp,
     };

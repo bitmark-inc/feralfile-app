@@ -27,9 +27,6 @@ abstract class PubdocAPI {
   @GET('/demo/demo_account.json')
   Future<String> getDemoAccount();
 
-  @GET('/artists/suggested_artists.json')
-  Future<String> getSuggestedArtists();
-
   @GET('/configs/postcard/postcard_configs.json')
   Future<String> getConfigs();
 }

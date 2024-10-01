@@ -55,7 +55,6 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         } catch (_) {
           viewingMessage = '0x${widget.args.message}';
         }
-        break;
       case WCSignType.TYPED_MESSAGE:
         message = TypedDataUtil.typedDataV4(jsonData: widget.args.message);
         viewingMessage = widget.args.message;
@@ -63,7 +62,6 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             jsonDecode(widget.args.message) as Map<String, dynamic>;
         final typedMessage = TypedMessage.fromJson(typedData);
         viewingTypedMessage = typedMessage.message;
-        break;
     }
 
     final theme = Theme.of(context);
@@ -197,11 +195,9 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     signature = await injector<EthereumService>()
                         .signPersonalMessage(
                             wallet.wallet, wallet.index, message);
-                    break;
                   case WCSignType.TYPED_MESSAGE:
                     signature = await injector<EthereumService>()
                         .signMessage(wallet.wallet, wallet.index, message);
-                    break;
                 }
 
                 if (!mounted) {
