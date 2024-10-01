@@ -22,7 +22,9 @@ import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
-import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -40,7 +42,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -82,12 +83,12 @@ import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/data/api/tzkt_api.dart';
 import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
@@ -139,10 +140,8 @@ Future<void> setupInjector() async {
     migrateV19ToV20,
   ]).build();
 
-  final cloudDB = await $FloorCloudDatabase
-      .databaseBuilder('cloud_database.db')
-      .addMigrations(cloudDatabaseMigrations)
-      .build();
+  final cloudDB =
+      await $FloorCloudDatabase.databaseBuilder('cloud_database.db').build();
 
   injector.registerLazySingleton(() => NavigationService());
 
@@ -182,7 +181,6 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<NetworkService>(() => NetworkService());
   // Services
-  final auditService = AuditServiceImpl(cloudDB);
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
@@ -191,10 +189,9 @@ Future<void> setupInjector() async {
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-        cloudDB,
         injector(),
         injector(),
-        auditService,
+        injector(),
         injector(),
         injector(),
         injector(),
@@ -204,7 +201,7 @@ Future<void> setupInjector() async {
       () => PrimaryAddressChannel());
 
   injector.registerLazySingleton<AddressService>(
-      () => AddressService(injector(), cloudDB));
+      () => AddressService(injector(), injector()));
 
   injector.registerLazySingleton<KeychainService>(() => KeychainService());
 
@@ -249,7 +246,6 @@ Future<void> setupInjector() async {
             injector(),
             injector(),
             injector(),
-            injector(),
           ));
 
   injector.registerLazySingleton<IAPService>(
@@ -287,8 +283,6 @@ Future<void> setupInjector() async {
                 ),
                 baseUrl: Environment.customerSupportURL),
           ));
-
-  injector.registerLazySingleton<AuditService>(() => auditService);
 
   injector.registerLazySingleton<MerchandiseService>(
       () => MerchandiseServiceImpl(MerchandiseApi(
@@ -400,7 +394,7 @@ Future<void> setupInjector() async {
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
 
   injector.registerLazySingleton<ConnectionsBloc>(() => ConnectionsBloc(
-        injector<CloudDatabase>(),
+        injector(),
         injector(),
         injector(),
       ));
@@ -419,4 +413,9 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<UpgradesBloc>(
       () => UpgradesBloc(injector(), injector(), injector()));
+
+  injector.registerLazySingleton<AccountSettingsClient>(
+      () => AccountSettingsClient(Environment.accountSettingUrl));
+
+  injector.registerLazySingleton<CloudManager>(() => CloudManager());
 }

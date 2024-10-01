@@ -6,8 +6,8 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 extension StringExtension on String {
   String capitalize() =>

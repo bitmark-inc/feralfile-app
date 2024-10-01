@@ -31,7 +31,8 @@ class AndroidBackupChannel {
         return [];
       }
       final backupData = json.decode(data);
-      return BackupData.fromJson(backupData).accounts;
+      final accounts = BackupData.fromJson(backupData).accounts;
+      return accounts;
     } catch (e) {
       log.warning('Android cloud backup error', e);
       return [];

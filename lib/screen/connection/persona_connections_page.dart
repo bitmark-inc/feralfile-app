@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -56,8 +55,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     super.initState();
     final personUUID = widget.payload.personaUUID;
     final index = widget.payload.index;
-    context.read<AccountsBloc>().add(
-        FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
       case CryptoType.ETH:
         context.read<EthereumBloc>().add(GetEthereumAddressEvent(personUUID));

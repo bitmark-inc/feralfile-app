@@ -67,11 +67,11 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
                       await Future.forEach(listAddressInfo,
                           (AddressInfo addressInfo) async {
                         final walletAddress = await accountService
-                            .getAddressPersona(addressInfo.address);
+                            .getWalletByAddress(addressInfo.address);
                         if (walletAddress == null) {
                           return;
                         }
-                        await accountService.updateAddressPersona(
+                        await accountService.updateAddressWallet(
                             walletAddress.copyWith(name: name));
                       });
                       // ignore: use_build_context_synchronously

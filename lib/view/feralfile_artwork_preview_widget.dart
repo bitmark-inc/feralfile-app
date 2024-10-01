@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_state.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
@@ -9,13 +10,11 @@ import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:nft_rendering/nft_rendering.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class FeralFileArtworkPreviewWidgetPayload {
   final Artwork artwork;
-  final Function({InAppWebViewController? webViewController, int? time})?
-      onLoaded;
+  final Function({WebViewController? webViewController, int? time})? onLoaded;
   final bool isMute;
   final bool isScrollable;
 

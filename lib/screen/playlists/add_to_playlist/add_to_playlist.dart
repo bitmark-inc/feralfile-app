@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
@@ -54,9 +54,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     _controller
       ..addListener(_scrollListenerToLoadMore)
       ..addListener(_scrollListenerToShowSearchBar);
-    unawaited(refreshTokens().then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
+    refreshTokens();
+    nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     bloc.add(InitPlaylist(playListModel: widget.playList));
   }
 
@@ -95,10 +94,10 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
-  Future<List<String>> getManualTokenIds() async {
-    final cloudDb = injector<CloudDatabase>();
-    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
-            ConnectionType.manuallyIndexerTokenID.rawValue))
+  List<String> getManualTokenIds() {
+    final cloudObject = injector<CloudManager>();
+    final tokenIndexerIDs = cloudObject.connectionObject
+        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
         .map((e) => e.key)
         .toList();
     return tokenIndexerIDs;
@@ -109,8 +108,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     return await accountService.getAllAddresses();
   }
 
-  Future refreshTokens() async {
-    final indexerIds = await getManualTokenIds();
+  void refreshTokens() {
+    final indexerIds = getManualTokenIds();
 
     nftBloc.add(RefreshNftCollectionByOwners(
       debugTokens: indexerIds,

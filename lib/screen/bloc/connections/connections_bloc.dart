@@ -8,8 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -19,14 +19,14 @@ import 'package:collection/collection.dart';
 part 'connections_state.dart';
 
 class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
-  final CloudDatabase _cloudDB;
+  final CloudManager _cloudObject;
   final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
 
   Future<List<ConnectionItem>> _getWc2Connections(
       String address, ConnectionType type) async {
     final connections =
-        await _cloudDB.connectionDao.getConnectionsByType(type.rawValue);
+        _cloudObject.connectionObject.getConnectionsByType(type.rawValue);
     List<Connection> personaConnections = [];
     for (var connection in connections) {
       if (connection.accountNumber.contains(address)) {
@@ -46,7 +46,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
   Future<List<ConnectionItem>> _getBeaconConnections(
       String personaUUID, int index) async {
-    final connections = await _cloudDB.connectionDao
+    final connections = _cloudObject.connectionObject
         .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
 
     List<Connection> personaConnections = [];
@@ -69,43 +69,33 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   }
 
   ConnectionsBloc(
-    this._cloudDB,
+    this._cloudObject,
     this._wc2Service,
     this._tezosBeaconService,
   ) : super(ConnectionsState()) {
     on<GetETHConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
 
-      final auConnections = await _getWc2Connections(
-          event.address, ConnectionType.walletConnect2);
       final wc2Connections =
           await _getWc2Connections(event.address, ConnectionType.dappConnect2);
 
-      final connectionItems = [...auConnections, ...wc2Connections];
-      emit(state.copyWith(connectionItems: connectionItems));
+      emit(state.copyWith(connectionItems: wc2Connections));
     });
 
     on<GetXTZConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
 
-      final auConnections = await _getWc2Connections(
-          event.address, ConnectionType.walletConnect2);
       final beaconConnections =
           await _getBeaconConnections(event.personUUID, event.index);
 
-      final connectionItems = [...auConnections, ...beaconConnections];
-
-      emit(state.copyWith(connectionItems: connectionItems));
+      emit(state.copyWith(connectionItems: beaconConnections));
     });
 
     on<DeleteConnectionsEvent>((event, emit) async {
       Set<P2PPeer> bcPeers = {};
 
       for (var connection in event.connectionItem.connections) {
-        if ([
-          ConnectionType.walletConnect2.rawValue,
-          ConnectionType.dappConnect2.rawValue
-        ].contains(connection.connectionType)) {
+        if (ConnectionType.dappConnect2.rawValue == connection.connectionType) {
           final topic = connection.key.split(':').lastOrNull;
           if (topic != null) {
             await _wc2Service.deletePairing(topic: topic);
@@ -114,7 +104,8 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
         if (connection.connectionType ==
             ConnectionType.beaconP2PPeer.rawValue) {
-          unawaited(_cloudDB.connectionDao.deleteConnection(connection));
+          unawaited(
+              _cloudObject.connectionObject.deleteConnections([connection]));
 
           final bcPeer = connection.beaconConnectConnection?.peer;
           if (bcPeer != null) {
@@ -135,7 +126,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
     on<SessionDeletedEvent>((event, emit) async {
       unawaited(
-          _cloudDB.connectionDao.deleteConnectionsByTopic('%${event.topic}%'));
+          _cloudObject.connectionObject.deleteConnectionsByTopic(event.topic));
 
       if (state.connectionItems == null || state.connectionItems!.isEmpty) {
         return;

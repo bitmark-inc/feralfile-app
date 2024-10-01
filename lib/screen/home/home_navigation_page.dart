@@ -23,8 +23,6 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -339,7 +337,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         );
       });
     });
-    injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');
@@ -528,7 +525,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _handleBackground() {
-    unawaited(_cloudBackup());
     unawaited(_checkForReferralCode());
   }
 
@@ -556,8 +552,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         memoryValues.isForeground = true;
         unawaited(injector<ChatService>().reconnect());
       case FGBGType.background:
-        _handleBackground();
         memoryValues.isForeground = false;
+        _handleBackground();
     }
   }
 
@@ -587,15 +583,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (widget.payload.startedTab != _initialTab) {
       await onItemTapped(widget.payload.startedTab.index);
     }
-    await _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
-  }
-
-  Future<void> _cloudBackup() async {
-    final backupService = injector<BackupService>();
-    await backupService.backupCloudDatabase();
   }
 }

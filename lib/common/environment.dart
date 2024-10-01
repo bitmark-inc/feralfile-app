@@ -9,8 +9,6 @@ import 'package:autonomy_flutter/encrypt_env/secrets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Environment {
-  static const String openSeaApiKey = '';
-
   static String get indexerURL =>
       appTestnetConfig ? indexerTestnetURL : indexerMainnetURL;
 
@@ -20,12 +18,6 @@ class Environment {
   static int get web3ChainId =>
       appTestnetConfig ? web3TestnetChainId : web3MainnetChainId;
 
-  static String get tezosNodeClientURL =>
-      appTestnetConfig ? tezosNodeClientTestnetURL : tezosNodeClientMainnetURL;
-
-  static String get bitmarkAPIURL =>
-      appTestnetConfig ? bitmarkAPITestnetURL : bitmarkAPIMainnetURL;
-
   static String get feralFileAPIURL =>
       appTestnetConfig ? feralFileAPITestnetURL : feralFileAPIMainnetURL;
 
@@ -34,14 +26,6 @@ class Environment {
 
   static String get feralFileAssetURL =>
       appTestnetConfig ? feralFileAssetURLTestnet : feralFileAssetURLMainnet;
-
-  static String get extensionSupportURL => appTestnetConfig
-      ? extensionSupportTestnetURL
-      : extensionSupportMainnetURL;
-
-  static String get connectWebsocketURL => appTestnetConfig
-      ? connectWebsocketTestnetURL
-      : connectWebsocketMainnetURL;
 
   static String get tvCastApiUrl => dotenv.env['TV_CAST_API_URL'] ?? '';
 
@@ -63,17 +47,8 @@ class Environment {
   static int get web3TestnetChainId =>
       int.tryParse(dotenv.env['WEB3_TESTNET_CHAIN_ID'] ?? '5') ?? 5;
 
-  static String get tezosNodeClientMainnetURL =>
-      dotenv.env['TEZOS_NODE_CLIENT_MAINNET_URL'] ?? '';
-
   static String get tezosNodeClientTestnetURL =>
       dotenv.env['TEZOS_NODE_CLIENT_TESTNET_URL'] ?? '';
-
-  static String get bitmarkAPIMainnetURL =>
-      dotenv.env['BITMARK_API_MAINNET_URL'] ?? '';
-
-  static String get bitmarkAPITestnetURL =>
-      dotenv.env['BITMARK_API_TESTNET_URL'] ?? '';
 
   static String get feralFileAPIMainnetURL =>
       dotenv.env['FERAL_FILE_API_MAINNET_URL'] ?? '';
@@ -87,18 +62,6 @@ class Environment {
   static String get feralFileAssetURLMainnet =>
       dotenv.env['FERAL_FILE_ASSET_URL_MAINNET'] ?? '';
 
-  static String get extensionSupportMainnetURL =>
-      dotenv.env['EXTENSION_SUPPORT_MAINNET_URL'] ?? '';
-
-  static String get extensionSupportTestnetURL =>
-      dotenv.env['EXTENSION_SUPPORT_TESTNET_URL'] ?? '';
-
-  static String get connectWebsocketMainnetURL =>
-      dotenv.env['CONNECT_WEBSOCKET_MAINNET_URL'] ?? '';
-
-  static String get connectWebsocketTestnetURL =>
-      dotenv.env['CONNECT_WEBSOCKET_TESTNET_URL'] ?? '';
-
   static String get autonomyAuthURL => dotenv.env['AUTONOMY_AUTH_URL'] ?? '';
 
   static String get customerSupportURL =>
@@ -108,12 +71,6 @@ class Environment {
       dotenv.env['CURRENCY_EXCHANGE_URL'] ?? '';
 
   static String get pubdocURL => dotenv.env['AUTONOMY_PUBDOC_URL'] ?? '';
-
-  static String get awsIdentityPoolId =>
-      dotenv.env['AWS_IDENTITY_POOL_ID'] ?? '';
-
-  static String get renderingReportURL =>
-      dotenv.env['RENDERING_REPORT_URL'] ?? '';
 
   static String get autonomyIpfsPrefix =>
       dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
@@ -157,10 +114,11 @@ class Environment {
   static String get autonomyActivationURL =>
       dotenv.env['AUTONOMY_ACTIVATION_URL'] ?? '';
 
+  static String get accountSettingUrl =>
+      dotenv.env['ACCOUNT_SETTING_URL'] ?? '';
+
   static String get chatServerHmacKey =>
       cachedSecretEnv['CHAT_SERVER_HMAC_KEY'] ?? '';
-
-  static String get metricEndpoint => cachedSecretEnv['METRIC_ENDPOINT'] ?? '';
 
   static String get metricSecretKey =>
       cachedSecretEnv['METRIC_SECRET_KEY'] ?? '';

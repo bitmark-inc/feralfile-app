@@ -113,13 +113,13 @@ class ClaimEmptyPostCardBloc
     on<AcceptGiftEvent>((event, emit) async {
       emit(state.copyWith(isClaiming: true));
       String? address;
-      final addresses = await accountService.getAddress('Tezos');
+      final addresses = await accountService.getAddress('tezos');
       if (addresses.isEmpty) {
-        final defaultPersona = await accountService.getOrCreateDefaultPersona();
+        await configService.setDoneOnboarding(true);
         await configService.setPendingSettings(true);
 
         final walletAddress =
-            await defaultPersona.insertNextAddress(WalletType.Tezos);
+            await accountService.insertNextAddress(WalletType.Tezos);
         address = walletAddress.first.address;
       } else if (addresses.length == 1) {
         address = addresses.first;
