@@ -15,7 +15,7 @@ class MembershipCard extends StatelessWidget {
   final bool isCompleted;
   final String? renewDate;
   final Function()? onContinue;
-  final bool canAutoRenew;
+  final String? renewPolicyText;
 
   const MembershipCard({
     required this.type,
@@ -28,7 +28,7 @@ class MembershipCard extends StatelessWidget {
     this.isCompleted = false,
     this.renewDate,
     this.onContinue,
-    this.canAutoRenew = false,
+    this.renewPolicyText,
     super.key,
   });
 
@@ -133,10 +133,10 @@ class MembershipCard extends StatelessWidget {
                       onTap: () => onTap!(type),
                       color: AppColor.feralFileLightBlue,
                     ),
-                  if (canAutoRenew) ...[
+                  if (renewPolicyText != null) ...[
                     const SizedBox(height: 10),
                     Text(
-                      'auto_renews_unless_cancelled'.tr(),
+                      renewPolicyText!,
                       style: activeTextStyle,
                       textAlign: TextAlign.center,
                     ),
