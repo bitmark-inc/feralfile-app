@@ -567,6 +567,26 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
         }
 
+      case 'MembershipSubscription':
+        final String url = data['callback_url']!;
+        final primaryAddress =
+            await injector<AddressService>().getPrimaryAddress();
+        _navigationService.popUntilHome();
+        if (primaryAddress == null) {
+          await _navigationService.addressNotFoundError();
+        } else {
+          final link = '$url&a=$primaryAddress';
+          log.info('MembershipSubscription: $link');
+          await _navigationService.goToIRLWebview(
+            IRLWebScreenPayload(
+              link,
+              isPlainUI: true,
+              statusBarColor: AppColor.white,
+              isDarkStatusBar: false,
+            ),
+          );
+        }
+
       case 'gift_membership':
         final giftCode = data['gift_code'];
         await GiftHandler.handleGiftMembership(giftCode);
