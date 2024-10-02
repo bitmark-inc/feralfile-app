@@ -77,29 +77,28 @@ class _OnboardingPageState extends State<OnboardingPage>
         log.info('Setup already run');
         return;
       }
-      unawaited(DeviceInfo.instance.init());
-      unawaited(injector<DeviceInfoService>().init().then((_) {
-        injector<MetricClientService>().initService();
-      }));
+      await DeviceInfo.instance.init();
+      await injector<DeviceInfoService>().init();
+      await injector<MetricClientService>().initService();
+
       await injector<RemoteConfigService>().loadConfigs();
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-      unawaited(
-          injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
+
+      await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
 
       // set version info for user agent
-      unawaited(PackageInfo.fromPlatform().then((packageInfo) =>
-          injector<ConfigurationService>()
-              .setVersionInfo(packageInfo.version)));
+      final packageInfo = await PackageInfo.fromPlatform();
+      await injector<ConfigurationService>()
+          .setVersionInfo(packageInfo.version);
 
       final notificationService = injector<NotificationService>();
-      unawaited(notificationService.initNotification().then((_) {
-        notificationService.startListeningNotificationEvents();
-      }));
-      unawaited(disableLandscapeMode());
-      unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
+      await notificationService.initNotification();
+      await notificationService.startListeningNotificationEvents();
+      await disableLandscapeMode();
+      await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
       DailiesHelper.updateDailies([]);
-      unawaited(injector<DeeplinkService>().setup());
-      unawaited(injector<ConfigurationService>().setDidRunSetup(true));
+      await injector<DeeplinkService>().setup();
+      await injector<ConfigurationService>().setDidRunSetup(true);
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
