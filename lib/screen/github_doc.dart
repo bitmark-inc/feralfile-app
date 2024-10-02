@@ -131,7 +131,7 @@ class GithubDocPayload {
   final String document;
 
   /// If true, full url would be `https://raw.githubusercontent.com/{prefix}/{document}/en_US.md`
-  /// If false, full url would be `https://raw.githubusercontent.com/{prefix}/{document}.md`
+  /// If false, full url would be `https://raw.githubusercontent.com/{prefix}/{document}`
   final bool fileNameAsLanguage;
 
   GithubDocPayload({
