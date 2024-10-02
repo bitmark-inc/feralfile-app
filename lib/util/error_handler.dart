@@ -283,7 +283,7 @@ Future<bool> showErrorDialogFromException(Object exception,
 
   log
     ..warning('Unhandled error: $exception', exception, stackTrace)
-    ..warning(stackTrace);
+    ..warning('StackTrace: $stackTrace');
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries

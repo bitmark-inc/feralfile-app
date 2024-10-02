@@ -8,16 +8,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/address_dao.dart';
-import 'package:autonomy_flutter/database/dao/audit_dao.dart';
 import 'package:autonomy_flutter/database/dao/connection_dao.dart';
-import 'package:autonomy_flutter/database/dao/persona_dao.dart';
-import 'package:autonomy_flutter/database/entity/audit.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
@@ -25,33 +20,22 @@ part 'cloud_database.g.dart'; // the generated code will be there
 //ignore_for_file: lines_longer_than_80_chars
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 9, entities: [Persona, Connection, Audit, WalletAddress])
+@Database(version: 9, entities: [Connection, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
-  PersonaDao get personaDao;
-
   ConnectionDao get connectionDao;
-
-  AuditDao get auditDao;
 
   WalletAddressDao get addressDao;
 
   Future<dynamic> removeAll() async {
-    await personaDao.removeAll();
     await connectionDao.removeAll();
-    await auditDao.removeAll();
     await addressDao.removeAll();
   }
 
   Future<void> copyDataFrom(CloudDatabase source) async {
-    await source.personaDao.getPersonas().then((personas) async {
-      await personaDao.insertPersonas(personas);
-    });
     await source.connectionDao.getConnections().then((connections) async {
       await connectionDao.insertConnections(connections);
     });
-    await source.auditDao.getAudits().then((audits) async {
-      await auditDao.insertAudits(audits);
-    });
+
     await source.addressDao.getAllAddresses().then((addresses) async {
       await addressDao.insertAddresses(addresses);
     });
@@ -143,47 +127,7 @@ final migrateCloudV4ToV5 = Migration(4, 5, (database) async {
 final migrateCloudV5ToV6 = Migration(5, 6, (database) async {
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, PRIMARY KEY (`address`))');
-  log.info('Migrating Cloud database: created WalletAddress table');
-  final personaTable = await database.query('Persona');
-  final personas = personaTable.map((e) => Persona.fromJson(e)).toList();
-  log.info('Migrating Cloud database: personas '
-      '${personas.map((e) => e.toJson()).toList()}');
-  for (var persona in personas) {
-    List<String>? tezIndexesStr = (persona.tezosIndexes ?? '').split(',')
-      ..removeWhere((element) => element.isEmpty);
-    log.info('Migrating Cloud database: tezIndexesStr $tezIndexesStr');
-    final tezIndexes = tezIndexesStr.map((e) => int.parse(e)).toList();
-    for (var index in tezIndexes) {
-      await database.insert(
-          'WalletAddress',
-          {
-            'address': await persona.wallet().getTezosAddress(index: index),
-            'uuid': persona.uuid,
-            'index': index,
-            'cryptoType': CryptoType.XTZ.source,
-            'createdAt': persona.createdAt.millisecondsSinceEpoch,
-            'isHidden': 0,
-          },
-          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
-    }
-    List<String>? ethIndexesStr = (persona.ethereumIndexes ?? '').split(',')
-      ..removeWhere((element) => element.isEmpty);
-    log.info('Migrating Cloud database: ethIndexesStr $ethIndexesStr');
-    final ethIndexes = ethIndexesStr.map((e) => int.parse(e)).toList();
-    for (var index in ethIndexes) {
-      await database.insert(
-          'WalletAddress',
-          {
-            'address': await persona.wallet().getETHEip55Address(index: index),
-            'uuid': persona.uuid,
-            'index': index,
-            'cryptoType': CryptoType.ETH.source,
-            'createdAt': persona.createdAt.millisecondsSinceEpoch,
-            'isHidden': 0,
-          },
-          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
-    }
-  }
+
   log.info('Migrated Cloud database from version 5 to 6');
 });
 
@@ -233,14 +177,3 @@ final migrateCloudV8ToV9 = Migration(8, 9, (database) async {
 
   log.info('Migrated Cloud database from version 8 to 9');
 });
-
-final cloudDatabaseMigrations = [
-  migrateCloudV1ToV2,
-  migrateCloudV2ToV3,
-  migrateCloudV3ToV4,
-  migrateCloudV4ToV5,
-  migrateCloudV5ToV6,
-  migrateCloudV6ToV7,
-  migrateCloudV7ToV8,
-  migrateCloudV8ToV9,
-];

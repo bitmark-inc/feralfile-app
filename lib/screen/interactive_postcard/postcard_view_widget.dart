@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -10,10 +12,10 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:gif_view/gif_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/models.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class PostcardViewWidget extends StatefulWidget {
   final AssetToken assetToken;
@@ -42,7 +44,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
   String? base64Image;
   String? base64Json;
 
-  InAppWebViewController? _controller;
+  WebViewController? _controller;
 
   @override
   void initState() {
@@ -111,15 +113,14 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        InAppWebView(
-          initialSettings: InAppWebViewSettings(
-            userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
-          ),
-          onWebViewCreated: (controller) {
+        FeralFileWebview(
+          uri: Uri.parse(widget.assetToken.getPreviewUrl() ?? ''),
+          userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
+          onStarted: (controller) {
             _controller = controller;
           },
-          onConsoleMessage: (InAppWebViewController controller,
-              ConsoleMessage consoleMessage) async {
+          onConsoleMessage: (WebViewController controller,
+              JavaScriptConsoleMessage consoleMessage) async {
             log.info('[Postcard] Software artwork console log: '
                 '${consoleMessage.message}');
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
@@ -138,9 +139,6 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
               }
             }
           },
-          initialUrlRequest: URLRequest(
-            url: WebUri(widget.assetToken.getPreviewUrl() ?? ''),
-          ),
         ),
         if (isLoading)
           Positioned.fill(

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
+//ignore_for_file: lines_longer_than_80_chars
 
 abstract class RemoteConfigService {
   Future<void> loadConfigs();
@@ -20,10 +21,11 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
 
   static const Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
-      'enable': false,
-      'allow_view_only': false,
+      'enable': true,
+      'allow_view_only': true,
       'must_complete': true,
-      'postcard_tokenId_regex': r'^[]$'
+      'postcard_tokenId_regex':
+          r'^tez-KT1Rg1hhAPD8HSKaNKV6zuu7y8Zuk4QXaq2V-(1699413090857|1699951798888|1692601505415)$'
     },
     'pay_to_mint': {'enable': true, 'allow_view_only': true},
     'view_detail': {
@@ -40,48 +42,107 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'feature': {'download_stamp': true, 'download_postcard': true},
     'postcard_action': {'wait_confirmed_to_send': false},
     'feralfile_artwork_action': {
-      'allow_download_artwork_contracts': [],
-      'sound_piece_contract_addresses': [],
-      'scrollable_preview_url': [],
+      'allow_download_artwork_contracts': [
+        'KT19VkuK7tw22m4P36xRpPiMT4qzEw8YAN8A',
+        'KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39',
+        'KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt',
+        'KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr',
+        'KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7',
+        'KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc',
+        'KT1X7i8EeQHChQ2cKGVthHrBS2jsPLSDWoEw'
+      ],
+      'sound_piece_contract_addresses': [
+        '0x1d9787369b1dcf709f92da1d8743c2a4b6028a83'
+      ],
+      'yoko_ono_private_token_ids': [
+        '5429577522081131997036023001590580143446575936',
+        '5429577522081131997036023001590580143446575937',
+        '5429577522081131997036023001590580143446575938',
+        '5429577522081131997036023001590580143446575939',
+        '5429577522081131997036023001590580143446575940',
+        '5429577522081131997036023001590580143446575941',
+        '5429577522081131997036023001590580143446575942',
+        '5429577522081131997036023001590580143446575943',
+        '5429577522081131997036023001590580143446575944',
+        '5429577522081131997036023001590580143446575945',
+        '5429577522081131997036023001590580143446575946',
+        '5429577522081131997036023001590580143446575947',
+        '5429577522081131997036023001590580143446575948',
+        '5429577522081131997036023001590580143446575949',
+        '5429577522081131997036023001590580143446575950',
+        '5429577522081131997036023001590580143446575951',
+        '5429577522081131997036023001590580143446575952',
+        '5429577522081131997036023001590580143446575953',
+        '5429577522081131997036023001590580143446575954',
+        '5429577522081131997036023001590580143446575955',
+        '5429577522081131997036023001590580143446575956',
+        '5429577522081131997036023001590580143446575957',
+        '5429577522081131997036023001590580143446575958',
+        '5429577522081131997036023001590580143446575959',
+        '5429577522081131997036023001590580143446575960',
+        '5429577522081131997036023001590580143446575961',
+        '5429577522081131997036023001590580143446575962',
+        '5429577522081131997036023001590580143446575963',
+        '5429577522081131997036023001590580143446575964',
+        '5429577522081131997036023001590580143446575965'
+      ],
+      'scrollable_preview_url': null
     },
     'exhibition': {
       'specified_series_artwork_model_title': {
         'faa810f7-7b75-4c02-bf8a-b7447a89c921': 'interactive instruction'
       },
       'yoko_ono_public': {
-        'owner_data_contract': '0xcE6B8E357aaf9EC3A5ACD2F47364586BCF54Afef',
+        'owner_data_contract': '0x30F4D17baB0C815519c5d924ac4735be14eb25EC',
         'moma_exhibition_contract':
-            '0xf31725F011cEB81D4cc313349a5942C31ed0AAe5',
-        'public_token_id': '1878818250871676369035922701317177438642275461',
+            '0x1d9787369b1dcf709f92da1d8743c2a4b6028a83',
+        'public_token_id': '5429577522081131997036023001590580143450575936',
         'public_version_preview':
-            'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
+            'previews/faa810f7-7b75-4c02-bf8a-b7447a89c921/1709110451/index.html',
         'public_version_thumbnail':
-            'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+            'thumbnails/faa810f7-7b75-4c02-bf8a-b7447a89c921/1709178836'
       },
       'john_gerrard': {
-        'contract_address': '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820',
-        'exhibition_id': '50fb6756-80a9-46e4-b70c-380c32dfcc77',
+        'contract_address': '0xBE0A4E26a156B2a60cF515E86b3Df9756DEE1952',
+        'exhibition_id': '46a0f68b-a657-4364-92a0-32a88b65fbd9'
       },
       'crawl': {
         'exhibition_id': '3c4b0a8b-6d3e-4c32-aaae-c701bb9deca9',
+        'merge_series_id': '0a954c31-d336-4e37-af0f-ec336c064879'
       },
       'dont_fake_artwork_series_ids': ['0a954c31-d336-4e37-af0f-ec336c064879'],
-    },
-    'in_app_webview': {
-      'uri_scheme_white_list': ['https'],
-      'allowed_fingerprints': [],
+      'on_going_exhibition_ids': ['46a0f68b-a657-4364-92a0-32a88b65fbd9']
     },
     'dApp_urls': {
       'deny_dApp_list': [],
       'tezos_nodes': [
         'https://mainnet.api.tez.ie',
         'https://rpc.tzbeta.net',
-        'https://mainnet.tezos.marigold.dev'
+        'https://mainnet.smartpy.io',
+        'https://mainnet.ecadinfra.com'
       ]
     },
-    'membership': {
-      'lifetime': '2100-01-01T00:00:00Z',
+    'in_app_webview': {
+      'uri_scheme_white_list': ['https'],
+      'allowed_fingerprints': [
+        '04 2A 70 D1 55 FC 5A 92 B9 1B 20 E5 D7 FB 6A D0 54 05 76 30',
+        '9D E0 F5 9B DC 83 6D 5D D5 4A 27 7A 80 C5 3D 3C AF 72 A7 DD',
+        'C3 5E 95 D8 97 98 C2 81 A9 34 5F FA B0 EC F2 6F 4B 7D 1B 72',
+        'DF 85 1C EE 81 FA 39 8E 54 E9 8E 9B BB 00 A7 DD D8 7B EC 0C',
+        '49 EE 12 48 B5 B8 06 39 66 BC 8F 4F 1F FC 6D BE DD 06 35 99',
+        '1E A8 0A 38 31 6B BA 28 D7 52 26 11 AC 32 F6 2A CA B1 B0 2C'
+      ]
     },
+    'john_gerrard': {
+      'series_ids': [
+        '0b95013a-599b-4af2-a0a4-fe13eff98e89',
+        '4e7c1eba-7c17-4c38-9454-36c72ae98249'
+      ],
+      'asset_ids': [
+        '0ae03302f46d0e110b7c40472a4badda40e78356a598f342dca036a012c003c9d128b8c61083e14076937e8706ba50f37b094761a94614347c'
+      ]
+    },
+    'daily': {'scheduleTime': '6'}
   };
 
   static Map<String, dynamic>? _configs;

@@ -411,9 +411,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     );
   }
 
-  String getTextNumber(int num) {
-    return num > 9 ? "+9" : "$num";
-  }
+  String getTextNumber(int num) => num > 9 ? '+9' : '$num';
 
   Future<void> moveToAddNftToCollection(BuildContext context) async {
     await Navigator.pushNamed(

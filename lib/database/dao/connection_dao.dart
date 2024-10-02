@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:floor/floor.dart';
 //ignore_for_file: lines_longer_than_80_chars
@@ -21,26 +19,6 @@ abstract class ConnectionDao {
       '"manuallyIndexerTokenID")')
   Future<List<Connection>> getLinkedAccounts();
 
-  // getUpdatedLinkedAccounts:
-  //   - format ETH address as checksum address
-  Future<List<Connection>> getUpdatedLinkedAccounts() async {
-    final linkedAccounts = await getLinkedAccounts();
-
-    final deprecatedConnections = linkedAccounts
-        .where((element) => element.connectionType != 'manuallyAddress');
-
-    if (deprecatedConnections.isNotEmpty) {
-      await _migrateDeprecatedConnections(deprecatedConnections.toList());
-      return getUpdatedLinkedAccounts();
-    }
-
-    return linkedAccounts;
-  }
-
-  @Query('SELECT * FROM Connection WHERE connectionType IN '
-      '("dappConnect", "dappConnect2", "beaconP2PPeer")')
-  Future<List<Connection>> getRelatedPersonaConnections();
-
   @Query('SELECT * FROM Connection WHERE connectionType IN '
       '("dappConnect2", "walletConnect2")')
   Future<List<Connection>> getWc2Connections();
@@ -53,19 +31,11 @@ abstract class ConnectionDao {
       'COLLATE NOCASE')
   Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
 
-  // update order query
-  @Query(
-      'UPDATE Connection SET accountOrder = :accountOrder WHERE accountNumber = :accountNumber')
-  Future<void> setConnectionOrder(String accountNumber, int accountOrder);
-
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnection(Connection connection);
 
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnections(List<Connection> connections);
-
-  @Query('SELECT * FROM Connection WHERE key = :key')
-  Future<Connection?> findById(String key);
 
   @Query('DELETE FROM Connection')
   Future<void> removeAll();
@@ -79,49 +49,9 @@ abstract class ConnectionDao {
   @Query('DELETE FROM Connection WHERE `key` LIKE :topic')
   Future<void> deleteConnectionsByTopic(String topic);
 
-  @Query('DELETE FROM Connection WHERE accountNumber = :accountNumber '
-      'COLLATE NOCASE')
-  Future<void> deleteConnectionsByAccountNumber(String accountNumber);
-
   @Query('DELETE FROM Connection WHERE connectionType = :type')
   Future<void> deleteConnectionsByType(String type);
 
   @update
   Future<void> updateConnection(Connection connection);
-
-  // migrate: combine ledgerEthereum and ledgerTezos into ledger
-  Future _migrateDeprecatedConnections(List<Connection> connections) async {
-    final List<String> address = [];
-    for (final oldConnection in connections) {
-      switch (oldConnection.connectionType) {
-        case 'ledger':
-          final jsonData = json.decode(oldConnection.data);
-          // there is a typo in creating connections for ledger code:
-          // etheremAddress
-          final etheremAddress = (jsonData['etheremAddress'] == null
-                  ? []
-                  : (jsonData['etheremAddress'] as List<dynamic>))
-              .map((e) => e as String)
-              .toList();
-          final tezosAddress = (jsonData['tezosAddress'] == null
-                  ? []
-                  : (jsonData['tezosAddress'] as List<dynamic>))
-              .map((e) => e as String)
-              .toList();
-          address.addAll(etheremAddress);
-          address.addAll(tezosAddress);
-          break;
-        default:
-          address.addAll(oldConnection.accountNumbers);
-      }
-      await deleteConnection(oldConnection);
-    }
-
-    final List<Connection> newConnections = [];
-    for (final address in address) {
-      final newConnection = Connection.getManuallyAddress(address);
-      newConnection != null ? newConnections.add(newConnection) : null;
-    }
-    await insertConnections(newConnections);
-  }
 }

@@ -12,15 +12,14 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:floor/floor.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -33,44 +32,13 @@ class BackupService {
   static const _dbFileName = 'cloud_database.db';
   static const _dbEncryptedFileName = 'cloud_database.db.encrypted';
 
-  final IAPApi _iapApi;
+  final CloudManager _cloudObjects;
 
-  BackupService(this._iapApi);
+  BackupService(this._cloudObjects);
 
-  Future backupCloudDatabase() async {
-    log.info('[BackupService] start database backup');
-    final primaryAddressInfo =
-        await injector<AddressService>().getPrimaryAddressInfo();
-    final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
-    try {
-      final path = await sqfliteDatabaseFactory.getDatabasePath(_dbFileName);
-      String tempDir = (await getTemporaryDirectory()).path;
-      final encryptedFilePath = await account.encryptFile(
-        inputPath: path,
-        outputPath: '$tempDir/$_dbEncryptedFileName',
-      );
-      final file = File(encryptedFilePath);
-
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String version = packageInfo.version;
-      String? deviceId = await getBackupId();
-
-      final response = await _iapApi.uploadProfile(
-          deviceId, _dbEncryptedFileName, version, file);
-      log.info('[BackupService] response: $response');
-      await file.delete();
-    } catch (err) {
-      debugPrint('[BackupService] error database backup, $err');
-    }
-
-    log.info('[BackupService] done database backup');
-  }
-
-  Future<String> getBackupVersion() async {
+  Future<String> getBackupVersion(String deviceId) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
-
-    String? deviceId = await getBackupId();
     final authToken = await injector<AuthService>().getAuthToken();
 
     if (authToken == null) {
@@ -133,8 +101,9 @@ class BackupService {
 
   Future restoreCloudDatabase({String dbName = 'cloud_database.db'}) async {
     log.info('[BackupService] start database restore');
-    final version = await getBackupVersion();
+
     String? deviceId = await getBackupId();
+    final version = await getBackupVersion(deviceId);
     final authToken = await injector<AuthService>().getAuthToken();
     final primaryAddressInfo =
         await injector<AddressService>().getPrimaryAddressInfo();
@@ -179,35 +148,26 @@ class BackupService {
           );
         }
 
-        final tempDbOld = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
-        final backUpVersion = await tempDbOld.getVersion();
-        log.info(
-            '[BackupService] Cloud database backup version is $backUpVersion');
-        if (version > backUpVersion) {
-          await MigrationAdapter.runMigrations(
-              tempDbOld, backUpVersion, version, cloudDatabaseMigrations);
-        }
-
         final tempDb =
             await $FloorCloudDatabase.databaseBuilder(tempDbName).build();
-        await injector<CloudDatabase>().copyDataFrom(tempDb);
+        await _cloudObjects.copyDataFrom(tempDb);
         await tempFile.delete();
         await File(dbFilePath).delete();
-        log.info('[BackupService] Cloud database is restored '
-            '$backUpVersion to $version');
+        log.info('[BackupService] Cloud database is restored $version');
         return;
       } catch (e) {
         log.info('[BackupService] Failed to restore Cloud Database $e');
         unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
-        return;
       }
     }
+    await _cloudObjects.setMigrated();
+
     log.info('[BackupService] done database restore');
   }
 
   Future<String> getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String? deviceId = await MigrationUtil.getBackupDeviceID();
+    String? deviceId = await injector<AccountService>().getBackupDeviceID();
 
     return '${deviceId}_${packageInfo.packageName}';
   }
