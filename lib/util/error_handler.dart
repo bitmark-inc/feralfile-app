@@ -309,7 +309,9 @@ Future<bool> showErrorDialogFromException(Object exception,
       );
       return true;
     } else {
-      navigationService.showErrorDialog(event);
+      if (!_isErrorIgnored(exception)) {
+        navigationService.showErrorDialog(event);
+      }
       return true;
     }
   } else {
@@ -318,6 +320,13 @@ Future<bool> showErrorDialogFromException(Object exception,
         withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return false;
   }
+}
+
+bool _isErrorIgnored(Object exception) {
+  if (exception is FlutterError) {
+    return true;
+  }
+  return false;
 }
 
 void hideInfoDialog(BuildContext context) {

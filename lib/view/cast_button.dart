@@ -6,11 +6,11 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
-import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
@@ -38,9 +38,10 @@ class FFCastButton extends StatefulWidget {
   State<FFCastButton> createState() => _FFCastButtonState();
 }
 
+final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
+
 class _FFCastButtonState extends State<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
-  final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
   final _upgradesBloc = injector.get<UpgradesBloc>();
 
   @override
@@ -65,7 +66,10 @@ class _FFCastButtonState extends State<FFCastButton> {
           return IconButton(
             onPressed: () async {
               if (!widget.shouldCheckSubscription || isSubscribed) {
-                await _showStreamAction(context, widget.displayKey);
+                await injector<NavigationService>().showStreamAction(
+                  widget.displayKey,
+                  widget.onDeviceSelected,
+                );
               } else {
                 await _showUpgradeDialog(context);
               }
@@ -124,24 +128,6 @@ class _FFCastButtonState extends State<FFCastButton> {
           );
         });
       },
-    );
-  }
-
-  Future<void> _showStreamAction(
-      BuildContext context, String displayKey) async {
-    keyboardManagerKey.currentState?.hideKeyboard();
-    await UIHelper.showFlexibleDialog(
-      context,
-      BlocProvider.value(
-        value: _canvasDeviceBloc,
-        child: StreamDeviceView(
-          displayKey: displayKey,
-          onDeviceSelected: (canvasDevice) {
-            widget.onDeviceSelected?.call(canvasDevice);
-          },
-        ),
-      ),
-      isDismissible: true,
     );
   }
 

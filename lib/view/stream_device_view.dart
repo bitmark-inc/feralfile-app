@@ -82,7 +82,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                               ),
                             )
                           : Text(
-                              'display_art'.tr(),
+                              'display_art_on_your_tv'.tr(),
                               style: theme.textTheme.ppMori700White24,
                             )),
                   IconButton(
@@ -169,7 +169,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 const SizedBox(height: 30),
               ],
             ] else ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               _instructionDetailWidget(context),
             ],
             const SizedBox(height: 10),

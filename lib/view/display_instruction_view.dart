@@ -1,11 +1,9 @@
-import 'dart:async';
-
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -25,7 +23,7 @@ class DisplayInstructionView extends StatelessWidget {
         Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Text(
-            'bring_art_into'.tr(),
+            'what_kinds_of_tv'.tr(),
             style: theme.textTheme.ppMori400Grey14,
           ),
         ),
@@ -35,7 +33,7 @@ class DisplayInstructionView extends StatelessWidget {
             final item = supportedDisplayBranches[index];
             return Column(
               children: [
-                _item(context, title: item.title, onTap: item.onTap),
+                _item(context, item: item),
                 addOnlyDivider(color: AppColor.primaryBlack),
               ],
             );
@@ -47,221 +45,85 @@ class DisplayInstructionView extends StatelessWidget {
     );
   }
 
-  Future<void> _showHowToDisplay(BuildContext context, Widget child) async {
-    await UIHelper.showFlexibleDialog(
-      context,
-      child,
-      isDismissible: true,
-    );
+  void _onDisplayTap(
+      BuildContext context, SupportedDisplayBranch displayBranch) {
+    injector<NavigationService>().showHowToDisplay(displayBranch, onScanQRTap);
   }
 
   List<DisplayItem> _getSupportedDisplayBranches() => [
         DisplayItem(
           branch: SupportedDisplayBranch.samsung,
-          onTap: (BuildContext context) {
-            final theme = Theme.of(context);
-            final numberFormater = NumberFormat('00');
-            final child = Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Display Art on',
-                              style: theme.textTheme.ppMori700White24,
-                            ),
-                            SupportedDisplayBranch.samsung.logo,
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: SvgPicture.asset('assets/images/left-arrow.svg',
-                            width: 22,
-                            height: 22,
-                            colorFilter: const ColorFilter.mode(
-                              AppColor.white,
-                              BlendMode.srcIn,
-                            )),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SupportedDisplayBranch.samsung.demoPicture,
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            numberFormater.format(1),
-                            style: theme.textTheme.ppMori400White14,
-                          ),
-                          const SizedBox(width: 20),
-                          RichText(
-                            textScaler: MediaQuery.textScalerOf(context),
-                            text: TextSpan(
-                              style: theme.textTheme.ppMori400White14,
-                              children: [
-                                TextSpan(
-                                  text: "${'install'.tr()} ",
-                                ),
-                                WidgetSpan(
-                                  baseline: TextBaseline.alphabetic,
-                                  alignment: PlaceholderAlignment.baseline,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(color: AppColor.white),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    child: Text(
-                                      textScaler: const TextScaler.linear(1),
-                                      'feral_file'.tr(),
-                                      style: theme.textTheme.ppMori400White14,
-                                    ),
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: " ${'in_google_play_store'.tr()}.",
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            numberFormater.format(2),
-                            style: theme.textTheme.ppMori400White14,
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Text(
-                              'launch_the_feralfile_app_on_display'.tr(),
-                              style: theme.textTheme.ppMori400White14,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            numberFormater.format(3),
-                            style: theme.textTheme.ppMori400White14,
-                          ),
-                          const SizedBox(width: 20),
-                          RichText(
-                            textScaler: MediaQuery.textScalerOf(context),
-                            text: TextSpan(
-                              style: theme.textTheme.ppMori400White14,
-                              children: [
-                                TextSpan(
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      onScanQRTap?.call();
-                                    },
-                                  text: 'scan_the_qr_code'.tr(),
-                                  style: onScanQRTap != null
-                                      ? const TextStyle(
-                                          decoration: TextDecoration.underline,
-                                        )
-                                      : null,
-                                ),
-                                TextSpan(
-                                  text: " ${'on_your_TV'.tr()}.",
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  )
-                ],
-              ),
-            );
-            _showHowToDisplay(context, child);
-          },
+          onTap: _onDisplayTap,
         ),
         DisplayItem(
           branch: SupportedDisplayBranch.lg,
-          onTap: (BuildContext context) {},
+          onTap: _onDisplayTap,
         ),
         DisplayItem(
           branch: SupportedDisplayBranch.chromecast,
-          onTap: (BuildContext context) {},
+          onTap: _onDisplayTap,
         ),
         DisplayItem(
           branch: SupportedDisplayBranch.sony,
-          onTap: (BuildContext context) {},
+          onTap: _onDisplayTap,
         ),
         DisplayItem(
           branch: SupportedDisplayBranch.Hisense,
-          onTap: (BuildContext context) {},
+          onTap: _onDisplayTap,
         ),
         DisplayItem(
           branch: SupportedDisplayBranch.TCL,
-          onTap: (BuildContext context) {},
+          onTap: _onDisplayTap,
         ),
         DisplayItem(
           branch: SupportedDisplayBranch.other,
-          onTap: (BuildContext context) {},
+          onTap: _onDisplayTap,
         ),
       ];
 
-  Widget _item(BuildContext context,
-      {required String title, required Function(BuildContext context)? onTap}) {
+  Widget _commingSoonLabel(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: ResponsiveLayout.pageHorizontalEdgeInsets
-          .copyWith(top: 24, bottom: 24),
-      child: GestureDetector(
-        onTap: () {
-          onTap?.call(context);
-        },
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: AppColor.auQuickSilver),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      child: Text('coming_soon'.tr(),
+          style: theme.textTheme.ppMori400Grey14.copyWith(
+            color: AppColor.auQuickSilver,
+          )),
+    );
+  }
+
+  Widget _item(BuildContext context, {required DisplayItem item}) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: () {
+        item.onTap?.call(context, item.branch);
+      },
+      child: Container(
+        padding: ResponsiveLayout.pageHorizontalEdgeInsets
+            .copyWith(top: 24, bottom: 24),
         child: Row(
           children: [
             Expanded(
               child: Text(
-                title,
+                item.title,
                 style: theme.textTheme.ppMori400White14,
               ),
             ),
             const SizedBox(width: 16),
-            SvgPicture.asset(
-              'assets/images/iconForward.svg',
-              colorFilter: const ColorFilter.mode(
-                AppColor.white,
-                BlendMode.srcIn,
-              ),
-            )
+            if (item.branch.isComingSoon)
+              _commingSoonLabel(context)
+            else
+              SvgPicture.asset(
+                'assets/images/iconForward.svg',
+                colorFilter: const ColorFilter.mode(
+                  AppColor.white,
+                  BlendMode.srcIn,
+                ),
+              )
           ],
         ),
       ),
@@ -281,173 +143,196 @@ enum SupportedDisplayBranch {
   String get title {
     switch (this) {
       case SupportedDisplayBranch.samsung:
-        return 'samsung'.tr();
+        return 'Samsung (2023+)';
       case SupportedDisplayBranch.lg:
-        return 'lg'.tr();
+        return 'LG'.tr();
       case SupportedDisplayBranch.chromecast:
-        return 'chromecast'.tr();
+        return 'Chromecast'.tr();
       case SupportedDisplayBranch.sony:
-        return 'sony'.tr();
+        return 'Sony'.tr();
       case SupportedDisplayBranch.Hisense:
-        return 'hisense'.tr();
+        return 'Hisense'.tr();
       case SupportedDisplayBranch.TCL:
-        return 'tcl'.tr();
+        return 'TCL'.tr();
       case SupportedDisplayBranch.other:
-        return 'other'.tr();
+        return 'Other'.tr();
     }
   }
 
-  Widget get logo => Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.amber,
-        ),
-      );
+  bool get isComingSoon => this == SupportedDisplayBranch.lg;
 
-  Widget get demoPicture {
-    return Container(
-      height: 300,
-      width: 300,
-      color: Colors.amber,
-    );
+  Widget get logo {
+    const color = AppColor.white;
+    const colorFilter = ColorFilter.mode(color, BlendMode.srcIn);
+    const height = 18.0;
+    switch (this) {
+      case SupportedDisplayBranch.samsung:
+        return SvgPicture.asset(
+          'assets/images/samsung_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+      case SupportedDisplayBranch.lg:
+        return SvgPicture.asset(
+          'assets/images/lg_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+      case SupportedDisplayBranch.chromecast:
+        return SvgPicture.asset(
+          'assets/images/chromecast_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+      case SupportedDisplayBranch.sony:
+        return SvgPicture.asset(
+          'assets/images/sony_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+      case SupportedDisplayBranch.Hisense:
+        return SvgPicture.asset(
+          'assets/images/hisense_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+      case SupportedDisplayBranch.TCL:
+        return SvgPicture.asset(
+          'assets/images/tcl_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+      case SupportedDisplayBranch.other:
+        return SvgPicture.asset(
+          'assets/images/other_branch_logo.svg',
+          colorFilter: colorFilter,
+          height: height,
+        );
+    }
+  }
+
+  Widget demoPicture(BuildContext context) {
+    final theme = Theme.of(context);
+    switch (this) {
+      case SupportedDisplayBranch.samsung:
+        return Stack(
+          alignment: Alignment.bottomLeft,
+          children: [
+            Image.asset(
+              'assets/images/Samsung TV living room.png',
+              fit: BoxFit.fitWidth,
+              width: double.infinity,
+            ),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppColor.primaryBlack,
+                    AppColor.primaryBlack.withOpacity(0.5),
+                  ],
+                  stops: const [0.0, 0.8],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6, top: 6, left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Currently supporting 2023 onward models',
+                      style: theme.textTheme.ppMori700White12,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      case SupportedDisplayBranch.lg:
+        return Stack(
+          fit: StackFit.passthrough,
+          children: [
+            Image.asset(
+              'assets/images/Android TV living room.png',
+              fit: BoxFit.fitWidth,
+              width: double.infinity,
+            ),
+            Positioned.fill(
+              bottom: 0,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColor.primaryBlack.withOpacity(0.5),
+                ),
+                alignment: Alignment.bottomLeft,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        AppColor.primaryBlack,
+                        AppColor.primaryBlack.withOpacity(0),
+                      ],
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 6, top: 6, left: 10),
+                    child: Text(
+                      'Support for LG TVs is coming soon. ',
+                      style: theme.textTheme.ppMori700White12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      case SupportedDisplayBranch.chromecast:
+        return Image.asset(
+          'assets/images/Android TV living room.png',
+          fit: BoxFit.fitWidth,
+          width: double.infinity,
+        );
+      case SupportedDisplayBranch.sony:
+        return Image.asset(
+          'assets/images/Android TV living room.png',
+          fit: BoxFit.fitWidth,
+          width: double.infinity,
+        );
+      case SupportedDisplayBranch.Hisense:
+        return Image.asset(
+          'assets/images/Android TV living room.png',
+          fit: BoxFit.fitWidth,
+          width: double.infinity,
+        );
+      case SupportedDisplayBranch.TCL:
+        return Image.asset(
+          'assets/images/Android TV living room.png',
+          fit: BoxFit.fitWidth,
+          width: double.infinity,
+        );
+      case SupportedDisplayBranch.other:
+        return Image.asset(
+          'assets/images/Web display TV living room.png',
+          fit: BoxFit.fitWidth,
+          width: double.infinity,
+        );
+    }
   }
 }
 
 class DisplayItem {
   final SupportedDisplayBranch branch;
-  final Function(BuildContext context)? onTap;
+  final Function(BuildContext context, SupportedDisplayBranch branch)? onTap;
 
   DisplayItem({required this.branch, required this.onTap});
 
   Widget get logo => branch.logo;
 
   String get title => branch.title;
-}
-
-class HowToDisplayOnTV extends StatelessWidget {
-  final Function? onScanQRTap;
-
-  const HowToDisplayOnTV({super.key, this.onScanQRTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: RichText(
-                  textScaler: MediaQuery.textScalerOf(context),
-                  text: TextSpan(
-                    style: theme.textTheme.ppMori700White24,
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'how_to_display'.tr(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: SvgPicture.asset(
-                    'assets/images/circle_close.svg',
-                    width: 22,
-                    height: 22,
-                  ),
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 20),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColor.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  textScaler: MediaQuery.textScalerOf(context),
-                  text: TextSpan(
-                    style: theme.textTheme.ppMori400Black14,
-                    children: [
-                      TextSpan(
-                        text: "${'step'.tr()} 1: ",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextSpan(
-                        text: "${'search_by_'.tr()} ",
-                      ),
-                      WidgetSpan(
-                        baseline: TextBaseline.alphabetic,
-                        alignment: PlaceholderAlignment.baseline,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: Text(
-                            textScaler: const TextScaler.linear(1),
-                            'feral_file'.tr(),
-                            style: theme.textTheme.ppMori700Black14,
-                          ),
-                        ),
-                      ),
-                      TextSpan(
-                        text: " ${'in_google_play_store'.tr()}.",
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                RichText(
-                  textScaler: MediaQuery.textScalerOf(context),
-                  text: TextSpan(
-                    style: theme.textTheme.ppMori400Black14,
-                    children: [
-                      TextSpan(
-                        text: "${'step'.tr()} 2: ",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextSpan(
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            onScanQRTap?.call();
-                          },
-                        text: 'scan_the_qr_code'.tr(),
-                        style: onScanQRTap != null
-                            ? const TextStyle(
-                                decoration: TextDecoration.underline,
-                              )
-                            : null,
-                      ),
-                      TextSpan(
-                        text: " ${'on_your_TV'.tr()}.",
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-    );
-  }
 }
