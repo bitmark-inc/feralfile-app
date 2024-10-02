@@ -259,7 +259,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                 arguments: GithubDocPayload(
                   title: 'ff_app_security'.tr(),
                   prefix: GithubDocPage.ffDocsAppsPrefix,
-                  document: 'security/ios/',
+                  document: '/security/ios',
                   fileNameAsLanguage: true,
                 ))),
     );
@@ -273,7 +273,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                 arguments: GithubDocPayload(
                   title: 'ff_app_security'.tr(),
                   prefix: GithubDocPage.ffDocsAppsPrefix,
-                  document: 'security/android/',
+                  document: '/security/android',
                   fileNameAsLanguage: true,
                 ))),
     );

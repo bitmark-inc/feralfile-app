@@ -288,7 +288,7 @@ class _SettingsPageState extends State<SettingsPage>
               arguments: GithubDocPayload(
                 title: 'eula'.tr(),
                 prefix: GithubDocPage.ffDocsAgreementsPrefix,
-                document: 'ff-app-eula/',
+                document: '/ff-app-eula',
                 fileNameAsLanguage: true,
               ),
             ),
@@ -310,7 +310,7 @@ class _SettingsPageState extends State<SettingsPage>
               arguments: GithubDocPayload(
                 title: 'privacy_policy'.tr(),
                 prefix: GithubDocPage.ffDocsAgreementsPrefix,
-                document: 'ff-app-privacy/',
+                document: '/ff-app-privacy',
                 fileNameAsLanguage: true,
               ),
             ),

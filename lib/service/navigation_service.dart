@@ -484,8 +484,8 @@ class NavigationService {
         AppRouter.githubDocPage,
         arguments: GithubDocPayload(
           title: title,
-          prefix: '/$prefix/',
-          document: document,
+          prefix: '/$prefix',
+          document: '/$document',
         ),
       );
     }

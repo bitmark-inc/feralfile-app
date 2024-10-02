@@ -104,7 +104,7 @@ class PreferenceView extends StatelessWidget {
                             arguments: GithubDocPayload(
                               title: 'how_protect_data'.tr(),
                               prefix: GithubDocPage.ffDocsAgreementsPrefix,
-                              document: 'ff-app-data-usage/',
+                              document: '/ff-app-data-usage',
                               fileNameAsLanguage: true,
                             ),
                           ))),
