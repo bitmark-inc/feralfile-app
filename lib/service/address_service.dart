@@ -47,7 +47,8 @@ class AddressService {
         uuid: currentPrimaryAddress.uuid, chain: 'ethereum', index: 0);
     await registerPrimaryAddress(info: addressInfo);
     log.info(
-        '[AddressService] Migrated to Ethereum address: ${addressInfo.toJson()}');
+      '[AddressService] Migrated to Ethereum address: ${addressInfo.toJson()}',
+    );
     return addressInfo;
   }
 
