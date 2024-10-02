@@ -229,10 +229,6 @@ abstract class ConfigurationService {
   Future<void> setReferralCode(String referralCode);
 
   String? getReferralCode();
-
-  bool didRunSetup();
-
-  Future<void> setDidRunSetup(bool value);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -1053,14 +1049,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidShowLiveWithArt(bool value) async =>
       await _preferences.setBool(keyDidShowLiveWithArt, value);
-
-  @override
-  bool didRunSetup() => _preferences.getBool(DID_RUN_SETUP) ?? false;
-
-  @override
-  Future<void> setDidRunSetup(bool value) async {
-    await _preferences.setBool(DID_RUN_SETUP, value);
-  }
 }
 
 enum ConflictAction {

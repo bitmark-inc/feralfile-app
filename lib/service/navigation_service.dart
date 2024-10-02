@@ -669,4 +669,14 @@ class NavigationService {
     }
     return argument;
   }
+
+  Future<void> showEnvKeyIsMissing(List<String> keys) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      log.info('showEnvKeyIsMissing: $keys');
+      await UIHelper.showInfoDialog(
+          context, 'error'.tr(), 'Error while reading ${keys.join(', ')}',
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
 }

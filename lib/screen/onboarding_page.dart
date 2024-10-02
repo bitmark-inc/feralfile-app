@@ -7,6 +7,8 @@
 
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -33,6 +35,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry/sentry.dart';
 
+bool didRunSetup = false;
+
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
 
@@ -41,7 +45,7 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AfterLayoutMixin<OnboardingPage> {
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
@@ -58,6 +62,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
     _timer = Timer(const Duration(seconds: 10), () {
       log.info('OnboardingPage loading more than 10s');
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
@@ -72,11 +80,11 @@ class _OnboardingPageState extends State<OnboardingPage>
     // those issue can be ignored, let user continue to use the app
     log.info('[OnboardingPage] setup start');
     try {
-      final didRunSetup = injector<ConfigurationService>().didRunSetup();
       if (didRunSetup) {
         log.info('Setup already run');
         return;
       }
+      Environment.checkAllKeys();
       await DeviceInfo.instance.init();
       await injector<DeviceInfoService>().init();
       await injector<MetricClientService>().initService();
@@ -98,7 +106,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
       DailiesHelper.updateDailies([]);
       await injector<DeeplinkService>().setup();
-      await injector<ConfigurationService>().setDidRunSetup(true);
+      didRunSetup = true;
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
