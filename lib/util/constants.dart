@@ -47,8 +47,6 @@ const DEEP_LINKS = [
   ...Constants.branchDeepLinks,
   'feralfile://',
 ];
-const FF_ARTIST_COLLECTOR =
-    'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
     '/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md';
@@ -206,7 +204,7 @@ const AUTONOMY_DOCUMENT_PREFIX = 'https://github.com/bitmark-inc';
 const AUTONOMY_RAW_DOCUMENT_PREFIX =
     'https://raw.githubusercontent.com/bitmark-inc';
 
-const MARKDOWN_EXT = '.md';
+const markdownExt = '.md';
 
 const String POSTCARD_SIGN_PREFIX = 'Tezos Signed Message:';
 
@@ -239,9 +237,6 @@ Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
 }
-
-Future<String> getDemoAccount() async =>
-    await isAppCenterBuild() ? 'demo' : 'tv';
 
 Future<String> getAppVariant() async =>
     await isAppCenterBuild() ? 'inhouse' : 'production';

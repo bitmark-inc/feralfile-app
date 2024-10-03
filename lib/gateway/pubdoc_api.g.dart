@@ -31,7 +31,7 @@ class _PubdocAPI implements PubdocAPI {
     )
         .compose(
           _dio.options,
-          '/versions.json',
+          '/app/versions.json',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -57,33 +57,7 @@ class _PubdocAPI implements PubdocAPI {
     )
         .compose(
           _dio.options,
-          '/release_notes/${app}/changelog.md',
-          queryParameters: queryParameters,
-          data: _data,
-        )
-        .copyWith(
-            baseUrl: _combineBaseUrls(
-          _dio.options.baseUrl,
-          baseUrl,
-        ))));
-    final value = _result.data!;
-    return value;
-  }
-
-  @override
-  Future<String> getDemoAccount() async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<String>(_setStreamType<String>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-        .compose(
-          _dio.options,
-          '/demo/demo_account.json',
+          '/app/release_notes/${app}/changelog.md',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -109,7 +83,7 @@ class _PubdocAPI implements PubdocAPI {
     )
         .compose(
           _dio.options,
-          '/configs/postcard/postcard_configs.json',
+          '/configs/app.json',
           queryParameters: queryParameters,
           data: _data,
         )

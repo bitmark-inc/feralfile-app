@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 class LocaleService {
   static const MethodChannel _channel = MethodChannel('locale');
-  static String _measurementSystem = "metric";
+  static String _measurementSystem = 'metric';
 
   static String get measurementSystem => _measurementSystem;
 
@@ -12,8 +12,8 @@ class LocaleService {
     String? localeMeasurement;
     if (Platform.isIOS) {
       final res = await _channel.invokeMethod('getMeasurementSystem');
-      if (res["data"] != null) {
-        localeMeasurement = res["data"];
+      if (res['data'] != null) {
+        localeMeasurement = res['data'];
       } else {
         localeMeasurement = _getCountryCode(locale);
       }
@@ -21,20 +21,18 @@ class LocaleService {
       localeMeasurement = _getCountryCode(locale);
     }
     if (localeMeasurement == null) {
-      _measurementSystem = "metric";
+      _measurementSystem = 'metric';
     } else {
       localeMeasurement = localeMeasurement.toLowerCase();
-      if (localeMeasurement.contains("us") ||
-          localeMeasurement.contains("lr") ||
-          localeMeasurement.contains("mm")) {
-        _measurementSystem = "imperial";
+      if (localeMeasurement.contains('us') ||
+          localeMeasurement.contains('lr') ||
+          localeMeasurement.contains('mm')) {
+        _measurementSystem = 'imperial';
       } else {
-        _measurementSystem = "metric";
+        _measurementSystem = 'metric';
       }
     }
   }
 
-  static String? _getCountryCode(Locale locale) {
-    return locale.countryCode;
-  }
+  static String? _getCountryCode(Locale locale) => locale.countryCode;
 }

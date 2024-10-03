@@ -89,7 +89,7 @@ extension StringExtension on String {
   bool get isAutonomyDocumentLink =>
       (startsWith(AUTONOMY_DOCUMENT_PREFIX) ||
           startsWith(AUTONOMY_RAW_DOCUMENT_PREFIX)) &&
-      endsWith(MARKDOWN_EXT);
+      endsWith(markdownExt);
 
   String get autonomyRawDocumentLink =>
       replaceFirst(AUTONOMY_DOCUMENT_PREFIX, AUTONOMY_RAW_DOCUMENT_PREFIX)

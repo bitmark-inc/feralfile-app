@@ -468,10 +468,6 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false}) async {
-    if (_configurationService.isDemoArtworksMode()) {
-      return [];
-    }
-
     List<String> addresses = [];
     final walletAddress = _cloudObject.addressObject.getAllAddresses();
     addresses.addAll(walletAddress.map((e) => e.address));
@@ -523,10 +519,6 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<List<String>> getShowedAddresses() async {
-    if (_configurationService.isDemoArtworksMode()) {
-      return [await getDemoAccount()];
-    }
-
     List<String> addresses = [];
 
     final walletAddress =
