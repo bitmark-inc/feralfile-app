@@ -45,6 +45,9 @@ class AddressService {
     }
     final addressInfo = await pickAddressAsPrimary();
     await registerPrimaryAddress(info: addressInfo);
+    log.info(
+      '[AddressService] Migrated to Ethereum address: ${addressInfo.toJson()}',
+    );
     return addressInfo;
   }
 
@@ -77,10 +80,14 @@ class AddressService {
 
   Future<bool> registerPrimaryAddress(
       {required AddressInfo info, bool withDidKey = false}) async {
+    log.info('[AddressService] Registering primary address: ${info.toJson()}');
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
+    log.info('[AddressService] Primary address registered: ${info.toJson()}');
     final res = await setPrimaryAddressInfo(info: info);
     // when register primary address, we need to update the auth token
+    log.info(
+        '[AddressService] Getting auth token after primary address registered');
     await injector<AuthService>().getAuthToken(forceRefresh: true);
     // we also need to identity the metric client
     await injector<MetricClientService>().identity();
@@ -209,11 +216,14 @@ class AddressService {
   }
 
   Future<AddressInfo> pickAddressAsPrimary() async {
+    log.info('[AddressService] Picking address as primary');
     final ethAddresses = await getAllEthereumAddress();
     if (ethAddresses.isEmpty) {
+      log.info('[AddressService] No address found');
       throw UnsupportedError('No address found');
     }
     final selectedAddress = ethAddresses.first;
+    log.info('[AddressService] Selected address: $selectedAddress');
     return AddressInfo(
         uuid: selectedAddress.uuid,
         index: selectedAddress.index,

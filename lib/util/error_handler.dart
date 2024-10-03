@@ -311,12 +311,21 @@ Future<bool> showErrorDialogFromException(Object exception,
       );
       return true;
     } else {
-      navigationService.showErrorDialog(event);
+      if (!_isErrorIgnored(exception)) {
+        navigationService.showErrorDialog(event);
+      }
       return true;
     }
   } else {
     return false;
   }
+}
+
+bool _isErrorIgnored(Object exception) {
+  if (exception is RangeError) {
+    return true;
+  }
+  return false;
 }
 
 void hideInfoDialog(BuildContext context) {
