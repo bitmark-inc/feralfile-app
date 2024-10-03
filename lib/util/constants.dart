@@ -204,7 +204,7 @@ const AUTONOMY_DOCUMENT_PREFIX = 'https://github.com/bitmark-inc';
 const AUTONOMY_RAW_DOCUMENT_PREFIX =
     'https://raw.githubusercontent.com/bitmark-inc';
 
-const MARKDOWN_EXT = '.md';
+const markdownExt = '.md';
 
 const String POSTCARD_SIGN_PREFIX = 'Tezos Signed Message:';
 

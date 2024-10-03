@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/locale_ext.dart';
@@ -112,10 +113,10 @@ class _GithubDocPageState extends State<GithubDocPage> {
     final prefix = widget.payload.prefix;
     final document = widget.payload.document;
     final language =
-        widget.payload.fileNameAsLanguage ? '/${_getLanguage()}.md' : '';
+        widget.payload.fileNameAsLanguage ? '/${_getLanguage()}$markdownExt' : '';
 
     final String link = prefix + document + language;
-    return link.contains('.md') ? link : '$link.md';
+    return link.endsWith(markdownExt) ? link : '$link$markdownExt';
   }
 
   String _getLanguage() {
@@ -132,7 +133,7 @@ class GithubDocPayload {
   final String document;
 
   /// If true, full url would be `https://raw.githubusercontent.com/{prefix}/{document}/en_US.md`
-  /// If false, full url would be `https://raw.githubusercontent.com/{prefix}/{document}`
+  /// If false, full url would be `https://raw.githubusercontent.com/{prefix}/{document}.md`
   final bool fileNameAsLanguage;
 
   GithubDocPayload({
