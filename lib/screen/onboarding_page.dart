@@ -59,10 +59,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     ),
   );
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void afterFirstLayout(BuildContext context) {
