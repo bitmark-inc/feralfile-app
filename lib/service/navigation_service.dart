@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
+import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -479,12 +480,14 @@ class NavigationService {
       final document = uri.pathSegments.last;
       final prefix =
           uri.pathSegments.sublist(0, uri.pathSegments.length - 1).join('/');
-      await Navigator.of(navigatorKey.currentContext!)
-          .pushNamed(AppRouter.githubDocPage, arguments: {
-        'prefix': '/$prefix/',
-        'document': document,
-        'title': title,
-      });
+      await Navigator.of(navigatorKey.currentContext!).pushNamed(
+        AppRouter.githubDocPage,
+        arguments: GithubDocPayload(
+          title: title,
+          prefix: '/$prefix',
+          document: '/$document',
+        ),
+      );
     }
   }
 

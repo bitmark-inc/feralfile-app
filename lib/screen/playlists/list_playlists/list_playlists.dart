@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -35,7 +34,6 @@ class ListPlaylistsScreen extends StatefulWidget {
 
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
-  final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   static const int _playlistNumberBreakpoint = 6;
 
   @override
