@@ -59,6 +59,7 @@ class NotificationService {
   NotificationService();
 
   Future<void> initNotification() async {
+    log.info('NotificationService: initNotification');
     try {
       await AwesomeNotifications().initialize(
           null, //'resource://drawable/res_app_icon',//
@@ -79,11 +80,12 @@ class NotificationService {
       _initialAction =
           await AwesomeNotifications().getInitialNotificationAction();
     } catch (e) {
-      log.warning('NotificationService: initNotification: $e');
+      log.warning('NotificationService: initNotification error: $e');
     }
   }
 
   Future<void> startListeningNotificationEvents() async {
+    log.info('NotificationService: startListeningNotificationEvents');
     try {
       await AwesomeNotifications().setListeners(
         onActionReceivedMethod: onActionReceivedMethod,
@@ -92,7 +94,8 @@ class NotificationService {
         onDismissActionReceivedMethod: onDismissActionReceivedMethod,
       );
     } catch (e) {
-      log.warning('NotificationService: startListeningNotificationEvents: $e');
+      log.warning(
+          'NotificationService: startListeningNotificationEvents error: $e');
     }
   }
 

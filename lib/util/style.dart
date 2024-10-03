@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -655,6 +656,7 @@ Future<void> enableLandscapeMode() async {
 }
 
 Future<void> disableLandscapeMode() async {
+  log.info('disableLandscapeMode');
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
