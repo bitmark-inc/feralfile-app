@@ -112,8 +112,9 @@ class _GithubDocPageState extends State<GithubDocPage> {
   String _githubPath() {
     final prefix = widget.payload.prefix;
     final document = widget.payload.document;
-    final language =
-        widget.payload.fileNameAsLanguage ? '/${_getLanguage()}$markdownExt' : '';
+    final language = widget.payload.fileNameAsLanguage
+        ? '/${_getLanguage()}$markdownExt'
+        : '';
 
     final String link = prefix + document + language;
     return link.endsWith(markdownExt) ? link : '$link$markdownExt';
