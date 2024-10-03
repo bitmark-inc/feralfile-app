@@ -148,6 +148,7 @@ class MembershipCard extends StatelessWidget {
                       text: 'restore_purchase'.tr(),
                       textStyle: activeTextStyle.copyWith(
                         decoration: TextDecoration.underline,
+                        decorationColor: AppColor.primaryBlack,
                       ),
                       activeTextStyle: activeTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
