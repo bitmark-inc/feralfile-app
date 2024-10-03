@@ -72,16 +72,16 @@ class Environment {
       'TV_API_KEY',
     ];
     final missingKeys = <String>[];
-    keys.forEach((key) {
+    for (var key in keys) {
       if (_readKey(key, '') == '') {
         missingKeys.add(key);
       }
-    });
-    secretKeys.forEach((key) {
+    }
+    for (var key in secretKeys) {
       if (_readKey(key, '', isSecret: true) == '') {
         missingKeys.add(key);
       }
-    });
+    }
     if (missingKeys.isNotEmpty) {
       unawaited(Sentry.captureMessage(
           'Environment variables are not set: ${missingKeys.join(', ')}'));
