@@ -646,7 +646,7 @@ class NavigationService {
       children: [
         Text(
           numberFormater.format(step),
-          style: theme.textTheme.ppMori400White14,
+          style: theme.textTheme.ppMori700White14,
         ),
         const SizedBox(width: 30),
         Expanded(child: child),
@@ -664,7 +664,7 @@ class NavigationService {
             style: theme.textTheme.ppMori400White14,
             children: [
               TextSpan(
-                text: "${'install'.tr()} ",
+                text: "${'search_for'.tr()} ",
               ),
               WidgetSpan(
                 baseline: TextBaseline.alphabetic,
@@ -678,7 +678,7 @@ class NavigationService {
                   child: Text(
                     textScaler: const TextScaler.linear(1),
                     'feral_file'.tr(),
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori700White14,
                   ),
                 ),
               ),
@@ -700,7 +700,7 @@ class NavigationService {
             style: theme.textTheme.ppMori400White14,
             children: [
               TextSpan(
-                text: "${'go_to_app_section'.tr()} ",
+                text: "${'search_for'.tr()} ",
               ),
               WidgetSpan(
                 baseline: TextBaseline.alphabetic,
@@ -714,9 +714,12 @@ class NavigationService {
                   child: Text(
                     textScaler: const TextScaler.linear(1),
                     'feral_file'.tr(),
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori700White14,
                   ),
                 ),
+              ),
+              TextSpan(
+                text: " ${'in_app_store_section'.tr()}",
               ),
             ],
           ),
@@ -728,7 +731,7 @@ class NavigationService {
             style: theme.textTheme.ppMori400White14,
             children: [
               TextSpan(
-                text: "${'open'.tr()} ",
+                text: "${'type'.tr()} ",
               ),
               WidgetSpan(
                 baseline: TextBaseline.alphabetic,
@@ -742,7 +745,7 @@ class NavigationService {
                   child: Text(
                     textScaler: const TextScaler.linear(1),
                     'https://display.feralfile.com',
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori700White14,
                   ),
                 ),
               ),
@@ -758,15 +761,9 @@ class NavigationService {
   Widget _getStep2(BuildContext context, SupportedDisplayBranch displayBranch) {
     final theme = Theme.of(context);
     switch (displayBranch) {
-      case SupportedDisplayBranch.samsung:
-        return Text(
-          'launch_the_feralfile_app_on_display'.tr(),
-          style: theme.textTheme.ppMori400White14,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        );
       case SupportedDisplayBranch.lg:
         return const SizedBox();
+      case SupportedDisplayBranch.samsung:
       case SupportedDisplayBranch.chromecast:
       case SupportedDisplayBranch.sony:
       case SupportedDisplayBranch.Hisense:
@@ -900,10 +897,10 @@ class NavigationService {
       ),
     );
     Navigator.pop(context);
-    injector<NavigationService>().showFlexibleDialog(
+    unawaited(injector<NavigationService>().showFlexibleDialog(
       child,
       isDismissible: true,
-    );
+    ));
   }
 
   Future<void> showStreamAction(String displayKey,

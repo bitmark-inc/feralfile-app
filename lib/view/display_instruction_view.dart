@@ -219,7 +219,7 @@ enum SupportedDisplayBranch {
           alignment: Alignment.bottomLeft,
           children: [
             Image.asset(
-              'assets/images/Samsung TV living room.png',
+              'assets/images/Samsung_TV_living_room.png',
               fit: BoxFit.fitWidth,
               width: double.infinity,
             ),
@@ -256,7 +256,7 @@ enum SupportedDisplayBranch {
           fit: StackFit.passthrough,
           children: [
             Image.asset(
-              'assets/images/Android TV living room.png',
+              'assets/images/Android_TV_living_room.png',
               fit: BoxFit.fitWidth,
               width: double.infinity,
             ),
@@ -293,34 +293,81 @@ enum SupportedDisplayBranch {
           ],
         );
       case SupportedDisplayBranch.chromecast:
-        return Image.asset(
-          'assets/images/Android TV living room.png',
-          fit: BoxFit.fitWidth,
-          width: double.infinity,
-        );
       case SupportedDisplayBranch.sony:
-        return Image.asset(
-          'assets/images/Android TV living room.png',
-          fit: BoxFit.fitWidth,
-          width: double.infinity,
-        );
       case SupportedDisplayBranch.Hisense:
-        return Image.asset(
-          'assets/images/Android TV living room.png',
-          fit: BoxFit.fitWidth,
-          width: double.infinity,
-        );
       case SupportedDisplayBranch.TCL:
-        return Image.asset(
-          'assets/images/Android TV living room.png',
-          fit: BoxFit.fitWidth,
-          width: double.infinity,
+        return Stack(
+          alignment: Alignment.bottomLeft,
+          children: [
+            Image.asset(
+              'assets/images/Android_TV_living_room.png',
+              fit: BoxFit.fitWidth,
+              width: double.infinity,
+            ),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppColor.primaryBlack,
+                    AppColor.primaryBlack.withOpacity(0.5),
+                  ],
+                  stops: const [0.0, 0.8],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6, top: 6, left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Currently supporting 2021 onward models',
+                      style: theme.textTheme.ppMori700White12,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       case SupportedDisplayBranch.other:
-        return Image.asset(
-          'assets/images/Web display TV living room.png',
-          fit: BoxFit.fitWidth,
-          width: double.infinity,
+        return Stack(
+          alignment: Alignment.bottomLeft,
+          children: [
+            Image.asset(
+              'assets/images/Web_display_TV_living_room.png',
+              fit: BoxFit.fitWidth,
+              width: double.infinity,
+            ),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppColor.primaryBlack,
+                    AppColor.primaryBlack.withOpacity(0.5),
+                  ],
+                  stops: const [0.0, 0.8],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6, top: 6, left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Use the TV web browser, or any web browser.',
+                      style: theme.textTheme.ppMori700White12,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
     }
   }
