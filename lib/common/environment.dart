@@ -26,7 +26,7 @@ class Environment {
 
   // check all the keys is set
   static void checkAllKeys() {
-    final keys = [
+    const keys = [
       'TV_CAST_API_URL',
       'TOKEN_WEBVIEW_PREFIX',
       'INDEXER_MAINNET_API_URL',
@@ -59,7 +59,7 @@ class Environment {
       'AUTONOMY_AIRDROP_CONTRACT_ADDRESS',
       'ACCOUNT_SETTING_URL',
     ];
-    final secretKeys = [
+    const secretKeys = [
       'CHAT_SERVER_HMAC_KEY',
       'METRIC_SECRET_KEY',
       'BRANCH_KEY',
