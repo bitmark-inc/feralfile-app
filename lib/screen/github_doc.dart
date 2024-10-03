@@ -114,7 +114,8 @@ class _GithubDocPageState extends State<GithubDocPage> {
     final language =
         widget.payload.fileNameAsLanguage ? '/${_getLanguage()}.md' : '';
 
-    return prefix + document + language;
+    final String link = prefix + document + language;
+    return link.contains('.md') ? link : '$link.md';
   }
 
   String _getLanguage() {
