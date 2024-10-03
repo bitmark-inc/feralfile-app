@@ -240,6 +240,8 @@ class AccountServiceImpl extends AccountService {
     final primaryAddress =
         await injector<AddressService>().getPrimaryAddressInfo();
     if (primaryAddress == null) {
+      log.info('[AccountService] getPrimaryWallet - '
+          'PrimaryAddressInfo not found');
       unawaited(Sentry.captureMessage(
           '[PrimaryAddressInfo] PrimaryAddressInfo found'));
       throw AccountException(message: 'PrimaryAddressInfo found');
@@ -258,6 +260,8 @@ class AccountServiceImpl extends AccountService {
     final primaryWallet = addresses
         .firstWhereOrNull((element) => element.index == primaryAddress.index);
     if (primaryWallet == null) {
+      log.info('[AccountService] getPrimaryWallet - '
+          'PrimaryWallet not found, primaryAddress: $primaryAddress');
       unawaited(
           Sentry.captureMessage('[PrimaryAddressInfo] No PrimaryWallet found'));
       throw AccountException(message: 'No PrimaryWallet found');
@@ -634,6 +638,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> migrateAccount() async {
+    log.info('[AccountService] migrateAccount');
     final cloudDb = injector<CloudDatabase>();
     final isDoneOnboarding = _configurationService.isDoneOnboarding();
     final result = await Future.wait([
@@ -660,13 +665,17 @@ class AccountServiceImpl extends AccountService {
     // case 1: complete new user, no primary address, no backup keychain
     // nothing to do other than create new wallet
     if (addressInfo == null && defaultWallet == null) {
+      log.info('[AccountService] migrateAccount: case 1 complete new user');
       await createNewWallet();
       unawaited(_cloudObject.setMigrated());
+      log.info('[AccountService] migrateAccount: case 1 finished');
       return;
     }
 
     // case 2: update app from old version using did key
     if (addressInfo == null && isDoneOnboarding && defaultWallet != null) {
+      log.info('[AccountService] migrateAccount: '
+          'case 2 update app from old version using did key');
       await _addressService.registerPrimaryAddress(
         info: primary_address_channel.AddressInfo(
             uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
@@ -678,6 +687,7 @@ class AccountServiceImpl extends AccountService {
       unawaited(_cloudObject.setMigrated());
       // ensure that we have addresses;
       unawaited(_ensureHavingWalletAddress());
+      log.info('[AccountService] migrateAccount: case 2 finished');
       return;
     }
 
@@ -685,6 +695,8 @@ class AccountServiceImpl extends AccountService {
     // we register first uuid as primary address (with didKey = true)
     // then restore
     if (addressInfo == null && !isDoneOnboarding && defaultWallet != null) {
+      log.info('[AccountService] migrateAccount: '
+          'case 3 restore app from old version using did key');
       await _addressService.registerPrimaryAddress(
         info: primary_address_channel.AddressInfo(
             uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
@@ -697,6 +709,7 @@ class AccountServiceImpl extends AccountService {
 
       // ensure that we have addresses;
       unawaited(_ensureHavingWalletAddress());
+      log.info('[AccountService] migrateAccount: case 3 finished');
       return;
     }
 
@@ -714,7 +727,9 @@ class AccountServiceImpl extends AccountService {
 
     // case 4: migrated user
     if (didMigrate) {
+      log.info('[AccountService] migrateAccount: case 4 migrated user');
       unawaited(_cloudObject.downloadAll());
+      log.info('[AccountService] migrateAccount: case 4 finished');
       return;
     }
 
@@ -724,6 +739,8 @@ class AccountServiceImpl extends AccountService {
 
     // case 5: update app from old version using primary address
     if (isDoneOnboarding) {
+      log.info('[AccountService] migrateAccount: '
+          'case 5 update app from old version using primary address');
       // migrate to ethereum first, then upload to account-settings
       if (!addressInfo!.isEthereum) {
         await _addressService.migrateToEthereumAddress(addressInfo);
@@ -732,10 +749,13 @@ class AccountServiceImpl extends AccountService {
       unawaited(_cloudObject
           .setMigrated()
           .then((_) => unawaited(cloudDb.removeAll())));
+      log.info('[AccountService] migrateAccount: case 5 finished');
     }
 
     // case 6: restore app from old version using primary address
     else {
+      log.info('[AccountService] migrateAccount: '
+          'case 6 restore app from old version using primary address');
       await injector<SettingsDataService>()
           .restoreSettingsData(fromProfileData: true);
       await _backupService.restoreCloudDatabase();
@@ -748,6 +768,7 @@ class AccountServiceImpl extends AccountService {
       }
 
       unawaited(_cloudObject.setMigrated());
+      log.info('[AccountService] migrateAccount: case 6 finished');
     }
 
     // ensure that we have addresses;
@@ -755,8 +776,10 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future<void> _ensureHavingWalletAddress() async {
+    log.info('[AccountService] _ensureHavingWalletAddress');
     final allAddresses = _cloudObject.addressObject.getAllAddresses();
     if (allAddresses.isEmpty) {
+      log.info('[AccountService] _ensureHavingWalletAddress - no addresses');
       await _restoreAddressesFromOS();
       return;
     }

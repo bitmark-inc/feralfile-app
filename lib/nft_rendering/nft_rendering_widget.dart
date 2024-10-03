@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/nft_rendering/nft_error_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
 import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -19,6 +20,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry/sentry.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -672,8 +674,13 @@ class VideoNFTRenderingWidget extends INFTRenderingWidget {
 
   @override
   Future<void> dispose() async {
-    final position = await _controller?.position;
-    onDispose?.call(time: position?.inSeconds ?? 0);
+    try {
+      final position = await _controller?.position;
+      onDispose?.call(time: position?.inSeconds ?? 0);
+    } catch (e) {
+      log.info('Error when dispose video: $e');
+      unawaited(Sentry.captureException('Error when dispose video: $e'));
+    }
     unawaited(_controller?.dispose());
     _controller = null;
   }

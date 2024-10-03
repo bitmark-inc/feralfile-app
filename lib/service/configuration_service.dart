@@ -266,6 +266,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'announcement_last_pull_time';
   static const String OLD_USER = 'old_user';
 
+  static const String DID_RUN_SETUP = 'did_run_setup';
+
   // ----- App Setting -----
   static const String KEY_PREVIOUS_BUILD_NUMBER = 'previous_build_number';
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';

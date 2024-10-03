@@ -33,10 +33,13 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
+import 'package:sentry/sentry.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -156,6 +159,63 @@ class NavigationService {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       UIHelper.hideInfoDialog(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showAppLoadError() async {
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      if (isShowErrorDialogWorking != null) {
+        // pop the error dialog if it is showing
+        isShowErrorDialogWorking = null;
+        UIHelper.hideInfoDialog(navigatorKey.currentContext!);
+      }
+      isShowErrorDialogWorking = DateTime.now();
+      final theme = Theme.of(context);
+      unawaited(Sentry.captureMessage('App Load Error'));
+      await UIHelper.showDialog(
+        context,
+        'App Load Error',
+        Column(
+          children: [
+            Text(
+              'it_seem_loading_issue'.tr(),
+              style: theme.textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 24),
+            RichText(
+                text: TextSpan(
+              style: theme.textTheme.ppMori400White14,
+              children: <TextSpan>[
+                TextSpan(
+                  text: 'if_issue_persist'.tr(),
+                ),
+                TextSpan(
+                  text: 'feralfile@support.com'.tr(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      log.info('send email to feralfile@support.com');
+                      const href = 'mailto:support@feralfile.com';
+                      launchUrlString(href);
+                    },
+                ),
+                TextSpan(
+                  text: 'for_assistance'.tr(),
+                ),
+              ],
+            ))
+          ],
+        ),
+        isDismissible: true,
+      );
+
+      await Future.delayed(const Duration(seconds: 1), () {
+        isShowErrorDialogWorking = null;
+      });
     }
   }
 
@@ -611,5 +671,15 @@ class NavigationService {
       return null;
     }
     return argument;
+  }
+
+  Future<void> showEnvKeyIsMissing(List<String> keys) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      log.info('showEnvKeyIsMissing: $keys');
+      await UIHelper.showInfoDialog(
+          context, 'error'.tr(), 'Error while reading ${keys.join(', ')}',
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
   }
 }
