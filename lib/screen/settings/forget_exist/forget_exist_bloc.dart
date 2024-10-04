@@ -66,8 +66,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
         log.info('Error when delete all profiles: $e');
       }
 
-      injector<CloudManager>().clearCache();
-      unawaited(injector<CloudManager>().deleteAll());
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
@@ -76,6 +74,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await DefaultCacheManager().emptyCache();
       await injector<KeychainService>().clearKeychainItems();
       await injector<AccountService>().deleteAllKeys();
+      unawaited(injector<CloudManager>().deleteAll());
+      injector<CloudManager>().clearCache();
       await injector<HiveStoreObjectService<CanvasDevice>>().clear();
       await injector<AnnouncementStore>().clear();
       injector<CanvasDeviceBloc>().clear();
