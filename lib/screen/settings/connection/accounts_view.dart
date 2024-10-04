@@ -46,6 +46,14 @@ class _AccountsViewState extends State<AccountsView> {
   final TextEditingController _nameController = TextEditingController();
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
+  late final AccountsBloc _accountsBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _accountsBloc = context.read<AccountsBloc>();
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -55,6 +63,7 @@ class _AccountsViewState extends State<AccountsView> {
   @override
   Widget build(BuildContext context) =>
       BlocConsumer<AccountsBloc, AccountsState>(
+          bloc: _accountsBloc,
           listener: (context, state) {},
           builder: (context, state) {
             final accounts = state.accounts;
@@ -84,7 +93,7 @@ class _AccountsViewState extends State<AccountsView> {
                   ? const SizedBox()
                   : _accountCard(context, primaryAccount, isPrimary: true),
               onReorder: (int oldIndex, int newIndex) {
-                context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
+                _accountsBloc.add(ChangeAccountOrderEvent(
                     newOrder: newIndex, oldOrder: oldIndex));
               },
               children: normalAccounts
@@ -140,7 +149,7 @@ class _AccountsViewState extends State<AccountsView> {
         ),
         onPressed: (_) {
           unawaited(account.setViewAccount(!isHidden));
-          context.read<AccountsBloc>().add(GetAccountsEvent());
+          _accountsBloc.add(GetAccountsEvent());
         },
       ),
       CustomSlidableAction(
@@ -207,14 +216,14 @@ class _AccountsViewState extends State<AccountsView> {
         account,
         isPrimary: isPrimary,
         onPersonaTap: () {
-          if (account.persona != null && account.walletAddress != null) {
-            unawaited(Navigator.of(context).pushNamed(
-                AppRouter.walletDetailsPage,
-                arguments: WalletDetailsPayload(
-                    type: CryptoType.fromSource(
-                        account.walletAddress!.cryptoType),
-                    walletAddress: account.walletAddress!,
-                    persona: account.persona!)));
+          if (account.walletAddress != null) {
+            unawaited(
+                Navigator.of(context).pushNamed(AppRouter.walletDetailsPage,
+                    arguments: WalletDetailsPayload(
+                      type: CryptoType.fromSource(
+                          account.walletAddress!.cryptoType),
+                      walletAddress: account.walletAddress!,
+                    )));
           }
         },
         onConnectionTap: () {
@@ -266,7 +275,7 @@ class _AccountsViewState extends State<AccountsView> {
                     final newWalletAddress =
                         walletAddress.copyWith(name: value);
                     await injector<AccountService>()
-                        .updateAddressPersona(newWalletAddress);
+                        .updateAddressWallet(newWalletAddress);
                   } else if (connection != null) {
                     await injector<AccountService>()
                         .nameLinkedAccount(connection, value);
@@ -275,10 +284,7 @@ class _AccountsViewState extends State<AccountsView> {
                   setState(() {
                     _editingAccountKey = null;
                   });
-                  if (!mounted) {
-                    return;
-                  }
-                  context.read<AccountsBloc>().add(GetAccountsEvent());
+                  _accountsBloc.add(GetAccountsEvent());
                 },
               ),
             ),
@@ -375,9 +381,9 @@ class _AccountsViewState extends State<AccountsView> {
 
   Future<void> _deleteAccount(BuildContext context, Account account) async {
     final walletAddress = account.walletAddress;
-    if (walletAddress != null && account.persona != null) {
+    if (walletAddress != null) {
       await injector<AccountService>()
-          .deleteAddressPersona(account.persona!, account.walletAddress!);
+          .deleteAddressWallet(account.walletAddress!);
     }
 
     final connection = account.connections?.first;
@@ -385,5 +391,7 @@ class _AccountsViewState extends State<AccountsView> {
     if (connection != null) {
       await injector<AccountService>().deleteLinkedAccount(connection);
     }
+
+    _accountsBloc.add(GetAccountsEvent());
   }
 }

@@ -283,7 +283,7 @@ Future<bool> showErrorDialogFromException(Object exception,
 
   log
     ..warning('Unhandled error: $exception', exception, stackTrace)
-    ..warning(stackTrace);
+    ..warning('StackTrace: $stackTrace');
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries
@@ -311,12 +311,21 @@ Future<bool> showErrorDialogFromException(Object exception,
       );
       return true;
     } else {
-      navigationService.showErrorDialog(event);
+      if (!_isErrorIgnored(exception)) {
+        navigationService.showErrorDialog(event);
+      }
       return true;
     }
   } else {
     return false;
   }
+}
+
+bool _isErrorIgnored(Object exception) {
+  if (exception is RangeError) {
+    return true;
+  }
+  return false;
 }
 
 void hideInfoDialog(BuildContext context) {

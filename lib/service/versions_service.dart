@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -168,7 +167,4 @@ class VersionService {
       unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
     }
   }
-
-  Future<List<PlayListModel>> getDemoAccountFromGithub() async =>
-      _pubdocAPI.getDemoAccountFromGithub();
 }

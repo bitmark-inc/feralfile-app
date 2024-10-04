@@ -85,7 +85,7 @@ class _WalletPageState extends State<WalletPage>
         ),
         onTap: () {
           unawaited(Navigator.of(context).pushNamed(AppRouter.addressAliasPage,
-              arguments: AddressAliasPayload(WalletType.Autonomy)));
+              arguments: AddressAliasPayload(WalletType.MultiChain)));
         },
       ),
       OptionItem(

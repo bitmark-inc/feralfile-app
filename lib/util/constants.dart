@@ -47,8 +47,6 @@ const DEEP_LINKS = [
   ...Constants.branchDeepLinks,
   'feralfile://',
 ];
-const FF_ARTIST_COLLECTOR =
-    'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
     '/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md';
@@ -206,7 +204,7 @@ const AUTONOMY_DOCUMENT_PREFIX = 'https://github.com/bitmark-inc';
 const AUTONOMY_RAW_DOCUMENT_PREFIX =
     'https://raw.githubusercontent.com/bitmark-inc';
 
-const MARKDOWN_EXT = '.md';
+const markdownExt = '.md';
 
 const String POSTCARD_SIGN_PREFIX = 'Tezos Signed Message:';
 
@@ -239,9 +237,6 @@ Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
 }
-
-Future<String> getDemoAccount() async =>
-    await isAppCenterBuild() ? 'demo' : 'tv';
 
 Future<String> getAppVariant() async =>
     await isAppCenterBuild() ? 'inhouse' : 'production';
@@ -287,63 +282,37 @@ extension RawValue on WalletApp {
 }
 
 class ReportIssueType {
-  static const Feature = 'feature';
   static const Bug = 'bug';
-  static const Feedback = 'feedback';
-  static const Other = 'other';
   static const Exception = 'exception';
-  static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
 
-  static List<String> get getList => [
-        Feature,
-        Bug,
-        Feedback,
-        Other,
-        Exception,
-        ReportNFTIssue,
-        Announcement,
-        MerchandiseIssue
-      ];
+  static List<String> get getList =>
+      [Bug, Exception, Announcement, MerchandiseIssue];
 
-  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
+  static List<String> get getSuggestList => [Bug];
 
   static String toTitle(String item) {
     switch (item) {
-      case Feature:
-        return 'request_a_feature'.tr();
-      case Bug:
-        return 'report_a_bug'.tr();
-      case Feedback:
-        return 'share_feedback'.tr();
       case Exception:
-        return 'report_a_bug'.tr();
-      case ReportNFTIssue:
-        return 'report_nft_issue'.tr();
+        return 'Report a bug';
       case Announcement:
         return 'announcement'.tr();
       case MerchandiseIssue:
-        return 'merchandise'.tr();
+        return 'Merchandise issue';
+      case Bug:
       default:
-        return 'something_else'.tr();
+        return 'Contact Feral File';
     }
   }
 
   static String introMessage(String item) {
     switch (item) {
-      case Feature:
-        return 'Thanks for taking the time to help us improve Feral File. We’re always looking for great ideas. What feature would you like to request?';
-      case Bug:
-        return 'We’re sorry to hear you’ve experienced a problem using Feral File. Thanks for taking the time to help us improve. Please describe the bug for us.';
-      case Feedback:
-        return 'Thanks for taking the time to share your feedback with us. What’s on your mind?';
       case Exception:
         return 'Thanks for taking the time to help improve Feral File. We’ve received your automatic crash report and are looking into it. How else can we help?';
-      case ReportNFTIssue:
-        return 'Thanks for taking the time to help improve Feral File. We’ve received your NFT issue and are looking into it. How else can we help?';
+      case Bug:
       default:
-        return 'Thanks for reaching out to the Feral File team! What’s on your mind?';
+        return 'Thanks for reaching out to the Feral File! How can we assist you with feedback, a bug, or a feature request?';
     }
   }
 }
@@ -558,7 +527,6 @@ class LinkType {
   static const dAppConnect = 'Dapp Connect Deeplink';
   static const feralFile = 'FeralFile Deeplink';
   static const branch = 'Branch Deeplink';
-  static const autonomyConnect = 'Autonomy Connect';
   static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';

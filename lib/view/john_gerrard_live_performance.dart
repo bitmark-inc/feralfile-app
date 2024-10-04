@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 class JohnGerrardLivePerformanceWidget extends StatefulWidget {
   final Exhibition exhibition;

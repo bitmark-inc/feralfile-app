@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -34,7 +35,6 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -92,6 +92,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future setup() async {
+    log.info('[DeeplinkService] setup');
     await FlutterBranchSdk.init(enableLogging: true);
     FlutterBranchSdk.listSession().listen((data) async {
       log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');

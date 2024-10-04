@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -30,6 +29,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -87,10 +87,9 @@ class _WCConnectPageState extends State<WCConnectPage>
   late Color warningColor;
 
   bool get _confirmEnable =>
-      (categorizedAccounts != null &&
-          categorizedAccounts!.isNotEmpty &&
-          selectedPersona != null) ||
-      widget.connectionRequest.isAutonomyConnect;
+      categorizedAccounts != null &&
+      categorizedAccounts!.isNotEmpty &&
+      selectedPersona != null;
 
   @override
   void initState() {
@@ -126,18 +125,6 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future<void> _reject() async {
-    if (connectionRequest.isAutonomyConnect) {
-      try {
-        await injector<Wc2Service>().rejectSession(
-          connectionRequest.id,
-          reason: 'User reject',
-        );
-      } catch (e) {
-        log.info('[WCConnectPage] Reject AutonomyConnect Proposal $e');
-      }
-      return;
-    }
-
     if (connectionRequest.isWalletConnect2) {
       try {
         await injector<Wc2Service>().rejectSession(
@@ -157,7 +144,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future _approve({bool onBoarding = false}) async {
-    if (selectedPersona == null && !connectionRequest.isAutonomyConnect) {
+    if (selectedPersona == null) {
       return;
     }
 
@@ -170,37 +157,16 @@ class _WCConnectPageState extends State<WCConnectPage>
     try {
       switch (connectionRequest.runtimeType) {
         case const (Wc2Proposal):
-          if (connectionRequest.isAutonomyConnect) {
-            final defaultAccount =
-                await injector<AccountService>().getDefaultAccount();
-            final accountDid = await defaultAccount.getAccountDID();
-            final walletAddresses = await injector<CloudDatabase>()
-                .addressDao
-                .findByWalletID(defaultAccount.uuid);
-            final accountNumber =
-                walletAddresses.map((e) => e.address).join('||');
-            approveResponse = await injector<Wc2Service>().approveSession(
-              connectionRequest as Wc2Proposal,
-              accounts: [accountDid.substring('did:key:'.length)],
-              connectionKey: defaultAccount.uuid,
-              accountNumber: accountNumber,
-              isAuConnect: true,
-            );
-            payloadType = CryptoType.ETH;
-            payloadAddress = await defaultAccount.getETHEip55Address(
-                index: selectedPersona!.index);
-          } else {
-            final address = await injector<EthereumService>()
-                .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-            approveResponse = await injector<Wc2Service>().approveSession(
-              connectionRequest as Wc2Proposal,
-              accounts: [address],
-              connectionKey: address,
-              accountNumber: address,
-            );
-            payloadType = CryptoType.ETH;
-            payloadAddress = address;
-          }
+          final address = await injector<EthereumService>()
+              .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
+          approveResponse = await injector<Wc2Service>().approveSession(
+            connectionRequest as Wc2Proposal,
+            accounts: [address],
+            connectionKey: address,
+            accountNumber: address,
+          );
+          payloadType = CryptoType.ETH;
+          payloadAddress = address;
 
         case const (BeaconRequest):
           final wallet = selectedPersona!.wallet;
@@ -428,8 +394,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _appInfo(BuildContext context) {
-    if (connectionRequest.isAutonomyConnect ||
-        connectionRequest.isWalletConnect2) {
+    if (connectionRequest.isWalletConnect2) {
       final wc2Proposer = (connectionRequest as Wc2Proposal).proposer;
       final peer = AppMetadata(
         name: wc2Proposer.name,
@@ -509,28 +474,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       );
 
   Widget _connect(BuildContext context) {
-    if (connectionRequest.isAutonomyConnect) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: padding,
-                  child: PrimaryButton(
-                    enabled: _confirmEnable,
-                    text: 'h_confirm'.tr(),
-                    onTap: () =>
-                        withDebounce(() => unawaited(_approveThenNotify())),
-                  ),
-                ),
-              )
-            ],
-          )
-        ],
-      );
-    } else if (createPersona) {
+    if (createPersona) {
       return _createAccountAndConnect(context);
     } else {
       return Row(
@@ -648,16 +592,15 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   Future _createAccount(BuildContext context) async {
     unawaited(UIHelper.showLoadingScreen(context, text: 'connecting'.tr()));
-    final persona =
-        await injector<AccountService>().getOrCreateDefaultPersona();
-    await persona.insertNextAddress(connectionRequest.isBeaconConnect
-        ? WalletType.Tezos
-        : WalletType.Ethereum);
+    final walletAddresses = await injector<AccountService>().insertNextAddress(
+        connectionRequest.isBeaconConnect
+            ? WalletType.Tezos
+            : WalletType.Ethereum);
     if (!mounted) {
       return;
     }
     setState(() {
-      selectedPersona = WalletIndex(persona.wallet(), 0);
+      selectedPersona = WalletIndex(walletAddresses.first.wallet, 0);
     });
     unawaited(_approveThenNotify(onBoarding: true));
   }

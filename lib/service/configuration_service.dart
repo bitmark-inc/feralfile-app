@@ -25,6 +25,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  bool didMigrateToAccountSetting();
+
+  Future<void> setMigrateToAccountSetting(bool value);
+
   Future<void> setDidShowLiveWithArt(bool value);
 
   bool didShowLiveWithArt();
@@ -95,10 +99,6 @@ abstract class ConfigurationService {
 
   Future setLastTimeAskForSubscription(DateTime date);
 
-  Future<void> setDoneOnboardingOnce(bool value);
-
-  bool isDoneOnboardingOnce();
-
   Future<void> setHideLinkedAccountInGallery(
       List<String> address, bool isEnabled,
       {bool override = false});
@@ -144,9 +144,6 @@ abstract class ConfigurationService {
   Future<void> setCountOpenApp(int? value);
 
   // ----- App Setting -----
-  bool isDemoArtworksMode();
-
-  Future<bool> toggleDemoArtworksMode();
 
   bool showTokenDebugInfo();
 
@@ -232,6 +229,8 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyDidMigrateToAccountSetting =
+      'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
   static const String keyLastPullAnnouncementTime =
       'last_pull_announcement_time';
@@ -253,7 +252,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
       'last_time_ask_subscription';
-  static const String KEY_DONE_ONBOARING_ONCE = 'done_onboarding_once';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
@@ -268,9 +266,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'announcement_last_pull_time';
   static const String OLD_USER = 'old_user';
 
+  static const String DID_RUN_SETUP = 'did_run_setup';
+
   // ----- App Setting -----
-  static const String KEY_APP_SETTING_DEMO_ARTWORKS =
-      'show_demo_artworks_preference';
   static const String KEY_PREVIOUS_BUILD_NUMBER = 'previous_build_number';
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
   static const String LAST_REMIND_REVIEW = 'last_remind_review';
@@ -383,10 +381,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDoneOnboardingOnce() =>
-      _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
-
-  @override
   Future<void> setAnalyticEnabled(bool value) async {
     log.info('setAnalyticEnabled: $value');
     await _preferences.setBool(KEY_ANALYTICS, value);
@@ -402,12 +396,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
     }
-  }
-
-  @override
-  Future<void> setDoneOnboardingOnce(bool value) async {
-    log.info('setDoneOnboardingOnce: $value');
-    await _preferences.setBool(KEY_DONE_ONBOARING_ONCE, value);
   }
 
   @override
@@ -533,17 +521,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       KEY_LAST_TIME_ASK_SUBSCRIPTION,
       date.millisecondsSinceEpoch,
     );
-  }
-
-  @override
-  bool isDemoArtworksMode() =>
-      _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
-
-  @override
-  Future<bool> toggleDemoArtworksMode() async {
-    final newValue = !isDemoArtworksMode();
-    await _preferences.setBool(KEY_APP_SETTING_DEMO_ARTWORKS, newValue);
-    return newValue;
   }
 
   @override
@@ -1033,6 +1010,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setLastPullAnnouncementTime(int lastPullTime) =>
       _preferences.setInt(keyLastPullAnnouncementTime, lastPullTime);
+
+  @override
+  bool didMigrateToAccountSetting() =>
+      _preferences.getBool(keyDidMigrateToAccountSetting) ?? false;
+
+  @override
+  Future<void> setMigrateToAccountSetting(bool value) =>
+      _preferences.setBool(keyDidMigrateToAccountSetting, value);
 
   @override
   String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);

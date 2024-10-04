@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/screen/predefined_collection/predefined_collect
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
@@ -126,211 +125,210 @@ class CollectionProState extends State<CollectionPro>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).padding.top + 40;
-    return Scaffold(
-      appBar: getFFAppBar(
-        context,
-        onBack: () {
-          Navigator.pop(context);
-        },
-        centerTitle: false,
-        title: TitleText(title: 'organize'.tr()),
-        action: !isShowSearchBar
-            ? IconButton(
-                onPressed: () {
-                  setState(() {
-                    isShowSearchBar = true;
-                  });
-                },
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                  minWidth: 44,
-                  minHeight: 44,
-                ),
-                icon: Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: SvgPicture.asset(
-                    'assets/images/search.svg',
-                    width: 24,
-                    height: 24,
-                    colorFilter:
-                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                  ),
-                ),
-              )
-            : const SizedBox(),
-      ),
-      backgroundColor: AppColor.primaryBlack,
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: BlocConsumer(
-          bloc: _bloc,
-          listener: (context, state) {
-            if (state is CollectionLoadedState) {
-              fetchIdentities(state);
-              setState(() {
-                _listPredefinedCollectionByMedium =
-                    state.listPredefinedCollectionByMedium ?? [];
-                _works = state.works;
-                _isLoaded = true;
-              });
-            }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getFFAppBar(
+          context,
+          onBack: () {
+            Navigator.pop(context);
           },
-          builder: (context, collectionProState) {
-            if (collectionProState is CollectionLoadedState) {
-              return BlocConsumer<IdentityBloc, IdentityState>(
-                  listener: (context, identityState) {
-                    final identityMap = identityState.identityMap
-                      ..removeWhere((key, value) => value.isEmpty);
-                    final listPredefinedCollectionByArtist = (collectionProState
-                                .listPredefinedCollectionByArtist ??
-                            [])
-                        .map(
-                          (e) {
-                            String name = e.name ?? e.id;
-                            if (name == e.id) {
-                              name = name.toIdentityOrMask(identityMap) ??
-                                  name.maskOnly(5);
-                            }
-                            e.name = name;
-                            return e;
-                          },
-                        )
-                        .toList()
-                        .filterByName(searchStr.value)
-                      ..sort((a, b) => a.name.compareSearchKey(b.name));
+          centerTitle: false,
+          title: TitleText(title: 'organize'.tr()),
+          action: !isShowSearchBar
+              ? IconButton(
+                  onPressed: () {
                     setState(() {
-                      _listPredefinedCollectionByArtist =
-                          listPredefinedCollectionByArtist;
+                      isShowSearchBar = true;
                     });
                   },
-                  builder: (context, identityState) {
-                    final isEmptyView = !_isLoaded ||
-                        (_isEmptyCollection() && searchStr.value.isEmpty);
-                    final isSearchEmptyView = _isLoaded &&
-                        _isEmptyCollection() &&
-                        searchStr.value.isNotEmpty;
-                    return CustomScrollView(
-                      controller: _scrollController,
-                      shrinkWrap: true,
-                      slivers: [
-                        if (isShowSearchBar)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: ActionBar(
-                                searchBar: AuSearchBar(
-                                  onChanged: (text) {},
-                                  onSearch: (text) {
+                  constraints: const BoxConstraints(
+                    maxWidth: 44,
+                    maxHeight: 44,
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                  icon: Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: SvgPicture.asset(
+                      'assets/images/search.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: const ColorFilter.mode(
+                          AppColor.white, BlendMode.srcIn),
+                    ),
+                  ),
+                )
+              : const SizedBox(),
+        ),
+        backgroundColor: AppColor.primaryBlack,
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: BlocConsumer(
+            bloc: _bloc,
+            listener: (context, state) {
+              if (state is CollectionLoadedState) {
+                fetchIdentities(state);
+                setState(() {
+                  _listPredefinedCollectionByMedium =
+                      state.listPredefinedCollectionByMedium ?? [];
+                  _works = state.works;
+                  _isLoaded = true;
+                });
+              }
+            },
+            builder: (context, collectionProState) {
+              if (collectionProState is CollectionLoadedState) {
+                return BlocConsumer<IdentityBloc, IdentityState>(
+                    listener: (context, identityState) {
+                      final identityMap = identityState.identityMap
+                        ..removeWhere((key, value) => value.isEmpty);
+                      final listPredefinedCollectionByArtist =
+                          (collectionProState
+                                      .listPredefinedCollectionByArtist ??
+                                  [])
+                              .map(
+                                (e) {
+                                  String name = e.name ?? e.id;
+                                  if (name == e.id) {
+                                    name = name.toIdentityOrMask(identityMap) ??
+                                        name.maskOnly(5);
+                                  }
+                                  e.name = name;
+                                  return e;
+                                },
+                              )
+                              .toList()
+                              .filterByName(searchStr.value)
+                            ..sort((a, b) => a.name.compareSearchKey(b.name));
+                      setState(() {
+                        _listPredefinedCollectionByArtist =
+                            listPredefinedCollectionByArtist;
+                      });
+                    },
+                    builder: (context, identityState) {
+                      final isEmptyView = !_isLoaded ||
+                          (_isEmptyCollection() && searchStr.value.isEmpty);
+                      final isSearchEmptyView = _isLoaded &&
+                          _isEmptyCollection() &&
+                          searchStr.value.isNotEmpty;
+                      return CustomScrollView(
+                        controller: _scrollController,
+                        shrinkWrap: true,
+                        slivers: [
+                          if (isShowSearchBar)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: ActionBar(
+                                  searchBar: AuSearchBar(
+                                    onChanged: (text) {},
+                                    onSearch: (text) {
+                                      setState(() {
+                                        searchStr.value = text;
+                                      });
+                                    },
+                                    onClear: (text) {
+                                      setState(() {
+                                        searchStr.value = text;
+                                      });
+                                    },
+                                  ),
+                                  onCancel: () {
                                     setState(() {
-                                      searchStr.value = text;
-                                    });
-                                  },
-                                  onClear: (text) {
-                                    setState(() {
-                                      searchStr.value = text;
+                                      searchStr.value = '';
+                                      isShowSearchBar = false;
                                     });
                                   },
                                 ),
-                                onCancel: () {
-                                  setState(() {
-                                    searchStr.value = '';
-                                    isShowSearchBar = false;
-                                  });
-                                },
                               ),
                             ),
-                          ),
-                        if (!isEmptyView)
-                          SliverToBoxAdapter(
-                            child: ValueListenableBuilder(
-                              valueListenable: searchStr,
-                              builder: (BuildContext context, String value,
-                                      Widget? child) =>
-                                  CollectionSection(
-                                key: _collectionSectionKey,
-                                filterString: value,
+                          if (!isEmptyView)
+                            SliverToBoxAdapter(
+                              child: ValueListenableBuilder(
+                                valueListenable: searchStr,
+                                builder: (BuildContext context, String value,
+                                        Widget? child) =>
+                                    CollectionSection(
+                                  key: _collectionSectionKey,
+                                  filterString: value,
+                                ),
                               ),
                             ),
-                          ),
-                        if (isEmptyView) ...[
-                          SliverToBoxAdapter(
-                            child: Visibility(
-                              visible: isEmptyView,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                child: _emptyView(context),
+                          if (isEmptyView) ...[
+                            SliverToBoxAdapter(
+                              child: Visibility(
+                                visible: isEmptyView,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: _emptyView(context),
+                                ),
                               ),
                             ),
-                          ),
-                        ] else if (isSearchEmptyView) ...[
-                          SliverToBoxAdapter(
-                            child: Visibility(
-                              visible: isSearchEmptyView,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                child: _searchEmptyView(context),
+                          ] else if (isSearchEmptyView) ...[
+                            SliverToBoxAdapter(
+                              child: Visibility(
+                                visible: isSearchEmptyView,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: _searchEmptyView(context),
+                                ),
                               ),
                             ),
-                          ),
-                        ] else ...[
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 60),
-                          ),
-                          if (searchStr.value.isEmpty) ...[
-                            SliverList(
-                              delegate: SliverChildBuilderDelegate(
-                                _predefinedCollectionByMediumBuilder,
-                                childCount:
-                                    _listPredefinedCollectionByMedium.length +
-                                        1,
-                              ),
-                            ),
+                          ] else ...[
                             const SliverToBoxAdapter(
                               child: SizedBox(height: 60),
                             ),
-                          ],
-                          if (searchStr.value.isNotEmpty) ...[
+                            if (searchStr.value.isEmpty) ...[
+                              SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  _predefinedCollectionByMediumBuilder,
+                                  childCount:
+                                      _listPredefinedCollectionByMedium.length +
+                                          1,
+                                ),
+                              ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: 60),
+                              ),
+                            ],
+                            if (searchStr.value.isNotEmpty) ...[
+                              SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  _worksBuilder,
+                                  childCount: _works.length + 1,
+                                ),
+                              ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: 60),
+                              ),
+                            ],
                             SliverList(
                               delegate: SliverChildBuilderDelegate(
-                                _worksBuilder,
-                                childCount: _works.length + 1,
+                                _predefinedCollectionByArtistBuilder,
+                                childCount: min(
+                                        _listPredefinedCollectionByArtist
+                                            .length,
+                                        _maxArtistsView) +
+                                    1,
                               ),
                             ),
                             const SliverToBoxAdapter(
-                              child: SizedBox(height: 60),
+                              child: SizedBox(height: 100),
                             ),
                           ],
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              _predefinedCollectionByArtistBuilder,
-                              childCount: min(
-                                      _listPredefinedCollectionByArtist.length,
-                                      _maxArtistsView) +
-                                  1,
-                            ),
-                          ),
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 100),
-                          ),
                         ],
-                      ],
-                    );
-                  },
-                  bloc: _identityBloc);
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
+                      );
+                    },
+                    bloc: _identityBloc);
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   bool _isEmptyCollection() {
     final collection =
@@ -587,17 +585,11 @@ class CollectionSection extends StatefulWidget {
 
 class CollectionSectionState extends State<CollectionSection>
     with RouteAware, WidgetsBindingObserver {
-  final _configurationService = injector.get<ConfigurationService>();
   final _playlistService = injector.get<PlaylistService>();
-  final _versionService = injector.get<VersionService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
   List<PlayListModel>? _currentPlaylists;
-  late bool isDemo;
 
   Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
-    if (isDemo) {
-      return _versionService.getDemoAccountFromGithub();
-    }
     List<PlayListModel> playlists = await _playlistService.getPlayList();
     if (withDefault) {
       final defaultPlaylists = await _playlistService.defaultPlaylists();
@@ -623,7 +615,6 @@ class CollectionSectionState extends State<CollectionSection>
         _currentPlaylists = filterPlaylist(widget.filterString);
       });
     });
-    isDemo = _configurationService.isDemoArtworksMode();
     super.initState();
     unawaited(_initPlayList());
     WidgetsBinding.instance.addObserver(this);

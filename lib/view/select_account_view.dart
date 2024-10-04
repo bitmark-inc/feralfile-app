@@ -1,7 +1,6 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -14,6 +13,7 @@ class SelectAccount extends StatefulWidget {
   final ConnectionRequest connectionRequest;
   final Function(WalletIndex?)? onSelectPersona;
   final Function(List<Account>)? onCategorizedAccountsChanged;
+
   const SelectAccount(
       {required this.connectionRequest,
       super.key,
@@ -27,7 +27,7 @@ class SelectAccount extends StatefulWidget {
 class _SelectAccountState extends State<SelectAccount> with RouteAware {
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
   late ConnectionRequest connectionRequest;
-  WalletIndex? selectedPersona;
+  WalletIndex? selectedWallet;
   List<Account>? categorizedAccounts;
 
   @override
@@ -45,8 +45,7 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
 
   void callAccountBloc() {
     context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-        getTezos: widget.connectionRequest.isBeaconConnect ||
-            widget.connectionRequest.isAutonomyConnect,
+        getTezos: widget.connectionRequest.isBeaconConnect,
         getEth: !widget.connectionRequest.isBeaconConnect));
   }
 
@@ -55,16 +54,6 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
       BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) async {
           var stateCategorizedAccounts = state.accounts;
-
-          if (connectionRequest.isAutonomyConnect) {
-            final persona =
-                await injector<AccountService>().getOrCreateDefaultPersona();
-            selectedPersona = WalletIndex(persona.wallet(), 0);
-            widget.onSelectPersona?.call(selectedPersona);
-          }
-          if (!mounted) {
-            return;
-          }
           categorizedAccounts = stateCategorizedAccounts;
           widget.onCategorizedAccountsChanged?.call(categorizedAccounts!);
           if (categorizedAccounts?.isEmpty ?? true) {
@@ -86,24 +75,26 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
     if (categorizedAccounts.length != 1) {
       return;
     }
-    final persona = categorizedAccounts.first.persona;
-    if (persona == null) {
+    // no view only address in this page
+    final uuid = categorizedAccounts.first.walletAddress?.uuid;
+    if (uuid == null) {
       return;
     }
+    final wallet = categorizedAccounts.first.wallet!;
 
     final ethAccounts = categorizedAccounts.where((element) => element.isEth);
     final xtzAccounts = categorizedAccounts.where((element) => element.isTez);
 
     if (ethAccounts.length == 1) {
-      selectedPersona = WalletIndex(persona.wallet(),
-          (await persona.getEthWalletAddresses()).first.index);
-      widget.onSelectPersona?.call(selectedPersona);
+      selectedWallet =
+          WalletIndex(wallet, ethAccounts.first.walletAddress!.index);
+      widget.onSelectPersona?.call(selectedWallet);
     }
 
     if (xtzAccounts.length == 1) {
-      selectedPersona = WalletIndex(persona.wallet(),
-          (await persona.getTezWalletAddresses()).first.index);
-      widget.onSelectPersona?.call(selectedPersona);
+      selectedWallet =
+          WalletIndex(wallet, xtzAccounts.first.walletAddress!.index);
+      widget.onSelectPersona?.call(selectedWallet);
     }
   }
 
@@ -115,9 +106,6 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
 
     if (stateCategorizedAccounts.isEmpty) {
       return const SizedBox(); // Expanded(child: _createAccountAndConnect());
-    }
-    if (connectionRequest.isAutonomyConnect) {
-      return const SizedBox();
     }
     return _selectPersonaWidget(context, stateCategorizedAccounts);
   }
@@ -146,13 +134,13 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
           accounts: accounts,
           onSelectEth: (value) {
             int index = value.walletAddress?.index ?? 0;
-            selectedPersona = WalletIndex(value.persona!.wallet(), index);
-            widget.onSelectPersona?.call(selectedPersona);
+            selectedWallet = WalletIndex(value.wallet!, index);
+            widget.onSelectPersona?.call(selectedWallet);
           },
           onSelectTez: (value) {
             int index = value.walletAddress?.index ?? 0;
-            selectedPersona = WalletIndex(value.persona!.wallet(), index);
-            widget.onSelectPersona?.call(selectedPersona);
+            selectedWallet = WalletIndex(value.wallet!, index);
+            widget.onSelectPersona?.call(selectedWallet);
           },
           isAutoSelect: accounts.length == 1,
         ),

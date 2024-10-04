@@ -9,6 +9,8 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -19,7 +21,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
 
