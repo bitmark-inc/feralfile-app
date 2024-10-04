@@ -274,7 +274,7 @@ class QRScanView extends StatefulWidget {
 class QRScanViewState extends State<QRScanView>
     with RouteAware, AutomaticKeepAliveClientMixin<QRScanView> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  late QRViewController controller;
+  QRViewController? _controller;
   bool isScanDataError = false;
   bool _isLoading = false;
   bool? _cameraPermission;
@@ -320,16 +320,16 @@ class QRScanViewState extends State<QRScanView>
   void dispose() {
     routeObserver.unsubscribe(this);
     _timer?.cancel();
-    controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   Future<void> resumeCamera() async {
-    await controller.resumeCamera();
+    await _controller?.resumeCamera();
   }
 
   Future<void> pauseCamera() async {
-    await controller.pauseCamera();
+    await _controller?.pauseCamera();
   }
 
   Future _checkPermission() async {
@@ -569,7 +569,10 @@ class QRScanViewState extends State<QRScanView>
   }
 
   void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
+    // Dispose of the previous controller if it exists
+    _controller?.dispose();
+
+    _controller = controller;
     controller.scannedDataStream.listen((scanData) async {
       if (_isLoading) {
         return;
