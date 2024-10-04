@@ -144,9 +144,6 @@ abstract class ConfigurationService {
   Future<void> setCountOpenApp(int? value);
 
   // ----- App Setting -----
-  bool isDemoArtworksMode();
-
-  Future<bool> toggleDemoArtworksMode();
 
   bool showTokenDebugInfo();
 
@@ -269,9 +266,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'announcement_last_pull_time';
   static const String OLD_USER = 'old_user';
 
+  static const String DID_RUN_SETUP = 'did_run_setup';
+
   // ----- App Setting -----
-  static const String KEY_APP_SETTING_DEMO_ARTWORKS =
-      'show_demo_artworks_preference';
   static const String KEY_PREVIOUS_BUILD_NUMBER = 'previous_build_number';
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
   static const String LAST_REMIND_REVIEW = 'last_remind_review';
@@ -524,17 +521,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       KEY_LAST_TIME_ASK_SUBSCRIPTION,
       date.millisecondsSinceEpoch,
     );
-  }
-
-  @override
-  bool isDemoArtworksMode() =>
-      _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
-
-  @override
-  Future<bool> toggleDemoArtworksMode() async {
-    final newValue = !isDemoArtworksMode();
-    await _preferences.setBool(KEY_APP_SETTING_DEMO_ARTWORKS, newValue);
-    return newValue;
   }
 
   @override

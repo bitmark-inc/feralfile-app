@@ -1712,14 +1712,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
         contractAddress: widget.contractAddress ?? ''));
   }
 
-  String getUrl(RoyaltyState state) {
-    if (state.exhibitionID != null) {
-      return '$FF_ARTIST_COLLECTOR/${state.exhibitionID}';
-    } else {
-      return FF_ARTIST_COLLECTOR;
-    }
-  }
-
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
