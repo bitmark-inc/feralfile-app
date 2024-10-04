@@ -144,6 +144,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         final source = subscriptionStatus?.source ?? MembershipSource.purchase;
         switch (source) {
           case MembershipSource.purchase:
+          case MembershipSource.webPurchase:
           case MembershipSource.preset:
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,6 +224,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         final source = subscriptionStatus?.source ?? MembershipSource.purchase;
         switch (source) {
           case MembershipSource.purchase:
+          case MembershipSource.webPurchase:
             return MembershipCard(
               type: MembershipCardType.premium,
               price: subscriptionDetails.price,

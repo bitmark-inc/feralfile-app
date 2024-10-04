@@ -112,39 +112,34 @@ class JWT {
 
 enum MembershipSource {
   purchase,
+  webPurchase,
   giftCode,
   preset;
 
   String get name {
     switch (this) {
       case MembershipSource.purchase:
-        return 'purchase';
+        return 'in_app_purchase';
       case MembershipSource.giftCode:
         return 'gift_code';
       case MembershipSource.preset:
         return 'preset';
-    }
-  }
-
-  String get mixpanelName {
-    switch (this) {
-      case MembershipSource.purchase:
-        return 'Purchase';
-      case MembershipSource.giftCode:
-        return 'Gift Code';
-      case MembershipSource.preset:
-        return 'Preset';
+      case MembershipSource.webPurchase:
+        return 'web_purchase';
     }
   }
 
   static MembershipSource? fromString(String name) {
     switch (name) {
       case 'purchase':
+      case 'in_app_purchase':
         return MembershipSource.purchase;
       case 'gift_code':
         return MembershipSource.giftCode;
       case 'preset':
         return MembershipSource.preset;
+      case 'web_purchase':
+        return MembershipSource.webPurchase;
       default:
         return null;
     }
