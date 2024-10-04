@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -43,10 +44,14 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             // if subscription is free, update purchase in IAP service
           }
 
+          final membershipSource = subscriptionStatus.source;
+          final stripePortalUrl = await injector<IAPService>().getStripeUrl();
+
           // after updating purchase status, emit new state
           emit(state.copyWith(
             subscriptionDetails: listSubscriptionDetails,
-            membershipSource: subscriptionStatus.source,
+            membershipSource: membershipSource,
+            stripePortalUrl: stripePortalUrl,
           ));
         } else {
           // if no JWT, query IAP info

@@ -682,4 +682,11 @@ class NavigationService {
           onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
     }
   }
+
+  Future<void> openUrl(Uri uri) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await _browser.openUrl(uri.toString());
+    }
+  }
 }

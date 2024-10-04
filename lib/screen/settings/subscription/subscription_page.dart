@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -25,6 +26,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -224,7 +226,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         final source = subscriptionStatus?.source ?? MembershipSource.purchase;
         switch (source) {
           case MembershipSource.purchase:
-          case MembershipSource.webPurchase:
             return MembershipCard(
               type: MembershipCardType.premium,
               price: subscriptionDetails.price,
@@ -266,6 +267,74 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ],
                 ),
               ),
+            );
+          case MembershipSource.webPurchase:
+            return MembershipCard(
+              type: MembershipCardType.premium,
+              price: subscriptionDetails.price,
+              isProcessing: false,
+              isEnable: true,
+              buttonBuilder: (context) => Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: AppColor.auLightGrey,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 10,
+                      width: 10,
+                      decoration: const BoxDecoration(
+                        color: AppColor.feralFileHighlight,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'active'.tr(),
+                      style: theme.textTheme.ppMori400Black14,
+                    ),
+                    const Spacer(),
+                    if (subscriptionStatus?.expireDate != null)
+                      Text(
+                        'renews_'.tr(namedArgs: {
+                          'date': dateFormater
+                              .format(subscriptionStatus!.expireDate!)
+                        }),
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
+                  ],
+                ),
+              ),
+              renewPolicyBuilder: (context) {
+                final theme = Theme.of(context);
+                return RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: theme.textTheme.ppMori400Black12,
+                      children: [
+                        TextSpan(
+                          text: 'renew_policy_stripe'.tr(),
+                        ),
+                        TextSpan(
+                          text: 'Stripe',
+                          style: const TextStyle(
+                              decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              final url = _upgradesBloc.state.stripePortalUrl;
+                              final uri = Uri.tryParse(url ?? '');
+                              if (uri != null) {
+                                unawaited(
+                                    injector<NavigationService>().openUrl(uri));
+                              }
+                            },
+                        ),
+                      ],
+                    ));
+              },
             );
           case MembershipSource.preset:
           case MembershipSource.giftCode:

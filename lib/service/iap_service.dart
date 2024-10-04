@@ -13,6 +13,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
@@ -96,6 +97,8 @@ abstract class IAPService {
   PurchaseDetails? getPurchaseDetails(String productId);
 
   void clearReceipt();
+
+  Future<String> getStripeUrl();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -362,6 +365,19 @@ class IAPServiceImpl implements IAPService {
   @override
   void clearReceipt() {
     _receiptData = null;
+  }
+
+  @override
+  Future<String> getStripeUrl() async {
+    try {
+      final res = await injector<IAPApi>().portalUrl() as Map<String, dynamic>;
+      return res['url'] as String;
+    } catch (error) {
+      log.warning('Error when getting stripe portal url: $error');
+      unawaited(Sentry.captureException(
+          'Error when getting stripe portal url: $error'));
+      return '';
+    }
   }
 }
 

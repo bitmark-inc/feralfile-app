@@ -407,7 +407,7 @@ class _IAPApi implements IAPApi {
     )
         .compose(
           _dio.options,
-          '/apis/v2/memberships/subscriptions/portal',
+          '/apis/memberships/subscriptions/portal',
           queryParameters: queryParameters,
           data: _data,
         )
