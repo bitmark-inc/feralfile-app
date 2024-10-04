@@ -9,7 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
-class FeralFileWebview extends StatelessWidget {
+class FeralFileWebview extends StatefulWidget {
   final Uri uri;
   final String? overriddenHtml;
   final bool isMute;
@@ -39,12 +39,39 @@ class FeralFileWebview extends StatelessWidget {
   });
 
   @override
+  State<FeralFileWebview> createState() => FeralFileWebviewState();
+}
+
+class FeralFileWebviewState extends State<FeralFileWebview> {
+  late WebViewController _webViewController;
+
+  @override
+  void initState() {
+    super.initState();
+    _webViewController = getWebViewController();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final webviewController = WebViewController();
     return WebViewWidget(
-      key: Key(uri.toString()),
-      controller: webviewController,
+      key: Key(widget.uri.toString()),
+      controller: _webViewController,
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // webViewController dispose itself
+    // _webViewController.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant FeralFileWebview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uri != widget.uri) {
+      _webViewController = getWebViewController();
+    }
   }
 
   WebViewController getWebViewController() {
@@ -65,36 +92,36 @@ class FeralFileWebview extends StatelessWidget {
     );
     webViewController
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(backgroundColor)
+      ..setBackgroundColor(widget.backgroundColor)
       ..enableZoom(false)
-      ..setUserAgent(userAgent)
+      ..setUserAgent(widget.userAgent)
       ..setOnConsoleMessage((message) {
         log.info('Console: ${message.message}');
-        onConsoleMessage?.call(webViewController, message);
+        widget.onConsoleMessage?.call(webViewController, message);
       })
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (url) async {
-            await webViewController.skipPrint();
-            onStarted?.call(webViewController);
+            unawaited(webViewController.skipPrint());
+            widget.onStarted?.call(webViewController);
           },
           onPageFinished: (url) async {
-            onLoaded?.call(webViewController);
-            if (isMute) {
+            widget.onLoaded?.call(webViewController);
+            if (widget.isMute) {
               await webViewController.mute();
             }
           },
           onWebResourceError: (error) {
             log.info('Error: ${error.description}');
-            onResourceError?.call(webViewController, error);
+            widget.onResourceError?.call(webViewController, error);
           },
           onHttpError: (error) {
             log.info('HttpError: $error');
-            onHttpError?.call(webViewController, error);
+            widget.onHttpError?.call(webViewController, error);
           },
         ),
       )
-      ..loadRequest(uri);
+      ..loadRequest(widget.uri);
     if (webViewController.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(false);
       unawaited((webViewController.platform as AndroidWebViewController)
