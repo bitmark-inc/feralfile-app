@@ -874,7 +874,7 @@ class WebviewNFTRenderingWidget extends INFTRenderingWidget {
                 ''',
               );
 
-              if (skipViewport) {
+              if (!skipViewport) {
                 await _webViewController?.evaluateJavascript(
                     source: '''document.body.style.overflow = 'hidden';''');
               }
