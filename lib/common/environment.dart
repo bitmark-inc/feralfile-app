@@ -45,7 +45,7 @@ class Environment {
       'AUTONOMY_PUBDOC_URL',
       'AUTONOMY_IPFS_PREFIX',
       'PENDING_TOKEN_EXPIRE_MS',
-      'APP_TESTNET_CONFIG',
+      // 'APP_TESTNET_CONFIG', ignore this key
       'AU_CLAIM_API_URL',
       // 'IRL_WHITELIST_URL', // this key is not set
       'CLOUD_FLARE_IMAGE_URL_PREFIX',
