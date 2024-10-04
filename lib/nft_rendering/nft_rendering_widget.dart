@@ -819,7 +819,7 @@ class WebviewNFTRenderingWidget extends INFTRenderingWidget {
             ),
           ),
           FeralFileWebview(
-            key: Key(previewURL),
+            key: Key('FeralFileWebview_$previewURL'),
             uri: Uri.parse(overriddenHtml != null ? 'about:blank' : previewURL),
             overriddenHtml: overriddenHtml,
             backgroundColor: backgroundColor,
@@ -867,7 +867,7 @@ class WebviewNFTRenderingWidget extends INFTRenderingWidget {
                 ''',
               );
 
-              if (!skipViewport) {
+              if (skipViewport) {
                 await _webViewController?.evaluateJavascript(
                     source: '''document.body.style.overflow = 'hidden';''');
               }
