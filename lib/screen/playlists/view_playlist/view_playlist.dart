@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -63,7 +62,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final _playlistService = injector<PlaylistService>();
   List<ArtworkIdentity> accountIdentities = [];
   List<CompactedAssetToken> tokensPlaylist = [];
-  bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
   late bool editable;
@@ -81,8 +79,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       unawaited(_fetchFeaturedTokens());
     } else {
       nftBloc.add(RefreshNftCollectionByIDs(
-        ids: isDemo ? [] : widget.payload.playListModel?.tokenIDs,
-        debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
+        ids: widget.payload.playListModel?.tokenIDs,
       ));
     }
 
@@ -150,9 +147,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
           onTap: () async {
             Navigator.pop(context);
-            if (isDemo) {
-              return;
-            }
             await Navigator.pushNamed(
               context,
               AppRouter.editPlayListPage,
@@ -165,8 +159,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
                 bloc.add(SavePlaylist(name: playListModel.name));
                 nftBloc.add(RefreshNftCollectionByIDs(
-                  ids: isDemo ? [] : value.tokenIDs,
-                  debugTokenIds: isDemo ? value.tokenIDs : [],
+                  ids: value.tokenIDs,
                 ));
               }
             });

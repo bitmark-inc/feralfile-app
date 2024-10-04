@@ -31,7 +31,7 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
     )
         .compose(
           _dio.options,
-          '/source_exhibition/exhibition.json',
+          '/app/source_exhibition/exhibition.json',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -57,7 +57,7 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
     )
         .compose(
           _dio.options,
-          '/source_exhibition/series.json',
+          '/app/source_exhibition/series.json',
           queryParameters: queryParameters,
           data: _data,
         )

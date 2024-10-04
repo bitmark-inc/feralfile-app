@@ -149,6 +149,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
 
   @override
   Future<void> loadConfigs() async {
+    log.fine('RemoteConfigService: loadConfigs start');
     try {
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;

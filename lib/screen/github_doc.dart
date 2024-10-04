@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/locale_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -17,58 +18,58 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class GithubDocPage extends StatefulWidget {
-  final Map<String, String> payload;
+  final GithubDocPayload payload;
 
-  const GithubDocPage({Key? key, required this.payload}) : super(key: key);
+  const GithubDocPage({required this.payload, super.key});
 
   @override
   State<GithubDocPage> createState() => _GithubDocPageState();
+
+  static const String ffDocsAppsPrefix =
+      '/bitmark-inc/feral-file-docs/master/app';
+  static const String ffDocsAgreementsPrefix =
+      '/bitmark-inc/feral-file-docs/master/agreements';
 }
 
 class _GithubDocPageState extends State<GithubDocPage> {
-  late String document;
-  late String title;
   final _navigationService = injector<NavigationService>();
 
   final dio = baseDio(BaseOptions(
-    baseUrl: "https://raw.githubusercontent.com",
+    baseUrl: 'https://raw.githubusercontent.com',
     connectTimeout: const Duration(seconds: 5),
   ));
+
+  static const List<String> _supportedLanguages = ['en_US'];
 
   @override
   void initState() {
     super.initState();
-    document = widget.payload["document"]!;
-    title = widget.payload["title"]!;
     dio.interceptors.add(LoggingInterceptor());
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: title,
-        onBack: () => Navigator.of(context).pop(),
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
-        child: FutureBuilder<Response<String>>(
-          builder: (context, snapshot) => CustomScrollView(
-            slivers: [_contentView(context, snapshot)],
-          ),
-          future: _githubPathForDocument(document)
-              .then((path) => dio.get<String>(path)),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: widget.payload.title,
+          onBack: () => Navigator.of(context).pop(),
         ),
-      ),
-    );
-  }
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsets,
+          child: FutureBuilder<Response<String>>(
+            builder: (context, snapshot) => CustomScrollView(
+              slivers: [_contentView(context, snapshot)],
+            ),
+            // ignore: discarded_futures
+            future: dio.get<String>(_githubPath()),
+          ),
+        ),
+      );
 
   Widget _contentView(
       BuildContext context, AsyncSnapshot<Response<String>> snapshot) {
@@ -77,7 +78,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
     if (snapshot.hasData && snapshot.data?.statusCode == 200) {
       return SliverToBoxAdapter(
           child: Markdown(
-              key: const Key("githubMarkdown"),
+              key: const Key('githubMarkdown'),
               data: snapshot.data!.data!,
               softLineBreak: true,
               shrinkWrap: true,
@@ -85,11 +86,13 @@ class _GithubDocPageState extends State<GithubDocPage> {
               padding: const EdgeInsets.only(bottom: 50),
               styleSheet: markDownLightStyle(context),
               onTapLink: (text, href, title) async {
-                if (href == null) return;
+                if (href == null) {
+                  return;
+                }
                 if (href.isAutonomyDocumentLink) {
-                  _navigationService.openAutonomyDocument(href, title);
+                  await _navigationService.openAutonomyDocument(href, title);
                 } else {
-                  launchUrlString(href);
+                  await launchUrlString(href);
                 }
               }));
     } else if (snapshot.hasError ||
@@ -97,7 +100,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
       return SliverFillRemaining(
           child: Center(
               child: Text(
-        "error_loading_content".tr(),
+        'error_loading_content'.tr(),
         style: theme.textTheme.headlineMedium,
       )));
     } else {
@@ -106,15 +109,38 @@ class _GithubDocPageState extends State<GithubDocPage> {
     }
   }
 
-  Future<String> _githubPathForDocument(String docFileName) async {
-    var prefix = widget.payload["prefix"] ?? '';
+  String _githubPath() {
+    final prefix = widget.payload.prefix;
+    final document = widget.payload.document;
+    final language = widget.payload.fileNameAsLanguage
+        ? '/${_getLanguage()}$markdownExt'
+        : '';
 
-    if (prefix.isEmpty) {
-      prefix = (await isAppCenterBuild() || kDebugMode)
-          ? "/bitmark-inc/autonomy-apps/develop/docs/"
-          : "/bitmark-inc/autonomy-apps/main/docs/";
-    }
-
-    return prefix + docFileName;
+    final String link = prefix + document + language;
+    return link.endsWith(markdownExt) ? link : '$link$markdownExt';
   }
+
+  String _getLanguage() {
+    final language = EasyLocalization.of(context)?.locale.localeCode ?? '';
+    return _supportedLanguages.contains(language)
+        ? language
+        : _supportedLanguages.first;
+  }
+}
+
+class GithubDocPayload {
+  final String title;
+  final String prefix;
+  final String document;
+
+  /// If true, full url would be `https://raw.githubusercontent.com/{prefix}/{document}/en_US.md`
+  /// If false, full url would be `https://raw.githubusercontent.com/{prefix}/{document}.md`
+  final bool fileNameAsLanguage;
+
+  GithubDocPayload({
+    required this.title,
+    required this.prefix,
+    required this.document,
+    this.fileNameAsLanguage = false,
+  });
 }

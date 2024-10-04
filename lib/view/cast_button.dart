@@ -173,7 +173,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                   upgradeState.activeSubscriptionDetails.firstOrNull;
               final price = subscriptionDetail?.price ?? r'$200/year';
               return MembershipCard(
-                type: MembershipCardType.premium,
+                type: MembershipCardType.essential,
                 price: price,
                 isProcessing: upgradeState.isProcessing ||
                     subscriptionDetail?.status == IAPProductStatus.pending,

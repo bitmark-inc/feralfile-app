@@ -52,6 +52,7 @@ class JohnGerrardHelper {
   }
 
   static Future<void> updateJohnGerrardLatestRevealIndex() async {
+    log.info('updateJohnGerrardLatestRevealIndex');
     try {
       final exhibitionId = JohnGerrardHelper.exhibitionID!;
       final exhibition =

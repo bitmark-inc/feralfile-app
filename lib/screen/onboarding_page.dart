@@ -7,6 +7,8 @@
 
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -14,6 +16,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
@@ -32,6 +35,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry/sentry.dart';
 
+bool didRunSetup = false;
+
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
 
@@ -40,7 +45,7 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AfterLayoutMixin<OnboardingPage> {
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
@@ -54,12 +59,13 @@ class _OnboardingPageState extends State<OnboardingPage>
     ),
   );
 
+
   @override
-  void initState() {
-    super.initState();
+  void afterFirstLayout(BuildContext context) {
     _timer = Timer(const Duration(seconds: 10), () {
       log.info('OnboardingPage loading more than 10s');
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
+      unawaited(injector<NavigationService>().showAppLoadError());
     });
     unawaited(setup(context).then((_) => _fetchRuntimeCache()));
   }
@@ -68,15 +74,21 @@ class _OnboardingPageState extends State<OnboardingPage>
     // can ignore if error
     // if something goes wrong, we will catch it in the try catch block,
     // those issue can be ignored, let user continue to use the app
+    log.info('[OnboardingPage] setup start');
     try {
+      if (didRunSetup) {
+        log.info('Setup already run');
+        return;
+      }
+      Environment.checkAllKeys();
       await DeviceInfo.instance.init();
       await injector<DeviceInfoService>().init();
-      final metricClient = injector.get<MetricClientService>();
-      await metricClient.initService();
+      await injector<MetricClientService>().initService();
+
       await injector<RemoteConfigService>().loadConfigs();
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-      unawaited(
-          injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
+
+      await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
 
       // set version info for user agent
       final packageInfo = await PackageInfo.fromPlatform();
@@ -90,6 +102,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
       DailiesHelper.updateDailies([]);
       await injector<DeeplinkService>().setup();
+      didRunSetup = true;
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
@@ -103,6 +116,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _goToTargetScreen(BuildContext context) async {
+    log.info('[_goToTargetScreen] start');
     if (_timer?.isActive ?? false) {
       _timer?.cancel();
     }
@@ -117,14 +131,15 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureMessage(
           '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
     });
+    log.info('[_fetchRuntimeCache] start');
     await injector<AccountService>().migrateAccount();
-    unawaited(injector<ConfigurationService>().setDoneOnboarding(true));
+    log.info('[_fetchRuntimeCache] end');
     if (timer.isActive) {
       timer.cancel();
     }
-    await metricClient.identity();
+    unawaited(metricClient.identity());
     // count open app
-    await metricClient.addEvent(MetricEventName.openApp.name);
+    unawaited(metricClient.addEvent(MetricEventName.openApp.name));
     if (!mounted) {
       return;
     }

@@ -31,6 +31,8 @@ class AddressService {
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
     if (_primaryAddressInfo != null) {
+      log.info('[AddressService] (Already set) Primary address info:'
+          ' ${_primaryAddressInfo?.toJson()}');
       return _primaryAddressInfo;
     }
     _primaryAddressInfo = await _primaryAddressChannel.getPrimaryAddress();
@@ -44,6 +46,9 @@ class AddressService {
     final addressInfo = AddressInfo(
         uuid: currentPrimaryAddress.uuid, chain: 'ethereum', index: 0);
     await registerPrimaryAddress(info: addressInfo);
+    log.info(
+      '[AddressService] Migrated to Ethereum address: ${addressInfo.toJson()}',
+    );
     return addressInfo;
   }
 
@@ -55,10 +60,14 @@ class AddressService {
 
   Future<bool> registerPrimaryAddress(
       {required AddressInfo info, bool withDidKey = false}) async {
+    log.info('[AddressService] Registering primary address: ${info.toJson()}');
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
+    log.info('[AddressService] Primary address registered: ${info.toJson()}');
     final res = await setPrimaryAddressInfo(info: info);
     // when register primary address, we need to update the auth token
+    log.info(
+        '[AddressService] Getting auth token after primary address registered');
     await injector<AuthService>().getAuthToken(forceRefresh: true);
     // we also need to identity the metric client
     await injector<MetricClientService>().identity();
@@ -177,11 +186,14 @@ class AddressService {
   }
 
   AddressInfo pickAddressAsPrimary() {
+    log.info('[AddressService] Picking address as primary');
     final ethAddresses = getAllEthereumAddress();
     if (ethAddresses.isEmpty) {
+      log.info('[AddressService] No address found');
       throw UnsupportedError('No address found');
     }
     final selectedAddress = ethAddresses.first;
+    log.info('[AddressService] Selected address: $selectedAddress');
     return AddressInfo(
         uuid: selectedAddress.uuid,
         index: selectedAddress.index,

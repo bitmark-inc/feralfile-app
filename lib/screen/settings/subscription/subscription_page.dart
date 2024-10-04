@@ -326,7 +326,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       case IAPProductStatus.notPurchased:
         // when user is essentially a free user
         return MembershipCard(
-          type: MembershipCardType.premium,
+          type: MembershipCardType.essential,
           price: subscriptionDetails.price,
           isProcessing: isProcessing == true ||
               subscriptionDetails.status == IAPProductStatus.pending,
