@@ -403,7 +403,7 @@ class AccountServiceImpl extends AccountService {
       await LibAukDart.getWallet(uuid).removeKeys();
     }
     if (Platform.isAndroid) {
-      await _androidBackupChannel.deleteAllKeys();
+      await _androidBackupChannel.deleteBlockStoreData();
     }
   }
 

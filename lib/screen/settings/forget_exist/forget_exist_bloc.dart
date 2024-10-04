@@ -73,6 +73,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await injector<CacheManager>().emptyCache();
       await DefaultCacheManager().emptyCache();
       await injector<KeychainService>().clearKeychainItems();
+
+      // deleteAllKeys must execute after CloudManager.deleteAll/clear cache
+      // because it use uuid from CloudManager._cache to delete keys
       await injector<AccountService>().deleteAllKeys();
       unawaited(injector<CloudManager>().deleteAll());
       injector<CloudManager>().clearCache();
