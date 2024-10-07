@@ -469,10 +469,8 @@ class AppRouter {
       case AppRouter.nameLinkedAccountPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc,
-                child: NameViewOnlyAddressPage(
-                    connection: settings.arguments! as Connection)));
+            builder: (context) => NameViewOnlyAddressPage(
+                connection: settings.arguments! as Connection));
 
       case tbConnectPage:
         final argument = settings.arguments;
