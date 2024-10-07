@@ -88,7 +88,7 @@ class DisplayInstructionView extends StatelessWidget {
         borderRadius: BorderRadius.circular(50),
         border: Border.all(color: AppColor.auQuickSilver),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Text('coming_soon'.tr(),
           style: theme.textTheme.ppMori400Grey14.copyWith(
             color: AppColor.auQuickSilver,
@@ -261,7 +261,6 @@ enum SupportedDisplayBranch {
               width: double.infinity,
             ),
             Positioned.fill(
-              bottom: 0,
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
