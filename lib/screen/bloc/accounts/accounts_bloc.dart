@@ -181,13 +181,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       emit(state.copyWith(accounts: accounts));
     });
 
-    on<NameLinkedAccountEvent>((event, emit) async {
-      final connection = event.connection..name = event.name;
-
-      await _cloudObject.connectionObject.writeConnection(connection);
-      add(GetAccountsEvent());
-    });
-
     on<FetchAllAddressesEvent>((event, emit) async {
       List<String> addresses = await _accountService.getAllAddresses();
       addresses.removeWhere((e) => e == '');
