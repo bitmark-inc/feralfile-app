@@ -396,7 +396,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future deleteAllKeys() async {
     if (Platform.isAndroid) {
-      final accounts = await  _androidBackupChannel.restoreKeys();
+      final accounts = await _androidBackupChannel.restoreKeys();
       final uuids = accounts.map((e) => e.uuid).toSet().toList();
       await _removeUUIDs(uuids);
       await _androidBackupChannel.deleteBlockStoreData();
