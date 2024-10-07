@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart'
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -402,6 +403,7 @@ class AccountServiceImpl extends AccountService {
     } else {
       final uuids = await _iosBackupChannel.getUUIDsFromKeychain();
       await _removeUUIDs(uuids);
+      await injector<KeychainService>().clearKeychainItems();
     }
   }
 
