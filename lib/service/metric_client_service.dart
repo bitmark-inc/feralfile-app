@@ -47,12 +47,12 @@ class MetricClientService {
   }
 
   Future<void> addEvent(
-    String name, {
+    MetricEventName event, {
     String? message,
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
-    log.info('[MetricClientService] addEvent: $name');
+    log.info('[MetricClientService] addEvent: ${event.name}');
     final configurationService = injector.get<ConfigurationService>();
 
     if (!configurationService.isAnalyticsEnabled()) {
@@ -60,7 +60,7 @@ class MetricClientService {
     }
     // ignore: unused_local_variable
     final dataWithExtend = {
-      'event': name,
+      'event': event.name,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
       'parameters': {
         ...data,
@@ -75,7 +75,7 @@ class MetricClientService {
     };
     try {
       await injector<IAPApi>().sendEvent(metrics, _identifier);
-      log.info('Metric add event success: $name');
+      log.info('Metric add event success: ${event.name}');
     } catch (e) {
       log.info('Metric add event error: $e');
       unawaited(Sentry.captureException('Metric add event error: $e'));
