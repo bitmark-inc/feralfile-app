@@ -902,7 +902,7 @@ class NavigationService {
                       : null,
                 ),
                 TextSpan(
-                  text: " ${'on_your_TV'.tr()}",
+                  text: " ${'on_your_TV'.tr()}.",
                 )
               ],
             ),
