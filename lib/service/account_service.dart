@@ -394,16 +394,20 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future deleteAllKeys() async {
-    final uuids = _cloudObject.addressObject
-        .getAllAddresses()
-        .map((e) => e.uuid)
-        .toSet()
-        .toList();
+    if (Platform.isAndroid) {
+      final accounts = await  _androidBackupChannel.restoreKeys();
+      final uuids = accounts.map((e) => e.uuid).toSet().toList();
+      await _removeUUIDs(uuids);
+      await _androidBackupChannel.deleteBlockStoreData();
+    } else {
+      final uuids = await _iosBackupChannel.getUUIDsFromKeychain();
+      await _removeUUIDs(uuids);
+    }
+  }
+
+  Future<void> _removeUUIDs(List<String> uuids) async {
     for (var uuid in uuids) {
       await LibAukDart.getWallet(uuid).removeKeys();
-    }
-    if (Platform.isAndroid) {
-      await _androidBackupChannel.deleteBlockStoreData();
     }
   }
 
