@@ -143,7 +143,7 @@ enum SupportedDisplayBranch {
   String get title {
     switch (this) {
       case SupportedDisplayBranch.samsung:
-        return 'Samsung (2023+)';
+        return 'Samsung';
       case SupportedDisplayBranch.lg:
         return 'LG'.tr();
       case SupportedDisplayBranch.chromecast:

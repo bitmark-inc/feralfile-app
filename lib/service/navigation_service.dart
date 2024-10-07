@@ -776,7 +776,7 @@ class NavigationService {
         );
       case SupportedDisplayBranch.other:
         return Text(
-          'discover_the_daily'.tr(),
+          'open_url_and_discover_daily'.tr(),
           style: theme.textTheme.ppMori400White14,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -874,19 +874,22 @@ class NavigationService {
                   Navigator.pop(context);
                   injector<NavigationService>().showStreamAction('', null);
                 },
-                child: SvgPicture.asset('assets/images/left-arrow.svg',
-                    width: 22,
-                    height: 22,
-                    colorFilter: const ColorFilter.mode(
-                      AppColor.white,
-                      BlendMode.srcIn,
-                    )),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 22, bottom: 22),
+                  child: SvgPicture.asset('assets/images/left-arrow.svg',
+                      width: 22,
+                      height: 22,
+                      colorFilter: const ColorFilter.mode(
+                        AppColor.white,
+                        BlendMode.srcIn,
+                      )),
+                ),
               )
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 36),
           displayBranch.demoPicture(context),
-          const SizedBox(height: 20),
+          const SizedBox(height: 36),
           if (displayBranch.isComingSoon)
             const SizedBox(
               height: 125,
