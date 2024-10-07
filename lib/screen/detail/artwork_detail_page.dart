@@ -12,6 +12,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -48,11 +49,9 @@ import 'package:autonomy_flutter/view/webview_controller_text_field.dart';
 import 'package:backdrop/backdrop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -64,6 +63,7 @@ import 'package:shake/shake.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -90,7 +90,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   AssetToken? currentAsset;
   final _focusNode = FocusNode();
   final _textController = TextEditingController();
-  InAppWebViewController? _webViewController;
+  WebViewController? _webViewController;
   bool _isInfoExpand = false;
   static const _infoShrinkPosition = 0.001;
   static const _infoExpandPosition = 0.29;
@@ -478,7 +478,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         ),
       );
 
-  dynamic _onLoaded({InAppWebViewController? webViewController, int? time}) {
+  dynamic _onLoaded({WebViewController? webViewController, int? time}) {
     _webViewController = webViewController;
   }
 

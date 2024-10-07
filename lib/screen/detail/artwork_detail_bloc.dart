@@ -16,6 +16,7 @@ import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
+import 'package:sentry/sentry.dart';
 
 class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   final AssetTokenDao _assetTokenDao;
@@ -94,6 +95,12 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   }
 
   Future<void> _indexHistory(String tokenId) async {
-    await _indexerApi.indexTokenHistory({'indexID': tokenId});
+    try {
+      await _indexerApi.indexTokenHistory({'indexID': tokenId});
+    } catch (e) {
+      log.info('index history error: $e');
+      unawaited(Sentry.captureException(
+          '[ArtworkDetailBloc] index history error: $e'));
+    }
   }
 }

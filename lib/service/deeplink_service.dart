@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -34,7 +35,6 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -55,7 +55,7 @@ abstract class DeeplinkService {
 
   void activateDeepLinkListener();
 
-  ValueNotifier<bool?> get didOpenWithGiftMembership;
+  Future<void> handleReferralCode(String referralCode);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -91,12 +91,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   late final Stream<String> _linkStream;
 
   @override
-  final ValueNotifier<bool?> didOpenWithGiftMembership = ValueNotifier(null);
-  bool? _isBranchDataGiftMembership;
-  bool? _isInitialLinkGiftMembership;
-
-  @override
   Future setup() async {
+    log.info('[DeeplinkService] setup');
     await FlutterBranchSdk.init(enableLogging: true);
     FlutterBranchSdk.listSession().listen((data) async {
       log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
@@ -107,13 +103,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
         _deepLinkHandlingMap[data['~referring_link']] = true;
 
         _branchDataStreamController.add(data);
-        _checkIfInitialDataGiftMembership(data);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
       log.warning('[DeeplinkService] InitBranchSession error: $error');
-      _isBranchDataGiftMembership = false;
-      _notifyGiftMembershipFlag();
     });
 
     try {
@@ -122,45 +115,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }
-      await _checkIfInitialLinkGiftMembership(initialLink);
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
-    }
-  }
-
-  bool _isThisGiftMembership(Map<dynamic, dynamic> data) {
-    final source = data['source'];
-    return source == 'gift_membership';
-  }
-
-  void _checkIfInitialDataGiftMembership(Map<dynamic, dynamic> data) {
-    _isBranchDataGiftMembership = _isThisGiftMembership(data);
-    _notifyGiftMembershipFlag();
-  }
-
-  Future<void> _checkIfInitialLinkGiftMembership(String? link) async {
-    if (link == null) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-      return;
-    }
-    try {
-      final data = await _branchApi.getParams(Environment.branchKey, link);
-      _isInitialLinkGiftMembership = _isThisGiftMembership(data);
-      _notifyGiftMembershipFlag();
-    } catch (e) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-    }
-  }
-
-  void _notifyGiftMembershipFlag() {
-    if (_isBranchDataGiftMembership != null &&
-        _isInitialLinkGiftMembership != null) {
-      didOpenWithGiftMembership.value =
-          _isBranchDataGiftMembership! || _isInitialLinkGiftMembership!;
     }
   }
 
@@ -424,6 +382,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (navigatePath != null) {
       await _navigationService.navigatePath(navigatePath);
     }
+    log.info('[DeeplinkService] handleBranchDeeplinkData $data');
+    log.info('source: ${data['source']}');
     final source = data['source'];
     switch (source) {
       case 'Postcard':
@@ -612,9 +572,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final giftCode = data['gift_code'];
         await GiftHandler.handleGiftMembership(giftCode);
 
+      case 'referral_code':
+        final referralCode = data['referralCode'];
+        log.info('[DeeplinkService] referralCode: $referralCode');
+        await handleReferralCode(referralCode);
+
       default:
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
+  }
+
+  @override
+  Future<void> handleReferralCode(String referralCode) async {
+    log.info('[DeeplinkService] handleReferralCode $referralCode');
+    // save referral code to local storage, for case when user register failed
+    await _configurationService.setReferralCode(referralCode);
+    try {
+      await injector<AddressService>()
+          .registerReferralCode(referralCode: referralCode);
+      // clear referral code after register success
+      await _configurationService.setReferralCode('');
+    } catch (e, s) {
+      log.info('[DeeplinkService] _handleReferralCode error $e');
+      unawaited(
+          Sentry.captureException('Referral code error: $e', stackTrace: s));
+      if (e is DioException) {
+        if (e.isAlreadySetReferralCode) {
+          log.info('[DeeplinkService] referral code already set');
+          // if referral code is already set, clear it
+          await _configurationService.setReferralCode('');
+        }
+      }
+    }
   }
 
   Future<void> _handlePostcardDeeplink(String shareCode) async {

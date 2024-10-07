@@ -5,66 +5,51 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:sentry/sentry.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
-  final CloudDatabase _cloudDB;
+  final CloudManager _cloudObject;
 
-  AddressService(this._primaryAddressChannel, this._cloudDB);
+  AddressService(this._primaryAddressChannel, this._cloudObject);
+
+  AddressInfo? _primaryAddressInfo;
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
-    final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
-    log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
-    return addressInfo;
+    if (_primaryAddressInfo != null) {
+      log.info('[AddressService] (Already set) Primary address info:'
+          ' ${_primaryAddressInfo?.toJson()}');
+      return _primaryAddressInfo;
+    }
+    _primaryAddressInfo = await _primaryAddressChannel.getPrimaryAddress();
+    log.info('[AddressService] Primary address info:'
+        ' ${_primaryAddressInfo?.toJson()}');
+    return _primaryAddressInfo;
   }
 
-  Future<AddressInfo?> migrateToEthereumAddress() async {
-    final currentPrimaryAddress = await getPrimaryAddressInfo();
-    if (currentPrimaryAddress == null || currentPrimaryAddress.isEthereum) {
-      return null;
-    }
-    final allEthAddresses = await getAllEthereumAddress();
-    if (allEthAddresses.isEmpty) {
-      await deriveAddressesFromAllPersona();
-    }
-    final addressInfo = await pickAddressAsPrimary();
+  Future<AddressInfo?> migrateToEthereumAddress(
+      AddressInfo currentPrimaryAddress) async {
+    final addressInfo = AddressInfo(
+        uuid: currentPrimaryAddress.uuid, chain: 'ethereum', index: 0);
     await registerPrimaryAddress(info: addressInfo);
+    log.info(
+      '[AddressService] Migrated to Ethereum address: ${addressInfo.toJson()}',
+    );
     return addressInfo;
-  }
-
-  Future<void> deriveAddressesFromAllPersona() async {
-    final personas = await _cloudDB.personaDao.getPersonas();
-    for (final persona in personas) {
-      await Future.wait([
-        persona.insertAddressAtIndex(walletType: WalletType.Ethereum, index: 0),
-        persona.insertAddressAtIndex(walletType: WalletType.Tezos, index: 0),
-      ]);
-    }
-  }
-
-  Future<void> derivePrimaryAddress() async {
-    final primaryAddressInfo = await getPrimaryAddressInfo();
-    if (primaryAddressInfo == null) {
-      return;
-    }
-    final persona = await _cloudDB.personaDao.findById(primaryAddressInfo.uuid);
-    await persona?.insertAddressAtIndex(
-        walletType: primaryAddressInfo.walletType,
-        index: primaryAddressInfo.index);
   }
 
   Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {
@@ -75,17 +60,34 @@ class AddressService {
 
   Future<bool> registerPrimaryAddress(
       {required AddressInfo info, bool withDidKey = false}) async {
+    log.info('[AddressService] Registering primary address: ${info.toJson()}');
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
+    log.info('[AddressService] Primary address registered: ${info.toJson()}');
     final res = await setPrimaryAddressInfo(info: info);
     // when register primary address, we need to update the auth token
+    log.info(
+        '[AddressService] Getting auth token after primary address registered');
     await injector<AuthService>().getAuthToken(forceRefresh: true);
     // we also need to identity the metric client
     await injector<MetricClientService>().identity();
     return res;
   }
 
+  Future<bool> registerReferralCode({required String referralCode}) async {
+    try {
+      await injector<AuthService>()
+          .registerReferralCode(referralCode: referralCode);
+      return true;
+    } catch (e) {
+      log.info('Failed to register referral code: $e');
+      unawaited(Sentry.captureException(e));
+      rethrow;
+    }
+  }
+
   Future<bool> clearPrimaryAddress() async {
+    _primaryAddressInfo = null;
     await _primaryAddressChannel.clearPrimaryAddress();
     return true;
   }
@@ -172,34 +174,26 @@ class AddressService {
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
 
   Future<List<WalletAddress>> getAllAddress() async {
-    final addresses = await _cloudDB.addressDao.getAllAddresses();
-    final persona = await _cloudDB.personaDao.getPersonas();
-    addresses
-        .removeWhere((address) => !persona.any((p) => p.uuid == address.uuid));
+    final addresses = _cloudObject.addressObject.getAllAddresses();
     return addresses;
   }
 
-  Future<List<WalletAddress>> getAllEthereumAddress() async {
-    final addresses =
-        await _cloudDB.addressDao.getAddressesByType(CryptoType.ETH.source);
-    addresses.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    final persona = await _cloudDB.personaDao.getPersonas();
-    persona.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    final sortedAddresses = <WalletAddress>[];
-    for (final p in persona) {
-      final pAddresses = addresses.where((a) => a.uuid == p.uuid).toList()
-        ..sort((a, b) => a.index.compareTo(b.index));
-      sortedAddresses.addAll(pAddresses);
-    }
-    return sortedAddresses;
+  List<WalletAddress> getAllEthereumAddress() {
+    final addresses = _cloudObject.addressObject
+        .getAddressesByType(CryptoType.ETH.source)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return addresses;
   }
 
-  Future<AddressInfo> pickAddressAsPrimary() async {
-    final ethAddresses = await getAllEthereumAddress();
+  AddressInfo pickAddressAsPrimary() {
+    log.info('[AddressService] Picking address as primary');
+    final ethAddresses = getAllEthereumAddress();
     if (ethAddresses.isEmpty) {
+      log.info('[AddressService] No address found');
       throw UnsupportedError('No address found');
     }
     final selectedAddress = ethAddresses.first;
+    log.info('[AddressService] Selected address: $selectedAddress');
     return AddressInfo(
         uuid: selectedAddress.uuid,
         index: selectedAddress.index,

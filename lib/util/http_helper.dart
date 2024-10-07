@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:http/http.dart' as http;
-import 'package:nft_rendering/nft_rendering.dart';
 
 class HttpHelper {
   static Map<String, String> _getHmac(
@@ -38,11 +38,11 @@ class HttpHelper {
   static Future<http.Response> hmacAuthenticationPost({
     required String host,
     required String path,
+    required String secretKey,
     Map<String, dynamic>? body,
     Map<String, String>? header,
-    required String secretKey,
   }) async {
-    final url = Uri.parse("$host$path");
+    final url = Uri.parse('$host$path');
     final headers = header ?? {};
     final hmacHeader = _getHmac(HttpMethod.POST, path, body, secretKey);
     headers.addAll({
@@ -61,10 +61,10 @@ class HttpHelper {
   static Future<http.Response> hmacAuthenticationGet({
     required String host,
     required String path,
-    Map<String, String>? header,
     required String secretKey,
+    Map<String, String>? header,
   }) async {
-    final url = Uri.parse("$host$path");
+    final url = Uri.parse('$host$path');
     final headers = header ?? {};
     final hmacHeader = _getHmac(HttpMethod.GET, path, null, secretKey);
     headers.addAll({

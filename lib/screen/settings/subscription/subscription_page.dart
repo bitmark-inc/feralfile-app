@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -227,7 +228,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               price: subscriptionDetails.price,
               isProcessing: false,
               isEnable: true,
-              canAutoRenew: true,
+              renewPolicyText:
+                  subscriptionDetails.productDetails.renewPolicyText,
               buttonBuilder: (context) => Container(
                 padding:
                     const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
@@ -322,7 +324,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       case IAPProductStatus.notPurchased:
         // when user is essentially a free user
         return MembershipCard(
-          type: MembershipCardType.premium,
+          type: MembershipCardType.essential,
           price: subscriptionDetails.price,
           isProcessing: isProcessing == true ||
               subscriptionDetails.status == IAPProductStatus.pending,
@@ -332,7 +334,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 subscriptionDetails: subscriptionDetails);
           },
           buttonText: 'upgrade'.tr(),
-          canAutoRenew: true,
+          renewPolicyText: subscriptionDetails.productDetails.renewPolicyText,
         );
       case IAPProductStatus.error:
         return Text(

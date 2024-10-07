@@ -6,21 +6,41 @@
 //
 
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
+import 'package:uuid/uuid.dart';
 
 class DeviceInfoService {
-  late final String _deviceId;
-  late final String _deviceName;
+  String _deviceId = '';
+  String _deviceName = '';
   bool _didInitialized = false;
 
+  // If the device name and id are not available, set default values
+  // Errors can be ignored when opening the app
   Future<void> init() async {
+    log.info('[DeviceInfoService] init');
     if (_didInitialized) {
+      log.info('[DeviceInfoService] already initialized');
       return;
     }
-    final device = DeviceInfo.instance;
-    _deviceName = await device.getMachineName() ?? 'Feral File App';
-    _deviceId = await getDeviceID();
+    // Get device name and id
+    try {
+      final device = DeviceInfo.instance;
+      _deviceName = await device.getMachineName() ?? 'Feral File App';
+      _deviceId = await getDeviceID();
+    } catch (e) {
+      // if failed to get device name and id, set default values
+      if (_deviceName.isEmpty) {
+        _deviceName = 'Feral File App';
+      }
+      if (_deviceId.isEmpty) {
+        _deviceId = const Uuid().v4();
+      }
+    }
+
+    // set didInitialized to true
     _didInitialized = true;
+    log.info('[DeviceInfoService] initialized');
   }
 
   String get deviceId => _deviceId;

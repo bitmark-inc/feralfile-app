@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -96,12 +95,15 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   Future<List<Issue>> getIssues() async {
-    final issues = await _customerSupportApi.getIssues();
-    issues.removeWhere(
-        (element) => element.tags.contains(ReportIssueType.ReportNFTIssue));
+    final issues = <Issue>[];
+    try {
+      final listIssues = await _customerSupportApi.getIssues();
+      issues.addAll(listIssues);
+    } catch (e) {
+      log.info('[CS-Service] getIssues error: $e');
+      unawaited(Sentry.captureException(e));
+    }
     final drafts = await _draftCustomerSupportDao.getAllDrafts();
-    drafts.removeWhere(
-        (element) => element.reportIssueType == ReportIssueType.ReportNFTIssue);
 
     for (var draft in drafts) {
       if (draft.type != CSMessageType.CreateIssue.rawValue) {

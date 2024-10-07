@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
@@ -23,12 +24,11 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class ArtworkPreviewPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -175,7 +175,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       return ArtworkPreviewWidget(
                         identity: identity,
                         onLoaded: (
-                            {InAppWebViewController? webViewController,
+                            {WebViewController? webViewController,
                             int? time}) {},
                         focusNode: _focusNode,
                         useIndexer: widget.payload.useIndexer,

@@ -23,29 +23,26 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/dio_util.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -54,11 +51,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class HomeNavigationPagePayload {
   final bool fromOnboarding;
@@ -250,6 +246,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       injector<DeeplinkService>()
         ..activateBranchDataListener()
         ..activateDeepLinkListener();
+      if (!_configurationService.didShowLiveWithArt()) {
+        if (!mounted) {
+          return;
+        }
+        unawaited(UIHelper.showLiveWithArtIntro(context));
+      }
     });
     injector<DeeplinkService>()
       ..activateBranchDataListener()
@@ -268,6 +270,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         default:
       }
     });
+    unawaited(injector<VersionService>().checkForUpdate());
     unawaited(
         _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
@@ -302,9 +305,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             key: feralFileHomeKey,
           )),
     ];
-    if (!_configurationService.isReadRemoveSupport()) {
-      unawaited(_showRemoveCustomerSupport());
-    }
 
     _triggerShowAnnouncement();
 
@@ -337,7 +337,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         );
       });
     });
-    injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');
@@ -364,12 +363,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future refreshNotification() async {
     await injector<CustomerSupportService>().getIssues();
+    await injector<CustomerSupportService>().processMessages();
   }
 
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    unawaited(injector<CustomerSupportService>().getIssues());
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -382,47 +381,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         nftBloc
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
-    }
-  }
-
-  Future<void> _showRemoveCustomerSupport() async {
-    final device = DeviceInfo.instance;
-    if (!(await device.isSupportOS())) {
-      final dio = baseDio(BaseOptions(
-        baseUrl: 'https://raw.githubusercontent.com',
-        connectTimeout: const Duration(seconds: 5),
-      ));
-      final data = await dio.get<String>(REMOVE_CUSTOMER_SUPPORT);
-      if (data.statusCode == 200) {
-        final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
-        String? gitHubContent = data.data ?? '';
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) {
-            showInAppNotifications(
-                context, 'au_has_announcement'.tr(), 'remove_customer_support',
-                notificationOpenedHandler: () {
-              UIHelper.showCenterSheet(context,
-                  content: Markdown(
-                    key: const Key('remove_customer_support'),
-                    data: gitHubContent,
-                    softLineBreak: true,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(0),
-                    styleSheet: markDownAnnouncementStyle(context),
-                  ),
-                  actionButton: 'follow_github'.tr(),
-                  actionButtonOnTap: () =>
-                      launchUrl(uri, mode: LaunchMode.externalApplication),
-                  exitButtonOnTap: () {
-                    _configurationService.readRemoveSupport(true);
-                    Navigator.of(context).pop();
-                  },
-                  exitButton: 'i_understand_'.tr());
-            });
-          }
-        });
-      }
     }
   }
 
@@ -567,7 +525,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _handleBackground() {
-    unawaited(_cloudBackup());
+    unawaited(_checkForReferralCode());
+  }
+
+  Future<void> _checkForReferralCode() async {
+    final referralCode = injector<ConfigurationService>().getReferralCode();
+    if (referralCode != null && referralCode.isNotEmpty) {
+      await injector<DeeplinkService>().handleReferralCode(referralCode);
+    }
   }
 
   void _triggerShowAnnouncement() {
@@ -587,12 +552,27 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         memoryValues.isForeground = true;
         unawaited(injector<ChatService>().reconnect());
       case FGBGType.background:
-        _handleBackground();
         memoryValues.isForeground = false;
+        _handleBackground();
     }
   }
 
   Future<void> _handleForeground() async {
+    final locale = Localizations.localeOf(context);
+    unawaited(LocaleService.refresh(locale));
+    memoryValues.inForegroundAt = DateTime.now();
+    await injector<ConfigurationService>().reload();
+    try {
+      await injector<SettingsDataService>().restoreSettingsData();
+    } catch (exception) {
+      if (exception is DioException && exception.response?.statusCode == 404) {
+        // if there is no backup, upload one.
+        await injector<SettingsDataService>().backup();
+      } else {
+        unawaited(Sentry.captureException(exception));
+      }
+    }
+    unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();
     _triggerShowAnnouncement();
@@ -603,15 +583,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (widget.payload.startedTab != _initialTab) {
       await onItemTapped(widget.payload.startedTab.index);
     }
-    await _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
-  }
-
-  Future<void> _cloudBackup() async {
-    final backupService = injector<BackupService>();
-    await backupService.backupCloudDatabase();
   }
 }

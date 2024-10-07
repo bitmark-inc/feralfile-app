@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
@@ -31,7 +32,6 @@ import 'package:autonomy_flutter/view/user_widget.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -148,7 +148,13 @@ class DailyWorkPageState extends State<DailyWorkPage>
   void updateProgressStatus() {
     _progressTimer?.cancel();
     // Update After Each 5 Minutes
-    _progressTimer = Timer(const Duration(seconds: 300), () {
+    final remainingDuration = _calcRemainingDuration;
+    final timerDuration = remainingDuration.inHours >= 1
+        ? const Duration(minutes: 5)
+        : remainingDuration.inMinutes >= 1
+            ? const Duration(minutes: 1)
+            : const Duration(seconds: 3);
+    _progressTimer = Timer(timerDuration, () {
       setState(() {
         _remainingDuration = _calcRemainingDuration;
       });
@@ -225,13 +231,31 @@ class DailyWorkPageState extends State<DailyWorkPage>
         ),
         const SizedBox(width: 32),
         Text(
-          'next_daily'.tr(namedArgs: {
-            'duration': '${remainingDuration.inHours}h',
-          }),
+          _nextDailyDurationText(remainingDuration),
           style: Theme.of(context).textTheme.ppMori400Grey12,
         ),
       ],
     );
+  }
+
+  String _nextDailyDurationText(Duration remainingDuration) {
+    final hours = remainingDuration.inHours;
+    if (hours > 0) {
+      return 'next_daily'.tr(namedArgs: {
+        'duration': '${hours}hr',
+      });
+    } else {
+      final minutes = remainingDuration.inMinutes;
+      if (minutes <= 1) {
+        return 'next_daily'.tr(namedArgs: {
+          'duration': 'in a minute',
+        });
+      } else {
+        return 'next_daily'.tr(namedArgs: {
+          'duration': '$minutes mins',
+        });
+      }
+    }
   }
 
   Widget _artworkInfoIcon() => Semantics(

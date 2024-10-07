@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -9,7 +10,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -63,7 +62,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final _playlistService = injector<PlaylistService>();
   List<ArtworkIdentity> accountIdentities = [];
   List<CompactedAssetToken> tokensPlaylist = [];
-  bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
   late bool editable;
@@ -81,8 +79,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       unawaited(_fetchFeaturedTokens());
     } else {
       nftBloc.add(RefreshNftCollectionByIDs(
-        ids: isDemo ? [] : widget.payload.playListModel?.tokenIDs,
-        debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
+        ids: widget.payload.playListModel?.tokenIDs,
       ));
     }
 
@@ -150,9 +147,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
           onTap: () async {
             Navigator.pop(context);
-            if (isDemo) {
-              return;
-            }
             await Navigator.pushNamed(
               context,
               AppRouter.editPlayListPage,
@@ -165,8 +159,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
                 bloc.add(SavePlaylist(name: playListModel.name));
                 nftBloc.add(RefreshNftCollectionByIDs(
-                  ids: isDemo ? [] : value.tokenIDs,
-                  debugTokenIds: isDemo ? value.tokenIDs : [],
+                  ids: value.tokenIDs,
                 ));
               }
             });

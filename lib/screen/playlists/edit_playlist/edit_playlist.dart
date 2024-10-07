@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_st
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -49,7 +48,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   late bool _showSearchBar;
   late String _searchText;
   late ScrollController _controller;
-  bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
 
   @override
   void initState() {
@@ -411,9 +409,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     );
   }
 
-  String getTextNumber(int num) {
-    return num > 9 ? "+9" : "$num";
-  }
+  String getTextNumber(int num) => num > 9 ? '+9' : '$num';
 
   Future<void> moveToAddNftToCollection(BuildContext context) async {
     await Navigator.pushNamed(
@@ -430,8 +426,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
         );
         bloc.add(UpdateNamePlaylist(name: value.name ?? ''));
         nftBloc.add(RefreshNftCollectionByIDs(
-          ids: isDemo ? [] : value.tokenIDs,
-          debugTokenIds: isDemo ? value.tokenIDs : [],
+          ids: value.tokenIDs,
         ));
       }
     });

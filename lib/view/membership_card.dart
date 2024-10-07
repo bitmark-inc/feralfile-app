@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -15,7 +17,7 @@ class MembershipCard extends StatelessWidget {
   final bool isCompleted;
   final String? renewDate;
   final Function()? onContinue;
-  final bool canAutoRenew;
+  final String? renewPolicyText;
 
   const MembershipCard({
     required this.type,
@@ -28,7 +30,7 @@ class MembershipCard extends StatelessWidget {
     this.isCompleted = false,
     this.renewDate,
     this.onContinue,
-    this.canAutoRenew = false,
+    this.renewPolicyText,
     super.key,
   });
 
@@ -69,7 +71,6 @@ class MembershipCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(15),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ...type.features.map((feature) => Padding(
                         padding: const EdgeInsets.only(left: 10),
@@ -133,12 +134,28 @@ class MembershipCard extends StatelessWidget {
                       onTap: () => onTap!(type),
                       color: AppColor.feralFileLightBlue,
                     ),
-                  if (canAutoRenew) ...[
+                  if (renewPolicyText != null) ...[
                     const SizedBox(height: 10),
                     Text(
-                      'auto_renews_unless_cancelled'.tr(),
+                      renewPolicyText!,
                       style: activeTextStyle,
                       textAlign: TextAlign.center,
+                    ),
+                  ],
+                  if (type == MembershipCardType.essential) ...[
+                    const SizedBox(height: 10),
+                    TextButton(
+                      text: 'restore_purchase'.tr(),
+                      textStyle: activeTextStyle.copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColor.primaryBlack,
+                      ),
+                      activeTextStyle: activeTextStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      onTap: () async {
+                        await injector<IAPService>().restore();
+                      },
                     ),
                   ],
                 ],
@@ -163,18 +180,70 @@ enum MembershipCardType {
     }
   }
 
-  List<String> get features {
-    switch (this) {
-      case MembershipCardType.essential:
-        return [
-          'feature_1'.tr(),
-          'feature_2'.tr(),
-        ];
-      case MembershipCardType.premium:
-        return [
-          'feature_3'.tr(),
-          'feature_4'.tr(),
-        ];
-    }
+  List<String> get features => [
+        'feature_1'.tr(),
+        'feature_2'.tr(),
+        'feature_3'.tr(),
+        'feature_4'.tr(),
+      ];
+}
+
+class TextButton extends StatefulWidget {
+  final String text;
+  final TextStyle textStyle;
+  final TextStyle? activeTextStyle;
+  final Function()? onTap;
+
+  const TextButton({
+    required this.text,
+    required this.textStyle,
+    required this.onTap,
+    this.activeTextStyle,
+    super.key,
+  });
+
+  @override
+  State<TextButton> createState() => _TextButtonState();
+}
+
+class _TextButtonState extends State<TextButton> {
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = _isProcessing
+        ? widget.activeTextStyle ?? widget.textStyle
+        : widget.textStyle.copyWith(
+            decoration: TextDecoration.underline,
+          );
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          _isProcessing = true;
+        });
+        await widget.onTap?.call();
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _isProcessing = false;
+        });
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            widget.text,
+            style: textStyle,
+          ),
+        ],
+      ),
+    );
   }
 }

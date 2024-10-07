@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
-import 'package:libauk_dart/libauk_dart.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class PrimaryAddressChannel {
   final MethodChannel _channel;
@@ -32,15 +30,6 @@ class PrimaryAddressChannel {
         return null;
       }
       final primaryAddressInfo = json.decode(data);
-      final wallet = WalletStorage(primaryAddressInfo['uuid']);
-      if (!(await wallet.isWalletCreated())) {
-        unawaited(Sentry.captureException(
-          Exception('Primary address wallet not created'),
-          stackTrace: StackTrace.current,
-        ));
-        return null;
-      }
-
       return AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
       log.info('getPrimaryAddress error', e);
