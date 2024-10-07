@@ -673,11 +673,10 @@ enum ExhibitionCatalog {
       case ExhibitionCatalog.home:
         return 'home';
       case ExhibitionCatalog.curatorNote:
-        return 'curator_note';
       case ExhibitionCatalog.resource:
-        return 'resource';
       case ExhibitionCatalog.resourceDetail:
-        return 'resource_detail';
+        // resource and resourceDetail are treated as the same metric
+        return 'curator_note';
       case ExhibitionCatalog.artwork:
         return 'artworks';
       default:
