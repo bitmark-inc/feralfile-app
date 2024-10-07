@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
@@ -12,17 +11,13 @@ extension ProductDetailsExt on ProductDetails {
 
   SKSubscriptionPeriodUnit get period {
     if (Platform.isAndroid) {
-      if (id == premiumId()) {
-        return SKSubscriptionPeriodUnit.year;
-      } else {
-        return SKSubscriptionPeriodUnit.month;
-      }
+      return SKSubscriptionPeriodUnit.year;
     } else if (Platform.isIOS) {
       return (this as AppStoreProductDetails)
               .skProduct
               .subscriptionPeriod
               ?.unit ??
-          SKSubscriptionPeriodUnit.month;
+          SKSubscriptionPeriodUnit.year;
     } else {
       throw Exception('Unsupported platform');
     }

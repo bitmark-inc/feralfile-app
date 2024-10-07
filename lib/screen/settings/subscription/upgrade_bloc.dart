@@ -9,10 +9,10 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
@@ -20,10 +20,8 @@ import 'package:sentry/sentry.dart';
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
-  final MetricClientService _metricClientService;
 
-  UpgradesBloc(
-      this._iapService, this._configurationService, this._metricClientService)
+  UpgradesBloc(this._iapService, this._configurationService)
       : super(UpgradeState(subscriptionDetails: [])) {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {
@@ -45,7 +43,24 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           }
 
           final membershipSource = subscriptionStatus.source;
-          final stripePortalUrl = await injector<IAPService>().getStripeUrl();
+          if (membershipSource == MembershipSource.webPurchase) {
+            final webPurchaseProduct = ProductDetails(
+              id: 'web_purchase',
+              title: 'Web Purchase',
+              description: 'Web Purchase',
+              price: r'$200',
+              currencyCode: 'USD',
+              rawPrice: 200,
+            );
+            _iapService.products.value[webPurchaseProduct.id] =
+                webPurchaseProduct;
+            _iapService.purchases.value[webPurchaseProduct.id] =
+                IAPProductStatus.completed;
+          }
+          final stripePortalUrl =
+              membershipSource == MembershipSource.webPurchase
+                  ? await injector<IAPService>().getStripeUrl()
+                  : null;
 
           // after updating purchase status, emit new state
           emit(state.copyWith(
@@ -128,23 +143,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
       ));
     }
     return subscriptionDetals;
-  }
-
-  Future<IAPProductStatus> getSubscriptionStatus(
-      ProductDetails productDetails) async {
-    try {
-      final productId = productDetails.id;
-      final subscriptionProductDetails = _iapService.products.value[productId];
-      if (subscriptionProductDetails != null) {
-        await _iapService.purchase(subscriptionProductDetails);
-        return IAPProductStatus.pending;
-      } else {
-        throw Exception('Product not found');
-      }
-    } catch (error) {
-      log.warning(error);
-      return IAPProductStatus.error;
-    }
   }
 
   @override

@@ -17,13 +17,11 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
@@ -69,25 +67,14 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               final subscriptionStatus = injector<ConfigurationService>()
                   .getIAPJWT()
                   ?.getSubscriptionStatus();
-              return Swiper(
-                itemCount: subscriptionDetails.length,
-                onIndexChanged: (index) {},
-                index: initialIndex,
-                loop: false,
-                itemBuilder: (context, index) => _subscribeView(
-                  context,
-                  subscriptionDetails[index],
-                  subscriptionStatus,
-                  state.isProcessing,
-                ),
-                pagination: subscriptionDetails.length > 1
-                    ? const SwiperPagination(
-                        builder: DotSwiperPaginationBuilder(
-                            color: AppColor.auLightGrey,
-                            activeColor: MomaPallet.lightYellow),
-                      )
-                    : null,
-                controller: SwiperController(),
+              if (subscriptionDetails.isEmpty) {
+                return const LoadingWidget();
+              }
+              return _subscribeView(
+                context,
+                subscriptionDetails.first,
+                subscriptionStatus,
+                state.isProcessing,
               );
             }),
       ),

@@ -943,7 +943,6 @@ class AppRouter {
                     create: (_) => UpgradesBloc(
                       injector(),
                       injector(),
-                      injector(),
                     ),
                   ),
                 ], child: const SubscriptionPage()));

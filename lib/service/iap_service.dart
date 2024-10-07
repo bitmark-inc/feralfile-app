@@ -63,12 +63,6 @@ const _kApplePremiumProductId = 'com.bitmark.feralfile.premium';
 String premiumId() =>
     Platform.isIOS ? _kApplePremiumProductId : _kGooglePremiumProductId;
 
-List<String> inactiveIds() {
-  final ids =
-      Platform.isIOS ? _kAppleInactiveProductIds : _kGoogleInactiveProductIds;
-  return ids;
-}
-
 enum IAPProductStatus {
   loading,
   notPurchased,
@@ -185,7 +179,8 @@ class IAPServiceImpl implements IAPService {
   Future<List<ProductDetails>> fetchAllProducts() async {
     await setPaymentQueueDelegate();
     final productIds = _getProductIds();
-    return _fetchProducts(productIds);
+    final appStoreProduct = await _fetchProducts(productIds);
+    return [...appStoreProduct];
   }
 
   @override
