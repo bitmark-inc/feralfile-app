@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -40,7 +39,6 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/address_service.dart' as nft;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -743,8 +741,7 @@ class AccountServiceImpl extends AccountService {
     // case 4: migrated user
     if (didMigrate) {
       log.info('[AccountService] migrateAccount: case 4 migrated user');
-      unawaited(
-          _cloudObject.downloadAll().then((_) => _indexAddressesCollection()));
+      await _cloudObject.downloadAll();
       log.info('[AccountService] migrateAccount: case 4 finished');
       return;
     }
@@ -902,13 +899,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudObject.addressObject.insertAddresses(addresses);
     await injector<nft.AddressService>()
         .addAddresses(addresses.map((e) => e.address).toList());
-  }
-
-  Future<void> _indexAddressesCollection() async {
-    final clientTokenService = injector<ClientTokenService>();
-    await clientTokenService.refreshTokens(syncAddresses: true);
-    clientTokenService.nftBloc
-        .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
   }
 
   @override
