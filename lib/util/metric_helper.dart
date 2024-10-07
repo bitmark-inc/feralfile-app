@@ -18,4 +18,21 @@ enum MetricEventName {
   }
 }
 
+enum MetricParameter {
+  tokenId,
+  section,
+  exhibitionId;
+
+  String get name {
+    switch (this) {
+      case MetricParameter.tokenId:
+        return 'token_id';
+      case MetricParameter.section:
+        return 'section';
+      case MetricParameter.exhibitionId:
+        return 'exhibition_id';
+    }
+  }
+}
+
 const platform = 'Feral File App';

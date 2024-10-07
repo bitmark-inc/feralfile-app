@@ -666,7 +666,24 @@ enum ExhibitionCatalog {
   curatorNote,
   resource,
   resourceDetail,
-  artwork,
+  artwork;
+
+  String get metricName {
+    switch (this) {
+      case ExhibitionCatalog.home:
+        return 'home';
+      case ExhibitionCatalog.curatorNote:
+        return 'curator_note';
+      case ExhibitionCatalog.resource:
+        return 'resource';
+      case ExhibitionCatalog.resourceDetail:
+        return 'resource_detail';
+      case ExhibitionCatalog.artwork:
+        return 'artworks';
+      default:
+        return '';
+    }
+  }
 }
 
 // Class representing CastExhibitionRequest message

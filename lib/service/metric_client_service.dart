@@ -49,7 +49,7 @@ class MetricClientService {
   Future<void> addEvent(
     MetricEventName event, {
     String? message,
-    Map<String, dynamic> data = const {},
+    Map<MetricParameter, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
     log.info('[MetricClientService] addEvent: ${event.name}');
@@ -58,12 +58,14 @@ class MetricClientService {
     if (!configurationService.isAnalyticsEnabled()) {
       return;
     }
+    final rawData = data.map((key, value) => MapEntry(key.name, value));
+
     // ignore: unused_local_variable
     final dataWithExtend = {
       'event': event.name,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
       'parameters': {
-        ...data,
+        ...rawData,
         'platform': platform,
       }
     };
