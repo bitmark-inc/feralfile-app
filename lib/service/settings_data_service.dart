@@ -58,9 +58,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     _keyHiddenMainnetTokenIDs,
   ];
 
-
-
-
   @override
   Future restoreSettingsData({bool fromProfileData = false}) async {
     if (PreferencesBloc.isOnChanging) {
@@ -107,8 +104,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
     await _configurationService.setDevicePasscodeEnabled(
         data[_keyDevicePasscodeEnabled] as bool? ?? false);
 
-    await _configurationService.setNotificationEnabled(
-        data[_keyNotificationEnabled] as bool? ?? true);
+    await _configurationService
+        .setNotificationEnabled(data[_keyNotificationEnabled] as bool? ?? true);
 
     await _configurationService.updateTempStorageHiddenTokenIDs(
         (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
@@ -159,7 +156,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
         'value': notificationEnabled,
       });
     }
-
 
     if (newSettings.isEmpty) {
       log.info('[SettingsDataService] skip device backup: identical');
