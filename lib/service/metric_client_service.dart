@@ -34,12 +34,7 @@ class MetricClientService {
             Sentry.captureMessage('Metric Identity: Primary address is null'));
         return;
       }
-      if (primaryAddress == _identifier) {
-        log.info('Metric Identity: Primary address is same as current');
-        return;
-      }
       await mergeUser(_identifier);
-      _identifier = primaryAddress;
     } catch (e) {
       log.info('Metric identity error: $e');
       unawaited(Sentry.captureException('Metric identity error: $e'));
