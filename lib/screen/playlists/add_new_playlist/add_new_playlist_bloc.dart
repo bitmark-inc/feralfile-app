@@ -60,7 +60,7 @@ class AddNewPlaylistBloc
       playListModel?.id ??= const Uuid().v4();
       await _playListService
           .setPlayList([playListModel!], onConflict: ConflictAction.replace);
-      unawaited(injector.get<SettingsDataService>().backup());
+      unawaited(injector.get<SettingsDataService>().backupUserSettings());
 
       emit(state.copyWith(isAddSuccess: true));
     });

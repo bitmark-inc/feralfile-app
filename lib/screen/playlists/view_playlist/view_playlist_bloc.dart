@@ -35,7 +35,7 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
       if (index != -1 && playListModel != null) {
         playlists[index] = playListModel;
         await _playlistService.setPlayList(playlists, override: true);
-        unawaited(injector.get<SettingsDataService>().backup());
+        unawaited(injector.get<SettingsDataService>().backupUserSettings());
       }
       emit(state.copyWith(isRename: false));
     });

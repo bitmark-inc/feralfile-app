@@ -100,7 +100,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
         await _configurationService
             .setAnalyticEnabled(event.newState.isAnalyticEnabled);
         await _configurationService.setPendingSettings(false);
-        unawaited(injector<SettingsDataService>().backup());
+        unawaited(injector<SettingsDataService>().backupDeviceSettings());
       }
 
       emit(event.newState);

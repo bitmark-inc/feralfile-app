@@ -1195,7 +1195,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           onTap: () async {
             await _configurationService
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            await injector<SettingsDataService>().backup();
+            await injector<SettingsDataService>().backupUserSettings();
 
             if (!context.mounted) {
               return;

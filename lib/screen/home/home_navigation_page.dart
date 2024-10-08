@@ -44,7 +44,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +53,6 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class HomeNavigationPagePayload {
   final bool fromOnboarding;
@@ -562,16 +560,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
-    try {
-      await injector<SettingsDataService>().restoreSettingsData();
-    } catch (exception) {
-      if (exception is DioException && exception.response?.statusCode == 404) {
-        // if there is no backup, upload one.
-        await injector<SettingsDataService>().backup();
-      } else {
-        unawaited(Sentry.captureException(exception));
-      }
-    }
+    await injector<SettingsDataService>().restoreSettingsData();
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();

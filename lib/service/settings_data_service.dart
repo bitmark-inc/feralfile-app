@@ -12,15 +12,14 @@ import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-part 'settings_data_service.g.dart';
-
 abstract class SettingsDataService {
-  Future backup();
-
   Future restoreSettingsData({bool fromProfileData = false});
+
+  Future<void> backupDeviceSettings();
+
+  Future<void> backupUserSettings();
 
   List<String> get settingsKeys;
 }
@@ -40,11 +39,13 @@ class SettingsDataServiceImpl implements SettingsDataService {
       'requester'; // server ignore this when putting jwt, so just put something
   final _filename = 'settings_data_backup.json';
   final _version = '1';
-  var _numberOfCallingBackups = 0;
 
+  // device settings
   static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
-  static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
+
+  // user settings
   static const _keyPlaylists = 'playlists';
+  static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
 
   @override
   List<String> settingsKeys = [
@@ -54,18 +55,66 @@ class SettingsDataServiceImpl implements SettingsDataService {
   ];
 
   @override
-  Future backup() async {
-    log.info('[SettingsDataService][Start] backup');
-    if (_numberOfCallingBackups > 0) {
-      log.info(
-          "[SettingsDataService] skip backup because of it's already running");
-      return;
+  Future restoreSettingsData({bool fromProfileData = false}) async {
+    log.info('[SettingsDataService][Start] restoreSettingsData');
+    if (!fromProfileData) {
+      log.info('[SettingsDataService] from account setting db');
+      await Future.wait([
+        _cloudObject.deviceSettingsDB.download(keys: settingsKeys),
+        _cloudObject.userSettingsDB.download(keys: settingsKeys),
+      ]);
+      final Map<String, dynamic> data = {}
+        ..addAll(_cloudObject.deviceSettingsDB.allInstance
+            .map((key, value) => MapEntry(key, jsonDecode(value))))
+        ..addAll(_cloudObject.userSettingsDB.allInstance
+            .map((key, value) => MapEntry(key, jsonDecode(value))));
+
+      log.info('[SettingsDataService] restore $data');
+
+      await _saveSettingToConfig(data);
+    } else {
+      log.info('[SettingsDataService] migrate from old server');
+      try {
+        final response =
+            await _iapApi.getProfileData(_requester, _filename, _version);
+        final data = json.decode(response);
+
+        await _saveSettingToConfig(data);
+
+        log.info('[SettingsDataService][Done] restoreSettingsData');
+      } catch (exception, stacktrace) {
+        await Sentry.captureException(exception, stackTrace: stacktrace);
+        return;
+      }
     }
-    final currentSettings = _cloudObject.settingsDataDB.allInstance;
+  }
 
+  Future<void> _saveSettingToConfig(Map<String, dynamic> data) async {
+    await _configurationService
+        .setAnalyticEnabled(data[_keyIsAnalyticsEnabled] as bool? ?? true);
+
+    await _configurationService.updateTempStorageHiddenTokenIDs(
+        (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            [],
+        true,
+        override: true);
+
+    await _configurationService.setPlayList(
+        (data[_keyPlaylists] as List<dynamic>?)
+                ?.map(
+                  (e) => PlayListModel.fromJson(e as Map<String, dynamic>),
+                )
+                .toList() ??
+            [],
+        override: true);
+  }
+
+  @override
+  Future<void> backupDeviceSettings() async {
+    final currentSettings = _cloudObject.deviceSettingsDB.allInstance;
     final List<Map<String, String>> newSettings = [];
-
-    _numberOfCallingBackups += 1;
 
     final isAnalyticsEnabled =
         jsonEncode(_configurationService.isAnalyticsEnabled());
@@ -75,6 +124,25 @@ class SettingsDataServiceImpl implements SettingsDataService {
         'value': isAnalyticsEnabled,
       });
     }
+    if (newSettings.isEmpty) {
+      log.info('[SettingsDataService] skip device backup: identical');
+      return;
+    }
+
+    try {
+      await _cloudObject.deviceSettingsDB.write(newSettings);
+
+      log.info('[SettingsDataService][Done] backup device settings');
+    } catch (exception, stacktrace) {
+      await Sentry.captureException(exception, stackTrace: stacktrace);
+      return;
+    }
+  }
+
+  @override
+  Future<void> backupUserSettings() async {
+    final currentSettings = _cloudObject.userSettingsDB.allInstance;
+    final List<Map<String, String>> newSettings = [];
 
     final hiddenMainnetTokenIDs =
         jsonEncode(_configurationService.getTempStorageHiddenTokenIDs());
@@ -94,78 +162,17 @@ class SettingsDataServiceImpl implements SettingsDataService {
     }
 
     if (newSettings.isEmpty) {
-      log.info("[SettingsDataService] skip backup because of it's identical");
+      log.info('[SettingsDataService] skip user backup: identical');
       return;
     }
 
     try {
-      await _cloudObject.settingsDataDB.write(newSettings);
+      await _cloudObject.userSettingsDB.write(newSettings);
+
+      log.info('[SettingsDataService][Done] backup user settings');
     } catch (exception, stacktrace) {
       await Sentry.captureException(exception, stackTrace: stacktrace);
       return;
     }
-
-    _numberOfCallingBackups -= 1;
-
-    log.info('[SettingsDataService][Done] backup');
   }
-
-  @override
-  Future restoreSettingsData({bool fromProfileData = false}) async {
-    log.info('[SettingsDataService][Start] restoreSettingsData');
-    if (!fromProfileData) {
-      log.info('[SettingsDataService] from account setting db');
-      await _cloudObject.settingsDataDB.download(keys: settingsKeys);
-      final res = _cloudObject.settingsDataDB.allInstance
-          .map((key, value) => MapEntry(key, jsonDecode(value)));
-
-      log.info('[SettingsDataService] restore $res');
-
-      final data = SettingsDataBackup.fromJson(res);
-
-      await _saveSettingToConfig(data);
-    } else {
-      log.info('[SettingsDataService] migrate from old server');
-      try {
-        final response =
-            await _iapApi.getProfileData(_requester, _filename, _version);
-        final data = SettingsDataBackup.fromJson(json.decode(response));
-
-        await _saveSettingToConfig(data);
-
-        log.info('[SettingsDataService][Done] restoreSettingsData');
-      } catch (exception, stacktrace) {
-        await Sentry.captureException(exception, stackTrace: stacktrace);
-        return;
-      }
-    }
-  }
-
-  Future<void> _saveSettingToConfig(SettingsDataBackup data) async {
-    await _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
-
-    await _configurationService.updateTempStorageHiddenTokenIDs(
-        data.hiddenMainnetTokenIDs, true,
-        override: true);
-
-    await _configurationService.setPlayList(data.playlists, override: true);
-  }
-}
-
-@JsonSerializable()
-class SettingsDataBackup {
-  bool isAnalyticsEnabled;
-  List<String> hiddenMainnetTokenIDs;
-  List<PlayListModel> playlists;
-
-  SettingsDataBackup({
-    required this.isAnalyticsEnabled,
-    required this.hiddenMainnetTokenIDs,
-    this.playlists = const [],
-  });
-
-  factory SettingsDataBackup.fromJson(Map<String, dynamic> json) =>
-      _$SettingsDataBackupFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SettingsDataBackupToJson(this);
 }

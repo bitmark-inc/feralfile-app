@@ -89,7 +89,7 @@ class _SettingsPageState extends State<SettingsPage>
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    unawaited(injector<SettingsDataService>().backup());
+    unawaited(injector<SettingsDataService>().backupDeviceSettings());
   }
 
   Widget _settingItem({

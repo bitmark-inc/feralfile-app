@@ -64,7 +64,7 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
       if (index != -1 && playListModel != null) {
         playlists[index] = playListModel;
         await service.setPlayList(playlists, override: true);
-        unawaited(injector.get<SettingsDataService>().backup());
+        unawaited(injector.get<SettingsDataService>().backupUserSettings());
         emit(state.copyWith(isAddSuccess: true));
       }
     });

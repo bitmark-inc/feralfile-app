@@ -102,7 +102,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     listPlaylist.removeWhere(
         (element) => element.id == widget.payload.playListModel?.id);
     await _playlistService.setPlayList(listPlaylist, override: true);
-    unawaited(injector.get<SettingsDataService>().backup());
+    unawaited(injector.get<SettingsDataService>().backupUserSettings());
     injector<NavigationService>().popUntilHomeOrSettings();
   }
 
