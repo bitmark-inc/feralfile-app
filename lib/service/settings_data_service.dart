@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -20,8 +21,6 @@ abstract class SettingsDataService {
   Future<void> backupDeviceSettings();
 
   Future<void> backupUserSettings();
-
-  List<String> get settingsKeys;
 }
 
 class SettingsDataServiceImpl implements SettingsDataService {
@@ -42,26 +41,38 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
   // device settings
   static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
+  static const _keyDevicePasscodeEnabled = 'devicePasscodeEnabled';
+  static const _keyNotificationEnabled = 'notificationEnabled';
+  static const _deviceSettingsKeys = [
+    _keyIsAnalyticsEnabled,
+    _keyDevicePasscodeEnabled,
+    _keyNotificationEnabled,
+  ];
 
   // user settings
   static const _keyPlaylists = 'playlists';
   static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
 
-  @override
-  List<String> settingsKeys = [
-    _keyIsAnalyticsEnabled,
-    _keyHiddenMainnetTokenIDs,
+  static const _userSettingsKeys = [
     _keyPlaylists,
+    _keyHiddenMainnetTokenIDs,
   ];
+
+
+
 
   @override
   Future restoreSettingsData({bool fromProfileData = false}) async {
+    if (PreferencesBloc.isOnChanging) {
+      log.info('[SettingsDataService] skip restore: on changing preference');
+      return;
+    }
     log.info('[SettingsDataService][Start] restoreSettingsData');
     if (!fromProfileData) {
       log.info('[SettingsDataService] from account setting db');
       await Future.wait([
-        _cloudObject.deviceSettingsDB.download(keys: settingsKeys),
-        _cloudObject.userSettingsDB.download(keys: settingsKeys),
+        _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
+        _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
       ]);
       final Map<String, dynamic> data = {}
         ..addAll(_cloudObject.deviceSettingsDB.allInstance
@@ -92,6 +103,12 @@ class SettingsDataServiceImpl implements SettingsDataService {
   Future<void> _saveSettingToConfig(Map<String, dynamic> data) async {
     await _configurationService
         .setAnalyticEnabled(data[_keyIsAnalyticsEnabled] as bool? ?? true);
+
+    await _configurationService.setDevicePasscodeEnabled(
+        data[_keyDevicePasscodeEnabled] as bool? ?? false);
+
+    await _configurationService.setNotificationEnabled(
+        data[_keyNotificationEnabled] as bool? ?? true);
 
     await _configurationService.updateTempStorageHiddenTokenIDs(
         (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
@@ -124,6 +141,26 @@ class SettingsDataServiceImpl implements SettingsDataService {
         'value': isAnalyticsEnabled,
       });
     }
+
+    final devicePasscodeEnabled =
+        jsonEncode(_configurationService.isDevicePasscodeEnabled());
+    if (currentSettings[_keyDevicePasscodeEnabled] != devicePasscodeEnabled) {
+      newSettings.add({
+        'key': _keyDevicePasscodeEnabled,
+        'value': devicePasscodeEnabled,
+      });
+    }
+
+    final notificationEnabled =
+        jsonEncode(_configurationService.isNotificationEnabled());
+    if (currentSettings[_keyNotificationEnabled] != notificationEnabled) {
+      newSettings.add({
+        'key': _keyNotificationEnabled,
+        'value': notificationEnabled,
+      });
+    }
+
+
     if (newSettings.isEmpty) {
       log.info('[SettingsDataService] skip device backup: identical');
       return;

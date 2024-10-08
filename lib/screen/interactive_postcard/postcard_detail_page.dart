@@ -424,7 +424,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 element.id == assetToken.id &&
                 element.owner == assetToken.owner);
         if (!alreadyShowPostcardUpdate) {
-          if (_configurationService.isNotificationEnabled() != true) {
+          if (!_configurationService.isNotificationEnabled()) {
             if (!mounted) {
               return;
             }

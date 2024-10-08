@@ -77,7 +77,7 @@ abstract class ConfigurationService {
 
   Future<void> setNotificationEnabled(bool value);
 
-  bool? isNotificationEnabled();
+  bool isNotificationEnabled();
 
   Future<void> setAnalyticEnabled(bool value);
 
@@ -86,14 +86,6 @@ abstract class ConfigurationService {
   Future<void> setDoneOnboarding(bool value);
 
   bool isDoneOnboarding();
-
-  Future<void> setPendingSettings(bool value);
-
-  bool hasPendingSettings();
-
-  bool shouldShowSubscriptionHint();
-
-  Future setShouldShowSubscriptionHint(bool value);
 
   DateTime? getLastTimeAskForSubscription();
 
@@ -239,9 +231,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_NOTIFICATION = 'notifications';
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
-  static const String KEY_PENDING_SETTINGS = 'has_pending_settings';
-  static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
-      'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
       'last_time_ask_subscription';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
@@ -356,19 +345,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool isAnalyticsEnabled() => _preferences.getBool(KEY_ANALYTICS) ?? true;
 
   @override
-  bool? isNotificationEnabled() => _preferences.getBool(KEY_NOTIFICATION);
+  bool isNotificationEnabled() =>
+      _preferences.getBool(KEY_NOTIFICATION) ?? false;
 
   @override
   bool isDoneOnboarding() => _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
-
-  @override
-  bool hasPendingSettings() =>
-      _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
-
-  @override
-  Future<void> setPendingSettings(bool value) async {
-    await _preferences.setBool(KEY_PENDING_SETTINGS, value);
-  }
 
   @override
   Future<void> setAnalyticEnabled(bool value) async {
@@ -459,15 +440,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   String? getReadReleaseNotesVersion() =>
       _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
-
-  @override
-  bool shouldShowSubscriptionHint() =>
-      _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
-
-  @override
-  Future setShouldShowSubscriptionHint(bool value) async {
-    await _preferences.setBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT, value);
-  }
 
   @override
   DateTime? getLastTimeAskForSubscription() {

@@ -25,33 +25,33 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   final ConfigurationService _configurationService;
   final LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
+  static bool _isOnChanging = false;
+
+  static bool get isOnChanging => _isOnChanging;
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, '', false, false)) {
+      : super(PreferenceState(false, false, false, '', false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
       final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
-      final notificationEnabled =
-          _configurationService.isNotificationEnabled() ?? false;
+      final notificationEnabled = _configurationService.isNotificationEnabled();
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       final hasHiddenArtwork =
           _configurationService.getTempStorageHiddenTokenIDs().isNotEmpty;
-
-      final hasPendingSettings = _configurationService.hasPendingSettings();
 
       emit(PreferenceState(
           passcodeEnabled && canCheckBiometrics,
           notificationEnabled,
           analyticsEnabled,
           _authMethodTitle(),
-          hasHiddenArtwork,
-          hasPendingSettings));
+          hasHiddenArtwork));
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
+      _isOnChanging = true;
       if (event.newState.isDevicePasscodeEnabled !=
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();
@@ -66,7 +66,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
           if (didAuthenticate) {
             await _configurationService.setDevicePasscodeEnabled(
                 event.newState.isDevicePasscodeEnabled);
-            await _configurationService.setPendingSettings(false);
           } else {
             event.newState.isDevicePasscodeEnabled =
                 state.isDevicePasscodeEnabled;
@@ -80,8 +79,8 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
         try {
           if (event.newState.isNotificationEnabled) {
-            unawaited(registerPushNotifications(askPermission: true).then(
-                (value) => event.newState.isNotificationEnabled == value));
+            event.newState.isNotificationEnabled =
+                await registerPushNotifications(askPermission: true);
           } else if (Platform.isIOS) {
             // ignore: lines_longer_than_80_chars
             // TODO: for iOS only, do not un-registry push, but silent the notification
@@ -90,7 +89,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
 
           await _configurationService
               .setNotificationEnabled(event.newState.isNotificationEnabled);
-          await _configurationService.setPendingSettings(false);
         } catch (error) {
           log.warning('Error when setting notification: $error');
         }
@@ -99,10 +97,14 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
       if (event.newState.isAnalyticEnabled != state.isAnalyticEnabled) {
         await _configurationService
             .setAnalyticEnabled(event.newState.isAnalyticEnabled);
-        await _configurationService.setPendingSettings(false);
-        unawaited(injector<SettingsDataService>().backupDeviceSettings());
       }
 
+      unawaited(injector<SettingsDataService>()
+          .backupDeviceSettings()
+          .then((value) => _isOnChanging = false, onError: (error) {
+        log.warning('Error when backup device settings: $error');
+        _isOnChanging = false;
+      }));
       emit(event.newState);
     });
   }
