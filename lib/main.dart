@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -158,8 +159,9 @@ Future<void> initializeNotifications() async {
 }
 
 Future<void> scheduleDailyNotification() async {
+  await flutterLocalNotificationsPlugin.cancel(localNotificationScheduleID);
   await flutterLocalNotificationsPlugin.zonedSchedule(
-    0,
+    localNotificationScheduleID,
     'Daily Artwork Updated',
     'The daily artwork has been updated for today!',
     _nextInstanceOfSixAM(),

@@ -556,3 +556,5 @@ final chatPrivateBannerMessage = SystemMessage(
   text: 'chat_is_private'.tr(),
   status: Status.delivered,
 );
+
+const localNotificationScheduleID = 0;
