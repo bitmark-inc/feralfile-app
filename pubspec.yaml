@@ -164,6 +164,8 @@ dependencies:
   just_audio: ^0.9.29
   xml: ^6.1.0
   vector_graphics_compiler: ^1.1.7
+  timezone: ^0.9.4
+  flutter_local_notifications: ^17.2.3
 
 
 dependency_overrides:
