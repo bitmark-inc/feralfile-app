@@ -26,11 +26,11 @@ enum MetricParameter {
   String get name {
     switch (this) {
       case MetricParameter.tokenId:
-        return 'token_id';
+        return 'tokenID';
       case MetricParameter.section:
         return 'section';
       case MetricParameter.exhibitionId:
-        return 'exhibition_id';
+        return 'exhibitionID';
     }
   }
 }
