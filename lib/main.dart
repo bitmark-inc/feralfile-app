@@ -192,8 +192,7 @@ tz.TZDateTime _nextInstanceOfSixAM() {
 
   final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
   tz.TZDateTime scheduledDate = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, int.parse(configScheduleHour))
-      .subtract(DateTime.now().timeZoneOffset);
+      tz.local, now.year, now.month, now.day, now.hour, now.minute + 5);
 
   if (scheduledDate.isBefore(now)) {
     scheduledDate = scheduledDate.add(const Duration(days: 1));
