@@ -367,7 +367,6 @@ class AccountServiceImpl extends AccountService {
         .writeConnection(connection.copyWith(isHidden: isEnabled));
     await _nftCollectionAddressService
         .setIsHiddenAddresses([address], isEnabled);
-    unawaited(injector<SettingsDataService>().backup());
   }
 
   @override
@@ -376,7 +375,6 @@ class AccountServiceImpl extends AccountService {
         (e) => _cloudObject.addressObject.setAddressIsHidden(e, isEnabled)));
     await _nftCollectionAddressService.setIsHiddenAddresses(
         addresses, isEnabled);
-    unawaited(injector<SettingsDataService>().backup());
   }
 
   @override
