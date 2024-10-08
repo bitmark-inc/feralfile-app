@@ -50,7 +50,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     with RouteAware {
   late ScrollController controller;
   bool hideConnection = false;
-  bool isHideGalleryEnabled = false;
+  bool _isHideGalleryEnabled = false;
 
   bool _isRename = false;
   final TextEditingController _renameController = TextEditingController();
@@ -67,8 +67,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     _connection = widget.payload.connection;
     _address = _connection.accountNumber;
     _renameController.text = _connection.name;
-    isHideGalleryEnabled =
-        injector<AccountService>().isLinkedAccountHiddenInGallery(_address);
+    _isHideGalleryEnabled = _connection.isHidden ?? false;
 
     _callBloc();
     controller = ScrollController();
@@ -489,7 +488,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
       return;
     }
     unawaited(UIHelper.showDrawerAction(context, options: [
-      if (isHideGalleryEnabled)
+      if (_isHideGalleryEnabled)
         OptionItem(
           title: 'unhide_from_collection_view'.tr(),
           icon: SvgPicture.asset(
@@ -497,9 +496,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           ),
           onTap: () {
             unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
-                _address, !isHideGalleryEnabled));
+                _address, !_isHideGalleryEnabled));
             setState(() {
-              isHideGalleryEnabled = !isHideGalleryEnabled;
+              _isHideGalleryEnabled = !_isHideGalleryEnabled;
             });
             Navigator.of(context).pop();
           },
@@ -513,9 +512,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           ),
           onTap: () {
             unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
-                _address, !isHideGalleryEnabled));
+                _address, !_isHideGalleryEnabled));
             setState(() {
-              isHideGalleryEnabled = !isHideGalleryEnabled;
+              _isHideGalleryEnabled = !_isHideGalleryEnabled;
             });
             Navigator.of(context).pop();
           },

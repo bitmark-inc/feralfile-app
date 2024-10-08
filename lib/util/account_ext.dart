@@ -28,7 +28,7 @@ extension AccountExt on Account {
 
   bool get isHidden => walletAddress != null
       ? walletAddress!.isHidden
-      : injector<AccountService>().isLinkedAccountHiddenInGallery(key);
+      : connections?.firstOrNull?.isHidden ?? false;
 
   Future<void> setViewAccount(bool value) async {
     if (walletAddress != null) {

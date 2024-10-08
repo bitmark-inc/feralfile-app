@@ -99,14 +99,6 @@ abstract class ConfigurationService {
 
   Future setLastTimeAskForSubscription(DateTime date);
 
-  Future<void> setHideLinkedAccountInGallery(
-      List<String> address, bool isEnabled,
-      {bool override = false});
-
-  List<String> getLinkedAccountsHiddenInGallery();
-
-  bool isLinkedAccountHiddenInGallery(String value);
-
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
@@ -252,8 +244,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
       'last_time_ask_subscription';
-  static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
-      'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
@@ -402,36 +392,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setNotificationEnabled(bool value) async {
     log.info('setNotificationEnabled: $value');
     await _preferences.setBool(KEY_NOTIFICATION, value);
-  }
-
-  @override
-  Future<void> setHideLinkedAccountInGallery(
-      List<String> addresses, bool isEnabled,
-      {bool override = false}) async {
-    if (override && isEnabled) {
-      await _preferences.setStringList(
-          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, addresses);
-    } else {
-      var linkedAccounts =
-          _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
-              [];
-
-      isEnabled
-          ? linkedAccounts.addAll(addresses)
-          : linkedAccounts.removeWhere((i) => addresses.contains(i));
-      await _preferences.setStringList(
-          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, linkedAccounts);
-    }
-  }
-
-  @override
-  List<String> getLinkedAccountsHiddenInGallery() =>
-      _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ?? [];
-
-  @override
-  bool isLinkedAccountHiddenInGallery(String value) {
-    var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
-    return hiddenLinkedAccounts.contains(value);
   }
 
   @override

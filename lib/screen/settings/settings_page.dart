@@ -52,7 +52,6 @@ class _SettingsPageState extends State<SettingsPage>
 
   final GlobalKey<State> _preferenceKey = GlobalKey();
   bool _pendingSettingsCleared = false;
-  final _settingsDataServices = injector<SettingsDataService>();
   final _versionService = injector<VersionService>();
   final _configurationService = injector<ConfigurationService>();
 
@@ -62,7 +61,6 @@ class _SettingsPageState extends State<SettingsPage>
     WidgetsBinding.instance.addObserver(this);
     unawaited(_loadPackageInfo());
     unawaited(_checkVersion());
-    unawaited(_settingsDataServices.backup());
     unawaited(_versionService.checkForUpdate());
     _controller = ScrollController();
   }

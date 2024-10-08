@@ -43,7 +43,6 @@ class _WalletPageState extends State<WalletPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    unawaited(injector<SettingsDataService>().backup());
     WidgetsBinding.instance.addPostFrameCallback((context) {
       if (widget.payload?.openAddAddress == true) {
         _showAddWalletOption();

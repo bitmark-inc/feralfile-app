@@ -44,17 +44,12 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
   static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
   static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
-  static const _keyHiddenAddressesFromGallery = 'hiddenAddressesFromGallery';
-  static const _keyHiddenLinkedAccountsFromGallery =
-      'hiddenLinkedAccountsFromGallery';
   static const _keyPlaylists = 'playlists';
 
   @override
   List<String> settingsKeys = [
     _keyIsAnalyticsEnabled,
     _keyHiddenMainnetTokenIDs,
-    _keyHiddenAddressesFromGallery,
-    _keyHiddenLinkedAccountsFromGallery,
     _keyPlaylists,
   ];
 
@@ -87,28 +82,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
       newSettings.add({
         'key': _keyHiddenMainnetTokenIDs,
         'value': hiddenMainnetTokenIDs,
-      });
-    }
-
-    final hiddenAddressesFromGallery = jsonEncode(_cloudObject.addressObject
-        .findAddressesWithHiddenStatus(true)
-        .map((e) => e.address)
-        .toList());
-    if (currentSettings[_keyHiddenAddressesFromGallery] !=
-        hiddenAddressesFromGallery) {
-      newSettings.add({
-        'key': _keyHiddenAddressesFromGallery,
-        'value': hiddenAddressesFromGallery,
-      });
-    }
-
-    final hiddenLinkedAccountsFromGallery =
-        jsonEncode(_configurationService.getLinkedAccountsHiddenInGallery());
-    if (currentSettings[_keyHiddenLinkedAccountsFromGallery] !=
-        hiddenLinkedAccountsFromGallery) {
-      newSettings.add({
-        'key': _keyHiddenLinkedAccountsFromGallery,
-        'value': hiddenLinkedAccountsFromGallery,
       });
     }
 
@@ -175,13 +148,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
         data.hiddenMainnetTokenIDs, true,
         override: true);
 
-    await Future.wait((data.hiddenAddressesFromGallery ?? [])
-        .map((e) => _cloudObject.addressObject.setAddressIsHidden(e, true)));
-
-    await _configurationService.setHideLinkedAccountInGallery(
-        data.hiddenLinkedAccountsFromGallery, true,
-        override: true);
-
     await _configurationService.setPlayList(data.playlists, override: true);
   }
 }
@@ -190,17 +156,11 @@ class SettingsDataServiceImpl implements SettingsDataService {
 class SettingsDataBackup {
   bool isAnalyticsEnabled;
   List<String> hiddenMainnetTokenIDs;
-  List<String> hiddenTestnetTokenIDs;
-  List<String> hiddenLinkedAccountsFromGallery;
-  List<String>? hiddenAddressesFromGallery;
   List<PlayListModel> playlists;
 
   SettingsDataBackup({
     required this.isAnalyticsEnabled,
     required this.hiddenMainnetTokenIDs,
-    required this.hiddenTestnetTokenIDs,
-    required this.hiddenLinkedAccountsFromGallery,
-    this.hiddenAddressesFromGallery,
     this.playlists = const [],
   });
 

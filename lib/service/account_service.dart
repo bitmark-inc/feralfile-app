@@ -82,8 +82,6 @@ abstract class AccountService {
 
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled);
 
-  bool isLinkedAccountHiddenInGallery(String address);
-
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false});
 
   Future<List<String>> getAddress(String blockchain,
@@ -309,9 +307,6 @@ class AccountServiceImpl extends AccountService {
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudObject.connectionObject.deleteConnections([connection]);
     final addressIndexes = connection.addressIndexes;
-    await Future.wait(addressIndexes.map((element) async {
-      await setHideLinkedAccountInGallery(element.address, false);
-    }));
     await _nftCollectionAddressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
   }
@@ -361,13 +356,15 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  bool isLinkedAccountHiddenInGallery(String address) =>
-      _configurationService.isLinkedAccountHiddenInGallery(address);
-
-  @override
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
-    await _configurationService
-        .setHideLinkedAccountInGallery([address], isEnabled);
+    final connection = _cloudObject.connectionObject
+        .getConnectionsByAccountNumber(address)
+        .firstOrNull;
+    if (connection == null) {
+      return;
+    }
+    await _cloudObject.connectionObject
+        .writeConnection(connection.copyWith(isHidden: isEnabled));
     await _nftCollectionAddressService
         .setIsHiddenAddresses([address], isEnabled);
     unawaited(injector<SettingsDataService>().backup());
@@ -491,7 +488,7 @@ class AccountServiceImpl extends AccountService {
 
     final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
 
-    addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
+    addresses.addAll(linkedAccounts.map((e) => e.accountNumber).toList());
     if (logHiddenAddress) {
       log.fine(
           '[Account Service] all addresses (persona ${walletAddress.length}): '
@@ -500,7 +497,10 @@ class AccountServiceImpl extends AccountService {
           .where((element) => element.isHidden)
           .map((e) => e.address.maskOnly(5))
           .toList()
-        ..addAll(_configurationService.getLinkedAccountsHiddenInGallery());
+        ..addAll(linkedAccounts
+            .where((element) => element.isHidden == true)
+            .map((e) => e.accountNumber)
+            .toList());
       log.fine(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
@@ -542,18 +542,11 @@ class AccountServiceImpl extends AccountService {
         _cloudObject.addressObject.findAddressesWithHiddenStatus(false);
     addresses.addAll(walletAddress.map((e) => e.address).toList());
 
-    final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
-    final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
+    final linkedAccounts = _cloudObject.connectionObject
+        .getLinkedAccounts()
+        .where((element) => element.isViewing);
 
-    for (final linkedAccount in linkedAccounts) {
-      for (final addressIndex in linkedAccount.addressIndexes) {
-        if (hiddenLinkedAccounts.contains(addressIndex.address)) {
-          continue;
-        }
-        addresses.add(addressIndex.address);
-      }
-    }
+    addresses.addAll(linkedAccounts.map((e) => e.accountNumber));
 
     return addresses;
   }
@@ -599,15 +592,10 @@ class AccountServiceImpl extends AccountService {
 
     final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
     final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
+        linkedAccounts.where((element) => element.isHidden == true).toList();
 
-    for (final linkedAccount in linkedAccounts) {
-      for (final addressIndex in linkedAccount.addressIndexes) {
-        if (hiddenLinkedAccounts.contains(addressIndex.address)) {
-          hiddenAddresses.add(addressIndex);
-        }
-      }
-    }
+    hiddenAddresses.addAll(hiddenLinkedAccounts
+        .expand((element) => element.addressIndexes.toList()));
 
     return hiddenAddresses.toSet().toList();
   }
