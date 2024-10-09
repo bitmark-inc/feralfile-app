@@ -154,7 +154,7 @@ flutter {
 
 dependencies {
     def lifecycle_version = "2.6.0-alpha03"
-    def beacon_version = "5f934d78b0"
+    def beacon_version = "c2434dcc73"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
