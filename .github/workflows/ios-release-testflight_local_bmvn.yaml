@@ -80,7 +80,8 @@ jobs:
           flutter clean
           flutter pub get
           cd ios/
-          pod install
+          rm Podfile.lock
+          pod install --repo-update
 
       # Encrypt secrets before use
       - name: Encrypt Secrets
