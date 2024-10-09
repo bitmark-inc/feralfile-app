@@ -39,6 +39,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:card_swiper/card_swiper.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
@@ -1043,7 +1044,7 @@ class UIHelper {
       Function()? actionButtonOnTap,
       String? exitButton,
       Function()? exitButtonOnTap,
-      double horizontalPadding = 15,
+      double horizontalPadding = 20,
       Color backgroundColor = AppColor.feralFileHighlight}) async {
     UIHelper.hideInfoDialog(context);
     await showCupertinoModalPopup(
@@ -1051,61 +1052,48 @@ class UIHelper {
         builder: (context) => Scaffold(
               backgroundColor: Colors.transparent,
               body: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height - 256,
-                  ),
-                  child: Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: horizontalPadding),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: backgroundColor,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    content,
-                                    const SizedBox(height: 20),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (actionButtonOnTap != null)
-                              Column(
-                                children: [
-                                  PrimaryButton(
-                                    text: actionButton ?? '',
-                                    onTap: actionButtonOnTap,
-                                    textColor: AppColor.primaryBlack,
-                                    color: AppColor.feralFileLightBlue,
-                                  ),
-                                  const SizedBox(
-                                    height: 15,
-                                  )
-                                ],
-                              ),
-                            PrimaryButton(
-                              text: exitButton ?? 'close'.tr(),
-                              onTap: exitButtonOnTap ??
-                                  () {
-                                    Navigator.pop(context);
-                                  },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding, vertical: 128),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    constraints: BoxConstraints(
+                      maxHeight: 600,
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        content,
+                        const SizedBox(height: 20),
+                        if (actionButtonOnTap != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                            child: PrimaryButton(
+                              text: actionButton ?? '',
+                              onTap: actionButtonOnTap,
                               textColor: AppColor.primaryBlack,
                               color: AppColor.feralFileLightBlue,
                             ),
-                          ],
+                          ),
+                          const SizedBox(
+                            height: 15,
+                          )
+                        ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: PrimaryButton(
+                            text: exitButton ?? 'close'.tr(),
+                            onTap: exitButtonOnTap ??
+                                () {
+                                  Navigator.pop(context);
+                                },
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
@@ -1120,41 +1108,50 @@ class UIHelper {
       context,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'live_with_art'.tr(),
-            style: theme.textTheme.ppMori700White18,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'live_with_art'.tr(),
+              style: theme.textTheme.ppMori700White18,
+            ),
           ),
           const SizedBox(height: 20),
-          Text(
-            'welcome_to_feral_file'.tr(),
-            style: infoStyle,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'live_with_art_intro_1'.tr(),
-            style: infoStyle,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'live_with_art_intro_2'.tr(),
-            style: infoStyle,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'live_with_art_intro_3'.tr(),
-            style: infoStyle,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'live_with_art_intro_4'.tr(),
-            style: infoStyle,
+          Container(
+            constraints: BoxConstraints(maxHeight: 200),
+            child: Swiper(
+              itemCount: 2,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('live_with_art_first'.tr(), style: infoStyle),
+                  );
+                } else {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('live_with_art_second'.tr(), style: infoStyle),
+                  );
+                }
+              },
+              loop: false,
+              pagination: SwiperPagination(
+                alignment: Alignment.bottomCenter,
+                builder: DotSwiperPaginationBuilder(
+                  color: AppColor.secondaryDimGrey,
+                  activeColor: AppColor.white,
+                  size: 6,
+                  activeSize: 6,
+                ),
+              ),
+            ),
           ),
         ],
       ),
       backgroundColor: AppColor.auGreyBackground,
       horizontalPadding: 30,
-      exitButton: 'got_it'.tr(),
+      exitButton: 'view_today_daily'.tr(),
       exitButtonOnTap: () {
         Navigator.pop(context);
         injector<ConfigurationService>().setDidShowLiveWithArt(true);
