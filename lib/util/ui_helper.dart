@@ -1086,12 +1086,13 @@ class UIHelper {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: PrimaryButton(
-                            text: exitButton ?? 'close'.tr(),
-                            onTap: exitButtonOnTap ??
-                                () {
-                                  Navigator.pop(context);
-                                },
-                          ),
+                              text: exitButton ?? 'close'.tr(),
+                              onTap: exitButtonOnTap ??
+                                  () {
+                                    Navigator.pop(context);
+                                  },
+                              textColor: AppColor.primaryBlack,
+                              color: AppColor.feralFileLightBlue),
                         ),
                       ],
                     ),
