@@ -35,8 +35,8 @@ extension AccountExt on Account {
       await injector<AccountService>()
           .setHideAddressInGallery([walletAddress!.address], value);
     } else {
-      unawaited(
-          injector<AccountService>().setHideLinkedAccountInGallery(key, value));
+      await injector<AccountService>()
+          .setHideLinkedAccountInGallery(key, value);
     }
   }
 
