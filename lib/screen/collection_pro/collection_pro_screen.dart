@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -8,7 +7,6 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -64,7 +62,6 @@ class CollectionProState extends State<CollectionPro>
   late bool _isLoaded;
   late bool _showGetStartedBanner = false;
   final _configurationService = injector<ConfigurationService>();
-  static const _maxArtistsView = 30;
 
   @override
   void initState() {
@@ -326,10 +323,8 @@ class CollectionProState extends State<CollectionPro>
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
                             _predefinedCollectionByArtistBuilder,
-                            childCount: min(
-                                    _listPredefinedCollectionByArtist.length,
-                                    _maxArtistsView) +
-                                1,
+                            childCount:
+                                _listPredefinedCollectionByArtist.length + 1,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -403,25 +398,7 @@ class CollectionProState extends State<CollectionPro>
 
   Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
     const type = PredefinedCollectionType.artist;
-    final isSearching = searchStr.value.isNotEmpty;
-    final numberOfArtists = _listPredefinedCollectionByArtist.length;
-    final displaySeeAll =
-        !isSearching && index == 0 && numberOfArtists > _maxArtistsView;
-    final Widget? action = displaySeeAll
-        ? GestureDetector(
-            onTap: () async {
-              await Navigator.of(context).pushNamed(AppRouter.artistsListPage,
-                  arguments: ArtistsListPagePayload(
-                      _listPredefinedCollectionByArtist));
-            },
-            child: Text(
-              'see_all'.tr(),
-              style: Theme.of(context).textTheme.ppMori400White14.copyWith(
-                    decoration: TextDecoration.underline,
-                  ),
-            ))
-        : null;
-    return _predefinedCollectionBuilder(context, index, type, action: action);
+    return _predefinedCollectionBuilder(context, index, type);
   }
 
   Widget _predefinedCollectionByMediumBuilder(BuildContext context, int index) {
