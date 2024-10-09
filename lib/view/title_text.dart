@@ -8,7 +8,6 @@ class TitleText extends StatelessWidget {
   final TextStyle? style;
 
   @override
-  Widget build(BuildContext context) => Text(title,
-      style: style ??
-          Theme.of(context).textTheme.ppMori700White24.copyWith(fontSize: 36));
+  Widget build(BuildContext context) =>
+      Text(title, style: style ?? Theme.of(context).textTheme.ppMori700White24);
 }

@@ -67,13 +67,28 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
+          final theme = Theme.of(context);
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.filter.isNotEmpty)
-                  TitleText(title: 'playlists'.tr()),
+                const SizedBox(height: 30),
+                Row(
+                  children: [
+                    TitleText(title: 'playlists'.tr()),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: widget.onAdd,
+                      child: Text(
+                        'create'.tr(),
+                        style: theme.textTheme.ppMori700White14.copyWith(
+                          color: AppColor.feralFileLightBlue,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
                 const SizedBox(height: 30),
                 _playlistHorizontalGridView(context, playlists)
               ],
@@ -86,7 +101,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
       BuildContext context, List<PlayListModel> playlists) {
     final rowNumber = playlists.length > _playlistNumberBreakpoint ? 2 : 1;
     final height = PlaylistItem.height * rowNumber + 15 * (rowNumber - 1);
-    final length = playlists.length + 1;
+    final length = playlists.length;
     return SizedBox(
       height: height,
       child: GridView.builder(
@@ -98,18 +113,16 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           childAspectRatio: PlaylistItem.height / PlaylistItem.width,
         ),
         itemBuilder: (context, index) {
-          if (index == 0) {
-            return AddPlayListItem(
-              onTap: () {
-                widget.onAdd();
-              },
-            );
-          }
-          final item = playlists[index - 1];
+          final item = playlists[index];
           return PlaylistItem(
               key: ValueKey(item.id),
               playlist: item,
-              onSelected: () {
+              onSelected: () async {
+                if (item.id == DefaultPlaylistModel.allNfts.id) {
+                  await Navigator.of(context)
+                      .pushNamed(AppRouter.collectionPage);
+                  return;
+                }
                 onPlaylistTap(item);
               });
         },
