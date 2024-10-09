@@ -119,6 +119,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
           _dailyWorkKey.currentState?.scrollToTop();
+        } else if (index == HomeNavigatorTab.collection.index) {
+          _organizeHomeKey.currentState?.scrollToTop();
         }
       }
       // when user change tap

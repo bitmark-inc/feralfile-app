@@ -628,6 +628,9 @@ class NavigationService {
         route = AppRouter.homePageNoTransition;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.rAndD;
+      case AppRouter.organizePage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.collection;
       default:
         route = pair.first;
         unawaited(navigateTo(route, arguments: pair.second));
