@@ -1060,10 +1060,10 @@ class UIHelper {
                       color: backgroundColor,
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       maxHeight: 600,
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1119,7 +1119,7 @@ class UIHelper {
           ),
           const SizedBox(height: 20),
           Container(
-            constraints: BoxConstraints(maxHeight: 200),
+            constraints: const BoxConstraints(maxHeight: 200),
             child: Swiper(
               itemCount: 2,
               itemBuilder: (context, index) {
@@ -1136,7 +1136,7 @@ class UIHelper {
                 }
               },
               loop: false,
-              pagination: SwiperPagination(
+              pagination: const SwiperPagination(
                 alignment: Alignment.bottomCenter,
                 builder: DotSwiperPaginationBuilder(
                   color: AppColor.secondaryDimGrey,
