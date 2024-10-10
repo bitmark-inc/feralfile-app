@@ -14,7 +14,9 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -577,6 +579,31 @@ class DeeplinkServiceImpl extends DeeplinkService {
         log.info('[DeeplinkService] referralCode: $referralCode');
         await handleReferralCode(referralCode);
 
+      case 'playlist_activation':
+        try {
+          final playlistJson = data['playlist'];
+          final url = data['url'] as String?;
+          final thumbnailURL = data['\$og_image_url'] as String?;
+          final playlist = PlayListModel.fromJson(playlistJson)
+              .copyWith(shareUrl: url, thumbnailURL: thumbnailURL);
+          final expiredAt = int.tryParse(data['expired_at']);
+          if (expiredAt != null) {
+            final expiredAtDate =
+                DateTime.fromMillisecondsSinceEpoch(expiredAt);
+            if (expiredAtDate.isBefore(DateTime.now()) && false) {
+              unawaited(_navigationService.showPlaylistActivationExpired());
+              break;
+            }
+          }
+          await _navigationService.navigateTo(
+            AppRouter.playlistActivationPage,
+            arguments: PlaylistActivationPagePayload(
+              playlist: playlist,
+            ),
+          );
+        } catch (e) {
+          log.info('[DeeplinkService] playlist_activation error $e');
+        }
       default:
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);

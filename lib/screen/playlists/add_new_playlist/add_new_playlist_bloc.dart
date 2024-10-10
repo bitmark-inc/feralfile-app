@@ -51,7 +51,7 @@ class AddNewPlaylistBloc
               (element) => element.id == state.selectedIDs?.first)
           ?.getGalleryThumbnailUrl();
 
-      playListModel?.tokenIDs = state.selectedIDs?.toSet().toList();
+      playListModel?.tokenIDs = state.selectedIDs?.toSet().toList() ?? [];
 
       playListModel?.id ??= const Uuid().v4();
       await _playListService

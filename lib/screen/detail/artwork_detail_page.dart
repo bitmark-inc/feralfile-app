@@ -657,11 +657,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
     final isCasting = castingDevice != null;
+    final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
       return;
     }
     final isHidden = _isHidden(asset);
     _focusNode.unfocus();
+
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
@@ -722,7 +724,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        if (widget.payload.isLocalToken)
+        if (widget.payload.shouldUseLocalCache && hasLocalAddress)
           OptionItem(
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
@@ -797,7 +799,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
-        if (!widget.payload.isLocalToken)
+        if (!widget.payload.shouldUseLocalCache)
           OptionItem(
             title: 'refresh_metadata'.tr(),
             icon: SvgPicture.asset(
@@ -863,14 +865,14 @@ class ArtworkDetailPayload {
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
   final bool
-      isLocalToken; // if local token, it can be hidden and refresh metadata
+      shouldUseLocalCache; // if local token, it can be hidden and refresh metadata
 
   ArtworkDetailPayload(
     this.identity, {
     this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
-    this.isLocalToken = true,
+    this.shouldUseLocalCache = true,
     this.key,
   });
 
@@ -879,14 +881,14 @@ class ArtworkDetailPayload {
     PlayListModel? playlist,
     String? twitterCaption,
     bool? useIndexer,
-    bool? isLocalToken,
+    bool? shouldUseLocalCache,
   }) =>
       ArtworkDetailPayload(
         identity ?? this.identity,
         twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
-        isLocalToken: isLocalToken ?? this.isLocalToken,
+        shouldUseLocalCache: shouldUseLocalCache ?? this.shouldUseLocalCache,
       );
 }
 

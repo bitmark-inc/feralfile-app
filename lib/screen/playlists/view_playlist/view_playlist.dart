@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
+import 'package:autonomy_flutter/util/social_share_helper.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -132,11 +133,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.dispose();
   }
 
-  Future<void> _onMoreTap(BuildContext context, PlayListModel? playList) async {
+  Future<void> _onMoreTap(BuildContext context, PlayListModel playList) async {
     final theme = Theme.of(context);
     await UIHelper.showDrawerAction(
       context,
       options: [
+        if (playList.shareUrl != null) ...[
+          OptionItem(
+            title: 'share_playlist'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/share_icon.svg',
+              width: 24,
+            ),
+            onTap: () {
+              SocialShareHelper.shareTwitter(url: playList.shareUrl!);
+            },
+          ),
+        ],
         OptionItem(
           title: 'edit_collection'.tr(),
           icon: SvgPicture.asset(

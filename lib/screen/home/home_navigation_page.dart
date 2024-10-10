@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -31,6 +32,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -137,6 +139,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       setState(() {
         _selectedIndex = index;
       });
+      final playlists = await injector<PlaylistService>().getPlayList();
+      if (!context.mounted) {
+        return;
+      }
       await UIHelper.showCenterMenu(
         context,
         options: [
@@ -162,6 +168,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
                 Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
               },
             ),
+          ],
+          if (nftBloc.state.tokens.isNotEmpty || playlists.isNotEmpty) ...[
             // organize
             OptionItem(
               title: 'organize'.tr(),
@@ -244,7 +252,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       injector<DeeplinkService>()
         ..activateBranchDataListener()
         ..activateDeepLinkListener();
-      if (!_configurationService.didShowLiveWithArt()) {
+      if (!_configurationService.didShowLiveWithArt() || true) {
         if (!mounted) {
           return;
         }
@@ -357,6 +365,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+    injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
   }
 
   Future refreshNotification() async {
@@ -380,6 +389,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
     }
+    injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
   }
 
   @override
