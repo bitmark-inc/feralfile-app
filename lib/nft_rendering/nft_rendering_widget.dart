@@ -826,7 +826,7 @@ class WebviewNFTRenderingWidget extends INFTRenderingWidget {
             ),
           ),
           FeralFileWebview(
-            key: Key(previewURL),
+            key: Key('FeralFileWebview_$previewURL'),
             uri: Uri.parse(overriddenHtml != null ? 'about:blank' : previewURL),
             overriddenHtml: overriddenHtml,
             backgroundColor: backgroundColor,

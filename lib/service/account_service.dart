@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart'
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -39,7 +40,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/address_service.dart' as nft;
-import 'package:nft_collection/services/address_service.dart' as nft_address;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -395,7 +395,20 @@ class AccountServiceImpl extends AccountService {
   @override
   Future deleteAllKeys() async {
     if (Platform.isAndroid) {
-      await _androidBackupChannel.deleteAllKeys();
+      final accounts = await _androidBackupChannel.restoreKeys();
+      final uuids = accounts.map((e) => e.uuid).toSet().toList();
+      await _removeUUIDs(uuids);
+      await _androidBackupChannel.deleteBlockStoreData();
+    } else {
+      final uuids = await _iosBackupChannel.getUUIDsFromKeychain();
+      await _removeUUIDs(uuids);
+      await injector<KeychainService>().clearKeychainItems();
+    }
+  }
+
+  Future<void> _removeUUIDs(List<String> uuids) async {
+    for (var uuid in uuids) {
+      await LibAukDart.getWallet(uuid).removeKeys();
     }
   }
 
@@ -664,7 +677,7 @@ class AccountServiceImpl extends AccountService {
     /// we will take the first uuid as default account
     // case 1: complete new user, no primary address, no backup keychain
     // nothing to do other than create new wallet
-    if (addressInfo == null && defaultWallet == null) {
+    if (defaultWallet == null) {
       log.info('[AccountService] migrateAccount: case 1 complete new user');
       await createNewWallet();
       unawaited(_cloudObject.setMigrated());
@@ -728,7 +741,7 @@ class AccountServiceImpl extends AccountService {
     // case 4: migrated user
     if (didMigrate) {
       log.info('[AccountService] migrateAccount: case 4 migrated user');
-      unawaited(_cloudObject.downloadAll());
+      await _cloudObject.downloadAll();
       log.info('[AccountService] migrateAccount: case 4 finished');
       return;
     }
@@ -878,10 +891,14 @@ class AccountServiceImpl extends AccountService {
         addresses.addAll([ethAddress, tezAddress]);
     }
     await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
-    await _cloudObject.addressObject.insertAddresses(addresses);
-    await injector<nft_address.AddressService>()
-        .addAddresses(addresses.map((e) => e.address).toList());
+    await _insertWalletAddresses(addresses);
     return addresses;
+  }
+
+  Future<void> _insertWalletAddresses(List<WalletAddress> addresses) async {
+    await _cloudObject.addressObject.insertAddresses(addresses);
+    await injector<nft.AddressService>()
+        .addAddresses(addresses.map((e) => e.address).toList());
   }
 
   @override
@@ -933,9 +950,7 @@ class AccountServiceImpl extends AccountService {
         ];
     }
     await removeDoubleViewOnly(walletAddresses.map((e) => e.address).toList());
-    await _cloudObject.addressObject.insertAddresses(walletAddresses);
-    await injector<nft_address.AddressService>()
-        .addAddresses(walletAddresses.map((e) => e.address).toList());
+    await _insertWalletAddresses(walletAddresses);
     return walletAddresses;
   }
 

@@ -39,7 +39,7 @@ class AndroidBackupChannel {
     }
   }
 
-  Future deleteAllKeys() async {
+  Future deleteBlockStoreData() async {
     try {
       await _channel.invokeMethod('deleteKeys', {});
     } catch (e) {

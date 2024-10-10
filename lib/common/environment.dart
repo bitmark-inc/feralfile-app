@@ -45,7 +45,7 @@ class Environment {
       'AUTONOMY_PUBDOC_URL',
       'AUTONOMY_IPFS_PREFIX',
       'PENDING_TOKEN_EXPIRE_MS',
-      'APP_TESTNET_CONFIG',
+      // 'APP_TESTNET_CONFIG', ignore this key
       'AU_CLAIM_API_URL',
       // 'IRL_WHITELIST_URL', // this key is not set
       'CLOUD_FLARE_IMAGE_URL_PREFIX',
@@ -204,8 +204,11 @@ class Environment {
   static String get feralFileSecretKeyMainnet =>
       _readKey('FERAL_FILE_SECRET_KEY_MAINNET', '', isSecret: true);
 
-  static String get web3RpcMainnetURL =>
-      _readKey('WEB3_RPC_MAINNET_URL', '', isSecret: true);
+  static String get web3RpcMainnetURL => _readKey(
+        'WEB3_RPC_MAINNET_URL',
+        '',
+        isSecret: true,
+      );
 
   static String get sentryDSN => _readKey('SENTRY_DSN', '', isSecret: true);
 
