@@ -200,10 +200,17 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 SizedBox(
                     width: 22, height: 22, child: widget.payload.titleIcon),
                 const SizedBox(width: 10),
-                TitleText(title: playList.getName()),
+                _getTitle(playList),
               ],
             )
-          : TitleText(title: playList.getName());
+          : _getTitle(playList);
+
+  Widget _getTitle(PlayListModel playList) => TitleText(
+        title: playList.getName(),
+        fontSize: 14,
+        ellipsis: false,
+        isCentered: true,
+      );
 
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[

@@ -10,13 +10,11 @@ import 'package:flutter/material.dart';
 
 class HeaderView extends StatelessWidget {
   final String title;
-  final TextStyle? titleStyle;
   final Widget? action;
   final EdgeInsets? padding;
 
   const HeaderView({
     required this.title,
-    this.titleStyle,
     this.padding,
     super.key,
     this.action,
@@ -34,7 +32,6 @@ class HeaderView extends StatelessWidget {
                   Expanded(
                     child: TitleText(
                       title: title,
-                      style: titleStyle,
                     ),
                   ),
                   action ?? const SizedBox()

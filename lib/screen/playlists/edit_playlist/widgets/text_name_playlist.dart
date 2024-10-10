@@ -50,8 +50,8 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
       hintText: tr('untitled'),
       controller: _playlistNameC,
       cursorColor: AppColor.white,
-      style: theme.textTheme.ppMori700Black36.copyWith(color: AppColor.white),
-      hintStyle: theme.textTheme.ppMori700Black36
+      style: theme.textTheme.ppMori700White14,
+      hintStyle: theme.textTheme.ppMori700Black14
           .copyWith(color: AppColor.disabledColor),
       textAlign: TextAlign.center,
       border: InputBorder.none,
