@@ -658,8 +658,7 @@ class IRLHandler {
 
   static Future<JSResult> refreshJWT(List<dynamic> arguments) async {
     final authService = injector.get<AuthService>();
-    final oldJWT = await authService.getAuthToken();
     final newJWT = await authService.getAuthToken(forceRefresh: true);
-    return JSResult.result(oldJWT != newJWT);
+    return JSResult.result(newJWT?.isPremiumValid() ?? false);
   }
 }
