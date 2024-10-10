@@ -18,7 +18,7 @@ on:
         description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: [ self-hosted, macOS ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
