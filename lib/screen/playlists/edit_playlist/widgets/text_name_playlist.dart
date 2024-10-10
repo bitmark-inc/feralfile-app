@@ -53,7 +53,7 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
       style: theme.textTheme.ppMori700Black36.copyWith(color: AppColor.white),
       hintStyle: theme.textTheme.ppMori700Black36
           .copyWith(color: AppColor.disabledColor),
-      textAlign: TextAlign.left,
+      textAlign: TextAlign.center,
       border: InputBorder.none,
       onChanged: (value) {
         widget.onEditPlaylistName?.call(value);

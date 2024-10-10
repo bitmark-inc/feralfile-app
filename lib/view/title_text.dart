@@ -8,6 +8,10 @@ class TitleText extends StatelessWidget {
   final TextStyle? style;
 
   @override
-  Widget build(BuildContext context) =>
-      Text(title, style: style ?? Theme.of(context).textTheme.ppMori700White24);
+  Widget build(BuildContext context) => Text(
+        title,
+        style: style ?? Theme.of(context).textTheme.ppMori700White24,
+        maxLines: 2,
+        textAlign: TextAlign.center,
+      );
 }

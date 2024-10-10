@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -191,31 +192,18 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
-  Widget _appBarTitle(BuildContext context, PlayListModel playList) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        if (widget.payload.titleIcon != null) ...[
-          SizedBox(width: 22, height: 22, child: widget.payload.titleIcon),
-          const SizedBox(width: 10),
-          Text(
-            playList.getName(),
-            style: theme.textTheme.ppMori700Black36
-                .copyWith(color: AppColor.white),
-          ),
-        ] else ...[
-          Expanded(
-            child: Text(
-              playList.getName(),
-              style: theme.textTheme.ppMori700Black36
-                  .copyWith(color: AppColor.white),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ]
-      ],
-    );
-  }
+  Widget _appBarTitle(BuildContext context, PlayListModel playList) =>
+      widget.payload.titleIcon != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                    width: 22, height: 22, child: widget.payload.titleIcon),
+                const SizedBox(width: 10),
+                TitleText(title: playList.getName()),
+              ],
+            )
+          : TitleText(title: playList.getName());
 
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[

@@ -198,9 +198,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
             Navigator.pop(context);
           },
           title: TitleText(
-            title: 'collection'.tr(),
+            title: 'all'.tr(),
           ),
-          centerTitle: false,
         ),
         extendBody: true,
         // extendBodyBehindAppBar: true,
