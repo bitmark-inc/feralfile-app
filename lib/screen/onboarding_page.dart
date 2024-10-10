@@ -59,7 +59,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     ),
   );
 
-
   @override
   void afterFirstLayout(BuildContext context) {
     _timer = Timer(const Duration(seconds: 10), () {
@@ -139,7 +138,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
     unawaited(metricClient.identity());
     // count open app
-    unawaited(metricClient.addEvent(MetricEventName.openApp.name));
+    unawaited(metricClient.addEvent(MetricEventName.openApp));
     if (!mounted) {
       return;
     }

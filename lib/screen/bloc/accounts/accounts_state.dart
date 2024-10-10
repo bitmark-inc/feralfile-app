@@ -47,16 +47,6 @@ class GetAccountsIRLEvent extends AccountsEvent {
   GetAccountsIRLEvent({this.param, this.blockchain});
 }
 
-class NameLinkedAccountEvent extends AccountsEvent {
-  final Connection connection;
-  final String name;
-
-  NameLinkedAccountEvent(
-    this.connection,
-    this.name,
-  );
-}
-
 class FetchAllAddressesEvent extends AccountsEvent {}
 
 class Account {

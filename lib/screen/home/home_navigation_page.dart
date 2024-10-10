@@ -271,11 +271,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       }
     });
     unawaited(injector<VersionService>().checkForUpdate());
-    unawaited(
-        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
-    unawaited(_clientTokenService.refreshTokens());
+    unawaited(_clientTokenService.refreshTokens(syncAddresses: true).then(
+      (_) {
+        nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+      },
+    ));
     context.read<HomeBloc>().add(CheckReviewAppEvent());
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       unawaited(_clientTokenService.refreshTokens());

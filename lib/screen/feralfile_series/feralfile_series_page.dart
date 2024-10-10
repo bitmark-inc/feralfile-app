@@ -48,11 +48,11 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     _feralFileSeriesBloc.add(FeralFileSeriesGetSeriesEvent(
         widget.payload.seriesId, widget.payload.exhibitionId));
     _pagingController.addPageRequestListener((pageKey) async {
-      await _fetchPage(pageKey);
+      await _fetchPage(context, pageKey);
     });
   }
 
-  Future<void> _fetchPage(int pageKey) async {
+  Future<void> _fetchPage(BuildContext context, int pageKey) async {
     try {
       final newItems = await injector<FeralFileService>().getSeriesArtworks(
           widget.payload.seriesId, widget.payload.exhibitionId,
@@ -64,7 +64,10 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         _pagingController.appendLastPage(newItems.result);
       } else {
         final nextPageKey = pageKey + _pageSize;
-        _pagingController.appendPage(newItems.result, nextPageKey);
+        if (context.mounted) {
+          // make sure the page is not disposed
+          _pagingController.appendPage(newItems.result, nextPageKey);
+        }
       }
     } catch (error) {
       log.info('Error fetching series page: $error');
@@ -118,7 +121,6 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     final cacheWidth =
         (MediaQuery.sizeOf(context).width - _padding * 2 - _axisSpacing * 2) ~/
             3;
-    final cacheHeight = (cacheWidth / ratio).toInt();
     return Padding(
       padding:
           const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
@@ -160,6 +162,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                     AppRouter.ffArtworkPreviewPage,
                     arguments: FeralFileArtworkPreviewPagePayload(
                       artwork: artwork.copyWith(series: series),
+                      isFromExhibition: true,
                     ),
                   );
                 },

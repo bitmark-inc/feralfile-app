@@ -469,10 +469,8 @@ class AppRouter {
       case AppRouter.nameLinkedAccountPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc,
-                child: NameViewOnlyAddressPage(
-                    connection: settings.arguments! as Connection)));
+            builder: (context) => NameViewOnlyAddressPage(
+                connection: settings.arguments! as Connection));
 
       case tbConnectPage:
         final argument = settings.arguments;
@@ -530,6 +528,7 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
+                  BlocProvider.value(value: subscriptionBloc),
                   BlocProvider(create: (_) => identityBloc),
                 ], child: const SettingsPage()));
 
