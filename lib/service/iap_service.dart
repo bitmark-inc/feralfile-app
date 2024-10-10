@@ -382,7 +382,7 @@ class IAPServiceImpl implements IAPService {
     try {
       final res = await injector<IAPApi>().getCustomActiveSubscription()
           as Map<String, dynamic>;
-      final subscription = CustomSubscription.fromJson(res);
+      final subscription = CustomSubscription.fromJson(res['result']);
       return subscription;
     } catch (error) {
       log.warning('Error when getting custom active subscription: $error');
@@ -429,7 +429,7 @@ class CustomSubscription {
 
   SKSubscriptionPeriodUnit get period {
     switch (billingPeriod) {
-      case 'yearly':
+      case 'year':
         return SKSubscriptionPeriodUnit.year;
       default:
         Sentry.captureMessage(
@@ -441,7 +441,7 @@ class CustomSubscription {
   // from json
   factory CustomSubscription.fromJson(Map<String, dynamic> json) {
     return CustomSubscription(
-      rawPrice: json['price'] as int,
+      rawPrice: int.tryParse(json['price']) ?? 0,
       currency: json['currency'] as String,
       billingPeriod: json['billingPeriod'] as String,
     );

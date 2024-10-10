@@ -433,7 +433,7 @@ class _IAPApi implements IAPApi {
     )
         .compose(
           _dio.options,
-          '/memberships/subscriptions/active',
+          '/apis/memberships/subscriptions/active',
           queryParameters: queryParameters,
           data: _data,
         )
