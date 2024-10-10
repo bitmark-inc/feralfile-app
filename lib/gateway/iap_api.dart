@@ -86,4 +86,7 @@ abstract class IAPApi {
 
   @GET('/apis/memberships/subscriptions/portal')
   Future<dynamic> portalUrl();
+
+  @GET('/memberships/subscriptions/active')
+  Future<dynamic> getCustomActiveSubscription();
 }

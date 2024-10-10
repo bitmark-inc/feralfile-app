@@ -44,13 +44,15 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
 
           final membershipSource = subscriptionStatus.source;
           if (membershipSource == MembershipSource.webPurchase) {
+            final customSubscription =
+                await _iapService.getCustomActiveSubscription();
             final webPurchaseProduct = ProductDetails(
               id: 'web_purchase',
               title: 'Web Purchase',
               description: 'Web Purchase',
-              price: r'$200',
-              currencyCode: 'USD',
-              rawPrice: 200,
+              price: customSubscription.price,
+              currencyCode: customSubscription.currency.toLowerCase(),
+              rawPrice: customSubscription.rawPrice.toDouble(),
             );
             _iapService.products.value[webPurchaseProduct.id] =
                 webPurchaseProduct;

@@ -93,6 +93,8 @@ abstract class IAPService {
   void clearReceipt();
 
   Future<String> getStripeUrl();
+
+  Future<CustomSubscription> getCustomActiveSubscription();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -374,6 +376,25 @@ class IAPServiceImpl implements IAPService {
       return '';
     }
   }
+
+  @override
+  Future<CustomSubscription> getCustomActiveSubscription() async {
+    try {
+      final res = await injector<IAPApi>().getCustomActiveSubscription()
+          as Map<String, dynamic>;
+      final subscription = CustomSubscription.fromJson(res);
+      return subscription;
+    } catch (error) {
+      log.warning('Error when getting custom active subscription: $error');
+      unawaited(Sentry.captureException(
+          'Error when getting custom active subscription: $error'));
+      return CustomSubscription(
+        rawPrice: 0,
+        currency: '',
+        billingPeriod: '',
+      );
+    }
+  }
 }
 
 class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
@@ -384,4 +405,54 @@ class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
 
   @override
   bool shouldShowPriceConsent() => false;
+}
+
+class CustomSubscription {
+  final int rawPrice;
+  final String currency;
+  final String billingPeriod;
+
+  CustomSubscription({
+    required this.rawPrice,
+    required this.currency,
+    required this.billingPeriod,
+  });
+
+  String get price {
+    if (currency.toLowerCase() == 'usd') {
+      return '\$${rawPrice / 100.0}';
+    } else {
+      Sentry.captureMessage('Unsupported currency: $currency');
+      return '-';
+    }
+  }
+
+  SKSubscriptionPeriodUnit get period {
+    switch (billingPeriod) {
+      case 'yearly':
+        return SKSubscriptionPeriodUnit.year;
+      default:
+        Sentry.captureMessage(
+            '[CustomSubscription] Unsupported period: $period');
+        return SKSubscriptionPeriodUnit.year;
+    }
+  }
+
+  // from json
+  factory CustomSubscription.fromJson(Map<String, dynamic> json) {
+    return CustomSubscription(
+      rawPrice: json['price'] as int,
+      currency: json['currency'] as String,
+      billingPeriod: json['billingPeriod'] as String,
+    );
+  }
+
+  // to json
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'price': rawPrice,
+      'currency': currency,
+      'billingPeriod': billingPeriod,
+    };
+  }
 }
