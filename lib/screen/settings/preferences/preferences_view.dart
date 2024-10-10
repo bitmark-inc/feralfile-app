@@ -7,12 +7,10 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -63,14 +61,11 @@ class PreferenceView extends StatelessWidget {
                 'notifications'.tr(),
                 'receive_notification'.tr(),
                 state.isNotificationEnabled, (value) {
-              final newState = state.copyWith(
-                  isNotificationEnabled: value, hasPendingSettings: false);
-              final configService = injector<ConfigurationService>();
-              unawaited(configService.setPendingSettings(false));
+              final newState = state.copyWith(isNotificationEnabled: value);
               context
                   .read<PreferencesBloc>()
                   .add(PreferenceUpdateEvent(newState));
-            }, pendingSetting: state.hasPendingSettings),
+            }),
           ),
           addDivider(),
           Padding(
@@ -124,14 +119,8 @@ class PreferenceView extends StatelessWidget {
     });
   }
 
-  Widget _preferenceItem(
-    BuildContext context,
-    String title,
-    String description,
-    bool isEnabled,
-    ValueChanged<bool> onChanged, {
-    bool pendingSetting = false,
-  }) {
+  Widget _preferenceItem(BuildContext context, String title, String description,
+      bool isEnabled, ValueChanged<bool> onChanged) {
     final theme = Theme.of(context);
 
     return Column(
@@ -140,24 +129,7 @@ class PreferenceView extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Text(title, style: theme.textTheme.ppMori400Black16),
-                if (pendingSetting) ...[
-                  const SizedBox(
-                    width: 7,
-                  ),
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: AppColor.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ],
-            ),
+            Text(title, style: theme.textTheme.ppMori400Black16),
             AuToggle(
               value: isEnabled,
               onToggle: onChanged,

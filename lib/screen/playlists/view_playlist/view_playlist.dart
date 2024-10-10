@@ -12,12 +12,12 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_st
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
+import 'package:autonomy_flutter/util/social_share_helper.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -97,13 +98,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     });
   }
 
-  Future<void> deletePlayList() async {
-    final listPlaylist = await _playlistService.getPlayList();
-    listPlaylist.removeWhere(
-        (element) => element.id == widget.payload.playListModel?.id);
-    await _playlistService.setPlayList(listPlaylist, override: true);
-    unawaited(injector.get<SettingsDataService>().backup());
-    injector<NavigationService>().popUntilHomeOrSettings();
+  Future<void> _deletePlayList() async {
+    if (widget.payload.playListModel == null) {
+      return;
+    }
+    final isDeleted = await _playlistService.deletePlaylist(
+      widget.payload.playListModel!,
+    );
+    if (isDeleted) {
+      injector<NavigationService>().popUntilHomeOrSettings();
+    }
   }
 
   List<CompactedAssetToken> _setupPlayList({
@@ -134,37 +138,50 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.dispose();
   }
 
-  Future<void> _onMoreTap(BuildContext context, PlayListModel? playList) async {
+  Future<void> _onMoreTap(BuildContext context, PlayListModel playList) async {
     final theme = Theme.of(context);
     await UIHelper.showDrawerAction(
       context,
       options: [
-        OptionItem(
-          title: 'edit_collection'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/rename_icon.svg',
-            width: 24,
+        if (playList.shareUrl != null) ...[
+          OptionItem(
+            title: 'share_playlist'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/share_icon.svg',
+              width: 24,
+            ),
+            onTap: () {
+              SocialShareHelper.shareTwitter(url: playList.shareUrl!);
+            },
           ),
-          onTap: () async {
-            Navigator.pop(context);
-            await Navigator.pushNamed(
-              context,
-              AppRouter.editPlayListPage,
-              arguments: playList?.copyWith(
-                tokenIDs: playList.tokenIDs?.toList(),
-              ),
-            ).then((value) {
-              if (value != null) {
-                final playListModel = value as PlayListModel;
-                bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
-                bloc.add(SavePlaylist(name: playListModel.name));
-                nftBloc.add(RefreshNftCollectionByIDs(
-                  ids: value.tokenIDs,
-                ));
-              }
-            });
-          },
-        ),
+        ],
+        if (playList.isEditable)
+          OptionItem(
+            title: 'edit_collection'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/rename_icon.svg',
+              width: 24,
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              await Navigator.pushNamed(
+                context,
+                AppRouter.editPlayListPage,
+                arguments: playList.copyWith(
+                  tokenIDs: playList.tokenIDs.toList(),
+                ),
+              ).then((value) {
+                if (value != null) {
+                  final playListModel = value as PlayListModel;
+                  bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
+                  bloc.add(SavePlaylist(name: playListModel.name));
+                  nftBloc.add(RefreshNftCollectionByIDs(
+                    ids: value.tokenIDs,
+                  ));
+                }
+              });
+            },
+          ),
         OptionItem(
           title: 'delete_collection'.tr(),
           icon: SvgPicture.asset(
@@ -178,11 +195,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               'delete_playlist'.tr(),
               '',
               descriptionWidget: Text(
-                'delete_playlist_desc'.tr(),
+                playList.source == PlayListSource.activation
+                    ? 'delete_activation_playlist_desc'.tr()
+                    : 'delete_playlist_desc'.tr(),
                 style: theme.textTheme.ppMori400White14,
               ),
               actionButton: 'remove_collection'.tr(),
-              onAction: deletePlayList,
+              onAction: _deletePlayList,
             );
           },
         ),
@@ -191,31 +210,25 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
-  Widget _appBarTitle(BuildContext context, PlayListModel playList) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        if (widget.payload.titleIcon != null) ...[
-          SizedBox(width: 22, height: 22, child: widget.payload.titleIcon),
-          const SizedBox(width: 10),
-          Text(
-            playList.getName(),
-            style: theme.textTheme.ppMori700Black36
-                .copyWith(color: AppColor.white),
-          ),
-        ] else ...[
-          Expanded(
-            child: Text(
-              playList.getName(),
-              style: theme.textTheme.ppMori700Black36
-                  .copyWith(color: AppColor.white),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ]
-      ],
-    );
-  }
+  Widget _appBarTitle(BuildContext context, PlayListModel playList) =>
+      widget.payload.titleIcon != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                    width: 22, height: 22, child: widget.payload.titleIcon),
+                const SizedBox(width: 10),
+                _getTitle(playList),
+              ],
+            )
+          : _getTitle(playList);
+
+  Widget _getTitle(PlayListModel playList) => TitleText(
+        title: playList.getName(),
+        fontSize: 14,
+        ellipsis: false,
+        isCentered: true,
+      );
 
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[
@@ -246,10 +259,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
-              if (listTokenIds == null) {
-                log.info('Playlist tokenIds is null');
-                return;
-              }
               final duration = speedValues.values.first.inMilliseconds;
               final listPlayArtwork = listTokenIds
                   .map((e) => PlayArtworkV2(

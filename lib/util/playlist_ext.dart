@@ -2,9 +2,11 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 
 extension PlaylistExt on PlayListModel {
   String? get displayKey {
-    final listTokenIds = tokenIDs ?? [];
+    final listTokenIds = tokenIDs;
     return listTokenIds.displayKey;
   }
+
+  bool get isEditable => source == PlayListSource.manual;
 }
 
 extension ListTokenIdsExt on List<String> {

@@ -116,7 +116,6 @@ class ClaimEmptyPostCardBloc
       final addresses = await accountService.getAddress('tezos');
       if (addresses.isEmpty) {
         await configService.setDoneOnboarding(true);
-        await configService.setPendingSettings(true);
 
         final walletAddress =
             await accountService.insertNextAddress(WalletType.Tezos);

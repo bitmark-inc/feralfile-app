@@ -138,7 +138,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
 
     Navigator.of(context).pop(signature);
     final notificationEnabled =
-        injector<ConfigurationService>().isNotificationEnabled() ?? false;
+        injector<ConfigurationService>().isNotificationEnabled();
     if (notificationEnabled) {
       showInfoNotification(
         const Key('signed'),
