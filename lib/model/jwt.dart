@@ -52,7 +52,7 @@ class JWT {
   JWT({required this.jwtToken, this.expireIn});
 
   JWT.fromJson(Map<String, dynamic> json)
-      : expireIn = json['expire_in'],
+      : expireIn = int.tryParse(json['expire_in'].toString()),
         jwtToken = json['jwt_token'];
 
   Map<String, dynamic> toJson() => {
