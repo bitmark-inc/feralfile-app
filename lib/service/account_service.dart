@@ -677,7 +677,7 @@ class AccountServiceImpl extends AccountService {
     /// we will take the first uuid as default account
     // case 1: complete new user, no primary address, no backup keychain
     // nothing to do other than create new wallet
-    if (addressInfo == null && defaultWallet == null) {
+    if (defaultWallet == null) {
       log.info('[AccountService] migrateAccount: case 1 complete new user');
       await createNewWallet();
       unawaited(_cloudObject.setMigrated());
@@ -741,8 +741,7 @@ class AccountServiceImpl extends AccountService {
     // case 4: migrated user
     if (didMigrate) {
       log.info('[AccountService] migrateAccount: case 4 migrated user');
-      unawaited(
-          _cloudObject.downloadAll().then((_) => _indexAddressesCollection()));
+      await _cloudObject.downloadAll();
       log.info('[AccountService] migrateAccount: case 4 finished');
       return;
     }
@@ -900,16 +899,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudObject.addressObject.insertAddresses(addresses);
     await injector<nft.AddressService>()
         .addAddresses(addresses.map((e) => e.address).toList());
-  }
-
-  Future<void> _indexAddressesCollection() async {
-    final walletAddresses = _cloudObject.addressObject.getAllAddresses();
-    final viewOnlyAddresses = _cloudObject.connectionObject.getLinkedAccounts();
-    final List<String> allAddresses = [
-      ...walletAddresses.map((e) => e.address),
-      ...viewOnlyAddresses.map((e) => e.accountNumber)
-    ];
-    await injector<nft.AddressService>().addAddresses(allAddresses);
   }
 
   @override
