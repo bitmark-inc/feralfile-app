@@ -677,7 +677,7 @@ class AccountServiceImpl extends AccountService {
     /// we will take the first uuid as default account
     // case 1: complete new user, no primary address, no backup keychain
     // nothing to do other than create new wallet
-    if (addressInfo == null && defaultWallet == null) {
+    if (defaultWallet == null) {
       log.info('[AccountService] migrateAccount: case 1 complete new user');
       await createNewWallet();
       unawaited(_cloudObject.setMigrated());
