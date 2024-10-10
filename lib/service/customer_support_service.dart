@@ -286,6 +286,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             sendAttachments,
             title: data.title,
             mutedText: draftMsg.mutedMessages.split('[SEPARATOR]'),
+            artworkReportID: data.artworkReportID,
           );
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
           await _draftCustomerSupportDao.deleteDraft(draftMsg);
@@ -334,6 +335,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     String? title,
     List<String>? mutedText,
     String? announcementID,
+    String? artworkReportID,
   }) async {
     var issueTitle = title ?? message;
     if (issueTitle == null || issueTitle.isEmpty) {
@@ -372,6 +374,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'message': submitMessage,
       'tags': tags,
       'announcement_context_id': announcementID ?? '',
+      'artwork_report_id': artworkReportID ?? '',
     };
 
     return await _customerSupportApi.createIssue(payload);
