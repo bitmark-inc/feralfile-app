@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
@@ -577,19 +576,11 @@ class CollectionSection extends StatefulWidget {
 class CollectionSectionState extends State<CollectionSection>
     with RouteAware, WidgetsBindingObserver {
   late ValueNotifier<List<PlayListModel>?> _playlists;
-  final PlaylistService _playlistService = injector<PlaylistService>();
-
-  Future<List<PlayListModel>?> _getPlaylist({bool withDefault = false}) async {
-    final List<PlayListModel> playlists = await _playlistService.getPlayList();
-    if (withDefault) {
-      final defaultPlaylists = await _playlistService.defaultPlaylists();
-      playlists.addAll(defaultPlaylists);
-    }
-    return playlists;
-  }
 
   Future<void> _initPlayList() async {
-    _playlists.value = await _getPlaylist(withDefault: true) ?? [];
+    _playListBloc.add(
+      ListPlaylistLoadPlaylist(filter: widget.filterString),
+    );
   }
 
   List<PlayListModel> filterPlaylist(String filterString) =>

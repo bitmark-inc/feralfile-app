@@ -51,6 +51,7 @@ class AddNewPlaylistBloc
           ?.getGalleryThumbnailUrl();
 
       playListModel?.tokenIDs = state.selectedIDs?.toSet().toList() ?? [];
+
       await _playListService
           .setPlayList([playListModel!], onConflict: ConflictAction.replace);
 

@@ -5,12 +5,45 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+enum PlayListSource {
+  manual,
+  auto,
+  activation;
+
+  // from String
+  static PlayListSource fromString(String value) {
+    switch (value) {
+      case 'manual':
+        return PlayListSource.manual;
+      case 'auto':
+        return PlayListSource.auto;
+      case 'activation':
+        return PlayListSource.activation;
+      default:
+        return PlayListSource.manual;
+    }
+  }
+
+  // to String
+  String get value {
+    switch (this) {
+      case PlayListSource.manual:
+        return 'manual';
+      case PlayListSource.auto:
+        return 'auto';
+      case PlayListSource.activation:
+        return 'activation';
+    }
+  }
+}
+
 class PlayListModel implements SettingObject {
   String id;
   String? name;
   String? thumbnailURL;
   List<String> tokenIDs;
   String? shareUrl;
+  final PlayListSource source;
 
   PlayListModel({
     required this.tokenIDs,
@@ -18,6 +51,7 @@ class PlayListModel implements SettingObject {
     this.name,
     this.thumbnailURL,
     this.shareUrl,
+    this.source = PlayListSource.manual,
   }) : id = id ?? const Uuid().v4();
 
   PlayListModel copyWith({
@@ -26,6 +60,7 @@ class PlayListModel implements SettingObject {
     String? thumbnailURL,
     List<String>? tokenIDs,
     String? shareUrl,
+    PlayListSource? source,
   }) =>
       PlayListModel(
         id: id ?? this.id,
@@ -33,12 +68,13 @@ class PlayListModel implements SettingObject {
         thumbnailURL: thumbnailURL ?? this.thumbnailURL,
         tokenIDs: tokenIDs ?? this.tokenIDs,
         shareUrl: shareUrl ?? this.shareUrl,
+        source: source ?? this.source,
       );
 
   @override
   String toString() =>
       'PlayListModel(id: $id, name: $name, thumbnailURL: $thumbnailURL, '
-      'tokenIDs: $tokenIDs, shareUrl: $shareUrl)';
+      'tokenIDs: $tokenIDs, shareUrl: $shareUrl, source: $source)';
 
   @override
   bool operator ==(covariant PlayListModel other) {
@@ -62,6 +98,7 @@ class PlayListModel implements SettingObject {
         'thumbnailURL': thumbnailURL,
         'tokenIDs': tokenIDs,
         'shareUrl': shareUrl,
+        'source': source.value,
       };
 
   factory PlayListModel.fromJson(Map<String, dynamic> map) => PlayListModel(
@@ -73,6 +110,9 @@ class PlayListModel implements SettingObject {
             ? List<String>.from(map['tokenIDs'] as List<dynamic>)
             : [],
         shareUrl: map['shareUrl'] != null ? map['shareUrl'] as String : null,
+        source: map['source'] != null
+            ? PlayListSource.fromString(map['source'] as String)
+            : PlayListSource.manual,
       );
 
   String getName() => name ?? tr('untitled');
