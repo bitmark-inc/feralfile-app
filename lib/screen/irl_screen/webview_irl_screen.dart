@@ -533,10 +533,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     );
 
     _controller?.addJavaScriptHandler(
-      handlerName: 'refreshJWT',
-      callback: (args) async {
-        return await IRLHandler.refreshJWT(args);
-      },
+      handlerName: 'didUpgradeMembership',
+      callback: (args) async => await IRLHandler.refreshJWT(args),
     );
   }
 
