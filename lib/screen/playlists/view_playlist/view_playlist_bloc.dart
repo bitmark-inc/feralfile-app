@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 
 class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
@@ -26,14 +27,12 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
       if (event.name != null) {
         playListModel?.name = event.name;
       }
-
-      final playlists = await _playlistService.getPlayList();
-      final index =
-          playlists.indexWhere((element) => element.id == playListModel?.id);
-      if (index != -1 && playListModel != null) {
-        playlists[index] = playListModel;
-        await _playlistService.setPlayList(playlists, override: true);
+      if (playListModel == null) {
+        return;
       }
+
+      await _playlistService
+          .setPlayList([playListModel], onConflict: ConflictAction.replace);
       emit(state.copyWith(isRename: false));
     });
   }

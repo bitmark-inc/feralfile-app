@@ -631,6 +631,7 @@ class CollectionSectionState extends State<CollectionSection>
         return;
       }
       if (value != null && value is PlayListModel) {
+        _playListBloc.add(ListPlaylistLoadPlaylist());
         Navigator.pushNamed(
           context,
           AppRouter.viewPlayListPage,

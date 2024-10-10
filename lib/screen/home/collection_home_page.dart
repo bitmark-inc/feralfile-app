@@ -201,6 +201,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             title: 'all'.tr(),
             ellipsis: false,
             isCentered: true,
+            fontSize: 14,
           ),
         ),
         extendBody: true,

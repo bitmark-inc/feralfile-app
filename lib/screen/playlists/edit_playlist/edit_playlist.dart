@@ -64,11 +64,14 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final _playlistService = injector<PlaylistService>();
 
   Future<void> deletePlayList() async {
-    final listPlaylist = await _playlistService.getPlayList();
-    listPlaylist
-        .removeWhere((element) => element.id == widget.playListModel?.id);
-    await _playlistService.setPlayList(listPlaylist, override: true);
-    injector<NavigationService>().popUntilHomeOrSettings();
+    if (widget.playListModel == null) {
+      return;
+    }
+    final isSuccess =
+        await _playlistService.deletePlaylist(widget.playListModel!);
+    if (isSuccess) {
+      injector<NavigationService>().popUntilHomeOrSettings();
+    }
   }
 
   List<CompactedAssetToken> setupPlayList({
@@ -419,7 +422,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     ).then((value) {
       if (value != null && value is PlayListModel) {
         bloc.state.playListModel = bloc.state.playListModel?.copyWith(
-          tokenIDs: value.tokenIDs?.toList(),
+          tokenIDs: value.tokenIDs.toList(),
           name: value.name,
         );
         bloc.add(UpdateNamePlaylist(name: value.name ?? ''));
