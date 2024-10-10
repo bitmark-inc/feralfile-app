@@ -92,5 +92,4 @@ jobs:
           releaseFiles: build/app/outputs/bundle/prdRelease/app-prd-release.aab
           track: internal
           mappingFile: build/app/outputs/mapping/prdRelease/mapping.txt
-          debugSymbols: build/app/intermediates/merged_native_libs/prdRelease/out/lib
           whatsNewDirectory: ./whatsnew
