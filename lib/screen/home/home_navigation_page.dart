@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart'
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -87,6 +88,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
+  final GlobalKey<OrganizeHomePageState> _organizeHomeKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -95,6 +97,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
+  final _subscriptionBloc = injector<SubscriptionBloc>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -116,6 +119,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
           _dailyWorkKey.currentState?.scrollToTop();
+        } else if (index == HomeNavigatorTab.collection.index) {
+          _organizeHomeKey.currentState?.scrollToTop();
         }
       }
       // when user change tap
@@ -157,32 +162,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
             },
           ),
-          if (nftBloc.state.tokens.isNotEmpty) ...[
-            // collection
-            OptionItem(
-              title: 'collection'.tr(),
-              icon: const Icon(
-                AuIcon.playlists,
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
-              },
-            ),
-          ],
-          if (nftBloc.state.tokens.isNotEmpty || playlists.isNotEmpty) ...[
-            // organize
-            OptionItem(
-              title: 'organize'.tr(),
-              icon: SvgPicture.asset(
-                'assets/images/set_icon.svg',
-                colorFilter:
-                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
-              },
-            ),
-          ],
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
@@ -304,12 +283,20 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               value: FeralfileHomeBloc(injector()),
             ),
             BlocProvider.value(
-              value: injector<SubscriptionBloc>()..add(GetSubscriptionEvent()),
+              value: _subscriptionBloc..add(GetSubscriptionEvent()),
             ),
           ],
           child: FeralfileHomePage(
             key: feralFileHomeKey,
           )),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: _subscriptionBloc),
+        ],
+        child: OrganizeHomePage(
+          key: _organizeHomeKey,
+        ),
+      )
     ];
 
     _triggerShowAnnouncement();
@@ -496,8 +483,21 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         ),
         label: 'explore',
       ),
+      const FFNavigationBarItem(
+        icon: Icon(
+          AuIcon.playlists,
+          size: iconSize,
+        ),
+        unselectedIcon: Icon(
+          AuIcon.playlists,
+          size: iconSize,
+        ),
+        selectedColor: selectedColor,
+        unselectedColor: unselectedColor,
+        label: 'collection',
+      ),
       FFNavigationBarItem(
-        icon: ValueListenableBuilder<List<int>?>(
+        unselectedIcon: ValueListenableBuilder<List<int>?>(
           valueListenable:
               injector<CustomerSupportService>().numberOfIssuesInfo,
           builder: (BuildContext context, List<int>? numberOfIssuesInfo,
@@ -511,6 +511,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             padding: const EdgeInsets.only(right: 2, top: 2),
             withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
           ),
+        ),
+        icon: SvgPicture.asset(
+          'assets/images/close.svg',
+          colorFilter: const ColorFilter.mode(selectedColor, BlendMode.srcIn),
+          height: iconSize,
+          width: iconSize,
         ),
         selectedColor: unselectedColor,
         label: 'menu',
