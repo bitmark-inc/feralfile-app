@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -581,11 +582,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'playlist_activation':
         try {
-          final playlistJson = data['playlist'];
-          final url = data['url'] as String?;
-          final thumbnailURL = data['\$og_image_url'] as String?;
-          final playlist = PlayListModel.fromJson(playlistJson)
-              .copyWith(shareUrl: url, thumbnailURL: thumbnailURL);
           final expiredAt = int.tryParse(data['expired_at']);
           if (expiredAt != null) {
             final expiredAtDate =
@@ -595,10 +591,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
               break;
             }
           }
+          final playlistJson = data['playlist'];
+          final playlist = PlayListModel.fromJson(playlistJson);
+          final activationName = data['activation_name'];
+          final activationSource = data['activation_source'];
+          final thumbnailURL = data['activation_thumbnail'];
+          final activation = PlaylistActivation(
+              playListModel: playlist,
+              name: activationName,
+              source: activationSource,
+              thumbnailURL: thumbnailURL);
           await _navigationService.navigateTo(
             AppRouter.playlistActivationPage,
             arguments: PlaylistActivationPagePayload(
-              playlist: playlist,
+              activation: activation,
             ),
           );
         } catch (e) {

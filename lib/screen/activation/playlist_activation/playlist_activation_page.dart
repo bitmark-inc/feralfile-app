@@ -1,21 +1,23 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:marqueer/marqueer.dart';
 
 class PlaylistActivationPagePayload {
-  final PlayListModel playlist;
+  final PlaylistActivation activation;
 
-  PlaylistActivationPagePayload({required this.playlist});
+  PlaylistActivationPagePayload({required this.activation});
 }
 
 class PlaylistActivationPage extends StatefulWidget {
@@ -30,7 +32,7 @@ class PlaylistActivationPage extends StatefulWidget {
 class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
   @override
   Widget build(BuildContext context) {
-    final playlist = widget.payload.playlist;
+    final activation = widget.payload.activation;
     final theme = Theme.of(context);
     return Scaffold(
       appBar: getDarkEmptyAppBar(),
@@ -38,9 +40,50 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: FFCacheNetworkImage(imageUrl: playlist.thumbnailURL ?? ''),
+            Container(
+              color: AppColor.white,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: 30,
+                      child: Marqueer(
+                        direction: MarqueerDirection.ltr,
+                        pps: 30,
+                        child: Text(
+                          'gift_playlist'.tr().toUpperCase(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 28),
+                        child: FFCacheNetworkImage(
+                            imageUrl: activation.thumbnailURL),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: 30,
+                      child: Marqueer(
+                        pps: 30,
+                        child: Text(
+                          'gift_playlist'.tr().toUpperCase(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -51,12 +94,14 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          playlist.getName(),
+                          activation.name,
                           style: theme.textTheme.ppMori400White14,
                         ),
                         Text(
-                            '${playlist.tokenIDs.length} artworks from Feral File Collection',
-                            style: theme.textTheme.ppMori400White14),
+                          '${activation.playListModel.tokenIDs.length} ${'artworks_from_FF_and_artworld'.tr()}',
+                          style: theme.textTheme.ppMori400White14,
+                          maxLines: 2,
+                        ),
                       ],
                     ),
                   ),
@@ -76,14 +121,14 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
             const SizedBox(
               height: 16,
             ),
-            _content(context, playlist),
+            _content(context, activation),
           ],
         ),
       ),
     );
   }
 
-  Widget _content(BuildContext context, PlayListModel playlist) {
+  Widget _content(BuildContext context, PlaylistActivation activation) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -93,11 +138,9 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
             text: TextSpan(
               style: theme.textTheme.ppMori400White14,
               children: [
+                TextSpan(text: 'you_receive_gift_playlist'.tr()),
                 TextSpan(
-                    text:
-                        'You have received a playlist activation request from '),
-                TextSpan(
-                  text: 'SupperBridge.',
+                  text: '${activation.source}.',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -109,6 +152,7 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
           PrimaryAsyncButton(
             text: 'Accept Gift',
             onTap: () async {
+              final playlist = activation.playListModel;
               final playlistService = injector<PlaylistService>();
               final alreadyClaimPlaylist =
                   await playlistService.getPlaylistById(playlist.id);
@@ -123,36 +167,22 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
 
               await playlistService.addPlaylists([playlist]);
               injector<NavigationService>().goBack();
-              injector<NavigationService>().openPlaylist(playlist: playlist);
+              unawaited(injector<NavigationService>()
+                  .openPlaylist(playlist: playlist));
             },
+            color: AppColor.feralFileLightBlue,
           ),
           const SizedBox(
             height: 24,
           ),
           Text(
-            'Accept this playlist to add it to your collection. Experience artworks on mobile or TV with the app.',
+            'accept_and_experience_playlist'.tr(),
             style: theme.textTheme.ppMori400White14,
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          RichText(
-            text: TextSpan(
-              style: theme.textTheme.ppMori400Grey14,
-              children: [
-                TextSpan(text: 'By accepting, you agree to the '),
-                TextSpan(
-                  text: 'Artist + Collector Rights',
-                  style: TextStyle(decoration: TextDecoration.underline),
-                ),
-                TextSpan(text: '.'),
-              ],
-            ),
           ),
           const SizedBox(
             height: 16,
           ),
-          PrimaryAsyncButton(
+          OutlineButton(
             text: 'Decline',
             onTap: () {
               injector<NavigationService>().goBack();

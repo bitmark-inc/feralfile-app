@@ -123,6 +123,11 @@ class PlayListServiceImp implements PlaylistService {
         .toSet()
         .toList();
     await tokenService.fetchManualTokens(indexerIds);
-    await setPlayList(playlists);
+    final playlistWithThumbnail = await Future.wait(playlists.map((e) async {
+      final token =
+          await _assetTokenDao.findAllAssetTokensByTokenIDs([e.tokenIDs.first]);
+      return e.copyWith(thumbnailURL: token.first.thumbnailURL);
+    }).toList());
+    await setPlayList(playlistWithThumbnail);
   }
 }
