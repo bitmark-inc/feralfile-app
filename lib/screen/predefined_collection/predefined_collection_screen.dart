@@ -79,7 +79,7 @@ class _PredefinedCollectionScreenState
                           width: 22,
                           height: 22,
                           colorFilter: const ColorFilter.mode(
-                              AppColor.primaryBlack, BlendMode.srcIn))
+                              AppColor.white, BlendMode.srcIn))
                       : null;
               final collectionType =
                   predefinedCollectionType == PredefinedCollectionType.medium
