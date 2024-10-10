@@ -586,21 +586,23 @@ class DeeplinkServiceImpl extends DeeplinkService {
           if (expiredAt != null) {
             final expiredAtDate =
                 DateTime.fromMillisecondsSinceEpoch(expiredAt);
-            if (expiredAtDate.isBefore(DateTime.now()) && false) {
+            if (expiredAtDate.isBefore(DateTime.now())) {
               unawaited(_navigationService.showPlaylistActivationExpired());
               break;
             }
           }
           final playlistJson = data['playlist'];
-          final playlist = PlayListModel.fromJson(playlistJson);
+          final playlist = PlayListModel.fromJson(playlistJson)
+              .copyWith(source: PlayListSource.activation);
           final activationName = data['activation_name'];
           final activationSource = data['activation_source'];
           final thumbnailURL = data['activation_thumbnail'];
           final activation = PlaylistActivation(
-              playListModel: playlist,
-              name: activationName,
-              source: activationSource,
-              thumbnailURL: thumbnailURL);
+            playListModel: playlist,
+            name: activationName,
+            source: activationSource,
+            thumbnailURL: thumbnailURL,
+          );
           await _navigationService.navigateTo(
             AppRouter.playlistActivationPage,
             arguments: PlaylistActivationPagePayload(

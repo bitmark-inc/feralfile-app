@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
-import 'package:autonomy_flutter/util/social_share_helper.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -140,44 +139,33 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     await UIHelper.showDrawerAction(
       context,
       options: [
-        if (playList.shareUrl != null) ...[
+        if (playList.isEditable)
           OptionItem(
-            title: 'share_playlist'.tr(),
+            title: 'edit_collection'.tr(),
             icon: SvgPicture.asset(
-              'assets/images/share_icon.svg',
+              'assets/images/rename_icon.svg',
               width: 24,
             ),
-            onTap: () {
-              SocialShareHelper.shareTwitter(url: playList.shareUrl!);
+            onTap: () async {
+              Navigator.pop(context);
+              await Navigator.pushNamed(
+                context,
+                AppRouter.editPlayListPage,
+                arguments: playList.copyWith(
+                  tokenIDs: playList.tokenIDs.toList(),
+                ),
+              ).then((value) {
+                if (value != null) {
+                  final playListModel = value as PlayListModel;
+                  bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
+                  bloc.add(SavePlaylist(name: playListModel.name));
+                  nftBloc.add(RefreshNftCollectionByIDs(
+                    ids: value.tokenIDs,
+                  ));
+                }
+              });
             },
           ),
-        ],
-        OptionItem(
-          title: 'edit_collection'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/rename_icon.svg',
-            width: 24,
-          ),
-          onTap: () async {
-            Navigator.pop(context);
-            await Navigator.pushNamed(
-              context,
-              AppRouter.editPlayListPage,
-              arguments: playList?.copyWith(
-                tokenIDs: playList.tokenIDs?.toList(),
-              ),
-            ).then((value) {
-              if (value != null) {
-                final playListModel = value as PlayListModel;
-                bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
-                bloc.add(SavePlaylist(name: playListModel.name));
-                nftBloc.add(RefreshNftCollectionByIDs(
-                  ids: value.tokenIDs,
-                ));
-              }
-            });
-          },
-        ),
         OptionItem(
           title: 'delete_collection'.tr(),
           icon: SvgPicture.asset(
@@ -191,7 +179,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               'delete_playlist'.tr(),
               '',
               descriptionWidget: Text(
-                'delete_playlist_desc'.tr(),
+                playList.source == PlayListSource.activation
+                    ? 'delete_activation_playlist_desc'.tr()
+                    : 'delete_playlist_desc'.tr(),
                 style: theme.textTheme.ppMori400White14,
               ),
               actionButton: 'remove_collection'.tr(),
@@ -259,7 +249,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
-              if (listTokenIds == null) {
+              if (listTokenIds.isEmpty) {
                 log.info('Playlist tokenIds is null');
                 return;
               }
