@@ -83,4 +83,10 @@ abstract class IAPApi {
 
   @PATCH('/apis/v2/addresses/referral')
   Future<void> registerReferralCode(@Body() Map<String, dynamic> body);
+
+  @GET('/apis/memberships/subscriptions/portal')
+  Future<dynamic> portalUrl();
+
+  @GET('/apis/memberships/subscriptions/active')
+  Future<dynamic> getCustomActiveSubscription();
 }
