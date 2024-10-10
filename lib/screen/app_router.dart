@@ -528,6 +528,7 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
+                  BlocProvider.value(value: subscriptionBloc),
                   BlocProvider(create: (_) => identityBloc),
                 ], child: const SettingsPage()));
 
