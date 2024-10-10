@@ -70,7 +70,7 @@ class _PredefinedCollectionScreenState
               final playlist = PlayListModel(
                 id: id,
                 name: name,
-                tokenIDs: tokenIDs,
+                tokenIDs: tokenIDs ?? [],
               );
               final predefinedCollectionType = widget.payload.type;
               final icon =

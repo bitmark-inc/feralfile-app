@@ -1,36 +1,41 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 class PlayListModel {
-  String? id;
+  String id;
   String? name;
   String? thumbnailURL;
-  List<String>? tokenIDs;
+  List<String> tokenIDs;
+  String? shareUrl;
 
   PlayListModel({
-    this.id,
+    required this.tokenIDs,
+    String? id,
     this.name,
     this.thumbnailURL,
-    this.tokenIDs,
-  });
+    this.shareUrl,
+  }) : id = id ?? Uuid().v4();
 
   PlayListModel copyWith({
     String? id,
     String? name,
     String? thumbnailURL,
     List<String>? tokenIDs,
+    String? shareUrl,
   }) =>
       PlayListModel(
         id: id ?? this.id,
         name: name ?? this.name,
         thumbnailURL: thumbnailURL ?? this.thumbnailURL,
         tokenIDs: tokenIDs ?? this.tokenIDs,
+        shareUrl: shareUrl ?? this.shareUrl,
       );
 
   @override
   String toString() =>
       'PlayListModel(id: $id, name: $name, thumbnailURL: $thumbnailURL, '
-      'tokenIDs: $tokenIDs)';
+      'tokenIDs: $tokenIDs, shareUrl: $shareUrl)';
 
   @override
   bool operator ==(covariant PlayListModel other) {
@@ -52,17 +57,19 @@ class PlayListModel {
         'id': id,
         'name': name,
         'thumbnailURL': thumbnailURL,
-        'tokenIDs': tokenIDs
+        'tokenIDs': tokenIDs,
+        'shareUrl': shareUrl,
       };
 
   factory PlayListModel.fromJson(Map<String, dynamic> map) => PlayListModel(
-        id: map['id'] != null ? map['id'] as String : null,
+        id: map['id'] != null ? map['id'] as String : Uuid().v4(),
         name: map['name'] != null ? map['name'] as String : null,
         thumbnailURL:
             map['thumbnailURL'] != null ? map['thumbnailURL'] as String : null,
         tokenIDs: map['tokenIDs'] != null
             ? List<String>.from(map['tokenIDs'] as List<dynamic>)
-            : null,
+            : [],
+        shareUrl: map['shareUrl'] != null ? map['shareUrl'] as String : null,
       );
 
   String getName() => name ?? tr('untitled');

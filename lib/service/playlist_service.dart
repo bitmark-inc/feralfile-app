@@ -1,11 +1,15 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();
+
+  Future<PlayListModel?> getPlaylistById(String id);
 
   Future<void> setPlayList(List<PlayListModel> playlists,
       {bool override = false,
@@ -14,6 +18,8 @@ abstract class PlaylistService {
   Future<void> refreshPlayLists();
 
   Future<List<PlayListModel>> defaultPlaylists();
+
+  Future<void> addPlaylists(List<PlayListModel> playlists);
 }
 
 class PlayListServiceImp implements PlaylistService {
@@ -52,9 +58,9 @@ class PlayListServiceImp implements PlaylistService {
 
     for (var playlist in playlists) {
       playlist.tokenIDs
-          ?.removeWhere((tokenID) => hiddenTokens.contains(tokenID));
+          .removeWhere((tokenID) => hiddenTokens.contains(tokenID));
     }
-    playlists.removeWhere((element) => element.tokenIDs?.isEmpty ?? true);
+    playlists.removeWhere((element) => element.tokenIDs.isEmpty);
     return playlists;
   }
 
@@ -77,8 +83,8 @@ class PlayListServiceImp implements PlaylistService {
     final List<String> ids = await _tokenDao.findTokenIDsOwnersOwn(addresses);
     final playlists = _getRawPlayList();
     for (int i = 0; i < playlists.length; i++) {
-      playlists[i].tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
-      if (playlists[i].tokenIDs?.isEmpty ?? true) {
+      playlists[i].tokenIDs.removeWhere((tokenID) => !ids.contains(tokenID));
+      if (playlists[i].tokenIDs.isEmpty) {
         playlists.removeAt(i);
         i--;
       }
@@ -106,5 +112,17 @@ class PlayListServiceImp implements PlaylistService {
       defaultPlaylists.add(allNftsPlaylist);
     }
     return defaultPlaylists;
+  }
+
+  @override
+  Future<void> addPlaylists(List<PlayListModel> playlists) async {
+    final tokenService = injector<TokensService>();
+    final indexerIds = playlists
+        .map((e) => e.tokenIDs)
+        .expand((element) => element)
+        .toSet()
+        .toList();
+    await tokenService.fetchManualTokens(indexerIds);
+    await setPlayList(playlists);
   }
 }
