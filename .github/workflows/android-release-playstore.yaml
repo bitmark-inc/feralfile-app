@@ -74,9 +74,9 @@ jobs:
         run: |
           git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           cp mobile-signing-key-vault/android/bitmark-autonomy/release.keystore android/release.keystore
-          cp mobile-signing-key-vault/android/bitmark-autonomy/release.properties android/key.properties
+          cp mobile-signing-key-vault/android/bitmark-autonomy/release.properties android/release.properties
 
-      - run: flutter build appbundle --flavor prd
+      - run: flutter build appbundle --flavor prd --release
 
       - name: Release notes
         run: |
