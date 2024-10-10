@@ -12,12 +12,12 @@ import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
@@ -165,7 +165,7 @@ class CollectionProState extends State<CollectionPro>
           bottom: false,
           child: BlocConsumer(
             bloc: _bloc,
-            listener: (context, state) {
+            listener: (context, state) async {
               if (state is CollectionLoadedState) {
                 fetchIdentities(state);
                 setState(() {
@@ -207,10 +207,11 @@ class CollectionProState extends State<CollectionPro>
                     },
                     builder: (context, identityState) {
                       final isEmptyView = !_isLoaded ||
-                          (_isEmptyCollection() && searchStr.value.isEmpty);
+                          (_isEmptyCollection(context) &&
+                              searchStr.value.isEmpty);
                       final isSearchEmptyView = _isLoaded &&
-                          _isEmptyCollection() &&
-                          searchStr.value.isNotEmpty;
+                          searchStr.value.isNotEmpty &&
+                          _isEmptyCollection(context);
                       return CustomScrollView(
                         controller: _scrollController,
                         shrinkWrap: true,
@@ -330,16 +331,13 @@ class CollectionProState extends State<CollectionPro>
         ),
       );
 
-  bool _isEmptyCollection() {
+  bool _isEmptyCollection(BuildContext context) {
     final collection =
-        _collectionSectionKey.currentState?.filterPlaylist(searchStr.value) ??
-            [];
+        injector<ListPlaylistBloc>().state.playlists.filter(searchStr.value);
     final isEmpty = _listPredefinedCollectionByArtist.isEmpty &&
-            _listPredefinedCollectionByMedium.isEmpty ||
-        (_works.isEmpty &&
-            searchStr.value.isNotEmpty &&
-            _listPredefinedCollectionByArtist.isEmpty &&
-            collection.isEmpty);
+        _listPredefinedCollectionByMedium.isEmpty &&
+        _works.isEmpty &&
+        collection.isEmpty;
     return isEmpty;
   }
 
@@ -585,27 +583,21 @@ class CollectionSection extends StatefulWidget {
 
 class CollectionSectionState extends State<CollectionSection>
     with RouteAware, WidgetsBindingObserver {
-  final _playlistService = injector.get<PlaylistService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
   List<PlayListModel>? _currentPlaylists;
 
-  Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
-    List<PlayListModel> playlists = await _playlistService.getPlayList();
-    if (withDefault) {
-      final defaultPlaylists = await _playlistService.defaultPlaylists();
-      playlists = defaultPlaylists..addAll(playlists);
-    }
-    return playlists;
-  }
-
   Future<void> _initPlayList() async {
-    _playlists.value = await getPlaylist() ?? [];
+    _playListBloc.add(
+      ListPlaylistLoadPlaylist(filter: widget.filterString),
+    );
   }
 
   List<PlayListModel> getPlaylists() => _currentPlaylists ?? [];
 
   List<PlayListModel> filterPlaylist(String filterString) =>
       _playlists.value?.filter(filterString) ?? [];
+
+  final _playListBloc = injector<ListPlaylistBloc>();
 
   @override
   void initState() {
@@ -658,26 +650,34 @@ class CollectionSectionState extends State<CollectionSection>
 
   @override
   Widget build(BuildContext context) {
-    if (_currentPlaylists == null) {
-      return const SizedBox.shrink();
-    }
-    final playlists = _currentPlaylists!;
-    final playlistIDsString = playlists.map((e) => e.id).toList().join();
-    final playlistKeyBytes = utf8.encode(playlistIDsString);
-    final playlistKey = sha256.convert(playlistKeyBytes).toString();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListPlaylistsScreen(
-          key: Key(playlistKey),
-          playlists: _playlists,
-          filter: widget.filterString,
-          onReorder: (oldIndex, newIndex) {},
-          onAdd: () async {
-            await _gotoCreatePlaylist(context);
-          },
-        )
-      ],
+    return BlocConsumer<ListPlaylistBloc, ListPlaylistState>(
+      bloc: _playListBloc,
+      listener: (context, state) {
+        _playlists.value = state.playlists;
+      },
+      builder: (context, state) {
+        final playlists = state.playlists;
+        if (playlists.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final playlistIDsString = playlists.map((e) => e.id).toList().join();
+        final playlistKeyBytes = utf8.encode(playlistIDsString);
+        final playlistKey = sha256.convert(playlistKeyBytes).toString();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListPlaylistsScreen(
+              key: Key(playlistKey),
+              playlists: _playlists,
+              filter: widget.filterString,
+              onReorder: (oldIndex, newIndex) {},
+              onAdd: () async {
+                await _gotoCreatePlaylist(context);
+              },
+            )
+          ],
+        );
+      },
     );
   }
 }

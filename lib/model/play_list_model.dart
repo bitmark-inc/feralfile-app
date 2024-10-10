@@ -1,36 +1,77 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
+
+enum PlayListSource {
+  manual,
+  auto,
+  activation;
+
+  // from String
+  static PlayListSource fromString(String value) {
+    switch (value) {
+      case 'manual':
+        return PlayListSource.manual;
+      case 'auto':
+        return PlayListSource.auto;
+      case 'activation':
+        return PlayListSource.activation;
+      default:
+        return PlayListSource.manual;
+    }
+  }
+
+  // to String
+  String get value {
+    switch (this) {
+      case PlayListSource.manual:
+        return 'manual';
+      case PlayListSource.auto:
+        return 'auto';
+      case PlayListSource.activation:
+        return 'activation';
+    }
+  }
+}
 
 class PlayListModel {
-  String? id;
+  String id;
   String? name;
   String? thumbnailURL;
-  List<String>? tokenIDs;
+  List<String> tokenIDs;
+  String? shareUrl;
+  final PlayListSource source;
 
   PlayListModel({
-    this.id,
+    required this.tokenIDs,
+    String? id,
     this.name,
     this.thumbnailURL,
-    this.tokenIDs,
-  });
+    this.shareUrl,
+    this.source = PlayListSource.manual,
+  }) : id = id ?? const Uuid().v4();
 
   PlayListModel copyWith({
     String? id,
     String? name,
     String? thumbnailURL,
     List<String>? tokenIDs,
+    String? shareUrl,
+    PlayListSource? source,
   }) =>
       PlayListModel(
         id: id ?? this.id,
         name: name ?? this.name,
         thumbnailURL: thumbnailURL ?? this.thumbnailURL,
         tokenIDs: tokenIDs ?? this.tokenIDs,
+        shareUrl: shareUrl ?? this.shareUrl,
+        source: source ?? this.source,
       );
 
   @override
   String toString() =>
       'PlayListModel(id: $id, name: $name, thumbnailURL: $thumbnailURL, '
-      'tokenIDs: $tokenIDs)';
+      'tokenIDs: $tokenIDs, shareUrl: $shareUrl, source: $source)';
 
   @override
   bool operator ==(covariant PlayListModel other) {
@@ -52,17 +93,23 @@ class PlayListModel {
         'id': id,
         'name': name,
         'thumbnailURL': thumbnailURL,
-        'tokenIDs': tokenIDs
+        'tokenIDs': tokenIDs,
+        'shareUrl': shareUrl,
+        'source': source.value,
       };
 
   factory PlayListModel.fromJson(Map<String, dynamic> map) => PlayListModel(
-        id: map['id'] != null ? map['id'] as String : null,
+        id: map['id'] != null ? map['id'] as String : const Uuid().v4(),
         name: map['name'] != null ? map['name'] as String : null,
         thumbnailURL:
             map['thumbnailURL'] != null ? map['thumbnailURL'] as String : null,
         tokenIDs: map['tokenIDs'] != null
             ? List<String>.from(map['tokenIDs'] as List<dynamic>)
-            : null,
+            : [],
+        shareUrl: map['shareUrl'] != null ? map['shareUrl'] as String : null,
+        source: map['source'] != null
+            ? PlayListSource.fromString(map['source'] as String)
+            : PlayListSource.manual,
       );
 
   String getName() => name ?? tr('untitled');

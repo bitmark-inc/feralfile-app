@@ -399,7 +399,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
           token.id,
           token.owner,
         ),
-        isLocalToken: false,
+        shouldUseLocalCache: false,
       ),
     ));
   }

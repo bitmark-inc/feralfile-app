@@ -134,37 +134,38 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.dispose();
   }
 
-  Future<void> _onMoreTap(BuildContext context, PlayListModel? playList) async {
+  Future<void> _onMoreTap(BuildContext context, PlayListModel playList) async {
     final theme = Theme.of(context);
     await UIHelper.showDrawerAction(
       context,
       options: [
-        OptionItem(
-          title: 'edit_collection'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/rename_icon.svg',
-            width: 24,
+        if (playList.isEditable)
+          OptionItem(
+            title: 'edit_collection'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/rename_icon.svg',
+              width: 24,
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              await Navigator.pushNamed(
+                context,
+                AppRouter.editPlayListPage,
+                arguments: playList.copyWith(
+                  tokenIDs: playList.tokenIDs.toList(),
+                ),
+              ).then((value) {
+                if (value != null) {
+                  final playListModel = value as PlayListModel;
+                  bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
+                  bloc.add(SavePlaylist(name: playListModel.name));
+                  nftBloc.add(RefreshNftCollectionByIDs(
+                    ids: value.tokenIDs,
+                  ));
+                }
+              });
+            },
           ),
-          onTap: () async {
-            Navigator.pop(context);
-            await Navigator.pushNamed(
-              context,
-              AppRouter.editPlayListPage,
-              arguments: playList?.copyWith(
-                tokenIDs: playList.tokenIDs?.toList(),
-              ),
-            ).then((value) {
-              if (value != null) {
-                final playListModel = value as PlayListModel;
-                bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
-                bloc.add(SavePlaylist(name: playListModel.name));
-                nftBloc.add(RefreshNftCollectionByIDs(
-                  ids: value.tokenIDs,
-                ));
-              }
-            });
-          },
-        ),
         OptionItem(
           title: 'delete_collection'.tr(),
           icon: SvgPicture.asset(
@@ -178,7 +179,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               'delete_playlist'.tr(),
               '',
               descriptionWidget: Text(
-                'delete_playlist_desc'.tr(),
+                playList.source == PlayListSource.activation
+                    ? 'delete_activation_playlist_desc'.tr()
+                    : 'delete_playlist_desc'.tr(),
                 style: theme.textTheme.ppMori400White14,
               ),
               actionButton: 'remove_collection'.tr(),
@@ -246,7 +249,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
-              if (listTokenIds == null) {
+              if (listTokenIds.isEmpty) {
                 log.info('Playlist tokenIds is null');
                 return;
               }

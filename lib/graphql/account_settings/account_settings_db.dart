@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 abstract class AccountSettingsDB {
   Future<void> download({List<String>? keys});
@@ -44,6 +45,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
 
   @override
   Future<void> download({List<String>? keys}) async {
+    log.info('AccountSettingsDBImpl download');
     late List<Map<String, String>> values;
     if (keys != null) {
       values =
@@ -57,6 +59,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       }
       _caches[_removePrefix(value['key']!)] = value['value']!;
     }
+    log.info('AccountSettingsDBImpl download done');
   }
 
   @override

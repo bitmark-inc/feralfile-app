@@ -682,6 +682,7 @@ class UIHelper {
               PrimaryButton(
                 onTap: () => onAction.call(),
                 text: actionButton ?? '',
+                color: AppColor.feralFileLightBlue,
               ),
               const SizedBox(
                 height: 10,
