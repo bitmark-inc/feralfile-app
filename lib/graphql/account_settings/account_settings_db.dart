@@ -10,7 +10,7 @@ abstract class AccountSettingsDB {
 
   Future<void> write(List<Map<String, String>> settings);
 
-  Future<void> delete(List<String> keys);
+  Future<bool> delete(List<String> keys);
 
   //Map<String, dynamic> get caches;
 
@@ -94,15 +94,16 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   }
 
   @override
-  Future<void> delete(List<String> keys) async {
+  Future<bool> delete(List<String> keys) async {
     if (keys.isEmpty) {
-      return;
+      return false;
     }
     final fullKeys = keys.map(getFullKey).toList();
     final isSuccess = await _client.delete(vars: {'keys': fullKeys});
     if (isSuccess) {
       _caches.removeWhere((key, value) => keys.contains(key));
     }
+    return isSuccess;
   }
 
   @override

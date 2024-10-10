@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/connection_cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -27,6 +28,8 @@ class CloudManager {
 
   // this settings is shared across all devices
   late final AccountSettingsDB _userSettingsDB;
+
+  late final PlaylistCloudObject _playlistCloudObject;
 
   CloudManager() {
     unawaited(_init());
@@ -62,6 +65,11 @@ class CloudManager {
     /// user settings
     _userSettingsDB = AccountSettingsDBImpl(
         injector(), [_flavor, _commonKeyPrefix, _settings, _db].join('.'));
+
+    /// playlist
+    final playlistAccountSettingsDB = AccountSettingsDBImpl(injector(),
+        [_flavor, _commonKeyPrefix, _db, _playlistKeyPrefix].join('.'));
+    _playlistCloudObject = PlaylistCloudObject(playlistAccountSettingsDB);
   }
 
   // this will be shared across all physical devices
@@ -82,6 +90,9 @@ class CloudManager {
   // this for saving settings data
   static const _settingsDataKeyPrefix = 'settings_data_tb';
 
+  // this for saving playlist data
+  static const _playlistKeyPrefix = 'playlist';
+
   WalletAddressCloudObject get addressObject => _walletAddressObject;
 
   ConnectionCloudObject get connectionObject => _connectionObject;
@@ -89,6 +100,8 @@ class CloudManager {
   AccountSettingsDB get deviceSettingsDB => _deviceSettingsDB;
 
   AccountSettingsDB get userSettingsDB => _userSettingsDB;
+
+  PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
 
   Future<void> setMigrated() async {
     final data = [
@@ -134,6 +147,7 @@ class CloudManager {
 
   Future<void> downloadAll() async {
     log.info('[CloudManager] downloadAll');
+    // lazy load for playlists
     unawaited(injector<SettingsDataService>().restoreSettingsData());
     await Future.wait([
       _walletAddressObject.db.download(),
@@ -147,6 +161,7 @@ class CloudManager {
     _connectionObject.db.clearCache();
     _deviceSettingsDB.clearCache();
     _userSettingsDB.clearCache();
+    _playlistCloudObject.db.clearCache();
   }
 
   Future<void> deleteAll() async {
@@ -158,5 +173,6 @@ class CloudManager {
     await _connectionObject.db.uploadCurrentCache();
     await _deviceSettingsDB.uploadCurrentCache();
     await _userSettingsDB.uploadCurrentCache();
+    await _playlistCloudObject.db.uploadCurrentCache();
   }
 }

@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -50,6 +51,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   ];
 
   // user settings
+  // playlists are moved to PlaylistCloudObject, this is for migration
   static const _keyPlaylists = 'playlists';
   static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
 
@@ -115,14 +117,15 @@ class SettingsDataServiceImpl implements SettingsDataService {
         true,
         override: true);
 
-    await _configurationService.setPlayList(
-        (data[_keyPlaylists] as List<dynamic>?)
-                ?.map(
-                  (e) => PlayListModel.fromJson(e as Map<String, dynamic>),
-                )
-                .toList() ??
-            [],
-        override: true);
+    final legacyPlaylists = (data[_keyPlaylists] as List<dynamic>?)
+        ?.map((e) => PlayListModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    if (legacyPlaylists != null && legacyPlaylists.isNotEmpty) {
+      await injector<CloudManager>()
+          .playlistCloudObject
+          .setPlaylists(legacyPlaylists);
+      await _cloudObject.userSettingsDB.delete([_keyPlaylists]);
+    }
   }
 
   @override
@@ -183,14 +186,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
       newSettings.add({
         'key': _keyHiddenMainnetTokenIDs,
         'value': hiddenMainnetTokenIDs,
-      });
-    }
-
-    final playlists = jsonEncode(_configurationService.getPlayList());
-    if (currentSettings[_keyPlaylists] != playlists) {
-      newSettings.add({
-        'key': _keyPlaylists,
-        'value': playlists,
       });
     }
 

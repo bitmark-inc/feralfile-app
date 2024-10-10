@@ -1,8 +1,11 @@
+import 'dart:convert';
+
+import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
-class PlayListModel {
+class PlayListModel implements SettingObject {
   String id;
   String? name;
   String? thumbnailURL;
@@ -15,7 +18,7 @@ class PlayListModel {
     this.name,
     this.thumbnailURL,
     this.shareUrl,
-  }) : id = id ?? Uuid().v4();
+  }) : id = id ?? const Uuid().v4();
 
   PlayListModel copyWith({
     String? id,
@@ -62,7 +65,7 @@ class PlayListModel {
       };
 
   factory PlayListModel.fromJson(Map<String, dynamic> map) => PlayListModel(
-        id: map['id'] != null ? map['id'] as String : Uuid().v4(),
+        id: map['id'] != null ? map['id'] as String : const Uuid().v4(),
         name: map['name'] != null ? map['name'] as String : null,
         thumbnailURL:
             map['thumbnailURL'] != null ? map['thumbnailURL'] as String : null,
@@ -73,6 +76,18 @@ class PlayListModel {
       );
 
   String getName() => name ?? tr('untitled');
+
+  @override
+  String get key => id;
+
+  @override
+  Map<String, String> get toKeyValue => {
+        'key': key,
+        'value': value,
+      };
+
+  @override
+  String get value => jsonEncode(toJson());
 }
 
 extension PlayListModelExtension on PlayListModel {

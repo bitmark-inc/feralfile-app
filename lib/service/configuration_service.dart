@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
@@ -108,14 +107,6 @@ abstract class ConfigurationService {
   String? getPreviousBuildNumber();
 
   Future<void> setPreviousBuildNumber(String value);
-
-  List<PlayListModel> getPlayList();
-
-  Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort});
-
-  Future<void> removePlayList(String id);
 
   Future<String> getAccountHMACSecret();
 
@@ -252,7 +243,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
   static const String LAST_REMIND_REVIEW = 'last_remind_review';
   static const String COUNT_OPEN_APP = 'count_open_app';
-  static const String PLAYLISTS = 'playlists';
   static const String ALLOW_CONTRIBUTION = 'allow_contribution';
 
   static const String SHOW_AU_CHAIN_INFO = 'show_au_chain_info';
@@ -521,53 +511,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return;
     }
     await _preferences.setInt(COUNT_OPEN_APP, value);
-  }
-
-  @override
-  List<PlayListModel> getPlayList() {
-    final playListsString = _preferences.getStringList(PLAYLISTS);
-    if (playListsString == null || playListsString.isEmpty) {
-      return [];
-    }
-    return playListsString
-        .map((e) => PlayListModel.fromJson(jsonDecode(e)))
-        .toList();
-  }
-
-  @override
-  Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort}) async {
-    var newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-
-    if (override) {
-      await _preferences.setStringList(PLAYLISTS, newPlaylists);
-    } else {
-      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
-      final playlists = playlistsSave
-          .map((e) => PlayListModel.fromJson(jsonDecode(e)))
-          .toList();
-      switch (onConflict) {
-        case ConflictAction.replace:
-          playlists.removeWhere((playlist) =>
-              value?.any((element) => playlist.id == element.id) ?? false);
-          playlistsSave = playlists.map((e) => jsonEncode(e)).toList();
-        case ConflictAction.abort:
-          value?.removeWhere((playlist) =>
-              playlists.any((element) => element.id == playlist.id));
-          newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-      }
-
-      playlistsSave.addAll(newPlaylists);
-      await _preferences.setStringList(
-          PLAYLISTS, playlistsSave.toSet().toList());
-    }
-  }
-
-  @override
-  Future<void> removePlayList(String id) async {
-    final playlists = getPlayList()..removeWhere((element) => element.id == id);
-    await setPlayList(playlists, override: true);
   }
 
   @override

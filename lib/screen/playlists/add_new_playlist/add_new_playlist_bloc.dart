@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:uuid/uuid.dart';
 
 class AddNewPlaylistBloc
     extends AuBloc<AddNewPlaylistEvent, AddNewPlaylistState> {
@@ -52,8 +51,6 @@ class AddNewPlaylistBloc
           ?.getGalleryThumbnailUrl();
 
       playListModel?.tokenIDs = state.selectedIDs?.toSet().toList() ?? [];
-
-      playListModel?.id ??= const Uuid().v4();
       await _playListService
           .setPlayList([playListModel!], onConflict: ConflictAction.replace);
 

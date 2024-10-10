@@ -97,12 +97,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     });
   }
 
-  Future<void> deletePlayList() async {
-    final listPlaylist = await _playlistService.getPlayList();
-    listPlaylist.removeWhere(
-        (element) => element.id == widget.payload.playListModel?.id);
-    await _playlistService.setPlayList(listPlaylist, override: true);
-    injector<NavigationService>().popUntilHomeOrSettings();
+  Future<void> _deletePlayList() async {
+    if (widget.payload.playListModel == null) {
+      return;
+    }
+    final isDeleted = await _playlistService.deletePlaylist(
+      widget.payload.playListModel!,
+    );
+    if (isDeleted) {
+      injector<NavigationService>().popUntilHomeOrSettings();
+    }
   }
 
   List<CompactedAssetToken> _setupPlayList({
@@ -161,8 +165,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             await Navigator.pushNamed(
               context,
               AppRouter.editPlayListPage,
-              arguments: playList?.copyWith(
-                tokenIDs: playList.tokenIDs?.toList(),
+              arguments: playList.copyWith(
+                tokenIDs: playList.tokenIDs,
               ),
             ).then((value) {
               if (value != null) {
@@ -193,7 +197,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 style: theme.textTheme.ppMori400White14,
               ),
               actionButton: 'remove_collection'.tr(),
-              onAction: deletePlayList,
+              onAction: _deletePlayList,
             );
           },
         ),
@@ -257,10 +261,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
-              if (listTokenIds == null) {
-                log.info('Playlist tokenIds is null');
-                return;
-              }
               final duration = speedValues.values.first.inMilliseconds;
               final listPlayArtwork = listTokenIds
                   .map((e) => PlayArtworkV2(
