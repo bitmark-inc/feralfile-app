@@ -326,7 +326,7 @@ Future<void> setupInjector() async {
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   injector.registerLazySingleton<PlaylistService>(
-      () => PlayListServiceImp(injector(), injector(), injector(), injector()));
+      () => PlayListServiceImp(injector(), injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 
   injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(

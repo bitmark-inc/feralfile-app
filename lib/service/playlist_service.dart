@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 
@@ -21,9 +22,10 @@ class PlayListServiceImp implements PlaylistService {
   final TokenDao _tokenDao;
   final AccountService _accountService;
   final AssetTokenDao _assetTokenDao;
+  final SettingsDataService _settingsDataService;
 
   PlayListServiceImp(this._configurationService, this._tokenDao,
-      this._accountService, this._assetTokenDao);
+      this._accountService, this._assetTokenDao, this._settingsDataService);
 
   Future<PlayListModel?> getPlaylistById(String id) async {
     final playlists = await getPlayList();
@@ -68,6 +70,7 @@ class PlayListServiceImp implements PlaylistService {
   }) async {
     await _configurationService.setPlayList(playlists,
         override: override, onConflict: onConflict);
+    await _settingsDataService.backupUserSettings();
     return;
   }
 

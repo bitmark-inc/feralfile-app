@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 
 class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
   final PlaylistService _playlistService;
@@ -35,7 +31,6 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
       if (index != -1 && playListModel != null) {
         playlists[index] = playListModel;
         await _playlistService.setPlayList(playlists, override: true);
-        unawaited(injector.get<SettingsDataService>().backupUserSettings());
       }
       emit(state.copyWith(isRename: false));
     });

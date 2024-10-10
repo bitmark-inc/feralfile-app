@@ -1,12 +1,8 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
@@ -60,7 +56,6 @@ class AddNewPlaylistBloc
       playListModel?.id ??= const Uuid().v4();
       await _playListService
           .setPlayList([playListModel!], onConflict: ConflictAction.replace);
-      unawaited(injector.get<SettingsDataService>().backupUserSettings());
 
       emit(state.copyWith(isAddSuccess: true));
     });
