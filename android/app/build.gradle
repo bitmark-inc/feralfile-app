@@ -78,6 +78,23 @@ android {
         resConfigs 'en', 'US'
     }
 
+    signingConfigs {
+        release {
+            def releaseProperties = new Properties()
+            def releasePropertiesFile = rootProject.file('release.properties')
+            if (releasePropertiesFile.exists()) {
+                releasePropertiesFile.withReader('UTF-8') { reader ->
+                    releaseProperties.load(reader)
+                }
+            }
+
+            keyAlias releaseProperties['key.alias']
+            keyPassword releaseProperties['key.alias.password']
+            storePassword releaseProperties['key.store.password']
+            storeFile rootProject.file('release.keystore') // Update this with the path to your keystore
+        }
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.bitmark.autonomy_client"
@@ -95,9 +112,7 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
 
