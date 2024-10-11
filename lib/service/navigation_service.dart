@@ -8,12 +8,14 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -32,11 +34,17 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
+import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
@@ -728,6 +736,310 @@ class NavigationService {
       context,
       'activation_expired'.tr(),
       'activation_expired_desc'.tr(),
+      isDismissible: true,
+    );
+  }
+
+  Future<void> showFlexibleDialog(
+    Widget content, {
+    bool isDismissible = false,
+    bool isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+  }) async {
+    await UIHelper.showFlexibleDialog(
+      context,
+      content,
+      isDismissible: isDismissible,
+      isRoundCorner: isRoundCorner,
+      backgroundColor: backgroundColor,
+      autoDismissAfter: autoDismissAfter,
+      feedback: feedback,
+    );
+  }
+
+  Widget _stepBuilder(BuildContext context, int step, Widget child) {
+    final numberFormater = NumberFormat('00');
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          numberFormater.format(step),
+          style: theme.textTheme.ppMori700White14,
+        ),
+        const SizedBox(width: 30),
+        Expanded(child: child),
+      ],
+    );
+  }
+
+  Widget _getStep1(BuildContext context, SupportedDisplayBranch displayBranch) {
+    final theme = Theme.of(context);
+    switch (displayBranch) {
+      case SupportedDisplayBranch.samsung:
+        return RichText(
+          textScaler: MediaQuery.textScalerOf(context),
+          text: TextSpan(
+            style: theme.textTheme.ppMori400White14,
+            children: [
+              TextSpan(
+                text: "${'search_for'.tr()} ",
+              ),
+              WidgetSpan(
+                baseline: TextBaseline.alphabetic,
+                alignment: PlaceholderAlignment.baseline,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: AppColor.white),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Text(
+                    textScaler: const TextScaler.linear(1),
+                    'feral_file'.tr(),
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                ),
+              ),
+              TextSpan(
+                text: " ${'app_from_samsung'.tr()}.",
+              ),
+            ],
+          ),
+        );
+      case SupportedDisplayBranch.lg:
+        return const SizedBox();
+      case SupportedDisplayBranch.chromecast:
+      case SupportedDisplayBranch.sony:
+      case SupportedDisplayBranch.Hisense:
+      case SupportedDisplayBranch.TCL:
+        return RichText(
+          textScaler: MediaQuery.textScalerOf(context),
+          text: TextSpan(
+            style: theme.textTheme.ppMori400White14,
+            children: [
+              TextSpan(
+                text: "${'search_for'.tr()} ",
+              ),
+              WidgetSpan(
+                baseline: TextBaseline.alphabetic,
+                alignment: PlaceholderAlignment.baseline,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: AppColor.white),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Text(
+                    textScaler: const TextScaler.linear(1),
+                    'feral_file'.tr(),
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                ),
+              ),
+              TextSpan(
+                text: " ${'in_app_store_section'.tr()}",
+              ),
+            ],
+          ),
+        );
+      case SupportedDisplayBranch.other:
+        return RichText(
+          textScaler: MediaQuery.textScalerOf(context),
+          text: TextSpan(
+            style: theme.textTheme.ppMori400White14,
+            children: [
+              TextSpan(
+                text: "${'type'.tr()} ",
+              ),
+              WidgetSpan(
+                baseline: TextBaseline.alphabetic,
+                alignment: PlaceholderAlignment.baseline,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: AppColor.white),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Text(
+                    textScaler: const TextScaler.linear(1),
+                    'https://display.feralfile.com',
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                ),
+              ),
+              TextSpan(
+                text: " ${'on_tv_browser'.tr()}.",
+              ),
+            ],
+          ),
+        );
+    }
+  }
+
+  Widget _getStep2(BuildContext context, SupportedDisplayBranch displayBranch) {
+    final theme = Theme.of(context);
+    switch (displayBranch) {
+      case SupportedDisplayBranch.lg:
+        return const SizedBox();
+      case SupportedDisplayBranch.samsung:
+      case SupportedDisplayBranch.chromecast:
+      case SupportedDisplayBranch.sony:
+      case SupportedDisplayBranch.Hisense:
+      case SupportedDisplayBranch.TCL:
+        return Text(
+          'install_and_launch_tv_app'.tr(),
+          style: theme.textTheme.ppMori400White14,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        );
+      case SupportedDisplayBranch.other:
+        return Text(
+          'open_url_and_discover_daily'.tr(),
+          style: theme.textTheme.ppMori400White14,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        );
+    }
+  }
+
+  Widget _getStep(SupportedDisplayBranch displayBranch, Function? onScanQRTap) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _stepBuilder(
+          context,
+          1,
+          _getStep1(
+            context,
+            displayBranch,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _stepBuilder(
+          context,
+          2,
+          _getStep2(
+            context,
+            displayBranch,
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        _stepBuilder(
+          context,
+          3,
+          RichText(
+            textScaler: MediaQuery.textScalerOf(context),
+            text: TextSpan(
+              style: theme.textTheme.ppMori400White14,
+              children: [
+                TextSpan(
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      onScanQRTap?.call();
+                    },
+                  text: 'scan_the_qr_code'.tr(),
+                  style: onScanQRTap != null
+                      ? const TextStyle(
+                          decoration: TextDecoration.underline,
+                        )
+                      : null,
+                ),
+                TextSpan(
+                  text: " ${'on_your_TV'.tr()}.",
+                )
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> showHowToDisplay(
+    SupportedDisplayBranch displayBranch,
+    Function? onScanQRTap,
+  ) async {
+    Widget child;
+    final theme = Theme.of(context);
+    child = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Display Art on',
+                      style: theme.textTheme.ppMori700White24,
+                    ),
+                    const SizedBox(height: 6),
+                    displayBranch.logo,
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  injector<NavigationService>().showStreamAction('', null);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 22, bottom: 22),
+                  child: SvgPicture.asset('assets/images/left-arrow.svg',
+                      width: 22,
+                      height: 22,
+                      colorFilter: const ColorFilter.mode(
+                        AppColor.white,
+                        BlendMode.srcIn,
+                      )),
+                ),
+              )
+            ],
+          ),
+          const SizedBox(height: 36),
+          displayBranch.demoPicture(context),
+          const SizedBox(height: 36),
+          if (displayBranch.isComingSoon)
+            const SizedBox(
+              height: 125,
+            )
+          else
+            _getStep(displayBranch, onScanQRTap),
+        ],
+      ),
+    );
+    Navigator.pop(context);
+    unawaited(injector<NavigationService>().showFlexibleDialog(
+      child,
+      isDismissible: true,
+    ));
+  }
+
+  Future<void> showStreamAction(String displayKey,
+      Function(CanvasDevice device)? onDeviceSelected) async {
+    keyboardManagerKey.currentState?.hideKeyboard();
+    await injector<NavigationService>().showFlexibleDialog(
+      BlocProvider.value(
+        value: injector<CanvasDeviceBloc>(),
+        child: StreamDeviceView(
+          displayKey: displayKey,
+          onDeviceSelected: (canvasDevice) {
+            onDeviceSelected?.call(canvasDevice);
+          },
+        ),
+      ),
       isDismissible: true,
     );
   }
