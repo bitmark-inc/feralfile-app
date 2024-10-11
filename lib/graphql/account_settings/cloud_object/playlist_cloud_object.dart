@@ -20,7 +20,7 @@ class PlaylistCloudObject {
   }
 
   PlayListModel? getPlaylistById(String id) {
-    final rawString = _db.allInstance[id];
+    final rawString = _db.query([id]).firstOrNull?['value'];
     if (rawString == null || rawString.isEmpty) {
       return null;
     }
