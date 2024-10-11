@@ -105,7 +105,6 @@ class _OnboardingPageState extends State<OnboardingPage>
       await disableLandscapeMode();
       unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
       DailiesHelper.updateDailies([]);
-      unawaited(injector<DeeplinkService>().setup());
       didRunSetup = true;
     } catch (e, s) {
       log.info('Setup error: $e');
@@ -137,6 +136,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
     log.info('[_fetchRuntimeCache] start');
     await injector<AccountService>().migrateAccount();
+    unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
     if (timer.isActive) {
       timer.cancel();

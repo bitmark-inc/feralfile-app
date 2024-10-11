@@ -223,9 +223,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // we don't need to wait for canvas service to init
 
     Future.delayed(const Duration(seconds: 1), () {
-      injector<DeeplinkService>()
-        ..activateBranchDataListener()
-        ..activateDeepLinkListener();
       if (!_configurationService.didShowLiveWithArt() || true) {
         if (!mounted) {
           return;
@@ -233,9 +230,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(UIHelper.showLiveWithArtIntro(context));
       }
     });
-    injector<DeeplinkService>()
-      ..activateBranchDataListener()
-      ..activateDeepLinkListener();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getIssues());
     _initialTab = widget.payload.startedTab;

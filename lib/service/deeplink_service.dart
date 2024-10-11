@@ -54,10 +54,6 @@ abstract class DeeplinkService {
 
   Future<void> openClaimEmptyPostcard(String id, {String? otp});
 
-  void activateBranchDataListener();
-
-  void activateDeepLinkListener();
-
   Future<void> handleReferralCode(String referralCode);
 }
 
@@ -80,18 +76,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
     this._postcardService,
     this._remoteConfigService,
-  ) {
-    _branchDataStream = _branchDataStreamController.stream;
-    _linkStream = _deepLinkStreamController.stream;
-  }
-
-  final StreamController<Map<dynamic, dynamic>> _branchDataStreamController =
-      StreamController<Map<dynamic, dynamic>>();
-  final StreamController<String> _deepLinkStreamController =
-      StreamController<String>();
-
-  late final Stream<Map<dynamic, dynamic>> _branchDataStream;
-  late final Stream<String> _linkStream;
+  );
 
   @override
   Future setup() async {
@@ -105,7 +90,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _deepLinkHandlingMap[data['~referring_link']] == null) {
         _deepLinkHandlingMap[data['~referring_link']] = true;
 
-        _branchDataStreamController.add(data);
+        await handleBranchDeeplinkData(data);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
@@ -116,29 +101,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final initialLink = await getInitialLink();
       log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
-        _deepLinkStreamController.add(initialLink);
+        handleDeeplink(initialLink);
       }
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
     }
-  }
-
-  @override
-  void activateBranchDataListener() {
-    if (_branchDataStreamController.hasListener) {
-      return;
-    }
-    _branchDataStream.listen(handleBranchDeeplinkData);
-  }
-
-  @override
-  void activateDeepLinkListener() {
-    if (_deepLinkStreamController.hasListener) {
-      return;
-    }
-    _linkStream.listen(handleDeeplink);
   }
 
   @override
