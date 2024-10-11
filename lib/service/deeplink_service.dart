@@ -55,10 +55,6 @@ abstract class DeeplinkService {
 
   Future<void> openClaimEmptyPostcard(String id, {String? otp});
 
-  void activateBranchDataListener();
-
-  void activateDeepLinkListener();
-
   Future<void> handleReferralCode(String referralCode);
 }
 
@@ -81,18 +77,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
     this._postcardService,
     this._remoteConfigService,
-  ) {
-    _branchDataStream = _branchDataStreamController.stream;
-    _linkStream = _deepLinkStreamController.stream;
-  }
-
-  final StreamController<Map<dynamic, dynamic>> _branchDataStreamController =
-      StreamController<Map<dynamic, dynamic>>();
-  final StreamController<String> _deepLinkStreamController =
-      StreamController<String>();
-
-  late final Stream<Map<dynamic, dynamic>> _branchDataStream;
-  late final Stream<String> _linkStream;
+  );
 
   @override
   Future setup() async {
@@ -106,7 +91,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _deepLinkHandlingMap[data['~referring_link']] == null) {
         _deepLinkHandlingMap[data['~referring_link']] = true;
 
-        _branchDataStreamController.add(data);
+        await handleBranchDeeplinkData(data);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
@@ -117,29 +102,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final initialLink = await getInitialLink();
       log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
-        _deepLinkStreamController.add(initialLink);
+        handleDeeplink(initialLink);
       }
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
     }
-  }
-
-  @override
-  void activateBranchDataListener() {
-    if (_branchDataStreamController.hasListener) {
-      return;
-    }
-    _branchDataStream.listen(handleBranchDeeplinkData);
-  }
-
-  @override
-  void activateDeepLinkListener() {
-    if (_deepLinkStreamController.hasListener) {
-      return;
-    }
-    _linkStream.listen(handleDeeplink);
   }
 
   @override
@@ -529,16 +498,24 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'playlist_activation':
         try {
+          log.info('[DeeplinkService] playlist_activation');
+          unawaited(
+              injector<ConfigurationService>().setDidShowLiveWithArt(true));
           final expiredAt = int.tryParse(data['expired_at']);
+          log.info('[DeeplinkService] expiredAt: $expiredAt');
           if (expiredAt != null) {
             final expiredAtDate =
                 DateTime.fromMillisecondsSinceEpoch(expiredAt);
             if (expiredAtDate.isBefore(DateTime.now())) {
+              log.info('[DeeplinkService] playlist_activation expired');
               unawaited(_navigationService.showPlaylistActivationExpired());
               break;
             }
           }
-          final playlistJson = data['playlist'];
+          log.info('[DeeplinkService] playlist_activation not expired');
+          final playlistJson = (data['playlist'] as Map<dynamic, dynamic>)
+              .map((key, value) => MapEntry(key.toString(), value));
+
           final playlist = PlayListModel.fromJson(playlistJson)
               .copyWith(source: PlayListSource.activation);
           final activationName = data['activation_name'];
@@ -550,6 +527,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             source: activationSource,
             thumbnailURL: thumbnailURL,
           );
+          log.info('[DeeplinkService] playlist_activation ${activation}');
           await _navigationService.navigateTo(
             AppRouter.playlistActivationPage,
             arguments: PlaylistActivationPagePayload(
@@ -560,6 +538,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           log.info('[DeeplinkService] playlist_activation error $e');
         }
       default:
+        log.info('[DeeplinkService] source not found');
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
   }
