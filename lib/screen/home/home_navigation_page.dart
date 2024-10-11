@@ -226,7 +226,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       injector<DeeplinkService>()
         ..activateBranchDataListener()
         ..activateDeepLinkListener();
-      if (!_configurationService.didShowLiveWithArt() || true) {
+      if (!_configurationService.didShowLiveWithArt()) {
         if (!mounted) {
           return;
         }
