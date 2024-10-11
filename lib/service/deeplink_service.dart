@@ -564,7 +564,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
             }
           }
           log.info('[DeeplinkService] playlist_activation not expired');
-          final playlistJson = data['playlist'];
+          final playlistJson = (data['playlist'] as Map<dynamic, dynamic>)
+              .map((key, value) => MapEntry(key.toString(), value));
+
           final playlist = PlayListModel.fromJson(playlistJson)
               .copyWith(source: PlayListSource.activation);
           final activationName = data['activation_name'];
@@ -576,8 +578,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             source: activationSource,
             thumbnailURL: thumbnailURL,
           );
-          log.info(
-              '[DeeplinkService] playlist_activation ${activation.toString()}');
+          log.info('[DeeplinkService] playlist_activation ${activation}');
           await _navigationService.navigateTo(
             AppRouter.playlistActivationPage,
             arguments: PlaylistActivationPagePayload(
@@ -588,6 +589,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           log.info('[DeeplinkService] playlist_activation error $e');
         }
       default:
+        log.info('[DeeplinkService] source not found');
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
   }
