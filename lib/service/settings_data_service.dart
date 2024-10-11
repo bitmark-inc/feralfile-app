@@ -8,12 +8,14 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class SettingsDataService {
@@ -40,6 +42,11 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final _filename = 'settings_data_backup.json';
   final _version = '1';
 
+  // legacy settings, they were store in device settings
+  static const _keyPlaylists = 'playlists';
+  static const _keyHiddenLinkedAccountsFromGallery =
+      'hiddenLinkedAccountsFromGallery';
+
   // device settings
   static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
   static const _keyDevicePasscodeEnabled = 'devicePasscodeEnabled';
@@ -48,15 +55,14 @@ class SettingsDataServiceImpl implements SettingsDataService {
     _keyIsAnalyticsEnabled,
     _keyDevicePasscodeEnabled,
     _keyNotificationEnabled,
+    _keyPlaylists,
+    _keyHiddenLinkedAccountsFromGallery,
   ];
 
   // user settings
-  // playlists are moved to PlaylistCloudObject, this is for migration
-  static const _keyPlaylists = 'playlists';
   static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
 
   static const _userSettingsKeys = [
-    _keyPlaylists,
     _keyHiddenMainnetTokenIDs,
   ];
 
@@ -124,7 +130,31 @@ class SettingsDataServiceImpl implements SettingsDataService {
       await injector<CloudManager>()
           .playlistCloudObject
           .setPlaylists(legacyPlaylists);
-      await _cloudObject.userSettingsDB.delete([_keyPlaylists]);
+      await _cloudObject.deviceSettingsDB.delete([_keyPlaylists]);
+    }
+
+    final legacyHiddenLinkedAccountsFromGallery =
+        (data[_keyHiddenLinkedAccountsFromGallery] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList();
+    if (legacyHiddenLinkedAccountsFromGallery != null &&
+        legacyHiddenLinkedAccountsFromGallery.isNotEmpty) {
+      final linkedAccounts =
+          injector<CloudManager>().connectionObject.getLinkedAccounts();
+      final List<Connection> hiddenLinkAccounts = [];
+      for (var address in legacyHiddenLinkedAccountsFromGallery) {
+        final account = linkedAccounts
+            .firstWhereOrNull((element) => element.accountNumber == address);
+        if (account != null) {
+          hiddenLinkAccounts.add(account.copyWith(isHidden: true));
+        }
+      }
+      await injector<CloudManager>()
+          .connectionObject
+          .writeConnections(hiddenLinkAccounts);
+      await injector<CloudManager>()
+          .deviceSettingsDB
+          .delete([_keyHiddenLinkedAccountsFromGallery]);
     }
   }
 
