@@ -223,7 +223,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // we don't need to wait for canvas service to init
 
     Future.delayed(const Duration(seconds: 1), () {
-      if (!_configurationService.didShowLiveWithArt() || true) {
+      if (!_configurationService.didShowLiveWithArt()) {
         if (!mounted) {
           return;
         }
