@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/connection_cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -22,7 +23,13 @@ class CloudManager {
 
   late final ConnectionCloudObject _connectionObject;
 
-  late final AccountSettingsDB _settingsDataDB;
+  // this settings is for one device
+  late final AccountSettingsDB _deviceSettingsDB;
+
+  // this settings is shared across all devices
+  late final AccountSettingsDB _userSettingsDB;
+
+  late final PlaylistCloudObject _playlistCloudObject;
 
   CloudManager() {
     unawaited(_init());
@@ -51,9 +58,18 @@ class CloudManager {
         injector(), [_flavor, _deviceId, _db, _connectionKeyPrefix].join('.'));
     _connectionObject = ConnectionCloudObject(connectionAccountSettingsDB);
 
-    /// Settings
-    _settingsDataDB = AccountSettingsDBImpl(injector(),
+    /// device settings
+    _deviceSettingsDB = AccountSettingsDBImpl(injector(),
         [_flavor, _deviceId, _settings, _settingsDataKeyPrefix].join('.'));
+
+    /// user settings
+    _userSettingsDB = AccountSettingsDBImpl(
+        injector(), [_flavor, _commonKeyPrefix, _settings, _db].join('.'));
+
+    /// playlist
+    final playlistAccountSettingsDB = AccountSettingsDBImpl(injector(),
+        [_flavor, _commonKeyPrefix, _db, _playlistKeyPrefix].join('.'));
+    _playlistCloudObject = PlaylistCloudObject(playlistAccountSettingsDB);
   }
 
   // this will be shared across all physical devices
@@ -74,16 +90,23 @@ class CloudManager {
   // this for saving settings data
   static const _settingsDataKeyPrefix = 'settings_data_tb';
 
+  // this for saving playlist data
+  static const _playlistKeyPrefix = 'playlist';
+
   WalletAddressCloudObject get addressObject => _walletAddressObject;
 
   ConnectionCloudObject get connectionObject => _connectionObject;
 
-  AccountSettingsDB get settingsDataDB => _settingsDataDB;
+  AccountSettingsDB get deviceSettingsDB => _deviceSettingsDB;
+
+  AccountSettingsDB get userSettingsDB => _userSettingsDB;
+
+  PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
 
   Future<void> setMigrated() async {
     final data = [
       {
-        'key': settingsDataDB.getFullKey(settingsDataDB.migrateKey),
+        'key': deviceSettingsDB.getFullKey(deviceSettingsDB.migrateKey),
         'value': 'true'
       },
       {
@@ -93,6 +116,10 @@ class CloudManager {
       },
       {
         'key': _connectionObject.db.getFullKey(_connectionObject.db.migrateKey),
+        'value': 'true'
+      },
+      {
+        'key': _userSettingsDB.getFullKey(_userSettingsDB.migrateKey),
         'value': 'true'
       }
     ];
@@ -118,12 +145,15 @@ class CloudManager {
     } catch (_) {}
   }
 
-  Future<void> downloadAll() async {
+  Future<void> downloadAll({bool includePlaylists = false}) async {
     log.info('[CloudManager] downloadAll');
+    if (includePlaylists) {
+      unawaited(_playlistCloudObject.db.download());
+    }
+    unawaited(injector<SettingsDataService>().restoreSettingsData());
     await Future.wait([
       _walletAddressObject.db.download(),
       _connectionObject.db.download(),
-      injector<SettingsDataService>().restoreSettingsData(),
     ]);
     log.info('[CloudManager] downloadAll done');
   }
@@ -131,7 +161,9 @@ class CloudManager {
   void clearCache() {
     _walletAddressObject.db.clearCache();
     _connectionObject.db.clearCache();
-    _settingsDataDB.clearCache();
+    _deviceSettingsDB.clearCache();
+    _userSettingsDB.clearCache();
+    _playlistCloudObject.db.clearCache();
   }
 
   Future<void> deleteAll() async {
@@ -141,6 +173,8 @@ class CloudManager {
   Future<void> uploadCurrentCache() async {
     await _walletAddressObject.db.uploadCurrentCache();
     await _connectionObject.db.uploadCurrentCache();
-    await _settingsDataDB.uploadCurrentCache();
+    await _deviceSettingsDB.uploadCurrentCache();
+    await _userSettingsDB.uploadCurrentCache();
+    await _playlistCloudObject.db.uploadCurrentCache();
   }
 }

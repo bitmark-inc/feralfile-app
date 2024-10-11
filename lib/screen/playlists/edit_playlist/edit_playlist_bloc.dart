@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
@@ -43,8 +41,8 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
 
     on<RemoveTokens>((event, emit) {
       final playlist = state.playListModel;
-      playlist?.tokenIDs?.removeWhere(
-          (element) => event.tokenIDs?.contains(element) ?? false);
+      playlist?.tokenIDs
+          .removeWhere((element) => event.tokenIDs?.contains(element) ?? false);
       emit(state.copyWith(playListModel: playlist, selectedItem: []));
     });
 
@@ -56,18 +54,15 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
 
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
-      final service = injector.get<PlaylistService>();
-      playListModel?.tokenIDs =
-          state.playListModel?.tokenIDs?.toSet().toList() ?? [];
-      final playlists = await service.getPlayList();
-      final index =
-          playlists.indexWhere((element) => element.id == playListModel?.id);
-      if (index != -1 && playListModel != null) {
-        playlists[index] = playListModel;
-        await service.setPlayList(playlists, override: true);
-        unawaited(injector.get<SettingsDataService>().backup());
-        emit(state.copyWith(isAddSuccess: true));
+      if (playListModel == null) {
+        return;
       }
+      playListModel.tokenIDs =
+          state.playListModel?.tokenIDs.toSet().toList() ?? [];
+      final service = injector.get<PlaylistService>();
+      await service
+          .setPlayList([playListModel], onConflict: ConflictAction.replace);
+      emit(state.copyWith(isAddSuccess: true));
     });
   }
 }

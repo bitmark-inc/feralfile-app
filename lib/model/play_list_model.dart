@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
@@ -34,7 +37,7 @@ enum PlayListSource {
   }
 }
 
-class PlayListModel {
+class PlayListModel implements SettingObject {
   String id;
   String? name;
   String? thumbnailURL;
@@ -113,6 +116,18 @@ class PlayListModel {
       );
 
   String getName() => name ?? tr('untitled');
+
+  @override
+  String get key => id;
+
+  @override
+  Map<String, String> get toKeyValue => {
+        'key': key,
+        'value': value,
+      };
+
+  @override
+  String get value => jsonEncode(toJson());
 }
 
 extension PlayListModelExtension on PlayListModel {

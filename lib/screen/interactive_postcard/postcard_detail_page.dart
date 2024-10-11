@@ -424,7 +424,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 element.id == assetToken.id &&
                 element.owner == assetToken.owner);
         if (!alreadyShowPostcardUpdate) {
-          if (_configurationService.isNotificationEnabled() != true) {
+          if (!_configurationService.isNotificationEnabled()) {
             if (!mounted) {
               return;
             }
@@ -1195,7 +1195,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           onTap: () async {
             await _configurationService
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            await injector<SettingsDataService>().backup();
+            await injector<SettingsDataService>().backupUserSettings();
 
             if (!context.mounted) {
               return;

@@ -1498,8 +1498,6 @@ class UIHelper {
                 bool result = false;
                 try {
                   result = await registerPushNotifications(askPermission: true);
-                  await injector<ConfigurationService>()
-                      .setPendingSettings(false);
                 } catch (error) {
                   log.warning('Error when setting notification: $error');
                 }

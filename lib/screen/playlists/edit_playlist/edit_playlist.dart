@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_nam
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
@@ -65,12 +64,14 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final _playlistService = injector<PlaylistService>();
 
   Future<void> deletePlayList() async {
-    final listPlaylist = await _playlistService.getPlayList();
-    listPlaylist
-        .removeWhere((element) => element.id == widget.playListModel?.id);
-    await _playlistService.setPlayList(listPlaylist, override: true);
-    unawaited(injector.get<SettingsDataService>().backup());
-    injector<NavigationService>().popUntilHomeOrSettings();
+    if (widget.playListModel == null) {
+      return;
+    }
+    final isSuccess =
+        await _playlistService.deletePlaylist(widget.playListModel!);
+    if (isSuccess) {
+      injector<NavigationService>().popUntilHomeOrSettings();
+    }
   }
 
   List<CompactedAssetToken> setupPlayList({
