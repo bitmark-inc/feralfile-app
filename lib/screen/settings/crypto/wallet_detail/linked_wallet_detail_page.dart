@@ -67,7 +67,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     _connection = widget.payload.connection;
     _address = _connection.accountNumber;
     _renameController.text = _connection.name;
-    _isHideGalleryEnabled = _connection.isHidden ?? false;
+    _isHideGalleryEnabled = _connection.isHidden;
 
     _callBloc();
     controller = ScrollController();

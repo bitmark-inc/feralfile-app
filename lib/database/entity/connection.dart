@@ -31,7 +31,7 @@ class Connection implements SettingObject {
   String accountNumber;
   DateTime createdAt;
   int? accountOrder;
-  bool? isHidden;
+  bool isHidden;
 
   /* Data
   enum ConnectionType {
@@ -53,7 +53,7 @@ class Connection implements SettingObject {
     required this.accountNumber,
     required this.createdAt,
     this.accountOrder,
-    this.isHidden,
+    this.isHidden = false,
   });
 
   Connection copyWith({
@@ -77,7 +77,7 @@ class Connection implements SettingObject {
         isHidden: isHidden ?? this.isHidden,
       );
 
-  bool get isViewing => !(isHidden == true);
+  bool get isViewing => !isHidden;
 
   BeaconConnectConnection? get beaconConnectConnection {
     if (connectionType != ConnectionType.beaconP2PPeer.rawValue) {
@@ -145,7 +145,7 @@ class Connection implements SettingObject {
         accountNumber: json['accountNumber'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String),
         accountOrder: json['accountOrder'] as int?,
-        isHidden: json['isHidden'] as bool?,
+        isHidden: json['isHidden'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -156,7 +156,7 @@ class Connection implements SettingObject {
         'accountNumber': accountNumber,
         'createdAt': createdAt.toIso8601String(),
         'accountOrder': accountOrder,
-        'isHidden': isHidden ?? false,
+        'isHidden': isHidden,
       };
 
   @override

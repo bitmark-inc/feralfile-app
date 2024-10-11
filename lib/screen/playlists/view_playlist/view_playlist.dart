@@ -246,6 +246,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
+              if (listTokenIds.isEmpty) {
+                log.info('playList is empty');
+                return;
+              }
               final duration = speedValues.values.first.inMilliseconds;
               final listPlayArtwork = listTokenIds
                   .map((e) => PlayArtworkV2(

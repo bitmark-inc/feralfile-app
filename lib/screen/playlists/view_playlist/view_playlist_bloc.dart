@@ -24,11 +24,11 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
 
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
-      if (event.name != null) {
-        playListModel?.name = event.name;
-      }
       if (playListModel == null) {
         return;
+      }
+      if (event.name != null) {
+        playListModel.name = event.name;
       }
 
       await _playlistService

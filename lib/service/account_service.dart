@@ -496,7 +496,7 @@ class AccountServiceImpl extends AccountService {
           .map((e) => e.address.maskOnly(5))
           .toList()
         ..addAll(linkedAccounts
-            .where((element) => element.isHidden == true)
+            .where((element) => element.isHidden)
             .map((e) => e.accountNumber)
             .toList());
       log.fine(
@@ -590,7 +590,7 @@ class AccountServiceImpl extends AccountService {
 
     final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
     final hiddenLinkedAccounts =
-        linkedAccounts.where((element) => element.isHidden == true).toList();
+        linkedAccounts.where((element) => element.isHidden).toList();
 
     hiddenAddresses.addAll(hiddenLinkedAccounts
         .expand((element) => element.addressIndexes.toList()));
@@ -672,7 +672,7 @@ class AccountServiceImpl extends AccountService {
     }
 
     // case 2: update app from old version using did key
-    if (addressInfo == null && isDoneOnboarding && defaultWallet != null) {
+    if (addressInfo == null && isDoneOnboarding) {
       log.info('[AccountService] migrateAccount: '
           'case 2 update app from old version using did key');
       await _addressService.registerPrimaryAddress(
@@ -693,7 +693,7 @@ class AccountServiceImpl extends AccountService {
     // case 3: restore app from old version using did key
     // we register first uuid as primary address (with didKey = true)
     // then restore
-    if (addressInfo == null && !isDoneOnboarding && defaultWallet != null) {
+    if (addressInfo == null && !isDoneOnboarding) {
       log.info('[AccountService] migrateAccount: '
           'case 3 restore app from old version using did key');
       await _addressService.registerPrimaryAddress(
