@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/graphql/account_settings/cloud_object/connectio
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudManager {
@@ -118,11 +119,13 @@ class CloudManager {
   }
 
   Future<void> downloadAll() async {
+    log.info('[CloudManager] downloadAll');
     await Future.wait([
       _walletAddressObject.db.download(),
       _connectionObject.db.download(),
       injector<SettingsDataService>().restoreSettingsData(),
     ]);
+    log.info('[CloudManager] downloadAll done');
   }
 
   void clearCache() {

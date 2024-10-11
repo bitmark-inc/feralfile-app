@@ -36,7 +36,7 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
 
     on<UpdateOrderPlaylist>((event, emit) {
       final playlist = state.playListModel;
-      playlist?.tokenIDs = event.tokenIDs;
+      playlist?.tokenIDs = event.tokenIDs ?? [];
       playlist?.thumbnailURL = event.thumbnailURL;
       emit(state.copyWith(playListModel: playlist));
     });
@@ -57,7 +57,8 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
       final service = injector.get<PlaylistService>();
-      playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
+      playListModel?.tokenIDs =
+          state.playListModel?.tokenIDs?.toSet().toList() ?? [];
       final playlists = await service.getPlayList();
       final index =
           playlists.indexWhere((element) => element.id == playListModel?.id);

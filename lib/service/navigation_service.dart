@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -628,6 +630,7 @@ class NavigationService {
         route = AppRouter.homePageNoTransition;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.rAndD;
+
       default:
         route = pair.first;
         unawaited(navigateTo(route, arguments: pair.second));
@@ -681,5 +684,49 @@ class NavigationService {
           context, 'error'.tr(), 'Error while reading ${keys.join(', ')}',
           onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
     }
+  }
+
+  Future<void> openPlaylist({required PlayListModel playlist}) async {
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return;
+    }
+    await navigatorKey.currentState?.pushNamed(
+      AppRouter.viewPlayListPage,
+      arguments: ViewPlaylistScreenPayload(playListModel: playlist),
+    );
+  }
+
+  Future<void> showALreadyClaimPlaylist(
+      {required PlayListModel playlist}) async {
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return;
+    }
+    await UIHelper.showMessageActionNew(
+      context,
+      'already_claimed_playlist'.tr(),
+      'already_claimed_playlist_desc'.tr(),
+      onClose: () => UIHelper.hideInfoDialog(context),
+      isDismissible: true,
+      actionButton: 'view_playlist'.tr(),
+      onAction: () {
+        goBack();
+        openPlaylist(playlist: playlist);
+      },
+    );
+  }
+
+  Future<void>? showPlaylistActivationExpired() async {
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return;
+    }
+    await UIHelper.showMessageActionNew(
+      context,
+      'activation_expired'.tr(),
+      'activation_expired_desc'.tr(),
+      isDismissible: true,
+    );
   }
 }
