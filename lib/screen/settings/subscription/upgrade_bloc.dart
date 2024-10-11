@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
@@ -19,10 +18,8 @@ import 'package:sentry/sentry.dart';
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
-  final MetricClientService _metricClientService;
 
-  UpgradesBloc(
-      this._iapService, this._configurationService, this._metricClientService)
+  UpgradesBloc(this._iapService, this._configurationService)
       : super(UpgradeState(subscriptionDetails: [])) {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {
@@ -30,9 +27,12 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
       try {
         final jwt = _configurationService.getIAPJWT();
 
+        log.info('UpgradeBloc: jwt is ${jwt == null ? 'null' : 'not null'}');
+
         if (jwt != null) {
           // update purchase status in IAP service
           final subscriptionStatus = jwt.getSubscriptionStatus();
+          log.info('UpgradeBloc: subscriptionStatus: $subscriptionStatus');
           if (subscriptionStatus.isPremium) {
             // if subscription is premium, update purchase in IAP service
             final id = premiumId();
