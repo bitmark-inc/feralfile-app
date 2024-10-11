@@ -635,11 +635,13 @@ class CollectionSectionState extends State<CollectionSection>
         .pushNamed(AppRouter.createPlayListPage)
         .then((value) {
       if (value != null && value is PlayListModel) {
-        Navigator.pushNamed(
-          context,
-          AppRouter.viewPlayListPage,
-          arguments: ViewPlaylistScreenPayload(playListModel: value),
-        );
+        if (context.mounted) {
+          Navigator.pushNamed(
+            context,
+            AppRouter.viewPlayListPage,
+            arguments: ViewPlaylistScreenPayload(playListModel: value),
+          );
+        }
       }
     });
   }
@@ -649,37 +651,36 @@ class CollectionSectionState extends State<CollectionSection>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ListPlaylistBloc, ListPlaylistState>(
-      bloc: _playListBloc,
-      listener: (context, state) {
-        _playlists.value = state.playlists;
-      },
-      builder: (context, state) {
-        final playlists = state.playlists;
-        if (playlists.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        final playlistIDsString = playlists.map((e) => e.id).toList().join();
-        final playlistKeyBytes = utf8.encode(playlistIDsString);
-        final playlistKey = sha256.convert(playlistKeyBytes).toString();
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListPlaylistsScreen(
-              key: Key(playlistKey),
-              playlists: _playlists,
-              filter: widget.filterString,
-              onReorder: (oldIndex, newIndex) {},
-              onAdd: () async {
-                await _gotoCreatePlaylist(context);
-              },
-            )
-          ],
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) =>
+      BlocConsumer<ListPlaylistBloc, ListPlaylistState>(
+        bloc: _playListBloc,
+        listener: (context, state) {
+          _playlists.value = state.playlists;
+        },
+        builder: (context, state) {
+          final playlists = state.playlists;
+          if (playlists.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          final playlistIDsString = playlists.map((e) => e.id).toList().join();
+          final playlistKeyBytes = utf8.encode(playlistIDsString);
+          final playlistKey = sha256.convert(playlistKeyBytes).toString();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListPlaylistsScreen(
+                key: Key(playlistKey),
+                playlists: _playlists,
+                filter: widget.filterString,
+                onReorder: (oldIndex, newIndex) {},
+                onAdd: () async {
+                  await _gotoCreatePlaylist(context);
+                },
+              )
+            ],
+          );
+        },
+      );
 }
 
 class SectionInfo {

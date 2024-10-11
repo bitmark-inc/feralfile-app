@@ -98,7 +98,8 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
                           style: theme.textTheme.ppMori400White14,
                         ),
                         Text(
-                          '${activation.playListModel.tokenIDs.length} ${'artworks_from_FF_and_artworld'.tr()}',
+                          '${activation.playListModel.tokenIDs.length} '
+                          '${'artworks_from_FF_and_artworld'.tr()}',
                           style: theme.textTheme.ppMori400White14,
                           maxLines: 2,
                         ),
@@ -141,7 +142,7 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
                 TextSpan(text: 'you_receive_gift_playlist'.tr()),
                 TextSpan(
                   text: '${activation.source}.',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -157,7 +158,8 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
               final alreadyClaimPlaylist =
                   await playlistService.getPlaylistById(playlist.id);
 
-              // if usser already claim the playlist, show already claim playlist
+              // if usser already claim the playlist,
+              // show already claim playlist
               if (alreadyClaimPlaylist != null) {
                 injector<NavigationService>().goBack();
                 unawaited(injector<NavigationService>()
