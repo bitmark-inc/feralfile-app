@@ -12,6 +12,8 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
 
   ViewPlaylistBloc(this._playlistService) : super(ViewPlaylistState()) {
     on<GetPlayList>((event, emit) {
+      final playlist = event.playListModel;
+      if (playlist != null) {}
       emit(
         ViewPlaylistState(
           playListModel: event.playListModel ??

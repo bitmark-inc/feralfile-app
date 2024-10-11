@@ -18,7 +18,7 @@ on:
         description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: [ self-hosted, macOS ]
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -74,12 +74,14 @@ jobs:
         run: |
           git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           cp mobile-signing-key-vault/android/bitmark-autonomy/release.keystore android/release.keystore
-          cp mobile-signing-key-vault/android/bitmark-autonomy/release.properties android/key.properties
+          cp mobile-signing-key-vault/android/bitmark-autonomy/release.properties android/release.properties
 
-      - run: flutter build appbundle --flavor prd
+      - run: flutter build appbundle --flavor prd --release
 
       - name: Release notes
-        run: echo "${{ github.event.inputs.message }}" > ./whatsnew/whatsnew-en-US
+        run: |
+          mkdir whatsnew
+          echo "${{ github.event.inputs.message }}" > ./whatsnew/whatsnew-en-US
 
       # Upload APK to Google Play Internal Testing track
       - name: Upload APK to Google Play
@@ -90,5 +92,4 @@ jobs:
           releaseFiles: build/app/outputs/bundle/prdRelease/app-prd-release.aab
           track: internal
           mappingFile: build/app/outputs/mapping/prdRelease/mapping.txt
-          debugSymbols: build/app/intermediates/merged_native_libs/prdRelease/out/lib
           whatsNewDirectory: ./whatsnew

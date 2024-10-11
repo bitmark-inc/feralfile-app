@@ -421,7 +421,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     ).then((value) {
       if (value != null && value is PlayListModel) {
         bloc.state.playListModel = bloc.state.playListModel?.copyWith(
-          tokenIDs: value.tokenIDs?.toList(),
+          tokenIDs: value.tokenIDs.toList(),
           name: value.name,
         );
         bloc.add(UpdateNamePlaylist(name: value.name ?? ''));
