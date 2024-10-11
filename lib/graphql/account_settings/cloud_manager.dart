@@ -145,9 +145,11 @@ class CloudManager {
     } catch (_) {}
   }
 
-  Future<void> downloadAll() async {
+  Future<void> downloadAll({bool includePlaylists = false}) async {
     log.info('[CloudManager] downloadAll');
-    // lazy load for playlists
+    if (includePlaylists) {
+      unawaited(_playlistCloudObject.db.download());
+    }
     unawaited(injector<SettingsDataService>().restoreSettingsData());
     await Future.wait([
       _walletAddressObject.db.download(),
