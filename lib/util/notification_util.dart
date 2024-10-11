@@ -32,7 +32,7 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
     final identityHash = await OneSignalHelper.getIdentityHash();
     final primaryAddress = await injector<AddressService>().getPrimaryAddress();
     await OneSignal.shared.setExternalUserId(primaryAddress!, identityHash);
-    unawaited(injector<ConfigurationService>().setNotificationEnabled(true));
+    await injector<ConfigurationService>().setNotificationEnabled(true);
     return true;
   } catch (error) {
     log.warning('error when registering notifications: $error');
