@@ -552,6 +552,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       case 'playlist_activation':
         try {
           log.info('[DeeplinkService] playlist_activation');
+          unawaited(
+              injector<ConfigurationService>().setDidShowLiveWithArt(true));
           final expiredAt = int.tryParse(data['expired_at']);
           log.info('[DeeplinkService] expiredAt: $expiredAt');
           if (expiredAt != null) {
