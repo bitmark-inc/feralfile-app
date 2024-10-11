@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
