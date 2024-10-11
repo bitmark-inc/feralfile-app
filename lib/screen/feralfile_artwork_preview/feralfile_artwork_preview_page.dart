@@ -10,8 +10,10 @@ import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -84,6 +86,18 @@ class _FeralFileArtworkPreviewPageState
     super.initState();
   }
 
+  void _sendMetricViewExhibition() {
+    final exhibitionId = widget.payload.artwork.series?.exhibitionID;
+    final data = {
+      MetricParameter.exhibitionId: exhibitionId,
+      MetricParameter.section: ExhibitionCatalog.artwork.metricName,
+      MetricParameter.tokenId: widget.payload.artwork.id,
+    };
+
+    injector<MetricClientService>()
+        .addEvent(MetricEventName.exhibitionView, data: data);
+  }
+
   @override
   void afterFirstLayout(BuildContext context) {
     _appBarBottomDy ??= MediaQuery.of(context).padding.top + kToolbarHeight;
@@ -92,6 +106,7 @@ class _FeralFileArtworkPreviewPageState
         await _exitFullScreen();
       },
     );
+    _sendMetricViewExhibition();
   }
 
   @override
@@ -469,6 +484,10 @@ class _FeralFileArtworkPreviewPageState
 
 class FeralFileArtworkPreviewPagePayload {
   final Artwork artwork;
+  bool isFromExhibition;
 
-  const FeralFileArtworkPreviewPagePayload({required this.artwork});
+  FeralFileArtworkPreviewPagePayload({
+    required this.artwork,
+    this.isFromExhibition = false,
+  });
 }
