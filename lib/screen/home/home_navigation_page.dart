@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -22,6 +23,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart'
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -32,9 +34,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
-import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -46,7 +46,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +55,6 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class HomeNavigationPagePayload {
   final bool fromOnboarding;
@@ -89,6 +87,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
+  final GlobalKey<OrganizeHomePageState> _organizeHomeKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -97,6 +96,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
+  final _subscriptionBloc = injector<SubscriptionBloc>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -118,6 +118,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
           _dailyWorkKey.currentState?.scrollToTop();
+        } else if (index == HomeNavigatorTab.collection.index) {
+          _organizeHomeKey.currentState?.scrollToTop();
         }
       }
       // when user change tap
@@ -141,10 +143,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       setState(() {
         _selectedIndex = index;
       });
-      final playlists = await injector<PlaylistService>().getPlayList();
-      if (!context.mounted) {
-        return;
-      }
       await UIHelper.showCenterMenu(
         context,
         options: [
@@ -159,32 +157,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
             },
           ),
-          if (nftBloc.state.tokens.isNotEmpty) ...[
-            // collection
-            OptionItem(
-              title: 'collection'.tr(),
-              icon: const Icon(
-                AuIcon.playlists,
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
-              },
-            ),
-          ],
-          if (nftBloc.state.tokens.isNotEmpty || playlists.isNotEmpty) ...[
-            // organize
-            OptionItem(
-              title: 'organize'.tr(),
-              icon: SvgPicture.asset(
-                'assets/images/set_icon.svg',
-                colorFilter:
-                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
-              },
-            ),
-          ],
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
@@ -306,12 +278,20 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               value: FeralfileHomeBloc(injector()),
             ),
             BlocProvider.value(
-              value: injector<SubscriptionBloc>()..add(GetSubscriptionEvent()),
+              value: _subscriptionBloc..add(GetSubscriptionEvent()),
             ),
           ],
           child: FeralfileHomePage(
             key: feralFileHomeKey,
           )),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: _subscriptionBloc),
+        ],
+        child: OrganizeHomePage(
+          key: _organizeHomeKey,
+        ),
+      )
     ];
 
     _triggerShowAnnouncement();
@@ -367,6 +347,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+
+    /// precache playlist
     injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
   }
 
@@ -391,7 +373,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
     }
-    injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
+    // refresh playlist token here
+    injector<ListPlaylistBloc>()
+        .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
   }
 
   @override
@@ -498,8 +482,21 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         ),
         label: 'explore',
       ),
+      const FFNavigationBarItem(
+        icon: Icon(
+          AuIcon.playlists,
+          size: iconSize,
+        ),
+        unselectedIcon: Icon(
+          AuIcon.playlists,
+          size: iconSize,
+        ),
+        selectedColor: selectedColor,
+        unselectedColor: unselectedColor,
+        label: 'collection',
+      ),
       FFNavigationBarItem(
-        icon: ValueListenableBuilder<List<int>?>(
+        unselectedIcon: ValueListenableBuilder<List<int>?>(
           valueListenable:
               injector<CustomerSupportService>().numberOfIssuesInfo,
           builder: (BuildContext context, List<int>? numberOfIssuesInfo,
@@ -513,6 +510,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             padding: const EdgeInsets.only(right: 2, top: 2),
             withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
           ),
+        ),
+        icon: SvgPicture.asset(
+          'assets/images/close.svg',
+          colorFilter: const ColorFilter.mode(selectedColor, BlendMode.srcIn),
+          height: iconSize,
+          width: iconSize,
         ),
         selectedColor: unselectedColor,
         label: 'menu',
@@ -572,16 +575,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
-    try {
-      await injector<SettingsDataService>().restoreSettingsData();
-    } catch (exception) {
-      if (exception is DioException && exception.response?.statusCode == 404) {
-        // if there is no backup, upload one.
-        await injector<SettingsDataService>().backup();
-      } else {
-        unawaited(Sentry.captureException(exception));
-      }
-    }
+    await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();

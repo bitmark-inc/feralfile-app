@@ -9,8 +9,10 @@ abstract class ListPlaylistEvent {}
 
 class ListPlaylistLoadPlaylist extends ListPlaylistEvent {
   final String filter;
+  final bool refreshDefaultPlaylist;
 
-  ListPlaylistLoadPlaylist({this.filter = ''});
+  ListPlaylistLoadPlaylist(
+      {this.filter = '', this.refreshDefaultPlaylist = false});
 }
 
 class ListPlaylistState {
@@ -22,21 +24,19 @@ class ListPlaylistState {
 class ListPlaylistBloc extends AuBloc<ListPlaylistEvent, ListPlaylistState> {
   final _playlistService = injector.get<PlaylistService>();
 
+  List<PlayListModel>? _defaultPlaylist;
+
   ListPlaylistBloc() : super(ListPlaylistState()) {
     on<ListPlaylistLoadPlaylist>((event, emit) async {
       log.info('ListPlaylistLoadPlaylist: ${event.filter}');
       final playlists = await _playlistService.getPlayList();
+      if (event.refreshDefaultPlaylist || _defaultPlaylist == null) {
+        _defaultPlaylist = await _playlistService.defaultPlaylists();
+      }
+      playlists.addAll(_defaultPlaylist!);
+
       emit(ListPlaylistState(playlists: playlists.filter(event.filter)));
       log.info('ListPlaylistLoadPlaylist: ${playlists.length}');
     });
-  }
-
-  Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
-    List<PlayListModel> playlists = await _playlistService.getPlayList();
-    if (withDefault) {
-      final defaultPlaylists = await _playlistService.defaultPlaylists();
-      playlists = defaultPlaylists..addAll(playlists);
-    }
-    return playlists;
   }
 }

@@ -744,7 +744,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             onTap: () async {
               await injector<ConfigurationService>()
                   .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              unawaited(injector<SettingsDataService>().backup());
+              unawaited(injector<SettingsDataService>().backupUserSettings());
 
               if (!context.mounted) {
                 return;
@@ -785,7 +785,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               if (isHidden) {
                 await injector<ConfigurationService>()
                     .updateTempStorageHiddenTokenIDs([asset.id], false);
-                unawaited(injector<SettingsDataService>().backup());
+                unawaited(injector<SettingsDataService>().backupUserSettings());
               }
               if (!context.mounted) {
                 return;

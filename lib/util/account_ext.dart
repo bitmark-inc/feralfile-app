@@ -28,15 +28,15 @@ extension AccountExt on Account {
 
   bool get isHidden => walletAddress != null
       ? walletAddress!.isHidden
-      : injector<AccountService>().isLinkedAccountHiddenInGallery(key);
+      : connections?.firstOrNull?.isHidden ?? false;
 
-  Future<void> setViewAccount(bool value) async {
+  Future<void> setHiddenStatus(bool value) async {
     if (walletAddress != null) {
       await injector<AccountService>()
           .setHideAddressInGallery([walletAddress!.address], value);
     } else {
-      unawaited(
-          injector<AccountService>().setHideLinkedAccountInGallery(key, value));
+      await injector<AccountService>()
+          .setHideLinkedAccountInGallery(key, value);
     }
   }
 

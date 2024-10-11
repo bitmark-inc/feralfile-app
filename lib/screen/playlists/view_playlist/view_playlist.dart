@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_st
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
@@ -25,6 +24,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -97,13 +97,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     });
   }
 
-  Future<void> deletePlayList() async {
-    final listPlaylist = await _playlistService.getPlayList();
-    listPlaylist.removeWhere(
-        (element) => element.id == widget.payload.playListModel?.id);
-    await _playlistService.setPlayList(listPlaylist, override: true);
-    unawaited(injector.get<SettingsDataService>().backup());
-    injector<NavigationService>().popUntilHomeOrSettings();
+  Future<void> _deletePlayList() async {
+    if (widget.payload.playListModel == null) {
+      return;
+    }
+    final isDeleted = await _playlistService.deletePlaylist(
+      widget.payload.playListModel!,
+    );
+    if (isDeleted) {
+      injector<NavigationService>().popUntilHomeOrSettings();
+    }
   }
 
   List<CompactedAssetToken> _setupPlayList({
@@ -185,7 +188,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 style: theme.textTheme.ppMori400White14,
               ),
               actionButton: 'remove_collection'.tr(),
-              onAction: deletePlayList,
+              onAction: _deletePlayList,
             );
           },
         ),
@@ -194,31 +197,25 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
-  Widget _appBarTitle(BuildContext context, PlayListModel playList) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        if (widget.payload.titleIcon != null) ...[
-          SizedBox(width: 22, height: 22, child: widget.payload.titleIcon),
-          const SizedBox(width: 10),
-          Text(
-            playList.getName(),
-            style: theme.textTheme.ppMori700Black36
-                .copyWith(color: AppColor.white),
-          ),
-        ] else ...[
-          Expanded(
-            child: Text(
-              playList.getName(),
-              style: theme.textTheme.ppMori700Black36
-                  .copyWith(color: AppColor.white),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ]
-      ],
-    );
-  }
+  Widget _appBarTitle(BuildContext context, PlayListModel playList) =>
+      widget.payload.titleIcon != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                    width: 22, height: 22, child: widget.payload.titleIcon),
+                const SizedBox(width: 10),
+                _getTitle(playList),
+              ],
+            )
+          : _getTitle(playList);
+
+  Widget _getTitle(PlayListModel playList) => TitleText(
+        title: playList.getName(),
+        fontSize: 14,
+        ellipsis: false,
+        isCentered: true,
+      );
 
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[
@@ -250,7 +247,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
               if (listTokenIds.isEmpty) {
-                log.info('Playlist tokenIds is null');
+                log.info('playList is empty');
                 return;
               }
               final duration = speedValues.values.first.inMilliseconds;

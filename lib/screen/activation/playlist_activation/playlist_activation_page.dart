@@ -158,7 +158,7 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
               final alreadyClaimPlaylist =
                   await playlistService.getPlaylistById(playlist.id);
 
-              // if usser already claim the playlist,
+              // if user already claim the playlist,
               // show already claim playlist
               if (alreadyClaimPlaylist != null) {
                 injector<NavigationService>().goBack();
