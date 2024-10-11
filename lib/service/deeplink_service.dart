@@ -551,15 +551,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'playlist_activation':
         try {
+          log.info('[DeeplinkService] playlist_activation');
           final expiredAt = int.tryParse(data['expired_at']);
+          log.info('[DeeplinkService] expiredAt: $expiredAt');
           if (expiredAt != null) {
             final expiredAtDate =
                 DateTime.fromMillisecondsSinceEpoch(expiredAt);
             if (expiredAtDate.isBefore(DateTime.now())) {
+              log.info('[DeeplinkService] playlist_activation expired');
               unawaited(_navigationService.showPlaylistActivationExpired());
               break;
             }
           }
+          log.info('[DeeplinkService] playlist_activation not expired');
           final playlistJson = data['playlist'];
           final playlist = PlayListModel.fromJson(playlistJson)
               .copyWith(source: PlayListSource.activation);
@@ -572,6 +576,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
             source: activationSource,
             thumbnailURL: thumbnailURL,
           );
+          log.info(
+              '[DeeplinkService] playlist_activation ${activation.toString()}');
           await _navigationService.navigateTo(
             AppRouter.playlistActivationPage,
             arguments: PlaylistActivationPagePayload(
