@@ -112,7 +112,11 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (rootProject.file('release.keystore').exists()) {
+                signingConfig signingConfigs.release
+            } eles {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled true
             shrinkResources true
 
