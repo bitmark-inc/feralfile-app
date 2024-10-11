@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -33,6 +34,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -130,6 +132,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         await _exitFullScreen();
       },
     );
+    _sendMetricPlaylistView();
+  }
+
+  void _sendMetricPlaylistView() {
+    final data = {
+      MetricParameter.tokenId: widget.payload.identity.id,
+    };
+    unawaited(injector<MetricClientService>()
+        .addEvent(MetricEventName.playlistView, data: data));
   }
 
   @override
@@ -262,190 +273,192 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listener: (context, state) {
-      final identitiesList = state.provenances.map((e) => e.owner).toList();
-      if (state.assetToken?.artistName != null &&
-          state.assetToken!.artistName!.length > 20) {
-        identitiesList.add(state.assetToken!.artistName!);
-      }
+      listener: (context, state) {
+        final identitiesList = state.provenances.map((e) => e.owner).toList();
+        if (state.assetToken?.artistName != null &&
+            state.assetToken!.artistName!.length > 20) {
+          identitiesList.add(state.assetToken!.artistName!);
+        }
 
-      identitiesList.add(state.assetToken?.owner ?? '');
+        identitiesList.add(state.assetToken?.owner ?? '');
 
-      setState(() {
-        currentAsset = state.assetToken;
-      });
-      if (withSharing && state.assetToken != null) {
-        unawaited(_socialShare(context, state.assetToken!));
         setState(() {
-          withSharing = false;
+          currentAsset = state.assetToken;
         });
-      }
-      context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-    }, builder: (context, state) {
-      if (state.assetToken == null) {
-        return const LoadingWidget();
-      }
-      final identityState = context.watch<IdentityBloc>().state;
-      final asset = state.assetToken!;
-      final artistName =
-          asset.artistName?.toIdentityOrMask(identityState.identityMap);
+        if (withSharing && state.assetToken != null) {
+          unawaited(_socialShare(context, state.assetToken!));
+          setState(() {
+            withSharing = false;
+          });
+        }
+        context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+      },
+      builder: (context, state) {
+        if (state.assetToken == null) {
+          return const LoadingWidget();
+        }
+        final identityState = context.watch<IdentityBloc>().state;
+        final asset = state.assetToken!;
+        final artistName =
+            asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
-      return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-        bloc: _canvasDeviceBloc,
-        builder: (context, canvasState) => Stack(
-          children: [
-            BackdropScaffold(
-              backgroundColor: AppColor.primaryBlack,
-              resizeToAvoidBottomInset: !hasKeyboard,
-              frontLayerElevation: _isFullScreen ? 0 : 1,
-              appBar: _isFullScreen
-                  ? null
-                  : PreferredSize(
-                      preferredSize: const Size.fromHeight(kToolbarHeight),
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 14),
-                        child: AppBar(
-                          systemOverlayStyle: systemUiOverlayDarkStyle,
-                          leading: Semantics(
-                            label: 'BACK',
-                            child: IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              constraints: const BoxConstraints(
-                                maxWidth: 44,
-                                maxHeight: 44,
-                                minWidth: 44,
-                                minHeight: 44,
-                              ),
-                              icon: Padding(
-                                padding: const EdgeInsets.all(0),
-                                child: SvgPicture.asset(
-                                  'assets/images/ff_back_dark.svg',
-                                  width: 28,
-                                  height: 28,
+        return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+          bloc: _canvasDeviceBloc,
+          builder: (context, canvasState) => Stack(
+            children: [
+              BackdropScaffold(
+                backgroundColor: AppColor.primaryBlack,
+                resizeToAvoidBottomInset: !hasKeyboard,
+                frontLayerElevation: _isFullScreen ? 0 : 1,
+                appBar: _isFullScreen
+                    ? null
+                    : PreferredSize(
+                        preferredSize: const Size.fromHeight(kToolbarHeight),
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 14),
+                          child: AppBar(
+                            systemOverlayStyle: systemUiOverlayDarkStyle,
+                            leading: Semantics(
+                              label: 'BACK',
+                              child: IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 44,
+                                  maxHeight: 44,
+                                  minWidth: 44,
+                                  minHeight: 44,
+                                ),
+                                icon: Padding(
+                                  padding: const EdgeInsets.all(0),
+                                  child: SvgPicture.asset(
+                                    'assets/images/ff_back_dark.svg',
+                                    width: 28,
+                                    height: 28,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          centerTitle: false,
-                          backgroundColor: Colors.transparent,
-                          actions: [
-                            FFCastButton(
-                              displayKey: _getDisplayKey(asset),
-                              onDeviceSelected: (device) {
-                                if (widget.payload.playlist == null) {
-                                  final artwork = PlayArtworkV2(
-                                    token: CastAssetToken(id: asset.id),
-                                    duration: 0,
-                                  );
-                                  _canvasDeviceBloc.add(
-                                      CanvasDeviceCastListArtworkEvent(
-                                          device, [artwork]));
-                                } else {
-                                  final playlist = widget.payload.playlist!;
-                                  final listTokenIds = playlist.tokenIDs;
-                                  if (listTokenIds == null) {
-                                    log.info('Playlist tokenIds is null');
-                                    return;
-                                  }
+                            centerTitle: false,
+                            backgroundColor: Colors.transparent,
+                            actions: [
+                              FFCastButton(
+                                displayKey: _getDisplayKey(asset),
+                                onDeviceSelected: (device) {
+                                  if (widget.payload.playlist == null) {
+                                    final artwork = PlayArtworkV2(
+                                      token: CastAssetToken(id: asset.id),
+                                      duration: 0,
+                                    );
+                                    _canvasDeviceBloc.add(
+                                        CanvasDeviceCastListArtworkEvent(
+                                            device, [artwork]));
+                                  } else {
+                                    final playlist = widget.payload.playlist!;
+                                    final listTokenIds = playlist.tokenIDs;
+                                    if (listTokenIds == null) {
+                                      log.info('Playlist tokenIds is null');
+                                      return;
+                                    }
 
-                                  final duration =
-                                      speedValues.values.first.inMilliseconds;
-                                  final listPlayArtwork = listTokenIds
-                                      .rotateListByItem(asset.id)
-                                      .map((e) => PlayArtworkV2(
-                                          token: CastAssetToken(id: e),
-                                          duration: duration))
-                                      .toList();
-                                  _canvasDeviceBloc.add(
-                                      CanvasDeviceChangeControlDeviceEvent(
-                                          device, listPlayArtwork));
-                                }
-                              },
-                            ),
-                          ],
+                                    final duration =
+                                        speedValues.values.first.inMilliseconds;
+                                    final listPlayArtwork = listTokenIds
+                                        .rotateListByItem(asset.id)
+                                        .map((e) => PlayArtworkV2(
+                                            token: CastAssetToken(id: e),
+                                            duration: duration))
+                                        .toList();
+                                    _canvasDeviceBloc.add(
+                                        CanvasDeviceChangeControlDeviceEvent(
+                                            device, listPlayArtwork));
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-              backLayer: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: ArtworkPreviewWidget(
-                      useIndexer: widget.payload.useIndexer,
-                      identity: widget.payload.identity,
-                      onLoaded: _onLoaded,
-                    ),
-                  ),
-                  if (!_isFullScreen)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 18),
-                      child: ArtworkDetailsHeader(
-                        title: 'I',
-                        subTitle: 'I',
-                        color: Colors.transparent,
+                backLayer: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ArtworkPreviewWidget(
+                        useIndexer: widget.payload.useIndexer,
+                        identity: widget.payload.identity,
+                        onLoaded: _onLoaded,
                       ),
                     ),
-                ],
-              ),
-              reverseAnimationCurve: Curves.ease,
-              frontLayer: _isFullScreen
-                  ? const SizedBox()
-                  : _infoContent(context, identityState, state, artistName),
-              frontLayerBackgroundColor:
-                  _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
-              backLayerBackgroundColor: AppColor.primaryBlack,
-              animationController: _animationController,
-              revealBackLayerAtStart: true,
-              frontLayerScrim: Colors.transparent,
-              backLayerScrim: Colors.transparent,
-              subHeaderAlwaysActive: false,
-              frontLayerShape: const BeveledRectangleBorder(),
-              subHeader: _isFullScreen
-                  ? null
-                  : DecoratedBox(
-                      decoration:
-                          const BoxDecoration(color: AppColor.primaryBlack),
-                      child: GestureDetector(
-                        onVerticalDragEnd: (details) {
-                          final dy = details.primaryVelocity ?? 0;
-                          if (dy <= 0) {
-                            _infoExpand();
-                          } else {
-                            _infoShrink();
-                          }
-                        },
-                        child: Container(
+                    if (!_isFullScreen)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 18),
+                        child: ArtworkDetailsHeader(
+                          title: 'I',
+                          subTitle: 'I',
                           color: Colors.transparent,
-                          child: _infoHeader(context, asset, artistName,
-                              state.isViewOnly, canvasState),
                         ),
                       ),
+                  ],
+                ),
+                reverseAnimationCurve: Curves.ease,
+                frontLayer: _isFullScreen
+                    ? const SizedBox()
+                    : _infoContent(context, identityState, state, artistName),
+                frontLayerBackgroundColor:
+                    _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
+                backLayerBackgroundColor: AppColor.primaryBlack,
+                animationController: _animationController,
+                revealBackLayerAtStart: true,
+                frontLayerScrim: Colors.transparent,
+                backLayerScrim: Colors.transparent,
+                subHeaderAlwaysActive: false,
+                frontLayerShape: const BeveledRectangleBorder(),
+                subHeader: _isFullScreen
+                    ? null
+                    : DecoratedBox(
+                        decoration:
+                            const BoxDecoration(color: AppColor.primaryBlack),
+                        child: GestureDetector(
+                          onVerticalDragEnd: (details) {
+                            final dy = details.primaryVelocity ?? 0;
+                            if (dy <= 0) {
+                              _infoExpand();
+                            } else {
+                              _infoShrink();
+                            }
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: _infoHeader(context, asset, artistName,
+                                state.isViewOnly, canvasState),
+                          ),
+                        ),
+                      ),
+              ),
+              if (_isInfoExpand && !_isFullScreen)
+                Positioned(
+                  top: _appBarBottomDy ?? 80,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: _infoShrink,
+                    onVerticalDragEnd: (details) {
+                      final dy = details.primaryVelocity ?? 0;
+                      if (dy > 0) {
+                        _infoShrink();
+                      }
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      height: MediaQuery.of(context).size.height / 2 -
+                          (_appBarBottomDy ?? 80),
+                      width: MediaQuery.of(context).size.width,
                     ),
-            ),
-            if (_isInfoExpand && !_isFullScreen)
-              Positioned(
-                top: _appBarBottomDy ?? 80,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: _infoShrink,
-                  onVerticalDragEnd: (details) {
-                    final dy = details.primaryVelocity ?? 0;
-                    if (dy > 0) {
-                      _infoShrink();
-                    }
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    height: MediaQuery.of(context).size.height / 2 -
-                        (_appBarBottomDy ?? 80),
-                    width: MediaQuery.of(context).size.width,
                   ),
                 ),
-              ),
-          ],
-        ),
-      );
-    });
+            ],
+          ),
+        );
+      },
+    );
   }
 
   String _getDisplayKey(AssetToken asset) {
@@ -657,11 +670,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
     final isCasting = castingDevice != null;
+    final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
       return;
     }
     final isHidden = _isHidden(asset);
     _focusNode.unfocus();
+
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
@@ -722,14 +737,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        if (widget.payload.isLocalToken)
+        if (widget.payload.shouldUseLocalCache && hasLocalAddress)
           OptionItem(
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
             onTap: () async {
               await injector<ConfigurationService>()
                   .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              unawaited(injector<SettingsDataService>().backup());
+              unawaited(injector<SettingsDataService>().backupUserSettings());
 
               if (!context.mounted) {
                 return;
@@ -770,7 +785,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               if (isHidden) {
                 await injector<ConfigurationService>()
                     .updateTempStorageHiddenTokenIDs([asset.id], false);
-                unawaited(injector<SettingsDataService>().backup());
+                unawaited(injector<SettingsDataService>().backupUserSettings());
               }
               if (!context.mounted) {
                 return;
@@ -797,7 +812,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
-        if (!widget.payload.isLocalToken)
+        if (!widget.payload.shouldUseLocalCache)
           OptionItem(
             title: 'refresh_metadata'.tr(),
             icon: SvgPicture.asset(
@@ -863,14 +878,14 @@ class ArtworkDetailPayload {
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
   final bool
-      isLocalToken; // if local token, it can be hidden and refresh metadata
+      shouldUseLocalCache; // if local token, it can be hidden and refresh metadata
 
   ArtworkDetailPayload(
     this.identity, {
     this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
-    this.isLocalToken = true,
+    this.shouldUseLocalCache = true,
     this.key,
   });
 
@@ -879,14 +894,14 @@ class ArtworkDetailPayload {
     PlayListModel? playlist,
     String? twitterCaption,
     bool? useIndexer,
-    bool? isLocalToken,
+    bool? shouldUseLocalCache,
   }) =>
       ArtworkDetailPayload(
         identity ?? this.identity,
         twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
-        isLocalToken: isLocalToken ?? this.isLocalToken,
+        shouldUseLocalCache: shouldUseLocalCache ?? this.shouldUseLocalCache,
       );
 }
 

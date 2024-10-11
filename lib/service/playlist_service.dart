@@ -1,19 +1,26 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();
+
+  Future<PlayListModel?> getPlaylistById(String id);
 
   Future<void> setPlayList(List<PlayListModel> playlists,
       {bool override = false,
       ConflictAction onConflict = ConflictAction.abort});
 
-  Future<void> refreshPlayLists();
-
   Future<List<PlayListModel>> defaultPlaylists();
+
+  Future<void> addPlaylists(List<PlayListModel> playlists);
+
+  Future<bool> deletePlaylist(PlayListModel playlist);
 }
 
 class PlayListServiceImp implements PlaylistService {
@@ -21,13 +28,19 @@ class PlayListServiceImp implements PlaylistService {
   final TokenDao _tokenDao;
   final AccountService _accountService;
   final AssetTokenDao _assetTokenDao;
+  final CloudManager _cloudManager;
 
   PlayListServiceImp(this._configurationService, this._tokenDao,
-      this._accountService, this._assetTokenDao);
+      this._accountService, this._assetTokenDao, this._cloudManager);
 
+  late final PlaylistCloudObject _playlistCloudObject =
+      _cloudManager.playlistCloudObject;
+  bool _didFetch = false;
+
+  @override
   Future<PlayListModel?> getPlaylistById(String id) async {
-    final playlists = await getPlayList();
-    return playlists.firstWhereOrNull((element) => element.id == id);
+    await _fetchPlaylists();
+    return _playlistCloudObject.getPlaylistById(id);
   }
 
   Future<List<String>> _getHiddenTokenIds() async {
@@ -40,8 +53,17 @@ class PlayListServiceImp implements PlaylistService {
     return hiddenTokens;
   }
 
+  Future<void> _fetchPlaylists() async {
+    if (_didFetch) {
+      return;
+    }
+    await _playlistCloudObject.db.download();
+    _didFetch = true;
+  }
+
   @override
   Future<List<PlayListModel>> getPlayList() async {
+    await _fetchPlaylists();
     final playlists = _getRawPlayList();
 
     if (playlists.isEmpty) {
@@ -52,13 +74,13 @@ class PlayListServiceImp implements PlaylistService {
 
     for (var playlist in playlists) {
       playlist.tokenIDs
-          ?.removeWhere((tokenID) => hiddenTokens.contains(tokenID));
+          .removeWhere((tokenID) => hiddenTokens.contains(tokenID));
     }
-    playlists.removeWhere((element) => element.tokenIDs?.isEmpty ?? true);
+    playlists.removeWhere((element) => element.tokenIDs.isEmpty);
     return playlists;
   }
 
-  List<PlayListModel> _getRawPlayList() => _configurationService.getPlayList();
+  List<PlayListModel> _getRawPlayList() => _playlistCloudObject.getPlaylists();
 
   @override
   Future<void> setPlayList(
@@ -66,24 +88,21 @@ class PlayListServiceImp implements PlaylistService {
     bool override = false,
     ConflictAction onConflict = ConflictAction.abort,
   }) async {
-    await _configurationService.setPlayList(playlists,
-        override: override, onConflict: onConflict);
-    return;
-  }
-
-  @override
-  Future<void> refreshPlayLists() async {
-    final addresses = await _accountService.getAllAddresses();
-    final List<String> ids = await _tokenDao.findTokenIDsOwnersOwn(addresses);
-    final playlists = _getRawPlayList();
-    for (int i = 0; i < playlists.length; i++) {
-      playlists[i].tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
-      if (playlists[i].tokenIDs?.isEmpty ?? true) {
-        playlists.removeAt(i);
-        i--;
+    await _fetchPlaylists();
+    final currentPlaylists = _getRawPlayList();
+    if (override) {
+      await _playlistCloudObject.deletePlaylists(currentPlaylists);
+      await _playlistCloudObject.setPlaylists(playlists);
+    } else {
+      switch (onConflict) {
+        case ConflictAction.replace:
+          await _playlistCloudObject.setPlaylists(playlists);
+        case ConflictAction.abort:
+          playlists.removeWhere(
+              (element) => currentPlaylists.any((e) => e.id == element.id));
+          await _playlistCloudObject.setPlaylists(playlists);
       }
     }
-    await setPlayList(playlists, override: true);
   }
 
   @override
@@ -107,4 +126,25 @@ class PlayListServiceImp implements PlaylistService {
     }
     return defaultPlaylists;
   }
+
+  @override
+  Future<void> addPlaylists(List<PlayListModel> playlists) async {
+    final tokenService = injector<TokensService>();
+    final indexerIds = playlists
+        .map((e) => e.tokenIDs)
+        .expand((element) => element)
+        .toSet()
+        .toList();
+    await tokenService.fetchManualTokens(indexerIds);
+    final playlistWithThumbnail = await Future.wait(playlists.map((e) async {
+      final token =
+          await _assetTokenDao.findAllAssetTokensByTokenIDs([e.tokenIDs.first]);
+      return e.copyWith(thumbnailURL: token.first.thumbnailURL);
+    }).toList());
+    await setPlayList(playlistWithThumbnail);
+  }
+
+  @override
+  Future<bool> deletePlaylist(PlayListModel playlist) async =>
+      await _playlistCloudObject.deletePlaylists([playlist]);
 }

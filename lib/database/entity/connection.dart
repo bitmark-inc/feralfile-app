@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
-import 'package:floor/floor.dart';
 import 'package:nft_collection/models/address_index.dart';
 
 enum ConnectionType {
@@ -23,10 +22,8 @@ extension RawValue on ConnectionType {
   String get rawValue => toString().split('.').last;
 }
 
-@entity
 class Connection implements SettingObject {
   @override
-  @primaryKey
   String key;
   String name;
   String data; // jsonData
@@ -34,6 +31,7 @@ class Connection implements SettingObject {
   String accountNumber;
   DateTime createdAt;
   int? accountOrder;
+  bool isHidden;
 
   /* Data
   enum ConnectionType {
@@ -55,6 +53,7 @@ class Connection implements SettingObject {
     required this.accountNumber,
     required this.createdAt,
     this.accountOrder,
+    this.isHidden = false,
   });
 
   Connection copyWith({
@@ -65,6 +64,7 @@ class Connection implements SettingObject {
     String? accountNumber,
     DateTime? createdAt,
     int? accountOrder,
+    bool? isHidden,
   }) =>
       Connection(
         key: key ?? this.key,
@@ -74,7 +74,10 @@ class Connection implements SettingObject {
         accountNumber: accountNumber ?? this.accountNumber,
         createdAt: createdAt ?? this.createdAt,
         accountOrder: accountOrder ?? this.accountOrder,
+        isHidden: isHidden ?? this.isHidden,
       );
+
+  bool get isViewing => !isHidden;
 
   BeaconConnectConnection? get beaconConnectConnection {
     if (connectionType != ConnectionType.beaconP2PPeer.rawValue) {
@@ -142,6 +145,7 @@ class Connection implements SettingObject {
         accountNumber: json['accountNumber'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String),
         accountOrder: json['accountOrder'] as int?,
+        isHidden: json['isHidden'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -152,6 +156,7 @@ class Connection implements SettingObject {
         'accountNumber': accountNumber,
         'createdAt': createdAt.toIso8601String(),
         'accountOrder': accountOrder,
+        'isHidden': isHidden,
       };
 
   @override

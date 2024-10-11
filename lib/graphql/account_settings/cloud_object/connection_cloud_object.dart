@@ -13,7 +13,7 @@ class ConnectionCloudObject {
   Future<void> deleteConnections(List<Connection> connections) =>
       _accountSettingsDB.delete(connections.map((e) => e.key).toList());
 
-  Future<void> deleteConnectionsByTopic(String topic) async {
+  Future<bool> deleteConnectionsByTopic(String topic) async {
     final allConnections = getConnections();
     final connections =
         allConnections.where((element) => element.key.contains(topic)).toList();
@@ -21,7 +21,7 @@ class ConnectionCloudObject {
         .delete(connections.map((e) => e.key).toList());
   }
 
-  Future<void> deleteConnectionsByType(String type) async {
+  Future<bool> deleteConnectionsByType(String type) async {
     final allConnections = getConnections();
     final connections = allConnections
         .where((element) => element.connectionType == type)

@@ -683,6 +683,7 @@ class UIHelper {
               PrimaryButton(
                 onTap: () => onAction.call(),
                 text: actionButton ?? '',
+                color: AppColor.feralFileLightBlue,
               ),
               const SizedBox(
                 height: 10,
@@ -1495,8 +1496,6 @@ class UIHelper {
                 bool result = false;
                 try {
                   result = await registerPushNotifications(askPermission: true);
-                  await injector<ConfigurationService>()
-                      .setPendingSettings(false);
                 } catch (error) {
                   log.warning('Error when setting notification: $error');
                 }
