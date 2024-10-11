@@ -25,7 +25,7 @@ class ListPlaylistBloc extends AuBloc<ListPlaylistEvent, ListPlaylistState> {
   ListPlaylistBloc() : super(ListPlaylistState()) {
     on<ListPlaylistLoadPlaylist>((event, emit) async {
       log.info('ListPlaylistLoadPlaylist: ${event.filter}');
-      List<PlayListModel> playlists = await _playlistService.getPlayList();
+      final playlists = await _playlistService.getPlayList();
       final defaultPlaylists = await _playlistService.defaultPlaylists();
       playlists.addAll(defaultPlaylists);
 
