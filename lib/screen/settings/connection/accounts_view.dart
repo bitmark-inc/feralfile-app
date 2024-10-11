@@ -148,7 +148,7 @@ class _AccountsViewState extends State<AccountsView> {
           ),
         ),
         onPressed: (_) async {
-          await account.setViewAccount(!isHidden);
+          await account.setHiddenStatus(!isHidden);
           _accountsBloc.add(GetAccountsEvent());
         },
       ),

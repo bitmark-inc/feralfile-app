@@ -30,7 +30,7 @@ extension AccountExt on Account {
       ? walletAddress!.isHidden
       : connections?.firstOrNull?.isHidden ?? false;
 
-  Future<void> setViewAccount(bool value) async {
+  Future<void> setHiddenStatus(bool value) async {
     if (walletAddress != null) {
       await injector<AccountService>()
           .setHideAddressInGallery([walletAddress!.address], value);
