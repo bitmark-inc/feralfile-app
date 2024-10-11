@@ -114,7 +114,7 @@ android {
         release {
             if (rootProject.file('release.keystore').exists()) {
                 signingConfig signingConfigs.release
-            } eles {
+            } else {
                 signingConfig signingConfigs.debug
             }
             minifyEnabled true
