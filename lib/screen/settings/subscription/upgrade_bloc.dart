@@ -8,6 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -43,10 +45,33 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             // if subscription is free, update purchase in IAP service
           }
 
+          final membershipSource = subscriptionStatus.source;
+          if (membershipSource == MembershipSource.webPurchase) {
+            final customSubscription =
+                await _iapService.getCustomActiveSubscription();
+            final webPurchaseProduct = ProductDetails(
+              id: 'web_purchase',
+              title: 'Web Purchase',
+              description: 'Web Purchase',
+              price: customSubscription.price,
+              currencyCode: customSubscription.currency.toLowerCase(),
+              rawPrice: customSubscription.rawPrice.toDouble(),
+            );
+            _iapService.products.value[webPurchaseProduct.id] =
+                webPurchaseProduct;
+            _iapService.purchases.value[webPurchaseProduct.id] =
+                IAPProductStatus.completed;
+          }
+          final stripePortalUrl =
+              membershipSource == MembershipSource.webPurchase
+                  ? await injector<IAPService>().getStripeUrl()
+                  : null;
+
           // after updating purchase status, emit new state
           emit(state.copyWith(
             subscriptionDetails: listSubscriptionDetails,
-            membershipSource: subscriptionStatus.source,
+            membershipSource: membershipSource,
+            stripePortalUrl: stripePortalUrl,
           ));
         } else {
           // if no JWT, query IAP info
@@ -123,23 +148,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
       ));
     }
     return subscriptionDetals;
-  }
-
-  Future<IAPProductStatus> getSubscriptionStatus(
-      ProductDetails productDetails) async {
-    try {
-      final productId = productDetails.id;
-      final subscriptionProductDetails = _iapService.products.value[productId];
-      if (subscriptionProductDetails != null) {
-        await _iapService.purchase(subscriptionProductDetails);
-        return IAPProductStatus.pending;
-      } else {
-        throw Exception('Product not found');
-      }
-    } catch (error) {
-      log.warning(error);
-      return IAPProductStatus.error;
-    }
   }
 
   @override

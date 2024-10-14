@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -485,6 +486,33 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 statusBarColor: AppColor.white,
                 isDarkStatusBar: false));
           }
+        }
+
+      case 'membership_subscription':
+        final String url = data['callbackURL']!;
+        final primaryAddress =
+            await injector<AddressService>().getPrimaryAddress();
+        _navigationService.popUntilHome();
+        if (primaryAddress == null) {
+          await _navigationService.addressNotFoundError();
+        } else {
+          final uri = Uri.parse(url);
+          final isPremium = await injector<IAPService>().isSubscribed();
+          final queryParameters = {
+            'a': primaryAddress,
+            'mt': isPremium ? 'premium' : 'none',
+          }..addAll(uri.queryParameters);
+          final newUri = uri.replace(queryParameters: queryParameters);
+          final link = newUri.toString();
+          log.info('MembershipSubscription: $link');
+          await _navigationService.goToIRLWebview(
+            IRLWebScreenPayload(
+              link,
+              isPlainUI: true,
+              statusBarColor: AppColor.white,
+              isDarkStatusBar: false,
+            ),
+          );
         }
 
       case 'gift_membership':

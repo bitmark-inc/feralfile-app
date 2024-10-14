@@ -73,22 +73,40 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  bool isDoneNewOnboarding() => (super.noSuchMethod(
+  bool didMigrateToAccountSetting() => (super.noSuchMethod(
         Invocation.method(
-          #isDoneNewOnboarding,
+          #didMigrateToAccountSetting,
           [],
         ),
         returnValue: false,
       ) as bool);
   @override
-  _i5.Future<void> setDoneNewOnboarding(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setMigrateToAccountSetting(bool? value) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #setDoneNewOnboarding,
+          #setMigrateToAccountSetting,
           [value],
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> setDidShowLiveWithArt(bool? value) => (super.noSuchMethod(
+        Invocation.method(
+          #setDidShowLiveWithArt,
+          [value],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  bool didShowLiveWithArt() => (super.noSuchMethod(
+        Invocation.method(
+          #didShowLiveWithArt,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
   @override
   _i5.Future<void> setLastPullAnnouncementTime(int? lastPullTime) =>
       (super.noSuchMethod(
@@ -254,23 +272,6 @@ class MockConfigurationService extends _i1.Mock
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<void> setPremium(bool? value) => (super.noSuchMethod(
-        Invocation.method(
-          #setPremium,
-          [value],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  bool isPremium() => (super.noSuchMethod(
-        Invocation.method(
-          #isPremium,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
   _i5.Future<void> setDevicePasscodeEnabled(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDevicePasscodeEnabled,
@@ -373,40 +374,6 @@ class MockConfigurationService extends _i1.Mock
         ),
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
-  @override
-  _i5.Future<void> setDoneOnboardingOnce(bool? value) => (super.noSuchMethod(
-        Invocation.method(
-          #setDoneOnboardingOnce,
-          [value],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  bool isDoneOnboardingOnce() => (super.noSuchMethod(
-        Invocation.method(
-          #isDoneOnboardingOnce,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i5.Future<void> readRemoveSupport(bool? value) => (super.noSuchMethod(
-        Invocation.method(
-          #readRemoveSupport,
-          [value],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  bool isReadRemoveSupport() => (super.noSuchMethod(
-        Invocation.method(
-          #isReadRemoveSupport,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
   @override
   _i5.Future<void> setHideLinkedAccountInGallery(
     List<String>? address,
@@ -923,4 +890,13 @@ class MockConfigurationService extends _i1.Mock
         ),
         returnValue: <String>[],
       ) as List<String>);
+  @override
+  _i5.Future<void> setReferralCode(String? referralCode) => (super.noSuchMethod(
+        Invocation.method(
+          #setReferralCode,
+          [referralCode],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }

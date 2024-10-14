@@ -82,8 +82,8 @@ class _FakeArtwork_4 extends _i1.SmartFake implements _i6.Artwork {
         );
 }
 
-class _FakeFFUserDetails_5 extends _i1.SmartFake implements _i7.FFUserDetails {
-  _FakeFFUserDetails_5(
+class _FakeFFUser_5 extends _i1.SmartFake implements _i7.FFUser {
+  _FakeFFUser_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -413,7 +413,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
         )),
       ) as _i10.Future<_i5.FeralFileListResponse<_i2.FFSeries>>);
   @override
-  _i10.Future<_i5.FeralFileListResponse<_i7.FFArtist>> exploreArtists({
+  _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>> exploreArtists({
     int? limit = 20,
     int? offset = 0,
     String? keywork = r'',
@@ -432,8 +432,8 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #sortOrder: sortOrder,
           },
         ),
-        returnValue: _i10.Future<_i5.FeralFileListResponse<_i7.FFArtist>>.value(
-            _FakeFeralFileListResponse_3<_i7.FFArtist>(
+        returnValue: _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>.value(
+            _FakeFeralFileListResponse_3<_i7.FFUser>(
           this,
           Invocation.method(
             #exploreArtists,
@@ -447,9 +447,9 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             },
           ),
         )),
-      ) as _i10.Future<_i5.FeralFileListResponse<_i7.FFArtist>>);
+      ) as _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>);
   @override
-  _i10.Future<_i5.FeralFileListResponse<_i7.FFCurator>> exploreCurators({
+  _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>> exploreCurators({
     int? limit = 20,
     int? offset = 0,
     String? keywork = r'',
@@ -468,9 +468,8 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #sortOrder: sortOrder,
           },
         ),
-        returnValue:
-            _i10.Future<_i5.FeralFileListResponse<_i7.FFCurator>>.value(
-                _FakeFeralFileListResponse_3<_i7.FFCurator>(
+        returnValue: _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>.value(
+            _FakeFeralFileListResponse_3<_i7.FFUser>(
           this,
           Invocation.method(
             #exploreCurators,
@@ -484,22 +483,21 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             },
           ),
         )),
-      ) as _i10.Future<_i5.FeralFileListResponse<_i7.FFCurator>>);
+      ) as _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>);
   @override
-  _i10.Future<_i7.FFUserDetails> getUser(String? artistID) =>
-      (super.noSuchMethod(
+  _i10.Future<_i7.FFUser> getUser(String? artistID) => (super.noSuchMethod(
         Invocation.method(
           #getUser,
           [artistID],
         ),
-        returnValue: _i10.Future<_i7.FFUserDetails>.value(_FakeFFUserDetails_5(
+        returnValue: _i10.Future<_i7.FFUser>.value(_FakeFFUser_5(
           this,
           Invocation.method(
             #getUser,
             [artistID],
           ),
         )),
-      ) as _i10.Future<_i7.FFUserDetails>);
+      ) as _i10.Future<_i7.FFUser>);
   @override
   _i10.Future<List<_i4.Post>> getPosts({
     String? sortBy = r'dateTime',

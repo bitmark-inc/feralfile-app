@@ -11,6 +11,8 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -92,6 +94,9 @@ class AuthService {
       unawaited(_configurationService.setIAPReceipt(null));
       unawaited(_configurationService.setIAPJWT(null));
     }
+
+    // after get new jwt, update subscription status
+    injector<SubscriptionBloc>().add(GetSubscriptionEvent());
     return newJwt;
   }
 

@@ -1043,4 +1043,8 @@ class NavigationService {
       isDismissible: true,
     );
   }
+
+  Future<void> openUrl(Uri uri) async {
+    await _browser.openUrl(uri.toString());
+  }
 }
