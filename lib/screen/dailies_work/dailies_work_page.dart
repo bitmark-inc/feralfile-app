@@ -302,7 +302,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _dailyPreview() => Column(
         children: [
           SizedBox(
-            height: MediaQuery.of(context).padding.top + 32,
+            height: MediaQuery.paddingOf(context).top + 32,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

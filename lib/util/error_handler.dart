@@ -322,7 +322,7 @@ Future<bool> showErrorDialogFromException(Object exception,
 }
 
 bool _isErrorIgnored(Object exception) {
-  if (exception is RangeError) {
+  if (exception is RangeError || exception is FlutterError) {
     return true;
   }
   return false;

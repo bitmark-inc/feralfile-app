@@ -84,7 +84,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<DeviceInfoService>().init();
       await injector<MetricClientService>().initService();
 
-      await injector<RemoteConfigService>().loadConfigs();
+      unawaited(injector<RemoteConfigService>().loadConfigs());
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
 
       await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
@@ -95,12 +95,16 @@ class _OnboardingPageState extends State<OnboardingPage>
           .setVersionInfo(packageInfo.version);
 
       final notificationService = injector<NotificationService>();
-      await notificationService.initNotification();
-      await notificationService.startListeningNotificationEvents();
+      unawaited(
+        notificationService.initNotification().then(
+          (_) {
+            notificationService.startListeningNotificationEvents();
+          },
+        ),
+      );
       await disableLandscapeMode();
-      await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
+      unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
       DailiesHelper.updateDailies([]);
-      await injector<DeeplinkService>().setup();
       didRunSetup = true;
     } catch (e, s) {
       log.info('Setup error: $e');
@@ -132,6 +136,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
     log.info('[_fetchRuntimeCache] start');
     await injector<AccountService>().migrateAccount();
+    unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
     if (timer.isActive) {
       timer.cancel();

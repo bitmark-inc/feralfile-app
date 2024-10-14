@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
+import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
@@ -64,6 +65,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
@@ -230,6 +232,7 @@ class AppRouter {
   static const artistsPage = 'artists_page';
   static const curatorsPage = 'curators_page';
   static const rAndDPage = 'r_and_d_page';
+  static const playlistActivationPage = 'playlist_activation_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -260,6 +263,7 @@ class AppRouter {
     );
 
     final subscriptionBloc = injector<SubscriptionBloc>();
+    final listPlaylistBloc = injector<ListPlaylistBloc>();
 
     final royaltyBloc = RoyaltyBloc(injector());
 
@@ -349,6 +353,7 @@ class AppRouter {
                     ),
                     BlocProvider(lazy: false, create: (_) => connectionsBloc),
                     BlocProvider(create: (_) => canvasDeviceBloc),
+                    BlocProvider.value(value: listPlaylistBloc),
                   ],
                   child: HomeNavigationPage(
                       key: homePageNoTransactionKey,
@@ -374,6 +379,7 @@ class AppRouter {
                       value: subscriptionBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
+                    BlocProvider.value(value: listPlaylistBloc),
 
                     /// The page itself doesn't need to use the bloc.
                     /// This will create bloc instance to receive and handle
@@ -1154,8 +1160,17 @@ class AppRouter {
           builder: (context) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: subscriptionBloc),
+              BlocProvider.value(value: listPlaylistBloc),
             ],
             child: const OrganizeHomePage(),
+          ),
+        );
+
+      case playlistActivationPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => PlaylistActivationPage(
+            payload: settings.arguments! as PlaylistActivationPagePayload,
           ),
         );
 

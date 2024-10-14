@@ -279,7 +279,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
                       pending: true,
                       owner: address,
                       owners: {address: 1},
-                      isDebugged: false,
+                      isManual: false,
                       lastActivityTime: DateTime.now(),
                       lastRefreshedTime: DateTime(1),
                       balance: 1,
