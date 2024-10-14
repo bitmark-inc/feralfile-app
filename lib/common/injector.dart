@@ -413,7 +413,7 @@ Future<void> setupInjector() async {
       () => AnnouncementServiceImpl(injector(), injector(), injector()));
 
   injector.registerLazySingleton<UpgradesBloc>(
-      () => UpgradesBloc(injector(), injector(), injector()));
+      () => UpgradesBloc(injector(), injector()));
 
   injector.registerLazySingleton<AccountSettingsClient>(
       () => AccountSettingsClient(Environment.accountSettingUrl));
