@@ -452,20 +452,16 @@ class CustomSubscription {
   }
 
   // from json
-  factory CustomSubscription.fromJson(Map<String, dynamic> json) {
-    return CustomSubscription(
+  factory CustomSubscription.fromJson(Map<String, dynamic> json) => CustomSubscription(
       rawPrice: int.tryParse(json['price']) ?? 0,
       currency: json['currency'] as String,
       billingPeriod: json['billingPeriod'] as String,
     );
-  }
 
   // to json
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
+  Map<String, dynamic> toJson() => <String, dynamic>{
       'price': rawPrice,
       'currency': currency,
       'billingPeriod': billingPeriod,
     };
-  }
 }
