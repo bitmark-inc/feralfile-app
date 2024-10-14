@@ -42,6 +42,7 @@ class AuthService {
   Future<JWT?> _getPrimaryAddressAuthToken({String? receiptData}) async {
     final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
     if (primaryAddressInfo == null) {
+      log.warning('Primary address not set');
       return null;
     }
     final address = await _addressService.getPrimaryAddress();

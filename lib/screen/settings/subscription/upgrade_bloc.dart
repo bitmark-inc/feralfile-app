@@ -29,9 +29,12 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
       try {
         final jwt = _configurationService.getIAPJWT();
 
+        log.info('UpgradeBloc: jwt is ${jwt == null ? 'null' : 'not null'}');
+
         if (jwt != null) {
           // update purchase status in IAP service
           final subscriptionStatus = jwt.getSubscriptionStatus();
+          log.info('UpgradeBloc: subscriptionStatus: $subscriptionStatus');
           if (subscriptionStatus.isPremium) {
             // if subscription is premium, update purchase in IAP service
             final id = premiumId();
