@@ -1045,9 +1045,6 @@ class NavigationService {
   }
 
   Future<void> openUrl(Uri uri) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await _browser.openUrl(uri.toString());
-    }
+    await _browser.openUrl(uri.toString());
   }
 }
