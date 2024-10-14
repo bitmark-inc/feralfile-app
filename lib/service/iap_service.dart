@@ -95,6 +95,8 @@ abstract class IAPService {
   Future<String> getStripeUrl();
 
   Future<CustomSubscription> getCustomActiveSubscription();
+
+  Future<void> reset();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -394,6 +396,17 @@ class IAPServiceImpl implements IAPService {
         billingPeriod: '',
       );
     }
+  }
+
+  @override
+  Future<void> reset() async {
+    products.value = {};
+    purchases.value = {};
+    trialExpireDates.value = {};
+    _purchases.clear();
+    _receiptData = null;
+    _isSetup = false;
+    await setup();
   }
 }
 

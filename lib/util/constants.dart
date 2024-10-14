@@ -234,6 +234,7 @@ const List<String> YOUTUBE_VARIANTS = [
 const MAGIC_NUMBER = 168;
 
 Future<bool> isAppCenterBuild() async {
+  return false;
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
 }
