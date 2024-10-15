@@ -39,7 +39,8 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
       final token = assetTokens.first;
       if (token.isFeralfile) {
         if (token.artistID != null) {
-          currentArtist = await _feralfileService.getAlumni(token.artistID!);
+          currentArtist =
+              await _feralfileService.getAlumniDetail(token.artistID!);
         }
         currentExhibition = await _feralfileService
             .getExhibitionFromTokenID(dailiesToken!.tokenID);

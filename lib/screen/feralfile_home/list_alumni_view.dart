@@ -119,8 +119,9 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     }
     _isLoading = true;
 
-    final resp = await injector<FeralFileService>().exploreArtists(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isArtist: true,
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
@@ -143,8 +144,9 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
       return;
     }
     _isLoading = true;
-    final resp = await injector<FeralFileService>().exploreArtists(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isArtist: true,
       offset: _paging.offset + _paging.limit,
       limit: _paging.limit,
       orderBy: widget.sortBy.queryParam,
@@ -266,8 +268,9 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       return [];
     }
     _isLoading = true;
-    final resp = await injector<FeralFileService>().exploreCurators(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isCurator: true,
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
@@ -293,8 +296,9 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       return;
     }
     _isLoading = true;
-    final resp = await injector<FeralFileService>().exploreCurators(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isCurator: true,
       offset: _paging.offset + _paging.limit,
       limit: _paging.limit,
       orderBy: widget.sortBy.queryParam,

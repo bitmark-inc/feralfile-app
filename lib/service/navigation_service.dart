@@ -567,7 +567,7 @@ class NavigationService {
     }
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppRouter.alumniDetailsPage,
-      arguments: AlumniDetailsPagePayload(alumniId: id),
+      arguments: AlumniDetailsPagePayload(alumniID: id),
     );
   }
 
@@ -577,7 +577,7 @@ class NavigationService {
     }
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppRouter.alumniDetailsPage,
-      arguments: AlumniDetailsPagePayload(alumniId: id),
+      arguments: AlumniDetailsPagePayload(alumniID: id),
     );
   }
 

@@ -6,7 +6,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 
 class FFSeries {
   final String id;
-  final String artistID;
+  final String artistAlumniAccountID;
   final String? assetID;
   final String title;
   final String? slug;
@@ -34,7 +34,7 @@ class FFSeries {
 
   FFSeries(
     this.id,
-    this.artistID,
+    this.artistAlumniAccountID,
     this.assetID,
     this.title,
     this.slug,
@@ -67,7 +67,7 @@ class FFSeries {
 
   factory FFSeries.fromJson(Map<String, dynamic> json) => FFSeries(
         json['id'] as String,
-        json['artistID'] as String,
+        json['artistAlumniAccountID'] as String,
         json['assetID'] as String?,
         json['title'] as String,
         json['slug'] as String?,
@@ -119,7 +119,7 @@ class FFSeries {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'artistID': artistID,
+        'artistAlumniAccountID': artistAlumniAccountID,
         'assetID': assetID,
         'title': title,
         'slug': slug,
@@ -147,7 +147,7 @@ class FFSeries {
 
   FFSeries copyWith({
     String? id,
-    String? artistID,
+    String? artistAlumniAccountID,
     String? assetID,
     String? title,
     String? slug,
@@ -175,7 +175,7 @@ class FFSeries {
   }) =>
       FFSeries(
         id ?? this.id,
-        artistID ?? this.artistID,
+        artistAlumniAccountID ?? this.artistAlumniAccountID,
         assetID ?? this.assetID,
         title ?? this.title,
         slug ?? this.slug,
