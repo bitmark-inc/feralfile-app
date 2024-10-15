@@ -34,12 +34,7 @@ class MetricClientService {
             Sentry.captureMessage('Metric Identity: Primary address is null'));
         return;
       }
-      if (primaryAddress == _identifier) {
-        log.info('Metric Identity: Primary address is same as current');
-        return;
-      }
       await mergeUser(_identifier);
-      _identifier = primaryAddress;
     } catch (e) {
       log.info('Metric identity error: $e');
       unawaited(Sentry.captureException('Metric identity error: $e'));
@@ -47,23 +42,25 @@ class MetricClientService {
   }
 
   Future<void> addEvent(
-    String name, {
+    MetricEventName event, {
     String? message,
-    Map<String, dynamic> data = const {},
+    Map<MetricParameter, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
-    log.info('[MetricClientService] addEvent: $name');
+    log.info('[MetricClientService] addEvent: ${event.name}');
     final configurationService = injector.get<ConfigurationService>();
 
     if (!configurationService.isAnalyticsEnabled()) {
       return;
     }
+    final rawData = data.map((key, value) => MapEntry(key.name, value));
+
     // ignore: unused_local_variable
     final dataWithExtend = {
-      'event': name,
+      'event': event.name,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
       'parameters': {
-        ...data,
+        ...rawData,
         'platform': platform,
       }
     };
@@ -75,7 +72,7 @@ class MetricClientService {
     };
     try {
       await injector<IAPApi>().sendEvent(metrics, _identifier);
-      log.info('Metric add event success: $name');
+      log.info('Metric add event success: ${event.name}');
     } catch (e) {
       log.info('Metric add event error: $e');
       unawaited(Sentry.captureException('Metric add event error: $e'));

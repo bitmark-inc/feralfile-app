@@ -14,12 +14,17 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -51,10 +56,6 @@ abstract class DeeplinkService {
 
   Future<void> openClaimEmptyPostcard(String id, {String? otp});
 
-  void activateBranchDataListener();
-
-  void activateDeepLinkListener();
-
   Future<void> handleReferralCode(String referralCode);
 }
 
@@ -77,18 +78,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
     this._postcardService,
     this._remoteConfigService,
-  ) {
-    _branchDataStream = _branchDataStreamController.stream;
-    _linkStream = _deepLinkStreamController.stream;
-  }
-
-  final StreamController<Map<dynamic, dynamic>> _branchDataStreamController =
-      StreamController<Map<dynamic, dynamic>>();
-  final StreamController<String> _deepLinkStreamController =
-      StreamController<String>();
-
-  late final Stream<Map<dynamic, dynamic>> _branchDataStream;
-  late final Stream<String> _linkStream;
+  );
 
   @override
   Future setup() async {
@@ -102,7 +92,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _deepLinkHandlingMap[data['~referring_link']] == null) {
         _deepLinkHandlingMap[data['~referring_link']] = true;
 
-        _branchDataStreamController.add(data);
+        await handleBranchDeeplinkData(data);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
@@ -113,29 +103,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final initialLink = await getInitialLink();
       log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
-        _deepLinkStreamController.add(initialLink);
+        handleDeeplink(initialLink);
       }
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
     }
-  }
-
-  @override
-  void activateBranchDataListener() {
-    if (_branchDataStreamController.hasListener) {
-      return;
-    }
-    _branchDataStream.listen(handleBranchDeeplinkData);
-  }
-
-  @override
-  void activateDeepLinkListener() {
-    if (_deepLinkStreamController.hasListener) {
-      return;
-    }
-    _linkStream.listen(handleDeeplink);
   }
 
   @override
@@ -439,73 +413,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await _walletConnect2Service.connect(decodedWcUri);
 
       case 'feralfile_display':
-        final rawPayload = data['device'] as Map<dynamic, dynamic>;
-        final Map<String, dynamic> payload = {};
-        rawPayload.forEach((key, value) {
-          payload[key.toString()] = value;
-        });
-        final device = CanvasDevice.fromJson(payload);
-        final canvasClient = injector<CanvasClientServiceV2>();
-        try {
-          final result = await canvasClient.addQrDevice(device);
-          final isSuccessful = result != null;
-          if (isSuccessful) {
-            onFinish?.call(device);
-          }
-          if (!_navigationService.context.mounted) {
-            return;
-          }
-          if (CustomRouteObserver.currentRoute?.settings.name ==
-              AppRouter.scanQRPage) {
-            /// in case scan when open scanQRPage,
-            /// scan with navigation home page does not go to this flow
-            _navigationService.goBack(result: result);
-            if (!isSuccessful) {
-              await _navigationService.showCannotConnectTv();
-            } else {
-              showInfoNotification(
-                const Key('connected_to_canvas'),
-                'connected_to_display'.tr(),
-                addOnTextSpan: [
-                  TextSpan(
-                    text: device.name,
-                    style: Theme.of(_navigationService.context)
-                        .textTheme
-                        .ppMori400FFYellow14
-                        .copyWith(color: AppColor.feralFileLightBlue),
-                  )
-                ],
-                frontWidget: SvgPicture.asset(
-                  'assets/images/checkbox_icon.svg',
-                  width: 24,
-                ),
-              );
-            }
-            break;
-          }
-          if (isSuccessful) {
-            showInfoNotification(
-              const Key('connected_to_canvas'),
-              'connected_to_display'.tr(),
-              addOnTextSpan: [
-                TextSpan(
-                  text: device.name,
-                  style: Theme.of(_navigationService.context)
-                      .textTheme
-                      .ppMori400FFYellow14
-                      .copyWith(color: AppColor.feralFileLightBlue),
-                )
-              ],
-              frontWidget: SvgPicture.asset(
-                'assets/images/checkbox_icon.svg',
-                width: 24,
-              ),
-            );
+        {
+          final reportId = data['reportId'];
+          if (reportId != null) {
+            await _handleFeralFileDisplayReport(reportId);
           } else {
-            await _navigationService.showCannotConnectTv();
+            final deviceRawPayload = data['device'] as Map<dynamic, dynamic>;
+            final Map<String, dynamic> payload = {};
+            deviceRawPayload.forEach((key, value) {
+              payload[key.toString()] = value;
+            });
+            final device = CanvasDevice.fromJson(payload);
+            await _handleFeralFileDisplayConnecting(device, onFinish);
           }
-        } catch (e) {
-          log.info('[DeeplinkService] feralfile_display error $e');
         }
 
       case 'InstantPurchase':
@@ -568,6 +488,33 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
         }
 
+      case 'membership_subscription':
+        final String url = data['callbackURL']!;
+        final primaryAddress =
+            await injector<AddressService>().getPrimaryAddress();
+        _navigationService.popUntilHome();
+        if (primaryAddress == null) {
+          await _navigationService.addressNotFoundError();
+        } else {
+          final uri = Uri.parse(url);
+          final isPremium = await injector<IAPService>().isSubscribed();
+          final queryParameters = {
+            'a': primaryAddress,
+            'mt': isPremium ? 'premium' : 'none',
+          }..addAll(uri.queryParameters);
+          final newUri = uri.replace(queryParameters: queryParameters);
+          final link = newUri.toString();
+          log.info('MembershipSubscription: $link');
+          await _navigationService.goToIRLWebview(
+            IRLWebScreenPayload(
+              link,
+              isPlainUI: true,
+              statusBarColor: AppColor.white,
+              isDarkStatusBar: false,
+            ),
+          );
+        }
+
       case 'gift_membership':
         final giftCode = data['gift_code'];
         await GiftHandler.handleGiftMembership(giftCode);
@@ -577,7 +524,49 @@ class DeeplinkServiceImpl extends DeeplinkService {
         log.info('[DeeplinkService] referralCode: $referralCode');
         await handleReferralCode(referralCode);
 
+      case 'playlist_activation':
+        try {
+          log.info('[DeeplinkService] playlist_activation');
+          unawaited(
+              injector<ConfigurationService>().setDidShowLiveWithArt(true));
+          final expiredAt = int.tryParse(data['expired_at']);
+          log.info('[DeeplinkService] expiredAt: $expiredAt');
+          if (expiredAt != null) {
+            final expiredAtDate =
+                DateTime.fromMillisecondsSinceEpoch(expiredAt);
+            if (expiredAtDate.isBefore(DateTime.now())) {
+              log.info('[DeeplinkService] playlist_activation expired');
+              unawaited(_navigationService.showPlaylistActivationExpired());
+              break;
+            }
+          }
+          log.info('[DeeplinkService] playlist_activation not expired');
+          final playlistJson = (data['playlist'] as Map<dynamic, dynamic>)
+              .map((key, value) => MapEntry(key.toString(), value));
+
+          final playlist = PlayListModel.fromJson(playlistJson)
+              .copyWith(source: PlayListSource.activation);
+          final activationName = data['activation_name'];
+          final activationSource = data['activation_source'];
+          final thumbnailURL = data['activation_thumbnail'];
+          final activation = PlaylistActivation(
+            playListModel: playlist,
+            name: activationName,
+            source: activationSource,
+            thumbnailURL: thumbnailURL,
+          );
+          log.info('[DeeplinkService] playlist_activation ${activation}');
+          await _navigationService.navigateTo(
+            AppRouter.playlistActivationPage,
+            arguments: PlaylistActivationPagePayload(
+              activation: activation,
+            ),
+          );
+        } catch (e) {
+          log.info('[DeeplinkService] playlist_activation error $e');
+        }
       default:
+        log.info('[DeeplinkService] source not found');
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
   }
@@ -662,6 +651,84 @@ class DeeplinkServiceImpl extends DeeplinkService {
       } else {
         unawaited(_navigationService.showPostcardQRCodeExpired());
       }
+    }
+  }
+
+  Future _handleFeralFileDisplayReport(String reportId) async {
+    await _navigationService.navigateTo(
+      AppRouter.supportThreadPage,
+      arguments: NewIssuePayload(
+        reportIssueType: ReportIssueType.Bug,
+        artworkReportID: reportId,
+      ),
+    );
+  }
+
+  Future _handleFeralFileDisplayConnecting(
+    CanvasDevice device,
+    Function? onFinish,
+  ) async {
+    final canvasClient = injector<CanvasClientServiceV2>();
+    try {
+      final result = await canvasClient.addQrDevice(device);
+      final isSuccessful = result != null;
+      if (isSuccessful) {
+        onFinish?.call(device);
+      }
+      if (!_navigationService.context.mounted) {
+        return;
+      }
+      if (CustomRouteObserver.currentRoute?.settings.name ==
+          AppRouter.scanQRPage) {
+        /// in case scan when open scanQRPage,
+        /// scan with navigation home page does not go to this flow
+        _navigationService.goBack(result: result);
+        if (!isSuccessful) {
+          await _navigationService.showCannotConnectTv();
+        } else {
+          showInfoNotification(
+            const Key('connected_to_canvas'),
+            'connected_to_display'.tr(),
+            addOnTextSpan: [
+              TextSpan(
+                text: device.name,
+                style: Theme.of(_navigationService.context)
+                    .textTheme
+                    .ppMori400FFYellow14
+                    .copyWith(color: AppColor.feralFileLightBlue),
+              )
+            ],
+            frontWidget: SvgPicture.asset(
+              'assets/images/checkbox_icon.svg',
+              width: 24,
+            ),
+          );
+        }
+        return;
+      }
+      if (isSuccessful) {
+        showInfoNotification(
+          const Key('connected_to_canvas'),
+          'connected_to_display'.tr(),
+          addOnTextSpan: [
+            TextSpan(
+              text: device.name,
+              style: Theme.of(_navigationService.context)
+                  .textTheme
+                  .ppMori400FFYellow14
+                  .copyWith(color: AppColor.feralFileLightBlue),
+            )
+          ],
+          frontWidget: SvgPicture.asset(
+            'assets/images/checkbox_icon.svg',
+            width: 24,
+          ),
+        );
+      } else {
+        await _navigationService.showCannotConnectTv();
+      }
+    } catch (e) {
+      log.info('[DeeplinkService] feralfile_display error $e');
     }
   }
 }

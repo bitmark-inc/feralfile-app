@@ -78,6 +78,23 @@ android {
         resConfigs 'en', 'US'
     }
 
+    signingConfigs {
+        release {
+            def releaseProperties = new Properties()
+            def releasePropertiesFile = rootProject.file('release.properties')
+            if (releasePropertiesFile.exists()) {
+                releasePropertiesFile.withReader('UTF-8') { reader ->
+                    releaseProperties.load(reader)
+                }
+            }
+
+            keyAlias releaseProperties['key.alias']
+            keyPassword releaseProperties['key.alias.password']
+            storePassword releaseProperties['key.store.password']
+            storeFile rootProject.file('release.keystore') // Update this with the path to your keystore
+        }
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.bitmark.autonomy_client"
@@ -95,9 +112,11 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            if (rootProject.file('release.keystore').exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled true
             shrinkResources true
 
@@ -154,14 +173,14 @@ flutter {
 
 dependencies {
     def lifecycle_version = "2.6.0-alpha03"
-    def beacon_version = "3.2.4"
+    def beacon_version = "c2434dcc73"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation 'com.google.android.gms:play-services-auth-blockstore:16.2.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation('com.github.bitmark-inc:libauk-kotlin:44f4088277') {
+    implementation('com.github.bitmark-inc:libauk-kotlin:6ff187f778') {
         exclude group: 'com.google.protobuf'
         exclude module: 'jetified-protobuf-java'
     }
@@ -180,7 +199,7 @@ dependencies {
     implementation("com.walletconnect:sign:2.15.0")
     implementation("com.scottyab:rootbeer-lib:0.1.0")
 
-    implementation("com.github.airgap-it:beacon-android-sdk:$beacon_version") {
+    implementation("com.github.autonomy-system:beacon-android-sdk:$beacon_version") {
         exclude group: 'com.goterl'
         exclude module: 'lazysodium-android'
         exclude group: 'net.java.dev.jna'

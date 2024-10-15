@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -278,7 +279,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
                       pending: true,
                       owner: address,
                       owners: {address: 1},
-                      isDebugged: false,
+                      isManual: false,
                       lastActivityTime: DateTime.now(),
                       lastRefreshedTime: DateTime(1),
                       balance: 1,
@@ -520,8 +521,20 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _controller?.addJavaScriptHandler(
       handlerName: 'closeWebview',
       callback: (args) async {
-        injector.get<NavigationService>().goBack();
+        IRLHandler.closeWebview(args);
       },
+    );
+
+    _controller?.addJavaScriptHandler(
+      handlerName: 'closeWebviewThenNavigate',
+      callback: (args) async {
+        await IRLHandler.closeWebviewThenNavigate(args);
+      },
+    );
+
+    _controller?.addJavaScriptHandler(
+      handlerName: 'didUpgradeMembership',
+      callback: (args) async => await IRLHandler.refreshJWT(args),
     );
   }
 
@@ -547,17 +560,22 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
               children: [
                 Expanded(
                   child: InAppWebViewPage(
-                    payload: InAppWebViewPayload(widget.payload.url,
-                        isPlainUI: widget.payload.isPlainUI,
-                        backgroundColor: widget.payload.statusBarColor,
-                        onWebViewCreated: (final controller) {
-                      _controller = controller;
-                      _addJavaScriptHandler();
-                      if (widget.payload.localStorageItems != null) {
-                        _addLocalStorageItems(
-                            widget.payload.localStorageItems!);
-                      }
-                    }),
+                    payload: InAppWebViewPayload(
+                      widget.payload.url,
+                      isPlainUI: widget.payload.isPlainUI,
+                      backgroundColor: widget.payload.statusBarColor,
+                      onWebViewCreated: (final controller) {
+                        _controller = controller;
+                        _addJavaScriptHandler();
+                        if (widget.payload.localStorageItems != null) {
+                          _addLocalStorageItems(
+                              widget.payload.localStorageItems!);
+                        }
+                      },
+                      onConsoleMessage: (controller, message) {
+                        log.info('[IRLWebScreen] onConsoleMessage: $message');
+                      },
+                    ),
                   ),
                 )
               ],
@@ -620,4 +638,25 @@ class IRLWebScreenPayload {
       this.localStorageItems,
       this.statusBarColor,
       this.isDarkStatusBar = true});
+}
+
+class IRLHandler {
+  static void closeWebview(List<dynamic> arguments) {
+    injector.get<NavigationService>().goBack();
+  }
+
+  static Future<void> closeWebviewThenNavigate(List<dynamic> arguments) async {
+    injector.get<NavigationService>().goBack();
+    final json = arguments.firstOrNull as Map<String, dynamic>?;
+    final navigatePath = json?['navigation_route'];
+    if (navigatePath != null) {
+      await injector<NavigationService>().navigatePath(navigatePath);
+    }
+  }
+
+  static Future<JSResult> refreshJWT(List<dynamic> arguments) async {
+    final authService = injector.get<AuthService>();
+    final newJWT = await authService.getAuthToken(forceRefresh: true);
+    return JSResult.result(newJWT?.isPremiumValid() ?? false);
+  }
 }

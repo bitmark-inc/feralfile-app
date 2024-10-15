@@ -147,8 +147,8 @@ class _AccountsViewState extends State<AccountsView> {
             isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg',
           ),
         ),
-        onPressed: (_) {
-          unawaited(account.setViewAccount(!isHidden));
+        onPressed: (_) async {
+          await account.setHiddenStatus(!isHidden);
           _accountsBloc.add(GetAccountsEvent());
         },
       ),

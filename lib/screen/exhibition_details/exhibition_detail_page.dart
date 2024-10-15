@@ -8,8 +8,10 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -66,6 +68,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           listenWhen: (previous, current) {
             if (previous.exhibition == null && current.exhibition != null) {
               _stream(current.exhibition!);
+              _sendMetricViewExhibition();
             }
             return true;
           });
@@ -90,6 +93,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               });
               if (index < itemCount - 1) {
                 _stream(exhibition);
+                _sendMetricViewExhibition();
               }
             },
             scrollDirection: Axis.vertical,
@@ -134,6 +138,23 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
       ],
     );
+  }
+
+  void _sendMetricViewExhibition() {
+    final exhibition = _exBloc.state.exhibition;
+    if (exhibition == null) {
+      return;
+    }
+
+    final request = _getCastExhibitionRequest(exhibition);
+    final data = {
+      MetricParameter.exhibitionId: request.exhibitionId,
+      MetricParameter.section: request.catalog.metricName,
+      if (request.catalog == ExhibitionCatalog.artwork)
+        MetricParameter.tokenId: request.catalogId,
+    };
+    injector<MetricClientService>()
+        .addEvent(MetricEventName.exhibitionView, data: data);
   }
 
   void _stream(Exhibition exhibition) {

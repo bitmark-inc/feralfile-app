@@ -13,6 +13,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
@@ -62,12 +63,6 @@ const _kApplePremiumProductId = 'com.bitmark.feralfile.premium';
 String premiumId() =>
     Platform.isIOS ? _kApplePremiumProductId : _kGooglePremiumProductId;
 
-List<String> inactiveIds() {
-  final ids =
-      Platform.isIOS ? _kAppleInactiveProductIds : _kGoogleInactiveProductIds;
-  return ids;
-}
-
 enum IAPProductStatus {
   loading,
   notPurchased,
@@ -96,6 +91,12 @@ abstract class IAPService {
   PurchaseDetails? getPurchaseDetails(String productId);
 
   void clearReceipt();
+
+  Future<String> getStripeUrl();
+
+  Future<CustomSubscription> getCustomActiveSubscription();
+
+  Future<void> reset();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -182,7 +183,8 @@ class IAPServiceImpl implements IAPService {
   Future<List<ProductDetails>> fetchAllProducts() async {
     await setPaymentQueueDelegate();
     final productIds = _getProductIds();
-    return _fetchProducts(productIds);
+    final appStoreProduct = await _fetchProducts(productIds);
+    return [...appStoreProduct];
   }
 
   @override
@@ -363,6 +365,49 @@ class IAPServiceImpl implements IAPService {
   void clearReceipt() {
     _receiptData = null;
   }
+
+  @override
+  Future<String> getStripeUrl() async {
+    try {
+      final res = await injector<IAPApi>().portalUrl() as Map<String, dynamic>;
+      return res['url'] as String;
+    } catch (error) {
+      log.warning('Error when getting stripe portal url: $error');
+      unawaited(Sentry.captureException(
+          'Error when getting stripe portal url: $error'));
+      return '';
+    }
+  }
+
+  @override
+  Future<CustomSubscription> getCustomActiveSubscription() async {
+    try {
+      final res = await injector<IAPApi>().getCustomActiveSubscription()
+          as Map<String, dynamic>;
+      final subscription = CustomSubscription.fromJson(res['result']);
+      return subscription;
+    } catch (error) {
+      log.warning('Error when getting custom active subscription: $error');
+      unawaited(Sentry.captureException(
+          'Error when getting custom active subscription: $error'));
+      return CustomSubscription(
+        rawPrice: 0,
+        currency: '',
+        billingPeriod: '',
+      );
+    }
+  }
+
+  @override
+  Future<void> reset() async {
+    products.value = {};
+    purchases.value = {};
+    trialExpireDates.value = {};
+    _purchases.clear();
+    _receiptData = null;
+    _isSetup = false;
+    await setup();
+  }
 }
 
 class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
@@ -373,4 +418,50 @@ class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
 
   @override
   bool shouldShowPriceConsent() => false;
+}
+
+class CustomSubscription {
+  final int rawPrice;
+  final String currency;
+  final String billingPeriod;
+
+  CustomSubscription({
+    required this.rawPrice,
+    required this.currency,
+    required this.billingPeriod,
+  });
+
+  String get price {
+    if (currency.toLowerCase() == 'usd') {
+      return '\$${rawPrice / 100.0}';
+    } else {
+      Sentry.captureMessage('Unsupported currency: $currency');
+      return '-';
+    }
+  }
+
+  SKSubscriptionPeriodUnit get period {
+    switch (billingPeriod) {
+      case 'year':
+        return SKSubscriptionPeriodUnit.year;
+      default:
+        Sentry.captureMessage(
+            '[CustomSubscription] Unsupported period: $period');
+        return SKSubscriptionPeriodUnit.year;
+    }
+  }
+
+  // from json
+  factory CustomSubscription.fromJson(Map<String, dynamic> json) => CustomSubscription(
+      rawPrice: int.tryParse(json['price']) ?? 0,
+      currency: json['currency'] as String,
+      billingPeriod: json['billingPeriod'] as String,
+    );
+
+  // to json
+  Map<String, dynamic> toJson() => <String, dynamic>{
+      'price': rawPrice,
+      'currency': currency,
+      'billingPeriod': billingPeriod,
+    };
 }

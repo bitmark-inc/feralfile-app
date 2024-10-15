@@ -3,20 +3,19 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
+import 'dart:async' as _i6;
 
-import 'package:autonomy_flutter/database/entity/connection.dart' as _i5;
-import 'package:autonomy_flutter/database/entity/persona.dart' as _i3;
-import 'package:autonomy_flutter/database/entity/wallet_address.dart' as _i8;
+import 'package:autonomy_flutter/database/entity/connection.dart' as _i4;
+import 'package:autonomy_flutter/database/entity/wallet_address.dart' as _i7;
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart'
-    as _i12;
-import 'package:autonomy_flutter/service/account_service.dart' as _i6;
-import 'package:autonomy_flutter/util/constants.dart' as _i10;
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart' as _i4;
+    as _i11;
+import 'package:autonomy_flutter/service/account_service.dart' as _i5;
+import 'package:autonomy_flutter/util/constants.dart' as _i8;
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart' as _i3;
 import 'package:autonomy_flutter/util/wallet_utils.dart' as _i9;
 import 'package:libauk_dart/libauk_dart.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:nft_collection/models/models.dart' as _i11;
+import 'package:nft_collection/models/models.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -41,8 +40,8 @@ class _FakeWalletStorage_0 extends _i1.SmartFake implements _i2.WalletStorage {
         );
 }
 
-class _FakePersona_1 extends _i1.SmartFake implements _i3.Persona {
-  _FakePersona_1(
+class _FakeWalletIndex_1 extends _i1.SmartFake implements _i3.WalletIndex {
+  _FakeWalletIndex_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -51,18 +50,8 @@ class _FakePersona_1 extends _i1.SmartFake implements _i3.Persona {
         );
 }
 
-class _FakeWalletIndex_2 extends _i1.SmartFake implements _i4.WalletIndex {
-  _FakeWalletIndex_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeConnection_3 extends _i1.SmartFake implements _i5.Connection {
-  _FakeConnection_3(
+class _FakeConnection_2 extends _i1.SmartFake implements _i4.Connection {
+  _FakeConnection_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -74,63 +63,45 @@ class _FakeConnection_3 extends _i1.SmartFake implements _i5.Connection {
 /// A class which mocks [AccountService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAccountService extends _i1.Mock implements _i6.AccountService {
+class MockAccountService extends _i1.Mock implements _i5.AccountService {
   MockAccountService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i7.Future<List<_i8.WalletAddress>> deriveAddressFromFirstPersona(
-          _i9.WalletType? walletType) =>
-      (super.noSuchMethod(
+  _i6.Future<void> migrateAccount() => (super.noSuchMethod(
         Invocation.method(
-          #deriveAddressFromFirstPersona,
-          [walletType],
+          #migrateAccount,
+          [],
         ),
-        returnValue:
-            _i7.Future<List<_i8.WalletAddress>>.value(<_i8.WalletAddress>[]),
-      ) as _i7.Future<List<_i8.WalletAddress>>);
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
   @override
-  _i7.Future<List<_i8.WalletAddress>> getWalletsAddress(
-          _i10.CryptoType? cryptoType) =>
+  List<_i7.WalletAddress> getWalletsAddress(_i8.CryptoType? cryptoType) =>
       (super.noSuchMethod(
         Invocation.method(
           #getWalletsAddress,
           [cryptoType],
         ),
-        returnValue:
-            _i7.Future<List<_i8.WalletAddress>>.value(<_i8.WalletAddress>[]),
-      ) as _i7.Future<List<_i8.WalletAddress>>);
+        returnValue: <_i7.WalletAddress>[],
+      ) as List<_i7.WalletAddress>);
   @override
-  _i7.Future<_i2.WalletStorage> getDefaultAccount() => (super.noSuchMethod(
+  _i6.Future<_i2.WalletStorage> getDefaultAccount() => (super.noSuchMethod(
         Invocation.method(
           #getDefaultAccount,
           [],
         ),
-        returnValue: _i7.Future<_i2.WalletStorage>.value(_FakeWalletStorage_0(
+        returnValue: _i6.Future<_i2.WalletStorage>.value(_FakeWalletStorage_0(
           this,
           Invocation.method(
             #getDefaultAccount,
             [],
           ),
         )),
-      ) as _i7.Future<_i2.WalletStorage>);
+      ) as _i6.Future<_i2.WalletStorage>);
   @override
-  _i7.Future<_i3.Persona> getOrCreatePrimaryWallet() => (super.noSuchMethod(
-        Invocation.method(
-          #getOrCreateDefaultPersona,
-          [],
-        ),
-        returnValue: _i7.Future<_i3.Persona>.value(_FakePersona_1(
-          this,
-          Invocation.method(
-            #getOrCreateDefaultPersona,
-            [],
-          ),
-        )),
-      ) as _i7.Future<_i3.Persona>);
-  @override
-  _i7.Future<_i4.WalletIndex> getAccountByAddress({
+  _i6.Future<_i3.WalletIndex> getAccountByAddress({
     required String? chain,
     required String? address,
   }) =>
@@ -143,7 +114,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             #address: address,
           },
         ),
-        returnValue: _i7.Future<_i4.WalletIndex>.value(_FakeWalletIndex_2(
+        returnValue: _i6.Future<_i3.WalletIndex>.value(_FakeWalletIndex_1(
           this,
           Invocation.method(
             #getAccountByAddress,
@@ -154,115 +125,78 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             },
           ),
         )),
-      ) as _i7.Future<_i4.WalletIndex>);
+      ) as _i6.Future<_i3.WalletIndex>);
   @override
-  _i7.Future<dynamic> androidBackupKeys() => (super.noSuchMethod(
+  _i6.Future<dynamic> androidBackupKeys() => (super.noSuchMethod(
         Invocation.method(
           #androidBackupKeys,
           [],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i7.Future<dynamic> deleteAllKeys() => (super.noSuchMethod(
+  _i6.Future<dynamic> deleteAllKeys() => (super.noSuchMethod(
         Invocation.method(
           #deleteAllKeys,
           [],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i7.Future<List<_i5.Connection>> removeDoubleViewOnly(
+  _i6.Future<List<_i4.Connection>> removeDoubleViewOnly(
           List<String>? addresses) =>
       (super.noSuchMethod(
         Invocation.method(
           #removeDoubleViewOnly,
           [addresses],
         ),
-        returnValue: _i7.Future<List<_i5.Connection>>.value(<_i5.Connection>[]),
-      ) as _i7.Future<List<_i5.Connection>>);
+        returnValue: _i6.Future<List<_i4.Connection>>.value(<_i4.Connection>[]),
+      ) as _i6.Future<List<_i4.Connection>>);
   @override
-  _i7.Future<bool?> isAndroidEndToEndEncryptionAvailable() =>
+  _i6.Future<bool?> isAndroidEndToEndEncryptionAvailable() =>
       (super.noSuchMethod(
         Invocation.method(
           #isAndroidEndToEndEncryptionAvailable,
           [],
         ),
-        returnValue: _i7.Future<bool?>.value(),
-      ) as _i7.Future<bool?>);
+        returnValue: _i6.Future<bool?>.value(),
+      ) as _i6.Future<bool?>);
   @override
-  _i7.Future<dynamic> androidRestoreKeys() => (super.noSuchMethod(
-        Invocation.method(
-          #androidRestoreKeys,
-          [],
-        ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
-  @override
-  _i7.Future<_i3.Persona> getPersona({required String? uuid}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getPersona,
-          [],
-          {#uuid: uuid},
-        ),
-        returnValue: _i7.Future<_i3.Persona>.value(_FakePersona_1(
-          this,
-          Invocation.method(
-            #getPersona,
-            [],
-            {#uuid: uuid},
-          ),
-        )),
-      ) as _i7.Future<_i3.Persona>);
-  @override
-  _i7.Future<_i3.Persona> createNewWallet({
+  _i6.Future<List<_i7.WalletAddress>> createNewWallet({
     String? name = r'',
     String? passphrase = r'',
-    bool? isDefault = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #createPersona,
+          #createNewWallet,
           [],
           {
             #name: name,
             #passphrase: passphrase,
-            #isDefault: isDefault,
           },
         ),
-        returnValue: _i7.Future<_i3.Persona>.value(_FakePersona_1(
-          this,
-          Invocation.method(
-            #createPersona,
-            [],
-            {
-              #name: name,
-              #passphrase: passphrase,
-              #isDefault: isDefault,
-            },
-          ),
-        )),
-      ) as _i7.Future<_i3.Persona>);
+        returnValue:
+            _i6.Future<List<_i7.WalletAddress>>.value(<_i7.WalletAddress>[]),
+      ) as _i6.Future<List<_i7.WalletAddress>>);
   @override
-  _i7.Future<_i3.Persona> importWords(
+  _i6.Future<_i2.WalletStorage> importWords(
     String? words,
     String? passphrase, {
     _i9.WalletType? walletType = _i9.WalletType.MultiChain,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #importPersona,
+          #importWords,
           [
             words,
             passphrase,
           ],
           {#walletType: walletType},
         ),
-        returnValue: _i7.Future<_i3.Persona>.value(_FakePersona_1(
+        returnValue: _i6.Future<_i2.WalletStorage>.value(_FakeWalletStorage_0(
           this,
           Invocation.method(
-            #importPersona,
+            #importWords,
             [
               words,
               passphrase,
@@ -270,10 +204,10 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             {#walletType: walletType},
           ),
         )),
-      ) as _i7.Future<_i3.Persona>);
+      ) as _i6.Future<_i2.WalletStorage>);
   @override
-  _i7.Future<_i5.Connection> nameLinkedAccount(
-    _i5.Connection? connection,
+  _i6.Future<_i4.Connection> nameLinkedAccount(
+    _i4.Connection? connection,
     String? name,
   ) =>
       (super.noSuchMethod(
@@ -284,7 +218,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             name,
           ],
         ),
-        returnValue: _i7.Future<_i5.Connection>.value(_FakeConnection_3(
+        returnValue: _i6.Future<_i4.Connection>.value(_FakeConnection_2(
           this,
           Invocation.method(
             #nameLinkedAccount,
@@ -294,11 +228,11 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             ],
           ),
         )),
-      ) as _i7.Future<_i5.Connection>);
+      ) as _i6.Future<_i4.Connection>);
   @override
-  _i7.Future<_i5.Connection> linkManuallyAddress(
+  _i6.Future<_i4.Connection> linkManuallyAddress(
     String? address,
-    _i10.CryptoType? cryptoType, {
+    _i8.CryptoType? cryptoType, {
     String? name,
   }) =>
       (super.noSuchMethod(
@@ -310,7 +244,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
           ],
           {#name: name},
         ),
-        returnValue: _i7.Future<_i5.Connection>.value(_FakeConnection_3(
+        returnValue: _i6.Future<_i4.Connection>.value(_FakeConnection_2(
           this,
           Invocation.method(
             #linkManuallyAddress,
@@ -321,36 +255,27 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             {#name: name},
           ),
         )),
-      ) as _i7.Future<_i5.Connection>);
+      ) as _i6.Future<_i4.Connection>);
   @override
-  _i7.Future<dynamic> deletePersona(_i3.Persona? persona) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #deletePersona,
-          [persona],
-        ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
-  @override
-  _i7.Future<dynamic> deleteLinkedAccount(_i5.Connection? connection) =>
+  _i6.Future<dynamic> deleteLinkedAccount(_i4.Connection? connection) =>
       (super.noSuchMethod(
         Invocation.method(
           #deleteLinkedAccount,
           [connection],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i7.Future<dynamic> linkIndexerTokenID(String? indexerTokenID) =>
+  _i6.Future<dynamic> linkIndexerTokenID(String? indexerTokenID) =>
       (super.noSuchMethod(
         Invocation.method(
           #linkIndexerTokenID,
           [indexerTokenID],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i7.Future<dynamic> setHideLinkedAccountInGallery(
+  _i6.Future<dynamic> setHideLinkedAccountInGallery(
     String? address,
     bool? isEnabled,
   ) =>
@@ -362,10 +287,10 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             isEnabled,
           ],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i7.Future<dynamic> setHideAddressInGallery(
+  _i6.Future<dynamic> setHideAddressInGallery(
     List<String>? addresses,
     bool? isEnabled,
   ) =>
@@ -377,8 +302,8 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             isEnabled,
           ],
         ),
-        returnValue: _i7.Future<dynamic>.value(),
-      ) as _i7.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
   bool isLinkedAccountHiddenInGallery(String? address) => (super.noSuchMethod(
         Invocation.method(
@@ -388,17 +313,17 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: false,
       ) as bool);
   @override
-  _i7.Future<List<String>> getAllAddresses({bool? logHiddenAddress = false}) =>
+  _i6.Future<List<String>> getAllAddresses({bool? logHiddenAddress = false}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllAddresses,
           [],
           {#logHiddenAddress: logHiddenAddress},
         ),
-        returnValue: _i7.Future<List<String>>.value(<String>[]),
-      ) as _i7.Future<List<String>>);
+        returnValue: _i6.Future<List<String>>.value(<String>[]),
+      ) as _i6.Future<List<String>>);
   @override
-  _i7.Future<List<String>> getAddress(
+  _i6.Future<List<String>> getAddress(
     String? blockchain, {
     bool? withViewOnly = false,
   }) =>
@@ -408,92 +333,136 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
           [blockchain],
           {#withViewOnly: withViewOnly},
         ),
-        returnValue: _i7.Future<List<String>>.value(<String>[]),
-      ) as _i7.Future<List<String>>);
+        returnValue: _i6.Future<List<String>>.value(<String>[]),
+      ) as _i6.Future<List<String>>);
   @override
-  _i7.Future<List<_i11.AddressIndex>> getHiddenAddressIndexes() =>
+  _i6.Future<List<_i10.AddressIndex>> getHiddenAddressIndexes() =>
       (super.noSuchMethod(
         Invocation.method(
           #getHiddenAddressIndexes,
           [],
         ),
         returnValue:
-            _i7.Future<List<_i11.AddressIndex>>.value(<_i11.AddressIndex>[]),
-      ) as _i7.Future<List<_i11.AddressIndex>>);
+            _i6.Future<List<_i10.AddressIndex>>.value(<_i10.AddressIndex>[]),
+      ) as _i6.Future<List<_i10.AddressIndex>>);
   @override
-  _i7.Future<List<String>> getShowedAddresses() => (super.noSuchMethod(
+  _i6.Future<List<String>> getShowedAddresses() => (super.noSuchMethod(
         Invocation.method(
           #getShowedAddresses,
           [],
         ),
-        returnValue: _i7.Future<List<String>>.value(<String>[]),
-      ) as _i7.Future<List<String>>);
+        returnValue: _i6.Future<List<String>>.value(<String>[]),
+      ) as _i6.Future<List<String>>);
   @override
-  _i7.Future<bool> addAddressWallet(
-    _i3.Persona? newPersona,
-    List<_i12.AddressInfo>? addresses,
+  _i6.Future<bool> addAddressWallet(
+    String? uuid,
+    List<_i11.AddressInfo>? addresses,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #addAddressPersona,
+          #addAddressWallet,
           [
-            newPersona,
+            uuid,
             addresses,
           ],
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
   @override
-  _i7.Future<void> deleteAddressWallet(
-    _i3.Persona? persona,
-    _i8.WalletAddress? walletAddress,
-  ) =>
+  _i6.Future<void> deleteAddressWallet(_i7.WalletAddress? walletAddress) =>
       (super.noSuchMethod(
         Invocation.method(
-          #deleteAddressPersona,
-          [
-            persona,
-            walletAddress,
-          ],
-        ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
-  @override
-  _i7.Future<_i8.WalletAddress?> getWalletByAddress(String? address) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getAddressPersona,
-          [address],
-        ),
-        returnValue: _i7.Future<_i8.WalletAddress?>.value(),
-      ) as _i7.Future<_i8.WalletAddress?>);
-  @override
-  _i7.Future<void> updateAddressWallet(_i8.WalletAddress? walletAddress) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateAddressPersona,
+          #deleteAddressWallet,
           [walletAddress],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
   @override
-  _i7.Future<void> restoreIfNeeded() => (super.noSuchMethod(
-        Invocation.method(
-          #restoreIfNeeded,
-          [],
-        ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
-  @override
-  _i7.Future<List<_i5.Connection>> getAllViewOnlyAddresses() =>
+  _i6.Future<_i7.WalletAddress?> getWalletByAddress(String? address) =>
       (super.noSuchMethod(
+        Invocation.method(
+          #getWalletByAddress,
+          [address],
+        ),
+        returnValue: _i6.Future<_i7.WalletAddress?>.value(),
+      ) as _i6.Future<_i7.WalletAddress?>);
+  @override
+  _i6.Future<void> updateAddressWallet(_i7.WalletAddress? walletAddress) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateAddressWallet,
+          [walletAddress],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  List<_i4.Connection> getAllViewOnlyAddresses() => (super.noSuchMethod(
         Invocation.method(
           #getAllViewOnlyAddresses,
           [],
         ),
-        returnValue: _i7.Future<List<_i5.Connection>>.value(<_i5.Connection>[]),
-      ) as _i7.Future<List<_i5.Connection>>);
+        returnValue: <_i4.Connection>[],
+      ) as List<_i4.Connection>);
+  @override
+  _i6.Future<List<_i7.WalletAddress>> insertNextAddress(
+    _i9.WalletType? walletType, {
+    String? name,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #insertNextAddress,
+          [walletType],
+          {#name: name},
+        ),
+        returnValue:
+            _i6.Future<List<_i7.WalletAddress>>.value(<_i7.WalletAddress>[]),
+      ) as _i6.Future<List<_i7.WalletAddress>>);
+  @override
+  _i6.Future<List<_i7.WalletAddress>> insertNextAddressFromUuid(
+    String? uuid,
+    _i9.WalletType? walletType, {
+    String? name,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #insertNextAddressFromUuid,
+          [
+            uuid,
+            walletType,
+          ],
+          {#name: name},
+        ),
+        returnValue:
+            _i6.Future<List<_i7.WalletAddress>>.value(<_i7.WalletAddress>[]),
+      ) as _i6.Future<List<_i7.WalletAddress>>);
+  @override
+  _i6.Future<List<_i7.WalletAddress>> insertAddressAtIndexAndUuid(
+    String? uuid, {
+    required _i9.WalletType? walletType,
+    required int? index,
+    String? name,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #insertAddressAtIndexAndUuid,
+          [uuid],
+          {
+            #walletType: walletType,
+            #index: index,
+            #name: name,
+          },
+        ),
+        returnValue:
+            _i6.Future<List<_i7.WalletAddress>>.value(<_i7.WalletAddress>[]),
+      ) as _i6.Future<List<_i7.WalletAddress>>);
+  @override
+  _i6.Future<String?> getBackupDeviceID() => (super.noSuchMethod(
+        Invocation.method(
+          #getBackupDeviceID,
+          [],
+        ),
+        returnValue: _i6.Future<String?>.value(),
+      ) as _i6.Future<String?>);
 }

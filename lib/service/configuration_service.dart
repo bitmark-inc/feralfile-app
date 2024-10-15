@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
@@ -77,7 +76,7 @@ abstract class ConfigurationService {
 
   Future<void> setNotificationEnabled(bool value);
 
-  bool? isNotificationEnabled();
+  bool isNotificationEnabled();
 
   Future<void> setAnalyticEnabled(bool value);
 
@@ -87,25 +86,9 @@ abstract class ConfigurationService {
 
   bool isDoneOnboarding();
 
-  Future<void> setPendingSettings(bool value);
-
-  bool hasPendingSettings();
-
-  bool shouldShowSubscriptionHint();
-
-  Future setShouldShowSubscriptionHint(bool value);
-
   DateTime? getLastTimeAskForSubscription();
 
   Future setLastTimeAskForSubscription(DateTime date);
-
-  Future<void> setHideLinkedAccountInGallery(
-      List<String> address, bool isEnabled,
-      {bool override = false});
-
-  List<String> getLinkedAccountsHiddenInGallery();
-
-  bool isLinkedAccountHiddenInGallery(String value);
 
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
@@ -124,14 +107,6 @@ abstract class ConfigurationService {
   String? getPreviousBuildNumber();
 
   Future<void> setPreviousBuildNumber(String value);
-
-  List<PlayListModel> getPlayList();
-
-  Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort});
-
-  Future<void> removePlayList(String id);
 
   Future<String> getAccountHMACSecret();
 
@@ -247,13 +222,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_NOTIFICATION = 'notifications';
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
-  static const String KEY_PENDING_SETTINGS = 'has_pending_settings';
-  static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
-      'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
       'last_time_ask_subscription';
-  static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
-      'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
@@ -273,7 +243,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
   static const String LAST_REMIND_REVIEW = 'last_remind_review';
   static const String COUNT_OPEN_APP = 'count_open_app';
-  static const String PLAYLISTS = 'playlists';
   static const String ALLOW_CONTRIBUTION = 'allow_contribution';
 
   static const String SHOW_AU_CHAIN_INFO = 'show_au_chain_info';
@@ -366,19 +335,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool isAnalyticsEnabled() => _preferences.getBool(KEY_ANALYTICS) ?? true;
 
   @override
-  bool? isNotificationEnabled() => _preferences.getBool(KEY_NOTIFICATION);
+  bool isNotificationEnabled() =>
+      _preferences.getBool(KEY_NOTIFICATION) ?? false;
 
   @override
   bool isDoneOnboarding() => _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
-
-  @override
-  bool hasPendingSettings() =>
-      _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
-
-  @override
-  Future<void> setPendingSettings(bool value) async {
-    await _preferences.setBool(KEY_PENDING_SETTINGS, value);
-  }
 
   @override
   Future<void> setAnalyticEnabled(bool value) async {
@@ -402,36 +363,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setNotificationEnabled(bool value) async {
     log.info('setNotificationEnabled: $value');
     await _preferences.setBool(KEY_NOTIFICATION, value);
-  }
-
-  @override
-  Future<void> setHideLinkedAccountInGallery(
-      List<String> addresses, bool isEnabled,
-      {bool override = false}) async {
-    if (override && isEnabled) {
-      await _preferences.setStringList(
-          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, addresses);
-    } else {
-      var linkedAccounts =
-          _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
-              [];
-
-      isEnabled
-          ? linkedAccounts.addAll(addresses)
-          : linkedAccounts.removeWhere((i) => addresses.contains(i));
-      await _preferences.setStringList(
-          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, linkedAccounts);
-    }
-  }
-
-  @override
-  List<String> getLinkedAccountsHiddenInGallery() =>
-      _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ?? [];
-
-  @override
-  bool isLinkedAccountHiddenInGallery(String value) {
-    var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
-    return hiddenLinkedAccounts.contains(value);
   }
 
   @override
@@ -499,15 +430,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   String? getReadReleaseNotesVersion() =>
       _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
-
-  @override
-  bool shouldShowSubscriptionHint() =>
-      _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
-
-  @override
-  Future setShouldShowSubscriptionHint(bool value) async {
-    await _preferences.setBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT, value);
-  }
 
   @override
   DateTime? getLastTimeAskForSubscription() {
@@ -589,53 +511,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return;
     }
     await _preferences.setInt(COUNT_OPEN_APP, value);
-  }
-
-  @override
-  List<PlayListModel> getPlayList() {
-    final playListsString = _preferences.getStringList(PLAYLISTS);
-    if (playListsString == null || playListsString.isEmpty) {
-      return [];
-    }
-    return playListsString
-        .map((e) => PlayListModel.fromJson(jsonDecode(e)))
-        .toList();
-  }
-
-  @override
-  Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort}) async {
-    var newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-
-    if (override) {
-      await _preferences.setStringList(PLAYLISTS, newPlaylists);
-    } else {
-      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
-      final playlists = playlistsSave
-          .map((e) => PlayListModel.fromJson(jsonDecode(e)))
-          .toList();
-      switch (onConflict) {
-        case ConflictAction.replace:
-          playlists.removeWhere((playlist) =>
-              value?.any((element) => playlist.id == element.id) ?? false);
-          playlistsSave = playlists.map((e) => jsonEncode(e)).toList();
-        case ConflictAction.abort:
-          value?.removeWhere((playlist) =>
-              playlists.any((element) => element.id == playlist.id));
-          newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-      }
-
-      playlistsSave.addAll(newPlaylists);
-      await _preferences.setStringList(
-          PLAYLISTS, playlistsSave.toSet().toList());
-    }
-  }
-
-  @override
-  Future<void> removePlayList(String id) async {
-    final playlists = getPlayList()..removeWhere((element) => element.id == id);
-    await setPlayList(playlists, override: true);
   }
 
   @override

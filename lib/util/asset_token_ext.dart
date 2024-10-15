@@ -31,8 +31,10 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/attributes.dart';
 import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
+import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
@@ -363,7 +365,7 @@ extension AssetTokenExtension on AssetToken {
     Attributes? attributes,
     bool? burned,
     bool? pending,
-    bool? isDebugged,
+    bool? isManual,
     bool? scrollable,
     String? originTokenInfoId,
     bool? ipfsPinned,
@@ -391,7 +393,7 @@ extension AssetTokenExtension on AssetToken {
         attributes: attributes ?? this.attributes,
         burned: burned ?? this.burned,
         pending: pending ?? this.pending,
-        isDebugged: isDebugged ?? this.isDebugged,
+        isManual: isManual ?? this.isManual,
         scrollable: scrollable ?? this.scrollable,
         originTokenInfoId: originTokenInfoId ?? this.originTokenInfoId,
         ipfsPinned: ipfsPinned ?? this.ipfsPinned,
@@ -438,6 +440,13 @@ extension AssetTokenExtension on AssetToken {
     }
 
     return null;
+  }
+
+  Future<bool> hasLocalAddress() async {
+    final owner = this.owner;
+    final collectionAddresses =
+        await injector<AddressService>().getAllAddresses();
+    return collectionAddresses.any((element) => element.address == owner);
   }
 }
 
@@ -834,10 +843,10 @@ extension CompactedAssetTokenExt on List<CompactedAssetToken> {
     List<PlayListModel> playlists = [];
     groups.forEach((key, value) {
       PlayListModel playListModel = PlayListModel(
-        name: key,
-        tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
-        thumbnailURL: value.first.thumbnailURL,
-      );
+          name: key,
+          tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
+          thumbnailURL: value.first.thumbnailURL,
+          id: const Uuid().v4());
       playlists.add(playListModel);
     });
     return playlists;
