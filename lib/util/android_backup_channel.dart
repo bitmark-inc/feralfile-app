@@ -5,10 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry/sentry.dart';
 
 class AndroidBackupChannel {
   static const MethodChannel _channel = MethodChannel('backup');
@@ -19,7 +21,13 @@ class AndroidBackupChannel {
   Future backupKeys(List<String> uuids) async {
     try {
       await _channel.invokeMethod('backupKeys', {'uuids': uuids});
-    } catch (e) {
+    } catch (e, s) {
+      unawaited(
+        Sentry.captureException(
+          'Android Backup Error: $e',
+          stackTrace: s,
+        ),
+      );
       log.warning('Android cloud backup error', e);
     }
   }
@@ -33,7 +41,13 @@ class AndroidBackupChannel {
       final backupData = json.decode(data);
       final accounts = BackupData.fromJson(backupData).accounts;
       return accounts;
-    } catch (e) {
+    } catch (e, s) {
+      unawaited(
+        Sentry.captureException(
+          'Android Restore Keys Error: $e',
+          stackTrace: s,
+        ),
+      );
       log.warning('Android cloud backup error', e);
       return [];
     }
@@ -42,7 +56,11 @@ class AndroidBackupChannel {
   Future deleteBlockStoreData() async {
     try {
       await _channel.invokeMethod('deleteKeys', {});
-    } catch (e) {
+    } catch (e, s) {
+      unawaited(Sentry.captureException(
+        'Android Delete BlocStore Data Error: $e',
+        stackTrace: s,
+      ));
       log.warning('Android cloud backup error', e);
     }
   }
