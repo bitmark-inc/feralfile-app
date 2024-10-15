@@ -157,7 +157,7 @@ abstract class FeralFileService {
     int limit = 8,
     int offset = 0,
     String keywork = '',
-    List<String> relatedAccountIDs = const [],
+    List<String> relatedAlumniAccountIDs = const [],
     Map<FilterType, FilterValue> filters = const {},
   });
 
@@ -211,7 +211,7 @@ abstract class FeralFileService {
     String sortBy = 'dateTime',
     String sortOrder = '',
     List<String> types = const [],
-    List<String> relatedAccountIds = const [],
+    List<String> relatedAlumniAccountIDs = const [],
     bool includeExhibition = true,
   });
 
@@ -326,7 +326,7 @@ class FeralFileServiceImpl extends FeralFileService {
     int limit = 8,
     int offset = 0,
     String keywork = '',
-    List<String> relatedAccountIDs = const [],
+    List<String> relatedAlumniAccountIDs = const [],
     Map<FilterType, FilterValue> filters = const {},
   }) async {
     final customParams =
@@ -337,7 +337,7 @@ class FeralFileServiceImpl extends FeralFileService {
       limit: limit,
       offset: offset,
       keyword: keywork,
-      relatedAccountIDs: relatedAccountIDs,
+      relatedAlumniAccountIDs: relatedAlumniAccountIDs,
       customQueryParam: customParams,
     );
     final listExhibition = exhibitions.result;
@@ -611,14 +611,14 @@ class FeralFileServiceImpl extends FeralFileService {
     String sortBy = 'dateTime',
     String sortOrder = 'DESC',
     List<String> types = const [],
-    List<String> relatedAccountIds = const [],
+    List<String> relatedAlumniAccountIDs = const [],
     bool includeExhibition = true,
   }) async {
     final response = await _feralFileApi.getPosts(
       sortBy: sortBy,
       sortOrder: sortOrder,
       types: types,
-      relatedAccountIDs: relatedAccountIds,
+      relatedAlumniAccountIDs: relatedAlumniAccountIDs,
       includeExhibition: includeExhibition,
     );
     return response.result;

@@ -64,7 +64,8 @@ abstract class FeralFileApi {
     @Query('limit') int? limit,
     @Query('offset') int? offset,
     @Query('keyword') String? keyword,
-    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('relatedAlumniAccountIDs')
+    List<String> relatedAlumniAccountIDs = const [],
     @Query('customQueryParams')
     Map<String, dynamic> customQueryParam = const {},
   });
@@ -160,7 +161,8 @@ abstract class FeralFileApi {
     @Query('sortBy') String sortBy = 'dateTime',
     @Query('sortOrder') String sortOrder = 'DESC',
     @Query('types') List<String> types = const [],
-    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('relatedAlumniAccountIDs')
+    List<String> relatedAlumniAccountIDs = const [],
     @Query('includeExhibition') bool includeExhibition = true,
   });
 }
