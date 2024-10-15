@@ -130,23 +130,15 @@ abstract class FeralFileApi {
     Map<String, dynamic> customQueryParam = const {},
   });
 
-  @GET('/api/artists')
-  Future<FeralFileListResponse<AlumniAccount>> getArtists({
+  @GET('/api/alumni')
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni({
     @Query('limit') int limit = 20,
     @Query('offset') int offset = 0,
     @Query('sortBy') String sortBy = 'relevance',
     @Query('sortOrder') String sortOrder = 'DESC',
     @Query('keyword') String keyword = '',
-    @Query('unique') bool unique = true,
-  });
-
-  @GET('/api/curators')
-  Future<FeralFileListResponse<AlumniAccount>> getCurators({
-    @Query('limit') int limit = 20,
-    @Query('offset') int offset = 0,
-    @Query('sortBy') String sortBy = 'relevance',
-    @Query('sortOrder') String sortOrder = 'DESC',
-    @Query('keyword') String keyword = '',
+    @Query('isArtist') bool isArtist = false,
+    @Query('isCurator') bool isCurator = false,
     @Query('unique') bool unique = true,
     @Query('excludedFF') bool excludedFF = true,
   });
@@ -159,10 +151,8 @@ abstract class FeralFileApi {
 
   @GET('/api/alumni/{alumniId}')
   Future<FeralFileResponse<AlumniAccount>> getAlumni({
-    @Path('alumniId') String alumniId = '',
+    @Path('alumniId') String alumniID = '',
     @Query('includeLinkedAddresses') bool includeLinkedAddresses = true,
-    @Query('includeCollaborationAccounts')
-    bool includeCollaborationAccounts = true,
   });
 
   @GET('/api/posts')

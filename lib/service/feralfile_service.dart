@@ -196,21 +196,16 @@ abstract class FeralFileService {
     Map<FilterType, FilterValue> filters = const {},
   });
 
-  Future<FeralFileListResponse<AlumniAccount>> exploreArtists(
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni(
       {int limit = 20,
       int offset = 0,
+      bool isArtist = false,
+      bool isCurator = false,
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'});
 
-  Future<FeralFileListResponse<AlumniAccount>> exploreCurators(
-      {int limit = 20,
-      int offset = 0,
-      String keywork = '',
-      String orderBy = 'relevance',
-      String sortOrder = 'DESC'});
-
-  Future<AlumniAccount> getAlumni(String artistID);
+  Future<AlumniAccount> getAlumniDetail(String alumniID);
 
   Future<List<Post>> getPosts({
     String sortBy = 'dateTime',
@@ -836,15 +831,19 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<AlumniAccount>> exploreArtists(
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni(
       {int limit = 20,
       int offset = 0,
+      bool isArtist = false,
+      bool isCurator = false,
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'}) async {
-    final res = await _feralFileApi.getArtists(
+    final res = await _feralFileApi.getListAlumni(
         limit: limit,
         offset: offset,
+        isArtist: isArtist,
+        isCurator: isCurator,
         keyword: keywork,
         sortOrder: sortOrder,
         sortBy: orderBy);
@@ -852,24 +851,8 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<AlumniAccount>> exploreCurators(
-      {int limit = 20,
-      int offset = 0,
-      String keywork = '',
-      String orderBy = 'relevance',
-      String sortOrder = 'DESC'}) async {
-    final res = await _feralFileApi.getCurators(
-        limit: limit,
-        offset: offset,
-        keyword: keywork,
-        sortOrder: sortOrder,
-        sortBy: orderBy);
-    return res;
-  }
-
-  @override
-  Future<AlumniAccount> getAlumni(String artistID) async {
-    final res = await _feralFileApi.getAlumni(alumniId: artistID);
+  Future<AlumniAccount> getAlumniDetail(String alumniID) async {
+    final res = await _feralFileApi.getAlumni(alumniID: alumniID);
     return res.result;
   }
 

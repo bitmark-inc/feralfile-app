@@ -28,9 +28,9 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AlumniDetailsPagePayload {
-  final String alumniId;
+  final String alumniID;
 
-  AlumniDetailsPagePayload({required this.alumniId});
+  AlumniDetailsPagePayload({required this.alumniID});
 }
 
 class AlumniDetailsPage extends StatefulWidget {
@@ -48,7 +48,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
     super.initState();
     context
         .read<AlumniDetailsBloc>()
-        .add(AlumniDetailsFetchAlumniEvent(alumniId: widget.payload.alumniId));
+        .add(AlumniDetailsFetchAlumniEvent(alumniID: widget.payload.alumniID));
   }
 
   @override

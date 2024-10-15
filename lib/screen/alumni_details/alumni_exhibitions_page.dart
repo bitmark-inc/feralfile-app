@@ -32,10 +32,10 @@ class _AlumniExhibitionsPageState extends State<AlumniExhibitionsPage> {
 
   Future<List<Exhibition>> _fetchExhibitions() async {
     final alumni = widget.payload.alumni;
-    final alumniId = alumni.id;
+    final alumniID = alumni.id;
     final linkedAccountIds = alumni.associatedAddresses ?? [];
     final response = await injector<FeralFileService>().getAllExhibitions(
-      relatedAccountIDs: [alumniId, ...linkedAccountIds],
+      relatedAccountIDs: [alumniID, ...linkedAccountIds],
     );
 
     setState(() {

@@ -413,20 +413,24 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
         )),
       ) as _i10.Future<_i5.FeralFileListResponse<_i2.FFSeries>>);
   @override
-  _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>> exploreArtists({
+  _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>> getListAlumni({
     int? limit = 20,
     int? offset = 0,
+    bool? isArtist = false,
+    bool? isCurator = false,
     String? keywork = r'',
     String? orderBy = r'relevance',
     String? sortOrder = r'DESC',
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #exploreArtists,
+          #getListAlumni,
           [],
           {
             #limit: limit,
             #offset: offset,
+            #isArtist: isArtist,
+            #isCurator: isCurator,
             #keywork: keywork,
             #orderBy: orderBy,
             #sortOrder: sortOrder,
@@ -437,11 +441,13 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
                 _FakeFeralFileListResponse_3<_i7.AlumniAccount>(
           this,
           Invocation.method(
-            #exploreArtists,
+            #getListAlumni,
             [],
             {
               #limit: limit,
               #offset: offset,
+              #isArtist: isArtist,
+              #isCurator: isCurator,
               #keywork: keywork,
               #orderBy: orderBy,
               #sortOrder: sortOrder,
@@ -450,54 +456,17 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
         )),
       ) as _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>);
   @override
-  _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>> exploreCurators({
-    int? limit = 20,
-    int? offset = 0,
-    String? keywork = r'',
-    String? orderBy = r'relevance',
-    String? sortOrder = r'DESC',
-  }) =>
+  _i10.Future<_i7.AlumniAccount> getAlumniDetail(String? alumniID) =>
       (super.noSuchMethod(
         Invocation.method(
-          #exploreCurators,
-          [],
-          {
-            #limit: limit,
-            #offset: offset,
-            #keywork: keywork,
-            #orderBy: orderBy,
-            #sortOrder: sortOrder,
-          },
-        ),
-        returnValue:
-            _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>.value(
-                _FakeFeralFileListResponse_3<_i7.AlumniAccount>(
-          this,
-          Invocation.method(
-            #exploreCurators,
-            [],
-            {
-              #limit: limit,
-              #offset: offset,
-              #keywork: keywork,
-              #orderBy: orderBy,
-              #sortOrder: sortOrder,
-            },
-          ),
-        )),
-      ) as _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>);
-  @override
-  _i10.Future<_i7.AlumniAccount> getAlumni(String? artistID) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getAlumni,
-          [artistID],
+          #getAlumniDetail,
+          [alumniID],
         ),
         returnValue: _i10.Future<_i7.AlumniAccount>.value(_FakeAlumniAccount_5(
           this,
           Invocation.method(
-            #getAlumni,
-            [artistID],
+            #getAlumniDetail,
+            [alumniID],
           ),
         )),
       ) as _i10.Future<_i7.AlumniAccount>);

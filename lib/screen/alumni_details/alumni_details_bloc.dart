@@ -6,9 +6,9 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 class AlumniDetailsEvent {}
 
 class AlumniDetailsFetchAlumniEvent extends AlumniDetailsEvent {
-  final String alumniId;
+  final String alumniID;
 
-  AlumniDetailsFetchAlumniEvent({required this.alumniId});
+  AlumniDetailsFetchAlumniEvent({required this.alumniID});
 }
 
 class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
@@ -16,18 +16,18 @@ class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
 
   AlumniDetailsBloc() : super(AlumniDetailsState()) {
     on<AlumniDetailsFetchAlumniEvent>((event, emit) async {
-      final alumni = await _feralFileService.getAlumni(event.alumniId);
-      final alumniId = alumni.id;
+      final alumni = await _feralFileService.getAlumniDetail(event.alumniID);
+      final alumniID = alumni.id;
       final linkedAccountIds = alumni.associatedAddresses ?? [];
 
       final artworks = await _feralFileService.exploreArtworks(
-        artistIds: [alumniId, ...linkedAccountIds],
+        artistIds: [alumniID, ...linkedAccountIds],
       );
       final exhibitions = await _feralFileService.getAllExhibitions(
-        relatedAccountIDs: [alumniId, ...linkedAccountIds],
+        relatedAccountIDs: [alumniID, ...linkedAccountIds],
       );
       final post = await _feralFileService.getPosts(
-        relatedAccountIds: [alumniId, ...linkedAccountIds],
+        relatedAccountIds: [alumniID, ...linkedAccountIds],
       );
       emit(AlumniDetailsState(
         alumni: alumni,

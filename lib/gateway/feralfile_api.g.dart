@@ -503,57 +503,18 @@ class _FeralFileApi implements FeralFileApi {
     final value = FeralFileListResponse<FFSeries>.fromJson(
         _result.data!, FFSeries.fromJson);
     return value;
-  }
-
-  @override
-  Future<FeralFileListResponse<AlumniAccount>> getArtists({
-    int limit = 20,
-    int offset = 0,
-    String sortBy = 'relevance',
-    String sortOrder = 'DESC',
-    String keyword = '',
-    bool unique = true,
-  }) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'limit': limit,
-      r'offset': offset,
-      r'sortBy': sortBy,
-      r'sortOrder': sortOrder,
-      r'keyword': keyword,
-      r'unique': unique,
-    };
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<FeralFileListResponse<AlumniAccount>>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/api/artists',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    final value = FeralFileListResponse<AlumniAccount>.fromJson(
-        _result.data!, AlumniAccount.fromJson);
     return value;
   }
 
   @override
-  Future<FeralFileListResponse<AlumniAccount>> getCurators({
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni({
     int limit = 20,
     int offset = 0,
     String sortBy = 'relevance',
     String sortOrder = 'DESC',
     String keyword = '',
+    bool isArtist = false,
+    bool isCurator = false,
     bool unique = true,
     bool excludedFF = true,
   }) async {
@@ -564,6 +525,8 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'keyword': keyword,
+      r'isArtist': isArtist,
+      r'isCurator': isCurator,
       r'unique': unique,
       r'excludedFF': excludedFF,
     };
@@ -577,7 +540,7 @@ class _FeralFileApi implements FeralFileApi {
     )
             .compose(
               _dio.options,
-              '/api/curators',
+              '/api/alumni',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -626,14 +589,12 @@ class _FeralFileApi implements FeralFileApi {
 
   @override
   Future<FeralFileResponse<AlumniAccount>> getAlumni({
-    String alumniId = '',
+    String alumniID = '',
     bool includeLinkedAddresses = true,
-    bool includeCollaborationAccounts = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'includeLinkedAddresses': includeLinkedAddresses,
-      r'includeCollaborationAccounts': includeCollaborationAccounts,
     };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
@@ -645,7 +606,7 @@ class _FeralFileApi implements FeralFileApi {
     )
             .compose(
               _dio.options,
-              '/api/alumni/${alumniId}',
+              '/api/alumni/${alumniID}',
               queryParameters: queryParameters,
               data: _data,
             )
