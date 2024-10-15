@@ -30,7 +30,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -71,19 +70,7 @@ void main() async {
       },
     );
   }, (Object error, StackTrace stackTrace) async {
-    /// Check error is Database issue
-    if (error.toString().contains('DatabaseException')) {
-      log.info('[DatabaseException] Remove local database and resume app');
-
-      await _deleteLocalDatabase();
-
-      /// Need to setup app again
-      Future.delayed(const Duration(milliseconds: 200), () async {
-        await _setupApp();
-      });
-    } else {
-      showErrorDialogFromException(error, stackTrace: stackTrace);
-    }
+    showErrorDialogFromException(error, stackTrace: stackTrace);
   }));
 }
 
@@ -154,15 +141,6 @@ Future<void> _setupApp() async {
     final deviceID = await getDeviceID();
     scope.setUser(SentryUser(id: deviceID));
   });
-}
-
-Future<void> _deleteLocalDatabase() async {
-  String appDatabaseMainnet =
-      await sqfliteDatabaseFactory.getDatabasePath('app_database_mainnet.db');
-  String appDatabaseTestnet =
-      await sqfliteDatabaseFactory.getDatabasePath('app_database_testnet.db');
-  await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
-  await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
 }
 
 class AutonomyApp extends StatelessWidget {
