@@ -312,7 +312,8 @@ Future<bool> showErrorDialogFromException(Object exception,
       return true;
     } else {
       if (!_isErrorIgnored(exception)) {
-        navigationService.showErrorDialog(event);
+        // navigationService.showErrorDialog(event);
+        await Sentry.captureException(exception, stackTrace: stackTrace);
       }
       return true;
     }
@@ -325,7 +326,9 @@ bool _isErrorIgnored(Object exception) {
   if (exception is RangeError ||
       exception is FlutterError ||
       exception is PlatformException) {
-    return true;
+    // set this to false because we won't show popup then we need to send to
+    // sentry all errors
+    return false;
   }
   return false;
 }
