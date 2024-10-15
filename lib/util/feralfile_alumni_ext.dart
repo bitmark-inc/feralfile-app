@@ -1,18 +1,17 @@
-import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/util/alias_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 
-extension FFUserExt on FFUser {
-  String get displayAlias => AliasHelper.transform(alumniAccount?.alias ?? id,
-      isArtistOrCurator: true);
+extension AlumniAccountExt on AlumniAccount {
+  String get displayAlias =>
+      AliasHelper.transform(alias ?? id, isArtistOrCurator: true);
 
-  String? get avatarUrl =>
-      (alumniAccount?.avatarURI != null && alumniAccount!.avatarURI!.isNotEmpty)
-          ? getFFUrl(alumniAccount!.avatarURI!)
-          : null;
+  String? get avatarUrl => (avatarURI != null && avatarURI!.isNotEmpty)
+      ? getFFUrl(avatarURI!)
+      : null;
 
   String? get instagramUrl {
-    final instagramID = alumniAccount?.socialNetworks?.instagramID;
+    final instagramID = socialNetworks?.instagramID;
     if (instagramID == null || instagramID.isEmpty) {
       return null;
     }
@@ -29,7 +28,7 @@ extension FFUserExt on FFUser {
   }
 
   String? get twitterUrl {
-    final twitterID = alumniAccount?.socialNetworks?.twitterID;
+    final twitterID = socialNetworks?.twitterID;
     if (twitterID == null || twitterID.isEmpty) {
       return null;
     }

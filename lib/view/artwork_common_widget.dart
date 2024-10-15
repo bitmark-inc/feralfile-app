@@ -24,7 +24,7 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -996,15 +996,15 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             title: 'title'.tr(),
             value: artwork.series!.displayTitle,
           ),
-          if (artwork.series!.artist?.alumniAccount?.alias != null) ...[
+          if (artwork.series!.artist?.alias != null) ...[
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
               value: artwork.series!.artist!.displayAlias,
               onTap: () async {
-                if (artwork.series!.artist!.alumniAccount!.slug != null) {
-                  await injector<NavigationService>().openFeralFileArtistPage(
-                      artwork.series!.artist!.alumniAccount!.slug!);
+                if (artwork.series!.artist!.slug != null) {
+                  await injector<NavigationService>()
+                      .openFeralFileArtistPage(artwork.series!.artist!.slug!);
                 }
               },
             ),

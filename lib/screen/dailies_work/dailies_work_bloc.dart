@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/model/dailies.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -26,7 +26,7 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
     on<GetDailyAssetTokenEvent>((event, emit) async {
       final dailiesToken = await _feralfileService.getCurrentDailiesToken();
       final assetTokens = <AssetToken>[];
-      FFUser? currentArtist;
+      AlumniAccount? currentArtist;
       Exhibition? currentExhibition;
       if (dailiesToken != null) {
         final tokens = await _indexerService
@@ -39,7 +39,7 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
       final token = assetTokens.first;
       if (token.isFeralfile) {
         if (token.artistID != null) {
-          currentArtist = await _feralfileService.getUser(token.artistID!);
+          currentArtist = await _feralfileService.getAlumni(token.artistID!);
         }
         currentExhibition = await _feralfileService
             .getExhibitionFromTokenID(dailiesToken!.tokenID);

@@ -109,7 +109,7 @@ class _ListPostViewState extends State<ListPostView> {
                     AspectRatio(
                       aspectRatio: 1,
                       child: SvgPicture.asset(
-                        'assets/images/default_avatat.svg',
+                        'assets/images/default_avatar.svg',
                         fit: BoxFit.fitWidth,
                       ),
                     ),

@@ -8,11 +8,11 @@
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -131,7 +131,7 @@ abstract class FeralFileApi {
   });
 
   @GET('/api/artists')
-  Future<FeralFileListResponse<FFUser>> getArtists({
+  Future<FeralFileListResponse<AlumniAccount>> getArtists({
     @Query('limit') int limit = 20,
     @Query('offset') int offset = 0,
     @Query('sortBy') String sortBy = 'relevance',
@@ -141,7 +141,7 @@ abstract class FeralFileApi {
   });
 
   @GET('/api/curators')
-  Future<FeralFileListResponse<FFUser>> getCurators({
+  Future<FeralFileListResponse<AlumniAccount>> getCurators({
     @Query('limit') int limit = 20,
     @Query('offset') int offset = 0,
     @Query('sortBy') String sortBy = 'relevance',
@@ -157,10 +157,10 @@ abstract class FeralFileApi {
     @Query('excludedFF') bool excludedFF = true,
   });
 
-  @GET('/api/accounts/{accountId}')
-  Future<FeralFileResponse<FFUser>> getUser({
-    @Path('accountId') String accountId = '',
-    @Query('includeLinkedAccounts') bool includeLinkedAccounts = true,
+  @GET('/api/alumni/{alumniId}')
+  Future<FeralFileResponse<AlumniAccount>> getAlumni({
+    @Path('alumniId') String alumniId = '',
+    @Query('includeLinkedAddresses') bool includeLinkedAddresses = true,
     @Query('includeCollaborationAccounts')
     bool includeCollaborationAccounts = true,
   });

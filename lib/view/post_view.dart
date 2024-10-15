@@ -137,7 +137,7 @@ class PostThumbnail extends StatelessWidget {
         placeholder: (context, url) => const GalleryThumbnailPlaceholder(),
         errorWidget: (context, error, stackTrace) {
           if (index >= post.thumbnailUrls.length) {
-            return SvgPicture.asset('assets/images/default_avatat.svg');
+            return SvgPicture.asset('assets/images/default_avatar.svg');
           }
           return PostThumbnail(
             post: post,

@@ -16,11 +16,11 @@ import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -196,21 +196,21 @@ abstract class FeralFileService {
     Map<FilterType, FilterValue> filters = const {},
   });
 
-  Future<FeralFileListResponse<FFUser>> exploreArtists(
+  Future<FeralFileListResponse<AlumniAccount>> exploreArtists(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'});
 
-  Future<FeralFileListResponse<FFUser>> exploreCurators(
+  Future<FeralFileListResponse<AlumniAccount>> exploreCurators(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'});
 
-  Future<FFUser> getUser(String artistID);
+  Future<AlumniAccount> getAlumni(String artistID);
 
   Future<List<Post>> getPosts({
     String sortBy = 'dateTime',
@@ -308,7 +308,7 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
-    return exhibition.result!.partner?.alumniAccount?.fullName;
+    return exhibition.result!.partner?.fullName;
   }
 
   @override
@@ -836,7 +836,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<FFUser>> exploreArtists(
+  Future<FeralFileListResponse<AlumniAccount>> exploreArtists(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
@@ -852,7 +852,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<FFUser>> exploreCurators(
+  Future<FeralFileListResponse<AlumniAccount>> exploreCurators(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
@@ -868,8 +868,8 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FFUser> getUser(String artistID) async {
-    final res = await _feralFileApi.getUser(accountId: artistID);
+  Future<AlumniAccount> getAlumni(String artistID) async {
+    final res = await _feralFileApi.getAlumni(alumniId: artistID);
     return res.result;
   }
 

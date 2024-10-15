@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
@@ -566,8 +566,8 @@ class NavigationService {
       return;
     }
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(userId: id),
+      AppRouter.alumniDetailsPage,
+      arguments: AlumniDetailsPagePayload(alumniId: id),
     );
   }
 
@@ -576,8 +576,8 @@ class NavigationService {
       return;
     }
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(userId: id),
+      AppRouter.alumniDetailsPage,
+      arguments: AlumniDetailsPagePayload(alumniId: id),
     );
   }
 
