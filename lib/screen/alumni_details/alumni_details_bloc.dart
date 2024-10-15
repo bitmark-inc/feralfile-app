@@ -24,10 +24,10 @@ class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
         artistIds: [alumniID, ...linkedAccountIds],
       );
       final exhibitions = await _feralFileService.getAllExhibitions(
-        relatedAccountIDs: [alumniID, ...linkedAccountIds],
+        relatedAlumniAccountIDs: [alumniID, ...linkedAccountIds],
       );
       final post = await _feralFileService.getPosts(
-        relatedAccountIds: [alumniID, ...linkedAccountIds],
+        relatedAlumniAccountIDs: [alumniID, ...linkedAccountIds],
       );
       emit(AlumniDetailsState(
         alumni: alumni,

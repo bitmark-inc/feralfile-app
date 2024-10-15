@@ -212,7 +212,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
     int? limit = 8,
     int? offset = 0,
     String? keywork = r'',
-    List<String>? relatedAccountIDs = const [],
+    List<String>? relatedAlumniAccountIDs = const [],
     Map<_i11.FilterType, _i11.FilterValue>? filters = const {},
   }) =>
       (super.noSuchMethod(
@@ -225,7 +225,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #limit: limit,
             #offset: offset,
             #keywork: keywork,
-            #relatedAccountIDs: relatedAccountIDs,
+            #relatedAlumniAccountIDs: relatedAlumniAccountIDs,
             #filters: filters,
           },
         ),
@@ -475,7 +475,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
     String? sortBy = r'dateTime',
     String? sortOrder = r'',
     List<String>? types = const [],
-    List<String>? relatedAccountIds = const [],
+    List<String>? relatedAlumniAccountIDs = const [],
     bool? includeExhibition = true,
   }) =>
       (super.noSuchMethod(
@@ -486,7 +486,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #sortBy: sortBy,
             #sortOrder: sortOrder,
             #types: types,
-            #relatedAccountIds: relatedAccountIds,
+            #relatedAlumniAccountIDs: relatedAlumniAccountIDs,
             #includeExhibition: includeExhibition,
           },
         ),

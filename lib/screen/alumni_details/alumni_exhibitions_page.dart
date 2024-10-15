@@ -35,7 +35,7 @@ class _AlumniExhibitionsPageState extends State<AlumniExhibitionsPage> {
     final alumniID = alumni.id;
     final linkedAccountIds = alumni.associatedAddresses ?? [];
     final response = await injector<FeralFileService>().getAllExhibitions(
-      relatedAccountIDs: [alumniID, ...linkedAccountIds],
+      relatedAlumniAccountIDs: [alumniID, ...linkedAccountIds],
     );
 
     setState(() {

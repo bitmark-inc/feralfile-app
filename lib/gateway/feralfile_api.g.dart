@@ -198,7 +198,7 @@ class _FeralFileApi implements FeralFileApi {
     int? limit,
     int? offset,
     String? keyword,
-    List<String> relatedAccountIDs = const [],
+    List<String> relatedAlumniAccountIDs = const [],
     Map<String, dynamic> customQueryParam = const {},
   }) async {
     const _extra = <String, dynamic>{};
@@ -208,7 +208,7 @@ class _FeralFileApi implements FeralFileApi {
       r'limit': limit,
       r'offset': offset,
       r'keyword': keyword,
-      r'relatedAccountIDs': relatedAccountIDs,
+      r'relatedAlumniAccountIDs': relatedAlumniAccountIDs,
     };
     // add customQueryParams
     queryParameters.addAll(customQueryParam);
@@ -625,7 +625,7 @@ class _FeralFileApi implements FeralFileApi {
     String sortBy = 'dateTime',
     String sortOrder = 'DESC',
     List<String> types = const [],
-    List<String> relatedAccountIDs = const [],
+    List<String> relatedAlumniAccountIDs = const [],
     bool includeExhibition = true,
   }) async {
     const _extra = <String, dynamic>{};
@@ -633,7 +633,7 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'types': types,
-      r'relatedAccountIDs': relatedAccountIDs,
+      r'relatedAlumniAccountIDs': relatedAlumniAccountIDs,
       r'includeExhibition': includeExhibition,
     };
     final _headers = <String, dynamic>{};

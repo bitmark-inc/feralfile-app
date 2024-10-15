@@ -35,7 +35,7 @@ class _AlumniPostsPageState extends State<AlumniPostsPage> {
     final alumniID = alumni.id;
     final linkedAccountIds = alumni.associatedAddresses ?? [];
     final response = await injector<FeralFileService>().getPosts(
-      relatedAccountIds: [alumniID, ...linkedAccountIds],
+      relatedAlumniAccountIDs: [alumniID, ...linkedAccountIds],
     );
     setState(() {
       _posts = response;
