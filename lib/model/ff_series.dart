@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 
 class FFSeries {
@@ -18,7 +18,7 @@ class FFSeries {
   final int? displayIndex;
   final int? featuringIndex;
   final FFSeriesSettings? settings;
-  final FFUser? artist;
+  final AlumniAccount? artist;
   final Exhibition? exhibition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -82,7 +82,7 @@ class FFSeries {
                 json['settings'] as Map<String, dynamic>),
         json['artist'] == null
             ? null
-            : FFUser.fromJson(json['artist'] as Map<String, dynamic>),
+            : AlumniAccount.fromJson(json['artist'] as Map<String, dynamic>),
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -159,7 +159,7 @@ class FFSeries {
     int? displayIndex,
     int? featuringIndex,
     FFSeriesSettings? settings,
-    FFUser? artist,
+    AlumniAccount? artist,
     Exhibition? exhibition,
     DateTime? createdAt,
     DateTime? mintedAt,

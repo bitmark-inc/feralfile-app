@@ -8,11 +8,11 @@ import 'dart:async' as _i10;
 import 'package:autonomy_flutter/model/dailies.dart' as _i12;
 import 'package:autonomy_flutter/model/explore_statistics_data.dart' as _i8;
 import 'package:autonomy_flutter/model/ff_account.dart' as _i3;
+import 'package:autonomy_flutter/model/ff_alumni.dart' as _i7;
 import 'package:autonomy_flutter/model/ff_artwork.dart' as _i6;
 import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i4;
 import 'package:autonomy_flutter/model/ff_list_response.dart' as _i5;
 import 'package:autonomy_flutter/model/ff_series.dart' as _i2;
-import 'package:autonomy_flutter/model/ff_user.dart' as _i7;
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart' as _i11;
 import 'package:autonomy_flutter/service/feralfile_service.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
@@ -82,8 +82,8 @@ class _FakeArtwork_4 extends _i1.SmartFake implements _i6.Artwork {
         );
 }
 
-class _FakeFFUser_5 extends _i1.SmartFake implements _i7.FFUser {
-  _FakeFFUser_5(
+class _FakeAlumniAccount_5 extends _i1.SmartFake implements _i7.AlumniAccount {
+  _FakeAlumniAccount_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -413,7 +413,7 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
         )),
       ) as _i10.Future<_i5.FeralFileListResponse<_i2.FFSeries>>);
   @override
-  _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>> exploreArtists({
+  _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>> exploreArtists({
     int? limit = 20,
     int? offset = 0,
     String? keywork = r'',
@@ -432,8 +432,9 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #sortOrder: sortOrder,
           },
         ),
-        returnValue: _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>.value(
-            _FakeFeralFileListResponse_3<_i7.FFUser>(
+        returnValue:
+            _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>.value(
+                _FakeFeralFileListResponse_3<_i7.AlumniAccount>(
           this,
           Invocation.method(
             #exploreArtists,
@@ -447,9 +448,9 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             },
           ),
         )),
-      ) as _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>);
+      ) as _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>);
   @override
-  _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>> exploreCurators({
+  _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>> exploreCurators({
     int? limit = 20,
     int? offset = 0,
     String? keywork = r'',
@@ -468,8 +469,9 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             #sortOrder: sortOrder,
           },
         ),
-        returnValue: _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>.value(
-            _FakeFeralFileListResponse_3<_i7.FFUser>(
+        returnValue:
+            _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>.value(
+                _FakeFeralFileListResponse_3<_i7.AlumniAccount>(
           this,
           Invocation.method(
             #exploreCurators,
@@ -483,21 +485,22 @@ class MockFeralFileService extends _i1.Mock implements _i9.FeralFileService {
             },
           ),
         )),
-      ) as _i10.Future<_i5.FeralFileListResponse<_i7.FFUser>>);
+      ) as _i10.Future<_i5.FeralFileListResponse<_i7.AlumniAccount>>);
   @override
-  _i10.Future<_i7.FFUser> getUser(String? artistID) => (super.noSuchMethod(
+  _i10.Future<_i7.AlumniAccount> getAlumni(String? artistID) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #getUser,
+          #getAlumni,
           [artistID],
         ),
-        returnValue: _i10.Future<_i7.FFUser>.value(_FakeFFUser_5(
+        returnValue: _i10.Future<_i7.AlumniAccount>.value(_FakeAlumniAccount_5(
           this,
           Invocation.method(
-            #getUser,
+            #getAlumni,
             [artistID],
           ),
         )),
-      ) as _i10.Future<_i7.FFUser>);
+      ) as _i10.Future<_i7.AlumniAccount>);
   @override
   _i10.Future<List<_i4.Post>> getPosts({
     String? sortBy = r'dateTime',
