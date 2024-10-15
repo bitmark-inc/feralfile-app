@@ -336,7 +336,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final response =
             await _branchApi.getParams(Environment.branchKey, link);
         await handleBranchDeeplinkData(response['data'], onFinish: onFinish);
-      } catch (e) {
+      } catch (e, s) {
+        unawaited(Sentry.captureException('Branch deeplink error: $e',
+            stackTrace: s));
         log.info('[DeeplinkService] _handleBranchDeeplink error $e');
         await _navigationService.showCannotResolveBranchLink();
       }
