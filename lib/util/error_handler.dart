@@ -312,7 +312,7 @@ Future<bool> showErrorDialogFromException(Object exception,
       return true;
     } else {
       if (!_isErrorIgnored(exception)) {
-        navigationService.showErrorDialog(event);
+        // navigationService.showErrorDialog(event);
       }
       return true;
     }
