@@ -374,8 +374,11 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'message': submitMessage,
       'tags': tags,
       'announcement_context_id': announcementID ?? '',
-      'artwork_report_id': artworkReportID ?? '',
     };
+
+    if (artworkReportID != null && artworkReportID.isNotEmpty) {
+      payload['artwork_report_id'] = artworkReportID;
+    }
 
     return await _customerSupportApi.createIssue(payload);
   }
