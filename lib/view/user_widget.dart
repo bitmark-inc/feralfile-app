@@ -41,7 +41,7 @@ class UserAvatar extends StatelessWidget {
           )
         : AspectRatio(
             aspectRatio: 1,
-            child: SvgPicture.asset('assets/images/default_avatat.svg'),
+            child: SvgPicture.asset('assets/images/default_avatar.svg'),
           );
   }
 
