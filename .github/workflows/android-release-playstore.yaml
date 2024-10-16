@@ -34,8 +34,7 @@ jobs:
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           echo "SIGNATURE_HASH=${{ secrets.SIGNATURE_HASH }}" >> $GITHUB_ENV
           echo "SIGNATURE_HASH_INHOUSE=${{ secrets.SIGNATURE_HASH_INHOUSE }}" >> $GITHUB_ENV
-          ${{ github.event.inputs.testnet == 'true' }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
-          ${{ github.event.inputs.testnet == 'true' }} && echo NAME_SUFFIX=test-${{ github.event.inputs.build-number }} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{ github.event.inputs.build-number }} >> $GITHUB_ENV
+          echo NAME_SUFFIX=main-${{ github.event.inputs.build-number }} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
