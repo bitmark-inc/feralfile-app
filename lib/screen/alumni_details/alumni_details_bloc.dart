@@ -18,16 +18,16 @@ class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
     on<AlumniDetailsFetchAlumniEvent>((event, emit) async {
       final alumni = await _feralFileService.getAlumniDetail(event.alumniID);
       final alumniID = alumni.id;
-      final linkedAccountIds = alumni.associatedAddresses ?? [];
+      final linkedAddresses = alumni.associatedAddresses ?? [];
 
       final artworks = await _feralFileService.exploreArtworks(
-        artistIds: [alumniID, ...linkedAccountIds],
+        artistIds: [alumniID, ...linkedAddresses],
       );
       final exhibitions = await _feralFileService.getAllExhibitions(
-        relatedAlumniAccountIDs: [alumniID, ...linkedAccountIds],
+        relatedAlumniAccountIDs: [alumniID, ...linkedAddresses],
       );
       final post = await _feralFileService.getPosts(
-        relatedAlumniAccountIDs: [alumniID, ...linkedAccountIds],
+        relatedAlumniAccountIDs: [alumniID, ...linkedAddresses],
       );
       emit(AlumniDetailsState(
         alumni: alumni,
