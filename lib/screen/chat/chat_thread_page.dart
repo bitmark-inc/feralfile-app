@@ -584,7 +584,7 @@ class UserAvatar extends StatelessWidget {
       child: CachedNetworkImage(
         imageUrl: url,
         errorWidget: (context, url, error) =>
-            SvgPicture.asset('assets/images/default_avatat.svg'),
+            SvgPicture.asset('assets/images/default_avatar.svg'),
         placeholder: (context, url) => const LoadingWidget(),
       ));
 }
