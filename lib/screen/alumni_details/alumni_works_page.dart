@@ -33,9 +33,9 @@ class _AlumniWorksPageState extends State<AlumniWorksPage> {
   Future<List<FFSeries>> _fetchSeriesList() async {
     final alumni = widget.payload.alumni;
     final alumniID = alumni.id;
-    final linkedAccountIds = alumni.associatedAddresses ?? [];
+    final linkedAddresses = alumni.associatedAddresses ?? [];
     final response = await injector<FeralFileService>().exploreArtworks(
-      artistIds: [alumniID, ...linkedAccountIds],
+      artistIds: [alumniID, ...linkedAddresses],
     );
     setState(() {
       _seriesList = response.result;
