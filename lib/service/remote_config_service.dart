@@ -146,25 +146,30 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   };
 
   static Map<String, dynamic>? _configs;
+  bool _isLoading = false;
 
   @override
   Future<void> loadConfigs({bool forceRefresh = false}) async {
-    if (_configs != null && !forceRefresh) {
+    if ((_configs != null && !forceRefresh) || _isLoading) {
       return;
     }
     log.fine('RemoteConfigService: loadConfigs start');
+    _isLoading = true;
     try {
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
       log.fine('RemoteConfigService: loadConfigs: $_configs');
     } catch (e) {
       log.warning('RemoteConfigService: loadConfigs: $e');
+    } finally {
+      _isLoading = false;
     }
   }
 
   @override
   bool getBool(final ConfigGroup group, final ConfigKey key) {
     if (_configs == null) {
+      unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as bool;
     } else {
       return _configs![group.getString]?[key.getString] as bool? ??
@@ -176,6 +181,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   @override
   T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue) {
     if (_configs == null) {
+      unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
       final hasKey = (_configs?.keys.contains(group.getString) ?? false) &&
