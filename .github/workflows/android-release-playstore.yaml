@@ -51,13 +51,13 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
+          echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
       - name: Create env secret file
         run: |
           touch .env.secret
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          echo -e "${{ secrets.PRODUCTION_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
           cat .env.secret
 
       - name: Submodules update
