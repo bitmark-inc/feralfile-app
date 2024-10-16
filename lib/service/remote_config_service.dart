@@ -6,7 +6,7 @@ import 'package:autonomy_flutter/util/log.dart';
 //ignore_for_file: lines_longer_than_80_chars
 
 abstract class RemoteConfigService {
-  Future<void> loadConfigs();
+  Future<void> loadConfigs({bool forceRefresh = false});
 
   bool getBool(final ConfigGroup group, final ConfigKey key);
 
@@ -148,7 +148,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   static Map<String, dynamic>? _configs;
 
   @override
-  Future<void> loadConfigs() async {
+  Future<void> loadConfigs({bool forceRefresh = false}) async {
+    if (_configs != null && !forceRefresh) {
+      return;
+    }
     log.fine('RemoteConfigService: loadConfigs start');
     try {
       final data = await _pubdocAPI.getConfigs();
@@ -162,7 +165,6 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   @override
   bool getBool(final ConfigGroup group, final ConfigKey key) {
     if (_configs == null) {
-      unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as bool;
     } else {
       return _configs![group.getString]?[key.getString] as bool? ??
@@ -174,7 +176,6 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   @override
   T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue) {
     if (_configs == null) {
-      unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
       final hasKey = (_configs?.keys.contains(group.getString) ?? false) &&
