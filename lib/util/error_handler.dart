@@ -84,6 +84,11 @@ ErrorEvent translateError(Object exception) {
     if (dioErrorEvent != null) {
       return dioErrorEvent;
     }
+
+    if (exception.type == DioExceptionType.connectionTimeout) {
+      return ErrorEvent(
+          exception, '', 'connection_timeout'.tr(), ErrorItemState.close);
+    }
   } else if (exception is CameraException) {
     return ErrorEvent(null, 'enable_camera'.tr(), 'qr_scan_require'.tr(),
         ErrorItemState.camera);
