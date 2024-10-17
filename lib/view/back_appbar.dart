@@ -323,6 +323,7 @@ AppBar getCustomDoneAppBar(
   bool isWhite = true,
 }) {
   final theme = Theme.of(context);
+  final textColor = isWhite ? AppColor.primaryBlack : AppColor.white;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
@@ -341,7 +342,7 @@ AppBar getCustomDoneAppBar(
         child: Center(
           child: Text(
             tr('cancel'),
-            style: theme.textTheme.ppMori400Black14,
+            style: theme.textTheme.ppMori400Black14.copyWith(color: textColor),
           ),
         ),
       ),
@@ -354,16 +355,14 @@ AppBar getCustomDoneAppBar(
           child: Center(
             child: Text(
               tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+              style: theme.textTheme.ppMori700Black14.copyWith(
+                  color: (onDone != null) ? textColor : AppColor.disabledColor),
             ),
           ),
         ),
       ),
     ],
-    backgroundColor: AppColor.white,
+    backgroundColor: Colors.transparent,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,
