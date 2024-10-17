@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -294,30 +293,30 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               ),
               renewPolicyBuilder: (context) {
                 final theme = Theme.of(context);
-                return RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: theme.textTheme.ppMori400Black12,
-                      children: [
-                        TextSpan(
-                          text: 'renew_policy_stripe'.tr(),
-                        ),
-                        TextSpan(
-                          text: 'Stripe',
-                          style: const TextStyle(
-                              decoration: TextDecoration.underline),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              final url = _upgradesBloc.state.stripePortalUrl;
-                              final uri = Uri.tryParse(url ?? '');
-                              if (uri != null) {
-                                unawaited(
-                                    injector<NavigationService>().openUrl(uri));
-                              }
-                            },
-                        ),
-                      ],
-                    ));
+                return GestureDetector(
+                  onTap: () async {
+                    final url = _upgradesBloc.state.stripePortalUrl;
+                    final uri = Uri.tryParse(url ?? '');
+                    if (uri != null) {
+                      unawaited(injector<NavigationService>().openUrl(uri));
+                    }
+                  },
+                  child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: theme.textTheme.ppMori400Black12,
+                        children: [
+                          TextSpan(
+                            text: 'renew_policy_stripe'.tr(),
+                          ),
+                          const TextSpan(
+                            text: 'Stripe',
+                            style:
+                                TextStyle(decoration: TextDecoration.underline),
+                          ),
+                        ],
+                      )),
+                );
               },
             );
           case MembershipSource.preset:
