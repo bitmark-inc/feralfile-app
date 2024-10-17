@@ -187,7 +187,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           // Header
           BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
             builder: (context, state) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.only(left: 15, right: 8),
               child: ItemExpandedWidget(
                 key: _itemExpandedKey,
                 items: _getItemList(state),

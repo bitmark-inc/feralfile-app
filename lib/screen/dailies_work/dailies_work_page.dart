@@ -305,7 +305,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
             height: MediaQuery.paddingOf(context).top + 32,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.only(left: 15, right: 8),
             child: _header(context),
           ),
           Expanded(
