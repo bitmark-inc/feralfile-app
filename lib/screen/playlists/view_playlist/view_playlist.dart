@@ -259,6 +259,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   device, listPlayArtwork));
             },
           ),
+          const SizedBox(width: 15),
         ],
       ];
 

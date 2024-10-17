@@ -453,7 +453,7 @@ AppBar getFFAppBar(
       actions: [
         if (action != null)
           Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6), child: action)
+              padding: const EdgeInsets.fromLTRB(0, 6, 15, 6), child: action)
         else
           const SizedBox(width: 44),
       ],
