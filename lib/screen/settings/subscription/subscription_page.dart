@@ -206,7 +206,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     bool? isProcessing,
   ) {
     final theme = Theme.of(context);
-    final dateFormater = DateFormat('dd/MM/yyyy');
     IAPProductStatus status = subscriptionDetails.status;
     switch (status) {
       case IAPProductStatus.completed:
@@ -246,8 +245,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     if (subscriptionStatus?.expireDate != null)
                       Text(
                         'renews_'.tr(namedArgs: {
-                          'date': dateFormater
-                              .format(subscriptionStatus!.expireDate!)
+                          'date': subscriptionStatus!.expireDateFormatted!
                         }),
                         style: theme.textTheme.ppMori400Black14,
                       ),
@@ -287,8 +285,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     if (subscriptionStatus?.expireDate != null)
                       Text(
                         'renews_'.tr(namedArgs: {
-                          'date': dateFormater
-                              .format(subscriptionStatus!.expireDate!)
+                          'date': subscriptionStatus!.expireDateFormatted!
                         }),
                         style: theme.textTheme.ppMori400Black14,
                       ),
@@ -363,8 +360,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       else
                         Text(
                           'expires_'.tr(namedArgs: {
-                            'date': dateFormater
-                                .format(subscriptionStatus.expireDate!)
+                            'date': subscriptionStatus.expireDateFormatted!
                           }),
                           style: theme.textTheme.ppMori400Black14,
                         ),
