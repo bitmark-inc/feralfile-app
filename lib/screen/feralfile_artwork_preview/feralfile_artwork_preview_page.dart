@@ -141,9 +141,9 @@ class _FeralFileArtworkPreviewPageState
                         : getFFAppBar(context,
                             onBack: () => Navigator.pop(context),
                             action: FFCastButton(
-                              displayKey: widget
-                                      .payload.artwork.series?.exhibitionID ??
-                                  '',
+                              displayKey:
+                                  widget.payload.artwork.series?.exhibitionID ??
+                                      '',
                               onDeviceSelected: _onDeviceSelected,
                             )),
                 backgroundColor: AppColor.primaryBlack,
