@@ -20,9 +20,9 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
   HomeBloc(
     this._tezosBeaconService,
   ) : super(HomeState()) {
-    on<HomeConnectTZEvent>((event, emit) {
+    on<HomeConnectTZEvent>((event, emit) async {
       log.info('[HomeConnectTZEvent] addPeer ${event.uri}');
-      _tezosBeaconService.addPeer(event.uri);
+      await _tezosBeaconService.addPeer(event.uri);
     });
 
     on<CheckReviewAppEvent>((event, emit) async {
@@ -32,7 +32,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
         final countOpenApp = config.countOpenApp() ?? 0;
 
         if (lastRemind == null) {
-          config.setLastRemindReviewDate(DateTime.now().toIso8601String());
+          await config
+              .setLastRemindReviewDate(DateTime.now().toIso8601String());
           return;
         }
 
@@ -63,7 +64,7 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
           config.setCountOpenApp(0);
         });
       } catch (e) {
-        log.info(e);
+        log.info('[Home bloc] $e');
       }
     });
   }

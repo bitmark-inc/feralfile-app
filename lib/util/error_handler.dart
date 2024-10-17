@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -32,13 +33,13 @@ import 'package:tezart/tezart.dart';
 
 enum ErrorItemState {
   getReport,
-  report,
   thanks,
   close,
   tryAgain,
   settings,
   camera,
   seeAccount,
+  general,
 }
 
 const onlySentryExceptionIdentifier = [
@@ -53,6 +54,21 @@ class ErrorEvent {
   ErrorItemState state;
 
   ErrorEvent(this.err, this.title, this.message, this.state);
+
+  bool shouldShowPopup() {
+    switch (state) {
+      case ErrorItemState.getReport:
+      case ErrorItemState.thanks:
+      case ErrorItemState.close:
+      case ErrorItemState.tryAgain:
+      case ErrorItemState.settings:
+      case ErrorItemState.camera:
+      case ErrorItemState.seeAccount:
+        return true;
+      default:
+        return false;
+    }
+  }
 }
 
 PlatformException? lastException;
@@ -100,12 +116,22 @@ ErrorEvent translateError(Object exception) {
         ErrorItemState.getReport);
   }
 
+  if (exception is JwtException) {
+    return ErrorEvent(exception, 'can_not_authenticate'.tr(), exception.message,
+        ErrorItemState.close);
+  }
+
+  if (exception is ErrorBindingException) {
+    return ErrorEvent(exception, 'binding_data_issue'.tr(), exception.message,
+        ErrorItemState.getReport);
+  }
+
   return ErrorEvent(
       exception,
       'Oops! Something went wrong',
       'It looks like there’s a small hiccup on our end. We’re on it and should '
           'have things fixed soon. Apologies for any inconvenience!',
-      ErrorItemState.close);
+      ErrorItemState.general);
 }
 
 bool onlySentryException(Object exception) {
@@ -211,7 +237,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
   });
 }
 
-void showErrorDiablog(
+void showEventErrorDialog(
   BuildContext context,
   ErrorEvent event, {
   Function()? defaultAction,
@@ -311,8 +337,8 @@ Future<bool> showErrorDialogFromException(Object exception,
       );
       return true;
     } else {
-      if (!_isErrorIgnored(exception)) {
-        // navigationService.showErrorDialog(event);
+      if (!_isErrorIgnored(event)) {
+        navigationService.showErrorDialog(event);
       }
       return true;
     }
@@ -321,13 +347,14 @@ Future<bool> showErrorDialogFromException(Object exception,
   }
 }
 
-bool _isErrorIgnored(Object exception) {
+bool _isErrorIgnored(ErrorEvent event) {
+  final exception = event.err;
   if (exception is RangeError ||
       exception is FlutterError ||
       exception is PlatformException) {
     return true;
   }
-  return false;
+  return !event.shouldShowPopup();
 }
 
 void hideInfoDialog(BuildContext context) {
