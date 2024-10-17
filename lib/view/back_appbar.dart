@@ -398,6 +398,7 @@ AppBar getPlaylistAppBar(
           )),
       leadingWidth: 70,
       titleSpacing: 0,
+      toolbarHeight: 119 - MediaQuery.paddingOf(context).top,
       backgroundColor: AppColor.primaryBlack,
       automaticallyImplyLeading: false,
       centerTitle: true,

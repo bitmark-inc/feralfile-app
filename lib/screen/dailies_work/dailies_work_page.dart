@@ -14,10 +14,12 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -180,7 +182,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
-  Widget _buildBody() => BlocBuilder<DailyWorkBloc, DailiesWorkState>(
+  Widget _buildBody() => BlocConsumer<DailyWorkBloc, DailiesWorkState>(
         builder: (context, state) => PageView(
           controller: _pageController,
           scrollDirection: Axis.vertical,
@@ -194,6 +196,20 @@ class DailyWorkPageState extends State<DailyWorkPage>
             });
           },
         ),
+        listener: (BuildContext context, DailiesWorkState state) {},
+        listenWhen: (previous, current) {
+          if (current.assetTokens.firstOrNull?.id !=
+              previous.assetTokens.firstOrNull?.id) {
+            if (current.assetTokens.isNotEmpty) {
+              // send metric event
+              unawaited(injector<MetricClientService>()
+                  .addEvent(MetricEventName.dailyView, data: {
+                MetricParameter.tokenId: current.assetTokens.first.id,
+              }));
+            }
+          }
+          return true;
+        },
       );
 
   Widget _header(BuildContext context) => Row(
@@ -286,7 +302,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _dailyPreview() => Column(
         children: [
           SizedBox(
-            height: MediaQuery.of(context).padding.top + 32,
+            height: MediaQuery.paddingOf(context).top + 32,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

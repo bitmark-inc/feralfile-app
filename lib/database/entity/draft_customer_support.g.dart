@@ -14,6 +14,7 @@ DraftCustomerSupportData _$DraftCustomerSupportDataFromJson(
           ?.map((e) => LocalAttachment.fromJson(e as Map<String, dynamic>))
           .toList(),
       title: json['title'] as String?,
+      artworkReportID: json['artworkReportID'] as String?,
       rating: json['rating'] as int? ?? 0,
     );
 
@@ -24,6 +25,7 @@ Map<String, dynamic> _$DraftCustomerSupportDataToJson(
       'attachments': instance.attachments,
       'title': instance.title,
       'rating': instance.rating,
+      'artworkReportID': instance.artworkReportID,
     };
 
 LocalAttachment _$LocalAttachmentFromJson(Map<String, dynamic> json) =>

@@ -78,6 +78,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await injector<AnnouncementStore>().clear();
       injector<CanvasDeviceBloc>().clear();
       injector<IAPService>().clearReceipt();
+      injector<IAPService>().reset();
 
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();

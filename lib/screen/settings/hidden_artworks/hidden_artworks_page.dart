@@ -196,7 +196,8 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     const isHidden = true;
                     await injector<ConfigurationService>()
                         .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-                    unawaited(injector<SettingsDataService>().backup());
+                    unawaited(
+                        injector<SettingsDataService>().backupUserSettings());
                     NftCollectionBloc.eventController.add(ReloadEvent());
 
                     if (!context.mounted) {

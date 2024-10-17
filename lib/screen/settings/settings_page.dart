@@ -11,11 +11,12 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -31,8 +32,8 @@ import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry/sentry.dart';
@@ -50,11 +51,7 @@ class _SettingsPageState extends State<SettingsPage>
   VersionCheck? _versionCheck;
   late ScrollController _controller;
 
-  final GlobalKey<State> _preferenceKey = GlobalKey();
-  bool _pendingSettingsCleared = false;
-  final _settingsDataServices = injector<SettingsDataService>();
   final _versionService = injector<VersionService>();
-  final _configurationService = injector<ConfigurationService>();
 
   @override
   void initState() {
@@ -62,7 +59,6 @@ class _SettingsPageState extends State<SettingsPage>
     WidgetsBinding.instance.addObserver(this);
     unawaited(_loadPackageInfo());
     unawaited(_checkVersion());
-    unawaited(_settingsDataServices.backup());
     unawaited(_versionService.checkForUpdate());
     _controller = ScrollController();
   }
@@ -91,13 +87,14 @@ class _SettingsPageState extends State<SettingsPage>
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    unawaited(injector<SettingsDataService>().backup());
+    unawaited(injector<SettingsDataService>().backupDeviceSettings());
   }
 
   Widget _settingItem({
-    required String title,
     required Widget icon,
     required Function() onTap,
+    String? title,
+    Widget Function(BuildContext context)? titleBuilder,
     Widget? stateWidget,
   }) {
     final theme = Theme.of(context);
@@ -108,10 +105,13 @@ class _SettingsPageState extends State<SettingsPage>
           children: [
             icon,
             const SizedBox(width: 32),
-            Text(
-              title,
-              style: theme.textTheme.ppMori400Black16,
-            ),
+            if (titleBuilder != null)
+              titleBuilder(context)
+            else
+              Text(
+                title ?? '',
+                style: theme.textTheme.ppMori400Black16,
+              ),
             const Spacer(),
             if (stateWidget != null) stateWidget,
           ],
@@ -131,58 +131,76 @@ class _SettingsPageState extends State<SettingsPage>
           },
         ),
         body: SafeArea(
-          child: NotificationListener(
-            child: Column(
-              children: [
-                const SizedBox(height: 30),
-                Column(
-                  children: [
-                    _settingItem(
-                      title: 'preferences'.tr(),
-                      icon: const Icon(AuIcon.preferences),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.preferencesPage);
-                      },
-                    ),
-                    addOnlyDivider(),
-                    _settingItem(
-                      title: 'back_up'.tr(),
-                      icon: SvgPicture.asset('assets/images/icon_backup.svg'),
-                      onTap: () async {
-                        if (Platform.isAndroid) {
-                          final isAndroidEndToEndEncryptionAvailable =
-                              await injector<AccountService>()
-                                  .isAndroidEndToEndEncryptionAvailable();
-                          if (!context.mounted) {
-                            return;
-                          }
-                          await Navigator.of(context).pushNamed(
-                              AppRouter.cloudAndroidPage,
-                              arguments: CloudAndroidPagePayload(
-                                  isEncryptionAvailable:
-                                      isAndroidEndToEndEncryptionAvailable));
-                        } else {
-                          await Navigator.of(context).pushNamed(
-                              AppRouter.cloudPage,
-                              arguments:
-                                  CloudPagePayload(section: 'nameAlias'));
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              Column(
+                children: [
+                  _settingItem(
+                    title: 'preferences'.tr(),
+                    icon: const Icon(AuIcon.preferences),
+                    onTap: () async {
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.preferencesPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: 'back_up'.tr(),
+                    icon: SvgPicture.asset('assets/images/icon_backup.svg'),
+                    onTap: () async {
+                      if (Platform.isAndroid) {
+                        final isAndroidEndToEndEncryptionAvailable =
+                            await injector<AccountService>()
+                                .isAndroidEndToEndEncryptionAvailable();
+                        if (!context.mounted) {
+                          return;
                         }
+                        await Navigator.of(context).pushNamed(
+                            AppRouter.cloudAndroidPage,
+                            arguments: CloudAndroidPagePayload(
+                                isEncryptionAvailable:
+                                    isAndroidEndToEndEncryptionAvailable));
+                      } else {
+                        await Navigator.of(context).pushNamed(
+                            AppRouter.cloudPage,
+                            arguments: CloudPagePayload(section: 'nameAlias'));
+                      }
+                    },
+                    stateWidget: const CloudState(),
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: 'hidden_artwork'.tr(),
+                    icon: const Icon(AuIcon.hidden_artwork),
+                    onTap: () async {
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.hiddenArtworksPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                    builder: (context, state) => _settingItem(
+                      titleBuilder: (context) {
+                        final theme = Theme.of(context);
+                        return RichText(
+                            text: TextSpan(
+                          style: theme.textTheme.ppMori400Black16,
+                          children: [
+                            TextSpan(
+                              text: 'membership'.tr(),
+                            ),
+                            const TextSpan(text: ' '),
+                            TextSpan(
+                              text:
+                                  state.isSubscribed ? 'Premium' : 'Essential',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ));
                       },
-                      stateWidget: const CloudState(),
-                    ),
-                    addOnlyDivider(),
-                    _settingItem(
-                      title: 'hidden_artwork'.tr(),
-                      icon: const Icon(AuIcon.hidden_artwork),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.hiddenArtworksPage);
-                      },
-                    ),
-                    addOnlyDivider(),
-                    _settingItem(
-                      title: 'membership'.tr(),
                       icon:
                           SvgPicture.asset('assets/images/icon_membership.svg'),
                       onTap: () async {
@@ -190,64 +208,38 @@ class _SettingsPageState extends State<SettingsPage>
                             .pushNamed(AppRouter.subscriptionPage);
                       },
                     ),
-                    addOnlyDivider(),
-                    _settingItem(
-                      title: 'data_management'.tr(),
-                      icon: const Icon(AuIcon.data_management),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.dataManagementPage);
-                      },
-                    ),
-                    addOnlyDivider(),
-                    _settingItem(
-                      title: 'help_us_improve'.tr(),
-                      icon: const Icon(AuIcon.help_us),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.bugBountyPage);
-                      },
-                    ),
-                    addOnlyDivider(),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-                  alignment: Alignment.bottomCenter,
-                  child: _versionSection(),
-                ),
-              ],
-            ),
-            onNotification: (ScrollNotification notification) {
-              var currentContext = _preferenceKey.currentContext;
-              if (currentContext == null) {
-                return false;
-              }
-              final renderObject = currentContext.findRenderObject();
-              if (renderObject == null) {
-                return false;
-              }
-              final viewport = RenderAbstractViewport.of(renderObject);
-              final bottom = viewport.getOffsetToReveal(renderObject, 1).offset;
-              final top = viewport.getOffsetToReveal(renderObject, 0).offset;
-              final offset = notification.metrics.pixels;
-              if (offset > 2 * (top + (bottom - top) / 3)) {
-                _clearPendingSettings();
-              }
-              return false;
-            },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: 'data_management'.tr(),
+                    icon: const Icon(AuIcon.data_management),
+                    onTap: () async {
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.dataManagementPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: 'help_us_improve'.tr(),
+                    icon: const Icon(AuIcon.help_us),
+                    onTap: () async {
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.bugBountyPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                ],
+              ),
+              const Spacer(),
+              Container(
+                padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+                alignment: Alignment.bottomCenter,
+                child: _versionSection(),
+              ),
+            ],
           ),
         ),
       );
-
-  void _clearPendingSettings() {
-    if (!_pendingSettingsCleared) {
-      unawaited(_configurationService.setPendingSettings(false));
-      unawaited(_configurationService.setShouldShowSubscriptionHint(false));
-      _pendingSettingsCleared = true;
-    }
-  }
 
   Future<void> _loadPackageInfo() async {
     final info = await PackageInfo.fromPlatform();

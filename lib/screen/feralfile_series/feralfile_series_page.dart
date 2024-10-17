@@ -162,6 +162,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                     AppRouter.ffArtworkPreviewPage,
                     arguments: FeralFileArtworkPreviewPagePayload(
                       artwork: artwork.copyWith(series: series),
+                      isFromExhibition: true,
                     ),
                   );
                 },

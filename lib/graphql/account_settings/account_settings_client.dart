@@ -64,6 +64,10 @@ class AccountSettingsClient {
       );
 
       final result = await client.mutate(options);
+      final exception = result.exception;
+      if (exception != null) {
+        log.info('AccountSettingsClient: mutate exception $exception');
+      }
       return result.data;
     } catch (e) {
       log.info('AccountSettingsClient: mutate error $e');

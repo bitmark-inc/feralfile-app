@@ -220,4 +220,22 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> registerReferralCode(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #registerReferralCode,
+          [body],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  _i5.Future<dynamic> portalUrl() => (super.noSuchMethod(
+        Invocation.method(
+          #portalUrl,
+          [],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
 }

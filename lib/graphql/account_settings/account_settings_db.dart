@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 abstract class AccountSettingsDB {
   Future<void> download({List<String>? keys});
@@ -9,7 +10,7 @@ abstract class AccountSettingsDB {
 
   Future<void> write(List<Map<String, String>> settings);
 
-  Future<void> delete(List<String> keys);
+  Future<bool> delete(List<String> keys);
 
   //Map<String, dynamic> get caches;
 
@@ -44,6 +45,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
 
   @override
   Future<void> download({List<String>? keys}) async {
+    log.info('AccountSettingsDBImpl download');
     late List<Map<String, String>> values;
     if (keys != null) {
       values =
@@ -57,6 +59,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       }
       _caches[_removePrefix(value['key']!)] = value['value']!;
     }
+    log.info('AccountSettingsDBImpl download done');
   }
 
   @override
@@ -91,15 +94,16 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   }
 
   @override
-  Future<void> delete(List<String> keys) async {
+  Future<bool> delete(List<String> keys) async {
     if (keys.isEmpty) {
-      return;
+      return false;
     }
     final fullKeys = keys.map(getFullKey).toList();
     final isSuccess = await _client.delete(vars: {'keys': fullKeys});
     if (isSuccess) {
       _caches.removeWhere((key, value) => keys.contains(key));
     }
+    return isSuccess;
   }
 
   @override

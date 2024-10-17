@@ -33,6 +33,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
                     AppRouter.ffArtworkPreviewPage,
                     arguments: FeralFileArtworkPreviewPagePayload(
                       artwork: artwork,
+                      isFromExhibition: true,
                     ),
                   );
                 } else {

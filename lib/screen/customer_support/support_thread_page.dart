@@ -46,11 +46,13 @@ abstract class SupportThreadPayload {
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
+  final String? artworkReportID;
   @override
   final String? defaultMessage;
 
   NewIssuePayload({
     required this.reportIssueType,
+    this.artworkReportID,
     this.defaultMessage,
   });
 }
@@ -159,7 +161,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       if (_reportIssueType == ReportIssueType.Bug &&
-          (payload.defaultMessage?.isEmpty ?? true)) {
+          (payload.defaultMessage?.isEmpty ?? true) &&
+          (payload.artworkReportID?.isEmpty ?? true)) {
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) {
             return;
@@ -741,6 +744,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         if (payload.metadata.isNotEmpty) {
           mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
         }
+      } else if (payload is NewIssuePayload &&
+          payload.artworkReportID != null) {
+        data.artworkReportID = payload.artworkReportID;
       }
     }
     if (isRating) {

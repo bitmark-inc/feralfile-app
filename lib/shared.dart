@@ -26,6 +26,7 @@ class MemoryValues {
 enum HomeNavigatorTab {
   daily,
   explore,
+  collection,
   menu;
 
   String get routeName {
@@ -34,6 +35,8 @@ enum HomeNavigatorTab {
         return AppRouter.dailyWorkPage;
       case HomeNavigatorTab.explore:
         return AppRouter.explorePage;
+      case HomeNavigatorTab.collection:
+        return AppRouter.organizePage;
       case HomeNavigatorTab.menu:
         return 'Menu';
     }

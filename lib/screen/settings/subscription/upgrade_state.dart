@@ -36,11 +36,13 @@ class UpgradeState {
   List<SubscriptionDetails> subscriptionDetails;
   bool isProcessing;
   final MembershipSource? membershipSource;
+  final String? stripePortalUrl;
 
   UpgradeState({
     this.subscriptionDetails = const [],
     this.isProcessing = false,
     this.membershipSource,
+    this.stripePortalUrl,
   });
 
   List<SubscriptionDetails> get activeSubscriptionDetails =>
@@ -50,10 +52,12 @@ class UpgradeState {
     List<SubscriptionDetails>? subscriptionDetails,
     bool? isProcessing,
     MembershipSource? membershipSource,
+    String? stripePortalUrl,
   }) =>
       UpgradeState(
         subscriptionDetails: subscriptionDetails ?? this.subscriptionDetails,
         isProcessing: isProcessing ?? false,
         membershipSource: membershipSource ?? this.membershipSource,
+        stripePortalUrl: stripePortalUrl ?? this.stripePortalUrl,
       );
 }

@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
@@ -325,8 +326,8 @@ Future<void> setupInjector() async {
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-  injector.registerLazySingleton<PlaylistService>(
-      () => PlayListServiceImp(injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<PlaylistService>(() => PlayListServiceImp(
+      injector(), injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 
   injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
@@ -412,10 +413,12 @@ Future<void> setupInjector() async {
       () => AnnouncementServiceImpl(injector(), injector(), injector()));
 
   injector.registerLazySingleton<UpgradesBloc>(
-      () => UpgradesBloc(injector(), injector(), injector()));
+      () => UpgradesBloc(injector(), injector()));
 
   injector.registerLazySingleton<AccountSettingsClient>(
       () => AccountSettingsClient(Environment.accountSettingUrl));
 
   injector.registerLazySingleton<CloudManager>(() => CloudManager());
+
+  injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
 }

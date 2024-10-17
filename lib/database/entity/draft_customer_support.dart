@@ -59,11 +59,13 @@ class DraftCustomerSupportData {
   List<LocalAttachment>? attachments;
   String? title;
   int rating;
+  String? artworkReportID;
 
   DraftCustomerSupportData({
     this.text,
     this.attachments,
     this.title,
+    this.artworkReportID,
     this.rating = 0,
   });
 

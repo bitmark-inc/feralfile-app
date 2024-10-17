@@ -18,6 +18,7 @@ class MembershipCard extends StatelessWidget {
   final String? renewDate;
   final Function()? onContinue;
   final String? renewPolicyText;
+  final Widget Function(BuildContext context)? renewPolicyBuilder;
 
   const MembershipCard({
     required this.type,
@@ -31,6 +32,7 @@ class MembershipCard extends StatelessWidget {
     this.renewDate,
     this.onContinue,
     this.renewPolicyText,
+    this.renewPolicyBuilder,
     super.key,
   });
 
@@ -134,13 +136,17 @@ class MembershipCard extends StatelessWidget {
                       onTap: () => onTap!(type),
                       color: AppColor.feralFileLightBlue,
                     ),
-                  if (renewPolicyText != null) ...[
+                  if (renewPolicyText != null ||
+                      renewPolicyBuilder != null) ...[
                     const SizedBox(height: 10),
-                    Text(
-                      renewPolicyText!,
-                      style: activeTextStyle,
-                      textAlign: TextAlign.center,
-                    ),
+                    if (renewPolicyBuilder != null)
+                      renewPolicyBuilder!.call(context)
+                    else
+                      Text(
+                        renewPolicyText!,
+                        style: activeTextStyle,
+                        textAlign: TextAlign.center,
+                      ),
                   ],
                   if (type == MembershipCardType.essential) ...[
                     const SizedBox(height: 10),
