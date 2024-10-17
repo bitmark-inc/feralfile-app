@@ -105,6 +105,7 @@ class DisplayInstructionView extends StatelessWidget {
       child: Container(
         padding: ResponsiveLayout.pageHorizontalEdgeInsets
             .copyWith(top: 24, bottom: 24),
+        color: Colors.transparent,
         child: Row(
           children: [
             Expanded(

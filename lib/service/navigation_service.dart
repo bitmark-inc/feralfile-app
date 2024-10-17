@@ -939,6 +939,9 @@ class NavigationService {
               style: theme.textTheme.ppMori400White14,
               children: [
                 TextSpan(
+                  text: 'go_to_setting_tv'.tr(),
+                ),
+                TextSpan(
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
                       onScanQRTap?.call();
