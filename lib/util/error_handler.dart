@@ -312,7 +312,7 @@ Future<bool> showErrorDialogFromException(Object exception,
       return true;
     } else {
       if (!_isErrorIgnored(exception)) {
-        navigationService.showErrorDialog(event);
+        // navigationService.showErrorDialog(event);
       }
       return true;
     }
@@ -322,7 +322,9 @@ Future<bool> showErrorDialogFromException(Object exception,
 }
 
 bool _isErrorIgnored(Object exception) {
-  if (exception is RangeError || exception is FlutterError) {
+  if (exception is RangeError ||
+      exception is FlutterError ||
+      exception is PlatformException) {
     return true;
   }
   return false;

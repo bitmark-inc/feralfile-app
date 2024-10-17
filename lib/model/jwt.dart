@@ -52,7 +52,7 @@ class JWT {
   JWT({required this.jwtToken, this.expireIn});
 
   JWT.fromJson(Map<String, dynamic> json)
-      : expireIn = int.tryParse(json['expire_in'].toString()),
+      : expireIn = double.tryParse(json['expire_in'].toString())?.toInt(),
         jwtToken = json['jwt_token'];
 
   Map<String, dynamic> toJson() => {
@@ -158,9 +158,9 @@ class SubscriptionStatus {
       required this.source,
       this.expireDate});
 
-  bool _isExpired() => expireDate?.isBefore(DateTime.now()) ?? true;
+  bool isExpired() => expireDate?.isBefore(DateTime.now()) ?? true;
 
-  bool get isPremium => membership == MembershipType.premium && !_isExpired();
+  bool get isPremium => membership == MembershipType.premium && !isExpired();
 
   @override
   String toString() => 'SubscriptionStatus{plan: $membership, '

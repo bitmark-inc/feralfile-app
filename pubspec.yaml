@@ -69,7 +69,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: f19b74936ec309318d5a6e308a52ccd7155909ff
+      ref: e2b571cd2e297efb62e40a0e9a606225e2f7386e
   local_auth: ^2.2.0
   logging: ^1.2.0
   measured_size: ^1.0.0
@@ -96,7 +96,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 85070e8ddafe5140c0bfd2cb9d569ecf986e7234
+      ref: 341a6de46324d38f420334f148342c2e1655b3c0
   uni_links: ^0.5.1
   url_launcher: ^6.2.2
   uuid:
@@ -132,8 +132,8 @@ dependencies:
   elliptic: ^0.3.8
   sentry: ^7.9.0
   path: ^1.9.0
-  in_app_purchase_storekit: ^0.3.8
-  in_app_purchase_android: ^0.3.0+17
+  in_app_purchase_storekit: ^0.3.14
+  in_app_purchase_android: ^0.3.4
   convert: ^3.1.1
   sqflite: ^2.2.2
   slidable_button: ^3.0.0+1

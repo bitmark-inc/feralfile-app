@@ -11,14 +11,9 @@ on:
       message:
         description: Change logs
         required: false
-      testnet:
-        type: boolean
-        default: false
-        required: false
-        description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: [self-hosted, internal-chplay]
     steps:
       - uses: actions/checkout@v4
 
@@ -39,8 +34,7 @@ jobs:
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           echo "SIGNATURE_HASH=${{ secrets.SIGNATURE_HASH }}" >> $GITHUB_ENV
           echo "SIGNATURE_HASH_INHOUSE=${{ secrets.SIGNATURE_HASH_INHOUSE }}" >> $GITHUB_ENV
-          ${{ github.event.inputs.testnet == 'true' }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
-          ${{ github.event.inputs.testnet == 'true' }} && echo NAME_SUFFIX=test-${{ github.event.inputs.build-number }} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{ github.event.inputs.build-number }} >> $GITHUB_ENV
+          echo NAME_SUFFIX=main-${{ github.event.inputs.build-number }} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -51,13 +45,13 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
+          echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
       - name: Create env secret file
         run: |
           touch .env.secret
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          echo -e "${{ secrets.PRODUCTION_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
           cat .env.secret
 
       - name: Submodules update

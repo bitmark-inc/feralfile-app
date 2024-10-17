@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
@@ -64,7 +63,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     _timer = Timer(const Duration(seconds: 10), () {
       log.info('OnboardingPage loading more than 10s');
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
-      unawaited(injector<NavigationService>().showAppLoadError());
+      // unawaited(injector<NavigationService>().showAppLoadError());
     });
     unawaited(setup(context).then((_) => _fetchRuntimeCache()));
   }
