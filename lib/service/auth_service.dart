@@ -13,6 +13,8 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -97,6 +99,7 @@ class AuthService {
 
     // after get new jwt, update subscription status
     injector<SubscriptionBloc>().add(GetSubscriptionEvent());
+    injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
     return newJwt;
   }
 

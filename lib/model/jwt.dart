@@ -7,9 +7,12 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/jwt.dart';
 import 'package:collection/collection.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:intl/intl.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 enum MembershipType {
   free,
@@ -183,6 +186,15 @@ class SubscriptionStatus {
   bool status(ProductDetails productDetails) {
     final status = injector<IAPService>().purchases.value[productDetails.id];
     return status == IAPProductStatus.completed;
+  }
+
+  String? get expireDateFormatted {
+    if (expireDate == null) {
+      return null;
+    }
+    final context = injector<NavigationService>().context;
+    final pattern = SystemDateTimeFormat.of(context);
+    return DateFormat(pattern.mediumDatePattern).format(expireDate!);
   }
 }
 

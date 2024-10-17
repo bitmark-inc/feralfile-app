@@ -17,6 +17,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
 
+const webPurchaseId = 'web_purchase';
+
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
@@ -30,45 +32,53 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         final jwt = _configurationService.getIAPJWT();
 
         log.info('UpgradeBloc: jwt is ${jwt == null ? 'null' : 'not null'}');
-
+        String? stripePortalUrl;
         if (jwt != null) {
           // update purchase status in IAP service
           final subscriptionStatus = jwt.getSubscriptionStatus();
           log.info('UpgradeBloc: subscriptionStatus: $subscriptionStatus');
-          final id = premiumId();
+          final membershipSource = subscriptionStatus.source;
           if (subscriptionStatus.isPremium) {
-            // if subscription is premium, update purchase in IAP service
-            _iapService.purchases.value[id] = subscriptionStatus.isTrial
-                ? IAPProductStatus.trial
-                : IAPProductStatus.completed;
+            if (membershipSource == MembershipSource.webPurchase) {
+              final customSubscription =
+                  await _iapService.getCustomActiveSubscription();
+              final webPurchaseProduct = ProductDetails(
+                id: webPurchaseId,
+                title: 'Web Purchase',
+                description: 'Web Purchase',
+                price: customSubscription.price,
+                currencyCode: customSubscription.currency.toLowerCase(),
+                rawPrice: customSubscription.rawPrice.toDouble(),
+              );
+              _iapService.products.value[webPurchaseProduct.id] =
+                  webPurchaseProduct;
+              _iapService.purchases.value[webPurchaseProduct.id] =
+                  IAPProductStatus.completed;
+              stripePortalUrl = membershipSource == MembershipSource.webPurchase
+                  ? await injector<IAPService>().getStripeUrl()
+                  : null;
+              if (customSubscription.cancelAt != null) {
+                _iapService.cancelAt[webPurchaseProduct.id] =
+                    customSubscription.cancelAt!;
+              } else {
+                _iapService.cancelAt.remove(webPurchaseProduct.id);
+              }
+            } else {
+              // if subscription is premium, update purchase in IAP service
+              final id = premiumId();
+              _iapService.purchases.value[id] = subscriptionStatus.isTrial
+                  ? IAPProductStatus.trial
+                  : IAPProductStatus.completed;
+            }
           } else {
             // if subscription is not premium, update purchase in IAP service
+            final id = subscriptionStatus.source == MembershipSource.webPurchase
+                ? webPurchaseId
+                : premiumId();
             _iapService.purchases.value[id] = subscriptionStatus.isExpired()
                 ? IAPProductStatus.expired
                 : IAPProductStatus.notPurchased;
           }
-
-          final membershipSource = subscriptionStatus.source;
-          if (membershipSource == MembershipSource.webPurchase) {
-            final customSubscription =
-                await _iapService.getCustomActiveSubscription();
-            final webPurchaseProduct = ProductDetails(
-              id: 'web_purchase',
-              title: 'Web Purchase',
-              description: 'Web Purchase',
-              price: customSubscription.price,
-              currencyCode: customSubscription.currency.toLowerCase(),
-              rawPrice: customSubscription.rawPrice.toDouble(),
-            );
-            _iapService.products.value[webPurchaseProduct.id] =
-                webPurchaseProduct;
-            _iapService.purchases.value[webPurchaseProduct.id] =
-                IAPProductStatus.completed;
-          }
-          final stripePortalUrl =
-              membershipSource == MembershipSource.webPurchase
-                  ? await injector<IAPService>().getStripeUrl()
-                  : null;
 
           // after updating purchase status, emit new state
           emit(state.copyWith(

@@ -76,6 +76,9 @@ enum IAPProductStatus {
 abstract class IAPService {
   late ValueNotifier<Map<String, ProductDetails>> products;
   late ValueNotifier<Map<String, IAPProductStatus>> purchases;
+
+  // handle subscription cancel at date
+  late Map<String, DateTime> cancelAt;
   late ValueNotifier<Map<String, DateTime>> trialExpireDates;
 
   Future<void> setup();
@@ -114,6 +117,9 @@ class IAPServiceImpl implements IAPService {
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
   @override
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
+
+  @override
+  Map<String, DateTime> cancelAt = {};
 
   IAPServiceImpl(this._configurationService, this._authService) {
     unawaited(setup());
@@ -424,11 +430,13 @@ class CustomSubscription {
   final int rawPrice;
   final String currency;
   final String billingPeriod;
+  final DateTime? cancelAt;
 
   CustomSubscription({
     required this.rawPrice,
     required this.currency,
     required this.billingPeriod,
+    this.cancelAt,
   });
 
   String get price {
@@ -452,16 +460,21 @@ class CustomSubscription {
   }
 
   // from json
-  factory CustomSubscription.fromJson(Map<String, dynamic> json) => CustomSubscription(
-      rawPrice: int.tryParse(json['price']) ?? 0,
-      currency: json['currency'] as String,
-      billingPeriod: json['billingPeriod'] as String,
-    );
+  factory CustomSubscription.fromJson(Map<String, dynamic> json) =>
+      CustomSubscription(
+        rawPrice: int.tryParse(json['price']) ?? 0,
+        currency: json['currency'] as String,
+        billingPeriod: json['billingPeriod'] as String,
+        cancelAt: json['cancelAt'] != null
+            ? DateTime.tryParse(json['cancelAt'] as String)
+            : null,
+      );
 
   // to json
   Map<String, dynamic> toJson() => <String, dynamic>{
-      'price': rawPrice,
-      'currency': currency,
-      'billingPeriod': billingPeriod,
-    };
+        'price': rawPrice,
+        'currency': currency,
+        'billingPeriod': billingPeriod,
+        'cancelAt': cancelAt?.toIso8601String(),
+      };
 }

@@ -18,13 +18,13 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
+import 'package:autonomy_flutter/util/subscription_details_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -38,9 +38,16 @@ class SubscriptionPage extends StatefulWidget {
 }
 
 class _SubscriptionPageState extends State<SubscriptionPage>
-    with AfterLayoutMixin {
+    with AfterLayoutMixin, RouteAware {
   final int initialIndex = 0;
   final _upgradesBloc = injector.get<UpgradesBloc>();
+
+  // didPopNext
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _upgradesBloc.add(UpgradeQueryInfoEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +79,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               }
               return _subscribeView(
                 context,
-                subscriptionDetails.first,
+                subscriptionDetails.subscribedSubscriptionDetail ??
+                    subscriptionDetails.first,
                 subscriptionStatus,
                 state.isProcessing,
               );
@@ -206,7 +214,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     bool? isProcessing,
   ) {
     final theme = Theme.of(context);
-    final dateFormater = DateFormat('dd/MM/yyyy');
     IAPProductStatus status = subscriptionDetails.status;
     switch (status) {
       case IAPProductStatus.completed:
@@ -246,8 +253,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     if (subscriptionStatus?.expireDate != null)
                       Text(
                         'renews_'.tr(namedArgs: {
-                          'date': dateFormater
-                              .format(subscriptionStatus!.expireDate!)
+                          'date': subscriptionStatus!.expireDateFormatted!
                         }),
                         style: theme.textTheme.ppMori400Black14,
                       ),
@@ -261,66 +267,88 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               price: subscriptionDetails.price,
               isProcessing: false,
               isEnable: true,
-              buttonBuilder: (context) => Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
-                  color: AppColor.auLightGrey,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 10,
-                      width: 10,
-                      decoration: const BoxDecoration(
-                        color: AppColor.feralFileHighlight,
-                        shape: BoxShape.circle,
+              buttonBuilder: (context) {
+                final cancelAt = subscriptionDetails.cancelAtFormatted;
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    color: AppColor.auLightGrey,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 10,
+                        width: 10,
+                        decoration: const BoxDecoration(
+                          color: AppColor.feralFileHighlight,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'active'.tr(),
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                    const Spacer(),
-                    if (subscriptionStatus?.expireDate != null)
+                      const SizedBox(width: 8),
                       Text(
-                        'renews_'.tr(namedArgs: {
-                          'date': dateFormater
-                              .format(subscriptionStatus!.expireDate!)
-                        }),
+                        'active'.tr(),
                         style: theme.textTheme.ppMori400Black14,
                       ),
-                  ],
-                ),
-              ),
+                      const Spacer(),
+                      if (cancelAt != null && cancelAt.isNotEmpty)
+                        Text(
+                          'cancel_at_'.tr(namedArgs: {
+                            'date': cancelAt,
+                          }),
+                          style: theme.textTheme.ppMori400Black14,
+                        )
+                      else if (subscriptionStatus?.expireDate != null)
+                        Text(
+                          'renews_'.tr(namedArgs: {
+                            'date': subscriptionStatus!.expireDateFormatted!
+                          }),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                    ],
+                  ),
+                );
+              },
               renewPolicyBuilder: (context) {
                 final theme = Theme.of(context);
-                return RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: theme.textTheme.ppMori400Black12,
-                      children: [
-                        TextSpan(
-                          text: 'renew_policy_stripe'.tr(),
-                        ),
-                        TextSpan(
-                          text: 'Stripe',
-                          style: const TextStyle(
-                              decoration: TextDecoration.underline),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              final url = _upgradesBloc.state.stripePortalUrl;
-                              final uri = Uri.tryParse(url ?? '');
-                              if (uri != null) {
-                                unawaited(
-                                    injector<NavigationService>().openUrl(uri));
-                              }
-                            },
-                        ),
-                      ],
-                    ));
+                final cancelAt = subscriptionDetails.cancelAtFormatted;
+                return GestureDetector(
+                  onTap: () async {
+                    final url = _upgradesBloc.state.stripePortalUrl;
+                    final uri = Uri.tryParse(url ?? '');
+                    if (uri != null) {
+                      unawaited(
+                        injector<NavigationService>().openUrl(uri).then(
+                              (value) => _upgradesBloc.add(
+                                UpgradeQueryInfoEvent(),
+                              ),
+                            ),
+                      );
+                    }
+                  },
+                  child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: theme.textTheme.ppMori400Black12,
+                        children: [
+                          if (cancelAt != null) ...[
+                            TextSpan(
+                              text: 'canceled_policy_stripe'.tr(),
+                            )
+                          ] else ...[
+                            TextSpan(
+                              text: 'renew_policy_stripe'.tr(),
+                            ),
+                          ],
+                          const TextSpan(
+                            text: 'Stripe',
+                            style:
+                                TextStyle(decoration: TextDecoration.underline),
+                          ),
+                        ],
+                      )),
+                );
               },
             );
           case MembershipSource.preset:
@@ -363,8 +391,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       else
                         Text(
                           'expires_'.tr(namedArgs: {
-                            'date': dateFormater
-                                .format(subscriptionStatus.expireDate!)
+                            'date': subscriptionStatus.expireDateFormatted!
                           }),
                           style: theme.textTheme.ppMori400Black14,
                         ),

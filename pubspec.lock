@@ -2630,6 +2630,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  system_date_time_format:
+    dependency: "direct main"
+    description:
+      name: system_date_time_format
+      sha256: e5d42be622123f4f0fe0c4dfb2eee7a390d1fa04541d77cb7a529353f8375024
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   system_info2:
     dependency: transitive
     description:

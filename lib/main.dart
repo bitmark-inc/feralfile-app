@@ -39,6 +39,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 void main() async {
   unawaited(runZonedGuarded(() async {
@@ -140,12 +141,14 @@ Future<void> _setupApp() async {
   await setupInjector();
 
   runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en', 'US'), Locale('ja')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en', 'US'),
-      child: const OverlaySupport.global(
-        child: AutonomyApp(),
+    SDTFScope(
+      child: EasyLocalization(
+        supportedLocales: const [Locale('en', 'US'), Locale('ja')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en', 'US'),
+        child: const OverlaySupport.global(
+          child: AutonomyApp(),
+        ),
       ),
     ),
   );
