@@ -203,8 +203,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
                 ),
               ),
               onTap: () {
-                Navigator.of(context)
-                    .pushNamed(AppRouter.supportCustomerPage);
+                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
               }),
         ],
       );
