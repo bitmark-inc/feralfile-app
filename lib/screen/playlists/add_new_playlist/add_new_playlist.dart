@@ -160,15 +160,15 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
         final isDone =
             playlistName.isNotEmpty && selectedIDs?.isNotEmpty == true;
         return Scaffold(
-          backgroundColor: AppColor.white,
+          backgroundColor: AppColor.primaryBlack,
           appBar: getCustomDoneAppBar(
             context,
             title: TextFieldWidget(
               focusNode: _focusNode,
               hintText: 'new_playlist'.tr(),
               controller: _playlistNameC,
-              cursorColor: theme.colorScheme.primary,
-              style: theme.textTheme.ppMori400Black14,
+              cursorColor: AppColor.white,
+              style: theme.textTheme.ppMori400White14,
               hintStyle: theme.textTheme.ppMori400Grey14,
               textAlign: TextAlign.center,
               border: InputBorder.none,
@@ -183,6 +183,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                 });
               },
             ),
+            isWhite: false,
             onDone: !isDone
                 ? null
                 : () {
@@ -212,7 +213,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
             ),
           ),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: SystemUiOverlayStyle.light,
+            value: SystemUiOverlayStyle.dark,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                 bloc: nftBloc,
                 builder: (context, nftState) => SafeArea(

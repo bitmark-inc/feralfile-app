@@ -127,14 +127,14 @@ class CollectionProState extends State<CollectionPro>
         body: SafeArea(
           top: false,
           bottom: false,
-          child: Column(
-            children: [
-              _header(context),
-              const SizedBox(height: 20),
-              if (isShowSearchBar)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: ActionBar(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              children: [
+                _header(context),
+                const SizedBox(height: 20),
+                if (isShowSearchBar)
+                  ActionBar(
                     searchBar: AuSearchBar(
                       onChanged: (text) {},
                       onSearch: (text) {
@@ -155,11 +155,11 @@ class CollectionProState extends State<CollectionPro>
                       });
                     },
                   ),
+                Expanded(
+                  child: _body(context),
                 ),
-              Expanded(
-                child: _body(context),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
@@ -167,7 +167,7 @@ class CollectionProState extends State<CollectionPro>
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 32, 8, 0),
+      padding: const EdgeInsets.only(top: 32),
       child: Row(
         children: [
           Expanded(
@@ -184,21 +184,12 @@ class CollectionProState extends State<CollectionPro>
                   isShowSearchBar = true;
                 });
               },
-              constraints: const BoxConstraints(
-                maxWidth: 44,
-                maxHeight: 44,
-                minWidth: 44,
-                minHeight: 44,
-              ),
-              icon: Padding(
-                padding: const EdgeInsets.all(0),
-                child: SvgPicture.asset(
-                  'assets/images/search.svg',
-                  width: 24,
-                  height: 24,
-                  colorFilter:
-                      const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                ),
+              icon: SvgPicture.asset(
+                'assets/images/search.svg',
+                width: 24,
+                height: 24,
+                colorFilter:
+                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
               ),
             )
           else
@@ -275,22 +266,14 @@ class CollectionProState extends State<CollectionPro>
                         SliverToBoxAdapter(
                           child: Visibility(
                             visible: isEmptyView,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: _emptyView(context),
-                            ),
+                            child: _emptyView(context),
                           ),
                         ),
                       ] else if (isSearchEmptyView) ...[
                         SliverToBoxAdapter(
                           child: Visibility(
                             visible: isSearchEmptyView,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: _searchEmptyView(context),
-                            ),
+                            child: _searchEmptyView(context),
                           ),
                         ),
                       ] else ...[
@@ -404,38 +387,31 @@ class CollectionProState extends State<CollectionPro>
   }
 
   Widget _worksBuilder(BuildContext context, int index) {
-    const padding = EdgeInsets.symmetric(horizontal: 8);
     final sep = addDivider(color: AppColor.auLightGrey);
     if (index == 0) {
-      return Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
-            const SizedBox(
-              height: 30,
-            ),
-            if (searchStr.value.isNotEmpty && _works.isEmpty)
-              _searchEmptyView(context),
-          ],
-        ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
+          const SizedBox(
+            height: 30,
+          ),
+          if (searchStr.value.isNotEmpty && _works.isEmpty)
+            _searchEmptyView(context),
+        ],
       );
     } else {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: SizedBox(
-                height: 164,
-                child: _artworkItem(context, _works[index - 1]),
-              ),
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: SizedBox(
+              height: 164,
+              child: _artworkItem(context, _works[index - 1]),
             ),
-            sep,
-          ],
-        ),
+          ),
+          sep,
+        ],
       );
     }
   }
@@ -457,38 +433,31 @@ class CollectionProState extends State<CollectionPro>
     Widget? action,
   }) {
     final sep = addOnlyDivider(color: AppColor.auGreyBackground);
-    const padding = EdgeInsets.symmetric(horizontal: 8);
     if (index == 0) {
-      return Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _predefinedCollectionHeader(context, type, action: action),
-            const SizedBox(
-              height: 30,
-            ),
-            if (searchStr.value.isNotEmpty &&
-                _listPredefinedCollectionByArtist.isEmpty &&
-                type == PredefinedCollectionType.artist)
-              _searchEmptyView(context)
-          ],
-        ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _predefinedCollectionHeader(context, type, action: action),
+          const SizedBox(
+            height: 30,
+          ),
+          if (searchStr.value.isNotEmpty &&
+              _listPredefinedCollectionByArtist.isEmpty &&
+              type == PredefinedCollectionType.artist)
+            _searchEmptyView(context)
+        ],
       );
     } else {
       final predefinedCollection = _getPredefinedCollection(index - 1, type);
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-          children: [
-            PredefinedCollectionItem(
-              predefinedCollection: predefinedCollection,
-              type: type,
-              searchStr: searchStr.value,
-            ),
-            sep,
-          ],
-        ),
+      return Column(
+        children: [
+          PredefinedCollectionItem(
+            predefinedCollection: predefinedCollection,
+            type: type,
+            searchStr: searchStr.value,
+          ),
+          sep,
+        ],
       );
     }
   }

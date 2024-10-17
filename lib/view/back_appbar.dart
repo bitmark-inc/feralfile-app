@@ -323,6 +323,7 @@ AppBar getCustomDoneAppBar(
   bool isWhite = true,
 }) {
   final theme = Theme.of(context);
+  final textColor = isWhite ? AppColor.primaryBlack : AppColor.white;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
@@ -341,7 +342,7 @@ AppBar getCustomDoneAppBar(
         child: Center(
           child: Text(
             tr('cancel'),
-            style: theme.textTheme.ppMori400Black14,
+            style: theme.textTheme.ppMori400Black14.copyWith(color: textColor),
           ),
         ),
       ),
@@ -354,16 +355,14 @@ AppBar getCustomDoneAppBar(
           child: Center(
             child: Text(
               tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+              style: theme.textTheme.ppMori700Black14.copyWith(
+                  color: (onDone != null) ? textColor : AppColor.disabledColor),
             ),
           ),
         ),
       ),
     ],
-    backgroundColor: AppColor.white,
+    backgroundColor: Colors.transparent,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,
@@ -375,6 +374,7 @@ AppBar getPlaylistAppBar(
   BuildContext context, {
   required Widget title,
   required List<Widget> actions,
+  double adjustLeftTitleWith = 0.0,
 }) =>
     AppBar(
       systemOverlayStyle: systemUiOverlayDarkStyle,
@@ -382,21 +382,24 @@ AppBar getPlaylistAppBar(
       shadowColor: Colors.transparent,
       leading: Semantics(
           label: 'BACK',
-          child: IconButton(
-            constraints: const BoxConstraints(
-              maxWidth: 44,
-              maxHeight: 44,
-              minWidth: 44,
-              minHeight: 44,
-            ),
-            onPressed: () => Navigator.pop(context),
-            icon: SvgPicture.asset(
-              'assets/images/ff_back_dark.svg',
-              width: 28,
-              height: 28,
+          child: Padding(
+            padding: EdgeInsets.only(right: adjustLeftTitleWith),
+            child: IconButton(
+              constraints: const BoxConstraints(
+                maxWidth: 44,
+                maxHeight: 44,
+                minWidth: 44,
+                minHeight: 44,
+              ),
+              onPressed: () => Navigator.pop(context),
+              icon: SvgPicture.asset(
+                'assets/images/ff_back_dark.svg',
+                width: 28,
+                height: 28,
+              ),
             ),
           )),
-      leadingWidth: 70,
+      leadingWidth: 70 + adjustLeftTitleWith,
       titleSpacing: 0,
       toolbarHeight: 119 - MediaQuery.paddingOf(context).top,
       backgroundColor: AppColor.primaryBlack,
@@ -450,7 +453,7 @@ AppBar getFFAppBar(
       actions: [
         if (action != null)
           Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6), child: action)
+              padding: const EdgeInsets.fromLTRB(0, 6, 15, 6), child: action)
         else
           const SizedBox(width: 44),
       ],

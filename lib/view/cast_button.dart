@@ -63,8 +63,8 @@ class _FFCastButtonState extends State<FFCastButton> {
         return BlocBuilder<SubscriptionBloc, SubscriptionState>(
             builder: (context, subscriptionState) {
           final isSubscribed = subscriptionState.isSubscribed;
-          return IconButton(
-            onPressed: () async {
+          return GestureDetector(
+            onTap: () async {
               if (!widget.shouldCheckSubscription || isSubscribed) {
                 await injector<NavigationService>().showStreamAction(
                   widget.displayKey,
@@ -74,7 +74,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                 await _showUpgradeDialog(context);
               }
             },
-            icon: Semantics(
+            child: Semantics(
               label: 'cast_icon',
               child: DecoratedBox(
                 decoration: BoxDecoration(
