@@ -96,7 +96,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 85070e8ddafe5140c0bfd2cb9d569ecf986e7234
+      ref: 341a6de46324d38f420334f148342c2e1655b3c0
   uni_links: ^0.5.1
   url_launcher: ^6.2.2
   uuid:
