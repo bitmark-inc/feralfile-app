@@ -375,6 +375,7 @@ AppBar getPlaylistAppBar(
   BuildContext context, {
   required Widget title,
   required List<Widget> actions,
+  double adjustLeftTitleWith = 0.0,
 }) =>
     AppBar(
       systemOverlayStyle: systemUiOverlayDarkStyle,
@@ -382,21 +383,24 @@ AppBar getPlaylistAppBar(
       shadowColor: Colors.transparent,
       leading: Semantics(
           label: 'BACK',
-          child: IconButton(
-            constraints: const BoxConstraints(
-              maxWidth: 44,
-              maxHeight: 44,
-              minWidth: 44,
-              minHeight: 44,
-            ),
-            onPressed: () => Navigator.pop(context),
-            icon: SvgPicture.asset(
-              'assets/images/ff_back_dark.svg',
-              width: 28,
-              height: 28,
+          child: Padding(
+            padding: EdgeInsets.only(right: adjustLeftTitleWith),
+            child: IconButton(
+              constraints: const BoxConstraints(
+                maxWidth: 44,
+                maxHeight: 44,
+                minWidth: 44,
+                minHeight: 44,
+              ),
+              onPressed: () => Navigator.pop(context),
+              icon: SvgPicture.asset(
+                'assets/images/ff_back_dark.svg',
+                width: 28,
+                height: 28,
+              ),
             ),
           )),
-      leadingWidth: 70,
+      leadingWidth: 70 + adjustLeftTitleWith,
       titleSpacing: 0,
       toolbarHeight: 119 - MediaQuery.paddingOf(context).top,
       backgroundColor: AppColor.primaryBlack,
