@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
+import 'package:autonomy_flutter/util/subscription_details_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
@@ -71,7 +72,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               }
               return _subscribeView(
                 context,
-                subscriptionDetails.first,
+                subscriptionDetails.subscribedSubscriptionDetail ??
+                    subscriptionDetails.first,
                 subscriptionStatus,
                 state.isProcessing,
               );
