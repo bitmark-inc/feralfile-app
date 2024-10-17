@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -152,8 +153,10 @@ class AutonomyAuthInterceptor extends Interceptor {
       final jwt = await injector<AuthService>().getAuthToken();
       if (jwt == null) {
         unawaited(Sentry.captureMessage('JWT is null'));
+        throw JwtException(
+            message: 'JWT is null while request to ${options.path}');
       }
-      options.headers['Authorization'] = 'Bearer ${jwt!.jwtToken}';
+      options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
     }
 
     return handler.next(options);
@@ -213,6 +216,10 @@ class FeralfileAuthInterceptor extends Interceptor {
     } catch (e) {
       log.info(
           '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
+      throw ErrorBindingException(
+          message: '[FeralfileAuthInterceptor] Can not parse error for data:'
+              ' ${err.response?.data}',
+          originalException: err);
     } finally {
       handler.next(exp);
     }
@@ -266,6 +273,10 @@ class AirdropInterceptor extends Interceptor {
       exp = err.copyWith(error: FeralfileError.fromJson(json['error']));
     } catch (e) {
       log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
+      throw ErrorBindingException(
+          message: '[AirdropInterceptor] Can not parse error for data:'
+              ' ${err.response?.data}',
+          originalException: err);
     } finally {
       handler.next(exp);
     }
@@ -303,6 +314,10 @@ class TVKeyInterceptor extends Interceptor {
     } catch (e) {
       log.info(
           '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
+      throw ErrorBindingException(
+          message: '[FeralfileAuthInterceptor] Can not parse error for data:'
+              ' ${err.response?.data}',
+          originalException: err);
     } finally {
       handler.next(exp);
     }

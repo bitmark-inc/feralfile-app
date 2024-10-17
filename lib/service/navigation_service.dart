@@ -156,7 +156,7 @@ class NavigationService {
 
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      showErrorDiablog(
+      showEventErrorDialog(
         navigatorKey.currentContext!,
         event,
         defaultAction: defaultAction,
