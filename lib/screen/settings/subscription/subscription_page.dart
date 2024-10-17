@@ -38,9 +38,16 @@ class SubscriptionPage extends StatefulWidget {
 }
 
 class _SubscriptionPageState extends State<SubscriptionPage>
-    with AfterLayoutMixin {
+    with AfterLayoutMixin, RouteAware {
   final int initialIndex = 0;
   final _upgradesBloc = injector.get<UpgradesBloc>();
+
+  // didPopNext
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _upgradesBloc.add(UpgradeQueryInfoEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -260,47 +267,64 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               price: subscriptionDetails.price,
               isProcessing: false,
               isEnable: true,
-              buttonBuilder: (context) => Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
-                  color: AppColor.auLightGrey,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 10,
-                      width: 10,
-                      decoration: const BoxDecoration(
-                        color: AppColor.feralFileHighlight,
-                        shape: BoxShape.circle,
+              buttonBuilder: (context) {
+                final cancelAt = subscriptionDetails.cancelAtFormatted;
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    color: AppColor.auLightGrey,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 10,
+                        width: 10,
+                        decoration: const BoxDecoration(
+                          color: AppColor.feralFileHighlight,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'active'.tr(),
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                    const Spacer(),
-                    if (subscriptionStatus?.expireDate != null)
+                      const SizedBox(width: 8),
                       Text(
-                        'renews_'.tr(namedArgs: {
-                          'date': subscriptionStatus!.expireDateFormatted!
-                        }),
+                        'active'.tr(),
                         style: theme.textTheme.ppMori400Black14,
                       ),
-                  ],
-                ),
-              ),
+                      const Spacer(),
+                      if (cancelAt != null && cancelAt.isNotEmpty)
+                        Text(
+                          'cancel_at_'.tr(namedArgs: {
+                            'date': cancelAt,
+                          }),
+                          style: theme.textTheme.ppMori400Black14,
+                        )
+                      else if (subscriptionStatus?.expireDate != null)
+                        Text(
+                          'renews_'.tr(namedArgs: {
+                            'date': subscriptionStatus!.expireDateFormatted!
+                          }),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                    ],
+                  ),
+                );
+              },
               renewPolicyBuilder: (context) {
                 final theme = Theme.of(context);
+                final cancelAt = subscriptionDetails.cancelAtFormatted;
                 return GestureDetector(
                   onTap: () async {
                     final url = _upgradesBloc.state.stripePortalUrl;
                     final uri = Uri.tryParse(url ?? '');
                     if (uri != null) {
-                      unawaited(injector<NavigationService>().openUrl(uri));
+                      unawaited(
+                        injector<NavigationService>().openUrl(uri).then(
+                              (value) => _upgradesBloc.add(
+                                UpgradeQueryInfoEvent(),
+                              ),
+                            ),
+                      );
                     }
                   },
                   child: RichText(
@@ -308,9 +332,15 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       text: TextSpan(
                         style: theme.textTheme.ppMori400Black12,
                         children: [
-                          TextSpan(
-                            text: 'renew_policy_stripe'.tr(),
-                          ),
+                          if (cancelAt != null) ...[
+                            TextSpan(
+                              text: 'canceled_policy_stripe'.tr(),
+                            )
+                          ] else ...[
+                            TextSpan(
+                              text: 'renew_policy_stripe'.tr(),
+                            ),
+                          ],
                           const TextSpan(
                             text: 'Stripe',
                             style:

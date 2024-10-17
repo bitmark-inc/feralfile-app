@@ -57,6 +57,12 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
               stripePortalUrl = membershipSource == MembershipSource.webPurchase
                   ? await injector<IAPService>().getStripeUrl()
                   : null;
+              if (customSubscription.cancelAt != null) {
+                _iapService.cancelAt[webPurchaseProduct.id] =
+                    customSubscription.cancelAt!;
+              } else {
+                _iapService.cancelAt.remove(webPurchaseProduct.id);
+              }
             } else {
               // if subscription is premium, update purchase in IAP service
               final id = premiumId();
