@@ -35,14 +35,17 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           // update purchase status in IAP service
           final subscriptionStatus = jwt.getSubscriptionStatus();
           log.info('UpgradeBloc: subscriptionStatus: $subscriptionStatus');
+          final id = premiumId();
           if (subscriptionStatus.isPremium) {
             // if subscription is premium, update purchase in IAP service
-            final id = premiumId();
             _iapService.purchases.value[id] = subscriptionStatus.isTrial
                 ? IAPProductStatus.trial
                 : IAPProductStatus.completed;
           } else {
-            // if subscription is free, update purchase in IAP service
+            // if subscription is not premium, update purchase in IAP service
+            _iapService.purchases.value[id] = subscriptionStatus.isExpired()
+                ? IAPProductStatus.expired
+                : IAPProductStatus.notPurchased;
           }
 
           final membershipSource = subscriptionStatus.source;
