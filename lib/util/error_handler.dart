@@ -100,10 +100,6 @@ ErrorEvent translateError(Object exception) {
     if (dioErrorEvent != null) {
       return dioErrorEvent;
     }
-    if (exception.type == DioExceptionType.connectionTimeout) {
-      return ErrorEvent(
-          exception, '', 'connection_timeout'.tr(), ErrorItemState.close);
-    }
   } else if (exception is CameraException) {
     return ErrorEvent(null, 'enable_camera'.tr(), 'qr_scan_require'.tr(),
         ErrorItemState.camera);
@@ -121,16 +117,13 @@ ErrorEvent translateError(Object exception) {
   }
 
   if (exception is JwtException) {
-    // fix text here
-    return ErrorEvent(
-        exception, 'aborted'.tr(), 'action_aborted'.tr(), ErrorItemState.close);
+    return ErrorEvent(exception, 'can_not_authenticate'.tr(), exception.message,
+        ErrorItemState.close);
   }
 
   if (exception is ErrorBindingException) {
-    // fix text here
-    return ErrorEvent(
-        exception, 'permission_denied'.tr(), 'permission_denied_message'.tr(),
-        ErrorItemState.settings);
+    return ErrorEvent(exception, 'binding_data_issue'.tr(), exception.message,
+        ErrorItemState.getReport);
   }
 
   return ErrorEvent(
@@ -345,7 +338,7 @@ Future<bool> showErrorDialogFromException(Object exception,
       return true;
     } else {
       if (!_isErrorIgnored(event)) {
-        // navigationService.showErrorDialog(event);
+        navigationService.showErrorDialog(event);
       }
       return true;
     }

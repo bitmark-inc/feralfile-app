@@ -14,12 +14,14 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -154,7 +156,7 @@ class AutonomyAuthInterceptor extends Interceptor {
       if (jwt == null) {
         unawaited(Sentry.captureMessage('JWT is null'));
         throw JwtException(
-            message: 'JWT is null while request to ${options.path}');
+            message: 'can_not_authenticate_desc'.tr());
       }
       options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
     }
@@ -170,19 +172,6 @@ class MetricsInterceptor extends Interceptor {
       options.headers['x-api-key'] = Environment.metricSecretKey;
     }
     handler.next(options);
-  }
-}
-
-class QuickAuthInterceptor extends Interceptor {
-  String jwtToken;
-
-  QuickAuthInterceptor(this.jwtToken);
-
-  @override
-  Future<void> onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
-    options.headers['Authorization'] = 'Bearer $jwtToken';
-    return handler.next(options);
   }
 }
 
@@ -216,10 +205,8 @@ class FeralfileAuthInterceptor extends Interceptor {
     } catch (e) {
       log.info(
           '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
-      throw ErrorBindingException(
-          message: '[FeralfileAuthInterceptor] Can not parse error for data:'
-              ' ${err.response?.data}',
-          originalException: err);
+      unawaited(showErrorDialogFromException(ErrorBindingException(
+          message: 'ff_error_binding_message'.tr(), originalException: err)));
     } finally {
       handler.next(exp);
     }
@@ -261,34 +248,13 @@ class HmacAuthInterceptor extends Interceptor {
   }
 }
 
-class AirdropInterceptor extends Interceptor {
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    DioException exp = err;
-    try {
-      final errorBody = err.response?.data as Map<String, dynamic>;
-      final json = errorBody['message'] != null
-          ? jsonDecode(errorBody['message'])
-          : errorBody;
-      exp = err.copyWith(error: FeralfileError.fromJson(json['error']));
-    } catch (e) {
-      log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
-      throw ErrorBindingException(
-          message: '[AirdropInterceptor] Can not parse error for data:'
-              ' ${err.response?.data}',
-          originalException: err);
-    } finally {
-      handler.next(exp);
-    }
-  }
-}
-
 class ConnectingExceptionInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.isNetworkIssue) {
       log.warning('ConnectingExceptionInterceptor timeout');
       unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
+      return;
     }
     handler.next(err);
   }
@@ -312,12 +278,9 @@ class TVKeyInterceptor extends Interceptor {
       final errorBody = err.response?.data as Map<String, dynamic>;
       exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
     } catch (e) {
-      log.info(
-          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
-      throw ErrorBindingException(
-          message: '[FeralfileAuthInterceptor] Can not parse error for data:'
-              ' ${err.response?.data}',
-          originalException: err);
+      log.info('[TVKeyInterceptor] Can not parse . ${err.response?.data}');
+      unawaited(showErrorDialogFromException(ErrorBindingException(
+          message: 'tv_error_binding_message'.tr(), originalException: err)));
     } finally {
       handler.next(exp);
     }
