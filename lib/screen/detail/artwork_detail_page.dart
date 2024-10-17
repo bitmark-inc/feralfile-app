@@ -355,8 +355,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   } else {
                                     final playlist = widget.payload.playlist!;
                                     final listTokenIds = playlist.tokenIDs;
-                                    if (listTokenIds == null) {
-                                      log.info('Playlist tokenIds is null');
+                                    if (listTokenIds.isEmpty) {
+                                      log.info('Playlist tokenIds is empty');
                                       return;
                                     }
 
@@ -877,8 +877,8 @@ class ArtworkDetailPayload {
   final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
-  final bool
-      shouldUseLocalCache; // if local token, it can be hidden and refresh metadata
+  // if local token, it can be hidden and refresh metadata
+  final bool shouldUseLocalCache;
 
   ArtworkDetailPayload(
     this.identity, {

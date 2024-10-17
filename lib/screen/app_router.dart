@@ -82,7 +82,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -96,8 +95,6 @@ import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlis
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
-import 'package:autonomy_flutter/screen/projects/projects_bloc.dart';
-import 'package:autonomy_flutter/screen/projects/projects_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -199,7 +196,6 @@ class AppRouter {
   static const exhibitionDetailPage = 'exhibition_detail_page';
   static const ffArtworkPreviewPage = 'ff_artwork_preview_page';
   static const feralFileSeriesPage = 'feral_file_series_page';
-  static const momaPostcardPage = 'moma_postcard_page';
   static const tbSendTransactionPage = 'tb_send_transaction_page';
   static const viewExistingAddressPage = 'view_existing_address_page';
   static const sendCryptoPage = 'send_crypto_page';
@@ -218,7 +214,6 @@ class AppRouter {
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
   static const explorePage = 'explore_page';
-  static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
@@ -254,13 +249,6 @@ class AppRouter {
       injector(),
       injector(),
     );
-    final projectBloc = ProjectsBloc(
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-    );
 
     final subscriptionBloc = injector<SubscriptionBloc>();
     final listPlaylistBloc = injector<ListPlaylistBloc>();
@@ -277,17 +265,7 @@ class AppRouter {
           child: ArtistsListPage(
               payload: settings.arguments! as ArtistsListPagePayload),
         );
-      case projectsList:
-        return PageTransition(
-          type: PageTransitionType.fade,
-          curve: Curves.easeIn,
-          duration: const Duration(milliseconds: 250),
-          settings: settings,
-          child: BlocProvider(
-            create: (_) => projectBloc,
-            child: const ProjectsPage(),
-          ),
-        );
+
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -815,10 +793,6 @@ class AppRouter {
                   ],
                   child: const HiddenArtworksPage(),
                 ));
-
-      case momaPostcardPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const MoMAPostcardPage());
 
       case exhibitionDetailPage:
         return CupertinoPageRoute(
