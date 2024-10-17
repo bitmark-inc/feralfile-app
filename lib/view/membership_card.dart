@@ -177,14 +177,7 @@ enum MembershipCardType {
   premium,
   ;
 
-  String get title {
-    switch (this) {
-      case MembershipCardType.essential:
-        return 'essential'.tr();
-      case MembershipCardType.premium:
-        return 'premium'.tr();
-    }
-  }
+  String get title => 'premium'.tr();
 
   List<String> get features => [
         'feature_1'.tr(),
