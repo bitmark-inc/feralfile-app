@@ -158,9 +158,9 @@ class SubscriptionStatus {
       required this.source,
       this.expireDate});
 
-  bool _isExpired() => expireDate?.isBefore(DateTime.now()) ?? true;
+  bool isExpired() => expireDate?.isBefore(DateTime.now()) ?? true;
 
-  bool get isPremium => membership == MembershipType.premium && !_isExpired();
+  bool get isPremium => membership == MembershipType.premium && !isExpired();
 
   @override
   String toString() => 'SubscriptionStatus{plan: $membership, '
