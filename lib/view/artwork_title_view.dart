@@ -1,7 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -21,8 +20,7 @@ class ArtworkTitleView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final title = artwork.series!.displayTitle +
-        (artwork.isYokoOnoPublicVersion ? '' : ' ${artwork.name}');
+    final title = '${artwork.series!.displayTitle} ${artwork.name}';
     return Column(
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.start,
       children: [

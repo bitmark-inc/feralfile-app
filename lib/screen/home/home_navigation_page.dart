@@ -147,17 +147,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         context,
         options: [
           OptionItem(
-            title: 'rnd'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/icon_3d.svg',
-              colorFilter:
-                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-            ),
-            onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
-            },
-          ),
-          OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
               AuIcon.scan,
