@@ -155,8 +155,7 @@ class AutonomyAuthInterceptor extends Interceptor {
       final jwt = await injector<AuthService>().getAuthToken();
       if (jwt == null) {
         unawaited(Sentry.captureMessage('JWT is null'));
-        throw JwtException(
-            message: 'can_not_authenticate_desc'.tr());
+        throw JwtException(message: 'can_not_authenticate_desc'.tr());
       }
       options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
     }
