@@ -17,6 +17,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
 
+const webPurchaseId = 'web_purchase';
+
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
@@ -41,7 +43,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
               final customSubscription =
                   await _iapService.getCustomActiveSubscription();
               final webPurchaseProduct = ProductDetails(
-                id: 'web_purchase',
+                id: webPurchaseId,
                 title: 'Web Purchase',
                 description: 'Web Purchase',
                 price: customSubscription.price,
@@ -63,7 +65,13 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
                   : IAPProductStatus.completed;
             }
           } else {
-            // if subscription is free, update purchase in IAP service
+            // if subscription is not premium, update purchase in IAP service
+            final id = subscriptionStatus.source == MembershipSource.webPurchase
+                ? webPurchaseId
+                : premiumId();
+            _iapService.purchases.value[id] = subscriptionStatus.isExpired()
+                ? IAPProductStatus.expired
+                : IAPProductStatus.notPurchased;
           }
 
           // after updating purchase status, emit new state
