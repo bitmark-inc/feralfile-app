@@ -745,7 +745,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
         }
       } else if (payload is NewIssuePayload &&
-          payload.artworkReportID != null) {
+          payload.artworkReportID != null &&
+          payload.artworkReportID!.isNotEmpty) {
         data.artworkReportID = payload.artworkReportID;
       }
     }
