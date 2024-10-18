@@ -15,6 +15,7 @@ class MembershipCard extends StatelessWidget {
   final String? buttonText;
   final Widget Function(BuildContext context)? buttonBuilder;
   final bool isCompleted;
+  final String? cancelAt;
   final String? renewDate;
   final Function()? onContinue;
   final String? renewPolicyText;
@@ -29,6 +30,7 @@ class MembershipCard extends StatelessWidget {
     this.buttonText,
     this.buttonBuilder,
     this.isCompleted = false,
+    this.cancelAt,
     this.renewDate,
     this.onContinue,
     this.renewPolicyText,
@@ -116,7 +118,14 @@ class MembershipCard extends StatelessWidget {
                               style: activeTextStyle,
                             ),
                             const Spacer(),
-                            if (renewDate != null) ...[
+                            if (cancelAt != null) ...[
+                              Text(
+                                'cancel_at_'.tr(
+                                  namedArgs: {'date': cancelAt!},
+                                ),
+                                style: activeTextStyle,
+                              ),
+                            ] else if (renewDate != null) ...[
                               Text(
                                 'renews_'.tr(
                                   namedArgs: {'date': renewDate!},
@@ -177,14 +186,7 @@ enum MembershipCardType {
   premium,
   ;
 
-  String get title {
-    switch (this) {
-      case MembershipCardType.essential:
-        return 'essential'.tr();
-      case MembershipCardType.premium:
-        return 'premium'.tr();
-    }
-  }
+  String get title => 'premium'.tr();
 
   List<String> get features => [
         'feature_1'.tr(),

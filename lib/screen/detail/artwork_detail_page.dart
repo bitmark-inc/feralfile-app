@@ -33,7 +33,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -46,7 +45,6 @@ import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/webview_controller_text_field.dart';
 import 'package:backdrop/backdrop.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -102,6 +100,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   double? _appBarBottomDy;
   bool _isFullScreen = false;
   ShakeDetector? _detector;
+  PlayListModel? _playlist;
 
   @override
   void initState() {
@@ -121,6 +120,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
+    _playlist = widget.payload.playlist;
   }
 
   @override
@@ -344,34 +344,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               FFCastButton(
                                 displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) {
-                                  if (widget.payload.playlist == null) {
-                                    final artwork = PlayArtworkV2(
-                                      token: CastAssetToken(id: asset.id),
-                                      duration: 0,
-                                    );
-                                    _canvasDeviceBloc.add(
-                                        CanvasDeviceCastListArtworkEvent(
-                                            device, [artwork]));
-                                  } else {
-                                    final playlist = widget.payload.playlist!;
-                                    final listTokenIds = playlist.tokenIDs;
-                                    if (listTokenIds.isEmpty) {
-                                      log.info('Playlist tokenIds is empty');
-                                      return;
-                                    }
-
-                                    final duration =
-                                        speedValues.values.first.inMilliseconds;
-                                    final listPlayArtwork = listTokenIds
-                                        .rotateListByItem(asset.id)
-                                        .map((e) => PlayArtworkV2(
-                                            token: CastAssetToken(id: e),
-                                            duration: duration))
-                                        .toList();
-                                    _canvasDeviceBloc.add(
-                                        CanvasDeviceChangeControlDeviceEvent(
-                                            device, listPlayArtwork));
-                                  }
+                                  final artwork = PlayArtworkV2(
+                                    token: CastAssetToken(id: asset.id),
+                                    duration: 0,
+                                  );
+                                  _canvasDeviceBloc.add(
+                                    CanvasDeviceCastListArtworkEvent(
+                                      device,
+                                      [artwork],
+                                    ),
+                                  );
+                                  setState(() {
+                                    _playlist = null;
+                                  });
                                 },
                               ),
                             ],
@@ -462,7 +447,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   String _getDisplayKey(AssetToken asset) {
-    final playlistDisplayKey = widget.payload.playlist?.displayKey;
+    final playlistDisplayKey = _playlist?.displayKey;
     if (playlistDisplayKey != null) {
       return playlistDisplayKey;
     }

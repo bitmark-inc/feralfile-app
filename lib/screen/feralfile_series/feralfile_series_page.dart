@@ -121,6 +121,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     final cacheWidth =
         (MediaQuery.sizeOf(context).width - _padding * 2 - _axisSpacing * 2) ~/
             3;
+    final cacheHeight = (cacheWidth / ratio).toInt();
     return Padding(
       padding:
           const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
@@ -139,8 +140,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             builderDelegate: PagedChildBuilderDelegate<Artwork>(
               itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
                 artwork: artwork,
-                // cacheWidth: cacheWidth,
-                // cacheHeight: cacheHeight,
+                cacheWidth: cacheWidth,
+                cacheHeight: cacheHeight,
                 onTap: () async {
                   final displayKey = series.displayKey;
                   final lastSelectedCanvasDevice = _canvasDeviceBloc.state
