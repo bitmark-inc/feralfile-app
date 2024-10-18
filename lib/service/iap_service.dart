@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -76,6 +77,9 @@ enum IAPProductStatus {
 abstract class IAPService {
   late ValueNotifier<Map<String, ProductDetails>> products;
   late ValueNotifier<Map<String, IAPProductStatus>> purchases;
+
+  // handle subscription cancel at date
+  late Map<String, DateTime> cancelAt;
   late ValueNotifier<Map<String, DateTime>> trialExpireDates;
 
   Future<void> setup();
@@ -114,6 +118,9 @@ class IAPServiceImpl implements IAPService {
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
   @override
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
+
+  @override
+  Map<String, DateTime> cancelAt = {};
 
   IAPServiceImpl(this._configurationService, this._authService) {
     unawaited(setup());
@@ -424,18 +431,21 @@ class CustomSubscription {
   final int rawPrice;
   final String currency;
   final String billingPeriod;
+  final DateTime? cancelAt;
 
   CustomSubscription({
     required this.rawPrice,
     required this.currency,
     required this.billingPeriod,
+    this.cancelAt,
   });
 
   String get price {
     if (currency.toLowerCase() == 'usd') {
-      return '\$${rawPrice / 100.0}';
+      final formatter = USDAmountFormatter();
+      return '\$${formatter.format(rawPrice.toDouble())}';
     } else {
-      Sentry.captureMessage('Unsupported currency: $currency');
+      unawaited(Sentry.captureMessage('Unsupported currency: $currency'));
       return '-';
     }
   }
@@ -445,23 +455,28 @@ class CustomSubscription {
       case 'year':
         return SKSubscriptionPeriodUnit.year;
       default:
-        Sentry.captureMessage(
-            '[CustomSubscription] Unsupported period: $period');
+        unawaited(Sentry.captureMessage(
+            '[CustomSubscription] Unsupported period: $billingPeriod'));
         return SKSubscriptionPeriodUnit.year;
     }
   }
 
   // from json
-  factory CustomSubscription.fromJson(Map<String, dynamic> json) => CustomSubscription(
-      rawPrice: int.tryParse(json['price']) ?? 0,
-      currency: json['currency'] as String,
-      billingPeriod: json['billingPeriod'] as String,
-    );
+  factory CustomSubscription.fromJson(Map<String, dynamic> json) =>
+      CustomSubscription(
+        rawPrice: int.tryParse(json['price']) ?? 0,
+        currency: json['currency'] as String,
+        billingPeriod: json['billingPeriod'] as String,
+        cancelAt: json['cancelAt'] != null
+            ? DateTime.tryParse(json['cancelAt'] as String)
+            : null,
+      );
 
   // to json
   Map<String, dynamic> toJson() => <String, dynamic>{
-      'price': rawPrice,
-      'currency': currency,
-      'billingPeriod': billingPeriod,
-    };
+        'price': rawPrice,
+        'currency': currency,
+        'billingPeriod': billingPeriod,
+        'cancelAt': cancelAt?.toIso8601String(),
+      };
 }
