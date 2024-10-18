@@ -305,14 +305,6 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
         returnValue: _i6.Future<dynamic>.value(),
       ) as _i6.Future<dynamic>);
   @override
-  bool isLinkedAccountHiddenInGallery(String? address) => (super.noSuchMethod(
-        Invocation.method(
-          #isLinkedAccountHiddenInGallery,
-          [address],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
   _i6.Future<List<String>> getAllAddresses({bool? logHiddenAddress = false}) =>
       (super.noSuchMethod(
         Invocation.method(

@@ -238,4 +238,12 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
         ),
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
+  @override
+  _i5.Future<dynamic> getCustomActiveSubscription() => (super.noSuchMethod(
+        Invocation.method(
+          #getCustomActiveSubscription,
+          [],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
 }
