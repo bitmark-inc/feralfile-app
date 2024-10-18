@@ -150,6 +150,13 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
           const SizedBox(
             height: 24,
           ),
+          Text(
+            'accept_and_experience_playlist'.tr(),
+            style: theme.textTheme.ppMori400White14,
+          ),
+          const SizedBox(
+            height: 24,
+          ),
           PrimaryAsyncButton(
             text: 'Accept Gift',
             onTap: () async {
@@ -175,17 +182,15 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
             color: AppColor.feralFileLightBlue,
           ),
           const SizedBox(
-            height: 24,
-          ),
-          Text(
-            'accept_and_experience_playlist'.tr(),
-            style: theme.textTheme.ppMori400White14,
-          ),
-          const SizedBox(
             height: 16,
           ),
-          OutlineButton(
-            text: 'Decline',
+          GestureDetector(
+            child: Text(
+              'Decline',
+              style: theme.textTheme.ppMori400Grey14.copyWith(
+                decoration: TextDecoration.underline,
+              ),
+            ),
             onTap: () {
               injector<NavigationService>().goBack();
             },
