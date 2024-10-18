@@ -862,9 +862,8 @@ class ArtworkDetailPayload {
   final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
-  final bool shouldUseLocalCache;
-
   // if local token, it can be hidden and refresh metadata
+  final bool shouldUseLocalCache;
 
   ArtworkDetailPayload(
     this.identity, {
