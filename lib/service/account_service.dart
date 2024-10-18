@@ -720,6 +720,9 @@ class AccountServiceImpl extends AccountService {
     if (!didMigrate) {
       didMigrate =
           await _cloudObject.addressObject.accountSettingsDB.didMigrate();
+      if (didMigrate) {
+        unawaited(_configurationService.setMigrateToAccountSetting(true));
+      }
     }
 
     log.info('[AccountService] migrateAccount - didMigrate: $didMigrate');
