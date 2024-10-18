@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -441,9 +442,10 @@ class CustomSubscription {
 
   String get price {
     if (currency.toLowerCase() == 'usd') {
-      return '\$${rawPrice / 100.0}';
+      final formatter = USDAmountFormatter();
+      return '\$${formatter.format(rawPrice.toDouble())}';
     } else {
-      Sentry.captureMessage('Unsupported currency: $currency');
+      unawaited(Sentry.captureMessage('Unsupported currency: $currency'));
       return '-';
     }
   }
@@ -453,8 +455,8 @@ class CustomSubscription {
       case 'year':
         return SKSubscriptionPeriodUnit.year;
       default:
-        Sentry.captureMessage(
-            '[CustomSubscription] Unsupported period: $period');
+        unawaited(Sentry.captureMessage(
+            '[CustomSubscription] Unsupported period: $billingPeriod'));
         return SKSubscriptionPeriodUnit.year;
     }
   }
