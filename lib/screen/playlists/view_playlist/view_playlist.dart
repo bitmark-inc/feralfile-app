@@ -260,6 +260,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   device, listPlayArtwork));
             },
           ),
+          const SizedBox(width: 15),
         ],
       ];
 
@@ -280,6 +281,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               context,
               title: _appBarTitle(context, playList),
               actions: _appBarAction(context, playList),
+              adjustLeftTitleWith: 56,
             ),
             body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
               bloc: nftBloc,

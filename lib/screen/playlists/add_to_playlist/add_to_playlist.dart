@@ -168,7 +168,7 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                 (element) => state.selectedIDs?.contains(element.id) ?? false)
             .length;
         return Scaffold(
-          backgroundColor: theme.colorScheme.surface,
+          backgroundColor: AppColor.primaryBlack,
           appBar: getPlaylistAppBar(
             context,
             title: Column(
