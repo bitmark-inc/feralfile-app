@@ -342,6 +342,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             backgroundColor: Colors.transparent,
                             actions: [
                               FFCastButton(
+                                shouldCheckSubscription: widget.payload.playlist
+                                        ?.requiredPremiumToDisplay ??
+                                    true,
                                 displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) {
                                   final artwork = PlayArtworkV2(
