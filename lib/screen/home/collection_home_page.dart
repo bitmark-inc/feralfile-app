@@ -173,6 +173,13 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return tokens;
   }
 
+  String _getDisplayKey() =>
+      _updateTokens(nftBloc.state.tokens.items)
+          .map((e) => e.id)
+          .toList()
+          .displayKey ??
+      '';
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -210,11 +217,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             fontSize: 14,
           ),
           action: FFCastButton(
-            displayKey: _updateTokens(nftBloc.state.tokens.items)
-                    .map((e) => e.id)
-                    .toList()
-                    .displayKey ??
-                '',
+            displayKey: _getDisplayKey(),
             onDeviceSelected: (device) {
               log.info('Device selected: ${device.name}');
               final listTokenIds = _updateTokens(nftBloc.state.tokens.items)
@@ -308,6 +311,27 @@ class CollectionHomePageState extends State<CollectionHomePage>
       SliverToBoxAdapter(
         child: SizedBox(
           height: MediaQuery.of(context).padding.top,
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+          bloc: _canvasDeviceBloc,
+          builder: (context, canvasDeviceState) {
+            final displayKey = _getDisplayKey();
+            final isPlaylistCasting =
+                canvasDeviceState.lastSelectedActiveDeviceForKey(displayKey) !=
+                    null;
+            if (isPlaylistCasting) {
+              return Padding(
+                padding: const EdgeInsets.all(15),
+                child: PlaylistControl(
+                  displayKey: displayKey,
+                ),
+              );
+            } else {
+              return const SizedBox();
+            }
+          },
         ),
       ),
       if (tokens.length <= maxCollectionListSize) ...[
