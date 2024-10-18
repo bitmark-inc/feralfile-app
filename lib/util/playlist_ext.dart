@@ -7,6 +7,8 @@ extension PlaylistExt on PlayListModel {
   }
 
   bool get isEditable => source == PlayListSource.manual;
+
+  bool get requiredPremiumToDisplay => source != PlayListSource.activation;
 }
 
 extension ListTokenIdsExt on List<String> {
