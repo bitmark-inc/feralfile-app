@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
 //ignore_for_file: lines_longer_than_80_chars
 
@@ -14,10 +14,10 @@ abstract class RemoteConfigService {
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
-  RemoteConfigServiceImpl(this._pubdocAPI);
+  RemoteConfigServiceImpl(this._api);
 
   static const String keyRights = 'rights';
-  final PubdocAPI _pubdocAPI;
+  final RemoteConfigApi _api;
 
   static const Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
@@ -146,7 +146,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     log.fine('RemoteConfigService: loadConfigs start');
     _isLoading = true;
     try {
-      final data = await _pubdocAPI.getConfigs();
+      final data = await _api.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
       log.fine('RemoteConfigService: loadConfigs: $_configs');
     } catch (e) {

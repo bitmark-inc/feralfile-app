@@ -27,6 +27,7 @@ class Environment {
   // check all the keys is set
   static void checkAllKeys() {
     const keys = [
+      'REMOTE_CONFIG_URL',
       'TV_CAST_API_URL',
       'TOKEN_WEBVIEW_PREFIX',
       'INDEXER_MAINNET_API_URL',
@@ -148,6 +149,8 @@ class Environment {
       _readKey('CURRENCY_EXCHANGE_URL', '');
 
   static String get pubdocURL => _readKey('AUTONOMY_PUBDOC_URL', '');
+
+  static String get remoteConfigURL => _readKey('REMOTE_CONFIG_URL', '');
 
   static String get autonomyIpfsPrefix => _readKey('AUTONOMY_IPFS_PREFIX', '');
 
