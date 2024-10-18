@@ -15,6 +15,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry/sentry.dart';
 
 String _cacheKey = 'AUCache';
 
@@ -98,10 +99,16 @@ class AuFileService extends FileService {
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((data) async {
-      String id = data[0];
-      DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1] as int);
-      int progress = data[2];
-      await _downloadCallback(id, status, progress);
+      if (data is List && data.length >= 3) {
+        String id = data[0];
+        DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1] as int);
+        int progress = data[2];
+        await _downloadCallback(id, status, progress);
+      } else {
+        log.info('Invalid data from downloader_send_port: $data');
+        unawaited(Sentry.captureMessage(
+            'Invalid data from downloader_send_port: $data'));
+      }
     });
   }
 
@@ -143,6 +150,8 @@ class AuFileService extends FileService {
             }
           } catch (e) {
             log.info('Compress image failed ${info.url} Error: $e');
+            unawaited(Sentry.captureException(
+                'Compress image failed ${info.url} Error'));
             info.task.complete(AuFileServiceResponse(
               filePath: _saveDir + info.localFile,
               fileExt: info.fileExt,
@@ -152,10 +161,12 @@ class AuFileService extends FileService {
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.failed) {
         log.info('[AuFileService] Download failed: ${info.url}');
+        unawaited(Sentry.captureMessage('Download failed ${info.url}'));
         info.task.completeError(Exception('Download failed ${info.url}'));
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.canceled) {
         log.info('[AuFileService] Download canceled: ${info.url}');
+        unawaited(Sentry.captureMessage('Download canceled ${info.url}'));
         info.task.completeError(Exception('Download canceled ${info.url}'));
         _taskId2Info.remove(id);
       }
@@ -178,6 +189,7 @@ class AuFileService extends FileService {
         );
       }
       if (!(Uri.tryParse(fallbackUrl ?? url)?.hasAbsolutePath ?? false)) {
+        unawaited(Sentry.captureMessage('[AuFileService] Invalid url $url'));
         return Future.error(Exception('Invalid url $url'));
       }
 
@@ -191,8 +203,14 @@ class AuFileService extends FileService {
         openFileFromNotification: false,
         timeout: 5000,
       );
-      info = Info(url, fileInfo.extension, taskId ?? '', fileName, Completer());
-      _taskId2Info[taskId ?? ''] = info;
+      if (taskId == null) {
+        unawaited(
+            Sentry.captureMessage('Failed to create download task for $url'));
+        return Future.error(
+            Exception('Failed to create download task for $url'));
+      }
+      info = Info(url, fileInfo.extension, taskId, fileName, Completer());
+      _taskId2Info[taskId] = info;
     }
     return info.task.future;
   }
