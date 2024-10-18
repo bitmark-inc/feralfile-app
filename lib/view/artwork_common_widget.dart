@@ -1009,13 +1009,11 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
               },
             ),
           ],
-          if (!artwork.isYokoOnoPublicVersion) ...[
-            divider,
-            MetaDataItem(
-              title: 'edition'.tr(),
-              value: artwork.name,
-            ),
-          ],
+          divider,
+          MetaDataItem(
+            title: 'edition'.tr(),
+            value: artwork.name,
+          ),
           divider,
           MetaDataItem(
             title: 'token'.tr(),
