@@ -256,6 +256,11 @@ class ConnectingExceptionInterceptor extends Interceptor {
       unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
       return;
     }
+    if (err.type == DioExceptionType.receiveTimeout) {
+      log.warning('ConnectingExceptionInterceptor receiveTimeout');
+      unawaited(injector<NetworkIssueManager>().showReceiveTimeoutWarning());
+      return;
+    }
     handler.next(err);
   }
 }
