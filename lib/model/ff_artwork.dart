@@ -314,7 +314,7 @@ enum FeralfileMediumTypes {
       case FeralfileMediumTypes.audio:
         return RenderingType.audio;
       case FeralfileMediumTypes.model:
-        return RenderingType.modelViewer;
+        return RenderingType.webview;
       case FeralfileMediumTypes.animatedGif:
         return RenderingType.gif;
       case FeralfileMediumTypes.txt:
