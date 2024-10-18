@@ -320,8 +320,8 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<IndexerService>(
       () => IndexerService(indexerClient));
 
-  injector.registerLazySingleton<EthereumService>(() => EthereumServiceImpl(
-      injector(), injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<EthereumService>(() =>
+      EthereumServiceImpl(injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
