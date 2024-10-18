@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/ios_backup_channel.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart'
@@ -963,16 +964,4 @@ class AccountServiceImpl extends AccountService {
           name: name ?? CryptoType.XTZ.source);
 
   int _getNextIndex(List<int> indexes) => (indexes.maxOrNull ?? -1) + 1;
-}
-
-class AccountException implements Exception {
-  final String? message;
-
-  AccountException({this.message});
-}
-
-class LinkAddressException implements Exception {
-  final String message;
-
-  LinkAddressException({required this.message});
 }
