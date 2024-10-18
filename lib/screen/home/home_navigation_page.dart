@@ -152,7 +152,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.scan,
             ),
             onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.scanQRPage,
+              Navigator.of(context).pushNamed(AppRouter.scanQRPage,
                   arguments:
                       const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
             },
@@ -163,7 +163,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.wallet,
             ),
             onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.walletPage);
+              Navigator.of(context).pushNamed(AppRouter.walletPage);
             },
           ),
           OptionItem(
@@ -172,7 +172,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.settings,
             ),
             onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.settingsPage);
+              Navigator.of(context).pushNamed(AppRouter.settingsPage);
             },
           ),
           OptionItem(
@@ -192,8 +192,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
                 ),
               ),
               onTap: () {
-                Navigator.of(context)
-                    .popAndPushNamed(AppRouter.supportCustomerPage);
+                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
               }),
         ],
       );
@@ -561,7 +560,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    await _remoteConfig.loadConfigs();
+    await _remoteConfig.loadConfigs(forceRefresh: true);
     _triggerShowAnnouncement();
   }
 

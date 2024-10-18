@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 
 abstract class ViewExistingAddressEvent {}
 

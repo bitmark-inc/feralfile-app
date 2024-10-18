@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
@@ -222,8 +223,9 @@ Future<void> setupInjector() async {
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
       () => SourceExhibitionAPI(dio, baseUrl: Environment.pubdocURL));
-  injector.registerLazySingleton<RemoteConfigService>(
-      () => RemoteConfigServiceImpl(injector()));
+  injector.registerLazySingleton<RemoteConfigService>(() =>
+      RemoteConfigServiceImpl(
+          RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
