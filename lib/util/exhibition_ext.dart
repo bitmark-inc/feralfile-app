@@ -1,40 +1,51 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
-import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:sentry/sentry.dart';
 
 extension ExhibitionExt on Exhibition {
   String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
 
   bool get isGroupExhibition => type == 'group';
 
+  bool get isSoloExhibition => type == 'solo';
+
   bool get isJohnGerrardShow => id == JohnGerrardHelper.exhibitionID;
+
+  bool get isCrawlShow => id == CrawlHelper.exhibitionID;
 
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
-
-  bool get canViewDetails {
-    final exhibitionBloc = injector<ExhibitionBloc>();
-    final subscriptionBloc = injector<SubscriptionBloc>();
-    return subscriptionBloc.state.isSubscribed ||
-        id == exhibitionBloc.state.featuredExhibition?.id;
-  }
 
   String get displayKey => id;
 
   //TODO: implement this
   bool get isOnGoing => true;
+
+  bool get isMinted => status == ExhibitionStatus.issued.index;
+
+  List<FFSeries> get displayableSeries => series?.displayable ?? [];
+
+  List<String> get disableKeys {
+    if (isJohnGerrardShow) {
+      JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
 
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {
@@ -104,6 +115,23 @@ extension ExhibitionExt on Exhibition {
             index + sep.length,
             lastSep,
           );
+  }
+
+  List<CustomExhibitionNote> get customExhibitionNote {
+    final customNote = <CustomExhibitionNote>[];
+    if (isJohnGerrardShow) {
+      customNote.addAll(JohnGerrardHelper.customNote);
+    }
+    return customNote;
+  }
+
+  // get all resource, include posts and custom notes
+  List<Resource> get allResources {
+    final resources = <Resource>[...customExhibitionNote];
+    if (posts != null) {
+      resources.addAll(posts!);
+    }
+    return resources;
   }
 }
 
@@ -193,12 +221,54 @@ extension ArtworkExt on Artwork {
       (e) => e.blockchainType == exhibition.mintBlockchain,
     );
   }
+
+  String? get indexerTokenId {
+    var chain = series!.exhibition!.mintBlockchain.toLowerCase();
+    // normal case: tezos or ethereum chain
+    if (['tezos', 'ethereum'].contains(chain)) {
+      final contract = series!.exhibition!.contracts!.firstWhereOrNull(
+        (e) => e.blockchainType == chain,
+      );
+      if (contract == null) {
+        unawaited(Sentry.captureMessage(
+          'ArtworkExt: get indexerTokenId failed,'
+          ' contract is null for chain: $chain, artworkID: $id',
+        ));
+        return null;
+      }
+      final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
+      final contractAddress = contract.address;
+      return '$chainPrefix-$contractAddress-$id';
+    } else
+    // special case: bitmark chain
+    if (chain == 'bitmark') {
+      // if artwork was burned, get indexerTokenId from swap
+      if (swap != null) {
+        return swap!.indexerId;
+      } else {
+        // if artwork was not burned, it's bitmark token
+        const chanPrefix = 'bmk';
+        final contract = series!.exhibition!.contracts!.firstWhereOrNull(
+          (e) => e.blockchainType == chain,
+        );
+        final contractAddress = contract?.address ?? '';
+        return '$chanPrefix-$contractAddress-$id';
+      }
+    } else {
+      unawaited(Sentry.captureMessage(
+        'ArtworkExt: get indexerTokenId failed, '
+        'unknown chain: $chain, artworkID: $id',
+      ));
+    }
+    return null;
+  }
 }
 
 String getFFUrl(String uri) {
   // case 1: cloudflare
-  if (uri.startsWith(cloudFlarePrefix)) {
-    return '$uri/thumbnailLarge';
+  const variant = 'thumbnailLarge';
+  if (uri.startsWith(cloudFlarePrefix) && !uri.endsWith(variant)) {
+    return '$uri/$variant';
   }
 
   // case 2 => full cdn
@@ -226,4 +296,21 @@ extension FFContractExt on FFContract {
     }
     return null;
   }
+}
+
+extension ArtworkSwapxt on ArtworkSwap {
+  String get indexerId {
+    final chain = blockchainType == 'ethereum' ? 'eth' : 'tez';
+    // we should use token instead of artworkID.
+    // the artworkId is the id of burned artwork.
+    return '$chain-$contractAddress-$token';
+  }
+}
+
+enum ExhibitionStatus {
+  created,
+  editorReview,
+  operatorReview,
+  issuing,
+  issued,
 }

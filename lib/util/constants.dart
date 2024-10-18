@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -34,7 +33,7 @@ const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
 const RATING_MESSAGE_START = '### Customer support rating\n';
 const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
 const STAR_RATING = '###STAR#RATING#';
-const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
+const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/33';
 const IRL_DEEPLINK_PREFIXES = [
   'https://autonomy.io/apps/irl/',
   'https://app.feralfile.com/apps/irl/'
@@ -48,8 +47,6 @@ const DEEP_LINKS = [
   ...Constants.branchDeepLinks,
   'feralfile://',
 ];
-const FF_ARTIST_COLLECTOR =
-    'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
     '/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md';
@@ -144,8 +141,6 @@ const artworkSectionDivider = Divider(
   thickness: 1,
 );
 
-const REMOVE_CUSTOMER_SUPPORT =
-    '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3;
@@ -209,7 +204,7 @@ const AUTONOMY_DOCUMENT_PREFIX = 'https://github.com/bitmark-inc';
 const AUTONOMY_RAW_DOCUMENT_PREFIX =
     'https://raw.githubusercontent.com/bitmark-inc';
 
-const MARKDOWN_EXT = '.md';
+const markdownExt = '.md';
 
 const String POSTCARD_SIGN_PREFIX = 'Tezos Signed Message:';
 
@@ -242,14 +237,6 @@ Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
 }
-
-Future<bool> logoState() async {
-  final isAppCenter = await isAppCenterBuild();
-  return isAppCenter;
-}
-
-Future<String> getDemoAccount() async =>
-    await isAppCenterBuild() ? 'demo' : 'tv';
 
 Future<String> getAppVariant() async =>
     await isAppCenterBuild() ? 'inhouse' : 'production';
@@ -295,63 +282,37 @@ extension RawValue on WalletApp {
 }
 
 class ReportIssueType {
-  static const Feature = 'feature';
   static const Bug = 'bug';
-  static const Feedback = 'feedback';
-  static const Other = 'other';
   static const Exception = 'exception';
-  static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
 
-  static List<String> get getList => [
-        Feature,
-        Bug,
-        Feedback,
-        Other,
-        Exception,
-        ReportNFTIssue,
-        Announcement,
-        MerchandiseIssue
-      ];
+  static List<String> get getList =>
+      [Bug, Exception, Announcement, MerchandiseIssue];
 
-  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
+  static List<String> get getSuggestList => [Bug];
 
   static String toTitle(String item) {
     switch (item) {
-      case Feature:
-        return 'Request a feature';
-      case Bug:
-        return 'Report a bug';
-      case Feedback:
-        return 'Share feedback';
       case Exception:
         return 'Report a bug';
-      case ReportNFTIssue:
-        return 'Report NFT issue';
       case Announcement:
-        return 'Announcement';
+        return 'announcement'.tr();
       case MerchandiseIssue:
         return 'Merchandise issue';
+      case Bug:
       default:
-        return 'Something else?';
+        return 'Contact Feral File';
     }
   }
 
   static String introMessage(String item) {
     switch (item) {
-      case Feature:
-        return 'Thanks for taking the time to help us improve Feral File. We’re always looking for great ideas. What feature would you like to request?';
-      case Bug:
-        return 'We’re sorry to hear you’ve experienced a problem using Feral File. Thanks for taking the time to help us improve. Please describe the bug for us.';
-      case Feedback:
-        return 'Thanks for taking the time to share your feedback with us. What’s on your mind?';
       case Exception:
         return 'Thanks for taking the time to help improve Feral File. We’ve received your automatic crash report and are looking into it. How else can we help?';
-      case ReportNFTIssue:
-        return 'Thanks for taking the time to help improve Feral File. We’ve received your NFT issue and are looking into it. How else can we help?';
+      case Bug:
       default:
-        return 'Thanks for reaching out to the Feral File team! What’s on your mind?';
+        return 'Thanks for reaching out to the Feral File! How can we assist you with feedback, a bug, or a feature request?';
     }
   }
 }
@@ -502,7 +463,57 @@ class Constants {
     'https://link.autonomy.io',
     'https://feralfile-app.app.link',
     'https://feralfile-app-alternate.app.link',
+    'https://feralfile-app.test-app.link',
+    'https://feralfile-app-alternate.test-app.link',
     'https://app.feralfile.com',
+  ];
+
+  static const wcPrefixes = [
+    'https://au.bitmark.com/apps/wc?uri=',
+    'https://au.bitmark.com/apps/wc/wc?uri=',
+    'https://autonomy.io/apps/wc?uri=',
+    'https://autonomy.io/apps/wc/wc?uri=',
+    'autonomy://wc?uri=',
+    'autonomy-wc://wc?uri=',
+    'https://app.feralfile.com/apps/wc?uri=',
+    'https://app.feralfile.com/apps/wc/wc?uri=',
+    'feralfile://wc?uri=',
+    'feralfile-wc://wc?uri=',
+  ];
+
+  static const tzPrefixes = [
+    'https://au.bitmark.com/apps/tezos?uri=',
+    'https://autonomy.io/apps/tezos?uri=',
+    'https://feralfile.com/apps/tezos?uri=',
+  ];
+
+  static const wcDeeplinkPrefixes = [
+    'wc:',
+    'autonomy-wc:',
+    'feralfile-wc:',
+  ];
+
+  static const tbDeeplinkPrefixes = [
+    'tezos://',
+    'autonomy-tezos://',
+    'feralfile-tezos://',
+  ];
+
+  static const postcardPayToMintPrefixes = [
+    'https://autonomy.io/apps/moma-postcards/purchase',
+  ];
+
+  static const navigationPrefixes = [
+    'feralfile://navigation/',
+  ];
+
+  static const dAppConnectPrefixes = [
+    ...wcPrefixes,
+    ...tzPrefixes,
+    ...wcDeeplinkPrefixes,
+    ...tbDeeplinkPrefixes,
+    ...postcardPayToMintPrefixes,
+    ...navigationPrefixes,
   ];
 }
 
@@ -511,54 +522,11 @@ Map<String, String> specifiedSeriesTitle = {
       ExtendedArtworkModel.interactiveInstruction.title,
 };
 
-class MixpanelEvent {
-  static const String visitPage = 'Visit page';
-  static const String viewExhibition = 'View exhibition';
-  static const String viewArtwork = 'View artwork';
-}
-
-class MixpanelEventProp {}
-
-class MixpanelProp {
-  static const platform = 'platform';
-  static const tokenId = 'tokenId';
-  static const artworkId = 'artworkId';
-  static const exhibitionId = 'exhibitionId';
-  static const ownerAddress = 'ownerAddress';
-  static const title = 'title';
-  static const playlistId = 'playlistId';
-  static const address = 'address';
-  static const type = 'type';
-  static const url = 'url';
-  static const message = 'message';
-  static const section = 'section';
-  static const recipientAddress = 'recipientAddress';
-  static const seriesId = 'seriesId';
-  static const method = 'method';
-  static const isOnboarding = 'isOnboarding';
-  static const id = 'id';
-}
-
-class MixpanelConfig {}
-
-class MixpanelExtendScreen {
-  static const String collection = 'Collection';
-  static const String organization = 'Organization';
-  static const String exhibition = 'Exhibition';
-  static const String showMyCode = 'Show My Code';
-}
-
-const List<String> metricVisitPageIgnoreScreen = [
-  AppRouter.homePage,
-  AppRouter.homePageNoTransition,
-];
-
 class LinkType {
   static const local = 'Local Deep Link';
   static const dAppConnect = 'Dapp Connect Deeplink';
   static const feralFile = 'FeralFile Deeplink';
   static const branch = 'Branch Deeplink';
-  static const autonomyConnect = 'Autonomy Connect';
   static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';
@@ -579,8 +547,6 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = '_closeWebview';
 }
-
-const Duration USE_APP_MIN_DURATION = Duration(seconds: 15);
 
 const chatPrivateBannerId = 'chat_private_banner_id';
 final chatPrivateBannerMessage = SystemMessage(

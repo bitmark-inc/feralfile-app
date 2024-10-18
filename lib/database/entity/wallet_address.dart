@@ -1,16 +1,10 @@
-import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:floor/floor.dart';
+import 'dart:convert';
+
+import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:nft_collection/models/address_index.dart';
 
-@entity
-class WalletAddress {
-  @primaryKey
+class WalletAddress implements SettingObject {
   final String address;
-  @ForeignKey(
-      childColumns: ['uuid'],
-      parentColumns: ['uuid'],
-      entity: Persona,
-      onDelete: ForeignKeyAction.cascade)
   final String uuid;
   final int index;
   final String cryptoType;
@@ -52,4 +46,39 @@ class WalletAddress {
 
   AddressIndex get addressIndex =>
       AddressIndex(address: address, createdAt: createdAt);
+
+  // fromJson and toJson methods
+  factory WalletAddress.fromJson(Map<String, dynamic> json) => WalletAddress(
+        address: json['address'] as String,
+        uuid: json['uuid'] as String,
+        index: json['index'] as int,
+        cryptoType: json['cryptoType'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        isHidden: json['isHidden'] as bool,
+        name: json['name'] as String?,
+        accountOrder: json['accountOrder'] as int?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'address': address,
+        'uuid': uuid,
+        'index': index,
+        'cryptoType': cryptoType,
+        'createdAt': createdAt.toIso8601String(),
+        'isHidden': isHidden,
+        'name': name,
+        'accountOrder': accountOrder,
+      };
+
+  @override
+  String get key => address;
+
+  @override
+  Map<String, String> get toKeyValue => {
+        'key': key,
+        'value': value,
+      };
+
+  @override
+  String get value => jsonEncode(toJson());
 }

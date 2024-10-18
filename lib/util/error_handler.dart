@@ -8,13 +8,14 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -32,13 +33,13 @@ import 'package:tezart/tezart.dart';
 
 enum ErrorItemState {
   getReport,
-  report,
   thanks,
   close,
   tryAgain,
   settings,
   camera,
   seeAccount,
+  general,
 }
 
 const onlySentryExceptionIdentifier = [
@@ -53,6 +54,21 @@ class ErrorEvent {
   ErrorItemState state;
 
   ErrorEvent(this.err, this.title, this.message, this.state);
+
+  bool shouldShowPopup() {
+    switch (state) {
+      case ErrorItemState.getReport:
+      case ErrorItemState.thanks:
+      case ErrorItemState.close:
+      case ErrorItemState.tryAgain:
+      case ErrorItemState.settings:
+      case ErrorItemState.camera:
+      case ErrorItemState.seeAccount:
+        return true;
+      default:
+        return false;
+    }
+  }
 }
 
 PlatformException? lastException;
@@ -78,7 +94,7 @@ extension DioErrorEvent on DioException {
   }
 }
 
-ErrorEvent? translateError(Object exception) {
+ErrorEvent translateError(Object exception) {
   if (exception is DioException) {
     final dioErrorEvent = exception.errorEvent;
     if (dioErrorEvent != null) {
@@ -100,7 +116,22 @@ ErrorEvent? translateError(Object exception) {
         ErrorItemState.getReport);
   }
 
-  return null;
+  if (exception is JwtException) {
+    return ErrorEvent(exception, 'can_not_authenticate'.tr(), exception.message,
+        ErrorItemState.close);
+  }
+
+  if (exception is ErrorBindingException) {
+    return ErrorEvent(exception, 'binding_data_issue'.tr(), exception.message,
+        ErrorItemState.getReport);
+  }
+
+  return ErrorEvent(
+      exception,
+      'Oops! Something went wrong',
+      'It looks like there’s a small hiccup on our end. We’re on it and should '
+          'have things fixed soon. Apologies for any inconvenience!',
+      ErrorItemState.general);
 }
 
 bool onlySentryException(Object exception) {
@@ -206,7 +237,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
   });
 }
 
-void showErrorDiablog(
+void showEventErrorDialog(
   BuildContext context,
   ErrorEvent event, {
   Function()? defaultAction,
@@ -217,27 +248,22 @@ void showErrorDiablog(
   switch (event.state) {
     case ErrorItemState.close:
       defaultButton = 'close'.tr();
-      break;
 
     case ErrorItemState.getReport:
       defaultButton = 'get_support'.tr();
       cancelButton = 'continue'.tr();
-      break;
 
     case ErrorItemState.tryAgain:
       defaultButton = 'try_again'.tr();
       cancelButton = cancelAction != null ? 'close'.tr() : null;
-      break;
 
     case ErrorItemState.camera:
       defaultButton = 'open_settings'.tr();
       defaultAction = () async => await openAppSettings();
-      break;
 
     case ErrorItemState.seeAccount:
       defaultButton = 'see_account'.tr();
       cancelButton = 'close'.tr();
-      break;
 
     default:
       break;
@@ -248,6 +274,9 @@ void showErrorDiablog(
 
 Future<bool> showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
+  unawaited(Sentry.captureException(exception,
+      stackTrace: stackTrace,
+      withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
   final navigationService = injector<NavigationService>();
   final context = navigationService.navigatorKey.currentContext;
 
@@ -275,25 +304,21 @@ Future<bool> showErrorDialogFromException(Object exception,
               .subtract(const Duration(seconds: 5))
               .compareTo(memoryValues.inForegroundAt!) <
           0) {
-    unawaited(Sentry.captureException(exception,
-        stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return true;
   }
 
-  log.warning('Unhandled error: $exception', exception);
+  log
+    ..warning('Unhandled error: $exception', exception, stackTrace)
+    ..warning('StackTrace: $stackTrace');
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries
-    unawaited(Sentry.captureException(exception,
-        stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return true;
   }
 
   final event = translateError(exception);
 
-  if (context != null && event != null) {
+  if (context != null) {
     if (event.state == ErrorItemState.getReport) {
       final sentryID = await reportSentry(
           {'exception': exception, 'stackTrace': stackTrace});
@@ -312,15 +337,24 @@ Future<bool> showErrorDialogFromException(Object exception,
       );
       return true;
     } else {
-      navigationService.showErrorDialog(event);
+      if (!_isErrorIgnored(event)) {
+        navigationService.showErrorDialog(event);
+      }
       return true;
     }
   } else {
-    unawaited(Sentry.captureException(exception,
-        stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return false;
   }
+}
+
+bool _isErrorIgnored(ErrorEvent event) {
+  final exception = event.err;
+  if (exception is RangeError ||
+      exception is FlutterError ||
+      exception is PlatformException) {
+    return true;
+  }
+  return !event.shouldShowPopup();
 }
 
 void hideInfoDialog(BuildContext context) {

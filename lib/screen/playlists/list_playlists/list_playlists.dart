@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -35,7 +34,6 @@ class ListPlaylistsScreen extends StatefulWidget {
 
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
-  final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   static const int _playlistNumberBreakpoint = 6;
 
   @override
@@ -69,17 +67,29 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (widget.filter.isNotEmpty)
+          final theme = Theme.of(context);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 30),
+              Row(
+                children: [
                   TitleText(title: 'playlists'.tr()),
-                const SizedBox(height: 30),
-                _playlistHorizontalGridView(context, playlists)
-              ],
-            ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: widget.onAdd,
+                    child: Text(
+                      'create'.tr(),
+                      style: theme.textTheme.ppMori700White14.copyWith(
+                        color: AppColor.feralFileLightBlue,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 30),
+              _playlistHorizontalGridView(context, playlists)
+            ],
           );
         },
       );
@@ -88,7 +98,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
       BuildContext context, List<PlayListModel> playlists) {
     final rowNumber = playlists.length > _playlistNumberBreakpoint ? 2 : 1;
     final height = PlaylistItem.height * rowNumber + 15 * (rowNumber - 1);
-    final length = playlists.length + 1;
+    final length = playlists.length;
     return SizedBox(
       height: height,
       child: GridView.builder(
@@ -100,18 +110,16 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           childAspectRatio: PlaylistItem.height / PlaylistItem.width,
         ),
         itemBuilder: (context, index) {
-          if (index == 0) {
-            return AddPlayListItem(
-              onTap: () {
-                widget.onAdd();
-              },
-            );
-          }
-          final item = playlists[index - 1];
+          final item = playlists[index];
           return PlaylistItem(
               key: ValueKey(item.id),
               playlist: item,
-              onSelected: () {
+              onSelected: () async {
+                if (item.id == DefaultPlaylistModel.allNfts.id) {
+                  await Navigator.of(context)
+                      .pushNamed(AppRouter.collectionPage);
+                  return;
+                }
                 onPlaylistTap(item);
               });
         },
@@ -188,8 +196,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
                     width: 6,
                   ),
                   Text(
-                    numberFormatter
-                        .format(widget.playlist.tokenIDs?.length ?? 0),
+                    numberFormatter.format(widget.playlist.tokenIDs.length),
                     style: theme.textTheme.ppMori400Grey14,
                   ),
                 ],

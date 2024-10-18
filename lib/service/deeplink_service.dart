@@ -12,16 +12,19 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
-import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -30,16 +33,17 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
+import 'package:autonomy_flutter/util/gift_handler.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
-import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -51,6 +55,8 @@ abstract class DeeplinkService {
   void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
 
   Future<void> openClaimEmptyPostcard(String id, {String? otp});
+
+  Future<void> handleReferralCode(String referralCode);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -61,9 +67,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final BranchApi _branchApi;
   final PostcardService _postcardService;
   final RemoteConfigService _remoteConfigService;
-
-  String? currentExhibitionId;
-  String? handlingDeepLink;
 
   final Map<String, bool> _deepLinkHandlingMap = {};
 
@@ -77,21 +80,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._remoteConfigService,
   );
 
-  final metricClient = injector<MetricClientService>();
-
   @override
   Future setup() async {
+    log.info('[DeeplinkService] setup');
     await FlutterBranchSdk.init(enableLogging: true);
     FlutterBranchSdk.listSession().listen((data) async {
       log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
       log.info('[DeeplinkService] data: $data');
+      log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
       if (data['+clicked_branch_link'] == true &&
           _deepLinkHandlingMap[data['~referring_link']] == null) {
         _deepLinkHandlingMap[data['~referring_link']] = true;
-        unawaited(_deepLinkHandleClock(
-            'Handle Branch Deep Link Data Time Out', data['source']));
+
         await handleBranchDeeplinkData(data);
-        handlingDeepLink = null;
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
@@ -100,7 +101,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     try {
       final initialLink = await getInitialLink();
-      handleDeeplink(initialLink);
+      log.info('[DeeplinkService] initialLink: $initialLink');
+      if (initialLink != null) {
+        handleDeeplink(initialLink);
+      }
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
@@ -111,7 +115,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   void handleDeeplink(
     String? link, {
-    Duration delay = const Duration(seconds: 2),
+    Duration delay = Duration.zero,
     Function? onFinished,
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
@@ -130,43 +134,24 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (_deepLinkHandlingMap[link] != null) {
         return;
       }
-      unawaited(_deepLinkHandleClock('Handle Deep Link Time Out', link));
       _deepLinkHandlingMap[link] = true;
-      await _handleLocalDeeplink(link) ||
-          await _handleDappConnectDeeplink(link) ||
-          await _handleBranchDeeplink(link) ||
+      final handlerType = DeepLinkHandlerType.fromString(link);
+      log.info('[DeeplinkService] handlerType $handlerType');
+      switch (handlerType) {
+        case DeepLinkHandlerType.branch:
+          await _handleBranchDeeplink(link, onFinish: onFinished);
+        case DeepLinkHandlerType.dAppConnect:
+          await _handleDappConnectDeeplink(link);
+        case DeepLinkHandlerType.irl:
           await _handleIRL(link);
+        case DeepLinkHandlerType.unknown:
+          unawaited(_navigationService.showUnknownLink());
+      }
       _deepLinkHandlingMap.remove(link);
-      handlingDeepLink = null;
-      memoryValues.irlLink.value = null;
-      onFinished?.call();
+      if (handlerType != DeepLinkHandlerType.branch) {
+        onFinished?.call();
+      }
     });
-  }
-
-  Future<bool> _handleLocalDeeplink(String link) async {
-    log.info('[DeeplinkService] _handleLocalDeeplink');
-    const deeplink = 'autonomy://';
-
-    if (link.startsWith(deeplink)) {
-      final data = link.replacePrefix(deeplink, '');
-      if (!_configurationService.isDoneOnboarding()) {
-        // Local deeplink should only available after onboarding.
-        return false;
-      }
-
-      switch (data) {
-        case 'home':
-          _navigationService.restorablePushHomePage();
-        case 'support':
-          unawaited(
-              _navigationService.navigateTo(AppRouter.supportCustomerPage));
-        default:
-          return false;
-      }
-      return true;
-    }
-
-    return false;
   }
 
   Future<bool> _handleDappConnectDeeplink(String link) async {
@@ -206,11 +191,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final postcardPayToMintPrefixes = [
       'https://autonomy.io/apps/moma-postcards/purchase',
     ];
-    if (!_configurationService.isDoneOnboarding()) {
-      memoryValues.deepLink.value = link;
-      await injector<AccountService>().restoreIfNeeded();
-    }
-    // Check Universal Link
+
+    final navigationPrefixes = [
+      'feralfile://navigation/',
+    ];
 
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -254,7 +238,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _handlePayToMintDeepLink(link);
       return true;
     }
-    memoryValues.deepLink.value = null;
+
+    final callingNavigationPrefix = navigationPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingNavigationPrefix != null) {
+      final navigationPath = link.replaceFirst(callingNavigationPrefix, '');
+      await _navigationService.navigatePath(navigationPath);
+      return true;
+    }
     return false;
   }
 
@@ -286,9 +277,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final url =
         '${Environment.payToMintBaseUrl}/moma-postcard?address=$address';
     final response = (await _navigationService.goToIRLWebview(
-            IRLWebScreenPayload(url,
-                isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
-        as Map<String, dynamic>;
+        IRLWebScreenPayload(url,
+            isPlainUI: true,
+            statusBarColor: POSTCARD_BACKGROUND_COLOR,
+            isDarkStatusBar: false))) as Map<String, dynamic>;
 
     if (response['result'] == true) {
       final previewURL = response['previewURL'];
@@ -309,10 +301,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<bool> _handleIRL(String link) async {
     log.info('[DeeplinkService] _handleIRL');
-    memoryValues.irlLink.value = link;
-    if (!_configurationService.isDoneOnboarding()) {
-      await injector<AccountService>().restoreIfNeeded();
-    }
     final irlPrefix = IRL_DEEPLINK_PREFIXES
         .firstWhereOrNull((element) => link.startsWith(element));
     if (irlPrefix != null) {
@@ -339,31 +327,39 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleBranchDeeplink(String link) async {
+  Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {
     log.info('[DeeplinkService] _handleBranchDeeplink');
-    //star
-    memoryValues.branchDeeplinkData.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
-      final response = await _branchApi.getParams(Environment.branchKey, link);
       try {
-        await handleBranchDeeplinkData(response['data']);
-      } catch (e) {
+        final response =
+            await _branchApi.getParams(Environment.branchKey, link);
+        await handleBranchDeeplinkData(response['data'], onFinish: onFinish);
+      } catch (e, s) {
+        unawaited(Sentry.captureException('Branch deeplink error: $e',
+            stackTrace: s));
         log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+        await _navigationService.showCannotResolveBranchLink();
       }
       return true;
     }
     return false;
   }
 
+  // TODO: handle onFinish is only for feralfile_display.
+  // Please handle for other cases if needed
   @override
-  Future<void> handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
-    final doneOnboarding = _configurationService.isDoneOnboarding();
-    if (!doneOnboarding) {
-      memoryValues.branchDeeplinkData.value = data;
-      return;
+  Future<void> handleBranchDeeplinkData(
+    Map<dynamic, dynamic> data, {
+    Function? onFinish,
+  }) async {
+    final navigatePath = data['navigation_route'];
+    if (navigatePath != null) {
+      await _navigationService.navigatePath(navigatePath);
     }
+    log.info('[DeeplinkService] handleBranchDeeplinkData $data');
+    log.info('source: ${data['source']}');
     final source = data['source'];
     switch (source) {
       case 'Postcard':
@@ -408,7 +404,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (url != null) {
           log.info('[DeeplinkService] _handleIRL $url');
           await _handleIRL(url);
-          memoryValues.irlLink.value = null;
         }
 
       case 'moma_postcard_purchase':
@@ -420,48 +415,186 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await _walletConnect2Service.connect(decodedWcUri);
 
       case 'feralfile_display':
-        final payload = data['device'] as Map<String, dynamic>;
-        final device = CanvasDevice.fromJson(payload);
-        final canvasClient = injector<CanvasClientServiceV2>();
-        final result = await canvasClient.addQrDevice(device);
-        final isSuccessful = result != null;
-        if (!_navigationService.context.mounted) {
-          return;
-        }
-        if (isSuccessful) {
-          if (CustomRouteObserver.currentRoute?.settings.name ==
-              AppRouter.scanQRPage) {
-            /// in case scan when open scanQRPage,
-            /// scan with navigation home page does not go to this flow
-            _navigationService.goBack(result: device);
+        {
+          final reportId = data['reportId'];
+          if (reportId != null) {
+            await _handleFeralFileDisplayReport(reportId);
           } else {
-            await UIHelper.showFlexibleDialog(
-                _navigationService.context,
-                BlocProvider.value(
-                  value: injector<CanvasDeviceBloc>(),
-                  child: const StreamDeviceView(),
-                ),
-                isDismissible: true,
-                autoDismissAfter: 3);
+            final deviceRawPayload = data['device'] as Map<dynamic, dynamic>;
+            final Map<String, dynamic> payload = {};
+            deviceRawPayload.forEach((key, value) {
+              payload[key.toString()] = value;
+            });
+            final device = CanvasDevice.fromJson(payload);
+            await _handleFeralFileDisplayConnecting(device, onFinish);
           }
         }
 
+      case 'InstantPurchase':
+        final url = data['callback_url'];
+        final expiredAt = data['expired_at'];
+        if (expiredAt != null) {
+          final expiredAtDate =
+              DateTime.fromMillisecondsSinceEpoch(int.tryParse(expiredAt) ?? 0);
+          if (expiredAtDate.isBefore(DateTime.now())) {
+            unawaited(_navigationService.showQRExpired());
+            break;
+          }
+        }
+        final instantToken = data['instant_purchase_token'];
+        final purchaseToken = data['purchase_token'];
+        if (url != null &&
+            data['chain'] != null &&
+            instantToken != null &&
+            purchaseToken != null) {
+          final chain = data['chain'].toString().toLowerCase();
+          late String? primaryAddress;
+          final addressService = injector<AddressService>();
+          try {
+            final primaryAddressInfo =
+                await addressService.getPrimaryAddressInfo();
+            if (primaryAddressInfo != null &&
+                primaryAddressInfo.chain == chain) {
+              log.info(
+                  '[DeeplinkService] InstancePurchase: primary address found');
+              primaryAddress =
+                  await addressService.getAddress(info: primaryAddressInfo);
+            } else {
+              log.info('[DeeplinkService] '
+                  'InstancePurchase: use address with most tokens');
+              final addressWallets = await addressService.getAllAddress();
+              addressWallets.removeWhere((element) =>
+                  element.cryptoType.toLowerCase() != chain ||
+                  element.isHidden);
+              if (addressWallets.isEmpty) {
+                primaryAddress = null;
+              } else {
+                primaryAddress = addressWallets.first.address;
+              }
+            }
+          } catch (e) {
+            log.info('[DeeplinkService] get primary address error $e');
+            primaryAddress = null;
+          }
+          _navigationService.popUntilHome();
+          if (primaryAddress == null) {
+            await _navigationService.addressNotFoundError();
+          } else {
+            final link =
+                '$url&ba=$primaryAddress&ipt=$instantToken&pt=$purchaseToken';
+            log.info('InstantPurchase: $link');
+            await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
+                isPlainUI: true,
+                statusBarColor: AppColor.white,
+                isDarkStatusBar: false));
+          }
+        }
+
+      case 'membership_subscription':
+        final String url = data['callbackURL']!;
+        final primaryAddress =
+            await injector<AddressService>().getPrimaryAddress();
+        _navigationService.popUntilHome();
+        if (primaryAddress == null) {
+          await _navigationService.addressNotFoundError();
+        } else {
+          final uri = Uri.parse(url);
+          final isPremium = await injector<IAPService>().isSubscribed();
+          final queryParameters = {
+            'a': primaryAddress,
+            'mt': isPremium ? 'premium' : 'none',
+          }..addAll(uri.queryParameters);
+          final newUri = uri.replace(queryParameters: queryParameters);
+          final link = newUri.toString();
+          log.info('MembershipSubscription: $link');
+          await _navigationService.goToIRLWebview(
+            IRLWebScreenPayload(
+              link,
+              isPlainUI: true,
+              statusBarColor: AppColor.white,
+              isDarkStatusBar: false,
+            ),
+          );
+        }
+
+      case 'gift_membership':
+        final giftCode = data['gift_code'];
+        await GiftHandler.handleGiftMembership(giftCode);
+
+      case 'referral_code':
+        final referralCode = data['referralCode'];
+        log.info('[DeeplinkService] referralCode: $referralCode');
+        await handleReferralCode(referralCode);
+
+      case 'playlist_activation':
+        try {
+          log.info('[DeeplinkService] playlist_activation');
+          unawaited(
+              injector<ConfigurationService>().setDidShowLiveWithArt(true));
+          final expiredAt = int.tryParse(data['expired_at']);
+          log.info('[DeeplinkService] expiredAt: $expiredAt');
+          if (expiredAt != null) {
+            final expiredAtDate =
+                DateTime.fromMillisecondsSinceEpoch(expiredAt);
+            if (expiredAtDate.isBefore(DateTime.now())) {
+              log.info('[DeeplinkService] playlist_activation expired');
+              unawaited(_navigationService.showPlaylistActivationExpired());
+              break;
+            }
+          }
+          log.info('[DeeplinkService] playlist_activation not expired');
+          final playlistJson = (data['playlist'] as Map<dynamic, dynamic>)
+              .map((key, value) => MapEntry(key.toString(), value));
+
+          final playlist = PlayListModel.fromJson(playlistJson)
+              .copyWith(source: PlayListSource.activation);
+          final activationName = data['activation_name'];
+          final activationSource = data['activation_source'];
+          final thumbnailURL = data['activation_thumbnail'];
+          final activation = PlaylistActivation(
+            playListModel: playlist,
+            name: activationName,
+            source: activationSource,
+            thumbnailURL: thumbnailURL,
+          );
+          log.info('[DeeplinkService] playlist_activation ${activation}');
+          await _navigationService.navigateTo(
+            AppRouter.playlistActivationPage,
+            arguments: PlaylistActivationPagePayload(
+              activation: activation,
+            ),
+          );
+        } catch (e) {
+          log.info('[DeeplinkService] playlist_activation error $e');
+        }
       default:
-        memoryValues.branchDeeplinkData.value = null;
+        log.info('[DeeplinkService] source not found');
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
   }
 
-  Future<void> _deepLinkHandleClock(String message, String param,
-      {Duration duration = const Duration(seconds: 2)}) async {
-    handlingDeepLink = message;
-    Future.delayed(duration, () {
-      if (handlingDeepLink != null) {
-        Sentry.captureMessage(message,
-            level: SentryLevel.warning, params: [param]);
+  @override
+  Future<void> handleReferralCode(String referralCode) async {
+    log.info('[DeeplinkService] handleReferralCode $referralCode');
+    // save referral code to local storage, for case when user register failed
+    await _configurationService.setReferralCode(referralCode);
+    try {
+      await injector<AddressService>()
+          .registerReferralCode(referralCode: referralCode);
+      // clear referral code after register success
+      await _configurationService.setReferralCode('');
+    } catch (e, s) {
+      log.info('[DeeplinkService] _handleReferralCode error $e');
+      unawaited(
+          Sentry.captureException('Referral code error: $e', stackTrace: s));
+      if (e is DioException) {
+        if (e.isAlreadySetReferralCode) {
+          log.info('[DeeplinkService] referral code already set');
+          // if referral code is already set, clear it
+          await _configurationService.setReferralCode('');
+        }
       }
-      handlingDeepLink = null;
-    });
+    }
   }
 
   Future<void> _handlePostcardDeeplink(String shareCode) async {
@@ -522,6 +655,84 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
     }
   }
+
+  Future _handleFeralFileDisplayReport(String reportId) async {
+    await _navigationService.navigateTo(
+      AppRouter.supportThreadPage,
+      arguments: NewIssuePayload(
+        reportIssueType: ReportIssueType.Bug,
+        artworkReportID: reportId,
+      ),
+    );
+  }
+
+  Future _handleFeralFileDisplayConnecting(
+    CanvasDevice device,
+    Function? onFinish,
+  ) async {
+    final canvasClient = injector<CanvasClientServiceV2>();
+    try {
+      final result = await canvasClient.addQrDevice(device);
+      final isSuccessful = result != null;
+      if (isSuccessful) {
+        onFinish?.call(device);
+      }
+      if (!_navigationService.context.mounted) {
+        return;
+      }
+      if (CustomRouteObserver.currentRoute?.settings.name ==
+          AppRouter.scanQRPage) {
+        /// in case scan when open scanQRPage,
+        /// scan with navigation home page does not go to this flow
+        _navigationService.goBack(result: result);
+        if (!isSuccessful) {
+          await _navigationService.showCannotConnectTv();
+        } else {
+          showInfoNotification(
+            const Key('connected_to_canvas'),
+            'connected_to_display'.tr(),
+            addOnTextSpan: [
+              TextSpan(
+                text: device.name,
+                style: Theme.of(_navigationService.context)
+                    .textTheme
+                    .ppMori400FFYellow14
+                    .copyWith(color: AppColor.feralFileLightBlue),
+              )
+            ],
+            frontWidget: SvgPicture.asset(
+              'assets/images/checkbox_icon.svg',
+              width: 24,
+            ),
+          );
+        }
+        return;
+      }
+      if (isSuccessful) {
+        showInfoNotification(
+          const Key('connected_to_canvas'),
+          'connected_to_display'.tr(),
+          addOnTextSpan: [
+            TextSpan(
+              text: device.name,
+              style: Theme.of(_navigationService.context)
+                  .textTheme
+                  .ppMori400FFYellow14
+                  .copyWith(color: AppColor.feralFileLightBlue),
+            )
+          ],
+          frontWidget: SvgPicture.asset(
+            'assets/images/checkbox_icon.svg',
+            width: 24,
+          ),
+        );
+      } else {
+        await _navigationService.showCannotConnectTv();
+      }
+    } catch (e) {
+      log.info('[DeeplinkService] feralfile_display error $e');
+    }
+  }
 }
 
 Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
@@ -539,4 +750,29 @@ Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
 class SharedPostcardStatus {
   static String available = 'available';
   static String claimed = 'claimed';
+}
+
+enum DeepLinkHandlerType {
+  branch,
+  dAppConnect,
+  irl,
+  unknown,
+  ;
+
+  static DeepLinkHandlerType fromString(String value) {
+    if (Constants.dAppConnectPrefixes
+        .any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.dAppConnect;
+    }
+
+    if (IRL_DEEPLINK_PREFIXES.any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.irl;
+    }
+
+    if (Constants.branchDeepLinks.any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.branch;
+    }
+
+    return DeepLinkHandlerType.unknown;
+  }
 }

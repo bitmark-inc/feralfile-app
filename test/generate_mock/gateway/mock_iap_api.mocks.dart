@@ -7,8 +7,11 @@ import 'dart:async' as _i5;
 import 'dart:io' as _i6;
 
 import 'package:autonomy_flutter/gateway/iap_api.dart' as _i4;
-import 'package:autonomy_flutter/model/backup_versions.dart' as _i3;
+import 'package:autonomy_flutter/model/announcement/announcement.dart' as _i7;
+import 'package:autonomy_flutter/model/announcement/announcement_request.dart'
+    as _i8;
 import 'package:autonomy_flutter/model/jwt.dart' as _i2;
+import 'package:autonomy_flutter/model/ok_response.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -34,9 +37,9 @@ class _FakeJWT_0 extends _i1.SmartFake implements _i2.JWT {
         );
 }
 
-class _FakeBackupVersions_1 extends _i1.SmartFake
-    implements _i3.BackupVersions {
-  _FakeBackupVersions_1(
+class _FakeOnesignalIdentityHash_1 extends _i1.SmartFake
+    implements _i2.OnesignalIdentityHash {
+  _FakeOnesignalIdentityHash_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -45,9 +48,8 @@ class _FakeBackupVersions_1 extends _i1.SmartFake
         );
 }
 
-class _FakeOnesignalIdentityHash_2 extends _i1.SmartFake
-    implements _i2.OnesignalIdentityHash {
-  _FakeOnesignalIdentityHash_2(
+class _FakeOkResponse_2 extends _i1.SmartFake implements _i3.OkResponse {
+  _FakeOkResponse_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -65,19 +67,30 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
   }
 
   @override
-  _i5.Future<_i2.JWT> auth(Map<String, dynamic>? body) => (super.noSuchMethod(
+  _i5.Future<_i2.JWT> authAddress(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #auth,
+          #authAddress,
           [body],
         ),
         returnValue: _i5.Future<_i2.JWT>.value(_FakeJWT_0(
           this,
           Invocation.method(
-            #auth,
+            #authAddress,
             [body],
           ),
         )),
       ) as _i5.Future<_i2.JWT>);
+  @override
+  _i5.Future<void> registerPrimaryAddress(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #registerPrimaryAddress,
+          [body],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   _i5.Future<dynamic> uploadProfile(
     String? requester,
@@ -97,30 +110,6 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
         ),
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
-  @override
-  _i5.Future<_i3.BackupVersions> getProfileVersions(
-    String? requester,
-    String? filename,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getProfileVersions,
-          [
-            requester,
-            filename,
-          ],
-        ),
-        returnValue: _i5.Future<_i3.BackupVersions>.value(_FakeBackupVersions_1(
-          this,
-          Invocation.method(
-            #getProfileVersions,
-            [
-              requester,
-              filename,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i3.BackupVersions>);
   @override
   _i5.Future<dynamic> getProfileData(
     String? requester,
@@ -164,7 +153,7 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
           [body],
         ),
         returnValue: _i5.Future<_i2.OnesignalIdentityHash>.value(
-            _FakeOnesignalIdentityHash_2(
+            _FakeOnesignalIdentityHash_1(
           this,
           Invocation.method(
             #generateIdentityHash,
@@ -172,4 +161,89 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
           ),
         )),
       ) as _i5.Future<_i2.OnesignalIdentityHash>);
+  @override
+  _i5.Future<List<_i7.Announcement>> getAnnouncements(
+          _i8.AnnouncementRequest? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAnnouncements,
+          [body],
+        ),
+        returnValue:
+            _i5.Future<List<_i7.Announcement>>.value(<_i7.Announcement>[]),
+      ) as _i5.Future<List<_i7.Announcement>>);
+  @override
+  _i5.Future<_i3.OkResponse> redeemGiftCode(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #redeemGiftCode,
+          [id],
+        ),
+        returnValue: _i5.Future<_i3.OkResponse>.value(_FakeOkResponse_2(
+          this,
+          Invocation.method(
+            #redeemGiftCode,
+            [id],
+          ),
+        )),
+      ) as _i5.Future<_i3.OkResponse>);
+  @override
+  _i5.Future<void> updateMetrics(String? deviceId) => (super.noSuchMethod(
+        Invocation.method(
+          #updateMetrics,
+          [deviceId],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> sendEvent(
+    Map<String, dynamic>? metrics,
+    String? deviceId,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #sendEvent,
+          [
+            metrics,
+            deviceId,
+          ],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> deleteMetrics(String? deviceId) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteMetrics,
+          [deviceId],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> registerReferralCode(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #registerReferralCode,
+          [body],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  _i5.Future<dynamic> portalUrl() => (super.noSuchMethod(
+        Invocation.method(
+          #portalUrl,
+          [],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
+  @override
+  _i5.Future<dynamic> getCustomActiveSubscription() => (super.noSuchMethod(
+        Invocation.method(
+          #getCustomActiveSubscription,
+          [],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
 }

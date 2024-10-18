@@ -1,119 +1,104 @@
 class FFUser {
   final String id;
-  final String? slug;
-  final String alias;
-  final String? avatarURI;
-  final String? fullName;
-  String? type;
-  Map<String, dynamic>? metadata;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
+  final bool? isArtist;
+  final bool? isCurator;
+  final String? accountNumber;
+  final AlumniAccount? alumniAccount;
 
   FFUser({
     required this.id,
-    required this.alias,
-    this.slug,
-    this.avatarURI,
-    this.fullName,
-    this.type,
-    this.metadata,
-    this.createdAt,
-    this.updatedAt,
-  });
-}
-
-class FFArtist {
-  final String id;
-  final String alias;
-  final String? slug;
-  final bool? verified;
-  final bool? isArtist;
-  final String? fullName;
-  final String? avatarURI;
-  final String? accountNumber;
-  final String? type;
-
-  FFArtist(
-    this.id,
-    this.alias,
-    this.slug,
-    this.verified,
     this.isArtist,
-    this.fullName,
-    this.avatarURI,
+    this.isCurator,
     this.accountNumber,
-    this.type,
-  );
+    this.alumniAccount,
+  });
 
-  factory FFArtist.fromJson(Map<String, dynamic> json) => FFArtist(
-        json['ID'] as String,
-        json['alias'] as String,
-        json['slug'] as String?,
-        json['verified'] as bool?,
-        json['isArtist'] as bool?,
-        json['fullName'] as String?,
-        json['avatarURI'] as String?,
-        json['accountNumber'] as String?,
-        json['type'] as String?,
+  // fromJSon
+  factory FFUser.fromJson(Map<String, dynamic> json) => FFUser(
+        id: json['ID'],
+        isArtist: json['isArtist'] as bool?,
+        isCurator: json['isCurator'] as bool?,
+        accountNumber: json['accountNumber'] as String?,
+        alumniAccount: json['alumniAccount'] != null
+            ? AlumniAccount.fromJson(json['alumniAccount'])
+            : null,
       );
 
+  // toJson
   Map<String, dynamic> toJson() => {
         'ID': id,
-        'alias': alias,
-        'slug': slug,
-        'verified': verified,
         'isArtist': isArtist,
-        'fullName': fullName,
-        'avatarURI': avatarURI,
+        'isCurator': isCurator,
         'accountNumber': accountNumber,
-        'type': type,
       };
 }
 
-class FFCurator extends FFUser {
-  final String? email;
-  final String? avatarUri;
+class AlumniAccount {
+  final String? alias;
+  final String? slug;
+  final String? avatarURI;
+  final String? fullName;
+  final String? bio;
+  final String? location;
+  final String? website;
+  final List<String>? linkedAddresses;
+  final SocialNetwork? socialNetworks;
 
-  FFCurator({
-    required super.id,
-    required super.alias,
-    required String super.slug,
-    required this.avatarUri,
-    this.email,
-    super.fullName,
-    super.type,
-    super.metadata,
-    super.createdAt,
-    super.updatedAt,
+  AlumniAccount({
+    this.alias,
+    this.slug,
+    this.avatarURI,
+    this.fullName,
+    this.bio,
+    this.location,
+    this.website,
+    this.linkedAddresses,
+    this.socialNetworks,
   });
 
-  factory FFCurator.fromJson(Map<String, dynamic> json) => FFCurator(
-        id: json['ID'],
-        alias: json['alias'],
-        slug: json['slug'],
-        email: json['email'] as String?,
-        avatarUri: json['avatarURI'] as String?,
-        fullName: json['fullName'] as String?,
-        type: json['type'] as String?,
-        metadata: json['metadata'] as Map<String, dynamic>?,
-        createdAt: json['createdAt'] != null
-            ? DateTime.tryParse(json['createdAt'])
-            : null,
-        updatedAt: json['updatedAt'] != null
-            ? DateTime.tryParse(json['updatedAt'])
-            : null,
+  factory AlumniAccount.fromJson(Map<String, dynamic> json) => AlumniAccount(
+      alias: json['alias'] as String?,
+      slug: json['slug'] as String?,
+      avatarURI: json['avatarURI'] as String?,
+      fullName: json['fullName'] as String?,
+      bio: json['bio'] as String?,
+      location: json['location'] as String?,
+      website: json['website'] as String?,
+      linkedAddresses:
+          (json['linkedAddresses'] as List?)?.map((e) => e as String).toList(),
+      socialNetworks: json['socialNetworks'] != null
+          ? SocialNetwork.fromJson(json['socialNetworks'])
+          : null);
+
+  Map<String, dynamic> toJson() => {
+        'alias': alias,
+        'slug': slug,
+        'avatarURI': avatarURI,
+        'fullName': fullName,
+        'bio': bio,
+        'location': location,
+        'website': website,
+        'linkedAddresses': linkedAddresses,
+        'socialNetworks': socialNetworks?.toJson(),
+      };
+}
+
+class SocialNetwork {
+  final String? instagramID;
+  final String? twitterID;
+
+  SocialNetwork({
+    this.instagramID,
+    this.twitterID,
+  });
+
+  factory SocialNetwork.fromJson(Map<String, dynamic> json) => SocialNetwork(
+        instagramID: json['instagramID'] as String?,
+        twitterID: json['twitterID'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
-        'ID': id,
-        'alias': alias,
-        'slug': slug,
-        'email': email,
-        'avatarURI': avatarURI,
-        'fullName': fullName,
-        'type': type,
-        'metadata': metadata,
-        'createdAt': createdAt?.toIso8601String(),
-        'updatedAt': updatedAt?.toIso8601String(),
+        'instagramID': instagramID,
+        'twitterID': twitterID,
       };
 }

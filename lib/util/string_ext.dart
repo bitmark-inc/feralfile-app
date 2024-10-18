@@ -6,8 +6,8 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 extension StringExtension on String {
   String capitalize() =>
@@ -89,7 +89,7 @@ extension StringExtension on String {
   bool get isAutonomyDocumentLink =>
       (startsWith(AUTONOMY_DOCUMENT_PREFIX) ||
           startsWith(AUTONOMY_RAW_DOCUMENT_PREFIX)) &&
-      endsWith(MARKDOWN_EXT);
+      endsWith(markdownExt);
 
   String get autonomyRawDocumentLink =>
       replaceFirst(AUTONOMY_DOCUMENT_PREFIX, AUTONOMY_RAW_DOCUMENT_PREFIX)
@@ -145,11 +145,13 @@ extension StringExtension on String {
         return RenderingType.modelViewer;
 
       default:
-        return mimeType;
+        return RenderingType.webview;
     }
   }
 
   String get hexToDecimal => BigInt.parse(this, radix: 16).toString();
+
+  bool get isDecimal => RegExp(r'^[0-9]+$').hasMatch(this);
 
   bool get isHex {
     String hexString = this;

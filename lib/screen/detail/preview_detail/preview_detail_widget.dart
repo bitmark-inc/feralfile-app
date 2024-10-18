@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
@@ -20,14 +21,12 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_rendering/nft_rendering.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
-  final Function({InAppWebViewController? webViewController, int? time})?
-      onLoaded;
+  final Function({WebViewController? webViewController, int? time})? onLoaded;
   final Function({int? time})? onDispose;
   final bool isMute;
   final FocusNode? focusNode;
@@ -44,10 +43,10 @@ class ArtworkPreviewWidget extends StatefulWidget {
   });
 
   @override
-  State<ArtworkPreviewWidget> createState() => _ArtworkPreviewWidgetState();
+  State<ArtworkPreviewWidget> createState() => ArtworkPreviewWidgetState();
 }
 
-class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
+class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
   final bloc =
       ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
@@ -60,6 +59,15 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         useIndexer: widget.useIndexer));
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant ArtworkPreviewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.identity != widget.identity) {
+      bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
+          useIndexer: widget.useIndexer));
+    }
   }
 
   @override
@@ -104,6 +112,22 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     }
   }
 
+  void pause() {
+    unawaited(_renderingWidget?.resume());
+  }
+
+  void resume() {
+    unawaited(_renderingWidget?.resume());
+  }
+
+  void mute() {
+    unawaited(_renderingWidget?.mute());
+  }
+
+  void unmute() {
+    unawaited(_renderingWidget?.unmute());
+  }
+
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
@@ -137,7 +161,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           assetToken,
                           attempt: attempt > 0 ? attempt : null,
                           onLoaded: widget.onLoaded,
-                          onDispose: widget.onLoaded,
+                          onDispose: widget.onDispose,
                           overriddenHtml: state.overriddenHtml,
                           isMute: widget.isMute,
                           focusNode: widget.focusNode,

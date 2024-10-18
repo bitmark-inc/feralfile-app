@@ -38,11 +38,10 @@ AppBar getBackAppBar(
         statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
-    leadingWidth: 44,
     scrolledUnderElevation: 0,
     leading: onBack != null
         ? backButton(context, onBack: onBack, color: primaryColor)
-        : const SizedBox(width: 36),
+        : const SizedBox(width: 56),
     automaticallyImplyLeading: false,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -60,13 +59,18 @@ AppBar getBackAppBar(
     actions: [
       ...actions ?? [],
       if (action != null)
-        Padding(
-          padding: const EdgeInsets.only(right: 15),
-          child: IconButton(
-            tooltip: 'AppbarAction',
-            constraints: const BoxConstraints(maxWidth: 36),
-            onPressed: action,
-            icon: icon ??
+        IconButton(
+          tooltip: 'AppbarAction',
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
+          onPressed: action,
+          icon: Padding(
+            padding: const EdgeInsets.all(5),
+            child: icon ??
                 Icon(
                   Icons.more_horiz,
                   color: primaryColor,
@@ -74,7 +78,7 @@ AppBar getBackAppBar(
           ),
         )
       else
-        const SizedBox(width: 36),
+        const SizedBox(width: 44),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
     surfaceTintColor: surfaceTintColor ?? Colors.transparent,
@@ -270,7 +274,7 @@ AppBar getDoneAppBar(
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(
-        padding: const EdgeInsets.only(left: 14),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
         child: Center(
           child: Text(
             tr('cancel'),
@@ -284,13 +288,16 @@ AppBar getDoneAppBar(
         padding: const EdgeInsets.only(right: 14),
         child: GestureDetector(
           onTap: onDone,
-          child: Center(
-            child: Text(
-              tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+            child: Center(
+              child: Text(
+                tr('done'),
+                style: (onDone != null)
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black14
+                        .copyWith(color: AppColor.disabledColor),
+              ),
             ),
           ),
         ),
@@ -316,6 +323,7 @@ AppBar getCustomDoneAppBar(
   bool isWhite = true,
 }) {
   final theme = Theme.of(context);
+  final textColor = isWhite ? AppColor.primaryBlack : AppColor.white;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
@@ -330,33 +338,31 @@ AppBar getCustomDoneAppBar(
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(
-        padding: const EdgeInsets.only(left: 14),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
         child: Center(
           child: Text(
             tr('cancel'),
-            style: theme.textTheme.ppMori400Black14,
+            style: theme.textTheme.ppMori400Black14.copyWith(color: textColor),
           ),
         ),
       ),
     ),
     actions: [
-      Padding(
-        padding: const EdgeInsets.only(right: 14),
-        child: GestureDetector(
-          onTap: onDone,
+      GestureDetector(
+        onTap: onDone,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
           child: Center(
             child: Text(
               tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+              style: theme.textTheme.ppMori700Black14.copyWith(
+                  color: (onDone != null) ? textColor : AppColor.disabledColor),
             ),
           ),
         ),
       ),
     ],
-    backgroundColor: AppColor.white,
+    backgroundColor: Colors.transparent,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,
@@ -368,32 +374,34 @@ AppBar getPlaylistAppBar(
   BuildContext context, {
   required Widget title,
   required List<Widget> actions,
+  double adjustLeftTitleWith = 0.0,
 }) =>
     AppBar(
       systemOverlayStyle: systemUiOverlayDarkStyle,
       elevation: 0,
       shadowColor: Colors.transparent,
-      leading: Row(
-        children: [
-          const SizedBox(width: 15),
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: AppColor.auGreyBackground,
-              borderRadius: BorderRadius.circular(50),
+      leading: Semantics(
+          label: 'BACK',
+          child: Padding(
+            padding: EdgeInsets.only(right: adjustLeftTitleWith),
+            child: IconButton(
+              constraints: const BoxConstraints(
+                maxWidth: 44,
+                maxHeight: 44,
+                minWidth: 44,
+                minHeight: 44,
+              ),
+              onPressed: () => Navigator.pop(context),
+              icon: SvgPicture.asset(
+                'assets/images/ff_back_dark.svg',
+                width: 28,
+                height: 28,
+              ),
             ),
-            padding: const EdgeInsets.all(10),
-            child: backButton(
-              context,
-              onBack: () => Navigator.pop(context),
-              color: AppColor.white,
-            ),
-          ),
-        ],
-      ),
-      leadingWidth: 70,
+          )),
+      leadingWidth: 70 + adjustLeftTitleWith,
       titleSpacing: 0,
+      toolbarHeight: 119 - MediaQuery.paddingOf(context).top,
       backgroundColor: AppColor.primaryBlack,
       automaticallyImplyLeading: false,
       centerTitle: true,
@@ -410,6 +418,7 @@ AppBar getFFAppBar(
   required Function()? onBack,
   Widget? title,
   Widget? action,
+  bool? centerTitle = true,
 }) {
   const secondaryColor = AppColor.primaryBlack;
   return AppBar(
@@ -417,30 +426,36 @@ AppBar getFFAppBar(
           statusBarColor: secondaryColor,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark),
-      centerTitle: true,
+      centerTitle: centerTitle,
       toolbarHeight: 66,
-      leadingWidth: 44,
       scrolledUnderElevation: 0,
       leading: onBack != null
           ? Semantics(
               label: 'BACK',
               child: IconButton(
-                constraints: const BoxConstraints(maxWidth: 34),
-                onPressed: onBack,
+                onPressed: () => Navigator.pop(context),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
                 icon: SvgPicture.asset(
                   'assets/images/ff_back_dark.svg',
+                  width: 28,
+                  height: 28,
                 ),
-                padding: const EdgeInsets.only(left: 15),
-              ))
-          : const SizedBox(width: 36),
+              ),
+            )
+          : const SizedBox(width: 44),
       automaticallyImplyLeading: false,
       title: title,
       actions: [
         if (action != null)
           Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6), child: action)
+              padding: const EdgeInsets.fromLTRB(0, 6, 15, 6), child: action)
         else
-          const SizedBox(width: 36),
+          const SizedBox(width: 44),
       ],
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -450,19 +465,27 @@ AppBar getFFAppBar(
 Widget backButton(BuildContext context,
         {required Function() onBack, Color? color}) =>
     Semantics(
-      label: 'BACK',
-      child: IconButton(
-        onPressed: onBack,
-        constraints: const BoxConstraints(),
-        padding: const EdgeInsets.all(0),
-        iconSize: 11,
-        icon: SvgPicture.asset(
-          'assets/images/icon_back.svg',
-          colorFilter:
-              color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
-        ),
-      ),
-    );
+        label: 'BACK',
+        child: IconButton(
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
+          onPressed: onBack,
+          icon: Padding(
+            padding: const EdgeInsets.all(10),
+            child: SvgPicture.asset(
+              'assets/images/icon_back.svg',
+              width: 24,
+              height: 24,
+              colorFilter: color != null
+                  ? ColorFilter.mode(color, BlendMode.srcIn)
+                  : null,
+            ),
+          ),
+        ));
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart

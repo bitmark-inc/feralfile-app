@@ -32,11 +32,9 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -45,6 +43,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
@@ -76,8 +75,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
 
   PostcardDetailPagePayload(
-    super.identities,
-    super.currentIndex, {
+    super.identity, {
     super.key,
     super.playlist,
     super.twitterCaption,
@@ -115,7 +113,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _postcardService = injector<PostcardService>();
   final _remoteConfig = injector<RemoteConfigService>();
   Prompt? _prompt;
-  final _metricClientService = injector<MetricClientService>();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -127,8 +125,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     isAutoStampIfNeed = true;
     super.initState();
     context.read<PostcardDetailBloc>().add(
-          PostcardDetailGetInfoEvent(
-              widget.payload.identities[widget.payload.currentIndex],
+          PostcardDetailGetInfoEvent(widget.payload.identity,
               useIndexer: widget.payload.useIndexer ||
                   widget.payload.isFromLeaderboard),
         );
@@ -138,12 +135,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
-      MixpanelProp.tokenId:
-          widget.payload.identities[widget.payload.currentIndex],
-    });
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   Future<void> _showSharingExpired(BuildContext context) async {
     await UIHelper.showPostcardDrawerAction(context, options: [
@@ -368,10 +360,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
       }
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        unawaited(current.assetToken?.sendViewArtworkEvent());
-      }
       return true;
     }, listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
@@ -398,7 +386,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           isAutoStampIfNeed = false;
           unawaited(
               retryStampPostcardIfNeed(context, assetToken).then((final value) {
-            if (mounted && value == false) {
+            if (context.mounted && value == false) {
               UIHelper.showPostcardStampFailed(context);
             }
           }));
@@ -436,7 +424,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 element.id == assetToken.id &&
                 element.owner == assetToken.owner);
         if (!alreadyShowPostcardUpdate) {
-          if (_configurationService.isNotificationEnabled() != true) {
+          if (!_configurationService.isNotificationEnabled()) {
             if (!mounted) {
               return;
             }
@@ -646,7 +634,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void _refreshPostcard() {
     log.info('Refresh postcard');
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
-          widget.payload.identities[widget.payload.currentIndex],
+          widget.payload.identity,
           useIndexer: true,
         ));
   }
@@ -800,7 +788,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             onTap: () async {
               final indexId = assetToken.id;
               final jwtToken =
-                  (await injector<AuthService>().getAuthToken()).jwtToken;
+                  (await injector<AuthService>().getAuthToken())!.jwtToken;
               final userIndex = assetToken.stampIndex;
               log.info('?indexId=$indexId&userIndex=$userIndex');
               if (!context.mounted) {
@@ -813,6 +801,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               await Navigator.of(context).pushNamed(AppRouter.irlWebView,
                   arguments: IRLWebScreenPayload(url,
                       statusBarColor: const Color.fromRGBO(242, 242, 242, 1),
+                      isDarkStatusBar: false,
                       isPlainUI: true,
                       localStorageItems: {'token': jwtToken}));
             },
@@ -892,12 +881,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .moMASans700Black16
                     .copyWith(fontSize: 18),
               ),
-              onTap: () {
-                unawaited(Navigator.pushNamed(
-                  context,
-                  AppRouter.inappWebviewPage,
-                  arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
-                ));
+              onTap: () async {
+                await _browser.openUrl(POSTCARD_ABOUT_THE_PROJECT);
               },
             ),
           ),
@@ -1210,7 +1195,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           onTap: () async {
             await _configurationService
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            await injector<SettingsDataService>().backup();
+            await injector<SettingsDataService>().backupUserSettings();
 
             if (!context.mounted) {
               return;

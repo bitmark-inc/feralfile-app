@@ -9,10 +9,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -21,7 +20,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NameViewOnlyAddressPage extends StatefulWidget {
   final Connection connection;
@@ -108,14 +106,17 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
               Row(
                 children: [
                   Expanded(
-                    child: PrimaryButton(
+                    child: PrimaryAsyncButton(
                       text: 'continue'.tr(),
                       onTap: _isSavingAliasDisabled
                           ? null
-                          : () {
-                              context.read<AccountsBloc>().add(
-                                  NameLinkedAccountEvent(
-                                      widget.connection, _nameController.text));
+                          : () async {
+                              final newConnection = widget.connection
+                                ..name = _nameController.text;
+
+                              await injector<CloudManager>()
+                                  .connectionObject
+                                  .writeConnection(newConnection);
                               _doneNaming();
                             },
                     ),
@@ -130,14 +131,9 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   }
 
   void _doneNaming() {
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.homePageNoTransition ||
-          route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.walletPage);
-    } else {
-      unawaited(injector<ConfigurationService>().setDoneOnboarding(true));
-      unawaited(Navigator.of(context).pushNamed(AppRouter.homePage));
-    }
+    Navigator.of(context).popUntil((route) =>
+        route.settings.name == AppRouter.homePageNoTransition ||
+        route.settings.name == AppRouter.homePage ||
+        route.settings.name == AppRouter.walletPage);
   }
 }

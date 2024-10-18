@@ -8,11 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -114,7 +111,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                   children: [
                     addTitleSpace(),
                     Text(
-                      'autonomy_will_auto_bk'.tr(),
+                      'autonomy_will_auto_bk_android'.tr(),
                       style: theme.textTheme.ppMori400Black14,
                     ),
                     const SizedBox(height: 15),
@@ -148,16 +145,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
 
   Widget _buttonsGroup(BuildContext context) {
     if (isEncryptionAvailable == true) {
-      return Row(
-        children: [
-          Expanded(
-            child: PrimaryButton(
-              text: 'continue'.tr(),
-              onTap: () => _continue(context),
-            ),
-          ),
-        ],
-      );
+      return const SizedBox();
     } else {
       return Column(
         children: [
@@ -187,15 +175,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   }
 
   void _continue(BuildContext context) {
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.tbConnectPage ||
-          route.settings.name == AppRouter.wc2ConnectPage ||
-          route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition);
-    } else {
-      unawaited(doneOnboarding(context));
-    }
+    Navigator.of(context).pop();
   }
 }
 

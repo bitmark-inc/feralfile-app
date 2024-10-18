@@ -249,6 +249,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                     placeholder: 'paste_or_scan_address'.tr(),
                                     controller: _addressController,
                                     isError: state.isAddressError,
+                                    enableSuggestions: false,
                                     suffix: IconButton(
                                       icon: Icon(
                                         state.isScanQR
@@ -264,20 +265,23 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                               AddressChangedEvent('', index));
                                           _initialChangeAddress = true;
                                         } else {
-                                          dynamic address = await Navigator.of(
-                                                  context)
-                                              .pushNamed(AppRouter.scanQRPage,
-                                                  arguments: asset.blockchain ==
-                                                          'ethereum'
+                                          dynamic address =
+                                              await Navigator.of(context)
+                                                  .pushNamed(
+                                            AppRouter.scanQRPage,
+                                            arguments: ScanQRPagePayload(
+                                              scannerItem:
+                                                  asset.blockchain == 'ethereum'
                                                       ? ScannerItem.ETH_ADDRESS
-                                                      : ScannerItem
-                                                          .XTZ_ADDRESS);
+                                                      : ScannerItem.XTZ_ADDRESS,
+                                            ),
+                                          );
                                           if (address != null &&
                                               address is String) {
                                             address = address.replacePrefix(
                                                 'ethereum:', '');
                                             _addressController.text = address;
-                                            if (!mounted) {
+                                            if (!context.mounted) {
                                               return;
                                             }
                                             context.read<SendArtworkBloc>().add(
@@ -618,6 +622,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                 ),
                 const SizedBox(height: 8),
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400White14,
                     children: [

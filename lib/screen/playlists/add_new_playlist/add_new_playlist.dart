@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -61,9 +60,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     _controller
       ..addListener(_scrollListenerToLoadMore)
       ..addListener(_scrollListenerToShowSearchBar);
-    unawaited(refreshTokens().then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
+    refreshTokens();
+    nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     bloc.add(InitPlaylist(playListModel: widget.playListModel));
     WidgetsBinding.instance.addPostFrameCallback((context) {
       _focusCollectionName();
@@ -71,11 +69,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(
-        injector<ConfigurationService>().setAlreadyShowCreatePlaylistTip(true));
-    injector<ConfigurationService>().showCreatePlaylistTip.value = false;
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   void _focusCollectionName() {
     FocusScope.of(context).requestFocus(_focusNode);
@@ -110,10 +104,10 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
-  Future<List<String>> getManualTokenIds() async {
-    final cloudDb = injector<CloudDatabase>();
-    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
-            ConnectionType.manuallyIndexerTokenID.rawValue))
+  List<String> getManualTokenIds() {
+    final cloudObject = injector<CloudManager>();
+    final tokenIndexerIDs = cloudObject.connectionObject
+        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
         .map((e) => e.key)
         .toList();
     return tokenIndexerIDs;
@@ -124,8 +118,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     return await accountService.getAllAddresses();
   }
 
-  Future refreshTokens() async {
-    final indexerIds = await getManualTokenIds();
+  void refreshTokens() {
+    final indexerIds = getManualTokenIds();
 
     nftBloc.add(RefreshNftCollectionByOwners(
       debugTokens: indexerIds,
@@ -166,15 +160,15 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
         final isDone =
             playlistName.isNotEmpty && selectedIDs?.isNotEmpty == true;
         return Scaffold(
-          backgroundColor: AppColor.white,
+          backgroundColor: AppColor.primaryBlack,
           appBar: getCustomDoneAppBar(
             context,
             title: TextFieldWidget(
               focusNode: _focusNode,
-              hintText: 'new_collection'.tr(),
+              hintText: 'new_playlist'.tr(),
               controller: _playlistNameC,
-              cursorColor: theme.colorScheme.primary,
-              style: theme.textTheme.ppMori400Black14,
+              cursorColor: AppColor.white,
+              style: theme.textTheme.ppMori400White14,
               hintStyle: theme.textTheme.ppMori400Grey14,
               textAlign: TextAlign.center,
               border: InputBorder.none,
@@ -189,6 +183,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                 });
               },
             ),
+            isWhite: false,
             onDone: !isDone
                 ? null
                 : () {
@@ -218,7 +213,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
             ),
           ),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: SystemUiOverlayStyle.light,
+            value: SystemUiOverlayStyle.dark,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                 bloc: nftBloc,
                 builder: (context, nftState) => SafeArea(

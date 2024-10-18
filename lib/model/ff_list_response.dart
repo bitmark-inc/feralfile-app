@@ -1,6 +1,6 @@
 class FeralFileListResponse<T> {
   final List<T> result;
-  final Paging paging;
+  final Paging? paging;
 
   FeralFileListResponse({required this.result, required this.paging});
 
@@ -12,12 +12,12 @@ class FeralFileListResponse<T> {
         result: (json['result'] as List<dynamic>)
             .map((e) => fromJson(e as Map<String, dynamic>))
             .toList(),
-        paging: Paging.fromJson(json['paging']),
+        paging: json['paging'] == null ? null : Paging.fromJson(json['paging']),
       );
 
   Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJson) => {
         'result': result.map((e) => toJson(e)).toList(),
-        'paging': paging.toJson(),
+        'paging': paging?.toJson(),
       };
 
   FeralFileListResponse<T> copyWith({

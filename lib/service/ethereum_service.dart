@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ether_amount_ext.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -20,6 +19,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:sentry/sentry.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -58,7 +58,7 @@ abstract class EthereumService {
       int quantity,
       {FeeOption? feeOption});
 
-  Future<BigInt> getERC20TokenBalance(
+  Future<BigInt?> getERC20TokenBalance(
       EthereumAddress contractAddress, EthereumAddress owner);
 
   Future<String?> getERC20TransferTransactionData(
@@ -68,8 +68,6 @@ abstract class EthereumService {
       BigInt quantity,
       {FeeOption? feeOption});
 
-  Future<List<String>> getPublicRecordOwners(BigInt startIndex, BigInt count);
-
   Future<String> getFeralFileTokenMetadata(
       EthereumAddress contract, Uint8List data);
 }
@@ -78,11 +76,10 @@ class EthereumServiceImpl extends EthereumService {
   final Web3Client _web3Client;
   final EtherchainApi _etherchainApi;
   final HiveService _hiveService;
-  final RemoteConfigService _remoteConfigService;
   final NetworkIssueManager _networkIssueManager;
 
   EthereumServiceImpl(this._web3Client, this._etherchainApi, this._hiveService,
-      this._remoteConfigService, this._networkIssueManager);
+      this._networkIssueManager);
 
   @override
   Future<FeeOptionValue> estimateFee(WalletStorage wallet, int index,
@@ -343,7 +340,7 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<BigInt> getERC20TokenBalance(
+  Future<BigInt?> getERC20TokenBalance(
     EthereumAddress contractAddress,
     EthereumAddress owner, {
     bool doRetry = false,
@@ -352,16 +349,22 @@ class EthereumServiceImpl extends EthereumService {
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, 'ERC20'), contractAddress);
     ContractFunction balanceFunction() => contract.function('balanceOf');
+    try {
+      var response = await _networkIssueManager.retryOnConnectIssueTx(() {
+        _web3Client.call(
+          contract: contract,
+          function: balanceFunction(),
+          params: [owner],
+        );
+      }, maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0);
 
-    var response = await _networkIssueManager.retryOnConnectIssueTx(
-        () => _web3Client.call(
-              contract: contract,
-              function: balanceFunction(),
-              params: [owner],
-            ),
-        maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0);
-
-    return response.first as BigInt;
+      return response.first as BigInt;
+    } catch (e) {
+      log.info(
+          '[EthereumService] getERC20TokenBalance failed - fallback RPC $e');
+      unawaited(Sentry.captureException('Failed to get ERC20 balance: $e'));
+      return null;
+    }
   }
 
   @override
@@ -414,54 +417,6 @@ class EthereumServiceImpl extends EthereumService {
     }
 
     return transaction.data != null ? bytesToHex(transaction.data!) : null;
-  }
-
-  @override
-  Future<List<String>> getPublicRecordOwners(
-      BigInt startIndex, BigInt count) async {
-    try {
-      log.info('[EthereumService] getPublicRecordOwners '
-          '- startIndex: $startIndex - count: $count');
-      final List<String> result = [];
-      final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
-          ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
-
-      final contractJson =
-          await rootBundle.loadString('assets/data-owner-abi.json');
-      final ownerDataContractAddress =
-          EthereumAddress.fromHex(config['owner_data_contract']);
-      final contract = DeployedContract(
-          ContractAbi.fromJson(contractJson, 'OwnerData'),
-          ownerDataContractAddress);
-      ContractFunction getFunction() => contract.function('get');
-
-      final exhibitionContract =
-          EthereumAddress.fromHex(config['moma_exhibition_contract']);
-
-      final owners = await _web3Client
-          .call(contract: contract, function: getFunction(), params: [
-        exhibitionContract,
-        BigInt.parse(config['public_token_id']),
-        startIndex,
-        count,
-      ]);
-      for (var ownerData in owners[0]) {
-        final hash = ownerData[1];
-        if (hash == null || hash.isEmpty) {
-          result.add('');
-          continue;
-        }
-        final EthereumAddress owner = ownerData[0];
-        result.add(owner.hexEip55);
-      }
-      log.info(
-          '[EthereumService] getPublicRecordOwners - result: ${result.length}');
-      return result;
-    } catch (e) {
-      log.info(
-          '[EthereumService] getPublicRecordOwners failed - fallback RPC $e');
-      return [];
-    }
   }
 
   @override

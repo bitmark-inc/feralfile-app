@@ -30,18 +30,17 @@ class GetAddressEvent extends USDCEvent {
 }
 
 class USDCState {
-  Map<String, String>? personaAddresses;
+  Map<String, String>? walletAddresses;
   Map<String, BigInt> usdcBalances;
 
-  USDCState(this.personaAddresses, this.usdcBalances);
+  USDCState(this.walletAddresses, this.usdcBalances);
 
   USDCState copyWith({
-    Map<String, String>? personaAddresses,
+    Map<String, String>? walletAddresses,
     Map<String, BigInt>? usdcBalances,
-  }) {
-    return USDCState(
-      personaAddresses ?? this.personaAddresses,
-      usdcBalances ?? this.usdcBalances,
-    );
-  }
+  }) =>
+      USDCState(
+        walletAddresses ?? this.walletAddresses,
+        usdcBalances ?? this.usdcBalances,
+      );
 }

@@ -5,11 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/dailies.dart';
+import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -21,7 +24,8 @@ abstract class FeralFileApi {
 
   @GET('/api/exhibitions/{exhibitionId}')
   Future<ExhibitionResponse> getExhibition(
-      @Path('exhibitionId') String exhibitionId);
+      @Path('exhibitionId') String exhibitionId,
+      {@Query('includeFirstArtwork') bool includeFirstArtwork = false});
 
   @GET('/api/series/{seriesId}')
   Future<FFSeriesResponse> getSeries({
@@ -38,7 +42,6 @@ abstract class FeralFileApi {
     @Query('sortBy') String? sortBy,
     @Query('sortOrder') String? sortOrder,
     @Query('includeArtist') bool includeArtist = true,
-    @Query('includeFirstArtwork') bool includeFirstArtwork = false,
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 
@@ -60,10 +63,22 @@ abstract class FeralFileApi {
     @Query('sortOrder') String? sortOrder,
     @Query('limit') int? limit,
     @Query('offset') int? offset,
+    @Query('keyword') String? keyword,
+    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('customQueryParams')
+    Map<String, dynamic> customQueryParam = const {},
   });
 
   @GET('/api/exhibitions/featured')
   Future<ExhibitionResponse> getFeaturedExhibition();
+
+  @GET('/api/artworks/featured')
+  Future<FFListArtworksResponse> getFeaturedArtworks({
+    @Query('includeArtist') bool includeArtist = true,
+    @Query('includeExhibition') bool includeExhibition = true,
+    @Query('includeExhibitionContract') bool includeExhibitionContract = true,
+    @Query('includeSuccessfulSwap') bool includeSuccessfulSwap = true,
+  });
 
   @GET('/api/exhibitions/upcoming')
   Future<ExhibitionResponse> getUpcomingExhibition();
@@ -78,19 +93,86 @@ abstract class FeralFileApi {
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',
     @Query('isViewable') bool? isViewable,
+    @Query('filterBurned') bool? filterBurned,
   });
 
-  @POST('/api/web3/messages/action')
-  Future<ActionMessageResponse> getActionMessage(
-    @Body() Map<String, dynamic> body,
-  );
+  // get list of dailies token
+  @GET('/api/dailies/upcoming')
+  Future<FeralFileListResponse<DailyToken>> getDailiesToken({
+    @Query('offset') int? offset = 0,
+    @Query('limit') int? limit = 1,
+    @Query('startDisplayTime') String? startDisplayTime,
+    @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
+  });
 
-  @GET('/api/artworks/{artworkId}/download-url')
-  Future<FeralFileResponse<String>> getDownloadUrl(
-    @Path('artworkId') String artworkId,
-    @Header('Web3Token') String web3Token,
-    @Header('X-FF-Signer') String signer,
-  );
+  // get list daily token by date with local time
+  @GET('/api/dailies/date/{date}')
+  Future<FeralFileListResponse<DailyToken>> getDailiesTokenByDate({
+    @Path('date') required String date,
+    @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
+  });
+
+  @GET('/api/series')
+  Future<FeralFileListResponse<FFSeries>> exploreArtwork({
+    @Query('sortBy') String? sortBy,
+    @Query('sortOrder') String? sortOrder,
+    @Query('limit') int limit = 20,
+    @Query('offset') int offset = 0,
+    @Query('includeArtist') bool includeArtist = true,
+    @Query('includeExhibition') bool includeExhibition = true,
+    @Query('includeFirstArtwork') bool includeFirstArtwork = true,
+    @Query('onlyViewable') bool onlyViewable = true,
+    @Query('keyword') String keyword = '',
+    @Query('artistIDs') List<String> artistIDs = const [],
+    @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
+    // custom query params
+    @Query('customQueryParams')
+    Map<String, dynamic> customQueryParam = const {},
+  });
+
+  @GET('/api/artists')
+  Future<FeralFileListResponse<FFUser>> getArtists({
+    @Query('limit') int limit = 20,
+    @Query('offset') int offset = 0,
+    @Query('sortBy') String sortBy = 'relevance',
+    @Query('sortOrder') String sortOrder = 'DESC',
+    @Query('keyword') String keyword = '',
+    @Query('unique') bool unique = true,
+  });
+
+  @GET('/api/curators')
+  Future<FeralFileListResponse<FFUser>> getCurators({
+    @Query('limit') int limit = 20,
+    @Query('offset') int offset = 0,
+    @Query('sortBy') String sortBy = 'relevance',
+    @Query('sortOrder') String sortOrder = 'DESC',
+    @Query('keyword') String keyword = '',
+    @Query('unique') bool unique = true,
+    @Query('excludedFF') bool excludedFF = true,
+  });
+
+  @GET('/api/exploration/statistics')
+  Future<ExploreStatisticsData> getExploreStatistics({
+    @Query('unique') bool unique = true,
+    @Query('excludedFF') bool excludedFF = true,
+  });
+
+  @GET('/api/accounts/{accountId}')
+  Future<FeralFileResponse<FFUser>> getUser({
+    @Path('accountId') String accountId = '',
+    @Query('includeLinkedAccounts') bool includeLinkedAccounts = true,
+    @Query('includeCollaborationAccounts')
+    bool includeCollaborationAccounts = true,
+  });
+
+  @GET('/api/posts')
+  Future<FeralFileListResponse<Post>> getPosts({
+    @Query('sortBy') String sortBy = 'dateTime',
+    @Query('sortOrder') String sortOrder = 'DESC',
+    @Query('types') List<String> types = const [],
+    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('includeExhibition') bool includeExhibition = true,
+  });
 }
 
 class ActionMessageResponse {
@@ -124,14 +206,31 @@ class FFListSeriesResponse {
       };
 }
 
+class FFListArtworksResponse {
+  List<Artwork> result;
+
+  FFListArtworksResponse({required this.result});
+
+  factory FFListArtworksResponse.fromJson(Map<String, dynamic> json) =>
+      FFListArtworksResponse(
+        result:
+            (json['result'] as List).map((e) => Artwork.fromJson(e)).toList(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'result': result,
+      };
+}
+
 class FeralFileResponse<T> {
   T result;
 
   FeralFileResponse({required this.result});
 
-  factory FeralFileResponse.fromJson(Map<String, dynamic> json) =>
+  factory FeralFileResponse.fromJson(Map<String, dynamic> json,
+          {T Function(Map<String, dynamic>)? fromJson}) =>
       FeralFileResponse(
-        result: json['result'],
+        result: fromJson != null ? fromJson(json['result']) : json['result'],
       );
 
   Map<String, dynamic> toJson() => {

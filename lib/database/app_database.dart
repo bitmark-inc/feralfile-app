@@ -7,10 +7,8 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
-import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -23,22 +21,18 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
-@Database(version: 19, entities: [
+@Database(version: 20, entities: [
   Identity,
   DraftCustomerSupport,
-  AnnouncementLocal,
 ])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
 
   DraftCustomerSupportDao get draftCustomerSupportDao;
 
-  AnnouncementLocalDao get announcementDao;
-
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
-    await announcementDao.removeAll();
   }
 }
 
@@ -158,4 +152,8 @@ final migrateV17ToV18 = Migration(17, 18, (database) async {
 final migrateV18ToV19 = Migration(18, 19, (database) async {
   await database.execute('DROP TABLE IF EXISTS CanvasDevice;');
   await database.execute('DROP TABLE IF EXISTS Scene;');
+});
+
+final migrateV19ToV20 = Migration(19, 20, (database) async {
+  await database.execute('DROP TABLE IF EXISTS AnnouncementLocal;');
 });

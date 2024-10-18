@@ -59,14 +59,14 @@ class DraftCustomerSupportData {
   List<LocalAttachment>? attachments;
   String? title;
   int rating;
-  String? announcementId;
+  String? artworkReportID;
 
   DraftCustomerSupportData({
     this.text,
     this.attachments,
     this.title,
+    this.artworkReportID,
     this.rating = 0,
-    this.announcementId,
   });
 
   factory DraftCustomerSupportData.fromJson(Map<String, dynamic> json) =>

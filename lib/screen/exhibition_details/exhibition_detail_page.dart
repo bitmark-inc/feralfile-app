@@ -2,25 +2,28 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/custom_note.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -38,7 +41,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
 
-  final _metricClientService = injector<MetricClientService>();
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
   late final PageController _controller;
@@ -66,6 +68,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           listenWhen: (previous, current) {
             if (previous.exhibition == null && current.exhibition != null) {
               _stream(current.exhibition!);
+              _sendMetricViewExhibition();
             }
             return true;
           });
@@ -73,12 +76,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   Widget _body(BuildContext context, ExhibitionDetailState state) {
     final exhibition = state.exhibition;
     if (exhibition == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const LoadingWidget();
     }
 
-    final itemCount = (exhibition.series?.length ?? 0) + 3;
+    // if exhibition is not minted, show only preview page
+    final itemCount =
+        !exhibition.isMinted ? 3 : ((exhibition.displayableSeries.length) + 3);
     return Column(
       children: [
         Expanded(
@@ -88,7 +91,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               setState(() {
                 _currentIndex = index;
               });
-              _stream(exhibition);
+              if (index < itemCount - 1) {
+                _stream(exhibition);
+                _sendMetricViewExhibition();
+              }
             },
             scrollDirection: Axis.vertical,
             itemCount: itemCount,
@@ -110,7 +116,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                   return _notePage(exhibition);
                 default:
                   final seriesIndex = index - 2;
-                  final series = exhibition.series![seriesIndex];
+                  final series =
+                      exhibition.displayableSeries.sorted[seriesIndex];
                   final artwork = series.artwork;
                   if (artwork == null) {
                     return const SizedBox();
@@ -119,7 +126,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                     padding: const EdgeInsets.only(bottom: 40),
                     child: FeralFileArtworkPreview(
                       payload: FeralFileArtworkPreviewPayload(
-                        artwork: artwork.copyWith(series: series),
+                        artwork: artwork.copyWith(
+                            series: series.copyWith(exhibition: exhibition)),
                       ),
                     ),
                   );
@@ -130,6 +138,23 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
       ],
     );
+  }
+
+  void _sendMetricViewExhibition() {
+    final exhibition = _exBloc.state.exhibition;
+    if (exhibition == null) {
+      return;
+    }
+
+    final request = _getCastExhibitionRequest(exhibition);
+    final data = {
+      MetricParameter.exhibitionId: request.exhibitionId,
+      MetricParameter.section: request.catalog.metricName,
+      if (request.catalog == ExhibitionCatalog.artwork)
+        MetricParameter.tokenId: request.catalogId,
+    };
+    injector<MetricClientService>()
+        .addEvent(MetricEventName.exhibitionView, data: data);
   }
 
   void _stream(Exhibition exhibition) {
@@ -160,16 +185,39 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         child: RotatedBox(
           quarterTurns: 3,
           child: IconButton(
-            padding: const EdgeInsets.all(0),
             onPressed: () async => _controller.nextPage(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn),
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
             icon: SvgPicture.asset(
               'assets/images/ff_back_dark.svg',
             ),
           ),
         ),
       );
+
+  List<Widget> _resource(Exhibition exhibition) {
+    final resources = <Widget>[];
+    for (final resource in exhibition.allResources) {
+      if (resource is CustomExhibitionNote) {
+        resources.add(ExhibitionCustomNote(
+          info: resource,
+        ));
+      }
+      if (resource is Post) {
+        resources.add(ExhibitionPostView(
+          post: resource,
+          exhibitionID: exhibition.id,
+        ));
+      }
+    }
+    return resources;
+  }
 
   Widget _notePage(Exhibition exhibition) => LayoutBuilder(
         builder: (context, constraints) => Center(
@@ -178,13 +226,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               ExhibitionNoteView(
                 exhibition: exhibition,
               ),
-              ...exhibition.posts
-                      ?.where((post) => post.coverURI != null)
-                      .map((e) => ExhibitionPostView(
-                            post: e,
-                            exhibitionID: exhibition.id,
-                          )) ??
-                  []
+              ..._resource(exhibition),
             ],
             options: CarouselOptions(
               aspectRatio: constraints.maxWidth / constraints.maxHeight,
@@ -206,17 +248,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         buildContext,
         onBack: () => Navigator.pop(buildContext),
         action: exhibition != null
-            ? Padding(
-                padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-                child: FFCastButton(
-                  displayKey: exhibition.id,
-                  onDeviceSelected: (device) async {
-                    final request = _getCastExhibitionRequest(exhibition);
-                    _canvasDeviceBloc.add(
-                      CanvasDeviceCastExhibitionEvent(device, request),
-                    );
-                  },
-                ),
+            ? FFCastButton(
+                displayKey: exhibition.id,
+                onDeviceSelected: (device) async {
+                  final request = _getCastExhibitionRequest(exhibition);
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastExhibitionEvent(device, request),
+                  );
+                },
               )
             : null,
       );
@@ -233,12 +272,13 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           catalog = ExhibitionCatalog.curatorNote;
         } else {
           catalog = ExhibitionCatalog.resource;
-          catalogId = exhibition.posts![_carouselIndex - 1].id;
+          catalogId = exhibition.allResources[_carouselIndex - 1].id;
         }
       default:
         catalog = ExhibitionCatalog.artwork;
         final seriesIndex = _currentIndex - 2;
-        final currentArtwork = exhibition.series?[seriesIndex].artwork?.id;
+        final currentArtwork =
+            exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
         catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);
@@ -258,15 +298,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   }
 
   @override
-  FutureOr<void> afterFirstLayout(BuildContext context) {
-    _metricClientService.addEvent(
-      MixpanelEvent.viewExhibition,
-      data: {
-        MixpanelProp.exhibitionId:
-            widget.payload.exhibitions[widget.payload.index].id,
-      },
-    );
-  }
+  FutureOr<void> afterFirstLayout(BuildContext context) {}
 }
 
 class ExhibitionDetailPayload {

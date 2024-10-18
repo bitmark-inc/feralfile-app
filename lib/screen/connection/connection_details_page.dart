@@ -171,6 +171,7 @@ class ConnectionDetailsPage extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               RichText(
+                textScaler: MediaQuery.textScalerOf(context),
                 text: TextSpan(
                   style: theme.primaryTextTheme.ppMori400White14,
                   children: <TextSpan>[

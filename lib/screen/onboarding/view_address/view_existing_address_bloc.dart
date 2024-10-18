@@ -4,7 +4,8 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/domain_address_service.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 import 'package:synchronized/synchronized.dart';
 
 class ViewExistingAddressBloc

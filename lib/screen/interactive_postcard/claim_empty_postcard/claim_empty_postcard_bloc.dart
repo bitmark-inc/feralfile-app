@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -114,17 +113,12 @@ class ClaimEmptyPostCardBloc
     on<AcceptGiftEvent>((event, emit) async {
       emit(state.copyWith(isClaiming: true));
       String? address;
-      final addresses = await accountService.getAddress('Tezos');
+      final addresses = await accountService.getAddress('tezos');
       if (addresses.isEmpty) {
-        final defaultPersona = await accountService.getOrCreateDefaultPersona();
         await configService.setDoneOnboarding(true);
-        await configService.setPendingSettings(true);
-        await injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount();
 
         final walletAddress =
-            await defaultPersona.insertNextAddress(WalletType.Tezos);
+            await accountService.insertNextAddress(WalletType.Tezos);
         address = walletAddress.first.address;
       } else if (addresses.length == 1) {
         address = addresses.first;

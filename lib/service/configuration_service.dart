@@ -7,18 +7,13 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -29,9 +24,17 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  Future<void> setRecordOwners(List<String> owners, {bool override = false});
+  bool didMigrateToAccountSetting();
 
-  List<String> getRecordOwners();
+  Future<void> setMigrateToAccountSetting(bool value);
+
+  Future<void> setDidShowLiveWithArt(bool value);
+
+  bool didShowLiveWithArt();
+
+  Future<void> setLastPullAnnouncementTime(int lastPullTime);
+
+  int getLastPullAnnouncementTime();
 
   Future<void> setHasMerchandiseSupport(String indexId,
       {bool value = true, bool isOverride = false});
@@ -63,17 +66,13 @@ abstract class ConfigurationService {
 
   JWT? getIAPJWT();
 
-  Future<void> setPremium(bool value);
-
-  bool isPremium();
-
   Future<void> setDevicePasscodeEnabled(bool value);
 
   bool isDevicePasscodeEnabled();
 
   Future<void> setNotificationEnabled(bool value);
 
-  bool? isNotificationEnabled();
+  bool isNotificationEnabled();
 
   Future<void> setAnalyticEnabled(bool value);
 
@@ -83,33 +82,9 @@ abstract class ConfigurationService {
 
   bool isDoneOnboarding();
 
-  Future<void> setPendingSettings(bool value);
-
-  bool hasPendingSettings();
-
-  bool shouldShowSubscriptionHint();
-
-  Future setShouldShowSubscriptionHint(bool value);
-
   DateTime? getLastTimeAskForSubscription();
 
   Future setLastTimeAskForSubscription(DateTime date);
-
-  Future<void> setDoneOnboardingOnce(bool value);
-
-  bool isDoneOnboardingOnce();
-
-  Future<void> readRemoveSupport(bool value);
-
-  bool isReadRemoveSupport();
-
-  Future<void> setHideLinkedAccountInGallery(
-      List<String> address, bool isEnabled,
-      {bool override = false});
-
-  List<String> getLinkedAccountsHiddenInGallery();
-
-  bool isLinkedAccountHiddenInGallery(String value);
 
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
@@ -129,14 +104,6 @@ abstract class ConfigurationService {
 
   Future<void> setPreviousBuildNumber(String value);
 
-  List<PlayListModel> getPlayList();
-
-  Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort});
-
-  Future<void> removePlayList(String id);
-
   Future<String> getAccountHMACSecret();
 
   String? lastRemindReviewDate();
@@ -148,9 +115,6 @@ abstract class ConfigurationService {
   Future<void> setCountOpenApp(int? value);
 
   // ----- App Setting -----
-  bool isDemoArtworksMode();
-
-  Future<bool> toggleDemoArtworksMode();
 
   bool showTokenDebugInfo();
 
@@ -158,31 +122,7 @@ abstract class ConfigurationService {
 
   Future setDoneOnboardingTime(DateTime time);
 
-  DateTime? getDoneOnboardingTime();
-
   Future setSubscriptionTime(DateTime time);
-
-  DateTime? getSubscriptionTime();
-
-  Future setAlreadyShowProTip(bool show);
-
-  Future setAlreadyShowTvAppTip(bool show);
-
-  Future setAlreadyShowCreatePlaylistTip(bool show);
-
-  Future setAlreadyShowLinkOrImportTip(bool show);
-
-  bool getAlreadyShowProTip();
-
-  bool getAlreadyShowTvAppTip();
-
-  bool getAlreadyShowCreatePlaylistTip();
-
-  bool getAlreadyShowLinkOrImportTip();
-
-  DateTime? getShowBackupSettingTip();
-
-  Future setShowBackupSettingTip(DateTime time);
 
   // Do at once
 
@@ -197,17 +137,7 @@ abstract class ConfigurationService {
 
   Future<void> removeAll();
 
-  ValueNotifier<bool> get showNotifTip;
-
-  ValueNotifier<bool> get showProTip;
-
-  ValueNotifier<bool> get showTvAppTip;
-
-  ValueNotifier<bool> get showCreatePlaylistTip;
-
-  ValueNotifier<bool> get showLinkOrImportTip;
-
-  ValueNotifier<bool> get showBackupSettingTip;
+  ValueNotifier<bool> get showingNotification;
 
   List<SharedPostcard> getSharedPostcard();
 
@@ -249,17 +179,6 @@ abstract class ConfigurationService {
 
   Future<void> setVersionInfo(String version);
 
-  Future<void> updateShowAnnouncementNotificationInfo(
-    AnnouncementLocal announcement,
-  );
-
-  ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo();
-
-  // set and get for did_sync_artists
-  Future<void> setDidSyncArtists(bool value);
-
-  bool getDidSyncArtists();
-
   List<String> getHiddenOrSentTokenIDs();
 
   Future<void> setShowPostcardBanner(bool bool);
@@ -274,16 +193,23 @@ abstract class ConfigurationService {
       {bool override = false});
 
   List<String> getMerchandiseOrderIds();
+
+  Future<void> setReferralCode(String referralCode);
+
+  String? getReferralCode();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyRecordOwners = 'yoko_ono_record_owners';
+  static const String keyDidMigrateToAccountSetting =
+      'did_migrate_to_account_setting';
+  static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
+  static const String keyLastPullAnnouncementTime =
+      'last_pull_announcement_time';
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
       'has_merchandise_support';
   static const String KEY_POSTCARD_CHAT_CONFIG = 'postcard_chat_config';
   static const String KEY_DID_MIGRATE_ADDRESS = 'did_migrate_address';
   static const String KEY_HIDDEN_FEEDS = 'hidden_feeds';
-  static const String KEY_DID_SYNC_ARTISTS = 'did_sync_artists';
   static const String KEY_IAP_RECEIPT = 'key_iap_receipt';
   static const String KEY_IAP_JWT = 'key_iap_jwt';
   static const String IS_PREMIUM = 'is_premium';
@@ -291,15 +217,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_NOTIFICATION = 'notifications';
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
-  static const String KEY_PENDING_SETTINGS = 'has_pending_settings';
-  static const String READ_REMOVE_SUPPORT = 'read_remove_support';
-  static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
-      'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
       'last_time_ask_subscription';
-  static const String KEY_DONE_ONBOARING_ONCE = 'done_onboarding_once';
-  static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
-      'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
@@ -312,14 +231,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'announcement_last_pull_time';
   static const String OLD_USER = 'old_user';
 
+  static const String DID_RUN_SETUP = 'did_run_setup';
+
   // ----- App Setting -----
-  static const String KEY_APP_SETTING_DEMO_ARTWORKS =
-      'show_demo_artworks_preference';
   static const String KEY_PREVIOUS_BUILD_NUMBER = 'previous_build_number';
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
   static const String LAST_REMIND_REVIEW = 'last_remind_review';
   static const String COUNT_OPEN_APP = 'count_open_app';
-  static const String PLAYLISTS = 'playlists';
   static const String ALLOW_CONTRIBUTION = 'allow_contribution';
 
   static const String SHOW_AU_CHAIN_INFO = 'show_au_chain_info';
@@ -327,19 +245,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_DONE_ON_BOARDING_TIME = 'done_on_boarding_time';
 
   static const String KEY_SUBSCRIPTION_TIME = 'subscription_time';
-
-  static const String KEY_CAN_SHOW_PRO_TIP = 'show_pro_tip';
-
-  static const String KEY_CAN_SHOW_TV_APP_TIP = 'show_tv_app_tip';
-
-  static const String KEY_CAN_SHOW_CREATE_PLAYLIST_TIP =
-      'show_create_playlist_tip';
-
-  static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
-      'show_link_or_import_tip';
-
-  static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
-      'show_back_up_settings_tip';
 
   static const String KEY_STAMPING_POSTCARD = 'stamping_postcard';
 
@@ -357,9 +262,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_PACKAGE_INFO = 'package_info';
 
-  static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
-      'show_anouncement_notification_info';
-
   static const String KEY_PROCESSING_STAMP_POSTCARD =
       'processing_stamp_postcard';
 
@@ -369,41 +271,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
-  @override
-  Future setAlreadyShowProTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_PRO_TIP, show);
-  }
-
-  @override
-  Future setAlreadyShowTvAppTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_TV_APP_TIP, show);
-  }
-
-  @override
-  Future setAlreadyShowCreatePlaylistTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP, show);
-  }
-
-  @override
-  Future setAlreadyShowLinkOrImportTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP, show);
-  }
-
-  @override
-  bool getAlreadyShowProTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_PRO_TIP) ?? false;
-
-  @override
-  bool getAlreadyShowTvAppTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_TV_APP_TIP) ?? false;
-
-  @override
-  bool getAlreadyShowCreatePlaylistTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP) ?? false;
-
-  @override
-  bool getAlreadyShowLinkOrImportTip() =>
-      _preferences.getBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP) ?? false;
+  static const String KEY_REFERRAL_CODE = 'referral_code';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -462,23 +330,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool isAnalyticsEnabled() => _preferences.getBool(KEY_ANALYTICS) ?? true;
 
   @override
-  bool? isNotificationEnabled() => _preferences.getBool(KEY_NOTIFICATION);
+  bool isNotificationEnabled() =>
+      _preferences.getBool(KEY_NOTIFICATION) ?? false;
 
   @override
   bool isDoneOnboarding() => _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
-
-  @override
-  bool hasPendingSettings() =>
-      _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
-
-  @override
-  Future<void> setPendingSettings(bool value) async {
-    await _preferences.setBool(KEY_PENDING_SETTINGS, value);
-  }
-
-  @override
-  bool isDoneOnboardingOnce() =>
-      _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
 
   @override
   Future<void> setAnalyticEnabled(bool value) async {
@@ -495,53 +351,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (!currentValue && value && !getIsOldUser()) {
       await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
-      Future.delayed(const Duration(seconds: 2), () async {
-        await injector<CustomerSupportService>()
-            .createAnnouncement(AnnouncementID.WELCOME);
-      });
     }
-  }
-
-  @override
-  Future<void> setDoneOnboardingOnce(bool value) async {
-    log.info('setDoneOnboardingOnce: $value');
-    await _preferences.setBool(KEY_DONE_ONBOARING_ONCE, value);
   }
 
   @override
   Future<void> setNotificationEnabled(bool value) async {
     log.info('setNotificationEnabled: $value');
     await _preferences.setBool(KEY_NOTIFICATION, value);
-  }
-
-  @override
-  Future<void> setHideLinkedAccountInGallery(
-      List<String> addresses, bool isEnabled,
-      {bool override = false}) async {
-    if (override && isEnabled) {
-      await _preferences.setStringList(
-          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, addresses);
-    } else {
-      var linkedAccounts =
-          _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
-              [];
-
-      isEnabled
-          ? linkedAccounts.addAll(addresses)
-          : linkedAccounts.removeWhere((i) => addresses.contains(i));
-      await _preferences.setStringList(
-          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, linkedAccounts);
-    }
-  }
-
-  @override
-  List<String> getLinkedAccountsHiddenInGallery() =>
-      _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ?? [];
-
-  @override
-  bool isLinkedAccountHiddenInGallery(String value) {
-    var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
-    return hiddenLinkedAccounts.contains(value);
   }
 
   @override
@@ -611,15 +427,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
 
   @override
-  bool shouldShowSubscriptionHint() =>
-      _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
-
-  @override
-  Future setShouldShowSubscriptionHint(bool value) async {
-    await _preferences.setBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT, value);
-  }
-
-  @override
   DateTime? getLastTimeAskForSubscription() {
     final d = _preferences.getInt(KEY_LAST_TIME_ASK_SUBSCRIPTION);
     return d != null ? DateTime.fromMillisecondsSinceEpoch(d) : null;
@@ -631,17 +438,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       KEY_LAST_TIME_ASK_SUBSCRIPTION,
       date.millisecondsSinceEpoch,
     );
-  }
-
-  @override
-  bool isDemoArtworksMode() =>
-      _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
-
-  @override
-  Future<bool> toggleDemoArtworksMode() async {
-    final newValue = !isDemoArtworksMode();
-    await _preferences.setBool(KEY_APP_SETTING_DEMO_ARTWORKS, newValue);
-    return newValue;
   }
 
   @override
@@ -713,55 +509,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<PlayListModel> getPlayList() {
-    final playListsString = _preferences.getStringList(PLAYLISTS);
-    if (playListsString == null || playListsString.isEmpty) {
-      return [];
-    }
-    return playListsString
-        .map((e) => PlayListModel.fromJson(jsonDecode(e)))
-        .toList();
-  }
-
-  @override
-  Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort}) async {
-    var newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-
-    if (override) {
-      await _preferences.setStringList(PLAYLISTS, newPlaylists);
-    } else {
-      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
-      final playlists = playlistsSave
-          .map((e) => PlayListModel.fromJson(jsonDecode(e)))
-          .toList();
-      switch (onConflict) {
-        case ConflictAction.replace:
-          playlists.removeWhere((playlist) =>
-              value?.any((element) => playlist.id == element.id) ?? false);
-          playlistsSave = playlists.map((e) => jsonEncode(e)).toList();
-          break;
-        case ConflictAction.abort:
-          value?.removeWhere((playlist) =>
-              playlists.any((element) => element.id == playlist.id));
-          newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-          break;
-      }
-
-      playlistsSave.addAll(newPlaylists);
-      await _preferences.setStringList(
-          PLAYLISTS, playlistsSave.toSet().toList());
-    }
-  }
-
-  @override
-  Future<void> removePlayList(String id) async {
-    final playlists = getPlayList()..removeWhere((element) => element.id == id);
-    await setPlayList(playlists, override: true);
-  }
-
-  @override
   int? getAnnouncementLastPullTime() =>
       _preferences.getInt(ANNOUNCEMENT_LAST_PULL_TIME);
 
@@ -779,45 +526,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isPremium() => _preferences.getBool(IS_PREMIUM) ?? false;
-
-  @override
-  Future<void> setPremium(bool value) async {
-    await _preferences.setBool(IS_PREMIUM, value);
-  }
-
-  @override
-  bool isReadRemoveSupport() =>
-      _preferences.getBool(READ_REMOVE_SUPPORT) ?? false;
-
-  @override
-  Future<void> readRemoveSupport(bool value) async {
-    await _preferences.setBool(READ_REMOVE_SUPPORT, value);
-  }
-
-  @override
-  ValueNotifier<bool> showProTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showNotifTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
-
-  @override
-  DateTime? getDoneOnboardingTime() {
-    final timeString = _preferences.getString(KEY_DONE_ON_BOARDING_TIME);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
+  ValueNotifier<bool> showingNotification = ValueNotifier(false);
 
   @override
   Future setDoneOnboardingTime(DateTime time) async {
@@ -826,36 +535,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  DateTime? getSubscriptionTime() {
-    final timeString = _preferences.getString(KEY_SUBSCRIPTION_TIME);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
   Future setSubscriptionTime(DateTime time) async {
     await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
-
-  @override
-  DateTime? getShowBackupSettingTip() {
-    final timeString = _preferences.getString(KEY_SHOW_BACK_UP_SETTINGS_TIP);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
-  Future setShowBackupSettingTip(DateTime time) async {
-    await _preferences.setString(
-        KEY_SHOW_BACK_UP_SETTINGS_TIP, time.toIso8601String());
-  }
-
-  @override
-  ValueNotifier<bool> showBackupSettingTip = ValueNotifier(false);
 
   @override
   List<SharedPostcard> getSharedPostcard() {
@@ -1031,37 +713,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> updateShowAnnouncementNotificationInfo(
-    AnnouncementLocal announcement,
-  ) async {
-    const key = KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO;
-    final announcementId = announcement.announcementContextId;
-    var currentValue = _preferences.getString(key) ?? '{}';
-    final currentInfo =
-        ShowAnouncementNotificationInfo.fromJson(jsonDecode(currentValue));
-    currentInfo.showAnnouncementMap.update(announcementId, (value) => value + 1,
-        ifAbsent: () => announcement.unread ? 1 : 2);
-    await _preferences.setString(key, jsonEncode(currentInfo.toJson()));
-  }
-
-  @override
-  ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo() {
-    final data = _preferences.getString(KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO);
-    if (data == null) {
-      return ShowAnouncementNotificationInfo();
-    }
-    return ShowAnouncementNotificationInfo.fromJson(jsonDecode(data));
-  }
-
-  @override
-  bool getDidSyncArtists() =>
-      _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
-
-  @override
-  Future<void> setDidSyncArtists(bool value) =>
-      _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
-
-  @override
   bool getDidMigrateAddress() =>
       _preferences.getBool(KEY_DID_MIGRATE_ADDRESS) ?? false;
 
@@ -1208,19 +859,35 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<String> getRecordOwners() =>
-      _preferences.getStringList(keyRecordOwners) ?? [];
+  int getLastPullAnnouncementTime() =>
+      _preferences.getInt(keyLastPullAnnouncementTime) ?? 0;
 
   @override
-  Future<void> setRecordOwners(List<String> owners,
-      {bool override = false}) async {
-    if (override) {
-      await _preferences.setStringList(keyRecordOwners, owners);
-    } else {
-      final currentOwners = getRecordOwners()..addAll(owners);
-      await _preferences.setStringList(keyRecordOwners, currentOwners.toList());
-    }
-  }
+  Future<void> setLastPullAnnouncementTime(int lastPullTime) =>
+      _preferences.setInt(keyLastPullAnnouncementTime, lastPullTime);
+
+  @override
+  bool didMigrateToAccountSetting() =>
+      _preferences.getBool(keyDidMigrateToAccountSetting) ?? false;
+
+  @override
+  Future<void> setMigrateToAccountSetting(bool value) =>
+      _preferences.setBool(keyDidMigrateToAccountSetting, value);
+
+  @override
+  String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);
+
+  @override
+  Future<void> setReferralCode(String referralCode) =>
+      _preferences.setString(KEY_REFERRAL_CODE, referralCode);
+
+  @override
+  bool didShowLiveWithArt() =>
+      _preferences.getBool(keyDidShowLiveWithArt) ?? false;
+
+  @override
+  Future<void> setDidShowLiveWithArt(bool value) async =>
+      await _preferences.setBool(keyDidShowLiveWithArt, value);
 }
 
 enum ConflictAction {

@@ -96,75 +96,6 @@ class PostcardButton extends StatelessWidget {
   }
 }
 
-class PostcardCustomButton extends StatelessWidget {
-  final Function()? onTap;
-  final Color? color;
-  final double? width;
-  final bool isProcessing;
-  final bool enabled;
-  final Widget child;
-  final Color? disableColor;
-
-  const PostcardCustomButton({
-    required this.child,
-    super.key,
-    this.onTap,
-    this.color,
-    this.width,
-    this.enabled = true,
-    this.isProcessing = false,
-    this.disableColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    const defaultActiveColor = Colors.amber;
-    const defaultDisabledColor = AppColor.disabledColor;
-    return SizedBox(
-      width: width,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: enabled
-              ? color ?? defaultActiveColor
-              : disableColor ?? defaultDisabledColor,
-          shadowColor: Colors.transparent,
-          disabledForegroundColor: disableColor ?? defaultDisabledColor,
-          disabledBackgroundColor: disableColor ?? defaultDisabledColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-        onPressed: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isProcessing)
-                  Container(
-                    height: 14,
-                    width: 14,
-                    margin: const EdgeInsets.only(right: 8),
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
-                      backgroundColor: theme.colorScheme.surface,
-                      strokeWidth: 2,
-                    ),
-                  )
-                else
-                  const SizedBox(),
-                child,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class PostcardOutlineButton extends StatelessWidget {
   final Function()? onTap;
   final Color? color;
@@ -306,6 +237,7 @@ class PostcardAsyncButton extends StatefulWidget {
   final Color? textColor;
   final Color? disabledTextColor;
   final double? fontSize;
+  final String label;
 
   const PostcardAsyncButton({
     super.key,
@@ -318,6 +250,7 @@ class PostcardAsyncButton extends StatefulWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
+    this.label = '',
   });
 
   @override
@@ -330,7 +263,7 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
   @override
   Widget build(BuildContext context) => PostcardButton(
         onTap: () {
-          withDebounce(() async {
+          withDebounce(key: 'onTap${widget.label}', () async {
             setState(() {
               _isProcessing = true;
             });

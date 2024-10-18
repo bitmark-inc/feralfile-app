@@ -128,6 +128,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 placeholder: 'paste_or_scan_address'.tr(),
                                 isError: state.isAddressError,
                                 controller: _addressController,
+                                enableSuggestions: false,
                                 suffix: IconButton(
                                   icon: Icon(
                                     state.isScanQR ? AuIcon.scan : AuIcon.close,
@@ -143,10 +144,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     } else {
                                       dynamic address =
                                           await Navigator.of(context).pushNamed(
-                                              AppRouter.scanQRPage,
-                                              arguments: type == CryptoType.XTZ
-                                                  ? ScannerItem.XTZ_ADDRESS
-                                                  : ScannerItem.ETH_ADDRESS);
+                                        AppRouter.scanQRPage,
+                                        arguments: ScanQRPagePayload(
+                                          scannerItem: type == CryptoType.XTZ
+                                              ? ScannerItem.XTZ_ADDRESS
+                                              : ScannerItem.ETH_ADDRESS,
+                                        ),
+                                      );
                                       if (address != null &&
                                           address is String) {
                                         address = address.replacePrefix(
@@ -186,6 +190,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                   if (state.maxAllow != null) ...[
                                     GestureDetector(
                                       child: RichText(
+                                        textScaler:
+                                            MediaQuery.textScalerOf(context),
                                         text: TextSpan(children: [
                                           TextSpan(
                                               text: 'max'.tr(),

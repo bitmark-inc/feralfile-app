@@ -5,13 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -24,89 +25,86 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   final ConfigurationService _configurationService;
   final LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
+  static bool _isOnChanging = false;
+
+  static bool get isOnChanging => _isOnChanging;
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, "", false, false)) {
+      : super(PreferenceState(false, false, false, '', false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
       final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
-      final notificationEnabled =
-          _configurationService.isNotificationEnabled() ?? false;
+      final notificationEnabled = _configurationService.isNotificationEnabled();
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       final hasHiddenArtwork =
           _configurationService.getTempStorageHiddenTokenIDs().isNotEmpty;
-
-      final hasPendingSettings = _configurationService.hasPendingSettings();
 
       emit(PreferenceState(
           passcodeEnabled && canCheckBiometrics,
           notificationEnabled,
           analyticsEnabled,
           _authMethodTitle(),
-          hasHiddenArtwork,
-          hasPendingSettings));
+          hasHiddenArtwork));
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
+      _isOnChanging = true;
       if (event.newState.isDevicePasscodeEnabled !=
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();
         if (canCheckBiometrics) {
           bool didAuthenticate = false;
           try {
-            didAuthenticate = await _localAuth.authenticate(
-                localizedReason: "authen_for_autonomy".tr());
+            didAuthenticate = await LocalAuthenticationService.authenticate(
+                localizedReason: 'authen_for_autonomy'.tr());
           } catch (e) {
             log.info(e);
           }
           if (didAuthenticate) {
             await _configurationService.setDevicePasscodeEnabled(
                 event.newState.isDevicePasscodeEnabled);
-            await _configurationService.setPendingSettings(false);
           } else {
             event.newState.isDevicePasscodeEnabled =
                 state.isDevicePasscodeEnabled;
           }
         } else {
           event.newState.isDevicePasscodeEnabled = false;
-          openAppSettings();
+          unawaited(openAppSettings());
         }
       }
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
         try {
-          if (event.newState.isNotificationEnabled == true) {
-            registerPushNotifications(askPermission: true)
-                .then((value) => event.newState.isNotificationEnabled == value);
+          if (event.newState.isNotificationEnabled) {
+            event.newState.isNotificationEnabled =
+                await registerPushNotifications(askPermission: true);
           } else if (Platform.isIOS) {
+            // ignore: lines_longer_than_80_chars
             // TODO: for iOS only, do not un-registry push, but silent the notification
-            deregisterPushNotification();
+            unawaited(deregisterPushNotification());
           }
 
           await _configurationService
               .setNotificationEnabled(event.newState.isNotificationEnabled);
-          await _configurationService.setPendingSettings(false);
         } catch (error) {
-          log.warning("Error when setting notification: $error");
+          log.warning('Error when setting notification: $error');
         }
       }
 
       if (event.newState.isAnalyticEnabled != state.isAnalyticEnabled) {
         await _configurationService
             .setAnalyticEnabled(event.newState.isAnalyticEnabled);
-        await _configurationService.setPendingSettings(false);
-        injector<SettingsDataService>().backup();
-
-        if (event.newState.isAnalyticEnabled) {
-          injector<MixPanelClientService>().mixpanel.optInTracking();
-        } else {
-          injector<MixPanelClientService>().mixpanel.optOutTracking();
-        }
       }
 
+      unawaited(injector<SettingsDataService>()
+          .backupDeviceSettings()
+          .then((value) => _isOnChanging = false, onError: (error) {
+        log.warning('Error when backup device settings: $error');
+        _isOnChanging = false;
+      }));
       emit(event.newState);
     });
   }

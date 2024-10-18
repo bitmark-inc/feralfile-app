@@ -52,6 +52,7 @@ class _PredefinedCollectionScreenState
 
   @override
   Widget build(BuildContext context) => Scaffold(
+        backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<PredefinedCollectionBloc, PredefinedCollectionState>(
           bloc: _bloc,
           builder: (context, state) {
@@ -69,7 +70,7 @@ class _PredefinedCollectionScreenState
               final playlist = PlayListModel(
                 id: id,
                 name: name,
-                tokenIDs: tokenIDs,
+                tokenIDs: tokenIDs ?? [],
               );
               final predefinedCollectionType = widget.payload.type;
               final icon =
@@ -78,7 +79,7 @@ class _PredefinedCollectionScreenState
                           width: 22,
                           height: 22,
                           colorFilter: const ColorFilter.mode(
-                              AppColor.primaryBlack, BlendMode.srcIn))
+                              AppColor.white, BlendMode.srcIn))
                       : null;
               final collectionType =
                   predefinedCollectionType == PredefinedCollectionType.medium

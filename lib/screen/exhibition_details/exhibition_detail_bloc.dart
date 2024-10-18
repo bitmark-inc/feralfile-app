@@ -12,10 +12,9 @@ class ExhibitionDetailBloc
   ExhibitionDetailBloc(this._feralFileService)
       : super(ExhibitionDetailState()) {
     on<GetExhibitionDetailEvent>((event, emit) async {
-      final exhibition =
-          await _feralFileService.getExhibition(event.exhibitionId);
-      final listSeries = await _feralFileService
-          .getListSeries(event.exhibitionId, includeFirstArtwork: true);
+      final exhibition = await _feralFileService
+          .getExhibition(event.exhibitionId, includeFirstArtwork: true);
+      final listSeries = exhibition.series ?? [];
       if (exhibition.isJohnGerrardShow && listSeries.isNotEmpty) {
         final firstViewableArtwork = await _feralFileService
             .getFirstViewableArtwork(listSeries.first.id);

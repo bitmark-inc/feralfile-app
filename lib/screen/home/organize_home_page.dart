@@ -13,11 +13,8 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
-import 'package:autonomy_flutter/screen/home/home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -77,8 +74,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     }));
 
-    context.read<HomeBloc>().add(CheckReviewAppEvent());
-
     unawaited(injector<IAPService>().setup());
   }
 
@@ -89,9 +84,7 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   void dispose() {
@@ -117,7 +110,7 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
           .toList();
       if (config.isAutoShowPostcard()) {
         log.info('Auto show minted postcard');
-        final payload = PostcardDetailPagePayload(tokenMints, 0);
+        final payload = PostcardDetailPagePayload(tokenMints.first);
         unawaited(Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,

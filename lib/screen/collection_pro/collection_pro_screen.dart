@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -8,28 +7,26 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/predefined_collection/predefined_collection_item.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
-import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -65,7 +62,6 @@ class CollectionProState extends State<CollectionPro>
   late bool _isLoaded;
   late bool _showGetStartedBanner = false;
   final _configurationService = injector<ConfigurationService>();
-  static const _maxArtistsView = 30;
 
   @override
   void initState() {
@@ -125,12 +121,85 @@ class CollectionProState extends State<CollectionPro>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).padding.top;
-    return SafeArea(
-      top: false,
-      bottom: false,
-      child: BlocConsumer(
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getDarkEmptyAppBar(Colors.transparent),
+        backgroundColor: AppColor.primaryBlack,
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              children: [
+                _header(context),
+                const SizedBox(height: 20),
+                if (isShowSearchBar)
+                  ActionBar(
+                    searchBar: AuSearchBar(
+                      onChanged: (text) {},
+                      onSearch: (text) {
+                        setState(() {
+                          searchStr.value = text;
+                        });
+                      },
+                      onClear: (text) {
+                        setState(() {
+                          searchStr.value = text;
+                        });
+                      },
+                    ),
+                    onCancel: () {
+                      setState(() {
+                        searchStr.value = '';
+                        isShowSearchBar = false;
+                      });
+                    },
+                  ),
+                Expanded(
+                  child: _body(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _header(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'my_collection'.tr(),
+              style: theme.textTheme.ppMori700Black36
+                  .copyWith(color: AppColor.white),
+            ),
+          ),
+          if (!isShowSearchBar)
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  isShowSearchBar = true;
+                });
+              },
+              icon: SvgPicture.asset(
+                'assets/images/search.svg',
+                width: 24,
+                height: 24,
+                colorFilter:
+                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+              ),
+            )
+          else
+            const SizedBox()
+        ],
+      ),
+    );
+  }
+
+  Widget _body(BuildContext context) => BlocConsumer(
         bloc: _bloc,
         listener: (context, state) {
           if (state is CollectionLoadedState) {
@@ -173,20 +242,14 @@ class CollectionProState extends State<CollectionPro>
                 },
                 builder: (context, identityState) {
                   final isEmptyView = !_isLoaded ||
-                      (_isEmptyCollection() && searchStr.value.isEmpty);
+                      (_isEmptyCollection(context) && searchStr.value.isEmpty);
                   final isSearchEmptyView = _isLoaded &&
-                      _isEmptyCollection() &&
+                      _isEmptyCollection(context) &&
                       searchStr.value.isNotEmpty;
                   return CustomScrollView(
                     controller: _scrollController,
                     shrinkWrap: true,
                     slivers: [
-                      SliverToBoxAdapter(
-                        child: SizedBox(height: paddingTop),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _pageHeader(context),
-                      ),
                       if (!isEmptyView)
                         SliverToBoxAdapter(
                           child: ValueListenableBuilder(
@@ -203,22 +266,14 @@ class CollectionProState extends State<CollectionPro>
                         SliverToBoxAdapter(
                           child: Visibility(
                             visible: isEmptyView,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 15),
-                              child: _emptyView(context),
-                            ),
+                            child: _emptyView(context),
                           ),
                         ),
                       ] else if (isSearchEmptyView) ...[
                         SliverToBoxAdapter(
                           child: Visibility(
                             visible: isSearchEmptyView,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 15),
-                              child: _searchEmptyView(context),
-                            ),
+                            child: _searchEmptyView(context),
                           ),
                         ),
                       ] else ...[
@@ -251,10 +306,8 @@ class CollectionProState extends State<CollectionPro>
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
                             _predefinedCollectionByArtistBuilder,
-                            childCount: min(
-                                    _listPredefinedCollectionByArtist.length,
-                                    _maxArtistsView) +
-                                1,
+                            childCount:
+                                _listPredefinedCollectionByArtist.length + 1,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -268,20 +321,15 @@ class CollectionProState extends State<CollectionPro>
           }
           return const Center(child: CircularProgressIndicator());
         },
-      ),
-    );
-  }
+      );
 
-  bool _isEmptyCollection() {
+  bool _isEmptyCollection(BuildContext context) {
     final collection =
-        _collectionSectionKey.currentState?.filterPlaylist(searchStr.value) ??
-            [];
+        injector<ListPlaylistBloc>().state.playlists.filter(searchStr.value);
     final isEmpty = _listPredefinedCollectionByArtist.isEmpty &&
-            _listPredefinedCollectionByMedium.isEmpty ||
-        (_works.isEmpty &&
-            searchStr.value.isNotEmpty &&
-            _listPredefinedCollectionByArtist.isEmpty &&
-            collection.isEmpty);
+        _listPredefinedCollectionByMedium.isEmpty &&
+        _works.isEmpty &&
+        collection.isEmpty;
     return isEmpty;
   }
 
@@ -298,6 +346,7 @@ class CollectionProState extends State<CollectionPro>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 20),
         Text(
           'see_your_collection'.tr(),
           style: theme.textTheme.ppMori400White14,
@@ -329,25 +378,7 @@ class CollectionProState extends State<CollectionPro>
 
   Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
     const type = PredefinedCollectionType.artist;
-    final isSearching = searchStr.value.isNotEmpty;
-    final numberOfArtists = _listPredefinedCollectionByArtist.length;
-    final displaySeeAll =
-        !isSearching && index == 0 && numberOfArtists > _maxArtistsView;
-    final Widget? action = displaySeeAll
-        ? GestureDetector(
-            onTap: () async {
-              await Navigator.of(context).pushNamed(AppRouter.artistsListPage,
-                  arguments: ArtistsListPagePayload(
-                      _listPredefinedCollectionByArtist));
-            },
-            child: Text(
-              'see_all'.tr(),
-              style: Theme.of(context).textTheme.ppMori400White14.copyWith(
-                    decoration: TextDecoration.underline,
-                  ),
-            ))
-        : null;
-    return _predefinedCollectionBuilder(context, index, type, action: action);
+    return _predefinedCollectionBuilder(context, index, type);
   }
 
   Widget _predefinedCollectionByMediumBuilder(BuildContext context, int index) {
@@ -356,38 +387,31 @@ class CollectionProState extends State<CollectionPro>
   }
 
   Widget _worksBuilder(BuildContext context, int index) {
-    const padding = EdgeInsets.symmetric(horizontal: 15);
     final sep = addDivider(color: AppColor.auLightGrey);
     if (index == 0) {
-      return Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
-            const SizedBox(
-              height: 30,
-            ),
-            if (searchStr.value.isNotEmpty && _works.isEmpty)
-              _searchEmptyView(context),
-          ],
-        ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
+          const SizedBox(
+            height: 30,
+          ),
+          if (searchStr.value.isNotEmpty && _works.isEmpty)
+            _searchEmptyView(context),
+        ],
       );
     } else {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: SizedBox(
-                height: 164,
-                child: _artworkItem(context, _works[index - 1]),
-              ),
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: SizedBox(
+              height: 164,
+              child: _artworkItem(context, _works[index - 1]),
             ),
-            sep,
-          ],
-        ),
+          ),
+          sep,
+        ],
       );
     }
   }
@@ -409,38 +433,31 @@ class CollectionProState extends State<CollectionPro>
     Widget? action,
   }) {
     final sep = addOnlyDivider(color: AppColor.auGreyBackground);
-    const padding = EdgeInsets.symmetric(horizontal: 15);
     if (index == 0) {
-      return Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _predefinedCollectionHeader(context, type, action: action),
-            const SizedBox(
-              height: 30,
-            ),
-            if (searchStr.value.isNotEmpty &&
-                _listPredefinedCollectionByArtist.isEmpty &&
-                type == PredefinedCollectionType.artist)
-              _searchEmptyView(context)
-          ],
-        ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _predefinedCollectionHeader(context, type, action: action),
+          const SizedBox(
+            height: 30,
+          ),
+          if (searchStr.value.isNotEmpty &&
+              _listPredefinedCollectionByArtist.isEmpty &&
+              type == PredefinedCollectionType.artist)
+            _searchEmptyView(context)
+        ],
       );
     } else {
       final predefinedCollection = _getPredefinedCollection(index - 1, type);
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          children: [
-            PredefinedCollectionItem(
-              predefinedCollection: predefinedCollection,
-              type: type,
-              searchStr: searchStr.value,
-            ),
-            sep,
-          ],
-        ),
+      return Column(
+        children: [
+          PredefinedCollectionItem(
+            predefinedCollection: predefinedCollection,
+            type: type,
+            searchStr: searchStr.value,
+          ),
+          sep,
+        ],
       );
     }
   }
@@ -458,64 +475,6 @@ class CollectionProState extends State<CollectionPro>
     );
   }
 
-  Widget _pageHeader(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    return Padding(
-      padding: EdgeInsets.only(top: paddingTop)
-          .add(const EdgeInsets.fromLTRB(12, 33, 12, 42)),
-      child: !isShowSearchBar
-          ? HeaderView(
-              padding: EdgeInsets.zero,
-              title: 'organize'.tr(),
-              action: GestureDetector(
-                child: SvgPicture.asset(
-                  'assets/images/search.svg',
-                  width: 24,
-                  height: 24,
-                  colorFilter:
-                      const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                ),
-                onTap: () {
-                  setState(() {
-                    isShowSearchBar = true;
-                  });
-                },
-              ),
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ActionBar(
-                    searchBar: AuSearchBar(
-                      onChanged: (text) {},
-                      onSearch: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                      onClear: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                    ),
-                    onCancel: () {
-                      setState(() {
-                        searchStr.value = '';
-                        isShowSearchBar = false;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-                if (searchStr.value.isEmpty) TitleText(title: 'organize'.tr()),
-              ],
-            ),
-    );
-  }
-
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
     final theme = Theme.of(context);
     final title = token.displayTitle ?? '';
@@ -526,10 +485,7 @@ class CollectionProState extends State<CollectionPro>
           context,
           AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
-            [
-              ArtworkIdentity(token.id, token.owner),
-            ],
-            0,
+            ArtworkIdentity(token.id, token.owner),
           ),
         );
       },
@@ -544,10 +500,7 @@ class CollectionProState extends State<CollectionPro>
                   context,
                   AppRouter.artworkDetailsPage,
                   arguments: ArtworkDetailPayload(
-                    [
-                      ArtworkIdentity(token.id, token.owner),
-                    ],
-                    0,
+                    ArtworkIdentity(token.id, token.owner),
                   ),
                 );
               },
@@ -591,43 +544,22 @@ class CollectionSection extends StatefulWidget {
 
 class CollectionSectionState extends State<CollectionSection>
     with RouteAware, WidgetsBindingObserver {
-  final _configurationService = injector.get<ConfigurationService>();
-  final _playlistService = injector.get<PlaylistService>();
-  final _versionService = injector.get<VersionService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
-  List<PlayListModel>? _currentPlaylists;
-  late bool isDemo;
-
-  Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
-    if (isDemo) {
-      return _versionService.getDemoAccountFromGithub();
-    }
-    List<PlayListModel> playlists = await _playlistService.getPlayList();
-    if (withDefault) {
-      final defaultPlaylists = await _playlistService.defaultPlaylists();
-      playlists = defaultPlaylists..addAll(playlists);
-    }
-    return playlists;
-  }
 
   Future<void> _initPlayList() async {
-    _playlists.value = await getPlaylist() ?? [];
+    _playListBloc.add(
+      ListPlaylistLoadPlaylist(filter: widget.filterString),
+    );
   }
-
-  List<PlayListModel> getPlaylists() => _currentPlaylists ?? [];
 
   List<PlayListModel> filterPlaylist(String filterString) =>
       _playlists.value?.filter(filterString) ?? [];
 
+  final _playListBloc = injector<ListPlaylistBloc>();
+
   @override
   void initState() {
     _playlists = ValueNotifier(null);
-    _playlists.addListener(() {
-      setState(() {
-        _currentPlaylists = filterPlaylist(widget.filterString);
-      });
-    });
-    isDemo = _configurationService.isDemoArtworksMode();
     super.initState();
     unawaited(_initPlayList());
     WidgetsBinding.instance.addObserver(this);
@@ -655,7 +587,11 @@ class CollectionSectionState extends State<CollectionSection>
     await Navigator.of(context)
         .pushNamed(AppRouter.createPlayListPage)
         .then((value) {
+      if (!context.mounted) {
+        return;
+      }
       if (value != null && value is PlayListModel) {
+        _playListBloc.add(ListPlaylistLoadPlaylist());
         Navigator.pushNamed(
           context,
           AppRouter.viewPlayListPage,
@@ -670,29 +606,36 @@ class CollectionSectionState extends State<CollectionSection>
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_currentPlaylists == null) {
-      return const SizedBox.shrink();
-    }
-    final playlists = _currentPlaylists!;
-    final playlistIDsString = playlists.map((e) => e.id).toList().join();
-    final playlistKeyBytes = utf8.encode(playlistIDsString);
-    final playlistKey = sha256.convert(playlistKeyBytes).toString();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListPlaylistsScreen(
-          key: Key(playlistKey),
-          playlists: _playlists,
-          filter: widget.filterString,
-          onReorder: (oldIndex, newIndex) {},
-          onAdd: () async {
-            await _gotoCreatePlaylist(context);
-          },
-        )
-      ],
-    );
-  }
+  Widget build(BuildContext context) =>
+      BlocConsumer<ListPlaylistBloc, ListPlaylistState>(
+        bloc: _playListBloc,
+        listener: (context, state) {
+          _playlists.value = state.playlists;
+        },
+        builder: (context, state) {
+          final playlists = state.playlists;
+          if (playlists.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          final playlistIDsString = playlists.map((e) => e.id).toList().join();
+          final playlistKeyBytes = utf8.encode(playlistIDsString);
+          final playlistKey = sha256.convert(playlistKeyBytes).toString();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListPlaylistsScreen(
+                key: Key(playlistKey),
+                playlists: _playlists,
+                filter: widget.filterString,
+                onReorder: (oldIndex, newIndex) {},
+                onAdd: () async {
+                  await _gotoCreatePlaylist(context);
+                },
+              )
+            ],
+          );
+        },
+      );
 }
 
 class SectionInfo {

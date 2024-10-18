@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -9,11 +9,11 @@ import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
 class ClientTokenService {
   final AccountService _accountService;
-  final CloudDatabase _cloudDatabase;
+  final CloudManager _cloudObjects;
   final PendingTokenService _pendingTokenService;
   final NftCollectionBloc _nftBloc;
 
-  ClientTokenService(this._accountService, this._cloudDatabase,
+  ClientTokenService(this._accountService, this._cloudObjects,
       this._pendingTokenService, this._nftBloc);
 
   NftCollectionBloc get nftBloc => _nftBloc;
@@ -22,16 +22,15 @@ class ClientTokenService {
       await _accountService.getAllAddresses();
 
   Future<List<String>> getManualTokenIds() async {
-    final tokenIndexerIDs = (await _cloudDatabase.connectionDao
-            .getConnectionsByType(
-                ConnectionType.manuallyIndexerTokenID.rawValue))
+    final tokenIndexerIDs = _cloudObjects.connectionObject
+        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
         .map((e) => e.key)
         .toList();
     return tokenIndexerIDs;
   }
 
   Future refreshTokens(
-      {checkPendingToken = false, bool syncAddresses = false}) async {
+      {bool checkPendingToken = false, bool syncAddresses = false}) async {
     if (syncAddresses && !_nftBloc.prefs.getDidSyncAddress()) {
       final addresses = await _accountService.getAllAddresses();
       final hiddenAddresses = await _accountService.getHiddenAddressIndexes();

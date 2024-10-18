@@ -170,7 +170,9 @@ class FileInfo {
         uri: json['uri'],
         status: json['status'],
         version: json['version'],
-        metadata: json['metadata'] == null || json['metadata'].isEmpty
+        metadata: json['metadata'] == null ||
+                json['metadata'].isEmpty ||
+                (json['metadata'] as Map)['urlOverwrite'] == null
             ? null
             : FileAssetMetadata.fromJson(json['metadata']),
         createdAt: json['createdAt'],

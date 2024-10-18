@@ -3,130 +3,105 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_route_observer.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/util/metric_helper.dart';
+import 'package:sentry/sentry.dart';
 
 class MetricClientService {
   MetricClientService();
 
-  final mixPanelClient = injector<MixPanelClientService>();
-  bool isFinishInit = false;
-  Timer? _timer;
+  String _identifier = '';
 
-  Future<void> initService() async {
-    await mixPanelClient.initService();
-    isFinishInit = true;
+  String _defaultIdentifier() => injector<DeviceInfoService>().deviceId;
+
+  Future<void> initService({String? identifier}) async {
+    log.info('[MetricClientService] initService');
+    _identifier = identifier ?? _defaultIdentifier();
   }
 
-  void addEvent(
-    String name, {
+  Future<void> identity() async {
+    log.info('[MetricClientService] identity');
+    try {
+      final primaryAddress =
+          await injector<AddressService>().getPrimaryAddress();
+      if (primaryAddress == null) {
+        log.info('Metric Identity: Primary address is null');
+        unawaited(
+            Sentry.captureMessage('Metric Identity: Primary address is null'));
+        return;
+      }
+      await mergeUser(_identifier);
+    } catch (e) {
+      log.info('Metric identity error: $e');
+      unawaited(Sentry.captureException('Metric identity error: $e'));
+    }
+  }
+
+  Future<void> addEvent(
+    MetricEventName event, {
     String? message,
-    Map<String, dynamic> data = const {},
+    Map<MetricParameter, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
-  }) {
+  }) async {
+    log.info('[MetricClientService] addEvent: ${event.name}');
     final configurationService = injector.get<ConfigurationService>();
 
     if (!configurationService.isAnalyticsEnabled()) {
       return;
     }
+    final rawData = data.map((key, value) => MapEntry(key.name, value));
+
+    // ignore: unused_local_variable
     final dataWithExtend = {
-      ...data,
-      'platform': 'Feral File App',
+      'event': event.name,
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'parameters': {
+        ...rawData,
+        'platform': platform,
+      }
     };
-    if (isFinishInit) {
-      unawaited(mixPanelClient.trackEvent(
-        name,
-        message: message,
-        data: dataWithExtend,
-        hashedData: hashedData,
-      ));
-      unawaited(mixPanelClient.sendData());
+
+    final metrics = {
+      'metrics': [
+        dataWithExtend,
+      ]
+    };
+    try {
+      await injector<IAPApi>().sendEvent(metrics, _identifier);
+      log.info('Metric add event success: ${event.name}');
+    } catch (e) {
+      log.info('Metric add event error: $e');
+      unawaited(Sentry.captureException('Metric add event error: $e'));
     }
   }
 
   void timerEvent(String name) {
-    if (isFinishInit) {
-      mixPanelClient.timerEvent(name.snakeToCapital());
-    }
+    // time event here
   }
 
-  Future<void> sendAndClearMetrics() async {
-    try {
-      if (!kDebugMode) {
-        await mixPanelClient.sendData();
-      }
-    } catch (e) {
-      log.info(e.toString());
-    }
-  }
-
-  Future<void> trackStartScreen(Route<dynamic> route) async {
-    timerEvent(MixpanelEvent.visitPage);
-  }
-
-  Future<void> trackEndScreen(Route<dynamic> route) async {
-    if (route.isIgnoreForVisitPageEvent) {
-      return;
-    }
-    final screenName = route.metricTitle;
-    Map<String, dynamic> data = route.metricData..addAll({'title': screenName});
-    addEvent(MixpanelEvent.visitPage, data: data);
+  Future<void> mergeUser(String oldUserId) async {
+    // new userId will include in jwt token
+    await injector<IAPApi>().updateMetrics(oldUserId);
   }
 
   void setLabel(String prop, dynamic value) {
-    if (isFinishInit) {
-      mixPanelClient.setLabel(prop, value);
-    }
+    // mixPanelClient.setLabel(prop, value);
   }
 
   void incrementPropertyLabel(String prop, double value) {
-    if (isFinishInit) {
-      mixPanelClient.incrementPropertyLabel(prop, value);
-    }
+    // mixPanelClient.incrementPropertyLabel(prop, value);
   }
 
-  Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
-    await mixPanelClient.initConfigIfNeed(config);
-  }
-
-  dynamic getConfig(String key, {dynamic defaultValue}) =>
-      mixPanelClient.getConfig(key, defaultValue: defaultValue);
-
-  Future<void> setConfig(String key, dynamic value) async {
-    await mixPanelClient.setConfig(key, value);
-  }
-
-  void onBackground() {
-    _timer?.cancel();
-    const duration = Duration(seconds: 60);
-    _timer = Timer(duration, () {
-      final route = CustomRouteObserver.currentRoute;
-      if (route?.settings.name == AppRouter.homePage) {
-        homePageKey.currentState?.sendVisitPageEvent();
-      } else if (route?.settings.name == AppRouter.homePageNoTransition) {
-        homePageNoTransactionKey.currentState?.sendVisitPageEvent();
-      } else if (route != null) {
-        unawaited(trackEndScreen(route));
-      }
-    });
-  }
-
-  void onForeground() {
-    if (_timer?.isActive ?? false) {
-      _timer?.cancel();
-    } else {
-      final route = CustomRouteObserver.currentRoute;
-      if (route != null) {
-        unawaited(trackStartScreen(route));
-      }
+  Future<void> reset() async {
+    try {
+      final deviceId = _defaultIdentifier();
+      await injector<IAPApi>().deleteMetrics(deviceId);
+    } catch (e) {
+      unawaited(Sentry.captureException('Metric reset error: $e'));
     }
   }
 }

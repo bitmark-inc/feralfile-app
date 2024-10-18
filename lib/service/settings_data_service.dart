@@ -6,160 +6,231 @@
 //
 
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:crypto/crypto.dart';
-import 'package:json_annotation/json_annotation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:collection/collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-part 'settings_data_service.g.dart';
-
 abstract class SettingsDataService {
-  Future backup();
+  Future restoreSettingsData({bool fromProfileData = false});
 
-  Future restoreSettingsData();
+  Future<void> backupDeviceSettings();
+
+  Future<void> backupUserSettings();
 }
 
 class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
-  final AccountService _accountService;
   final IAPApi _iapApi;
-  final CloudDatabase _cloudDB;
-
-  var latestDataHash = '';
+  final CloudManager _cloudObject;
 
   SettingsDataServiceImpl(
     this._configurationService,
-    this._accountService,
     this._iapApi,
-    this._cloudDB,
+    this._cloudObject,
   );
 
   final _requester =
       'requester'; // server ignore this when putting jwt, so just put something
   final _filename = 'settings_data_backup.json';
   final _version = '1';
-  var _numberOfCallingBackups = 0;
+
+  // legacy settings, they were store in device settings
+  static const _keyPlaylists = 'playlists';
+  static const _keyHiddenLinkedAccountsFromGallery =
+      'hiddenLinkedAccountsFromGallery';
+
+  // device settings
+  static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
+  static const _keyDevicePasscodeEnabled = 'devicePasscodeEnabled';
+  static const _keyNotificationEnabled = 'notificationEnabled';
+  static const _deviceSettingsKeys = [
+    _keyIsAnalyticsEnabled,
+    _keyDevicePasscodeEnabled,
+    _keyNotificationEnabled,
+    _keyPlaylists,
+    _keyHiddenLinkedAccountsFromGallery,
+  ];
+
+  // user settings
+  static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
+
+  static const _userSettingsKeys = [
+    _keyHiddenMainnetTokenIDs,
+  ];
 
   @override
-  Future backup() async {
-    log.info('[SettingsDataService][Start] backup');
-    final addresses = await _accountService.getShowedAddresses();
-
-    _numberOfCallingBackups += 1;
-
-    final hiddenMainnetTokenIDs =
-        _configurationService.getTempStorageHiddenTokenIDs();
-
-    final hiddenAddressesFromGallery =
-        (await _cloudDB.addressDao.findAddressesWithHiddenStatus(true))
-            .map((e) => e.address)
-            .toList();
-
-    final data = SettingsDataBackup(
-      addresses: addresses,
-      isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
-      hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
-      hiddenTestnetTokenIDs: [],
-      hiddenAddressesFromGallery: hiddenAddressesFromGallery,
-      hiddenLinkedAccountsFromGallery:
-          _configurationService.getLinkedAccountsHiddenInGallery(),
-      playlists: _configurationService.getPlayList(),
-    );
-
-    final dataBytes = utf8.encode(json.encode(data.toJson()));
-    final dataHash = sha512.convert(dataBytes).toString();
-    if (latestDataHash == dataHash) {
-      log.info("[SettingsDataService] skip backup because of it's identical");
+  Future restoreSettingsData({bool fromProfileData = false}) async {
+    if (PreferencesBloc.isOnChanging) {
+      log.info('[SettingsDataService] skip restore: on changing preference');
       return;
     }
+    log.info('[SettingsDataService][Start] restoreSettingsData');
+    if (!fromProfileData) {
+      log.info('[SettingsDataService] from account setting db');
+      await Future.wait([
+        _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
+        _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
+      ]);
+      final Map<String, dynamic> data = {}
+        ..addAll(_cloudObject.deviceSettingsDB.allInstance
+            .map((key, value) => MapEntry(key, jsonDecode(value))))
+        ..addAll(_cloudObject.userSettingsDB.allInstance
+            .map((key, value) => MapEntry(key, jsonDecode(value))));
 
-    String dir = (await getTemporaryDirectory()).path;
-    File backupFile = File('$dir/$_filename');
-    await backupFile.writeAsBytes(dataBytes, flush: true);
+      log.info('[SettingsDataService] restore $data');
 
-    var isSuccess = false;
-    while (!isSuccess) {
+      await _saveSettingToConfig(data);
+    } else {
+      log.info('[SettingsDataService] migrate from old server');
       try {
-        await _iapApi.uploadProfile(
-            _requester, _filename, _version, backupFile);
-        isSuccess = true;
-      } catch (exception) {
-        Sentry.captureException(exception);
+        final response =
+            await _iapApi.getProfileData(_requester, _filename, _version);
+        final data = json.decode(response);
+
+        await _saveSettingToConfig(data);
+
+        log.info('[SettingsDataService][Done] restoreSettingsData');
+      } catch (exception, stacktrace) {
+        await Sentry.captureException(exception, stackTrace: stacktrace);
+        return;
       }
     }
+  }
 
-    latestDataHash = dataHash;
+  Future<void> _saveSettingToConfig(Map<String, dynamic> data) async {
+    await _configurationService
+        .setAnalyticEnabled(data[_keyIsAnalyticsEnabled] as bool? ?? true);
 
-    if (_numberOfCallingBackups == 1) {
-      backupFile.delete();
+    await _configurationService.setDevicePasscodeEnabled(
+        data[_keyDevicePasscodeEnabled] as bool? ?? false);
+
+    await _configurationService
+        .setNotificationEnabled(data[_keyNotificationEnabled] as bool? ?? true);
+
+    await _configurationService.updateTempStorageHiddenTokenIDs(
+        (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            [],
+        true,
+        override: true);
+
+    final legacyPlaylists = (data[_keyPlaylists] as List<dynamic>?)
+        ?.map((e) => PlayListModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    if (legacyPlaylists != null && legacyPlaylists.isNotEmpty) {
+      await injector<CloudManager>()
+          .playlistCloudObject
+          .setPlaylists(legacyPlaylists);
+      await _cloudObject.deviceSettingsDB.delete([_keyPlaylists]);
     }
 
-    _numberOfCallingBackups -= 1;
-
-    log.info('[SettingsDataService][Done] backup');
+    final legacyHiddenLinkedAccountsFromGallery =
+        (data[_keyHiddenLinkedAccountsFromGallery] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList();
+    if (legacyHiddenLinkedAccountsFromGallery != null &&
+        legacyHiddenLinkedAccountsFromGallery.isNotEmpty) {
+      final linkedAccounts =
+          injector<CloudManager>().connectionObject.getLinkedAccounts();
+      final List<Connection> hiddenLinkAccounts = [];
+      for (var address in legacyHiddenLinkedAccountsFromGallery) {
+        final account = linkedAccounts
+            .firstWhereOrNull((element) => element.accountNumber == address);
+        if (account != null) {
+          hiddenLinkAccounts.add(account.copyWith(isHidden: true));
+        }
+      }
+      await injector<CloudManager>()
+          .connectionObject
+          .writeConnections(hiddenLinkAccounts);
+      await injector<CloudManager>()
+          .deviceSettingsDB
+          .delete([_keyHiddenLinkedAccountsFromGallery]);
+    }
   }
 
   @override
-  Future restoreSettingsData() async {
-    log.info('[SettingsDataService][Start] restoreSettingsData');
+  Future<void> backupDeviceSettings() async {
+    final currentSettings = _cloudObject.deviceSettingsDB.allInstance;
+    final List<Map<String, String>> newSettings = [];
+
+    final isAnalyticsEnabled =
+        jsonEncode(_configurationService.isAnalyticsEnabled());
+    if (currentSettings[_keyIsAnalyticsEnabled] != isAnalyticsEnabled) {
+      newSettings.add({
+        'key': _keyIsAnalyticsEnabled,
+        'value': isAnalyticsEnabled,
+      });
+    }
+
+    final devicePasscodeEnabled =
+        jsonEncode(_configurationService.isDevicePasscodeEnabled());
+    if (currentSettings[_keyDevicePasscodeEnabled] != devicePasscodeEnabled) {
+      newSettings.add({
+        'key': _keyDevicePasscodeEnabled,
+        'value': devicePasscodeEnabled,
+      });
+    }
+
+    final notificationEnabled =
+        jsonEncode(_configurationService.isNotificationEnabled());
+    if (currentSettings[_keyNotificationEnabled] != notificationEnabled) {
+      newSettings.add({
+        'key': _keyNotificationEnabled,
+        'value': notificationEnabled,
+      });
+    }
+
+    if (newSettings.isEmpty) {
+      log.info('[SettingsDataService] skip device backup: identical');
+      return;
+    }
+
     try {
-      final response =
-          await _iapApi.getProfileData(_requester, _filename, _version);
-      final data = SettingsDataBackup.fromJson(json.decode(response));
+      await _cloudObject.deviceSettingsDB.write(newSettings);
 
-      _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
-
-      await _configurationService.updateTempStorageHiddenTokenIDs(
-          data.hiddenMainnetTokenIDs, true,
-          override: true);
-
-      await Future.wait((data.hiddenAddressesFromGallery ?? [])
-          .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
-
-      await _configurationService.setHideLinkedAccountInGallery(
-          data.hiddenLinkedAccountsFromGallery, true,
-          override: true);
-
-      await _configurationService.setPlayList(data.playlists, override: true);
-
-      log.info('[SettingsDataService][Done] restoreSettingsData');
+      log.info('[SettingsDataService][Done] backup device settings');
     } catch (exception, stacktrace) {
       await Sentry.captureException(exception, stackTrace: stacktrace);
       return;
     }
   }
-}
 
-@JsonSerializable()
-class SettingsDataBackup {
-  List<String> addresses;
-  bool isAnalyticsEnabled;
-  List<String> hiddenMainnetTokenIDs;
-  List<String> hiddenTestnetTokenIDs;
-  List<String> hiddenLinkedAccountsFromGallery;
-  List<String>? hiddenAddressesFromGallery;
-  List<PlayListModel> playlists;
+  @override
+  Future<void> backupUserSettings() async {
+    final currentSettings = _cloudObject.userSettingsDB.allInstance;
+    final List<Map<String, String>> newSettings = [];
 
-  SettingsDataBackup({
-    required this.addresses,
-    required this.isAnalyticsEnabled,
-    required this.hiddenMainnetTokenIDs,
-    required this.hiddenTestnetTokenIDs,
-    required this.hiddenLinkedAccountsFromGallery,
-    this.hiddenAddressesFromGallery,
-    this.playlists = const [],
-  });
+    final hiddenMainnetTokenIDs =
+        jsonEncode(_configurationService.getTempStorageHiddenTokenIDs());
+    if (currentSettings[_keyHiddenMainnetTokenIDs] != hiddenMainnetTokenIDs) {
+      newSettings.add({
+        'key': _keyHiddenMainnetTokenIDs,
+        'value': hiddenMainnetTokenIDs,
+      });
+    }
 
-  factory SettingsDataBackup.fromJson(Map<String, dynamic> json) =>
-      _$SettingsDataBackupFromJson(json);
+    if (newSettings.isEmpty) {
+      log.info('[SettingsDataService] skip user backup: identical');
+      return;
+    }
 
-  Map<String, dynamic> toJson() => _$SettingsDataBackupToJson(this);
+    try {
+      await _cloudObject.userSettingsDB.write(newSettings);
+
+      log.info('[SettingsDataService][Done] backup user settings');
+    } catch (exception, stacktrace) {
+      await Sentry.captureException(exception, stackTrace: stacktrace);
+      return;
+    }
+  }
 }

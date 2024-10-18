@@ -3,25 +3,26 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/touchpad.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class KeyboardControlPagePayload {
-  final AssetToken assetToken;
+  final String subtitle;
+  final String description;
   final List<CanvasDevice> devices;
 
-  KeyboardControlPagePayload(this.assetToken, this.devices);
+  KeyboardControlPagePayload(this.subtitle, this.description, this.devices);
 }
 
 class KeyboardControlPage extends StatefulWidget {
@@ -97,8 +98,8 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final assetToken = widget.payload.assetToken;
-    final editionSubTitle = getEditionSubTitle(assetToken);
+    final editionSubTitle = widget.payload.subtitle;
+    final description = widget.payload.description;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary.withOpacity(0.8),
       resizeToAvoidBottomInset: false,
@@ -138,8 +139,13 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                         const SizedBox(height: 16),
                         HtmlWidget(
                           customStylesBuilder: auHtmlStyle,
-                          assetToken.description ?? '',
+                          description,
                           textStyle: theme.textTheme.ppMori400White14,
+                          onTapUrl: (url) async {
+                            await launchUrl(Uri.parse(url),
+                                mode: LaunchMode.externalApplication);
+                            return true;
+                          },
                         ),
                         TextField(
                           focusNode: _focusNode,

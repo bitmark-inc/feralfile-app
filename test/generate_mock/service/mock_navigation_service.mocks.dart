@@ -4,13 +4,20 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
+import 'dart:ui' as _i11;
 
-import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i8;
+import 'package:autonomy_flutter/model/canvas_device_info.dart' as _i14;
+import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i9;
+import 'package:autonomy_flutter/model/play_list_model.dart' as _i10;
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
+    as _i8;
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart'
     as _i7;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
 import 'package:autonomy_flutter/util/error_handler.dart' as _i6;
+import 'package:autonomy_flutter/view/display_instruction_view.dart' as _i13;
 import 'package:flutter/material.dart' as _i1;
+import 'package:flutter_vibrate/flutter_vibrate.dart' as _i12;
 import 'package:mockito/mockito.dart' as _i2;
 import 'package:nft_collection/models/asset_token.dart' as _i5;
 
@@ -92,6 +99,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         Invocation.getter(#mounted),
         returnValue: false,
       ) as bool);
+  @override
+  void setGlobalHomeTabController(_i1.PageController? controller) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setGlobalHomeTabController,
+          [controller],
+        ),
+        returnValueForMissingStub: null,
+      );
   @override
   _i4.Future<dynamic>? navigateTo(
     String? routeName, {
@@ -184,6 +200,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: null,
       );
   @override
+  _i4.Future<void> showAppLoadError() => (super.noSuchMethod(
+        Invocation.method(
+          #showAppLoadError,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   void goBack({Object? result}) => super.noSuchMethod(
         Invocation.method(
           #goBack,
@@ -204,14 +229,6 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   void popUntilHomeOrSettings() => super.noSuchMethod(
         Invocation.method(
           #popUntilHomeOrSettings,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void restorablePushHomePage() => super.noSuchMethod(
-        Invocation.method(
-          #restorablePushHomePage,
           [],
         ),
         returnValueForMissingStub: null,
@@ -243,10 +260,111 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> showQRExpired() => (super.noSuchMethod(
+        Invocation.method(
+          #showQRExpired,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> addressNotFoundError() => (super.noSuchMethod(
+        Invocation.method(
+          #addressNotFoundError,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showCannotConnectTv() => (super.noSuchMethod(
+        Invocation.method(
+          #showCannotConnectTv,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showUnknownLink() => (super.noSuchMethod(
+        Invocation.method(
+          #showUnknownLink,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showCannotResolveBranchLink() => (super.noSuchMethod(
+        Invocation.method(
+          #showCannotResolveBranchLink,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showMembershipGiftCodeEmpty() => (super.noSuchMethod(
+        Invocation.method(
+          #showMembershipGiftCodeEmpty,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showFailToRedeemMembership() => (super.noSuchMethod(
+        Invocation.method(
+          #showFailToRedeemMembership,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showRedeemMembershipCodeUsed() => (super.noSuchMethod(
+        Invocation.method(
+          #showRedeemMembershipCodeUsed,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showPremiumUserCanNotClaim() => (super.noSuchMethod(
+        Invocation.method(
+          #showPremiumUserCanNotClaim,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showRedeemMembershipSuccess() => (super.noSuchMethod(
+        Invocation.method(
+          #showRedeemMembershipSuccess,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> showDeclinedGeolocalization() => (super.noSuchMethod(
         Invocation.method(
           #showDeclinedGeolocalization,
           [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showSeeMoreArtNow(
+          _i7.SubscriptionDetails? subscriptionDetails) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showSeeMoreArtNow,
+          [subscriptionDetails],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -269,7 +387,36 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<dynamic> goToIRLWebview(_i7.IRLWebScreenPayload? payload) =>
+  _i4.Future<void> gotoExhibitionDetailsPage(String? exhibitionID) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #gotoExhibitionDetailsPage,
+          [exhibitionID],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> popToCollection() => (super.noSuchMethod(
+        Invocation.method(
+          #popToCollection,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> gotoArtworkDetailsPage(String? indexID) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #gotoArtworkDetailsPage,
+          [indexID],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<dynamic> goToIRLWebview(_i8.IRLWebScreenPayload? payload) =>
       (super.noSuchMethod(
         Invocation.method(
           #goToIRLWebview,
@@ -366,21 +513,19 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> openFeralFileArtistPage(String? alias) =>
-      (super.noSuchMethod(
+  _i4.Future<void> openFeralFileArtistPage(String? id) => (super.noSuchMethod(
         Invocation.method(
           #openFeralFileArtistPage,
-          [alias],
+          [id],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> openFeralFileCuratorPage(String? alias) =>
-      (super.noSuchMethod(
+  _i4.Future<void> openFeralFileCuratorPage(String? id) => (super.noSuchMethod(
         Invocation.method(
           #openFeralFileCuratorPage,
-          [alias],
+          [id],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -396,8 +541,17 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> openCollection() => (super.noSuchMethod(
+        Invocation.method(
+          #openCollection,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> openFeralFilePostPage(
-    _i8.Post? post,
+    _i9.Post? post,
     String? exhibitionID,
   ) =>
       (super.noSuchMethod(
@@ -407,6 +561,121 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
             post,
             exhibitionID,
           ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> navigatePath(String? path) => (super.noSuchMethod(
+        Invocation.method(
+          #navigatePath,
+          [path],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showEnvKeyIsMissing(List<String>? keys) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showEnvKeyIsMissing,
+          [keys],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> openPlaylist({required _i10.PlayListModel? playlist}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #openPlaylist,
+          [],
+          {#playlist: playlist},
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showALreadyClaimPlaylist(
+          {required _i10.PlayListModel? playlist}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showALreadyClaimPlaylist,
+          [],
+          {#playlist: playlist},
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void>? showPlaylistActivationExpired() => (super.noSuchMethod(
+        Invocation.method(
+          #showPlaylistActivationExpired,
+          [],
+        ),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>?);
+  @override
+  _i4.Future<void> showFlexibleDialog(
+    _i1.Widget? content, {
+    bool? isDismissible = false,
+    bool? isRoundCorner = true,
+    _i11.Color? backgroundColor,
+    int? autoDismissAfter = 0,
+    _i12.FeedbackType? feedback = _i12.FeedbackType.selection,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showFlexibleDialog,
+          [content],
+          {
+            #isDismissible: isDismissible,
+            #isRoundCorner: isRoundCorner,
+            #backgroundColor: backgroundColor,
+            #autoDismissAfter: autoDismissAfter,
+            #feedback: feedback,
+          },
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showHowToDisplay(
+    _i13.SupportedDisplayBranch? displayBranch,
+    Function? onScanQRTap,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showHowToDisplay,
+          [
+            displayBranch,
+            onScanQRTap,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showStreamAction(
+    String? displayKey,
+    dynamic Function(_i14.CanvasDevice)? onDeviceSelected,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showStreamAction,
+          [
+            displayKey,
+            onDeviceSelected,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> openUrl(Uri? uri) => (super.noSuchMethod(
+        Invocation.method(
+          #openUrl,
+          [uri],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

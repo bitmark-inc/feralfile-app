@@ -18,7 +18,7 @@ jobs:
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.22.1"
+          flutter-version: "3.24.0"
           channel: stable
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -49,8 +49,14 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo -e "${{ secrets.PRODUCTION_ENV }}" | sed 's/\\n/\n/g' >> .env
+          echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
+
+      - name: Create env secret file
+        run: |
+          touch .env.secret
+          echo -e "${{ secrets.PRODUCTION_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          cat .env.secret
 
       - name: Flutter doctor
         run: flutter doctor
@@ -75,6 +81,11 @@ jobs:
           flutter pub get
           cd ios/
           pod install
+
+      # Encrypt secrets before use
+      - name: Encrypt Secrets
+        run: |
+          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
 
       - uses: mathieu-bour/setup-sentry-cli@main
 

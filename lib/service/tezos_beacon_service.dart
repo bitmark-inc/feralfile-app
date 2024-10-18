@@ -10,9 +10,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
@@ -32,7 +31,7 @@ import 'package:flutter/cupertino.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
-  final CloudDatabase _cloudDB;
+  final CloudManager _cloudObjects;
   final List<BeaconRequest> _handlingRequests = [];
 
   late TezosBeaconChannel _beaconChannel;
@@ -42,7 +41,7 @@ class TezosBeaconService implements BeaconHandler {
   bool _requestSignMessageForConnectionFlag = false;
   Timer? _timer;
 
-  TezosBeaconService(this._navigationService, this._cloudDB) {
+  TezosBeaconService(this._navigationService, this._cloudObjects) {
     _beaconChannel = TezosBeaconChannel(handler: this);
     unawaited(_beaconChannel.connect());
     if (Platform.isIOS) {
@@ -107,9 +106,6 @@ class TezosBeaconService implements BeaconHandler {
         await Future.delayed(const Duration(seconds: 1));
       }
     } while (retryCount < maxRetries);
-    if (retryCount >= maxRetries) {
-      memoryValues.deepLink.value = null;
-    }
   }
 
   Future removePeer(P2PPeer peer) async {
@@ -133,7 +129,7 @@ class TezosBeaconService implements BeaconHandler {
         accountNumber: address ?? '',
         createdAt: DateTime.now(),
       );
-      unawaited(_cloudDB.connectionDao.insertConnection(connection));
+      unawaited(_cloudObjects.connectionObject.writeConnection(connection));
       _addedConnection();
     }
   }
@@ -211,7 +207,7 @@ class TezosBeaconService implements BeaconHandler {
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {
-    final existingConnections = await _cloudDB.connectionDao
+    final existingConnections = _cloudObjects.connectionObject
         .getConnectionsByAccountNumber(accountNumber);
 
     if (existingConnections.isEmpty) {
@@ -221,7 +217,7 @@ class TezosBeaconService implements BeaconHandler {
   }
 
   Future cleanup() async {
-    final connections = await _cloudDB.connectionDao
+    final connections = _cloudObjects.connectionObject
         .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
 
     // retains connections under 7 days old and limit to 5 connections.

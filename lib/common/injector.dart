@@ -10,8 +10,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/gateway/announcement_api.dart';
-import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -22,25 +20,31 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
-import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
@@ -52,15 +56,16 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
+import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
@@ -78,33 +83,40 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/data/api/tzkt_api.dart';
 import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:sentry_dio/sentry_dio.dart';
+import 'package:sentry/sentry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
 
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
-Future<void> setup() async {
+Future<void> setupLogger() async {
   await FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
-    FileLogger.log(record);
-    SentryBreadcrumbLogger.log(record);
+    try {
+      FileLogger.log(record);
+      SentryBreadcrumbLogger.log(record);
+    } catch (e, s) {
+      Sentry.captureException('Error logging record: $e', stackTrace: s);
+    }
   });
+}
 
+Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   final mainnetDB =
@@ -127,12 +139,11 @@ Future<void> setup() async {
     migrateV16ToV17,
     migrateV17ToV18,
     migrateV18ToV19,
+    migrateV19ToV20,
   ]).build();
 
-  final cloudDB = await $FloorCloudDatabase
-      .databaseBuilder('cloud_database.db')
-      .addMigrations(cloudDatabaseMigrations)
-      .build();
+  final cloudDB =
+      await $FloorCloudDatabase.databaseBuilder('cloud_database.db').build();
 
   injector.registerLazySingleton(() => NavigationService());
 
@@ -165,46 +176,42 @@ Future<void> setup() async {
       () => NftCollection.database.predefinedCollectionDao);
   injector.registerLazySingleton(() => cloudDB);
 
-  final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
+  final authenticatedDio =
+      baseDio(dioOptions); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
-  authenticatedDio.interceptors.add(LoggingInterceptor());
-  authenticatedDio.interceptors.add(ConnectingExceptionInterceptor());
-  (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
-      parseJson;
-  authenticatedDio.addSentry();
-  authenticatedDio.options = dioOptions;
+  authenticatedDio.interceptors.add(MetricsInterceptor());
 
   injector.registerLazySingleton<NetworkService>(() => NetworkService());
   // Services
-  final auditService = AuditServiceImpl(cloudDB);
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
   injector.registerLazySingleton(() => http.Client());
-  injector.registerLazySingleton<AutonomyService>(
-      () => AutonomyServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
-  injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-        cloudDB,
         injector(),
         injector(),
-        auditService,
+        injector(),
         injector(),
         injector(),
         injector(),
       ));
+
+  injector.registerLazySingleton<PrimaryAddressChannel>(
+      () => PrimaryAddressChannel());
+
+  injector.registerLazySingleton<AddressService>(
+      () => AddressService(injector(), injector()));
+
+  injector.registerLazySingleton<KeychainService>(() => KeychainService());
 
   injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
-  injector.registerLazySingleton(() =>
-      AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
 
   final tzktUrl = Environment.appTestnetConfig
       ? Environment.tzktTestnetURL
@@ -216,8 +223,9 @@ Future<void> setup() async {
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
       () => SourceExhibitionAPI(dio, baseUrl: Environment.pubdocURL));
-  injector.registerLazySingleton<RemoteConfigService>(
-      () => RemoteConfigServiceImpl(injector()));
+  injector.registerLazySingleton<RemoteConfigService>(() =>
+      RemoteConfigServiceImpl(
+          RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
@@ -241,14 +249,19 @@ Future<void> setup() async {
             injector(),
             injector(),
             injector(),
-            injector(),
           ));
 
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
-  injector.registerLazySingleton(() =>
-      TvCastApi(tvCastDio(dioOptions), baseUrl: Environment.tvCastApiUrl));
+  injector.registerLazySingleton(() => TvCastApi(
+      tvCastDio(
+        dioOptions.copyWith(
+          receiveTimeout: const Duration(seconds: 10),
+          connectTimeout: const Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.tvCastApiUrl));
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
         injector(),
@@ -272,13 +285,7 @@ Future<void> setup() async {
                   ),
                 ),
                 baseUrl: Environment.customerSupportURL),
-            injector(),
-            mainnetDB.announcementDao,
-            AnnouncementApi(authenticatedDio,
-                baseUrl: Environment.customerSupportURL),
           ));
-
-  injector.registerLazySingleton<AuditService>(() => auditService);
 
   injector.registerLazySingleton<MerchandiseService>(
       () => MerchandiseServiceImpl(MerchandiseApi(
@@ -315,14 +322,14 @@ Future<void> setup() async {
   injector.registerLazySingleton<IndexerService>(
       () => IndexerService(indexerClient));
 
-  injector.registerLazySingleton<EthereumService>(() => EthereumServiceImpl(
-      injector(), injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<EthereumService>(() =>
+      EthereumServiceImpl(injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-  injector.registerLazySingleton<PlaylistService>(
-      () => PlayListServiceImp(injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<PlaylistService>(() => PlayListServiceImp(
+      injector(), injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 
   injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
@@ -388,10 +395,32 @@ Future<void> setup() async {
   injector.registerFactory<IdentityBloc>(
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
+
+  injector.registerLazySingleton<ConnectionsBloc>(() => ConnectionsBloc(
+        injector(),
+        injector(),
+        injector(),
+      ));
   injector.registerLazySingleton<CanvasDeviceBloc>(
       () => CanvasDeviceBloc(injector()));
-  injector
-      .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
+  injector.registerLazySingleton<DailyWorkBloc>(
+      () => DailyWorkBloc(injector(), injector()));
+
+  injector.registerLazySingleton<AnnouncementStore>(() => AnnouncementStore());
+  await injector<AnnouncementStore>().init('');
+
+  injector.registerLazySingleton<AnnouncementService>(
+      () => AnnouncementServiceImpl(injector(), injector(), injector()));
+
+  injector.registerLazySingleton<UpgradesBloc>(
+      () => UpgradesBloc(injector(), injector()));
+
+  injector.registerLazySingleton<AccountSettingsClient>(
+      () => AccountSettingsClient(Environment.accountSettingUrl));
+
+  injector.registerLazySingleton<CloudManager>(() => CloudManager());
+
+  injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
 }

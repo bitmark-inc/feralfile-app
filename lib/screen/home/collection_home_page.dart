@@ -11,35 +11,30 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/home/home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/locale_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
-import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:dio/dio.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +42,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class CollectionHomePage extends StatefulWidget {
   const CollectionHomePage({super.key});
@@ -64,7 +58,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         AutomaticKeepAliveClientMixin {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
-  late MetricClientService _metricClient;
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
@@ -73,18 +66,16 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final nftBloc = injector<ClientTokenService>().nftBloc;
   late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
+  final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
 
   @override
   void initState() {
     super.initState();
     _showPostcardBanner = _configurationService.getShowPostcardBanner();
-    _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
-    context.read<HomeBloc>().add(CheckReviewAppEvent());
-    unawaited(injector<IAPService>().setup());
   }
 
   void _scrollListenerToLoadMore() {
@@ -112,7 +103,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     unawaited(_handleForeground());
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
   }
 
   @override
@@ -144,7 +134,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           .toList();
       if (config.isAutoShowPostcard()) {
         log.info('Auto show minted postcard');
-        final payload = PostcardDetailPagePayload(tokenMints, 0);
+        final payload = PostcardDetailPagePayload(tokenMints.first);
         unawaited(Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,
@@ -198,7 +188,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             _assetsWidget(context, tokens),
       ),
       listener: (context, state) async {
-        log.info('[NftCollectionBloc] State update $state');
+        log.info('[NftCollectionBloc] State update ${state.tokens.length}');
         if (state.state == NftLoadingState.done) {
           unawaited(_onTokensUpdate(state.tokens.items));
         }
@@ -208,21 +198,46 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getDarkEmptyAppBar(Colors.transparent),
+        appBar: getFFAppBar(
+          context,
+          onBack: () {
+            Navigator.pop(context);
+          },
+          title: TitleText(
+            title: 'all'.tr(),
+            ellipsis: false,
+            isCentered: true,
+            fontSize: 14,
+          ),
+          action: FFCastButton(
+            displayKey: _updateTokens(nftBloc.state.tokens.items)
+                    .map((e) => e.id)
+                    .toList()
+                    .displayKey ??
+                '',
+            onDeviceSelected: (device) {
+              log.info('Device selected: ${device.name}');
+              final listTokenIds = _updateTokens(nftBloc.state.tokens.items)
+                  .map((e) => e.id)
+                  .toList();
+              if (listTokenIds.isEmpty) {
+                log.info('playList is empty');
+                return;
+              }
+              final duration = speedValues.values.first.inMilliseconds;
+              final listPlayArtwork = listTokenIds
+                  .map((e) => PlayArtworkV2(
+                      token: CastAssetToken(id: e), duration: duration))
+                  .toList();
+              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                  device, listPlayArtwork));
+            },
+          ),
+        ),
         extendBody: true,
-        extendBodyBehindAppBar: true,
+        // extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: contentWidget,
-      ),
-    );
-  }
-
-  Widget _header(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    return Padding(
-      padding: EdgeInsets.only(top: paddingTop),
-      child: HeaderView(
-        title: 'collection'.tr(),
       ),
     );
   }
@@ -231,9 +246,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
           child: Column(
         children: [
           SizedBox(
-            height: MediaQuery.of(context).padding.top,
+            height: MediaQuery.of(context).padding.top + 40,
           ),
-          _header(context),
           loadingIndicator(valueColor: AppColor.white),
         ],
       ));
@@ -244,9 +258,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
         SizedBox(
-          height: MediaQuery.of(context).padding.top,
+          height: MediaQuery.of(context).padding.top + 40,
         ),
-        _header(context),
         if (_showPostcardBanner)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -296,9 +309,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         child: SizedBox(
           height: MediaQuery.of(context).padding.top,
         ),
-      ),
-      SliverToBoxAdapter(
-        child: _header(context),
       ),
       if (tokens.length <= maxCollectionListSize) ...[
         const SliverToBoxAdapter(
@@ -444,8 +454,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
             .toList()
             .indexOf(asset);
         final payload = asset.isPostcard
-            ? PostcardDetailPagePayload(accountIdentities, index)
-            : ArtworkDetailPayload(accountIdentities, index);
+            ? PostcardDetailPagePayload(accountIdentities[index])
+            : ArtworkDetailPayload(accountIdentities[index]);
 
         final pageName = asset.isPostcard
             ? AppRouter.claimedPostcardDetailsPage
@@ -468,37 +478,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
       case FGBGType.foreground:
         unawaited(_handleForeground());
       case FGBGType.background:
-        _handleBackground();
     }
   }
 
   Future<void> _handleForeground() async {
-    final locale = Localizations.localeOf(context);
-    unawaited(LocaleService.refresh(locale));
-    memoryValues.inForegroundAt = DateTime.now();
-    await injector<ConfigurationService>().reload();
-    try {
-      await injector<SettingsDataService>().restoreSettingsData();
-    } catch (exception) {
-      if (exception is DioException && exception.response?.statusCode == 404) {
-        // if there is no backup, upload one.
-        await injector<SettingsDataService>().backup();
-      } else {
-        unawaited(Sentry.captureException(exception));
-      }
-    }
-
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-    unawaited(injector<VersionService>().checkForUpdate());
-    // Reload token in Isolate
-
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
-    unawaited(injector<CustomerSupportService>().processMessages());
-  }
-
-  void _handleBackground() {
-    unawaited(_metricClient.sendAndClearMetrics());
-    unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 
   Future<void> _hidePostcardBanner() async {

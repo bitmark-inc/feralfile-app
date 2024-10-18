@@ -4,10 +4,13 @@ import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -21,7 +24,7 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feral_file_helper.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -38,16 +41,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != '') {
@@ -419,7 +421,7 @@ INFTRenderingWidget buildRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+  Function({int? time, WebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
@@ -452,7 +454,7 @@ INFTRenderingWidget buildFeralfileRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+  Function({int? time, WebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
@@ -479,55 +481,6 @@ class RetryCubit extends Cubit<int> {
 
   void refresh() {
     emit(state + 1);
-  }
-}
-
-class PreviewUnSupportedTokenWidget extends StatelessWidget {
-  final AssetToken token;
-
-  const PreviewUnSupportedTokenWidget({required this.token, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.width,
-      padding: const EdgeInsets.all(10),
-      color: AppColor.auGreyBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: SvgPicture.asset(
-              'assets/images/unsupported_token.svg',
-              width: 40,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Row(
-              children: [
-                Text(
-                  'unsupported_token'.tr(),
-                  style: theme.textTheme.ppMori700QuickSilver8
-                      .copyWith(fontSize: 12),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    'hide_from_collection'.tr(),
-                    style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.feralFileHighlight),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -584,50 +537,6 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
                         .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CurrentlyCastingArtwork extends StatefulWidget {
-  const CurrentlyCastingArtwork({super.key});
-
-  @override
-  State<CurrentlyCastingArtwork> createState() =>
-      _CurrentlyCastingArtworkState();
-}
-
-class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.width,
-      padding: const EdgeInsets.all(10),
-      color: AppColor.auGreyBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: SvgPicture.asset(
-              'assets/images/ipfs_error_icon.svg',
-              width: 40,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Row(
-              children: [
-                Text(
-                  'currently_casting'.tr(),
-                  style: theme.textTheme.ppMori700QuickSilver8
-                      .copyWith(fontSize: 12),
-                ),
               ],
             ),
           ),
@@ -711,7 +620,7 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
   final artworkID = assetToken.feralfileArtworkId;
   if (assetToken.shouldShowFeralfileRight) {
     return ArtworkRightsView(
-      contract: FFContract('', '', assetToken.contractAddress ?? ''),
+      contractAddress: assetToken.contractAddress,
       artworkID: artworkID,
     );
   }
@@ -858,13 +767,13 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                         if (_isExpanded)
                           widget.iconOnExpanded ??
                               RotatedBox(
-                                quarterTurns: -1,
+                                quarterTurns: 1,
                                 child: defaultIcon,
                               )
                         else
                           widget.iconOnUnExpanded ??
                               RotatedBox(
-                                quarterTurns: 1,
+                                quarterTurns: 2,
                                 child: defaultIcon,
                               )
                       ],
@@ -1052,8 +961,9 @@ Widget postcardDetailsMetadataSection(
 
 class ArtworkAttributesText extends StatelessWidget {
   final Artwork artwork;
+  final Color? color;
 
-  const ArtworkAttributesText({required this.artwork, super.key});
+  const ArtworkAttributesText({required this.artwork, super.key, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -1061,7 +971,7 @@ class ArtworkAttributesText extends StatelessWidget {
     return Text(
       artwork.attributesString ?? '',
       style: theme.textTheme.ppMori400FFQuickSilver12.copyWith(
-        color: AppColor.feralFileMediumGrey,
+        color: color ?? AppColor.feralFileMediumGrey,
       ),
     );
   }
@@ -1086,14 +996,17 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             title: 'title'.tr(),
             value: artwork.series!.displayTitle,
           ),
-          if (artwork.series!.artist?.alias != null) ...[
+          if (artwork.series!.artist?.alumniAccount?.alias != null) ...[
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
-              value: artwork.series!.artist!.alias,
-              tapLink:
-                  FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
-              forceSafariVC: true,
+              value: artwork.series!.artist!.displayAlias,
+              onTap: () async {
+                if (artwork.series!.artist!.alumniAccount!.slug != null) {
+                  await injector<NavigationService>().openFeralFileArtistPage(
+                      artwork.series!.artist!.alumniAccount!.slug!);
+                }
+              },
             ),
           ],
           divider,
@@ -1113,8 +1026,17 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             MetaDataItem(
               title: 'exhibition'.tr(),
               value: artwork.series!.exhibition!.title,
-              tapLink: feralFileExhibitionUrl(artwork.series!.exhibition!.slug),
-              forceSafariVC: true,
+              onTap: () {
+                unawaited(
+                  Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions: [artwork.series!.exhibition!],
+                      index: 0,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
           divider,
@@ -1169,12 +1091,17 @@ Widget artworkDetailsMetadataSection(
             title: 'artist'.tr(),
             value: artistName,
             onTap: () async {
-              final uri = Uri.parse(
-                  assetToken.artistURL?.split(' & ').firstOrNull ?? '');
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
+              if (!assetToken.isFeralfile) {
+                final uri = Uri.parse(
+                    assetToken.artistURL?.split(' & ').firstOrNull ?? '');
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                unawaited(injector<NavigationService>()
+                    .openFeralFileArtistPage(assetToken.artistID!));
+              }
             },
             forceSafariVC: true,
-          ),
+          )
         ],
         if (!assetToken.fungible)
           Column(
@@ -1205,7 +1132,17 @@ Widget artworkDetailsMetadataSection(
                     MetaDataItem(
                       title: 'exhibition'.tr(),
                       value: snapshot.data!.title,
-                      tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
+                      onTap: () {
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            AppRouter.exhibitionDetailPage,
+                            arguments: ExhibitionDetailPayload(
+                              exhibitions: [snapshot.data!],
+                              index: 0,
+                            ),
+                          ),
+                        );
+                      },
                       forceSafariVC: true,
                     ),
                     divider,
@@ -1616,43 +1553,6 @@ class ProvenanceItem extends StatelessWidget {
   }
 }
 
-class HeaderData extends StatelessWidget {
-  final String text;
-
-  const HeaderData({required this.text, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Divider(
-          color: theme.colorScheme.secondary,
-          thickness: 1,
-        ),
-        Row(
-          children: [
-            Text(
-              text,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const Spacer(),
-            RotatedBox(
-              quarterTurns: 1,
-              child: Icon(
-                AuIcon.chevron_Sm,
-                size: 12,
-                color: theme.colorScheme.secondary,
-              ),
-            )
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 Widget artworkDetailsProvenanceSectionNotEmpty(
         BuildContext context,
         List<Provenance> provenances,
@@ -1785,13 +1685,13 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
-  final FFContract contract;
+  final String? contractAddress;
   final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
-      {required this.contract,
-      super.key,
+      {super.key,
+      this.contractAddress,
       this.linkStyle,
       this.artworkID,
       this.exhibitionID});
@@ -1807,30 +1707,29 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
         artworkID: widget.artworkID,
-        contractAddress: widget.contract.address));
-  }
-
-  String getUrl(RoyaltyState state) {
-    if (state.exhibitionID != null) {
-      return '$FF_ARTIST_COLLECTOR/${state.exhibitionID}';
-    } else {
-      return FF_ARTIST_COLLECTOR;
-    }
+        contractAddress: widget.contractAddress ?? ''));
   }
 
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
-        if (state.markdownData != null) {
-          return SectionExpandedWidget(
-            header: 'rights'.tr(),
-            padding: const EdgeInsets.only(bottom: 23),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        final data = state.markdownData?.replaceAll('.**', '**');
+        return SectionExpandedWidget(
+          header: 'collector_rights'.tr(),
+          padding: const EdgeInsets.only(bottom: 23),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (data == null)
+                Center(
+                  child: loadingIndicator(
+                      backgroundColor: AppColor.white,
+                      valueColor: AppColor.auGreyBackground),
+                )
+              else
                 Markdown(
                   key: const Key('rightsSection'),
-                  data: state.markdownData!.replaceAll('.**', '**'),
+                  data: data,
                   softLineBreak: true,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -1844,13 +1743,10 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                         mode: LaunchMode.externalApplication);
                   },
                 ),
-                const SizedBox(height: 23),
-              ],
-            ),
-          );
-        } else {
-          return const SizedBox();
-        }
+              const SizedBox(height: 23),
+            ],
+          ),
+        );
       });
 }
 

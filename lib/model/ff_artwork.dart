@@ -6,8 +6,8 @@
 //
 
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 part 'ff_artwork.g.dart';
 
@@ -152,58 +152,6 @@ class Artwork {
         series ?? this.series,
         swap ?? this.swap,
         artworkAttributes ?? this.artworkAttributes,
-      );
-
-  static Artwork createFake(
-          String thumbNailURI, String previewURI, String medium) =>
-      Artwork(
-        'id',
-        'seriesID',
-        0,
-        'name',
-        'category',
-        'ownerAccountID',
-        false,
-        false,
-        'blockchainStatus',
-        false,
-        thumbNailURI,
-        previewURI,
-        {},
-        DateTime.now(),
-        DateTime.now(),
-        DateTime.now(),
-        false,
-        FFSeries(
-          'id',
-          'artistID',
-          'assetID',
-          'title',
-          'slug',
-          medium,
-          'description',
-          'thumbnailURI',
-          'exhibitionID',
-          {},
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-        ),
-        null,
-        null,
       );
 }
 

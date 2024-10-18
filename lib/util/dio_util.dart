@@ -39,6 +39,8 @@ Dio tvCastDio(BaseOptions options) {
   dio.interceptors.add(TVKeyInterceptor(Environment.tvKey));
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(ConnectingExceptionInterceptor());
+  // capture 4xx and 5xx errors
+  dio.addSentry(failedRequestStatusCodes: [SentryStatusCode.range(400, 599)]);
   return dio;
 }
 

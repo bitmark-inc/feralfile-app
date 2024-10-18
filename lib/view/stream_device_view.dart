@@ -1,17 +1,18 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -54,35 +55,40 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final connectedDevice = widget.displayKey == null
             ? null
             : state.lastSelectedActiveDeviceForKey(widget.displayKey!);
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Row(
                 children: [
                   Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'display'.tr(),
-                            style: theme.textTheme.ppMori700White24,
-                          ),
-                          if (connectedDevice != null)
-                            TextSpan(
-                              text: ' ${connectedDevice.name}',
-                              style: theme.textTheme.ppMori400White24,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      child: (connectedDevice != null)
+                          ? RichText(
+                              textScaler: MediaQuery.textScalerOf(context),
+                              text: TextSpan(
+                                style: theme.textTheme.ppMori700White24,
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: 'display'.tr(),
+                                  ),
+                                  TextSpan(
+                                    text: ' ${connectedDevice.name}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w400),
+                                  )
+                                ],
+                              ),
+                            )
+                          : Text(
+                              'display_art_on_your_tv'.tr(),
+                              style: theme.textTheme.ppMori700White24,
+                            )),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Padding(
+                      padding: const EdgeInsets.all(5),
                       child: SvgPicture.asset(
                         'assets/images/circle_close.svg',
                         width: 22,
@@ -92,6 +98,8 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   )
                 ],
               ),
+            ),
+            if (devices.isNotEmpty) ...[
               const SizedBox(height: 40),
               ListView.builder(
                 shrinkWrap: true,
@@ -111,6 +119,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                               onTap: () {
                                 log.info('device selected: ${device.deviceId}');
                                 widget.onDeviceSelected?.call(device);
+                                Navigator.pop(context);
                               }),
                           backgroundColor: connectedDevice == null
                               ? AppColor.white
@@ -121,43 +130,14 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                           onRotateClicked: () => onRotate(context),
                         ),
                       ),
-                      if (index < devices.length - 1)
-                        const SizedBox(
-                          height: 15,
-                        )
+                      const SizedBox(
+                        height: 15,
+                      )
                     ],
                   );
                 },
               ),
-              const SizedBox(height: 40),
-              RichText(
-                  text: TextSpan(
-                children: <TextSpan>[
-                  TextSpan(
-                    text: 'not_find_canvas'.tr(),
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                  // text clickable
-                  TextSpan(
-                    text: 'scan_the_qrcode'.tr(),
-                    style: theme.textTheme.ppMori400White14.copyWith(
-                      decoration: TextDecoration.underline,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        await _scanToAddMore(context);
-                      },
-                  ),
-                  TextSpan(
-                    text: 'that_appear_on_canvas'.tr(),
-                    style: theme.textTheme.ppMori400White14,
-                  )
-                ],
-              )),
               if (connectedDevice != null) ...[
-                const SizedBox(
-                  height: 40,
-                ),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
@@ -186,12 +166,42 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     ),
                   ),
                 ),
-              ]
+                const SizedBox(height: 30),
+              ],
+            ] else ...[
+              const SizedBox(height: 15),
+              _instructionDetailWidget(context),
             ],
-          ),
+            const SizedBox(height: 10),
+          ],
         );
       },
     );
+  }
+
+  Widget _instructionDetailWidget(BuildContext context) =>
+      DisplayInstructionView(
+        onScanQRTap: _scanToAddMore,
+      );
+
+  Future<void> _scanToAddMore() async {
+    injector<NavigationService>().hideInfoDialog();
+    final device =
+        await injector<NavigationService>().navigateTo(AppRouter.scanQRPage,
+            arguments: ScanQRPagePayload(
+                scannerItem: ScannerItem.CANVAS,
+                onHandleFinished: (device) {
+                  if (device is CanvasDevice) {
+                    widget.onDeviceSelected?.call(device);
+                    injector
+                        .get<CanvasDeviceBloc>()
+                        .add(CanvasDeviceGetDevicesEvent());
+                  }
+                }));
+    log.info('device selected: $device');
+    if (device != null) {
+      injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+    }
   }
 
   void onRotate(BuildContext context) {
@@ -200,13 +210,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     if (lastSelectedCanvasDevice != null) {
       _canvasDeviceBloc.add(CanvasDeviceRotateEvent(lastSelectedCanvasDevice));
     }
-  }
-
-  Future<void> _scanToAddMore(BuildContext context) async {
-    final device = await Navigator.of(context)
-        .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS);
-    log.info('device selected: $device');
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 
   Future<void> onDisconnect() async {

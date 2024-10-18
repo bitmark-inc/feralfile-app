@@ -4,23 +4,21 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -33,9 +31,10 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/attributes.dart';
 import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
-import 'package:nft_rendering/nft_rendering.dart';
+import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
@@ -50,6 +49,19 @@ extension AssetTokenExtension on AssetToken {
           'https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers'
     }
   };
+
+  bool get isJohnGerrardArtwork {
+    final contractAddress = this.contractAddress;
+    final johnGerrardContractAddress = JohnGerrardHelper.contractAddress;
+    return isFeralfile && contractAddress == johnGerrardContractAddress;
+  }
+
+  List<String> get disableKeys {
+    if (isJohnGerrardArtwork) {
+      return JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
 
   String? get displayTitle {
     if (title == null) {
@@ -138,7 +150,7 @@ extension AssetTokenExtension on AssetToken {
 
     Pair<WalletStorage, int>? result;
     final walletAddress =
-        await injector<CloudDatabase>().addressDao.findByAddress(owner);
+        injector<CloudManager>().addressObject.findByAddress(owner);
     if (walletAddress != null) {
       result = Pair<WalletStorage, int>(
           WalletStorage(walletAddress.uuid), walletAddress.index);
@@ -193,10 +205,10 @@ extension AssetTokenExtension on AssetToken {
   }
 
   Future<bool> isViewOnly() async {
-    final cloudDB = injector<CloudDatabase>();
-    final walletAddress = await cloudDB.addressDao.findByAddress(owner);
+    final cloudObject = injector<CloudManager>();
+    final walletAddress = cloudObject.addressObject.findByAddress(owner);
     final viewOnlyConnections =
-        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        cloudObject.connectionObject.getLinkedAccounts();
     final connection = viewOnlyConnections.firstWhereOrNull(
         (viewOnlyConnection) => viewOnlyConnection.key == owner);
     return walletAddress == null && connection != null;
@@ -214,12 +226,6 @@ extension AssetTokenExtension on AssetToken {
       case 'MAINNET_tezos':
       case 'TESTNET_tezos':
         return 'https://tzkt.io/$contractAddress';
-
-      case 'MAINNET_bitmark':
-        return 'https://registry.bitmark.com/bitmark/$tokenId';
-
-      case 'TESTNET_bitmark':
-        return 'https://registry.test.bitmark.com/bitmark/$tokenId';
     }
     return null;
   }
@@ -359,7 +365,7 @@ extension AssetTokenExtension on AssetToken {
     Attributes? attributes,
     bool? burned,
     bool? pending,
-    bool? isDebugged,
+    bool? isManual,
     bool? scrollable,
     String? originTokenInfoId,
     bool? ipfsPinned,
@@ -387,7 +393,7 @@ extension AssetTokenExtension on AssetToken {
         attributes: attributes ?? this.attributes,
         burned: burned ?? this.burned,
         pending: pending ?? this.pending,
-        isDebugged: isDebugged ?? this.isDebugged,
+        isManual: isManual ?? this.isManual,
         scrollable: scrollable ?? this.scrollable,
         originTokenInfoId: originTokenInfoId ?? this.originTokenInfoId,
         ipfsPinned: ipfsPinned ?? this.ipfsPinned,
@@ -415,17 +421,6 @@ extension AssetTokenExtension on AssetToken {
   bool get shouldShowFeralfileRight =>
       isFeralfile && !isWedgwoodActivationToken;
 
-  bool get shouldShowDownloadArtwork {
-    final List<dynamic>? remoteConfigAllowDownloadArtwork =
-        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
-            ConfigGroup.feralfileArtworkAction,
-            ConfigKey.allowDownloadArtworkContracts,
-            null);
-    final res = isFeralfile &&
-        (remoteConfigAllowDownloadArtwork?.contains(contractAddress) ?? true);
-    return res;
-  }
-
   Pair<String, String>? get irlTapLink {
     final remoteConfig = injector<RemoteConfigService>();
     final yokoOnoContractAddresses = remoteConfig.getConfig<List<dynamic>>(
@@ -447,28 +442,11 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
-  Future<void> sendViewArtworkEvent() async {
-    String tokenId = id;
-    if (isFeralfile) {
-      try {
-        final artworkId = feralfileArtworkId;
-        if (artworkId != null && artworkId.isNotEmpty) {
-          final artwork =
-              await injector<FeralFileService>().getArtwork(artworkId);
-          tokenId = artwork.metricTokenId;
-        }
-      } catch (e, stackTrace) {
-        await Sentry.captureException(
-          e,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-    final data = {
-      MixpanelProp.tokenId: tokenId,
-    };
-    injector<MetricClientService>()
-        .addEvent(MixpanelEvent.viewArtwork, data: data);
+  Future<bool> hasLocalAddress() async {
+    final owner = this.owner;
+    final collectionAddresses =
+        await injector<AddressService>().getAllAddresses();
+    return collectionAddresses.any((element) => element.address == owner);
   }
 }
 
@@ -506,7 +484,9 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
     return isFeralfile && contractAddress == johnGerrardContractAddress;
   }
 
-  bool get shouldRefreshThumbnailCache => isJohnGerrardArtwork;
+  bool get shouldRefreshThumbnailCache =>
+      isJohnGerrardArtwork &&
+      edition > JohnGerrardHelper.johnGerrardLatestRevealIndex - 2;
 
   String get getMimeType {
     switch (mimeType) {
@@ -863,10 +843,10 @@ extension CompactedAssetTokenExt on List<CompactedAssetToken> {
     List<PlayListModel> playlists = [];
     groups.forEach((key, value) {
       PlayListModel playListModel = PlayListModel(
-        name: key,
-        tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
-        thumbnailURL: value.first.thumbnailURL,
-      );
+          name: key,
+          tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
+          thumbnailURL: value.first.thumbnailURL,
+          id: const Uuid().v4());
       playlists.add(playListModel);
     });
     return playlists;

@@ -18,7 +18,7 @@ class FFSeries {
   final int? displayIndex;
   final int? featuringIndex;
   final FFSeriesSettings? settings;
-  final FFArtist? artist;
+  final FFUser? artist;
   final Exhibition? exhibition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -82,7 +82,7 @@ class FFSeries {
                 json['settings'] as Map<String, dynamic>),
         json['artist'] == null
             ? null
-            : FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
+            : FFUser.fromJson(json['artist'] as Map<String, dynamic>),
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -159,7 +159,7 @@ class FFSeries {
     int? displayIndex,
     int? featuringIndex,
     FFSeriesSettings? settings,
-    FFArtist? artist,
+    FFUser? artist,
     Exhibition? exhibition,
     DateTime? createdAt,
     DateTime? mintedAt,
@@ -224,8 +224,19 @@ class FFSeriesSettings {
   final int maxArtwork;
   final String? saleModel;
   ArtworkModel? artworkModel;
+  int artistReservation;
+  int publisherProof;
+  int promotionalReservation;
+  bool? tradeSeries;
+  bool? transferToCurator;
 
-  FFSeriesSettings(this.saleModel, this.maxArtwork, {this.artworkModel});
+  FFSeriesSettings(this.saleModel, this.maxArtwork,
+      {this.artworkModel,
+      this.artistReservation = 0,
+      this.publisherProof = 0,
+      this.promotionalReservation = 0,
+      this.tradeSeries = false,
+      this.transferToCurator = false});
 
   factory FFSeriesSettings.fromJson(Map<String, dynamic> json) =>
       FFSeriesSettings(
@@ -234,6 +245,11 @@ class FFSeriesSettings {
         artworkModel: json['artworkModel'] == null
             ? null
             : ArtworkModel.fromString(json['artworkModel'] as String),
+        artistReservation: json['artistReservation'] as int? ?? 0,
+        publisherProof: json['publisherProof'] as int? ?? 0,
+        promotionalReservation: json['promotionalReservation'] as int? ?? 0,
+        tradeSeries: json['tradeSeries'] as bool?,
+        transferToCurator: json['transferToCurator'] as bool?,
       );
 
   Map<String, dynamic> toJson() => {

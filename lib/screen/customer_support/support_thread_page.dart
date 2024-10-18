@@ -10,18 +10,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/jwt.dart';
@@ -31,7 +28,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:bubble/bubble.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -45,17 +41,19 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
-  AnnouncementLocal? get announcement;
+  String? get defaultMessage;
 }
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
+  final String? artworkReportID;
   @override
-  final AnnouncementLocal? announcement;
+  final String? defaultMessage;
 
   NewIssuePayload({
     required this.reportIssueType,
-    this.announcement,
+    this.artworkReportID,
+    this.defaultMessage,
   });
 }
 
@@ -65,26 +63,27 @@ class DetailIssuePayload extends SupportThreadPayload {
   final String status;
   final bool isRated;
   @override
-  final AnnouncementLocal? announcement;
+  final String? defaultMessage;
 
-  DetailIssuePayload(
-      {required this.reportIssueType,
-      required this.issueID,
-      this.status = '',
-      this.isRated = false,
-      this.announcement});
+  DetailIssuePayload({
+    required this.reportIssueType,
+    required this.issueID,
+    this.defaultMessage,
+    this.status = '',
+    this.isRated = false,
+  });
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
   final String metadata;
   @override
-  final AnnouncementLocal? announcement;
+  final String? defaultMessage;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
-    this.announcement,
+    this.defaultMessage,
   });
 }
 
@@ -100,12 +99,10 @@ class SupportThreadPage extends StatefulWidget {
   State<SupportThreadPage> createState() => _SupportThreadPageState();
 }
 
-class _SupportThreadPageState extends State<SupportThreadPage>
-    with AfterLayoutMixin<SupportThreadPage> {
+class _SupportThreadPageState extends State<SupportThreadPage> {
   String _reportIssueType = '';
   String? _issueID;
 
-  bool isCustomerSupportAvailable = true;
   List<types.Message> _messages = [];
   List<types.Message> _draftMessages = [];
   final _user = const types.User(id: 'user');
@@ -115,6 +112,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   bool _isRated = false;
   bool _isFileAttached = false;
   Pair<String, List<int>>? _debugLog;
+  late TextEditingController _textEditingController;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = 'assets/images/sendMessage.svg';
@@ -148,16 +146,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
-  types.CustomMessage get _announcementMessenger => types.CustomMessage(
-        id: _announcementMessengerID,
-        author: _bitmark,
-        metadata: const {'status': 'announcement'},
-      );
-
   @override
   void initState() {
     unawaited(_getUserId());
-    unawaited(_fetchCustomerSupportAvailability());
     unawaited(injector<CustomerSupportService>().processMessages());
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -169,8 +160,13 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     final payload = widget.payload;
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
-      if (_reportIssueType == ReportIssueType.Bug) {
+      if (_reportIssueType == ReportIssueType.Bug &&
+          (payload.defaultMessage?.isEmpty ?? true) &&
+          (payload.artworkReportID?.isEmpty ?? true)) {
         Future.delayed(const Duration(milliseconds: 300), () {
+          if (!mounted) {
+            return;
+          }
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
               unawaited(_addDebugLog());
@@ -189,6 +185,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
       Future.delayed(const Duration(milliseconds: 300), () {
+        if (!mounted) {
+          return;
+        }
         _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
           if (attachCrashLog) {
             unawaited(_addDebugLog());
@@ -198,6 +197,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         });
       });
     }
+
+    _textEditingController =
+        TextEditingController(text: widget.payload.defaultMessage);
 
     memoryValues.viewingSupportThreadIssueID = _issueID;
     _forceAccountsViewRedraw = Object();
@@ -215,26 +217,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       return _userId!;
     }
     final jwt = await injector<AuthService>().getAuthToken();
-    final data = parseJwt(jwt.jwtToken);
+    final data = parseJwt(jwt!.jwtToken);
     _userId = data['sub'] ?? '';
     return _userId!;
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    final payload = widget.payload;
-    if (payload.announcement != null && payload.announcement!.unread) {
-      unawaited(_customerSupportService
-          .markAnnouncementAsRead(payload.announcement!.announcementContextId));
-    }
-  }
-
-  Future<void> _fetchCustomerSupportAvailability() async {
-    final device = DeviceInfo.instance;
-    final isAvailable = await device.isSupportOS();
-    setState(() {
-      isCustomerSupportAvailable = isAvailable;
-    });
   }
 
   Future<void> _addDebugLog() async {
@@ -243,8 +228,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     const fileMaxSize = 1024 * 1024;
     final file = await log_util.getLogFile();
     final bytes = await file.readAsBytes();
-    final auditBytes = await injector<AuditService>().export();
-    var combinedBytes = bytes + auditBytes;
+    var combinedBytes = bytes;
     if (combinedBytes.length > fileMaxSize) {
       combinedBytes = combinedBytes.sublist(combinedBytes.length - fileMaxSize);
     }
@@ -262,6 +246,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         .removeListener(_loadIssueDetails);
     _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
+    _textEditingController.dispose();
 
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
@@ -331,9 +316,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       }
     }
 
-    if (widget.payload.announcement != null) {
-      messages.add(_announcementMessenger);
-    } else if (_issueID == null || messages.isNotEmpty) {
+    if (_issueID == null || messages.isNotEmpty) {
       messages.add(_introMessenger);
     }
 
@@ -364,44 +347,44 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               }).toList(),
               onSendPressed: _handleSendPressed,
               user: _user,
-              customBottomWidget: !isCustomerSupportAvailable
-                  ? const SizedBox()
-                  : _status == 'closed'
-                      ? _isRated
-                          ? const SizedBox()
-                          : MyRatingBar(
-                              submit: (String messageType,
-                                      DraftCustomerSupportData data,
-                                      {bool isRating = false}) =>
-                                  // ignore: discarded_futures
-                                  _submit(messageType, data,
-                                      isRating: isRating))
-                      : Column(
-                          children: [
-                            if (_isFileAttached) debugLogView(),
-                            Input(
-                              onSendPressed: _handleSendPressed,
-                              onAttachmentPressed: _handleAttachmentPressed,
-                              options: _inputOption(),
-                            ),
-                          ],
+              customBottomWidget: _status == 'closed'
+                  ? _isRated
+                      ? const SizedBox()
+                      : MyRatingBar(
+                          submit: (String messageType,
+                                  DraftCustomerSupportData data,
+                                  {bool isRating = false}) =>
+                              // ignore: discarded_futures
+                              _submit(messageType, data, isRating: isRating))
+                  : Column(
+                      children: [
+                        if (_isFileAttached) debugLogView(),
+                        Input(
+                          onSendPressed: _handleSendPressed,
+                          onAttachmentPressed: _handleAttachmentPressed,
+                          options: _inputOption(),
                         ),
+                      ],
+                    ),
             )));
   }
 
   InputOptions _inputOption() => InputOptions(
-      sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-      onTextChanged: (text) {
-        if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
-                text.trim() == '' ||
-            _sendIcon == 'assets/images/sendMessage.svg' && text.trim() != '') {
-          setState(() {
-            _sendIcon = text.trim() != ''
-                ? 'assets/images/sendMessageFilled.svg'
-                : 'assets/images/sendMessage.svg';
-          });
-        }
-      });
+        sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+        onTextChanged: (text) {
+          if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
+                  text.trim() == '' ||
+              _sendIcon == 'assets/images/sendMessage.svg' &&
+                  text.trim() != '') {
+            setState(() {
+              _sendIcon = text.trim() != ''
+                  ? 'assets/images/sendMessageFilled.svg'
+                  : 'assets/images/sendMessage.svg';
+            });
+          }
+        },
+        textEditingController: _textEditingController,
+      );
 
   Widget debugLogView() {
     if (_debugLog == null) {
@@ -662,31 +645,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
             ),
           ]),
         );
-      case 'announcement':
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.feralFileHighlight,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (widget.payload.announcement!.title.isNotEmpty) ...[
-              Text(
-                widget.payload.announcement!.title,
-                textAlign: TextAlign.start,
-                style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.ppMori700Black14
-                    : theme.textTheme.ppMori700Black16,
-              ),
-              const SizedBox(height: 20),
-            ],
-            Text(
-              widget.payload.announcement!.body,
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori400Black14
-                  : theme.textTheme.ppMori400Black16,
-            ),
-          ]),
-        );
       default:
         return const SizedBox();
     }
@@ -775,10 +733,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       _issueID = 'TEMP-${const Uuid().v4()}';
 
       final payload = widget.payload;
-      if (payload.announcement != null) {
-        final announcement = payload.announcement!;
-        data.announcementId = announcement.announcementContextId;
-      }
 
       if (payload is ExceptionErrorPayload) {
         final sentryID = payload.sentryID;
@@ -790,6 +744,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         if (payload.metadata.isNotEmpty) {
           mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
         }
+      } else if (payload is NewIssuePayload &&
+          payload.artworkReportID != null) {
+        data.artworkReportID = payload.artworkReportID;
       }
     }
     if (isRating) {
@@ -849,9 +806,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     } else {
       await _submit(
         CSMessageType.PostMessage.rawValue,
-        DraftCustomerSupportData(
-            text: message.text,
-            announcementId: widget.payload.announcement?.announcementContextId),
+        DraftCustomerSupportData(text: message.text),
       );
     }
   }
@@ -871,7 +826,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       DraftCustomerSupportData(
         text: message.text,
         attachments: [LocalAttachment(fileName: filename, path: localPath)],
-        announcementId: widget.payload.announcement?.announcementContextId,
       ),
     );
     setState(() {
@@ -931,10 +885,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
 
     await _submit(
       CSMessageType.PostPhotos.rawValue,
-      DraftCustomerSupportData(
-        attachments: attachments,
-        announcementId: widget.payload.announcement?.announcementContextId,
-      ),
+      DraftCustomerSupportData(attachments: attachments),
     );
   }
 

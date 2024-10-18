@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,10 +17,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:rxdart/rxdart.dart';
 
 final speedValues = {
-  // '5sec': const Duration(seconds: 5),
-  // '10sec': const Duration(seconds: 10),
-  // '15sec': const Duration(seconds: 15),
-  // '30sec': const Duration(seconds: 30),
   '1min': const Duration(minutes: 1),
   '2min': const Duration(minutes: 2),
   '5min': const Duration(minutes: 5),
@@ -50,7 +48,7 @@ class StreamDrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
-          color: backgroundColor,
+          color: AppColor.primaryBlack,
           borderRadius: BorderRadius.circular(50),
         ),
         width: MediaQuery.of(context).size.width,
@@ -58,40 +56,55 @@ class StreamDrawerItem extends StatelessWidget {
           type: MaterialType.transparency,
           child: Stack(
             children: [
-              InkWell(
-                splashFactory: InkSparkle.splashFactory,
-                borderRadius: BorderRadius.circular(50),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: ResponsiveLayout.padding + rotateIconSize + 10,
-                  ),
-                  child: Center(
-                    child: Text(
-                      item.title ?? '',
-                      style: Theme.of(context).textTheme.ppMori400Black14,
+              Padding(
+                padding: EdgeInsets.only(
+                    right: isControlling ? (rotateIconSize + 25 + 10) : 0),
+                child: InkWell(
+                  splashFactory: InkSparkle.splashFactory,
+                  highlightColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ),
+                    child: Center(
+                      child: Text(
+                        item.title ?? '',
+                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      ),
                     ),
                   ),
+                  onTap: () => item.onTap?.call(),
                 ),
-                onTap: () => item.onTap?.call(),
               ),
               if (isControlling)
                 Positioned(
                   top: 0,
                   bottom: 0,
                   right: ResponsiveLayout.padding,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: onRotateClicked,
-                        child: SvgPicture.asset(
-                          'assets/images/icon_rotate.svg',
-                          width: rotateIconSize,
-                          height: rotateIconSize,
+                  child: Container(
+                    color: AppColor.primaryBlack,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: onRotateClicked,
+                          child: SvgPicture.asset(
+                            'assets/images/icon_rotate.svg',
+                            width: rotateIconSize,
+                            height: rotateIconSize,
+                            colorFilter: const ColorFilter.mode(
+                              AppColor.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
             ],
@@ -175,7 +188,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
       );
 
   Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
-    final isCasting = _controllingDevice != null;
+    final isPlaying = state.devices
+            .firstWhereOrNull(
+                (e) => e.device.deviceId == _controllingDevice?.deviceId)
+            ?.isPlaying ??
+        false;
     return Row(
       children: [
         _buildPlayButton(
@@ -185,7 +202,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                 }),
         const SizedBox(width: 15),
         _buildPlayButton(
-            icon: isCasting
+            icon: isPlaying
                 ? 'assets/images/stream_pause_icon.svg'
                 : 'assets/images/stream_play_icon.svg',
             onTap: () => {
@@ -255,8 +272,12 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   void onPauseOrResume(BuildContext context) {
     // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    final isCasting = _controllingDevice != null;
-    if (isCasting) {
+    final isPlaying = _canvasDeviceBloc.state.devices
+            .firstWhereOrNull(
+                (e) => e.device.deviceId == _controllingDevice?.deviceId)
+            ?.isPlaying ??
+        false;
+    if (isPlaying) {
       onPause(context);
     } else {
       onResume(context);

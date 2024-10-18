@@ -6,33 +6,28 @@
 //
 
 // ignore_for_file: unawaited_futures, type_annotate_public_apis
+// ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
+import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:floor/floor.dart';
@@ -43,11 +38,13 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 void main() async {
   unawaited(runZonedGuarded(() async {
+    final json = await getSecretEnv();
+    cachedSecretEnv = jsonDecode(json);
     await dotenv.load();
     await SentryFlutter.init(
       (options) {
@@ -55,7 +52,15 @@ void main() async {
           ..dsn = Environment.sentryDSN
           ..enableAutoSessionTracking = true
           ..tracesSampleRate = 0.25
-          ..attachStacktrace = true;
+          ..attachStacktrace = true
+          ..beforeSend = (SentryEvent event, {dynamic hint}) {
+            // Avoid sending events with "level": "debug"
+            if (event.level == SentryLevel.debug) {
+              // Return null to drop the event
+              return null;
+            }
+            return event;
+          };
       },
       appRunner: () async {
         try {
@@ -95,7 +100,11 @@ Future<void> runFeralFileApp() async {
   _registerHiveAdapter();
 
   FlutterDownloader.registerCallback(downloadCallback);
-  await AuFileService().setup();
+  try {
+    await AuFileService().setup();
+  } catch (e) {
+    log.info('Error in AuFileService setup: $e');
+  }
 
   OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
   OneSignal.shared.setAppId(Environment.onesignalAppID);
@@ -118,38 +127,28 @@ void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
     ..registerAdapter(EthereumPendingTxListAdapter())
-    ..registerAdapter(CanvasDeviceAdapter());
+    ..registerAdapter(CanvasDeviceAdapter())
+    ..registerAdapter(AnnouncementLocalAdapter());
 }
 
 Future<void> _setupApp() async {
-  await setup();
-
-  await DeviceInfo.instance.init();
-
-  await injector<DeviceInfoService>().init();
-
-  final metricClient = injector.get<MetricClientService>();
-  await metricClient.initService();
-  await injector<RemoteConfigService>().loadConfigs();
-
-  final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
-  final packageInfo = await PackageInfo.fromPlatform();
-  await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
-  final notificationService = injector<NotificationService>();
-  await notificationService.initNotification();
-  await notificationService.startListeningNotificationEvents();
-  await disableLandscapeMode();
-  final isPremium = await injector.get<IAPService>().isSubscribed();
-  await injector<ConfigurationService>().setPremium(isPremium);
+  try {
+    await setupLogger();
+  } catch (e) {
+    log.info('Error in setupLogger: $e');
+    Sentry.captureException(e);
+  }
+  await setupInjector();
 
   runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en', 'US')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en', 'US'),
-      child: const OverlaySupport.global(
-        child: AutonomyApp(),
+    SDTFScope(
+      child: EasyLocalization(
+        supportedLocales: const [Locale('en', 'US'), Locale('ja')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en', 'US'),
+        child: const OverlaySupport.global(
+          child: AutonomyApp(),
+        ),
       ),
     ),
   );
@@ -157,11 +156,6 @@ Future<void> _setupApp() async {
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     scope.setUser(SentryUser(id: deviceID));
-  });
-
-  //safe delay to wait for onboarding finished
-  Future.delayed(const Duration(seconds: 2), () async {
-    injector<DeeplinkService>().setup();
   });
 }
 
@@ -209,71 +203,9 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(
-    branchDeeplinkData: ValueNotifier(null),
-    deepLink: ValueNotifier(null),
-    irlLink: ValueNotifier(null));
-
-class MemoryValues {
-  String? scopedPersona;
-  String? viewingSupportThreadIssueID;
-  DateTime? inForegroundAt;
-  ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
-  ValueNotifier<String?> deepLink;
-  ValueNotifier<String?> irlLink;
-  String? currentGroupChatId;
-  bool isForeground = true;
-
-  MemoryValues({
-    required this.branchDeeplinkData,
-    required this.deepLink,
-    required this.irlLink,
-    this.scopedPersona,
-    this.viewingSupportThreadIssueID,
-    this.inForegroundAt,
-  });
-
-  MemoryValues copyWith({
-    String? scopedPersona,
-  }) =>
-      MemoryValues(
-        scopedPersona: scopedPersona ?? this.scopedPersona,
-        branchDeeplinkData: branchDeeplinkData,
-        deepLink: deepLink,
-        irlLink: irlLink,
-      );
-}
-
-enum HomeNavigatorTab {
-  collection,
-  organization,
-  exhibition,
-  scanQr,
-  menu;
-
-  String get screenName => getPageName(routeName);
-
-  String get routeName {
-    switch (this) {
-      case HomeNavigatorTab.collection:
-        return AppRouter.collectionPage;
-      case HomeNavigatorTab.organization:
-        return AppRouter.organizePage;
-      case HomeNavigatorTab.exhibition:
-        return AppRouter.exhibitionsPage;
-      case HomeNavigatorTab.scanQr:
-        return AppRouter.scanQRPage;
-      case HomeNavigatorTab.menu:
-        return 'Menu';
-    }
-  }
-}
-
 @pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
   final SendPort? send =
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-
-void imageError(Object exception, StackTrace? stackTrace) {}

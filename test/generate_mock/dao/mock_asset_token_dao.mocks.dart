@@ -157,6 +157,27 @@ class MockAssetTokenDao extends _i1.Mock implements _i4.AssetTokenDao {
         returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
       ) as _i3.Future<List<_i5.AssetToken>>);
   @override
+  _i3.Future<List<_i5.AssetToken>> findAllAssetTokensByOwnersAndContractAddress(
+    List<String>? owners,
+    String? contractAddress,
+    int? limit,
+    int? lastTime,
+    String? id,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findAllAssetTokensByOwnersAndContractAddress,
+          [
+            owners,
+            contractAddress,
+            limit,
+            lastTime,
+            id,
+          ],
+        ),
+        returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
+      ) as _i3.Future<List<_i5.AssetToken>>);
+  @override
   _i3.Future<List<_i5.AssetToken>> findAllAssetTokensByArtistID({
     required String? artistID,
     bool? withHidden = false,
@@ -227,23 +248,6 @@ class MockAssetTokenDao extends _i1.Mock implements _i4.AssetTokenDao {
         Invocation.method(
           #findAllAssetTokenIDsByOwner,
           [owner],
-        ),
-        returnValue: _i3.Future<List<String>>.value(<String>[]),
-      ) as _i3.Future<List<String>>);
-  @override
-  _i3.Future<List<String>> findRemoveArtistIDsByOwner(List<String>? owners) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #findRemoveArtistIDsByOwner,
-          [owners],
-        ),
-        returnValue: _i3.Future<List<String>>.value(<String>[]),
-      ) as _i3.Future<List<String>>);
-  @override
-  _i3.Future<List<String>> findAllArtists() => (super.noSuchMethod(
-        Invocation.method(
-          #findAllArtists,
-          [],
         ),
         returnValue: _i3.Future<List<String>>.value(<String>[]),
       ) as _i3.Future<List<String>>);

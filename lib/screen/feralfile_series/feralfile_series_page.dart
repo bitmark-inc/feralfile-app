@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
@@ -8,16 +11,17 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:sentry/sentry.dart';
 
 class FeralFileSeriesPage extends StatefulWidget {
   const FeralFileSeriesPage({required this.payload, super.key});
@@ -32,7 +36,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   late final FeralFileSeriesBloc _feralFileSeriesBloc;
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
   static const _padding = 14.0;
-  static const _axisSpacing = 10.0;
+  static const _axisSpacing = 5.0;
   final PagingController<int, Artwork> _pagingController =
       PagingController(firstPageKey: 0);
   static const _pageSize = 300;
@@ -44,26 +48,30 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     _feralFileSeriesBloc.add(FeralFileSeriesGetSeriesEvent(
         widget.payload.seriesId, widget.payload.exhibitionId));
     _pagingController.addPageRequestListener((pageKey) async {
-      await _fetchPage(pageKey);
+      await _fetchPage(context, pageKey);
     });
   }
 
-  Future<void> _fetchPage(int pageKey) async {
+  Future<void> _fetchPage(BuildContext context, int pageKey) async {
     try {
       final newItems = await injector<FeralFileService>().getSeriesArtworks(
           widget.payload.seriesId, widget.payload.exhibitionId,
           offset: pageKey,
           // ignore: avoid_redundant_argument_values
           limit: _pageSize);
-      final isLastPage = !newItems.paging.shouldLoadMore;
+      final isLastPage = !(newItems.paging?.shouldLoadMore ?? false);
       if (isLastPage) {
         _pagingController.appendLastPage(newItems.result);
       } else {
         final nextPageKey = pageKey + _pageSize;
-        _pagingController.appendPage(newItems.result, nextPageKey);
+        if (context.mounted) {
+          // make sure the page is not disposed
+          _pagingController.appendPage(newItems.result, nextPageKey);
+        }
       }
     } catch (error) {
-      _pagingController.error = error;
+      log.info('Error fetching series page: $error');
+      unawaited(Sentry.captureException(error));
     }
   }
 
@@ -79,7 +87,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         builder: (context, state) => Scaffold(
             appBar: _getAppBar(context, state.series),
             backgroundColor: AppColor.primaryBlack,
-            body: _body(context, state.series)),
+            body: _body(context, state.series, state.thumbnailRatio)),
         listener: (context, state) {},
       );
 
@@ -94,11 +102,11 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                 crossAxisAlignment: CrossAxisAlignment.center),
       );
 
-  Widget _body(BuildContext context, FFSeries? series) {
+  Widget _body(BuildContext context, FFSeries? series, double? thumbnailRatio) {
     if (series == null) {
       return _loadingIndicator();
     }
-    return _artworkSliverGrid(context, series);
+    return _artworkSliverGrid(context, series, thumbnailRatio ?? 1);
   }
 
   Widget _loadingIndicator() => Center(
@@ -108,62 +116,67 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         ),
       );
 
-  Widget _artworkSliverGrid(BuildContext context, FFSeries series) => Padding(
-        padding:
-            const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
-        child: CustomScrollView(
-          slivers: [
-            PagedSliverGrid<int, Artwork>(
-              pagingController: _pagingController,
-              showNewPageErrorIndicatorAsGridChild: false,
-              showNewPageProgressIndicatorAsGridChild: false,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: _axisSpacing,
-                mainAxisSpacing: _axisSpacing,
-                crossAxisCount: 3,
-              ),
-              builderDelegate: PagedChildBuilderDelegate<Artwork>(
-                itemBuilder: (context, artwork, index) =>
-                    FFArtworkThumbnailView(
-                  artwork: artwork,
-                  cacheSize: (MediaQuery.sizeOf(context).width -
-                          _padding * 2 -
-                          _axisSpacing * 2) ~/
-                      3,
-                  onTap: () async {
-                    final displayKey = series.displayKey;
-                    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
-                        .lastSelectedActiveDeviceForKey(displayKey);
+  Widget _artworkSliverGrid(
+      BuildContext context, FFSeries series, double ratio) {
+    final cacheWidth =
+        (MediaQuery.sizeOf(context).width - _padding * 2 - _axisSpacing * 2) ~/
+            3;
+    final cacheHeight = (cacheWidth / ratio).toInt();
+    return Padding(
+      padding:
+          const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
+      child: CustomScrollView(
+        slivers: [
+          PagedSliverGrid<int, Artwork>(
+            pagingController: _pagingController,
+            showNewPageErrorIndicatorAsGridChild: false,
+            showNewPageProgressIndicatorAsGridChild: false,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisSpacing: _axisSpacing,
+              mainAxisSpacing: _axisSpacing,
+              crossAxisCount: 3,
+              childAspectRatio: ratio,
+            ),
+            builderDelegate: PagedChildBuilderDelegate<Artwork>(
+              itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
+                artwork: artwork,
+                cacheWidth: cacheWidth,
+                cacheHeight: cacheHeight,
+                onTap: () async {
+                  final displayKey = series.displayKey;
+                  final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+                      .lastSelectedActiveDeviceForKey(displayKey);
 
-                    if (lastSelectedCanvasDevice != null) {
-                      final castRequest = CastExhibitionRequest(
-                          exhibitionId: series.exhibitionID,
-                          catalog: ExhibitionCatalog.artwork,
-                          catalogId: artwork.id);
-                      _canvasDeviceBloc.add(
-                        CanvasDeviceCastExhibitionEvent(
-                          lastSelectedCanvasDevice,
-                          castRequest,
-                        ),
-                      );
-                    }
-                    await Navigator.of(context).pushNamed(
-                      AppRouter.ffArtworkPreviewPage,
-                      arguments: FeralFileArtworkPreviewPagePayload(
-                        artwork: artwork.copyWith(series: series),
+                  if (lastSelectedCanvasDevice != null) {
+                    final castRequest = CastExhibitionRequest(
+                        exhibitionId: series.exhibitionID,
+                        catalog: ExhibitionCatalog.artwork,
+                        catalogId: artwork.id);
+                    _canvasDeviceBloc.add(
+                      CanvasDeviceCastExhibitionEvent(
+                        lastSelectedCanvasDevice,
+                        castRequest,
                       ),
                     );
-                  },
-                ),
-                newPageProgressIndicatorBuilder: (context) =>
-                    _loadingIndicator(),
-                firstPageErrorIndicatorBuilder: (context) => const SizedBox(),
-                newPageErrorIndicatorBuilder: (context) => const SizedBox(),
+                  }
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.ffArtworkPreviewPage,
+                    arguments: FeralFileArtworkPreviewPagePayload(
+                      artwork: artwork.copyWith(series: series),
+                      isFromExhibition: true,
+                    ),
+                  );
+                },
               ),
-            )
-          ],
-        ),
-      );
+              newPageProgressIndicatorBuilder: (context) => _loadingIndicator(),
+              firstPageErrorIndicatorBuilder: (context) => const SizedBox(),
+              newPageErrorIndicatorBuilder: (context) => const SizedBox(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }
 
 class FeralFileSeriesPagePayload {

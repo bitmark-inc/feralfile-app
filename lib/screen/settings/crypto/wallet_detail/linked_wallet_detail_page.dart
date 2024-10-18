@@ -8,18 +8,18 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -50,13 +50,14 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     with RouteAware {
   late ScrollController controller;
   bool hideConnection = false;
-  bool isHideGalleryEnabled = false;
+  bool _isHideGalleryEnabled = false;
 
   bool _isRename = false;
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
   late Connection _connection;
   late String _address;
+  final _browser = FeralFileBrowser();
 
   final usdcFormatter = USDCAmountFormatter();
 
@@ -66,8 +67,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     _connection = widget.payload.connection;
     _address = _connection.accountNumber;
     _renameController.text = _connection.name;
-    isHideGalleryEnabled =
-        injector<AccountService>().isLinkedAccountHiddenInGallery(_address);
+    _isHideGalleryEnabled = _connection.isHidden;
 
     _callBloc();
     controller = ScrollController();
@@ -101,15 +101,12 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, _address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
-        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, _address));
-        break;
       case CryptoType.USDC:
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
-        break;
       default:
         // do nothing
         break;
@@ -152,9 +149,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               onSubmit: (String value) {
                 if (value.trim().isNotEmpty) {
                   _connection = _connection.copyWith(name: value);
-                  unawaited(injector<CloudDatabase>()
-                      .connectionDao
-                      .updateConnection(_connection));
+                  unawaited(injector<CloudManager>()
+                      .connectionObject
+                      .writeConnection(_connection));
                   setState(() {
                     _isRename = false;
                   });
@@ -479,12 +476,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           'show_history'.tr(),
           style: theme.textTheme.ppMori400Black14,
         ),
-        onTap: () {
-          unawaited(Navigator.of(context).pushNamed(
-            AppRouter.inappWebviewPage,
-            arguments:
-                InAppWebViewPayload(addressURL(_address, widget.payload.type)),
-          ));
+        onTap: () async {
+          await _browser.openUrl(addressURL(_address, widget.payload.type));
         },
       ),
     ]);
@@ -495,7 +488,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
       return;
     }
     unawaited(UIHelper.showDrawerAction(context, options: [
-      if (isHideGalleryEnabled)
+      if (_isHideGalleryEnabled)
         OptionItem(
           title: 'unhide_from_collection_view'.tr(),
           icon: SvgPicture.asset(
@@ -503,9 +496,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           ),
           onTap: () {
             unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
-                _address, !isHideGalleryEnabled));
+                _address, !_isHideGalleryEnabled));
             setState(() {
-              isHideGalleryEnabled = !isHideGalleryEnabled;
+              _isHideGalleryEnabled = !_isHideGalleryEnabled;
             });
             Navigator.of(context).pop();
           },
@@ -519,9 +512,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           ),
           onTap: () {
             unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
-                _address, !isHideGalleryEnabled));
+                _address, !_isHideGalleryEnabled));
             setState(() {
-              isHideGalleryEnabled = !isHideGalleryEnabled;
+              _isHideGalleryEnabled = !_isHideGalleryEnabled;
             });
             Navigator.of(context).pop();
           },

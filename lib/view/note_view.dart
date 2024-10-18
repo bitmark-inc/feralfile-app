@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ExhibitionNoteView extends StatelessWidget {
   const ExhibitionNoteView({required this.exhibition, this.width, super.key});
@@ -46,10 +47,15 @@ class ExhibitionNoteView extends StatelessWidget {
                 customStylesBuilder: auHtmlStyle,
                 exhibition.noteBrief,
                 textStyle: theme.textTheme.ppMori400White14,
+                onTapUrl: (url) async {
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
+                  return true;
+                },
               ),
             ),
-            const SizedBox(height: 20),
-            if (exhibition.noteBrief != exhibition.note)
+            if (exhibition.noteBrief != exhibition.note) ...[
+              const SizedBox(height: 20),
               GestureDetector(
                 onTap: () async {
                   await injector<NavigationService>()
@@ -63,6 +69,7 @@ class ExhibitionNoteView extends StatelessWidget {
                   ),
                 ),
               ),
+            ]
           ],
         ),
       ),

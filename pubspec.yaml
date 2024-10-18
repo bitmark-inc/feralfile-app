@@ -24,12 +24,13 @@ dependencies:
   after_layout: ^1.2.0
   bs58check: ^1.0.2
   bubble: ^1.2.1
-  carousel_slider: ^4.2.1
+  cached_network_image: ^3.2.1
+  carousel_slider: ^5.0.0
   collection: ^1.15.0
   confetti: ^0.7.0
-  connectivity_plus: ^4.0.1
-  crypto: ^3.0.1
-  device_info_plus: ^9.0.2
+  connectivity_plus:
+  crypto: ^3.0.5
+  device_info_plus: ^10.1.2
   dio: ^5.3.2
   dio_smart_retry: ^5.0.0
   easy_debounce: ^2.0.2+1
@@ -38,6 +39,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.0
+  flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
@@ -59,7 +61,7 @@ dependencies:
   hive_flutter: ^1.1.0
   http: ^1.1.0
   image_picker: ^1.0.1
-  in_app_purchase: ^3.1.13
+  in_app_purchase: ^3.2.0
   infinite_scroll_pagination: ^4.0.0
   intl: ^0.18.0
   jiffy: ^6.2.1
@@ -67,20 +69,16 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 668ee3522ef6610d1323c0bb15cfd69b3602ea8c
+      ref: e2b571cd2e297efb62e40a0e9a606225e2f7386e
   local_auth: ^2.2.0
   logging: ^1.2.0
   measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
-  nft_rendering:
-    git:
-      url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 039391471be2144e8539c2b71847c3e81b3983e0
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
-  package_info_plus: ^4.0.2
+  package_info_plus:
   page_transition: ^2.0.5
   path_provider: ^2.1.1
   permission_handler: ^10.0.0
@@ -91,20 +89,20 @@ dependencies:
   sentry_dio: ^7.9.0
   sentry_flutter: ^7.9.0
   shake: ^2.0.0
-  share_plus: ^7.2.1
+  share_plus: ^8.0.2
   shared_preferences: ^2.0.0
   synchronized: ^3.0.0+2
   social_share: ^2.3.1
+  system_date_time_format:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 6780ff6374a254a2787a5bcfd850fc46f40351b6
+      ref: 341a6de46324d38f420334f148342c2e1655b3c0
   uni_links: ^0.5.1
-  url_launcher: ^6.0.20
-  uuid: ^3.0.5
-  wakelock_plus: ^1.1.1
+  url_launcher: ^6.2.2
+  uuid:
   web3dart: ^2.5.1
-  web_socket_channel: ^2.1.0
+  web_socket_channel:
   json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
   feralfile_app_theme:
@@ -118,11 +116,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: cb6370201e734cd55ea4ced1cee07b5250d8b06d
-  feralfile_app_tv_proto:
-    git:
-      url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
-      ref: 18fcb34f2a6966312b2ca0aae858621ab89295f4
+      ref: 1a281ef3b56bef685a50e7d5099c8aab13314440
   flutter_branch_sdk: ^7.0.2
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2
@@ -138,35 +132,48 @@ dependencies:
   readmore: ^2.2.0
   elliptic: ^0.3.8
   sentry: ^7.9.0
-  path: ^1.8.2
-  in_app_purchase_storekit: ^0.3.8
-  in_app_purchase_android: ^0.3.0+17
+  path: ^1.9.0
+  in_app_purchase_storekit: ^0.3.14
+  in_app_purchase_android: ^0.3.4
   convert: ^3.1.1
   sqflite: ^2.2.2
   slidable_button: ^3.0.0+1
   background_fetch: ^1.1.3
-  image: ^4.0.15
+  image: ^4.2.0
   widgets_to_image: ^0.0.2
   geocoding: ^2.1.0
   flutter_inappwebview: ^6.0.0
+  webview_flutter: ^4.9.0
   html: ^0.15.1
   video_player: ^2.8.6
   walletconnect_flutter_v2: ^2.1.11
   awesome_notifications: ^0.8.3
   shimmer: ^3.0.0
-  graphql_flutter: ^5.1.2
+  graphql_flutter:
   card_swiper: ^3.0.1
+  marqueer: ^1.2.0
   image_gallery_saver: ^2.0.3
   hand_signature: ^3.0.1
   flutter_pdfview: ^1.3.2
-  retry: ^3.1.2
-
-  network_info_plus: ^5.0.3
+  network_info_plus: ^6.0.1
   backdrop: ^0.9.1
-  cached_network_image: ^3.3.1
-  flutter_cache_manager: ^3.3.1
+  cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2
+  flutter_app_badger: ^1.5.0
+  wakelock_plus: ^1.2.8
+  model_viewer_plus: 1.6.1
+  audio_session: ^0.1.10
+  just_audio: ^0.9.29
+  xml: ^6.1.0
+  vector_graphics_compiler: ^1.1.7
+
+
 dependency_overrides:
   intl: 0.18.0
+  archive: ^3.6.1
+  package_info_plus: ^6.0.0
+  frontend_server_client: ^4.0.0
+  webview_flutter_android: 3.16.1
 
 dev_dependencies:
   flutter_lints: null
@@ -187,6 +194,7 @@ dev_dependencies:
   html_unescape: ^2.0.0
   sentry_dart_plugin: ^1.0.0
 
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter.
@@ -202,7 +210,6 @@ flutter:
     - assets/erc20-abi.json
     - assets/erc721-abi.json
     - assets/erc1155-abi.json
-    - assets/data-owner-abi.json
     - assets/images/
     - assets/translations/
     - assets/videos/
@@ -217,23 +224,6 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: AtlasGrotesk
-      fonts:
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Medium.otf
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
-          weight: 700
-    - family: DomaineSansText
-      fonts:
-        - asset: assets/fonts/DomaineSansText/DomaineSansText-Regular.otf
-    - family: IBMPlexMono
-      fonts:
-        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
-        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
-
     - family: PPMori
       fonts:
         - asset: assets/fonts/PPMori/PPMori-Regular.ttf

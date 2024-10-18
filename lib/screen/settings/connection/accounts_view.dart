@@ -13,15 +13,16 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry/sentry.dart';
 
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
@@ -44,6 +46,14 @@ class _AccountsViewState extends State<AccountsView> {
   final TextEditingController _nameController = TextEditingController();
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
+  late final AccountsBloc _accountsBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _accountsBloc = context.read<AccountsBloc>();
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -52,36 +62,49 @@ class _AccountsViewState extends State<AccountsView> {
 
   @override
   Widget build(BuildContext context) =>
-      BlocConsumer<AccountsBloc, AccountsState>(listener: (context, state) {
-        final accounts = state.accounts;
-        if (accounts == null) {
-          return;
-        }
-      }, builder: (context, state) {
-        final accounts = state.accounts;
-        if (accounts == null) {
-          return const Center(child: CupertinoActivityIndicator());
-        }
-        if (accounts.isEmpty) {
-          return const SizedBox();
-        }
+      BlocConsumer<AccountsBloc, AccountsState>(
+          bloc: _accountsBloc,
+          listener: (context, state) {},
+          builder: (context, state) {
+            final accounts = state.accounts;
+            if (accounts == null) {
+              return const Center(child: CupertinoActivityIndicator());
+            }
+            if (accounts.isEmpty) {
+              return const SizedBox();
+            }
 
-        if (!widget.isInSettingsPage) {
-          return _noEditAccountsListWidget(accounts);
-        }
-        return ReorderableListView(
-          header: widget.isInSettingsPage ? const SizedBox(height: 40) : null,
-          onReorder: (int oldIndex, int newIndex) {
-            context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
-                newOrder: newIndex, oldOrder: oldIndex));
-          },
-          children: accounts
-              .map((account) => _accountCard(context, account))
-              .toList(),
-        );
-      });
+            if (!widget.isInSettingsPage) {
+              return _noEditAccountsListWidget(accounts);
+            }
+            final primaryAccount = accounts.firstWhereOrNull((element) =>
+                element.walletAddress
+                    ?.isMatchAddressInfo(state.primaryAddressInfo) ??
+                false);
+            if (primaryAccount == null) {
+              unawaited(Sentry.captureException(
+                  Exception('Primary account not found in accounts list')));
+            }
+            final normalAccounts = accounts
+                .where((element) => element.key != primaryAccount?.key)
+                .toList();
+            return ReorderableListView(
+              header: primaryAccount == null
+                  ? const SizedBox()
+                  : _accountCard(context, primaryAccount, isPrimary: true),
+              onReorder: (int oldIndex, int newIndex) {
+                _accountsBloc.add(ChangeAccountOrderEvent(
+                    newOrder: newIndex, oldOrder: oldIndex));
+              },
+              children: normalAccounts
+                  .map((account) => _accountCard(context, account))
+                  .toList(),
+            );
+          });
 
-  Widget _accountCard(BuildContext context, Account account) => Column(
+  Widget _accountCard(BuildContext context, Account account,
+          {bool isPrimary = false}) =>
+      Column(
         key: ValueKey(account.key),
         children: [
           Padding(
@@ -91,15 +114,15 @@ class _AccountsViewState extends State<AccountsView> {
               endActionPane: ActionPane(
                 motion: const DrawerMotion(),
                 dragDismissible: false,
-                children: slidableActions(account),
+                children: slidableActions(account, isPrimary: isPrimary),
               ),
               child: Column(
                 children: [
                   if (_editingAccountKey == null ||
                       _editingAccountKey != account.key) ...[
-                    _viewAccountItem(account),
+                    _viewAccountItem(account, isPrimary: isPrimary),
                   ] else ...[
-                    _editAccountItem(account),
+                    _editAccountItem(account, isPrimary: isPrimary),
                   ],
                 ],
               ),
@@ -109,7 +132,8 @@ class _AccountsViewState extends State<AccountsView> {
         ],
       );
 
-  List<CustomSlidableAction> slidableActions(Account account) {
+  List<CustomSlidableAction> slidableActions(Account account,
+      {bool isPrimary = false}) {
     final theme = Theme.of(context);
     final isHidden = account.isHidden;
     var actions = [
@@ -123,9 +147,9 @@ class _AccountsViewState extends State<AccountsView> {
             isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg',
           ),
         ),
-        onPressed: (_) {
-          unawaited(account.setViewAccount(!isHidden));
-          context.read<AccountsBloc>().add(GetAccountsEvent());
+        onPressed: (_) async {
+          await account.setHiddenStatus(!isHidden);
+          _accountsBloc.add(GetAccountsEvent());
         },
       ),
       CustomSlidableAction(
@@ -147,15 +171,19 @@ class _AccountsViewState extends State<AccountsView> {
         },
       ),
       CustomSlidableAction(
-        backgroundColor: Colors.red,
+        backgroundColor: isPrimary ? Colors.red.withOpacity(0.3) : Colors.red,
         foregroundColor: theme.colorScheme.secondary,
         padding: EdgeInsets.zero,
-        child: Semantics(
+        onPressed: isPrimary
+            ? null
+            : (_) => _showDeleteAccountConfirmation(context, account),
+        child: Opacity(
+          opacity: isPrimary ? 0.3 : 1,
+          child: Semantics(
             label: '${account.name}_delete',
-            child: SvgPicture.asset('assets/images/trash.svg')),
-        onPressed: (_) {
-          _showDeleteAccountConfirmation(context, account);
-        },
+            child: SvgPicture.asset('assets/images/trash.svg'),
+          ),
+        ),
       )
     ];
     return actions;
@@ -182,18 +210,20 @@ class _AccountsViewState extends State<AccountsView> {
     );
   }
 
-  Widget _viewAccountItem(Account account) => accountItem(
+  Widget _viewAccountItem(Account account, {bool isPrimary = false}) =>
+      accountItem(
         context,
         account,
+        isPrimary: isPrimary,
         onPersonaTap: () {
-          if (account.persona != null && account.walletAddress != null) {
-            unawaited(Navigator.of(context).pushNamed(
-                AppRouter.walletDetailsPage,
-                arguments: WalletDetailsPayload(
-                    type: CryptoType.fromSource(
-                        account.walletAddress!.cryptoType),
-                    walletAddress: account.walletAddress!,
-                    persona: account.persona!)));
+          if (account.walletAddress != null) {
+            unawaited(
+                Navigator.of(context).pushNamed(AppRouter.walletDetailsPage,
+                    arguments: WalletDetailsPayload(
+                      type: CryptoType.fromSource(
+                          account.walletAddress!.cryptoType),
+                      walletAddress: account.walletAddress!,
+                    )));
           }
         },
         onConnectionTap: () {
@@ -211,7 +241,7 @@ class _AccountsViewState extends State<AccountsView> {
         },
       );
 
-  Widget _editAccountItem(Account account) {
+  Widget _editAccountItem(Account account, {bool isPrimary = false}) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -245,7 +275,7 @@ class _AccountsViewState extends State<AccountsView> {
                     final newWalletAddress =
                         walletAddress.copyWith(name: value);
                     await injector<AccountService>()
-                        .updateAddressPersona(newWalletAddress);
+                        .updateAddressWallet(newWalletAddress);
                   } else if (connection != null) {
                     await injector<AccountService>()
                         .nameLinkedAccount(connection, value);
@@ -254,10 +284,7 @@ class _AccountsViewState extends State<AccountsView> {
                   setState(() {
                     _editingAccountKey = null;
                   });
-                  if (!mounted) {
-                    return;
-                  }
-                  context.read<AccountsBloc>().add(GetAccountsEvent());
+                  _accountsBloc.add(GetAccountsEvent());
                 },
               ),
             ),
@@ -308,6 +335,7 @@ class _AccountsViewState extends State<AccountsView> {
                     ),
                     const SizedBox(height: 40),
                     RichText(
+                      textScaler: MediaQuery.textScalerOf(context),
                       text: TextSpan(
                         style: theme.primaryTextTheme.ppMori400White14,
                         children: <TextSpan>[
@@ -353,9 +381,9 @@ class _AccountsViewState extends State<AccountsView> {
 
   Future<void> _deleteAccount(BuildContext context, Account account) async {
     final walletAddress = account.walletAddress;
-    if (walletAddress != null && account.persona != null) {
+    if (walletAddress != null) {
       await injector<AccountService>()
-          .deleteAddressPersona(account.persona!, account.walletAddress!);
+          .deleteAddressWallet(account.walletAddress!);
     }
 
     final connection = account.connections?.first;
@@ -364,6 +392,6 @@ class _AccountsViewState extends State<AccountsView> {
       await injector<AccountService>().deleteLinkedAccount(connection);
     }
 
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
+    _accountsBloc.add(GetAccountsEvent());
   }
 }

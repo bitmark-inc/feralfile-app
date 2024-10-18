@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -589,6 +590,11 @@ Widget loadingIndicator({
       ),
     );
 
+Widget loadingIndicatorLight() => loadingIndicator(
+      valueColor: AppColor.white,
+      backgroundColor: AppColor.auGreyBackground,
+    );
+
 Widget closeIcon({Color color = Colors.black}) => SvgPicture.asset(
       'assets/images/iconClose.svg',
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
@@ -596,9 +602,11 @@ Widget closeIcon({Color color = Colors.black}) => SvgPicture.asset(
       height: 32,
     );
 
-Widget redDotIcon({Color color = Colors.red}) => Container(
-      width: 10,
-      height: 10,
+Widget redDotIcon() => dotIcon(color: Colors.red);
+
+Widget dotIcon({required Color color, double size = 10}) => Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
@@ -607,7 +615,6 @@ Widget redDotIcon({Color color = Colors.red}) => Container(
 
 Widget iconWithRedDot(
         {required Widget icon,
-        Color color = Colors.red,
         EdgeInsetsGeometry? padding,
         bool withReddot = true}) =>
     withReddot
@@ -618,7 +625,7 @@ Widget iconWithRedDot(
                 padding: padding ?? const EdgeInsets.only(right: 5),
                 child: icon,
               ),
-              redDotIcon(color: color),
+              redDotIcon(),
             ],
           )
         : icon;
@@ -649,6 +656,7 @@ Future<void> enableLandscapeMode() async {
 }
 
 Future<void> disableLandscapeMode() async {
+  log.info('disableLandscapeMode');
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);

@@ -15,11 +15,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -28,6 +31,7 @@ class LoggingInterceptor extends Interceptor {
 
   static final List<String> _skipLogPaths = [
     Environment.pubdocURL,
+    Environment.remoteConfigURL,
     '${Environment.feralFileAPIURL}/api/exhibitions',
     '${Environment.feralFileAPIURL}/api/artworks',
   ];
@@ -35,10 +39,9 @@ class LoggingInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
-    final message = err.message;
     apiLog
       ..info('API Request: $curl')
-      ..warning('Respond error: $message');
+      ..warning('Respond error: ${err.response}');
     return handler.next(err);
   }
 
@@ -46,7 +49,7 @@ class LoggingInterceptor extends Interceptor {
   Future onResponse(
       Response response, ResponseInterceptorHandler handler) async {
     handler.next(response);
-    unawaited(writeAPILog(response));
+    await writeAPILog(response);
   }
 
   Future writeAPILog(Response response) async {
@@ -59,11 +62,11 @@ class LoggingInterceptor extends Interceptor {
     bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
     if (shortCurlLog) {
       final request = response.requestOptions;
-      apiLog.info(
+      apiLog.fine(
           'API Request: ${request.method} ${request.uri} ${request.data}');
     } else {
       final curl = cURLRepresentation(response.requestOptions);
-      apiLog.info('API Request: $curl');
+      apiLog.fine('API Request: $curl');
     }
 
     bool shortAPIResponseLog =
@@ -72,7 +75,7 @@ class LoggingInterceptor extends Interceptor {
       apiLog.info('API Response Status: ${response.statusCode}');
     } else {
       final message = response.toString();
-      apiLog.info('API Response: $message');
+      apiLog.fine('API Response: $message');
     }
   }
 
@@ -110,9 +113,6 @@ class SentryInterceptor extends InterceptorsWrapper {
       'method': response.requestOptions.method,
       'status_code': response.statusCode,
     };
-    if (response.requestOptions.headers.isNotEmpty) {
-      data['header'] = response.requestOptions.headers.toString();
-    }
     unawaited(Sentry.addBreadcrumb(
       Breadcrumb(
         type: 'http',
@@ -149,8 +149,16 @@ class AutonomyAuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.path != IAPApi.authenticationPath) {
+    final shouldIgnoreAuthorizationPath = [
+      IAPApi.addressAuthenticationPath,
+      IAPApi.registerPrimaryAddressPath,
+    ];
+    if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
       final jwt = await injector<AuthService>().getAuthToken();
+      if (jwt == null) {
+        unawaited(Sentry.captureMessage('JWT is null'));
+        throw JwtException(message: 'can_not_authenticate_desc'.tr());
+      }
       options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
     }
 
@@ -158,16 +166,13 @@ class AutonomyAuthInterceptor extends Interceptor {
   }
 }
 
-class QuickAuthInterceptor extends Interceptor {
-  String jwtToken;
-
-  QuickAuthInterceptor(this.jwtToken);
-
+class MetricsInterceptor extends Interceptor {
   @override
-  Future<void> onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
-    options.headers['Authorization'] = 'Bearer $jwtToken';
-    return handler.next(options);
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (options.headers['x-api-key'] == null) {
+      options.headers['x-api-key'] = Environment.metricSecretKey;
+    }
+    handler.next(options);
   }
 }
 
@@ -199,8 +204,10 @@ class FeralfileAuthInterceptor extends Interceptor {
       final errorBody = err.response?.data as Map<String, dynamic>;
       exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
     } catch (e) {
-      log.info("[FeralfileAuthInterceptor] Can't parse error. "
-          '${err.response?.data}');
+      log.info(
+          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
+      unawaited(showErrorDialogFromException(ErrorBindingException(
+          message: 'ff_error_binding_message'.tr(), originalException: err)));
     } finally {
       handler.next(exp);
     }
@@ -248,6 +255,7 @@ class ConnectingExceptionInterceptor extends Interceptor {
     if (err.isNetworkIssue && memoryValues.isForeground) {
       log.warning('ConnectingExceptionInterceptor timeout');
       unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
+      return;
     }
     handler.next(err);
   }
@@ -262,5 +270,20 @@ class TVKeyInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     options.headers['API-KEY'] = tvKey;
     handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    DioException exp = err;
+    try {
+      final errorBody = err.response?.data as Map<String, dynamic>;
+      exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
+    } catch (e) {
+      log.info('[TVKeyInterceptor] Can not parse . ${err.response?.data}');
+      unawaited(showErrorDialogFromException(ErrorBindingException(
+          message: 'tv_error_binding_message'.tr(), originalException: err)));
+    } finally {
+      handler.next(exp);
+    }
   }
 }

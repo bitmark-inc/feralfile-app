@@ -146,13 +146,10 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     final tokenId = postcardService.getTokenId(leaderBoardItem.id);
     final owner = leaderBoardItem.creators[0];
     final payload = PostcardDetailPagePayload(
-      [
-        ArtworkIdentity(
-          tokenId,
-          owner,
-        )
-      ],
-      0,
+      ArtworkIdentity(
+        tokenId,
+        owner,
+      ),
       isFromLeaderboard: true,
       useIndexer: true,
     );
@@ -194,6 +191,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       RichText(
+                        textScaler: MediaQuery.textScalerOf(context),
                         text: TextSpan(
                           style: theme.textTheme.moMASans400Black12
                               .copyWith(fontSize: 18),

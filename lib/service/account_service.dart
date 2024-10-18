@@ -11,26 +11,28 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/exception.dart';
+import 'package:autonomy_flutter/util/ios_backup_channel.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart'
+    as primary_address_channel;
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
@@ -38,17 +40,16 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/services/address_service.dart';
+import 'package:nft_collection/services/address_service.dart' as nft;
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
+  Future<void> migrateAccount();
+
+  List<WalletAddress> getWalletsAddress(CryptoType cryptoType);
+
   Future<WalletStorage> getDefaultAccount();
-
-  Future<Persona> getOrCreateDefaultPersona();
-
-  Future<WalletStorage?> getCurrentDefaultAccount();
 
   Future<WalletIndex> getAccountByAddress({
     required String chain,
@@ -57,23 +58,22 @@ abstract class AccountService {
 
   Future androidBackupKeys();
 
+  Future deleteAllKeys();
+
   Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
-  Future androidRestoreKeys();
+  Future<List<WalletAddress>> createNewWallet(
+      {String name = '', String passphrase = ''});
 
-  Future<Persona> createPersona({String name = '', bool isDefault = false});
-
-  Future<Persona> importPersona(String words,
-      {WalletType walletType = WalletType.Autonomy});
+  Future<WalletStorage> importWords(String words, String passphrase,
+      {WalletType walletType = WalletType.MultiChain});
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
 
   Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType,
       {String? name});
-
-  Future deletePersona(Persona persona);
 
   Future deleteLinkedAccount(Connection connection);
 
@@ -82,8 +82,6 @@ abstract class AccountService {
   Future setHideLinkedAccountInGallery(String address, bool isEnabled);
 
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled);
-
-  bool isLinkedAccountHiddenInGallery(String address);
 
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false});
 
@@ -94,111 +92,111 @@ abstract class AccountService {
 
   Future<List<String>> getShowedAddresses();
 
-  Future<bool> addAddressPersona(
-      Persona newPersona, List<AddressInfo> addresses);
+  Future<bool> addAddressWallet(String uuid, List<AddressInfo> addresses);
 
-  Future<void> deleteAddressPersona(
-      Persona persona, WalletAddress walletAddress);
+  Future<void> deleteAddressWallet(WalletAddress walletAddress);
 
-  Future<WalletAddress?> getAddressPersona(String address);
+  Future<WalletAddress?> getWalletByAddress(String address);
 
-  Future<void> updateAddressPersona(WalletAddress walletAddress);
+  Future<void> updateAddressWallet(WalletAddress walletAddress);
 
-  Future<void> restoreIfNeeded({bool isCreateNew = true});
+  List<Connection> getAllViewOnlyAddresses();
 
-  Future<List<Connection>> getAllViewOnlyAddresses();
+  Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
+      {String? name});
+
+  Future<List<WalletAddress>> insertNextAddressFromUuid(
+      String uuid, WalletType walletType,
+      {String? name});
+
+  Future<List<WalletAddress>> insertAddressAtIndexAndUuid(String uuid,
+      {required WalletType walletType, required int index, String? name});
+
+  Future<String?> getBackupDeviceID();
 }
 
 class AccountServiceImpl extends AccountService {
-  final CloudDatabase _cloudDB;
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
-  final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
-  final AuditService _auditService;
-  final AutonomyService _autonomyService;
+  final AndroidBackupChannel _androidBackupChannel = AndroidBackupChannel();
+  final IOSBackupChannel _iosBackupChannel = IOSBackupChannel();
   final BackupService _backupService;
+  final nft.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
-
-  final _defaultAccountLock = Lock();
+  final CloudManager _cloudObject;
 
   AccountServiceImpl(
-    this._cloudDB,
     this._tezosBeaconService,
     this._configurationService,
-    this._auditService,
-    this._autonomyService,
     this._backupService,
+    this._nftCollectionAddressService,
     this._addressService,
+    this._cloudObject,
   );
 
   @override
-  Future<Persona> createPersona(
-      {String name = '', bool isDefault = false}) async {
+  Future<List<WalletAddress>> createNewWallet(
+      {String name = '', String passphrase = ''}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(name);
-    final persona = Persona.newPersona(
-        uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
-    await _cloudDB.personaDao.insertPersona(persona);
+    await walletStorage.createKey(passphrase, name);
+    log.fine('[AccountService] Created persona $uuid}');
+
+    await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+      uuid: uuid,
+      chain: 'ethereum',
+      index: 0,
+    ));
+
+    final wallets = await insertNextAddressFromUuid(uuid, WalletType.MultiChain,
+        name: name);
     await androidBackupKeys();
-    await _auditService.auditPersonaAction('create', persona);
-    unawaited(_autonomyService.postLinkedAddresses());
-    log.info('[AccountService] Created persona ${persona.uuid}}');
-    return persona;
+    return wallets;
   }
 
   @override
-  Future<Persona> importPersona(String words,
-      {WalletType walletType = WalletType.Autonomy}) async {
-    final personas = await _cloudDB.personaDao.getPersonas();
-    for (final persona in personas) {
-      final mnemonic = await persona.wallet().exportMnemonicWords();
-      if (mnemonic == words) {
-        return persona;
+  Future<WalletStorage> importWords(String words, String passphrase,
+      {WalletType walletType = WalletType.MultiChain}) async {
+    late String firstEthAddress;
+    try {
+      firstEthAddress =
+          await LibAukDart.calculateFirstEthAddress(words, passphrase);
+    } catch (e) {
+      rethrow;
+    }
+
+    final addresses = _cloudObject.addressObject.getAllAddresses()
+      ..unique((element) => element.uuid);
+    for (final address in addresses) {
+      final ethAddress = await address.wallet.getETHAddress();
+      if (ethAddress == firstEthAddress) {
+        return address.wallet;
       }
     }
 
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
-        words, '', DateTime.now().microsecondsSinceEpoch);
+        words, passphrase, '', DateTime.now().microsecondsSinceEpoch);
 
-    final persona = Persona.newPersona(uuid: uuid);
-    await _cloudDB.personaDao.insertPersona(persona);
-    await androidBackupKeys();
-    await _auditService.auditPersonaAction('import', persona);
-    log.info('[AccountService] imported persona ${persona.uuid}');
-    return persona;
+    if (Platform.isAndroid) {
+      final backupAccounts = await _androidBackupChannel.restoreKeys();
+      await _androidBackupChannel
+          .backupKeys([...backupAccounts.map((e) => e.uuid), uuid]);
+    }
+
+    log.fine('[AccountService] imported persona $uuid');
+    return walletStorage;
   }
 
   @override
-  Future<WalletStorage> getDefaultAccount() async =>
-      _defaultAccountLock.synchronized(() async => await _getDefaultAccount());
-
-  @override
-  Future<WalletStorage?> getCurrentDefaultAccount() async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
-
-    if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
-      await androidRestoreKeys();
-
-      await Future.delayed(const Duration(seconds: 1));
-      personas = await _cloudDB.personaDao.getDefaultPersonas();
+  Future<WalletStorage> getDefaultAccount() async {
+    final defaultWallet = await _getDefaultWallet();
+    if (defaultWallet == null) {
+      throw AccountException(message: 'Default wallet not found');
     }
-
-    if (personas.isEmpty) {
-      personas = await _cloudDB.personaDao.getPersonas();
-    }
-
-    if (personas.isEmpty) {
-      return null;
-    }
-    final defaultWallet = personas.first.wallet();
-
-    return await defaultWallet.isWalletCreated() ? defaultWallet : null;
+    return defaultWallet;
   }
 
   @override
@@ -209,19 +207,10 @@ class AccountServiceImpl extends AccountService {
     switch (chain.caip2Namespace) {
       case Wc2Chain.ethereum:
       case Wc2Chain.tezos:
-        final walletAddress = await _cloudDB.addressDao.findByAddress(address);
+        final walletAddress = _cloudObject.addressObject.findByAddress(address);
         if (walletAddress != null) {
           return WalletIndex(
               WalletStorage(walletAddress.uuid), walletAddress.index);
-        }
-        break;
-      case Wc2Chain.autonomy:
-        var personas = await _cloudDB.personaDao.getPersonas();
-        for (Persona p in personas) {
-          final wallet = p.wallet();
-          if (await wallet.getAccountDID() == address) {
-            return WalletIndex(wallet, -1);
-          }
         }
     }
     throw AccountException(
@@ -229,52 +218,61 @@ class AccountServiceImpl extends AccountService {
     );
   }
 
-  Future<WalletStorage> _getDefaultAccount() async {
-    final Persona defaultPersona = await getOrCreateDefaultPersona();
+  Future<WalletStorage?> _getDefaultWallet() async {
+    /// we can improve this by checking if the wallet is exist in the server
+    String? uuid;
+    if (Platform.isIOS) {
+      final uuids = await _iosBackupChannel.getUUIDsFromKeychain();
+      uuid = uuids.firstOrNull;
+    } else {
+      final accounts = await _androidBackupChannel.restoreKeys();
+      uuid = accounts.firstOrNull?.uuid;
+    }
 
-    return LibAukDart.getWallet(defaultPersona.uuid);
+    if (uuid == null) {
+      return null;
+    }
+    return LibAukDart.getWallet(uuid);
   }
 
-  @override
-  Future<Persona> getOrCreateDefaultPersona() async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+  Future<WalletAddress> getPrimaryWallet() async {
+    final primaryAddress =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    if (primaryAddress == null) {
+      log.info('[AccountService] getPrimaryWallet - '
+          'PrimaryAddressInfo not found');
+      unawaited(Sentry.captureMessage(
+          '[PrimaryAddressInfo] PrimaryAddressInfo found'));
+      throw AccountException(message: 'PrimaryAddressInfo found');
+    }
+    var addresses =
+        _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
 
-    if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
-      await androidRestoreKeys();
+    if (addresses.isEmpty) {
+      await _restoreAddressesFromOS();
 
       await Future.delayed(const Duration(seconds: 1));
-      personas = await _cloudDB.personaDao.getDefaultPersonas();
+      addresses =
+          _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
     }
 
-    final Persona defaultPersona;
-    if (personas.isEmpty) {
-      personas = await _cloudDB.personaDao.getPersonas();
-      if (personas.isNotEmpty) {
-        defaultPersona = personas.first..defaultAccount = 1;
-        await _cloudDB.personaDao.updatePersona(defaultPersona);
-      } else {
-        log.info('[AccountService] create default account');
-        defaultPersona = await createPersona(isDefault: true);
-      }
-    } else {
-      defaultPersona = personas.first;
+    final primaryWallet = addresses
+        .firstWhereOrNull((element) => element.index == primaryAddress.index);
+    if (primaryWallet == null) {
+      log.info('[AccountService] getPrimaryWallet - '
+          'PrimaryWallet not found, primaryAddress: $primaryAddress');
+      unawaited(
+          Sentry.captureMessage('[PrimaryAddressInfo] No PrimaryWallet found'));
+      throw AccountException(message: 'No PrimaryWallet found');
     }
-    return defaultPersona;
+    return primaryWallet;
   }
 
-  @override
-  Future deletePersona(Persona persona) async {
-    log.info('[AccountService] deletePersona start - ${persona.uuid}');
-    await _cloudDB.personaDao.deletePersona(persona);
-    await _auditService.auditPersonaAction('delete', persona);
+  Future deleteWalletAddress(WalletAddress walletAddress) async {
+    await _cloudObject.addressObject.deleteAddress(walletAddress);
+    await _nftCollectionAddressService.deleteAddresses([walletAddress.address]);
 
-    await androidBackupKeys();
-    await LibAukDart.getWallet(persona.uuid).removeKeys();
-
-    final connections = await _cloudDB.connectionDao.getConnections();
+    final connections = _cloudObject.connectionObject.getConnections();
     Set<P2PPeer> bcPeers = {};
 
     log.info('[AccountService] deletePersona - '
@@ -282,14 +280,16 @@ class AccountServiceImpl extends AccountService {
     for (var connection in connections) {
       switch (connection.connectionType) {
         case 'beaconP2PPeer':
-          if (persona.uuid == connection.beaconConnectConnection?.personaUuid) {
-            await _cloudDB.connectionDao.deleteConnection(connection);
+          if (walletAddress.uuid ==
+                  connection.beaconConnectConnection?.personaUuid &&
+              walletAddress.index ==
+                  connection.beaconConnectConnection?.index) {
+            await _cloudObject.connectionObject.deleteConnections([connection]);
             final bcPeer = connection.beaconConnectConnection?.peer;
             if (bcPeer != null) {
               bcPeers.add(bcPeer);
             }
           }
-          break;
 
         // Note: Should app delete feralFileWeb3 too ??
       }
@@ -302,18 +302,13 @@ class AccountServiceImpl extends AccountService {
     } catch (exception) {
       unawaited(Sentry.captureException(exception));
     }
-
-    log.info('[AccountService] deletePersona finished - ${persona.uuid}');
   }
 
   @override
   Future deleteLinkedAccount(Connection connection) async {
-    await _cloudDB.connectionDao.deleteConnection(connection);
+    await _cloudObject.connectionObject.deleteConnections([connection]);
     final addressIndexes = connection.addressIndexes;
-    await Future.wait(addressIndexes.map((element) async {
-      await setHideLinkedAccountInGallery(element.address, false);
-    }));
-    await _addressService
+    await _nftCollectionAddressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
   }
 
@@ -324,11 +319,11 @@ class AccountServiceImpl extends AccountService {
     if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.USDC) {
       checkSumAddress = address.getETHEip55Address();
     }
-    final personaAddress = await _cloudDB.addressDao.getAllAddresses();
-    if (personaAddress.any((element) => element.address == checkSumAddress)) {
+    final walletAddress = _cloudObject.addressObject.getAllAddresses();
+    if (walletAddress.any((element) => element.address == checkSumAddress)) {
       throw LinkAddressException(message: 'already_imported_address'.tr());
     }
-    final doubleConnections = await _cloudDB.connectionDao
+    final doubleConnections = _cloudObject.connectionObject
         .getConnectionsByAccountNumber(checkSumAddress);
     if (doubleConnections.isNotEmpty) {
       throw LinkAddressException(message: 'already_viewing_address'.tr());
@@ -342,9 +337,8 @@ class AccountServiceImpl extends AccountService {
       createdAt: DateTime.now(),
     );
 
-    await _cloudDB.connectionDao.insertConnection(connection);
-    await _addressService.addAddresses([checkSumAddress]);
-    unawaited(_autonomyService.postLinkedAddresses());
+    await _cloudObject.connectionObject.writeConnection(connection);
+    await _nftCollectionAddressService.addAddresses([checkSumAddress]);
     return connection;
   }
 
@@ -359,91 +353,106 @@ class AccountServiceImpl extends AccountService {
       createdAt: DateTime.now(),
     );
 
-    await _cloudDB.connectionDao.insertConnection(connection);
+    await _cloudObject.connectionObject.writeConnection(connection);
   }
 
   @override
-  bool isLinkedAccountHiddenInGallery(String address) =>
-      _configurationService.isLinkedAccountHiddenInGallery(address);
-
-  @override
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
-    await _configurationService
-        .setHideLinkedAccountInGallery([address], isEnabled);
-    await _addressService.setIsHiddenAddresses([address], isEnabled);
-    unawaited(injector<SettingsDataService>().backup());
+    final connection = _cloudObject.connectionObject
+        .getConnectionsByAccountNumber(address)
+        .firstOrNull;
+    if (connection == null) {
+      return;
+    }
+    await _cloudObject.connectionObject
+        .writeConnection(connection.copyWith(isHidden: isEnabled));
+    await _nftCollectionAddressService
+        .setIsHiddenAddresses([address], isEnabled);
   }
 
   @override
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled) async {
-    await Future.wait(addresses
-        .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
-    await _addressService.setIsHiddenAddresses(addresses, isEnabled);
-    unawaited(injector<SettingsDataService>().backup());
+    await Future.wait(addresses.map(
+        (e) => _cloudObject.addressObject.setAddressIsHidden(e, isEnabled)));
+    await _nftCollectionAddressService.setIsHiddenAddresses(
+        addresses, isEnabled);
   }
 
   @override
   Future androidBackupKeys() async {
     if (Platform.isAndroid) {
-      final accounts = await _cloudDB.personaDao.getPersonas();
-      final uuids = accounts.map((e) => e.uuid).toList();
+      final addresses = _cloudObject.addressObject.getAllAddresses();
+      final uuids = addresses.map((e) => e.uuid).toSet().toList();
 
-      await _backupChannel.backupKeys(uuids);
+      await _androidBackupChannel.backupKeys(uuids);
     }
   }
 
   @override
-  Future androidRestoreKeys() async {
+  Future deleteAllKeys() async {
     if (Platform.isAndroid) {
-      final accounts = await _backupChannel.restoreKeys();
+      final accounts = await _androidBackupChannel.restoreKeys();
+      final uuids = accounts.map((e) => e.uuid).toSet().toList();
+      await _removeUUIDs(uuids);
+      await _androidBackupChannel.deleteBlockStoreData();
+    } else {
+      final uuids = await _iosBackupChannel.getUUIDsFromKeychain();
+      await _removeUUIDs(uuids);
+      await injector<KeychainService>().clearKeychainItems();
+    }
+  }
 
-      final personas = await _cloudDB.personaDao.getPersonas();
-      if (personas.length == accounts.length &&
-          personas.every((element) =>
-              accounts.map((e) => e.uuid).contains(element.uuid))) {
-        //Database is up-to-date, skip migrating
-        return;
+  Future<void> _removeUUIDs(List<String> uuids) async {
+    for (var uuid in uuids) {
+      await LibAukDart.getWallet(uuid).removeKeys();
+    }
+  }
+
+  Future<void> _restoreUUIDs(List<String> uuids) async {
+    final List<String> brokenUUIDs = [];
+    for (var uuid in uuids) {
+      final wallet = WalletStorage(uuid);
+      if (!(await wallet.isWalletCreated())) {
+        brokenUUIDs.add(uuid);
       }
+    }
+    uuids.removeWhere((element) => brokenUUIDs.contains(element));
 
-      //Import persona to database if needed
-      for (var account in accounts) {
-        final existingAccount =
-            await _cloudDB.personaDao.findById(account.uuid);
-        if (existingAccount == null) {
-          final backupVersion = await _backupService
-              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+    final addresses = _cloudObject.addressObject.getAllAddresses();
+    final dbUuids = addresses.map((e) => e.uuid).toSet().toList();
+    if (dbUuids.length == uuids.length &&
+        dbUuids.every((element) => uuids.contains(element.toLowerCase()))) {
+      //Database is up-to-date, skip migrating
+      return;
+    }
 
-          final persona = Persona.newPersona(
-            uuid: account.uuid,
-            name: account.name,
-            createdAt: DateTime.now(),
-            defaultAccount: defaultAccount,
-          );
-          await _cloudDB.personaDao.insertPersona(persona);
-          await _auditService.auditPersonaAction(
-              '[androidRestoreKeys] insert', persona);
-        }
+    // remove uuids not in keychain
+    final uuidsToRemove = dbUuids
+        .where((element) => !uuids.contains(element.toLowerCase()))
+        .toList();
+
+    for (var uuid in uuidsToRemove) {
+      await _cloudObject.addressObject.deleteAddressesByUuid(uuid);
+    }
+    log.info('[_migration android/ios] uuids  : $uuids');
+    for (var uuid in uuids) {
+      //Cleanup duplicated uuids
+      final oldAddresses = _cloudObject.addressObject.getAddressesByUuid(uuid);
+      if (oldAddresses.isEmpty) {
+        await insertNextAddressFromUuid(uuid, WalletType.MultiChain);
       }
+    }
+  }
 
-      //Cleanup broken personas
-      final currentPersonas = await _cloudDB.personaDao.getPersonas();
-      var shouldBackup = false;
-      for (var persona in currentPersonas) {
-        if (!(await persona.wallet().isWalletCreated())) {
-          await _cloudDB.personaDao.deletePersona(persona);
-          final addresses =
-              await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
-          await _addressService
-              .deleteAddresses(addresses.map((e) => e.address).toList());
-          await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
-          shouldBackup = true;
-        }
-      }
+  Future _androidRestoreKeys() async {
+    if (Platform.isAndroid) {
+      final accounts = await _androidBackupChannel.restoreKeys();
 
-      if (shouldBackup || (personas.isNotEmpty && accounts.isEmpty)) {
-        await androidBackupKeys();
-      }
+      final uuids = accounts.map((e) => e.uuid.toLowerCase()).toSet().toList();
+
+      await _restoreUUIDs(uuids);
+
+      await androidBackupKeys();
     }
   }
 
@@ -451,12 +460,12 @@ class AccountServiceImpl extends AccountService {
   Future<Connection> nameLinkedAccount(
       Connection connection, String name) async {
     connection.name = name;
-    await _cloudDB.connectionDao.updateConnection(connection);
+    await _cloudObject.connectionObject.writeConnection(connection);
     return connection;
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {
-    final existingConnections = await _cloudDB.connectionDao
+    final existingConnections = _cloudObject.connectionObject
         .getConnectionsByAccountNumber(accountNumber);
 
     if (existingConnections.isEmpty) {
@@ -468,32 +477,30 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<bool?> isAndroidEndToEndEncryptionAvailable() =>
-      _backupChannel.isEndToEndEncryptionAvailable();
+      _androidBackupChannel.isEndToEndEncryptionAvailable();
 
   @override
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false}) async {
-    if (_configurationService.isDemoArtworksMode()) {
-      return [];
-    }
-
     List<String> addresses = [];
-    final addressPersona = await _cloudDB.addressDao.getAllAddresses();
-    addresses.addAll(addressPersona.map((e) => e.address));
+    final walletAddress = _cloudObject.addressObject.getAllAddresses();
+    addresses.addAll(walletAddress.map((e) => e.address));
 
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
 
-    addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
+    addresses.addAll(linkedAccounts.map((e) => e.accountNumber).toList());
     if (logHiddenAddress) {
-      log.info(
-          '[Account Service] all addresses (persona ${addressPersona.length}): '
+      log.fine(
+          '[Account Service] all addresses (persona ${walletAddress.length}): '
           '${addresses.join(", ")}');
-      final hiddenAddresses = addressPersona
+      final hiddenAddresses = walletAddress
           .where((element) => element.isHidden)
           .map((e) => e.address.maskOnly(5))
           .toList()
-        ..addAll(_configurationService.getLinkedAccountsHiddenInGallery());
-      log.info(
+        ..addAll(linkedAccounts
+            .where((element) => element.isHidden)
+            .map((e) => e.accountNumber)
+            .toList());
+      log.fine(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
 
@@ -503,37 +510,21 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<List<String>> getAddress(String blockchain,
       {bool withViewOnly = false}) async {
-    final addresses = <String>[];
     // Full accounts
-    final personas = await _cloudDB.personaDao.getPersonas();
-    for (var persona in personas) {
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) {
-        continue;
-      }
-      switch (blockchain.toLowerCase()) {
-        case 'tezos':
-          addresses.addAll(await persona.getTezosAddresses());
-          break;
-        case 'ethereum':
-          final address = await personaWallet.getETHEip55Address();
-          if (address.isNotEmpty) {
-            addresses.addAll(await persona.getEthAddresses());
-          }
-          break;
-      }
-    }
+    final walletAddresses = _cloudObject.addressObject.getAddressesByType(
+        CryptoType.fromSource(blockchain.toLowerCase()).source);
+
+    final addresses = walletAddresses.map((e) => e.address).toList();
 
     if (withViewOnly) {
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+      final connections = _cloudObject.connectionObject.getLinkedAccounts();
       for (var connection in connections) {
         if (connection.accountNumber.isEmpty) {
           continue;
         }
-        final crytoType =
+        final cryptoType =
             CryptoType.fromAddress(connection.accountNumber).source;
-        if (crytoType.toLowerCase() == blockchain.toLowerCase()) {
+        if (cryptoType.toLowerCase() == blockchain.toLowerCase()) {
           addresses.add(connection.accountNumber);
         }
       }
@@ -544,36 +535,24 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<List<String>> getShowedAddresses() async {
-    if (_configurationService.isDemoArtworksMode()) {
-      return [await getDemoAccount()];
-    }
-
     List<String> addresses = [];
 
     final walletAddress =
-        await _cloudDB.addressDao.findAddressesWithHiddenStatus(false);
+        _cloudObject.addressObject.findAddressesWithHiddenStatus(false);
     addresses.addAll(walletAddress.map((e) => e.address).toList());
 
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
+    final linkedAccounts = _cloudObject.connectionObject
+        .getLinkedAccounts()
+        .where((element) => element.isViewing);
 
-    for (final linkedAccount in linkedAccounts) {
-      for (final addressIndex in linkedAccount.addressIndexes) {
-        if (hiddenLinkedAccounts.contains(addressIndex.address)) {
-          continue;
-        }
-        addresses.add(addressIndex.address);
-      }
-    }
+    addresses.addAll(linkedAccounts.map((e) => e.accountNumber));
 
     return addresses;
   }
 
   @override
-  Future<bool> addAddressPersona(
-      Persona newPersona, List<AddressInfo> addresses) async {
+  Future<bool> addAddressWallet(
+      String uuid, List<AddressInfo> addresses) async {
     bool result = false;
     final replacedConnections =
         await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
@@ -585,7 +564,7 @@ class AccountServiceImpl extends AccountService {
     final walletAddresses = addresses
         .map((e) => WalletAddress(
             address: e.address,
-            uuid: newPersona.uuid,
+            uuid: uuid,
             index: e.index,
             cryptoType: e.getCryptoType().source,
             createdAt: timestamp,
@@ -596,8 +575,8 @@ class AccountServiceImpl extends AccountService {
                     ?.name ??
                 e.getCryptoType().source))
         .toList();
-    await _cloudDB.addressDao.insertAddresses(walletAddresses);
-    await _addressService
+    await _cloudObject.addressObject.insertAddresses(walletAddresses);
+    await _nftCollectionAddressService
         .addAddresses(addresses.map((e) => e.address).toList());
     return result;
   }
@@ -606,50 +585,44 @@ class AccountServiceImpl extends AccountService {
   Future<List<AddressIndex>> getHiddenAddressIndexes() async {
     List<AddressIndex> hiddenAddresses = [];
     final hiddenWalletAddresses =
-        await _cloudDB.addressDao.findAddressesWithHiddenStatus(true);
+        _cloudObject.addressObject.findAddressesWithHiddenStatus(true);
     hiddenAddresses
         .addAll(hiddenWalletAddresses.map((e) => e.addressIndex).toList());
 
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
     final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
+        linkedAccounts.where((element) => element.isHidden).toList();
 
-    for (final linkedAccount in linkedAccounts) {
-      for (final addressIndex in linkedAccount.addressIndexes) {
-        if (hiddenLinkedAccounts.contains(addressIndex.address)) {
-          hiddenAddresses.add(addressIndex);
-        }
-      }
-    }
+    hiddenAddresses.addAll(hiddenLinkedAccounts
+        .expand((element) => element.addressIndexes.toList()));
 
     return hiddenAddresses.toSet().toList();
   }
 
   @override
-  Future<void> deleteAddressPersona(
-      Persona persona, WalletAddress walletAddress) async {
-    await _cloudDB.addressDao.deleteAddress(walletAddress);
-    await _addressService.deleteAddresses([walletAddress.address]);
+  Future<void> deleteAddressWallet(WalletAddress walletAddress) async {
+    await _cloudObject.addressObject.deleteAddress(walletAddress);
+    await _nftCollectionAddressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
-        final connections = await _cloudDB.connectionDao
+        final connections = _cloudObject.connectionObject
             .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
-            await _cloudDB.connectionDao.deleteConnection(connection);
+            await _cloudObject.connectionObject.deleteConnections([connection]);
           }
         }
         return;
       case CryptoType.XTZ:
-        final connections = await _cloudDB.connectionDao
+        final connections = _cloudObject.connectionObject
             .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
 
         for (var connection in connections) {
-          if (connection.beaconConnectConnection?.personaUuid == persona.uuid &&
+          if (connection.beaconConnectConnection?.personaUuid ==
+                  walletAddress.uuid &&
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
-            await _cloudDB.connectionDao.deleteConnection(connection);
+            await _cloudObject.connectionObject.deleteConnections([connection]);
           }
         }
         return;
@@ -659,98 +632,339 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> updateAddressPersona(WalletAddress walletAddress) async {
-    await _cloudDB.addressDao.updateAddress(walletAddress);
+  Future<void> updateAddressWallet(WalletAddress walletAddress) async {
+    await _cloudObject.addressObject.updateAddresses([walletAddress]);
   }
 
   @override
-  Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
-    if (_configurationService.isDoneOnboarding()) {
+  Future<void> migrateAccount() async {
+    log.info('[AccountService] migrateAccount');
+    final cloudDb = injector<CloudDatabase>();
+    final isDoneOnboarding = _configurationService.isDoneOnboarding();
+    final result = await Future.wait([
+      _getDefaultWallet(),
+      _addressService.getPrimaryAddressInfo(),
+      cloudDb.addressDao.getAllAddresses(),
+    ]);
+
+    // make sure to call restoreKeys to activate all seed data
+    final defaultWallet = result[0] as WalletStorage?;
+    final addressInfo = result[1] as primary_address_channel.AddressInfo?;
+    final localCloudDB = result[2]! as List<WalletAddress>;
+
+    log.info('[AccountService] migrateAccount - '
+        'addressInfo: ${addressInfo?.uuid}, '
+        'localCloudDB: ${localCloudDB.length}, '
+        'isDoneOnboarding: $isDoneOnboarding, '
+        'defaultWallet: ${defaultWallet?.uuid}');
+
+    /// in previous version, we assume that if user has primary address,
+    /// that is their default account (using to save cloud data base)
+    /// but if user has no primary address, but have backup version,
+    /// we will take the first uuid as default account
+    // case 1: complete new user, no primary address, no backup keychain
+    // nothing to do other than create new wallet
+    if (defaultWallet == null) {
+      log.info('[AccountService] migrateAccount: case 1 complete new user');
+      await createNewWallet();
+      unawaited(_cloudObject.setMigrated());
+      log.info('[AccountService] migrateAccount: case 1 finished');
       return;
     }
 
-    final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
-        iapService, auditService, _backupService);
-    await androidBackupKeys();
-    await migrationUtil.migrationFromKeychain();
-    final personas = await _cloudDB.personaDao.getPersonas();
-    final connections = await _cloudDB.connectionDao.getConnections();
-    if (personas.isNotEmpty || connections.isNotEmpty) {
-      unawaited(_configurationService.setOldUser());
-      final defaultAccount = await getDefaultAccount();
-      final backupVersion =
-          await _backupService.fetchBackupVersion(defaultAccount);
-      if (backupVersion.isNotEmpty) {
-        unawaited(
-            _backupService.restoreCloudDatabase(defaultAccount, backupVersion));
-        for (var persona in personas) {
-          if (persona.name != '') {
-            await persona.wallet().updateName(persona.name);
-          }
-        }
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        unawaited(_configurationService.setDoneOnboarding(true));
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
-        unawaited(injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition));
-      }
-    } else if (isCreateNew) {
-      unawaited(_configurationService.setDoneOnboarding(true));
-      final persona = await createPersona();
-      await persona.insertNextAddress(WalletType.Tezos);
-      await persona.insertNextAddress(WalletType.Ethereum);
-      unawaited(injector<MetricClientService>()
-          .mixPanelClient
-          .initIfDefaultAccount());
-      unawaited(injector<NavigationService>()
-          .navigateTo(AppRouter.homePageNoTransition));
+    // case 2: update app from old version using did key
+    if (addressInfo == null && isDoneOnboarding) {
+      log.info('[AccountService] migrateAccount: '
+          'case 2 update app from old version using did key');
+      await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+            uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
+        withDidKey: true,
+      );
+      await _cloudObject.copyDataFrom(cloudDb);
+      unawaited(cloudDb.removeAll());
+
+      unawaited(_cloudObject.setMigrated());
+      // ensure that we have addresses;
+      unawaited(_ensureHavingWalletAddress());
+      log.info('[AccountService] migrateAccount: case 2 finished');
+      return;
     }
+
+    // case 3: restore app from old version using did key
+    // we register first uuid as primary address (with didKey = true)
+    // then restore
+    if (addressInfo == null && !isDoneOnboarding) {
+      log.info('[AccountService] migrateAccount: '
+          'case 3 restore app from old version using did key');
+      await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+            uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
+        withDidKey: true,
+      );
+
+      await injector<SettingsDataService>()
+          .restoreSettingsData(fromProfileData: true);
+      await _backupService.restoreCloudDatabase();
+
+      // ensure that we have addresses;
+      unawaited(_ensureHavingWalletAddress());
+      log.info('[AccountService] migrateAccount: case 3 finished');
+      return;
+    }
+
+    // from case 4, user has primary address,
+    // we need to check if user has migrate to account-settings;
+
+    // this is to reduce loading time
+    bool didMigrate = _configurationService.didMigrateToAccountSetting();
+    if (!didMigrate) {
+      didMigrate =
+          await _cloudObject.addressObject.accountSettingsDB.didMigrate();
+      if (didMigrate) {
+        unawaited(_configurationService.setMigrateToAccountSetting(true));
+      }
+    }
+
+    log.info('[AccountService] migrateAccount - didMigrate: $didMigrate');
+
+    // case 4: migrated user
+    if (didMigrate) {
+      log.info('[AccountService] migrateAccount: case 4 migrated user');
+      await _cloudObject.downloadAll();
+      log.info('[AccountService] migrateAccount: case 4 finished');
+      return;
+    }
+
+    // if user has not migrated, there are 2 cases:
+    // update app and restore app
+    // we need to check if user using ethereum or tezos for each case to migrate
+
+    // case 5: update app from old version using primary address
+    if (isDoneOnboarding) {
+      log.info('[AccountService] migrateAccount: '
+          'case 5 update app from old version using primary address');
+      // migrate to ethereum first, then upload to account-settings
+      if (!addressInfo!.isEthereum) {
+        await _addressService.migrateToEthereumAddress(addressInfo);
+      }
+      await _cloudObject.copyDataFrom(cloudDb);
+      unawaited(_cloudObject
+          .setMigrated()
+          .then((_) => unawaited(cloudDb.removeAll())));
+      log.info('[AccountService] migrateAccount: case 5 finished');
+    }
+
+    // case 6: restore app from old version using primary address
+    else {
+      log.info('[AccountService] migrateAccount: '
+          'case 6 restore app from old version using primary address');
+      await injector<SettingsDataService>()
+          .restoreSettingsData(fromProfileData: true);
+      await _backupService.restoreCloudDatabase();
+      // now all data are in _cloudObject cache
+      if (!addressInfo!.isEthereum) {
+        // migrate to tezos
+        await _addressService.migrateToEthereumAddress(addressInfo);
+
+        await _cloudObject.uploadCurrentCache();
+      }
+
+      unawaited(_cloudObject.setMigrated());
+      log.info('[AccountService] migrateAccount: case 6 finished');
+    }
+
+    // ensure that we have addresses;
+    unawaited(_ensureHavingWalletAddress());
+  }
+
+  Future<void> _ensureHavingWalletAddress() async {
+    log.info('[AccountService] _ensureHavingWalletAddress');
+    final allAddresses = _cloudObject.addressObject.getAllAddresses();
+    if (allAddresses.isEmpty) {
+      log.info('[AccountService] _ensureHavingWalletAddress - no addresses');
+      await _restoreAddressesFromOS();
+      return;
+    }
+    final primaryAddress =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    if (primaryAddress == null) {
+      return;
+    }
+    if (allAddresses.any((element) =>
+        element.uuid == primaryAddress.uuid &&
+        element.index == primaryAddress.index &&
+        element.cryptoType.toLowerCase() == primaryAddress.chain)) {
+      return;
+    }
+    await insertAddressAtIndexAndUuid(primaryAddress.uuid,
+        name: '', walletType: WalletType.Ethereum, index: primaryAddress.index);
   }
 
   @override
-  Future<WalletAddress?> getAddressPersona(String address) async =>
-      await _cloudDB.addressDao.findByAddress(address);
+  Future<WalletAddress?> getWalletByAddress(String address) async =>
+      _cloudObject.addressObject.findByAddress(address);
 
   @override
   Future<List<Connection>> removeDoubleViewOnly(List<String> addresses) async {
     final List<Connection> result = [];
-    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
+    final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
     final viewOnlyAddresses = linkedAccounts
         .where((con) => addresses.contains(con.accountNumber))
         .toList();
     if (viewOnlyAddresses.isNotEmpty) {
       result.addAll(viewOnlyAddresses);
-      await Future.forEach<Connection>(viewOnlyAddresses,
-          (element) => _cloudDB.connectionDao.deleteConnection(element));
+      await _cloudObject.connectionObject.deleteConnections(viewOnlyAddresses);
     }
     return result;
   }
 
   @override
-  Future<List<Connection>> getAllViewOnlyAddresses() {
-    final connections = _cloudDB.connectionDao.getLinkedAccounts();
+  List<Connection> getAllViewOnlyAddresses() {
+    final connections = _cloudObject.connectionObject.getLinkedAccounts();
     return connections;
   }
-}
 
-class AccountImportedException implements Exception {
-  final Persona persona;
+  @override
+  List<WalletAddress> getWalletsAddress(CryptoType cryptoType) =>
+      _cloudObject.addressObject.getAddressesByType(cryptoType.source);
 
-  AccountImportedException({required this.persona});
-}
+  @override
+  Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
+      {String? name}) async {
+    final primaryAddress =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    if (primaryAddress == null) {
+      throw AccountException(message: 'Primary address not found');
+    }
+    return await insertNextAddressFromUuid(primaryAddress.uuid, walletType,
+        name: name);
+  }
 
-class AccountException implements Exception {
-  final String? message;
+  @override
+  Future<List<WalletAddress>> insertNextAddressFromUuid(
+      String uuid, WalletType walletType,
+      {String? name}) async {
+    final List<WalletAddress> addresses = [];
+    final walletAddresses = _cloudObject.addressObject.getAddressesByUuid(uuid);
+    final wallet = LibAukDart.getWallet(uuid);
+    final ethIndexes = walletAddresses
+        .where((element) => element.cryptoType == CryptoType.ETH.source)
+        .map((e) => e.index)
+        .toList();
+    final ethIndex = _getNextIndex(ethIndexes);
+    final tezIndexes = walletAddresses
+        .where((element) => element.cryptoType == CryptoType.XTZ.source)
+        .map((e) => e.index)
+        .toList();
+    final tezIndex = _getNextIndex(tezIndexes);
+    final ethAddress = WalletAddress(
+        address: await wallet.getETHEip55Address(index: ethIndex),
+        uuid: uuid,
+        index: ethIndex,
+        cryptoType: CryptoType.ETH.source,
+        createdAt: DateTime.now(),
+        name: name ?? CryptoType.ETH.source);
+    final tezAddress = WalletAddress(
+        address: await wallet.getTezosAddress(index: tezIndex),
+        uuid: uuid,
+        index: tezIndex,
+        cryptoType: CryptoType.XTZ.source,
+        createdAt: DateTime.now(),
+        name: name ?? CryptoType.XTZ.source);
+    switch (walletType) {
+      case WalletType.Ethereum:
+        addresses.add(ethAddress);
+      case WalletType.Tezos:
+        addresses.add(tezAddress);
+      default:
+        addresses.addAll([ethAddress, tezAddress]);
+    }
+    await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
+    await _insertWalletAddresses(addresses);
+    return addresses;
+  }
 
-  AccountException({this.message});
-}
+  Future<void> _insertWalletAddresses(List<WalletAddress> addresses) async {
+    await _cloudObject.addressObject.insertAddresses(addresses);
+    await injector<nft.AddressService>()
+        .addAddresses(addresses.map((e) => e.address).toList());
+  }
 
-class LinkAddressException implements Exception {
-  final String message;
+  @override
+  Future<String?> getBackupDeviceID() async {
+    if (Platform.isIOS) {
+      final String? deviceId = await _iosBackupChannel.getBackupDeviceID();
 
-  LinkAddressException({required this.message});
+      return deviceId ?? await getDeviceID();
+    } else {
+      return await getDeviceID();
+    }
+  }
+
+  Future<void> _migrationFromKeychain() async {
+    if (!Platform.isIOS) {
+      return;
+    }
+    final personaUUIDs = await _iosBackupChannel.getUUIDsFromKeychain();
+    await _restoreUUIDs(personaUUIDs);
+  }
+
+  Future<void> _restoreAddressesFromOS() async {
+    if (Platform.isIOS) {
+      await _migrationFromKeychain();
+    } else {
+      await _androidRestoreKeys();
+    }
+  }
+
+  @override
+  Future<List<WalletAddress>> insertAddressAtIndexAndUuid(String uuid,
+      {required WalletType walletType,
+      required int index,
+      String? name}) async {
+    List<WalletAddress> walletAddresses = [];
+    switch (walletType) {
+      case WalletType.Ethereum:
+        walletAddresses = [
+          await _generateETHAddressByIndex(uuid, index, name: name)
+        ];
+      case WalletType.Tezos:
+        walletAddresses = [
+          await _generateTezosAddressByIndex(uuid, index, name: name),
+        ];
+      case WalletType.MultiChain:
+        walletAddresses = [
+          await _generateETHAddressByIndex(uuid, index, name: name),
+          await _generateTezosAddressByIndex(uuid, index, name: name)
+        ];
+    }
+    await removeDoubleViewOnly(walletAddresses.map((e) => e.address).toList());
+    await _insertWalletAddresses(walletAddresses);
+    return walletAddresses;
+  }
+
+  Future<WalletAddress> _generateETHAddressByIndex(String uuid, int index,
+          {String? name}) async =>
+      WalletAddress(
+          address:
+              await LibAukDart.getWallet(uuid).getETHEip55Address(index: index),
+          uuid: uuid,
+          index: index,
+          cryptoType: CryptoType.ETH.source,
+          createdAt: DateTime.now(),
+          name: name ?? CryptoType.ETH.source);
+
+  Future<WalletAddress> _generateTezosAddressByIndex(String uuid, int index,
+          {String? name}) async =>
+      WalletAddress(
+          address:
+              await LibAukDart.getWallet(uuid).getTezosAddress(index: index),
+          uuid: uuid,
+          index: index,
+          cryptoType: CryptoType.XTZ.source,
+          createdAt: DateTime.now(),
+          name: name ?? CryptoType.XTZ.source);
+
+  int _getNextIndex(List<int> indexes) => (indexes.maxOrNull ?? -1) + 1;
 }

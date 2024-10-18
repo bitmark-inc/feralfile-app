@@ -1,11 +1,14 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ExhibitionPostView extends StatefulWidget {
   final Post post;
@@ -27,7 +30,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
 
   @override
   void initState() {
-    thumbnailUrl = widget.post.thumbnailUrls[0];
+    thumbnailUrl = widget.post.thumbnailUrls.firstOrNull;
     loadThumbnailFailedCount = 0;
     super.initState();
   }
@@ -55,8 +58,10 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
                 style: theme.textTheme.ppMori400White12,
               ),
               const SizedBox(height: 30),
-              _buildThumbnailWidget(),
-              const SizedBox(height: 20),
+              if (thumbnailUrl != null) ...[
+                _buildThumbnailWidget(),
+                const SizedBox(height: 20),
+              ],
               Text(
                 widget.post.title,
                 style: theme.textTheme.ppMori700White14,
@@ -64,18 +69,18 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
               if (widget.post.type != 'close-up') ...[
                 const SizedBox(height: 20),
                 Text(
-                  'Date: ${dateFormat.format(dateTime)}',
+                  '${'date'.tr()}: ${dateFormat.format(dateTime)}',
                   style: theme.textTheme.ppMori400White14,
                 ),
                 Text(
-                  'Time: ${timeFormat.format(dateTime)}',
+                  '${'time'.tr()}: ${timeFormat.format(dateTime)}',
                   style: theme.textTheme.ppMori400White14,
                 ),
               ],
               if (widget.post.author?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 10),
                 Text(
-                  'by ${widget.post.author}',
+                  '${'by_empty'.tr()} ${widget.post.author}',
                   style: theme.textTheme.ppMori400White12,
                 ),
               ],
@@ -86,9 +91,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
                       .openFeralFilePostPage(widget.post, widget.exhibitionID);
                 },
                 child: Text(
-                  widget.post.type == 'close-up'
-                      ? 'read_more'.tr()
-                      : 'watch'.tr(),
+                  'read_more'.tr(),
                   style: theme.textTheme.ppMori400White14.copyWith(
                     decoration: TextDecoration.underline,
                     decorationColor: AppColor.white,
@@ -113,6 +116,33 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
           }
           thumbnailUrl = widget.post.thumbnailUrls[loadThumbnailFailedCount];
           return _buildThumbnailWidget();
+        },
+      );
+}
+
+class PostThumbnail extends StatelessWidget {
+  final Post post;
+  final int index;
+
+  const PostThumbnail({
+    required this.post,
+    super.key,
+    this.index = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) => FFCacheNetworkImage(
+        imageUrl: post.thumbnailUrls[index],
+        fit: BoxFit.fitWidth,
+        placeholder: (context, url) => const GalleryThumbnailPlaceholder(),
+        errorWidget: (context, error, stackTrace) {
+          if (index >= post.thumbnailUrls.length) {
+            return SvgPicture.asset('assets/images/default_avatar.svg');
+          }
+          return PostThumbnail(
+            post: post,
+            index: index + 1,
+          );
         },
       );
 }

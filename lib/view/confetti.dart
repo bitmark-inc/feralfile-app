@@ -8,9 +8,9 @@ class AllConfettiWidget extends StatefulWidget {
   final ConfettiController controller;
 
   const AllConfettiWidget({
-    Key? key,
     required this.controller,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<AllConfettiWidget> createState() => _AllConfettiWidgetState();
@@ -20,9 +20,7 @@ class _AllConfettiWidgetState extends State<AllConfettiWidget> {
   final double blastDirection = -pi / 2;
 
   @override
-  Widget build(BuildContext context) {
-    return buildConfetti();
-  }
+  Widget build(BuildContext context) => buildConfetti();
 
   Widget buildConfetti() {
     List<Color> moMAColors = [
@@ -45,7 +43,7 @@ class _AllConfettiWidgetState extends State<AllConfettiWidget> {
         confettiController: widget.controller,
         colors: moMAColors,
         blastDirectionality: BlastDirectionality.explosive,
-        emissionFrequency: 0.0,
+        emissionFrequency: 0,
         numberOfParticles: 50,
       ),
     );
