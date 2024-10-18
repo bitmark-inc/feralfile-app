@@ -27,6 +27,7 @@ class LoggingInterceptor extends Interceptor {
 
   static final List<String> _skipLogPaths = [
     Environment.pubdocURL,
+    Environment.remoteConfigURL,
     '${Environment.feralFileAPIURL}/api/exhibitions',
     '${Environment.feralFileAPIURL}/api/artworks',
   ];
