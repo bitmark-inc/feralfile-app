@@ -243,6 +243,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         ],
         if (_getDisplayKey(playList) != null) ...[
           FFCastButton(
+            shouldCheckSubscription: playList.requiredPremiumToDisplay,
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
               final listTokenIds = playList.tokenIDs;
