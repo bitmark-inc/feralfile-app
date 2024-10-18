@@ -6,6 +6,7 @@
 import 'dart:async' as _i3;
 
 import 'package:autonomy_flutter/service/metric_client_service.dart' as _i2;
+import 'package:autonomy_flutter/util/metric_helper.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -51,15 +52,15 @@ class MockMetricClientService extends _i1.Mock
       ) as _i3.Future<void>);
   @override
   _i3.Future<void> addEvent(
-    String? name, {
+    _i4.MetricEventName? event, {
     String? message,
-    Map<String, dynamic>? data = const {},
+    Map<_i4.MetricParameter, dynamic>? data = const {},
     Map<String, dynamic>? hashedData = const {},
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #addEvent,
-          [name],
+          [event],
           {
             #message: message,
             #data: data,

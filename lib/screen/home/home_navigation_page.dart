@@ -560,7 +560,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    await _remoteConfig.loadConfigs();
+    await _remoteConfig.loadConfigs(forceRefresh: true);
     _triggerShowAnnouncement();
   }
 
