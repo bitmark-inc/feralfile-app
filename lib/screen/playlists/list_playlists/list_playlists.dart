@@ -68,31 +68,28 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
             return const SizedBox();
           }
           final theme = Theme.of(context);
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 30),
-                Row(
-                  children: [
-                    TitleText(title: 'playlists'.tr()),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: widget.onAdd,
-                      child: Text(
-                        'create'.tr(),
-                        style: theme.textTheme.ppMori700White14.copyWith(
-                          color: AppColor.feralFileLightBlue,
-                        ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  TitleText(title: 'playlists'.tr()),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: widget.onAdd,
+                    child: Text(
+                      'create'.tr(),
+                      style: theme.textTheme.ppMori700White14.copyWith(
+                        color: AppColor.feralFileLightBlue,
                       ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 30),
-                _playlistHorizontalGridView(context, playlists)
-              ],
-            ),
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 30),
+              _playlistHorizontalGridView(context, playlists)
+            ],
           );
         },
       );
