@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -323,7 +322,7 @@ class _SeriesViewState extends State<SeriesView> {
                   children: [
                     Expanded(
                       child: _navigating
-                          ? loadingScreen(Theme.of(context), '')
+                          ? const LoadingWidget()
                           : FFCacheNetworkImage(
                               imageUrl: series.thumbnailUrl ?? '',
                               fit: BoxFit.fitWidth,
@@ -352,7 +351,7 @@ class _SeriesViewState extends State<SeriesView> {
             unawaited(Navigator.of(context).pushNamed(
               AppRouter.ffArtworkPreviewPage,
               arguments: FeralFileArtworkPreviewPagePayload(
-                artwork: artwork,
+                artwork: artwork.copyWith(series: series),
               ),
             ));
           }
