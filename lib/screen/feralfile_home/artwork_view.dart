@@ -343,20 +343,19 @@ class _SeriesViewState extends State<SeriesView> {
       setState(() {
         _navigating = true;
       });
-      try {
-        final artwork = await injector<FeralFileService>()
-            .getFirstViewableArtwork(series.id);
-        if (artwork != null) {
-          if (context.mounted) {
-            unawaited(Navigator.of(context).pushNamed(
-              AppRouter.ffArtworkPreviewPage,
-              arguments: FeralFileArtworkPreviewPagePayload(
-                artwork: artwork.copyWith(series: series),
-              ),
-            ));
-          }
+      final artwork =
+          await injector<FeralFileService>().getFirstViewableArtwork(series.id);
+      if (artwork != null) {
+        if (context.mounted) {
+          unawaited(Navigator.of(context).pushNamed(
+            AppRouter.ffArtworkPreviewPage,
+            arguments: FeralFileArtworkPreviewPagePayload(
+              artwork: artwork.copyWith(series: series),
+            ),
+          ));
         }
-      } finally {
+      }
+      if (context.mounted) {
         setState(() {
           _navigating = false;
         });
