@@ -382,20 +382,22 @@ class GifNFTRenderingWidget extends INFTRenderingWidget {
         fit: BoxFit.cover,
       );
 
-  Widget _fallbackWebview() => FeralFileWebview(
-        key: Key('FeralFileWebview_$previewURL'),
-        uri: Uri.parse(overriddenHtml != null ? 'about:blank' : previewURL),
-        onResourceError: (controller, error) {
-          Sentry.captureException(
-            error,
-            stackTrace: StackTrace.current,
-            hint: Hint.withMap({
-              'url': previewURL,
-              'overriddenHtml': overriddenHtml,
-            }),
-          );
-          log.info('Error when load gif with webview: $error on $previewURL');
-        },
+  Widget _fallbackWebview() => Center(
+        child: FeralFileWebview(
+          key: Key('FeralFileWebview_$previewURL'),
+          uri: Uri.parse(overriddenHtml != null ? 'about:blank' : previewURL),
+          onResourceError: (controller, error) {
+            Sentry.captureException(
+              error,
+              stackTrace: StackTrace.current,
+              hint: Hint.withMap({
+                'url': previewURL,
+                'overriddenHtml': overriddenHtml,
+              }),
+            );
+            log.info('Error when load gif with webview: $error on $previewURL');
+          },
+        ),
       );
 }
 
