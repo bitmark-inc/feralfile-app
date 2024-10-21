@@ -18,7 +18,8 @@ extension FFSeriesExt on FFSeries {
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
   bool get isSingle =>
-      settings?.artworkModel == ArtworkModel.single &&
+      (settings?.artworkModel == ArtworkModel.single ||
+          settings?.artworkModel == ArtworkModel.multi) &&
       settings?.artistReservation == 0 &&
       settings?.publisherProof == 0 &&
       settings?.promotionalReservation == 0 &&

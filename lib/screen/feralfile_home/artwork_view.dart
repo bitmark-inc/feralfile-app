@@ -6,12 +6,14 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -192,6 +194,7 @@ class SeriesView extends StatefulWidget {
 
 class _SeriesViewState extends State<SeriesView> {
   late ScrollController _scrollController;
+  bool _navigating = false;
 
   @override
   void initState() {
@@ -301,8 +304,8 @@ class _SeriesViewState extends State<SeriesView> {
 
   Widget _seriesItem(BuildContext context, FFSeries series, Border border) =>
       GestureDetector(
-        onTap: () {
-          _gotoSeriesDetails(context, series);
+        onTap: () async {
+          await _gotoSeriesDetails(context, series);
         },
         child: Container(
           decoration: BoxDecoration(
@@ -319,10 +322,12 @@ class _SeriesViewState extends State<SeriesView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: FFCacheNetworkImage(
-                        imageUrl: series.thumbnailUrl ?? '',
-                        fit: BoxFit.fitWidth,
-                      ),
+                      child: _navigating
+                          ? loadingScreen(Theme.of(context), '')
+                          : FFCacheNetworkImage(
+                              imageUrl: series.thumbnailUrl ?? '',
+                              fit: BoxFit.fitWidth,
+                            ),
                     ),
                   ],
                 ),
@@ -334,36 +339,38 @@ class _SeriesViewState extends State<SeriesView> {
         ),
       );
 
-  void _gotoSeriesDetails(BuildContext context, FFSeries series) {
-    unawaited(
-      Navigator.of(context).pushNamed(
+  Future<void> _gotoSeriesDetails(BuildContext context, FFSeries series) async {
+    if (series.isSingle) {
+      setState(() {
+        _navigating = true;
+      });
+      try {
+        final artwork = await injector<FeralFileService>()
+            .getFirstViewableArtwork(series.id);
+        if (artwork != null) {
+          if (context.mounted) {
+            unawaited(Navigator.of(context).pushNamed(
+              AppRouter.ffArtworkPreviewPage,
+              arguments: FeralFileArtworkPreviewPagePayload(
+                artwork: artwork,
+              ),
+            ));
+          }
+        }
+      } finally {
+        setState(() {
+          _navigating = false;
+        });
+      }
+    } else {
+      unawaited(Navigator.of(context).pushNamed(
         AppRouter.feralFileSeriesPage,
         arguments: FeralFileSeriesPagePayload(
           seriesId: series.id,
           exhibitionId: series.exhibitionID,
         ),
-      ),
-    );
-
-    // Need server support to add includeFirstArtwork
-    // we will do later
-    // if (series.isSingle) {
-    //   final artwork = series.artwork!;
-    //   unawaited(Navigator.of(context).pushNamed(
-    //     AppRouter.ffArtworkPreviewPage,
-    //     arguments: FeralFileArtworkPreviewPagePayload(
-    //       artwork: artwork,
-    //     ),
-    //   ));
-    // } else {
-    //   unawaited(Navigator.of(context).pushNamed(
-    //     AppRouter.feralFileSeriesPage,
-    //     arguments: FeralFileSeriesPagePayload(
-    //       seriesId: series.id,
-    //       exhibitionId: series.exhibitionID,
-    //     ),
-    //   ));
-    // }
+      ));
+    }
   }
 
   void _gotoExhibitionDetails(BuildContext context, Exhibition exhibition) {

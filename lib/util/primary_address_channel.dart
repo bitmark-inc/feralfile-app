@@ -32,7 +32,7 @@ class PrimaryAddressChannel {
       final primaryAddressInfo = json.decode(data);
       return AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
-      log.info('getPrimaryAddress error', e);
+      log.info('getPrimaryAddress error: $e');
       return null;
     }
   }
