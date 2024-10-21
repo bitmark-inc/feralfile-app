@@ -115,7 +115,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       final isNotificationEnabled =
           injector<ConfigurationService>().isNotificationEnabled();
       if (isNotificationEnabled) {
-        await registerPushNotifications();
+        unawaited(registerPushNotifications());
       }
     } catch (e, s) {
       log.info('registerPushNotifications error: $e');
