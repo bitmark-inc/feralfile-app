@@ -274,12 +274,14 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
-    final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
+    final ignoreCuratorAddresses =
+        FeralFileExploreHelper.ignoreCuratorAddresses;
     final curators = resp.result;
     final paging = resp.paging!;
     setState(() {
       _curators = curators
-          .where((curator) => !ignoreCuratorIds.contains(curator.id))
+          .where((curator) => !curator.addressesList
+              .any((address) => ignoreCuratorAddresses.contains(address)))
           .toList();
       _paging = paging;
     });
@@ -305,13 +307,15 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
 
-    final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
+    final ignoreCuratorAddresses =
+        FeralFileExploreHelper.ignoreCuratorAddresses;
 
     final curators = resp.result;
     final paging = resp.paging!;
     setState(() {
       _curators!.addAll(curators
-          .where((curator) => !ignoreCuratorIds.contains(curator.id))
+          .where((curator) => !curator.addressesList
+              .any((address) => ignoreCuratorAddresses.contains(address)))
           .toList());
       _paging = paging;
     });
