@@ -19,7 +19,7 @@ class PrimaryAddressChannel {
       await _channel
           .invokeMethod('setPrimaryAddress', {'data': info.toString()});
     } catch (e) {
-      log.info('setPrimaryAddress error', e);
+      log.info('setPrimaryAddress error: $e');
     }
   }
 
