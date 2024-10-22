@@ -110,8 +110,6 @@ class _OnboardingPageState extends State<OnboardingPage>
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
     }
-
-    unawaited(_registerPushNotifications());
   }
 
   Future<void> _registerPushNotifications() async {
@@ -152,6 +150,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
     log.info('[_fetchRuntimeCache] start');
     await injector<AccountService>().migrateAccount();
+    unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
     if (timer.isActive) {
