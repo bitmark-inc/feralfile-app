@@ -124,7 +124,7 @@ abstract class FeralFileApi {
     @Query('includeFirstArtwork') bool includeFirstArtwork = true,
     @Query('onlyViewable') bool onlyViewable = true,
     @Query('keyword') String keyword = '',
-    @Query('artistIDs') List<String> artistIDs = const [],
+    @Query('artistAlumniAccountIDs') List<String> artistAlumniAccountIDs = const [],
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
     // custom query params
     @Query('customQueryParams')

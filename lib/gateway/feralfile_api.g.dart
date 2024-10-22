@@ -460,7 +460,7 @@ class _FeralFileApi implements FeralFileApi {
     bool includeFirstArtwork = true,
     bool onlyViewable = true,
     String keyword = '',
-    List<String> artistIDs = const [],
+    List<String> artistAlumniAccountIDs = const [],
     bool includeUniqueFilePath = true,
     Map<String, dynamic> customQueryParam = const {},
   }) async {
@@ -475,7 +475,7 @@ class _FeralFileApi implements FeralFileApi {
       r'includeFirstArtwork': includeFirstArtwork,
       r'onlyViewable': onlyViewable,
       r'keyword': keyword,
-      r'artistIDs': artistIDs,
+      r'artistAlumniAccountIDs': artistAlumniAccountIDs,
       r'includeUniqueFilePath': includeUniqueFilePath,
     };
     // add customQueryParams
@@ -502,7 +502,6 @@ class _FeralFileApi implements FeralFileApi {
             ))));
     final value = FeralFileListResponse<FFSeries>.fromJson(
         _result.data!, FFSeries.fromJson);
-    return value;
     return value;
   }
 
@@ -594,7 +593,7 @@ class _FeralFileApi implements FeralFileApi {
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'includeLinkedAddresses': includeLinkedAddresses,
+      r'includeLinkedAddresses': includeLinkedAddresses
     };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;

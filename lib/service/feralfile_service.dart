@@ -822,7 +822,7 @@ class FeralFileServiceImpl extends FeralFileService {
       includeExhibition: includeExhibition,
       includeFirstArtwork: includeFirstArtwork,
       onlyViewable: onlyViewable,
-      artistIDs: artistIds,
+      artistAlumniAccountIDs: artistIds,
       includeUniqueFilePath: includeUniqeFilePath,
       customQueryParam: customParams,
     );
