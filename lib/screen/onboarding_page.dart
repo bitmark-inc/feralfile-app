@@ -111,6 +111,10 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
     }
 
+    unawaited(_registerPushNotifications());
+  }
+
+  Future<void> _registerPushNotifications() async {
     try {
       final isNotificationEnabled =
           injector<ConfigurationService>().isNotificationEnabled();
