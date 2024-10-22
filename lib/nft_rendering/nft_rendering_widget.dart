@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_error_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
+import 'package:autonomy_flutter/nft_rendering/video_controller_manager.dart';
 import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_debounce/easy_debounce.dart';
@@ -518,31 +519,32 @@ class VideoNFTRenderingWidget extends INFTRenderingWidget {
   bool _playAfterInitialized = true;
 
   VideoNFTRenderingWidget({
-    super.renderingWidgetBuilder,
-  }) {
-    runZonedGuarded(() {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(previewURL));
+    RenderingWidgetBuilder? renderingWidgetBuilder,
+  }) : super(renderingWidgetBuilder: renderingWidgetBuilder) {
+    if (renderingWidgetBuilder != null) {
+      _onSetRenderWidgetBuilder(renderingWidgetBuilder);
+    }
+  }
 
-      unawaited(_controller!.initialize().then((_) async {
-        _stateOfRenderingWidget.previewLoaded();
-        final durationVideo = _controller?.value.duration.inSeconds ?? 0;
-        Duration position;
-        if (latestPosition == null || latestPosition! >= durationVideo) {
-          position = const Duration();
-        } else {
-          position = Duration(seconds: latestPosition!);
-        }
-        await _controller?.seekTo(position);
-        if (isMute) {
-          await _controller?.setVolume(0);
-        }
-        onLoaded?.call(time: durationVideo);
-        await _controller?.setLooping(true);
-        if (_playAfterInitialized) {
-          await _controller?.play();
-        }
-      }));
+  @override
+  void setRenderWidgetBuilder(RenderingWidgetBuilder renderingWidgetBuilder) {
+    super.setRenderWidgetBuilder(renderingWidgetBuilder);
+    _onSetRenderWidgetBuilder(renderingWidgetBuilder);
+  }
+
+  void _onSetRenderWidgetBuilder(
+      RenderingWidgetBuilder renderingWidgetBuilder) {
+    runZonedGuarded(() {
+      _thumbnailURL = renderingWidgetBuilder.thumbnailURL;
+      if (_controller != null) {
+        Sentry.captureException(
+            'Video Rendering Error: Controller is not null');
+        unawaited(_controller?.dispose());
+        _controller = null;
+      }
+      initVideoController();
     }, (error, stack) {
+      Sentry.captureException('Video Rendering Error: $error');
       _stateOfRenderingWidget.playingFailed();
     });
   }
@@ -583,40 +585,29 @@ class VideoNFTRenderingWidget extends INFTRenderingWidget {
   VideoPlayerController? _controller;
   final _stateOfRenderingWidget = StateOfRenderingWidget();
 
-  @override
-  void setRenderWidgetBuilder(RenderingWidgetBuilder renderingWidgetBuilder) {
-    super.setRenderWidgetBuilder(renderingWidgetBuilder);
-    runZonedGuarded(() {
-      _thumbnailURL = renderingWidgetBuilder.thumbnailURL;
-      if (_controller != null) {
-        unawaited(_controller?.dispose());
-        _controller = null;
-      }
-      _controller = VideoPlayerController.networkUrl(Uri.parse(previewURL));
-
-      unawaited(_controller!.initialize().then((_) async {
-        final time = _controller?.value.duration.inSeconds;
-        Duration position;
-        if (latestPosition == null ||
-            latestPosition! >= _controller!.value.duration.inSeconds) {
-          position = const Duration();
-        } else {
-          position = Duration(seconds: latestPosition!);
-        }
-        await _controller?.seekTo(position);
-        if (isMute) {
-          await _controller?.setVolume(0);
-        }
-        onLoaded?.call(time: time);
-        _stateOfRenderingWidget.previewLoaded();
-        unawaited(_controller?.setLooping(true));
-        if (_playAfterInitialized) {
-          unawaited(_controller?.play());
-        }
-      }));
-    }, (error, stack) {
-      _stateOfRenderingWidget.playingFailed();
+  Future<VideoPlayerController> requestVideoController() async {
+    final videoUri = Uri.parse(previewURL);
+    final controller = await videoControllerManager.requestVideoController(
+        videoUri, beforeVideoControllerDisposed: (controller) {
+      _stateOfRenderingWidget.useThumbnail();
     });
+    return controller;
+  }
+
+  Future<void> initVideoController() async {
+    unawaited(requestVideoController().then((videoController) async {
+      _controller = videoController;
+      if (isMute) {
+        await videoController.setVolume(0);
+      }
+      final time = videoController.value.duration.inSeconds;
+      onLoaded?.call(time: time);
+      _stateOfRenderingWidget.previewLoaded();
+      await videoController.setLooping(false);
+      if (_playAfterInitialized) {
+        await videoController.play();
+      }
+    }));
   }
 
   @override
@@ -628,7 +619,9 @@ class VideoNFTRenderingWidget extends INFTRenderingWidget {
 
   Widget _widgetBuilder() {
     if (_controller != null) {
-      if (_stateOfRenderingWidget.isPlayingFailed && _thumbnailURL != null) {
+      if ((_stateOfRenderingWidget.isPlayingFailed ||
+              _stateOfRenderingWidget.shouldUseThumbnail) &&
+          _thumbnailURL != null) {
         return Image.network(
           _thumbnailURL!,
           loadingBuilder: _loadingBuilder,
@@ -662,14 +655,20 @@ class VideoNFTRenderingWidget extends INFTRenderingWidget {
         return loadingWidget;
       }
     } else {
-      return const SizedBox();
+      return loadingWidget;
     }
   }
 
   @override
   void didPopNext() {
-    _playAfterInitialized = true;
-    unawaited(_controller?.play());
+    initVideoController();
+  }
+
+  @override
+  Future<bool> clearPrevious() async {
+    _playAfterInitialized = false;
+    await _controller?.pause();
+    return true;
   }
 
   @override
@@ -682,30 +681,35 @@ class VideoNFTRenderingWidget extends INFTRenderingWidget {
       unawaited(Sentry.captureException('Error when dispose video: $e'));
     }
     unawaited(_controller?.dispose());
+    if (_controller != null) {
+      await videoControllerManager.recycle(
+          videoUri: Uri.parse(previewURL), resetSeekPosition: true);
+    }
     _controller = null;
-  }
-
-  @override
-  Future<bool> clearPrevious() async {
-    _playAfterInitialized = false;
-    await _controller?.pause();
-    return true;
   }
 }
 
 class StateOfRenderingWidget with ChangeNotifier {
   bool isPreviewLoaded = false;
   bool isPlayingFailed = false;
+  bool shouldUseThumbnail = false;
 
   void previewLoaded() {
     isPreviewLoaded = true;
     isPlayingFailed = false;
+    shouldUseThumbnail = false;
     notifyListeners();
   }
 
   void playingFailed() {
     isPreviewLoaded = false;
     isPlayingFailed = true;
+    shouldUseThumbnail = true;
+    notifyListeners();
+  }
+
+  void useThumbnail() {
+    shouldUseThumbnail = true;
     notifyListeners();
   }
 }
