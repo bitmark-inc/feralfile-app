@@ -1,4 +1,10 @@
+import 'package:autonomy_flutter/nft_rendering/gift_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -28,7 +34,7 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
   ];
   final _urlController = TextEditingController();
   String _renderingType = RenderingTypeExtension.auto;
-  INFTRenderingWidget? renderingWidget;
+  Widget? _renderingWidget;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -80,24 +86,75 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
                             renderingType = RenderingType.webview;
                           }
                         }
-                        renderingWidget =
-                            typesOfNFTRenderingWidget(renderingType);
 
-                        renderingWidget?.setRenderWidgetBuilder(
-                          RenderingWidgetBuilder(
-                            previewURL: _urlController.text,
-                          ),
-                        );
-                        setState(() {});
+                        Widget renderingWidget;
+                        final previewURL = link;
+
+                        switch (renderingType) {
+                          case RenderingType.image:
+                            renderingWidget = InteractiveViewer(
+                              minScale: 1,
+                              maxScale: 4,
+                              child: Center(
+                                child: ImageNFTRenderingWidget(
+                                  previewURL: previewURL,
+                                ),
+                              ),
+                            );
+                          case RenderingType.video:
+                            renderingWidget = InteractiveViewer(
+                              minScale: 1,
+                              maxScale: 4,
+                              child: Center(
+                                child: VideoNFTRenderingWidget(
+                                  previewURL: previewURL,
+                                ),
+                              ),
+                            );
+                          case RenderingType.gif:
+                            renderingWidget = InteractiveViewer(
+                              minScale: 1,
+                              maxScale: 4,
+                              child: Center(
+                                child: GifNFTRenderingWidget(
+                                  previewURL: previewURL,
+                                ),
+                              ),
+                            );
+                          case RenderingType.svg:
+                            renderingWidget = InteractiveViewer(
+                              minScale: 1,
+                              maxScale: 4,
+                              child: Center(
+                                  child: SVGNFTRenderingWidget(
+                                      previewURL: previewURL)),
+                            );
+                          case RenderingType.pdf:
+                            renderingWidget = Center(
+                              child: PDFNFTRenderingWidget(
+                                previewURL: previewURL,
+                              ),
+                            );
+                          default:
+                            renderingWidget = Center(
+                              child: WebviewNFTRenderingWidget(
+                                previewURL: previewURL,
+                              ),
+                            );
+                        }
+
+                        setState(() {
+                          _renderingWidget = renderingWidget;
+                        });
                       }
                     },
                     text: 'test_artwork'.tr(),
                   ),
                   Visibility(
-                    visible: renderingWidget != null,
+                    visible: _renderingWidget != null,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 20),
-                      child: renderingToken(),
+                      child: _renderingWidget,
                     ),
                   ),
                 ],
@@ -106,39 +163,6 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
           ),
         ),
       );
-
-  Widget renderingToken() {
-    switch (_renderingType) {
-      case 'image':
-      case 'svg':
-      case 'gif':
-      case 'audio':
-      case 'video':
-        return Stack(
-          children: [
-            AbsorbPointer(
-              child: Center(
-                child: IntrinsicHeight(
-                  child: Container(child: renderingWidget?.build(context)),
-                ),
-              ),
-            ),
-          ],
-        );
-
-      default:
-        return AspectRatio(
-          aspectRatio: 1,
-          child: Stack(
-            children: [
-              Center(
-                child: Container(child: renderingWidget?.build(context)),
-              ),
-            ],
-          ),
-        );
-    }
-  }
 }
 
 extension RenderingTypeExtension on RenderingType {

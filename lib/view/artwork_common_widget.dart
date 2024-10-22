@@ -49,7 +49,6 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != '') {
@@ -414,67 +413,6 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
 }
 
 Widget placeholder(BuildContext context) => const LoadingWidget();
-
-INFTRenderingWidget buildRenderingWidget(
-  BuildContext context,
-  AssetToken assetToken, {
-  int? attempt,
-  String? overriddenHtml,
-  bool isMute = false,
-  Function({int? time, WebViewController? webViewController})? onLoaded,
-  Function({int? time})? onDispose,
-  FocusNode? focusNode,
-  Widget? loadingWidget,
-}) {
-  String mimeType = assetToken.getMimeType;
-  final renderingWidget = typesOfNFTRenderingWidget(mimeType)
-    ..setRenderWidgetBuilder(RenderingWidgetBuilder(
-      previewURL: attempt == null
-          ? assetToken.getPreviewUrl()
-          : '${assetToken.getPreviewUrl()}?t=$attempt',
-      thumbnailURL: assetToken.getGalleryThumbnailUrl(usingThumbnailID: false),
-      loadingWidget: loadingWidget ?? previewPlaceholder(),
-      errorWidget: BrokenTokenWidget(token: assetToken),
-      onLoaded: onLoaded,
-      onDispose: onDispose,
-      overriddenHtml: overriddenHtml,
-      skipViewport: assetToken.scrollable ?? false,
-      isMute: isMute,
-      focusNode: focusNode,
-    ));
-
-  return renderingWidget;
-}
-
-INFTRenderingWidget buildFeralfileRenderingWidget(
-  BuildContext context, {
-  required String mimeType,
-  required String previewURL,
-  required String thumbnailURL,
-  int? attempt,
-  String? overriddenHtml,
-  bool isMute = false,
-  Function({int? time, WebViewController? webViewController})? onLoaded,
-  Function({int? time})? onDispose,
-  FocusNode? focusNode,
-  Widget? loadingWidget,
-  bool? isScrollable,
-}) {
-  final renderingWidget = typesOfNFTRenderingWidget(mimeType)
-    ..setRenderWidgetBuilder(RenderingWidgetBuilder(
-      previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
-      thumbnailURL: thumbnailURL,
-      loadingWidget: loadingWidget ?? previewPlaceholder(),
-      onLoaded: onLoaded,
-      onDispose: onDispose,
-      overriddenHtml: overriddenHtml,
-      skipViewport: isScrollable ?? false,
-      isMute: isMute,
-      focusNode: focusNode,
-    ));
-
-  return renderingWidget;
-}
 
 class RetryCubit extends Cubit<int> {
   RetryCubit() : super(0);

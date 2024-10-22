@@ -77,6 +77,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
       );
 
   Widget _buildArtworkPreview() => FeralfileArtworkPreviewWidget(
+        key: Key('feralfile_artwork_preview_widget_${payload.artwork.id}'),
         payload: FeralFileArtworkPreviewWidgetPayload(
           artwork: payload.artwork,
           isMute: true,

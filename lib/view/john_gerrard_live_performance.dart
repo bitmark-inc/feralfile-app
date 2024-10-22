@@ -1,8 +1,12 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_rendering/gift_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +25,6 @@ class JohnGerrardLivePerformanceWidget extends StatefulWidget {
 class _JohnGerrardLivePerformanceWidgetState
     extends State<JohnGerrardLivePerformanceWidget>
     with WidgetsBindingObserver, RouteAware {
-  INFTRenderingWidget? _renderingWidget;
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -31,7 +33,6 @@ class _JohnGerrardLivePerformanceWidgetState
 
   @override
   void dispose() {
-    _renderingWidget?.dispose();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -44,32 +45,6 @@ class _JohnGerrardLivePerformanceWidgetState
   }
 
   @override
-  void didPopNext() {
-    _renderingWidget?.didPopNext();
-    super.didPopNext();
-  }
-
-  @override
-  void didPushNext() {
-    unawaited(_renderingWidget?.clearPrevious());
-    super.didPushNext();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    _updateWebviewSize();
-  }
-
-  void _updateWebviewSize() {
-    if (_renderingWidget != null &&
-        _renderingWidget is WebviewNFTRenderingWidget) {
-      // ignore: cast_nullable_to_non_nullable
-      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final previewUrl = widget.exhibition.series!.first.galleryURL;
     final thumbnailUrl = widget.exhibition.series!.first.thumbnailURI;
@@ -77,20 +52,62 @@ class _JohnGerrardLivePerformanceWidgetState
       create: (_) => RetryCubit(),
       child: BlocBuilder<RetryCubit, int>(
         builder: (context, attempt) {
-          if (attempt > 0) {
-            _renderingWidget?.dispose();
-            _renderingWidget = null;
+          final medium = widget.exhibition.series!.first.medium;
+          Widget renderingWidget;
+          switch (medium) {
+            case RenderingType.image:
+              renderingWidget = InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Center(
+                  child: ImageNFTRenderingWidget(
+                    previewURL: previewUrl,
+                  ),
+                ),
+              );
+            case RenderingType.video:
+              renderingWidget = InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Center(
+                  child: VideoNFTRenderingWidget(
+                    previewURL: previewUrl,
+                    thumbnailURL: thumbnailUrl,
+                  ),
+                ),
+              );
+            case RenderingType.gif:
+              renderingWidget = InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Center(
+                  child: GifNFTRenderingWidget(
+                    previewURL: previewUrl,
+                  ),
+                ),
+              );
+            case RenderingType.svg:
+              renderingWidget = InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Center(
+                    child: SVGNFTRenderingWidget(previewURL: previewUrl)),
+              );
+            case RenderingType.pdf:
+              renderingWidget = Center(
+                child: PDFNFTRenderingWidget(
+                  previewURL: previewUrl,
+                ),
+              );
+            default:
+              renderingWidget = Center(
+                child: WebviewNFTRenderingWidget(
+                  previewURL: previewUrl,
+                ),
+              );
           }
-          _renderingWidget ??= buildFeralfileRenderingWidget(
-            context,
-            attempt: attempt > 0 ? attempt : null,
-            mimeType: widget.exhibition.series!.first.medium,
-            previewURL: previewUrl,
-            thumbnailURL: thumbnailUrl ?? '',
-            isScrollable: false,
-          );
           return Center(
-            child: _renderingWidget?.build(context) ?? const SizedBox(),
+            child: renderingWidget,
           );
         },
       ),
