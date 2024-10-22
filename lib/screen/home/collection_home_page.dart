@@ -11,9 +11,11 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -22,13 +24,16 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -61,6 +66,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final nftBloc = injector<ClientTokenService>().nftBloc;
   late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
+  final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
 
   @override
   void initState() {
@@ -167,6 +173,13 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return tokens;
   }
 
+  String _getDisplayKey() =>
+      _updateTokens(nftBloc.state.tokens.items)
+          .map((e) => e.id)
+          .toList()
+          .displayKey ??
+      '';
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -202,6 +215,26 @@ class CollectionHomePageState extends State<CollectionHomePage>
             ellipsis: false,
             isCentered: true,
             fontSize: 14,
+          ),
+          action: FFCastButton(
+            displayKey: _getDisplayKey(),
+            onDeviceSelected: (device) {
+              log.info('Device selected: ${device.name}');
+              final listTokenIds = _updateTokens(nftBloc.state.tokens.items)
+                  .map((e) => e.id)
+                  .toList();
+              if (listTokenIds.isEmpty) {
+                log.info('playList is empty');
+                return;
+              }
+              final duration = speedValues.values.first.inMilliseconds;
+              final listPlayArtwork = listTokenIds
+                  .map((e) => PlayArtworkV2(
+                      token: CastAssetToken(id: e), duration: duration))
+                  .toList();
+              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                  device, listPlayArtwork));
+            },
           ),
         ),
         extendBody: true,
@@ -278,6 +311,27 @@ class CollectionHomePageState extends State<CollectionHomePage>
       SliverToBoxAdapter(
         child: SizedBox(
           height: MediaQuery.of(context).padding.top,
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+          bloc: _canvasDeviceBloc,
+          builder: (context, canvasDeviceState) {
+            final displayKey = _getDisplayKey();
+            final isPlaylistCasting =
+                canvasDeviceState.lastSelectedActiveDeviceForKey(displayKey) !=
+                    null;
+            if (isPlaylistCasting) {
+              return Padding(
+                padding: const EdgeInsets.all(15),
+                child: PlaylistControl(
+                  displayKey: displayKey,
+                ),
+              );
+            } else {
+              return const SizedBox();
+            }
+          },
         ),
       ),
       if (tokens.length <= maxCollectionListSize) ...[

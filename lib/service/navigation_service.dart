@@ -156,7 +156,7 @@ class NavigationService {
 
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      showErrorDiablog(
+      showEventErrorDialog(
         navigatorKey.currentContext!,
         event,
         defaultAction: defaultAction,
@@ -938,6 +938,9 @@ class NavigationService {
             text: TextSpan(
               style: theme.textTheme.ppMori400White14,
               children: [
+                TextSpan(
+                  text: 'go_to_setting_tv'.tr(),
+                ),
                 TextSpan(
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {

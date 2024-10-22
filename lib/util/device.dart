@@ -10,7 +10,12 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
+String? _cacheDeviceId;
+
 Future<String> getDeviceID() async {
+  if (_cacheDeviceId != null) {
+    return _cacheDeviceId!;
+  }
   String deviceId = '';
   var deviceInfo = DeviceInfoPlugin();
   if (Platform.isIOS) {
@@ -22,5 +27,6 @@ Future<String> getDeviceID() async {
     var androidDeviceInfo = await deviceInfo.androidInfo;
     deviceId = androidDeviceInfo.id; // unique ID on Android
   }
-  return deviceId;
+  _cacheDeviceId = deviceId;
+  return _cacheDeviceId!;
 }

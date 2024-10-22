@@ -222,13 +222,6 @@ extension ArtworkExt on Artwork {
     );
   }
 
-  bool get isYokoOnoPublicVersion {
-    final config = injector<RemoteConfigService>()
-        .getConfig<Map<String, dynamic>>(
-            ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
-    return id == config['public_token_id'];
-  }
-
   String? get indexerTokenId {
     var chain = series!.exhibition!.mintBlockchain.toLowerCase();
     // normal case: tezos or ethereum chain

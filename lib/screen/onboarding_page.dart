@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -108,6 +109,18 @@ class _OnboardingPageState extends State<OnboardingPage>
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
+    }
+
+    try {
+      final isNotificationEnabled =
+          injector<ConfigurationService>().isNotificationEnabled();
+      if (isNotificationEnabled) {
+        await registerPushNotifications();
+      }
+    } catch (e, s) {
+      log.info('registerPushNotifications error: $e');
+      unawaited(Sentry.captureException('registerPushNotifications error: $e',
+          stackTrace: s));
     }
   }
 

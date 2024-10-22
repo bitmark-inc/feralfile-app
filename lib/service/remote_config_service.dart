@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
 //ignore_for_file: lines_longer_than_80_chars
 
 abstract class RemoteConfigService {
-  Future<void> loadConfigs();
+  Future<void> loadConfigs({bool forceRefresh = false});
 
   bool getBool(final ConfigGroup group, final ConfigKey key);
 
@@ -14,10 +14,10 @@ abstract class RemoteConfigService {
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
-  RemoteConfigServiceImpl(this._pubdocAPI);
+  RemoteConfigServiceImpl(this._api);
 
   static const String keyRights = 'rights';
-  final PubdocAPI _pubdocAPI;
+  final RemoteConfigApi _api;
 
   static const Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
@@ -92,16 +92,6 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'specified_series_artwork_model_title': {
         'faa810f7-7b75-4c02-bf8a-b7447a89c921': 'interactive instruction'
       },
-      'yoko_ono_public': {
-        'owner_data_contract': '0x30F4D17baB0C815519c5d924ac4735be14eb25EC',
-        'moma_exhibition_contract':
-            '0x1d9787369b1dcf709f92da1d8743c2a4b6028a83',
-        'public_token_id': '5429577522081131997036023001590580143450575936',
-        'public_version_preview':
-            'previews/faa810f7-7b75-4c02-bf8a-b7447a89c921/1709110451/index.html',
-        'public_version_thumbnail':
-            'thumbnails/faa810f7-7b75-4c02-bf8a-b7447a89c921/1709178836'
-      },
       'john_gerrard': {
         'contract_address': '0xBE0A4E26a156B2a60cF515E86b3Df9756DEE1952',
         'exhibition_id': '46a0f68b-a657-4364-92a0-32a88b65fbd9'
@@ -146,16 +136,23 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   };
 
   static Map<String, dynamic>? _configs;
+  bool _isLoading = false;
 
   @override
-  Future<void> loadConfigs() async {
+  Future<void> loadConfigs({bool forceRefresh = false}) async {
+    if ((_configs != null && !forceRefresh) || _isLoading) {
+      return;
+    }
     log.fine('RemoteConfigService: loadConfigs start');
+    _isLoading = true;
     try {
-      final data = await _pubdocAPI.getConfigs();
+      final data = await _api.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
       log.fine('RemoteConfigService: loadConfigs: $_configs');
     } catch (e) {
       log.warning('RemoteConfigService: loadConfigs: $e');
+    } finally {
+      _isLoading = false;
     }
   }
 
@@ -258,7 +255,6 @@ enum ConfigKey {
   soundPieceContractAddresses,
   scrollablePreviewUrl,
   specifiedSeriesArtworkModelTitle,
-  yokoOnoPublic,
   johnGerrard,
   crawl,
   dontFakeArtworkSeriesIds,
@@ -319,8 +315,6 @@ extension ConfigKeyExtension on ConfigKey {
         return 'scrollable_preview_url';
       case ConfigKey.specifiedSeriesArtworkModelTitle:
         return 'specified_series_artwork_model_title';
-      case ConfigKey.yokoOnoPublic:
-        return 'yoko_ono_public';
       case ConfigKey.johnGerrard:
         return 'john_gerrard';
       case ConfigKey.crawl:

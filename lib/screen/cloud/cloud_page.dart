@@ -95,16 +95,7 @@ class CloudPage extends StatelessWidget {
     switch (payload.section) {
       case 'nameAlias':
         if (isAvailable) {
-          return Row(
-            children: [
-              Expanded(
-                child: PrimaryButton(
-                  text: 'go_back'.tr(),
-                  onTap: () => _continue(context),
-                ),
-              ),
-            ],
-          );
+          return const SizedBox();
         } else {
           return Column(
             children: [

@@ -4,15 +4,20 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
+import 'dart:ui' as _i11;
 
+import 'package:autonomy_flutter/model/canvas_device_info.dart' as _i14;
 import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i9;
+import 'package:autonomy_flutter/model/play_list_model.dart' as _i10;
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
     as _i8;
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart'
     as _i7;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
 import 'package:autonomy_flutter/util/error_handler.dart' as _i6;
+import 'package:autonomy_flutter/view/display_instruction_view.dart' as _i13;
 import 'package:flutter/material.dart' as _i1;
+import 'package:flutter_vibrate/flutter_vibrate.dart' as _i12;
 import 'package:mockito/mockito.dart' as _i2;
 import 'package:nft_collection/models/asset_token.dart' as _i5;
 
@@ -194,6 +199,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         ),
         returnValueForMissingStub: null,
       );
+  @override
+  _i4.Future<void> showAppLoadError() => (super.noSuchMethod(
+        Invocation.method(
+          #showAppLoadError,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
   void goBack({Object? result}) => super.noSuchMethod(
         Invocation.method(
@@ -556,6 +570,112 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         Invocation.method(
           #navigatePath,
           [path],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showEnvKeyIsMissing(List<String>? keys) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showEnvKeyIsMissing,
+          [keys],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> openPlaylist({required _i10.PlayListModel? playlist}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #openPlaylist,
+          [],
+          {#playlist: playlist},
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showALreadyClaimPlaylist(
+          {required _i10.PlayListModel? playlist}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showALreadyClaimPlaylist,
+          [],
+          {#playlist: playlist},
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void>? showPlaylistActivationExpired() => (super.noSuchMethod(
+        Invocation.method(
+          #showPlaylistActivationExpired,
+          [],
+        ),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>?);
+  @override
+  _i4.Future<void> showFlexibleDialog(
+    _i1.Widget? content, {
+    bool? isDismissible = false,
+    bool? isRoundCorner = true,
+    _i11.Color? backgroundColor,
+    int? autoDismissAfter = 0,
+    _i12.FeedbackType? feedback = _i12.FeedbackType.selection,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showFlexibleDialog,
+          [content],
+          {
+            #isDismissible: isDismissible,
+            #isRoundCorner: isRoundCorner,
+            #backgroundColor: backgroundColor,
+            #autoDismissAfter: autoDismissAfter,
+            #feedback: feedback,
+          },
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showHowToDisplay(
+    _i13.SupportedDisplayBranch? displayBranch,
+    Function? onScanQRTap,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showHowToDisplay,
+          [
+            displayBranch,
+            onScanQRTap,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showStreamAction(
+    String? displayKey,
+    dynamic Function(_i14.CanvasDevice)? onDeviceSelected,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showStreamAction,
+          [
+            displayKey,
+            onDeviceSelected,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> openUrl(Uri? uri) => (super.noSuchMethod(
+        Invocation.method(
+          #openUrl,
+          [uri],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

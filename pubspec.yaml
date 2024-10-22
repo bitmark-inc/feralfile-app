@@ -93,6 +93,7 @@ dependencies:
   shared_preferences: ^2.0.0
   synchronized: ^3.0.0+2
   social_share: ^2.3.1
+  system_date_time_format:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
@@ -209,7 +210,6 @@ flutter:
     - assets/erc20-abi.json
     - assets/erc721-abi.json
     - assets/erc1155-abi.json
-    - assets/data-owner-abi.json
     - assets/images/
     - assets/translations/
     - assets/videos/
