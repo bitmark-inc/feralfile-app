@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:video_player/video_player.dart';
 
 final videoControllerManager = VideoControllerManager(maxVideoControllers: 1);
@@ -26,6 +27,7 @@ class VideoControllerManager {
 
   /// Disposes of a specific controller by [videoUri], or all if [videoUri] is null
   Future<void> recycle({Uri? videoUri, bool resetSeekPosition = false}) async {
+    log.info('Recycling video controller for $videoUri');
     if (videoUri != null) {
       final videoPath = videoUri.path;
       // Dispose the controller associated with the videoUri
@@ -57,6 +59,7 @@ class VideoControllerManager {
       _videoControllers.clear();
       _controllerPool.clear();
     }
+    log.info('Recycled video controller for $videoUri');
   }
 
   /// Requests a video controller for the given [videoUri]
@@ -65,10 +68,12 @@ class VideoControllerManager {
     Function(VideoPlayerController)? onVideoControllerCreated,
     Function(VideoPlayerController)? beforeVideoControllerDisposed,
   }) async {
+    log.info('Requesting video controller for $videoUri');
     final videoPath = videoUri.path;
 
     // Check if the controller for this videoUri is already in the pool
     if (_videoControllers.containsKey(videoPath)) {
+      log.info('Video controller for $videoUri already exists');
       // Bring the videoUri to the end of the pool (most recently used)
       _controllerPool
         ..remove(videoPath)
@@ -83,10 +88,12 @@ class VideoControllerManager {
       VideoPlayerController controller;
 
       if (_controllerPool.length < maxVideoControllers) {
+        log.info('Creating new video controller for $videoUri');
         // Create a new controller
         controller = VideoPlayerController.networkUrl(videoUri);
         await controller.initialize();
       } else {
+        log.info('Replacing video controller for $videoUri');
         // Replace the first (oldest) controller in the pool
         final oldestVideoPath = _controllerPool[0];
 
@@ -110,6 +117,7 @@ class VideoControllerManager {
       }
 
       onVideoControllerCreated?.call(controller);
+      log.info('Requested video controller for $videoUri');
       return controller;
     }
   }
