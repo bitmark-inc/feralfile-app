@@ -32,10 +32,8 @@ class _AlumniPostsPageState extends State<AlumniPostsPage> {
 
   Future<List<Post>> _fetchExhibitions() async {
     final alumni = widget.payload.alumni;
-    final alumniID = alumni.id;
-    final linkedAddresses = alumni.associatedAddresses ?? [];
     final response = await injector<FeralFileService>().getPosts(
-      relatedAlumniAccountIDs: [alumniID, ...linkedAddresses],
+      relatedAlumniAccountIDs: alumni.allRelatedAccountIDs,
     );
     setState(() {
       _posts = response;

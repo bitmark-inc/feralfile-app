@@ -124,7 +124,8 @@ abstract class FeralFileApi {
     @Query('includeFirstArtwork') bool includeFirstArtwork = true,
     @Query('onlyViewable') bool onlyViewable = true,
     @Query('keyword') String keyword = '',
-    @Query('artistAlumniAccountIDs') List<String> artistAlumniAccountIDs = const [],
+    @Query('artistAlumniAccountIDs')
+    List<String> artistAlumniAccountIDs = const [],
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
     // custom query params
     @Query('customQueryParams')
@@ -154,6 +155,8 @@ abstract class FeralFileApi {
   Future<FeralFileResponse<AlumniAccount>> getAlumni({
     @Path('alumniId') String alumniID = '',
     @Query('includeLinkedAddresses') bool includeLinkedAddresses = true,
+    @Query('includeCollaborationAlumniAccounts')
+    bool includeCollaborationAlumniAccounts = true,
   });
 
   @GET('/api/posts')

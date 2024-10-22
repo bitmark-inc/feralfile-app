@@ -56,4 +56,13 @@ extension AlumniAccountExt on AlumniAccount {
       addresses.tezos,
     ];
   }
+
+  List<String> get allRelatedAccountIDs {
+    final List<String> accountIDs = [id];
+    if (collaborationAlumniAccounts != null) {
+      accountIDs.addAll(collaborationAlumniAccounts!.map((e) => e.id));
+    }
+
+    return accountIDs;
+  }
 }

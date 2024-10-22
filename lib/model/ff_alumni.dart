@@ -11,9 +11,10 @@ class AlumniAccount {
   final String? location;
   final String? website;
   final String? company;
-  final List<String>? associatedAddresses;
   final SocialNetwork? socialNetworks;
   final AlumniAccountAddresses? addresses;
+  final List<String>? associatedAddresses;
+  final List<AlumniAccount>? collaborationAlumniAccounts;
 
   AlumniAccount({
     required this.id,
@@ -28,34 +29,38 @@ class AlumniAccount {
     this.location,
     this.website,
     this.company,
-    this.associatedAddresses,
     this.socialNetworks,
     this.addresses,
+    this.associatedAddresses,
+    this.collaborationAlumniAccounts,
   });
 
   factory AlumniAccount.fromJson(Map<String, dynamic> json) => AlumniAccount(
-        id: json['ID'] as String,
-        alias: json['alias'] as String?,
-        slug: json['slug'] as String?,
-        fullName: json['fullName'] as String?,
-        isArtist: json['isArtist'] as bool?,
-        isCurator: json['isCurator'] as bool?,
-        bio: json['bio'] as String?,
-        email: json['email'] as String?,
-        avatarURI: json['avatarURI'] as String?,
-        location: json['location'] as String?,
-        website: json['website'] as String?,
-        company: json['company'] as String?,
-        associatedAddresses: (json['associatedAddresses'] as List?)
-            ?.map((e) => e as String)
-            .toList(),
-        socialNetworks: json['socialNetworks'] != null
-            ? SocialNetwork.fromJson(json['socialNetworks'])
-            : null,
-        addresses: json['addresses'] != null
-            ? AlumniAccountAddresses.fromJson(json['addresses'])
-            : null,
-      );
+      id: json['ID'] as String,
+      alias: json['alias'] as String?,
+      slug: json['slug'] as String?,
+      fullName: json['fullName'] as String?,
+      isArtist: json['isArtist'] as bool?,
+      isCurator: json['isCurator'] as bool?,
+      bio: json['bio'] as String?,
+      email: json['email'] as String?,
+      avatarURI: json['avatarURI'] as String?,
+      location: json['location'] as String?,
+      website: json['website'] as String?,
+      company: json['company'] as String?,
+      socialNetworks: json['socialNetworks'] != null
+          ? SocialNetwork.fromJson(json['socialNetworks'])
+          : null,
+      addresses: json['addresses'] != null
+          ? AlumniAccountAddresses.fromJson(json['addresses'])
+          : null,
+      associatedAddresses: (json['associatedAddresses'] as List?)
+          ?.map((e) => e as String)
+          .toList(),
+      collaborationAlumniAccounts:
+          (json['collaborationAlumniAccounts'] as List?)
+              ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
+              .toList());
 
   Map<String, dynamic> toJson() => {
         'ID': id,
@@ -70,9 +75,11 @@ class AlumniAccount {
         'location': location,
         'website': website,
         'company': company,
-        'associatedAddresses': associatedAddresses,
         'socialNetworks': socialNetworks?.toJson(),
         'addresses': addresses?.toJson(),
+        'associatedAddresses': associatedAddresses,
+        'collaborationAlumniAccounts':
+            collaborationAlumniAccounts?.map((e) => e.toJson()).toList(),
       };
 }
 
