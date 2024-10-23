@@ -69,70 +69,71 @@ class _FeralfileArtworkPreviewWidgetState
     return BlocProvider(
       create: (_) => RetryCubit(),
       child: BlocBuilder<RetryCubit, int>(
-        builder: (context, attempt) {
-          return BlocBuilder<FFArtworkPreviewBloc, FFArtworkPreviewState>(
-            bloc: context.read<FFArtworkPreviewBloc>(),
-            builder: (context, state) {
-              final medium = state.mediumMap[previewUrl];
-              if (medium == null) {
-                return const SizedBox();
-              }
-              switch (medium) {
-                case RenderingType.image:
-                  return InteractiveViewer(
-                    minScale: 1,
-                    maxScale: 4,
-                    child: Center(
-                      child: ImageNFTRenderingWidget(
-                        previewURL: previewUrl,
-                      ),
-                    ),
-                  );
-                case RenderingType.video:
-                  return InteractiveViewer(
-                    minScale: 1,
-                    maxScale: 4,
-                    child: Center(
-                      child: VideoNFTRenderingWidget(
-                        key: Key('video_nft_rendering_widget_$previewUrl'),
-                        previewURL: previewUrl,
-                        thumbnailURL: thumbnailUrl,
-                      ),
-                    ),
-                  );
-                case RenderingType.gif:
-                  return InteractiveViewer(
-                    minScale: 1,
-                    maxScale: 4,
-                    child: Center(
-                      child: GifNFTRenderingWidget(
-                        previewURL: previewUrl,
-                      ),
-                    ),
-                  );
-                case RenderingType.svg:
-                  return InteractiveViewer(
-                    minScale: 1,
-                    maxScale: 4,
-                    child: Center(
-                        child: SVGNFTRenderingWidget(previewURL: previewUrl)),
-                  );
-                case RenderingType.pdf:
-                  return Center(
-                    child: PDFNFTRenderingWidget(
+        builder: (context, attempt) =>
+            BlocBuilder<FFArtworkPreviewBloc, FFArtworkPreviewState>(
+          bloc: context.read<FFArtworkPreviewBloc>(),
+          builder: (context, state) {
+            final medium = state.mediumMap[previewUrl];
+            if (medium == null) {
+              return const SizedBox();
+            }
+            switch (medium) {
+              case RenderingType.image:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: ImageNFTRenderingWidget(
                       previewURL: previewUrl,
                     ),
-                  );
-                default:
-                  return Center(
-                    child: WebviewNFTRenderingWidget(
+                  ),
+                );
+              case RenderingType.video:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: VideoNFTRenderingWidget(
+                      key: Key('video_nft_rendering_widget_$previewUrl'),
+                      previewURL: previewUrl,
+                      thumbnailURL: thumbnailUrl,
+                      isMute: widget.payload.isMute,
+                    ),
+                  ),
+                );
+              case RenderingType.gif:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: GifNFTRenderingWidget(
                       previewURL: previewUrl,
                     ),
-                  );
-              }
-            },
-          );
-        },
+                  ),
+                );
+              case RenderingType.svg:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                      child: SVGNFTRenderingWidget(previewURL: previewUrl)),
+                );
+              case RenderingType.pdf:
+                return Center(
+                  child: PDFNFTRenderingWidget(
+                    previewURL: previewUrl,
+                  ),
+                );
+              default:
+                return Center(
+                  child: WebviewNFTRenderingWidget(
+                    previewURL: previewUrl,
+                    isMute: widget.payload.isMute,
+                  ),
+                );
+            }
+          },
+        ),
       ),
     );
   }

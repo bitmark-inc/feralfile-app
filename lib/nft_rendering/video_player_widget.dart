@@ -174,14 +174,12 @@ class _VideoNFTRenderingWidgetState
       return widget.noPreviewUrlWidget; // Show no preview URL widget
     }
 
-    if (_shouldUseThumbnail && thumbnailURL != null) {
+    if ((_shouldUseThumbnail || _isPlayingFailed) && thumbnailURL != null) {
       return _videoThumbnail(thumbnailURL);
     }
 
     if (_controller != null) {
-      if ((_isPlayingFailed || _shouldUseThumbnail) && thumbnailURL != null) {
-        return _videoThumbnail(thumbnailURL);
-      } else if (_isPreviewLoaded) {
+      if (_isPreviewLoaded) {
         return Stack(
           children: [
             Center(

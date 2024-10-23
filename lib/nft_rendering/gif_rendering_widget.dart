@@ -34,8 +34,10 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
   void initState() {
     super.initState();
     if (widget.previewURL.isEmpty) {
-      setState(() {
-        _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _isLoading = false;
+        });
       });
     }
   }
@@ -81,15 +83,15 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
 
   void _onImageLoaded() {
     if (_isLoading) {
-      setState(() {
-        _isLoading = false;
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        setState(() {
+          _isLoading = false;
+        });
       });
       widget.onLoaded?.call();
     }
   }
 
   @override
-  Widget build(BuildContext context) => _isLoading
-      ? widget.loadingWidget ?? const Center(child: CircularProgressIndicator())
-      : _buildGifWidget();
+  Widget build(BuildContext context) => _buildGifWidget();
 }
