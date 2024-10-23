@@ -55,6 +55,7 @@ extension DailiesTokenExtension on DailyToken {
   }
 
   String get indexId {
+    return 'eth-0xE5163c74fFE6563D75d750E5d767122500a1c337-43792463560781556265569689858463143429649243267448038556726932312834463981161';
     final swap = artwork?.swap;
     if (swap != null) {
       return _convertToIndexId(
