@@ -35,7 +35,7 @@ class WebviewNFTRenderingWidget extends NFTRenderingWidget {
 
 class _WebviewNFTRenderingWidgetState
     extends NFTRenderingWidgetState<WebviewNFTRenderingWidget>
-    with WidgetsBindingObserver, RouteAware {
+    with WidgetsBindingObserver {
   ValueNotifier<bool> isPausing = ValueNotifier(false);
   WebViewController? _webViewController;
   final TextEditingController _textController = TextEditingController();
@@ -50,6 +50,20 @@ class _WebviewNFTRenderingWidgetState
 
   void _updateWebviewSize() {
     updateWebviewSize();
+  }
+
+  @override
+  void didUpdateWidget(WebviewNFTRenderingWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.previewURL != widget.previewURL) {
+      isPreviewLoaded = false;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   Future<void> onPause() async {
@@ -206,6 +220,7 @@ class _WebviewNFTRenderingWidgetState
   void dispose() {
     _textController.dispose();
     _webViewController = null;
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

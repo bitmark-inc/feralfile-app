@@ -59,6 +59,8 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+    _artworkKey = GlobalKey<NFTRenderingWidgetState>(
+        debugLabel: 'artwork_preview_key_${widget.identity}');
     bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
         useIndexer: widget.useIndexer));
   }
@@ -67,6 +69,8 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   void didUpdateWidget(covariant ArtworkPreviewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.identity != widget.identity) {
+      _artworkKey = GlobalKey<NFTRenderingWidgetState>(
+          debugLabel: 'artwork_preview_key_${widget.identity}');
       bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
           useIndexer: widget.useIndexer));
     }
@@ -124,9 +128,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
 
                       switch (assetToken.getMimeType) {
                         case RenderingType.image:
-                          _artworkKey = GlobalKey<
-                              NFTRenderingWidgetState<
-                                  VideoNFTRenderingWidget>>();
                           _currentRenderingWidget = ImageNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
@@ -139,9 +140,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             ),
                           );
                         case RenderingType.video:
-                          _artworkKey = GlobalKey<
-                              NFTRenderingWidgetState<
-                                  VideoNFTRenderingWidget>>();
                           _currentRenderingWidget = VideoNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
@@ -154,8 +152,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             ),
                           );
                         case RenderingType.gif:
-                          _artworkKey = GlobalKey<
-                              NFTRenderingWidgetState<GifNFTRenderingWidget>>();
                           _currentRenderingWidget = GifNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
@@ -168,8 +164,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             ),
                           );
                         case RenderingType.svg:
-                          _artworkKey = GlobalKey<
-                              NFTRenderingWidgetState<SVGNFTRenderingWidget>>();
                           _currentRenderingWidget = SVGNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
@@ -182,8 +176,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             ),
                           );
                         case RenderingType.pdf:
-                          _artworkKey = GlobalKey<
-                              NFTRenderingWidgetState<PDFNFTRenderingWidget>>();
                           _currentRenderingWidget = PDFNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
@@ -192,9 +184,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             child: _currentRenderingWidget,
                           );
                         default:
-                          _artworkKey = GlobalKey<
-                              NFTRenderingWidgetState<
-                                  WebviewNFTRenderingWidget>>();
                           _currentRenderingWidget = WebviewNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
