@@ -6,7 +6,10 @@ import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audional String? previewURL;
+import 'package:just_audio/just_audio.dart';
+
+class AudioNFTRenderingWidget extends NFTRenderingWidget {
+  final String? previewURL;
   final String? thumbnailURL;
   final bool isMute;
   final Function({int? time})? onLoaded;
