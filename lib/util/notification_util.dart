@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:sentry/sentry.dart';
 
 Future<bool> registerPushNotifications({bool askPermission = false}) async {
   log.info('register notification');
@@ -35,6 +36,8 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
     await injector<ConfigurationService>().setNotificationEnabled(true);
     return true;
   } catch (error) {
+    unawaited(Sentry.captureException(
+        'error when registering notifications: $error'));
     log.warning('error when registering notifications: $error');
     return false;
   }

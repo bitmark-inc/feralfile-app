@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -111,6 +112,20 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
   }
 
+  Future<void> _registerPushNotifications() async {
+    try {
+      final isNotificationEnabled =
+          injector<ConfigurationService>().isNotificationEnabled();
+      if (isNotificationEnabled) {
+        await registerPushNotifications();
+      }
+    } catch (e, s) {
+      log.info('registerPushNotifications error: $e');
+      unawaited(Sentry.captureException('registerPushNotifications error: $e',
+          stackTrace: s));
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -135,6 +150,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
     log.info('[_fetchRuntimeCache] start');
     await injector<AccountService>().migrateAccount();
+    unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
     if (timer.isActive) {

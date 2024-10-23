@@ -1,7 +1,11 @@
-import 'package:autonomy_flutter/nft_rendering/nft_error_widget.dart';
+import 'dart:async';
+
+import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry/sentry.dart';
 
 class GifNFTRenderingWidget extends NFTRenderingWidget {
   final String previewURL;
@@ -41,18 +45,37 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
       return widget.noPreviewUrlWidget ?? const SizedBox.shrink();
     }
 
-    return Image.network(
-      widget.previewURL,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) {
-          _onImageLoaded();
-          return child;
-        }
-        return widget.loadingWidget ?? const LoadingWidget();
-      },
-      errorBuilder: (context, error, stackTrace) =>
-          widget.errorWidget ?? const NFTErrorWidget(),
+    return Image.network(widget.previewURL,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            _onImageLoaded();
+            return child;
+          }
+          return widget.loadingWidget ?? const LoadingWidget();
+        },
+        errorBuilder: (context, error, stackTrace) => Center(
+              child: _fallbackWebview(),
+            ));
+  }
+
+  Widget _fallbackWebview() {
+    final previewURL = widget.previewURL;
+    return Center(
+      child: FeralFileWebview(
+        key: Key('FeralFileWebview_$previewURL'),
+        uri: Uri.parse(previewURL),
+        onResourceError: (controller, error) {
+          unawaited(Sentry.captureException(
+            error,
+            stackTrace: StackTrace.current,
+            hint: Hint.withMap({
+              'url': previewURL,
+            }),
+          ));
+          log.info('Error when load gif with webview: $error on $previewURL');
+        },
+      ),
     );
   }
 
@@ -69,11 +92,4 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
   Widget build(BuildContext context) => _isLoading
       ? widget.loadingWidget ?? const Center(child: CircularProgressIndicator())
       : _buildGifWidget();
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  Future<bool> clearPrevious() => Future.value(true);
 }

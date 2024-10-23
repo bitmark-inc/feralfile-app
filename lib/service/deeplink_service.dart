@@ -463,9 +463,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
               log.info('[DeeplinkService] '
                   'InstancePurchase: use address with most tokens');
               final addressWallets = await addressService.getAllAddress();
-              addressWallets.removeWhere((element) =>
-                  element.cryptoType.toLowerCase() != chain ||
-                  element.isHidden);
+              addressWallets.removeWhere(
+                  (element) => element.cryptoType.toLowerCase() != chain);
               if (addressWallets.isEmpty) {
                 primaryAddress = null;
               } else {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -25,6 +26,23 @@ class NetworkIssueManager {
       _lastErrorTime = DateTime.now();
       await UIHelper.showRetryDialog(context,
           description: 'network_error_desc'.tr());
+    }
+  }
+
+  Future<void> showReceiveTimeoutWarning() async {
+    if (_isShowingDialog) {
+      return;
+    }
+    final context = injector<NavigationService>().navigatorKey.currentContext;
+    if (context != null &&
+        DateTime.now().difference(_lastErrorTime) > _throttleDuration) {
+      _lastErrorTime = DateTime.now();
+      await showErrorDialog(
+        context,
+        'request_issue'.tr(),
+        'request_issue_desc'.tr(),
+        'close'.tr(),
+      );
     }
   }
 
