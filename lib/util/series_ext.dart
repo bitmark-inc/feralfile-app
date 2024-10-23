@@ -18,13 +18,8 @@ extension FFSeriesExt on FFSeries {
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
   bool get isSingle =>
-      (settings?.artworkModel == ArtworkModel.single ||
-          settings?.artworkModel == ArtworkModel.multi) &&
-      settings?.artistReservation == 0 &&
-      settings?.publisherProof == 0 &&
-      settings?.promotionalReservation == 0 &&
-      (settings?.tradeSeries == null || !settings!.tradeSeries!) &&
-      (settings?.transferToCurator == null || !settings!.transferToCurator!);
+      settings?.artworkModel == ArtworkModel.single ||
+      settings?.artworkModel == ArtworkModel.multi;
 
   bool get shouldFakeArtwork {
     final dontFakeArtworkSeriesIds =
@@ -53,9 +48,7 @@ extension FFSeriesExt on FFSeries {
 }
 
 extension FFSeriesListExt on List<FFSeries> {
-  List<FFSeries> get displayable {
-    return where((e) => e.artwork != null).toList();
-  }
+  List<FFSeries> get displayable => where((e) => e.artwork != null).toList();
 
   List<FFSeries> get sorted {
     sort((a, b) {
