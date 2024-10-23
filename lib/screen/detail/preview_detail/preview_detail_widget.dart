@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/nft_rendering/gift_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
