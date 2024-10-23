@@ -1,4 +1,6 @@
-class Announcement {
+import 'package:autonomy_flutter/model/customer_support.dart';
+
+class Announcement extends ChatThread {
   final String announcementContentId;
   final String content;
   final Map<String, dynamic> additionalData;
@@ -23,4 +25,10 @@ class Announcement {
       );
 
   bool get isExpired => DateTime.now().millisecondsSinceEpoch > endedAt;
+
+  @override
+  String getListTitle() => 'Announcement';
+
+  @override
+  bool isUnread() => false;
 }

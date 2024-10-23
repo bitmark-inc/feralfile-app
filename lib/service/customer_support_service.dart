@@ -9,10 +9,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -45,7 +47,7 @@ abstract class CustomerSupportService {
 
   Future<IssueDetails> getDetails(String issueID);
 
-  Future<List<Issue>> getIssues();
+  Future<List<ChatThread>> getChatThreads();
 
   Future draftMessage(DraftCustomerSupport draft);
 
@@ -93,8 +95,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   bool _isProcessingDraftMessages = false;
 
-  @override
-  Future<List<Issue>> getIssues() async {
+  Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
     try {
       final listIssues = await _customerSupportApi.getIssues();
@@ -147,13 +148,31 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         continue;
       }
     }
+    return issues;
+  }
+
+  @override
+  // this function is used to get the list of issues, and announcements,
+  // if announcements already in the list of issues, it will be removed
+  Future<List<ChatThread>> getChatThreads() async {
+    final chatThreads = <ChatThread>[];
+    final issues = await _getIssues();
+    chatThreads.addAll(issues);
+    // add announcement
+    final announcement =
+        injector<AnnouncementService>().getLocalAnnouncements();
+
+    announcement.removeWhere((element) => issues.any((issue) =>
+        issue.announcementContentId == element.announcementContentId));
+
+    chatThreads.addAll(announcement);
 
     numberOfIssuesInfo.value = [
-      issues.length,
-      issues.where((element) => element.unread > 0).length,
+      chatThreads.length,
+      chatThreads.where((element) => element.isUnread()).length,
     ];
 
-    return issues;
+    return chatThreads;
   }
 
   @override

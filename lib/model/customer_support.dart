@@ -14,6 +14,8 @@ part 'customer_support.g.dart';
 
 abstract class ChatThread {
   String getListTitle();
+
+  bool isUnread();
 }
 
 @JsonSerializable()
@@ -31,6 +33,8 @@ class Issue implements ChatThread {
   Message? lastMessage;
   @JsonKey(name: 'first_message')
   Message? firstMessage;
+  @JsonKey(name: 'announcement_content_id')
+  String? announcementContentId;
 
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,6 +52,7 @@ class Issue implements ChatThread {
     required this.firstMessage,
     required this.rating,
     this.draft,
+    this.announcementContentId,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);
@@ -61,6 +66,9 @@ class Issue implements ChatThread {
 
   @override
   String getListTitle() => ReportIssueType.toTitle(reportIssueType);
+
+  @override
+  bool isUnread() => unread > 0;
 }
 
 @JsonSerializable()

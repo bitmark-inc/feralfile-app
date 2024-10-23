@@ -11,6 +11,8 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/announcement/announcement.dart';
+import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -35,7 +37,7 @@ class SupportListPage extends StatefulWidget {
 
 class _SupportListPageState extends State<SupportListPage>
     with RouteAware, WidgetsBindingObserver {
-  List<ChatThread>? _issues;
+  List<ChatThread>? _chatThreads;
 
   @override
   void didChangeDependencies() {
@@ -62,11 +64,17 @@ class _SupportListPageState extends State<SupportListPage>
         .removeListener(loadIssues);
   }
 
+  Future<List<ChatThread>> _loadChatThreads() async {
+    final chatThreads =
+        await injector<CustomerSupportService>().getChatThreads();
+    return chatThreads;
+  }
+
   Future<void> loadIssues() async {
-    final issues = await injector<CustomerSupportService>().getIssues();
+    final chatThreads = await _loadChatThreads();
     if (mounted) {
       setState(() {
-        _issues = issues;
+        _chatThreads = chatThreads;
       });
     }
   }
@@ -78,16 +86,16 @@ class _SupportListPageState extends State<SupportListPage>
           title: 'support_history'.tr(),
           onBack: () => Navigator.of(context).pop(),
         ),
-        body: _issuesWidget(),
+        body: _chatThreadWidget(),
       );
 
-  Widget _issuesWidget() {
-    final issues = _issues;
-    if (issues == null) {
+  Widget _chatThreadWidget() {
+    final chatThreads = _chatThreads;
+    if (chatThreads == null) {
       return const Center(child: CupertinoActivityIndicator());
     }
 
-    if (issues.isEmpty) {
+    if (chatThreads.isEmpty) {
       return const SizedBox();
     }
 
@@ -98,7 +106,7 @@ class _SupportListPageState extends State<SupportListPage>
       SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final chatThread = issues[index];
+            final chatThread = chatThreads[index];
             switch (chatThread.runtimeType) {
               case Issue:
                 final issue = chatThread as Issue;
@@ -108,7 +116,7 @@ class _SupportListPageState extends State<SupportListPage>
                 final isRated = (lastMessage.contains(STAR_RATING) ||
                         lastMessage.contains(RATING_MESSAGE_START)) &&
                     issue.rating > 0;
-                bool hasDivider = index < issues.length - 1;
+                bool hasDivider = index < chatThreads.length - 1;
                 return Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: ResponsiveLayout.pageEdgeInsets.left),
@@ -126,11 +134,30 @@ class _SupportListPageState extends State<SupportListPage>
                     )),
                   ),
                 );
+              case AnnouncementLocal:
+              case Announcement:
+                final issue = chatThread as Announcement;
+                bool hasDivider = index < chatThreads.length - 1;
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: ResponsiveLayout.pageEdgeInsets.left),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    child: _announcementRow(issue, hasDivider),
+                    // onTap: () => unawaited(Navigator.of(context).pushNamed(
+                    //   AppRouter.supportThreadPage,
+                    //   arguments: NewIssuePayload(
+                    //     reportIssueType: ReportIssueType.Announcement,
+                    //     announcement: issue,
+                    //   ),
+                    // )),
+                  ),
+                );
               default:
                 return const SizedBox();
             }
           },
-          childCount: issues.length,
+          childCount: chatThreads.length,
         ),
       ),
     ]);
@@ -205,6 +232,63 @@ class _SupportListPageState extends State<SupportListPage>
                 ),
               ),
             ],
+          ),
+        ),
+        if (hasDivider)
+          addDivider()
+        else
+          const SizedBox(
+            height: 32,
+          ),
+      ],
+    );
+  }
+
+  Widget _announcementRow(Announcement announcement, bool hasDivider) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  announcement.getListTitle(),
+                  style: theme.textTheme.ppMori400Black16,
+                ),
+                if (announcement is AnnouncementLocal &&
+                    !announcement.read) ...[
+                  _unread(),
+                ]
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  getVerboseDateTimeRepresentation(
+                      DateTime.fromMillisecondsSinceEpoch(
+                          announcement.startedAt)),
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: AppColor.auQuickSilver),
+                ),
+                const SizedBox(width: 14),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 17),
+        Padding(
+          padding: const EdgeInsets.only(right: 14),
+          child: Text(
+            announcement.content.isNotEmpty
+                ? announcement.content
+                : 'announcement'.tr(),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ),
         if (hasDivider)
