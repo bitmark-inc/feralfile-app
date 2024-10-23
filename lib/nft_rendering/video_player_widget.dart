@@ -174,21 +174,13 @@ class _VideoNFTRenderingWidgetState
       return widget.noPreviewUrlWidget; // Show no preview URL widget
     }
 
+    if (_shouldUseThumbnail && thumbnailURL != null) {
+      return _videoThumbnail(thumbnailURL);
+    }
+
     if (_controller != null) {
       if ((_isPlayingFailed || _shouldUseThumbnail) && thumbnailURL != null) {
-        return Image.network(
-          thumbnailURL,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) {
-              return child;
-            }
-            return widget.loadingWidget;
-          },
-          errorBuilder: (context, url, error) => Center(
-            child: widget.errorWidget,
-          ),
-          fit: BoxFit.cover,
-        );
+        return _videoThumbnail(thumbnailURL);
       } else if (_isPreviewLoaded) {
         return Stack(
           children: [
@@ -219,6 +211,20 @@ class _VideoNFTRenderingWidgetState
       return widget.loadingWidget;
     }
   }
+
+  Widget _videoThumbnail(String thumbnailURL) => Image.network(
+        thumbnailURL,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+          return widget.loadingWidget;
+        },
+        errorBuilder: (context, url, error) => Center(
+          child: widget.errorWidget,
+        ),
+        fit: BoxFit.cover,
+      );
 
   @override
   Future<void> pause() async {
