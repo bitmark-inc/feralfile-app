@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
@@ -182,6 +183,12 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           );
                           return Center(
                             child: _currentRenderingWidget,
+                          );
+                        case RenderingType.audio:
+                          _currentRenderingWidget = AudioNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                            isMute: widget.isMute,
                           );
                         default:
                           _currentRenderingWidget = WebviewNFTRenderingWidget(

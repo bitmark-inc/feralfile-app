@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
@@ -132,6 +133,12 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
                           case RenderingType.pdf:
                             renderingWidget = Center(
                               child: PDFNFTRenderingWidget(
+                                previewURL: previewURL,
+                              ),
+                            );
+                          case RenderingType.audio:
+                            renderingWidget = Center(
+                              child: AudioNFTRenderingWidget(
                                 previewURL: previewURL,
                               ),
                             );

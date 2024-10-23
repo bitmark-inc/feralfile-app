@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
@@ -96,6 +97,12 @@ class _JohnGerrardLivePerformanceWidgetState
             case RenderingType.pdf:
               renderingWidget = Center(
                 child: PDFNFTRenderingWidget(
+                  previewURL: previewUrl,
+                ),
+              );
+            case RenderingType.audio:
+              renderingWidget = Center(
+                child: AudioNFTRenderingWidget(
                   previewURL: previewUrl,
                 ),
               );

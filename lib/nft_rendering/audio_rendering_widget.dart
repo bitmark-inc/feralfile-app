@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_error_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-
-class AudioNFTRenderingWidget extends NFTRenderingWidget {
-  final String? previewURL;
+import 'package:just_audio/just_audional String? previewURL;
   final String? thumbnailURL;
   final bool isMute;
   final Function({int? time})? onLoaded;
@@ -15,8 +14,8 @@ class AudioNFTRenderingWidget extends NFTRenderingWidget {
   final Widget errorWidget;
 
   const AudioNFTRenderingWidget({
-    required this.loadingWidget,
-    required this.errorWidget,
+    this.loadingWidget = const LoadingWidget(),
+    this.errorWidget = const NFTErrorWidget(),
     super.key,
     this.previewURL,
     this.thumbnailURL,
