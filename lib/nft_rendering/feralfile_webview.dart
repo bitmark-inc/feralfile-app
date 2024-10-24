@@ -52,12 +52,10 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return WebViewWidget(
-      key: Key(widget.uri.toString()),
-      controller: _webViewController,
-    );
-  }
+  Widget build(BuildContext context) => WebViewWidget(
+        key: Key(widget.uri.toString()),
+        controller: _webViewController,
+      );
 
   @override
   void dispose() {
