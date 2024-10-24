@@ -162,7 +162,7 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
         returnValue: _i6.Future<bool?>.value(),
       ) as _i6.Future<bool?>);
   @override
-  _i6.Future<List<_i7.WalletAddress>> createNewWallet({
+  _i6.Future<_i2.WalletStorage> createNewWallet({
     String? name = r'',
     String? passphrase = r'',
   }) =>
@@ -175,9 +175,18 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
             #passphrase: passphrase,
           },
         ),
-        returnValue:
-            _i6.Future<List<_i7.WalletAddress>>.value(<_i7.WalletAddress>[]),
-      ) as _i6.Future<List<_i7.WalletAddress>>);
+        returnValue: _i6.Future<_i2.WalletStorage>.value(_FakeWalletStorage_0(
+          this,
+          Invocation.method(
+            #createNewWallet,
+            [],
+            {
+              #name: name,
+              #passphrase: passphrase,
+            },
+          ),
+        )),
+      ) as _i6.Future<_i2.WalletStorage>);
   @override
   _i6.Future<_i2.WalletStorage> importWords(
     String? words,

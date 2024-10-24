@@ -72,23 +72,23 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  String getAccessToken() => (super.noSuchMethod(
+  String getRefreshToken() => (super.noSuchMethod(
         Invocation.method(
-          #getAccessToken,
+          #getRefreshToken,
           [],
         ),
         returnValue: _i5.dummyValue<String>(
           this,
           Invocation.method(
-            #getAccessToken,
+            #getRefreshToken,
             [],
           ),
         ),
       ) as String);
   @override
-  _i6.Future<void> setAccessToken(String? value) => (super.noSuchMethod(
+  _i6.Future<void> setRefreshToken(String? value) => (super.noSuchMethod(
         Invocation.method(
-          #setAccessToken,
+          #setRefreshToken,
           [value],
         ),
         returnValue: _i6.Future<void>.value(),

@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry/sentry.dart';
-import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
   final UserAccountChannel _primaryAddressChannel;
@@ -115,11 +114,6 @@ class AddressService {
         signature = await walletStorage.ethSignPersonalMessage(
             utf8.encode(message),
             index: addressInfo.index);
-      case 'tezos':
-        final signatureUInt8List = await walletStorage
-            .tezosSignMessage(utf8.encode(message), index: addressInfo.index);
-        signature = crypto.encodeWithPrefix(
-            prefix: crypto.Prefixes.edsig, bytes: signatureUInt8List);
       default:
         throw UnsupportedError('Unsupported chain: $chain');
     }
@@ -132,30 +126,6 @@ class AddressService {
       return null;
     }
     return getAddressSignature(addressInfo: addressInfo, message: message);
-  }
-
-  Future<String> getAddressPublicKey({required AddressInfo addressInfo}) async {
-    final walletStorage = WalletStorage(addressInfo.uuid);
-    final chain = addressInfo.chain;
-    String publicKey;
-    switch (chain) {
-      case 'ethereum':
-        publicKey = '';
-      case 'tezos':
-        publicKey =
-            await walletStorage.getTezosPublicKey(index: addressInfo.index);
-      default:
-        throw UnsupportedError('Unsupported chain: $chain');
-    }
-    return publicKey;
-  }
-
-  Future<String> getPrimaryAddressPublicKey() async {
-    final addressInfo = await getPrimaryAddressInfo();
-    if (addressInfo == null) {
-      throw UnsupportedError('Primary address not found');
-    }
-    return getAddressPublicKey(addressInfo: addressInfo);
   }
 
   String getFeralfileAccountMessage(

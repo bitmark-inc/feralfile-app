@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 
@@ -29,8 +30,9 @@ class PasskeyServiceImpl implements PasskeyService {
   AuthenticateResponseType? _loginResponse;
 
   final UserApi _userApi;
+  final UserAccountChannel _userAccountChannel;
 
-  PasskeyServiceImpl(this._userApi);
+  PasskeyServiceImpl(this._userApi, this._userAccountChannel);
 
   static final AuthenticatorSelectionType _defaultAuthenticatorSelection =
       AuthenticatorSelectionType(
@@ -48,7 +50,11 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<void> logInInitiate() async {
-    final response = await _userApi.logInInitialize();
+    final userId = await _userAccountChannel.getUserId();
+    if (userId == null) {
+      throw Exception('User ID is not set');
+    }
+    final response = await _userApi.logInInitialize(userId);
     final pubKey = response.publicKey;
     _loginRequest = AuthenticateRequestType(
       challenge: pubKey.challenge,

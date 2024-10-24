@@ -24,9 +24,9 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  String getAccessToken();
+  String getRefreshToken();
 
-  Future<void> setAccessToken(String value);
+  Future<void> setRefreshToken(String value);
 
   bool didMigrateToAccountSetting();
 
@@ -204,7 +204,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyAccessToken = 'access_token';
+  static const String keyRefreshToken = 'refresh_token';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
@@ -895,11 +895,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setBool(keyDidShowLiveWithArt, value);
 
   @override
-  String getAccessToken() => _preferences.getString(keyAccessToken) ?? '';
+  String getRefreshToken() => _preferences.getString(keyRefreshToken) ?? '';
 
   @override
-  Future<void> setAccessToken(String value) async {
-    await _preferences.setString(keyAccessToken, value);
+  Future<void> setRefreshToken(String value) async {
+    await _preferences.setString(keyRefreshToken, value);
   }
 }
 

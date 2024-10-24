@@ -67,17 +67,17 @@ class UserAccountChannel {
     }
   }
 
-  Future<String> getUserId() async {
+  Future<String?> getUserId() async {
     if (_userId != null) {
       return _userId!;
     }
     try {
       final userId = await _channel.invokeMethod('getUserId', {});
-      _userId = userId ?? '';
+      _userId = userId;
       return _userId!;
     } catch (e) {
       log.info('getUserId error', e);
-      return '';
+      return null;
     }
   }
 
@@ -92,7 +92,7 @@ class UserAccountChannel {
 
   Future<bool> didCreateUser() async {
     final userId = await getUserId();
-    return userId.isNotEmpty;
+    return userId != null;
   }
 
   Future<bool> didRegisterPasskey() async {

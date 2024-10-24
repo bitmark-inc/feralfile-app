@@ -10,7 +10,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
@@ -148,17 +147,12 @@ class AutonomyAuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    final shouldIgnoreAuthorizationPath = [
-      ...IAPApi.shouldIgnoreAuthorizationPaths
-    ];
-    if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
-      final jwt = await injector<AuthService>().getAuthToken();
-      if (jwt == null) {
-        unawaited(Sentry.captureMessage('JWT is null'));
-        throw JwtException(message: 'can_not_authenticate_desc'.tr());
-      }
-      options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+    final jwt = await injector<AuthService>().getAuthToken();
+    if (jwt == null) {
+      unawaited(Sentry.captureMessage('JWT is null'));
+      throw JwtException(message: 'can_not_authenticate_desc'.tr());
     }
+    options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
 
     return handler.next(options);
   }

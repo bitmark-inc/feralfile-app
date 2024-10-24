@@ -74,7 +74,7 @@ class _UserApi implements UserApi {
   }
 
   @override
-  Future<CredentialRequestOption> logInInitialize() async {
+  Future<CredentialRequestOption> logInInitialize(String id) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -87,7 +87,7 @@ class _UserApi implements UserApi {
     )
             .compose(
               _dio.options,
-              '/apis/users/passkeys/login/initialize',
+              '/apis/users/${id}/passkeys/login/initialize',
               queryParameters: queryParameters,
               data: _data,
             )
