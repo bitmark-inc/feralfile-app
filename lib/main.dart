@@ -146,6 +146,7 @@ Future<void> _setupApp() async {
         supportedLocales: const [Locale('en', 'US'), Locale('ja')],
         path: 'assets/translations',
         fallbackLocale: const Locale('en', 'US'),
+        useFallbackTranslations: true,
         child: const OverlaySupport.global(
           child: AutonomyApp(),
         ),
