@@ -16,11 +16,11 @@ import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_bloc.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_posts_page.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_works_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -218,10 +218,10 @@ class AppRouter {
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
   static const dailyWorkPage = 'daily_work_page';
-  static const userDetailsPage = 'artist_details_page';
-  static const artistWorksPage = 'artist_works_page';
-  static const artistExhibitionsPage = 'artist_exhibitions_page';
-  static const artistPostsPage = 'artist_posts_page';
+  static const alumniDetailsPage = 'alumni_details_page';
+  static const alumniWorksPage = 'alumni_works_page';
+  static const alumniExhibitionsPage = 'alumni_exhibitions_page';
+  static const alumniPostPage = 'alumni_posts_page';
   static const featuredPage = 'featured_page';
   static const artworksPage = 'artworks_page';
   static const artistsPage = 'artists_page';
@@ -1084,38 +1084,38 @@ class AppRouter {
           ], child: const DailyWorkPage()),
         );
 
-      case userDetailsPage:
+      case alumniDetailsPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => MultiBlocProvider(
               providers: [
-                BlocProvider(create: (_) => UserDetailsBloc()),
+                BlocProvider(create: (_) => AlumniDetailsBloc()),
               ],
-              child: UserDetailsPage(
-                payload: settings.arguments! as UserDetailsPagePayload,
+              child: AlumniDetailsPage(
+                payload: settings.arguments! as AlumniDetailsPagePayload,
               )),
         );
-      case artistWorksPage:
+      case alumniWorksPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => ArtistWorksPage(
-            payload: settings.arguments! as ArtistWorksPagePayload,
+          builder: (context) => AlumniWorksPage(
+            payload: settings.arguments! as AlumniWorksPagePayload,
           ),
         );
 
-      case artistExhibitionsPage:
+      case alumniExhibitionsPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => ArtistExhibitionsPage(
-            payload: settings.arguments! as ArtistExhibitionsPagePayload,
+          builder: (context) => AlumniExhibitionsPage(
+            payload: settings.arguments! as AlumniExhibitionsPagePayload,
           ),
         );
 
-      case artistPostsPage:
+      case alumniPostPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => ArtistPostsPage(
-            payload: settings.arguments! as ArtistPostsPagePayload,
+          builder: (context) => AlumniPostsPage(
+            payload: settings.arguments! as AlumniPostsPagePayload,
           ),
         );
       case collectionPage:

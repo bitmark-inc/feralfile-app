@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/model/ff_user.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
@@ -12,12 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class UserAvatar extends StatelessWidget {
+class AlumniAvatar extends StatelessWidget {
   final String? url;
   final double? width;
   final double? height;
 
-  const UserAvatar({
+  const AlumniAvatar({
     required this.url,
     this.width,
     this.height,
@@ -49,28 +49,28 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) => _avatar(context);
 }
 
-class UserProfile extends StatelessWidget {
-  final FFUser user;
-  final bool isShowUserRole;
+class AlumniProfile extends StatelessWidget {
+  final AlumniAccount alumni;
+  final bool isShowAlumniRole;
 
-  const UserProfile({
-    required this.user,
+  const AlumniProfile({
+    required this.alumni,
     super.key,
-    this.isShowUserRole = true,
+    this.isShowAlumniRole = true,
   });
 
-  String _userRole(FFUser user) {
-    if (user.isArtist == true && user.isCurator == true) {
+  String _alumniRole(AlumniAccount alumni) {
+    if (alumni.isArtist == true && alumni.isCurator == true) {
       return 'artist_curator'.tr();
-    } else if (user.isArtist == true) {
+    } else if (alumni.isArtist == true) {
       return 'artist'.tr();
-    } else if (user.isCurator == true) {
+    } else if (alumni.isCurator == true) {
       return 'curator'.tr();
     }
     return '';
   }
 
-  Widget _userProfile(BuildContext context, FFUser user) {
+  Widget _alumniProfile(BuildContext context, AlumniAccount alumni) {
     final theme = Theme.of(context);
     final subTitleStyle = theme.textTheme.ppMori400White12
         .copyWith(color: AppColor.auQuickSilver);
@@ -82,7 +82,7 @@ class UserProfile extends StatelessWidget {
             Expanded(
               child: AspectRatio(
                 aspectRatio: 1,
-                child: UserAvatar(url: user.avatarUrl),
+                child: AlumniAvatar(url: alumni.avatarUrl),
               ),
             ),
           ],
@@ -90,9 +90,9 @@ class UserProfile extends StatelessWidget {
         const SizedBox(
           height: 8,
         ),
-        if (isShowUserRole) ...[
+        if (isShowAlumniRole) ...[
           Text(
-            _userRole(user),
+            _alumniRole(alumni),
             style: subTitleStyle,
           ),
         ],
@@ -100,15 +100,15 @@ class UserProfile extends StatelessWidget {
           height: 64,
         ),
         Text(
-          user.displayAlias,
+          alumni.displayAlias,
           style: theme.textTheme.ppMori700White24.copyWith(fontSize: 36),
         ),
         const SizedBox(
           height: 24,
         ),
-        if (user.alumniAccount?.location != null) ...[
+        if (alumni.location != null) ...[
           Text(
-            user.alumniAccount!.location!,
+            alumni.location!,
             style: subTitleStyle.copyWith(
               fontStyle: FontStyle.italic,
             ),
@@ -117,22 +117,21 @@ class UserProfile extends StatelessWidget {
             height: 24,
           ),
         ],
-        if (user.alumniAccount?.website != null &&
-            user.alumniAccount!.website!.isNotEmpty) ...[
-          _artistUrl(context, user.alumniAccount!.website!),
+        if (alumni.website != null && alumni.website!.isNotEmpty) ...[
+          _alumniUrl(context, alumni.website!),
           const SizedBox(
             height: 12,
           ),
         ],
-        if (user.instagramUrl != null && user.instagramUrl!.isNotEmpty) ...[
-          _artistUrl(context, user.instagramUrl!, title: 'Instagram'),
+        if (alumni.instagramUrl != null && alumni.instagramUrl!.isNotEmpty) ...[
+          _alumniUrl(context, alumni.instagramUrl!, title: 'Instagram'),
           const SizedBox(
             height: 12,
           ),
         ],
 
-        if (user.twitterUrl != null && user.twitterUrl!.isNotEmpty) ...[
-          _artistUrl(context, user.twitterUrl!, title: 'Twitter'),
+        if (alumni.twitterUrl != null && alumni.twitterUrl!.isNotEmpty) ...[
+          _alumniUrl(context, alumni.twitterUrl!, title: 'Twitter'),
           const SizedBox(
             height: 12,
           ),
@@ -140,9 +139,9 @@ class UserProfile extends StatelessWidget {
         const SizedBox(
           height: 32,
         ),
-        if (user.alumniAccount?.bio != null) ...[
+        if (alumni.bio != null) ...[
           ReadMoreText(
-            text: user.alumniAccount!.bio!,
+            text: alumni.bio!,
             style: theme.textTheme.ppMori400White14,
           ),
           const SizedBox(
@@ -155,9 +154,9 @@ class UserProfile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => _userProfile(context, user);
+  Widget build(BuildContext context) => _alumniProfile(context, alumni);
 
-  Widget _artistUrl(BuildContext context, String url, {String? title}) {
+  Widget _alumniUrl(BuildContext context, String url, {String? title}) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: () {

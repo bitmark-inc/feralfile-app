@@ -10,49 +10,6 @@ import 'package:json_annotation/json_annotation.dart';
 part 'ff_account.g.dart';
 
 @JsonSerializable()
-class FFAccount {
-  @JsonKey(name: 'ID', defaultValue: '')
-  String id;
-  String alias;
-  String location;
-  WyreWallet? wyreWallet;
-  Map<String, String>? vaultAddresses;
-
-  FFAccount(
-      {required this.id,
-      required this.alias,
-      required this.location,
-      required this.wyreWallet,
-      required this.vaultAddresses});
-
-  factory FFAccount.fromJson(Map<String, dynamic> json) =>
-      _$FFAccountFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFAccountToJson(this);
-
-  @override
-  String toString() => toJson().toString();
-
-  String? get ethereumAddress => vaultAddresses?['ethereum'];
-
-  String? get tezosAddress => vaultAddresses?['tezos'];
-}
-
-@JsonSerializable()
-class WyreWallet {
-  Map<String, double> availableBalances;
-
-  WyreWallet({
-    required this.availableBalances,
-  });
-
-  factory WyreWallet.fromJson(Map<String, dynamic> json) =>
-      _$WyreWalletFromJson(json);
-
-  Map<String, dynamic> toJson() => _$WyreWalletToJson(this);
-}
-
-@JsonSerializable()
 class FFContract {
   final String name;
   final String blockchainType;
