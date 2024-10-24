@@ -318,6 +318,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             title: data.title,
             mutedText: draftMsg.mutedMessages.split('[SEPARATOR]'),
             artworkReportID: data.artworkReportID,
+            customTags: [
+              if (data.announcementContentId != null)
+                'announcement_${data.announcementContentId}'
+            ],
           );
           if (data.announcementContentId != null) {
             injector<AnnouncementService>().linkAnnouncementToIssue(
@@ -400,6 +404,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     for (var mutedMsg in mutedText ?? []) {
       mutedMessage += '$mutedMsg\n';
     }
+
+    // add tags to muted message
+    mutedMessage += '**Tags**: ${tags.join(', ')}\n';
 
     final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n${message ?? ''}";
 
