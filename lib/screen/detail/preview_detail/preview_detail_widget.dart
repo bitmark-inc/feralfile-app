@@ -5,11 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
@@ -17,11 +22,9 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
@@ -50,21 +53,25 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
   final bloc =
       ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
-
-  INFTRenderingWidget? _renderingWidget;
+  GlobalKey<NFTRenderingWidgetState>? _artworkKey;
+  Widget? _currentRenderingWidget;
 
   @override
   void initState() {
-    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
-        useIndexer: widget.useIndexer));
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+    _artworkKey = GlobalKey<NFTRenderingWidgetState>(
+        debugLabel: 'artwork_preview_key_${widget.identity}');
+    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
+        useIndexer: widget.useIndexer));
   }
 
   @override
   void didUpdateWidget(covariant ArtworkPreviewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.identity != widget.identity) {
+      _artworkKey = GlobalKey<NFTRenderingWidgetState>(
+          debugLabel: 'artwork_preview_key_${widget.identity}');
       bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
           useIndexer: widget.useIndexer));
     }
@@ -72,7 +79,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
 
   @override
   void dispose() {
-    _renderingWidget?.dispose();
     super.dispose();
   }
 
@@ -82,50 +88,20 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     super.didChangeDependencies();
   }
 
-  @override
-  void didPopNext() {
-    if (!CustomRouteObserver.onIgnoreBackLayerPopUp) {
-      _renderingWidget?.didPopNext();
-    }
-    super.didPopNext();
-  }
-
-  @override
-  void didPushNext() {
-    if (!CustomRouteObserver.onIgnoreBackLayerPopUp) {
-      unawaited(_renderingWidget?.clearPrevious());
-    }
-    super.didPushNext();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    _updateWebviewSize();
-  }
-
-  void _updateWebviewSize() {
-    if (_renderingWidget != null &&
-        _renderingWidget is WebviewNFTRenderingWidget) {
-      // ignore: cast_nullable_to_non_nullable
-      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
-    }
-  }
-
   void pause() {
-    unawaited(_renderingWidget?.resume());
+    _artworkKey?.currentState?.pause();
   }
 
   void resume() {
-    unawaited(_renderingWidget?.resume());
+    _artworkKey?.currentState?.resume();
   }
 
   void mute() {
-    unawaited(_renderingWidget?.mute());
+    _artworkKey?.currentState?.mute();
   }
 
   void unmute() {
-    unawaited(_renderingWidget?.unmute());
+    _artworkKey?.currentState?.unmute();
   }
 
   @override
@@ -149,62 +125,94 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             alignment: Alignment.center,
                             child: PostcardRatio(assetToken: assetToken));
                       }
-                      if (attempt > 0) {
-                        _renderingWidget?.dispose();
-                        _renderingWidget = null;
-                      }
-                      if (_renderingWidget == null ||
-                          _renderingWidget!.previewURL !=
-                              assetToken.getPreviewUrl()) {
-                        _renderingWidget = buildRenderingWidget(
-                          context,
-                          assetToken,
-                          attempt: attempt > 0 ? attempt : null,
-                          onLoaded: widget.onLoaded,
-                          onDispose: widget.onDispose,
-                          overriddenHtml: state.overriddenHtml,
-                          isMute: widget.isMute,
-                          focusNode: widget.focusNode,
-                        );
-                      }
+                      final previewURL = assetToken.getPreviewUrl() ?? '';
 
                       switch (assetToken.getMimeType) {
                         case RenderingType.image:
-                        case RenderingType.video:
-                        case RenderingType.gif:
-                        case RenderingType.svg:
+                          _currentRenderingWidget = ImageNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
                           return InteractiveViewer(
                             minScale: 1,
                             maxScale: 4,
                             child: Center(
-                              child: _artworkView(assetToken),
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.video:
+                          _currentRenderingWidget = VideoNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.gif:
+                          _currentRenderingWidget = GifNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.svg:
+                          _currentRenderingWidget = SVGNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
                             ),
                           );
                         case RenderingType.pdf:
+                          _currentRenderingWidget = PDFNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
                           return Center(
-                            child: _artworkView(assetToken),
+                            child: _currentRenderingWidget,
+                          );
+                        case RenderingType.audio:
+                          _currentRenderingWidget = AudioNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                            isMute: widget.isMute,
+                          );
+                          return Center(
+                            child: _currentRenderingWidget,
                           );
                         default:
+                          _currentRenderingWidget = WebviewNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
                           return Center(
-                            child: _artworkView(assetToken),
+                            child: _currentRenderingWidget,
                           );
                       }
                     },
                   ),
                 );
               }
+
               return const SizedBox();
             default:
               return Container();
           }
         },
       );
-
-  Widget _artworkView(AssetToken assetToken) => GestureDetector(
-      onTap: () async {
-        await _renderingWidget?.pauseOrResume();
-      },
-      child: _renderingWidget?.build(context) ?? const SizedBox());
 }
 
 class PostcardPreviewWidget extends StatefulWidget {
