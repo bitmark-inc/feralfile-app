@@ -24,6 +24,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  String getRefreshToken();
+
+  Future<void> setRefreshToken(String value);
+
   bool didMigrateToAccountSetting();
 
   Future<void> setMigrateToAccountSetting(bool value);
@@ -200,6 +204,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyRefreshToken = 'refresh_token';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
@@ -888,6 +893,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidShowLiveWithArt(bool value) async =>
       await _preferences.setBool(keyDidShowLiveWithArt, value);
+
+  @override
+  String getRefreshToken() => _preferences.getString(keyRefreshToken) ?? '';
+
+  @override
+  Future<void> setRefreshToken(String value) async {
+    await _preferences.setString(keyRefreshToken, value);
+  }
 }
 
 enum ConflictAction {

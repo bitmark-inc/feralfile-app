@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -19,7 +18,7 @@ import 'package:collection/collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class SettingsDataService {
-  Future restoreSettingsData({bool fromProfileData = false});
+  Future restoreSettingsData();
 
   Future<void> backupDeviceSettings();
 
@@ -28,19 +27,12 @@ abstract class SettingsDataService {
 
 class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
-  final IAPApi _iapApi;
   final CloudManager _cloudObject;
 
   SettingsDataServiceImpl(
     this._configurationService,
-    this._iapApi,
     this._cloudObject,
   );
-
-  final _requester =
-      'requester'; // server ignore this when putting jwt, so just put something
-  final _filename = 'settings_data_backup.json';
-  final _version = '1';
 
   // legacy settings, they were store in device settings
   static const _keyPlaylists = 'playlists';
@@ -67,42 +59,26 @@ class SettingsDataServiceImpl implements SettingsDataService {
   ];
 
   @override
-  Future restoreSettingsData({bool fromProfileData = false}) async {
+  Future restoreSettingsData() async {
     if (PreferencesBloc.isOnChanging) {
       log.info('[SettingsDataService] skip restore: on changing preference');
       return;
     }
     log.info('[SettingsDataService][Start] restoreSettingsData');
-    if (!fromProfileData) {
-      log.info('[SettingsDataService] from account setting db');
-      await Future.wait([
-        _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
-        _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
-      ]);
-      final Map<String, dynamic> data = {}
-        ..addAll(_cloudObject.deviceSettingsDB.allInstance
-            .map((key, value) => MapEntry(key, jsonDecode(value))))
-        ..addAll(_cloudObject.userSettingsDB.allInstance
-            .map((key, value) => MapEntry(key, jsonDecode(value))));
 
-      log.info('[SettingsDataService] restore $data');
+    await Future.wait([
+      _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
+      _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
+    ]);
+    final Map<String, dynamic> data = {}
+      ..addAll(_cloudObject.deviceSettingsDB.allInstance
+          .map((key, value) => MapEntry(key, jsonDecode(value))))
+      ..addAll(_cloudObject.userSettingsDB.allInstance
+          .map((key, value) => MapEntry(key, jsonDecode(value))));
 
-      await _saveSettingToConfig(data);
-    } else {
-      log.info('[SettingsDataService] migrate from old server');
-      try {
-        final response =
-            await _iapApi.getProfileData(_requester, _filename, _version);
-        final data = json.decode(response);
+    log.info('[SettingsDataService] restore $data');
 
-        await _saveSettingToConfig(data);
-
-        log.info('[SettingsDataService][Done] restoreSettingsData');
-      } catch (exception, stacktrace) {
-        await Sentry.captureException(exception, stackTrace: stacktrace);
-        return;
-      }
-    }
+    await _saveSettingToConfig(data);
   }
 
   Future<void> _saveSettingToConfig(Map<String, dynamic> data) async {

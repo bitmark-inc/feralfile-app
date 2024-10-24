@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
-
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
@@ -18,32 +16,7 @@ part 'iap_api.g.dart';
 
 @RestApi(baseUrl: '')
 abstract class IAPApi {
-  static const addressAuthenticationPath = '/apis/v2/addresses/auth';
-  static const registerPrimaryAddressPath = '/apis/v2/addresses/primary';
-
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
-
-  @POST(addressAuthenticationPath)
-  Future<JWT> authAddress(@Body() Map<String, dynamic> body);
-
-  @POST(registerPrimaryAddressPath)
-  Future<void> registerPrimaryAddress(@Body() Map<String, dynamic> body);
-
-  @MultiPart()
-  @POST('/apis/v1/premium/profile-data')
-  Future<dynamic> uploadProfile(
-    @Header('requester') String requester,
-    @Part(name: 'filename') String filename,
-    @Part(name: 'appVersion') String appVersion,
-    @Part(name: 'data') File data,
-  );
-
-  @GET('/apis/v1/premium/profile-data')
-  Future<dynamic> getProfileData(
-    @Header('requester') String requester,
-    @Query('filename') String filename,
-    @Query('appVersion') String version,
-  );
 
   @DELETE('/apis/v1/premium/profile-data')
   Future deleteAllProfiles(
