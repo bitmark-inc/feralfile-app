@@ -340,11 +340,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             .addOnSuccessListener {
 
                 Log.e("setDidRegisterPasskey", data.toString());
-                result.success("")
+                result.success(true)
             }
             .addOnFailureListener { e ->
                 Log.e("setDidRegisterPasskey", e.message ?: "")
-                result.error("setDidRegisterPasskey error", e.message, e)
+                result.success(false)
             }
     }
 

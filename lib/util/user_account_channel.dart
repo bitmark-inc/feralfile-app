@@ -56,7 +56,7 @@ class UserAccountChannel {
     }
   }
 
-  Future<bool> setUserId(String userId, {bool isPasskeys = false }) async {
+  Future<bool> setUserId(String userId, {bool isPasskeys = false}) async {
     try {
       await _channel.invokeMethod('setUserId', {'data': userId});
       _userId = userId;
@@ -90,9 +90,21 @@ class UserAccountChannel {
     }
   }
 
-  Future<bool> didMigrateUser() async {
+  Future<bool> didCreateUser() async {
     final userId = await getUserId();
     return userId.isNotEmpty;
+  }
+
+  Future<bool> didRegisterPasskey() async {
+    final didRegister = await _channel.invokeMethod('didRegisterPasskey', {});
+    return didRegister;
+  }
+
+  Future<bool> setDidRegisterPasskey(bool value) async {
+    final didRegister = await _channel.invokeMethod('setDidRegisterPasskey', {
+      'data': value,
+    });
+    return didRegister;
   }
 }
 
