@@ -83,7 +83,7 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
 
   void _onImageLoaded() {
     if (_isLoading) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _isLoading = false;
         });
