@@ -197,6 +197,12 @@ abstract class ConfigurationService {
   Future<void> setReferralCode(String referralCode);
 
   String? getReferralCode();
+
+  void setLinkAnnouncementToIssue(String announcementContentId, String issueId);
+
+  String? getIssueIdByAnnouncementContentId(String announcementContentId);
+
+  String? getAnnouncementContentIdByIssueId(String issueId);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -232,6 +238,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String OLD_USER = 'old_user';
 
   static const String DID_RUN_SETUP = 'did_run_setup';
+
+  static const String KEY_ANNOUNCEMENT_TO_ISSUE_MAP =
+      'announcement_to_issue_map';
 
   // ----- App Setting -----
   static const String KEY_PREVIOUS_BUILD_NUMBER = 'previous_build_number';
@@ -888,6 +897,38 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidShowLiveWithArt(bool value) async =>
       await _preferences.setBool(keyDidShowLiveWithArt, value);
+
+  @override
+  String? getAnnouncementContentIdByIssueId(String issueId) {
+    final map = _preferences.getString(KEY_ANNOUNCEMENT_TO_ISSUE_MAP);
+    if (map == null) {
+      return null;
+    }
+    final mapJson = jsonDecode(map) as Map<String, dynamic>;
+    return mapJson.entries
+        .firstWhereOrNull((element) => element.value == issueId)
+        ?.key;
+  }
+
+  @override
+  String? getIssueIdByAnnouncementContentId(String announcementContentId) {
+    final map = _preferences.getString(KEY_ANNOUNCEMENT_TO_ISSUE_MAP);
+    if (map == null) {
+      return null;
+    }
+    final mapJson = jsonDecode(map) as Map<String, dynamic>;
+    return mapJson[announcementContentId];
+  }
+
+  @override
+  Future<void> setLinkAnnouncementToIssue(
+      String announcementContentId, String issueId) async {
+    final map = _preferences.getString(KEY_ANNOUNCEMENT_TO_ISSUE_MAP);
+    final mapJson = map == null ? <String, String>{} : jsonDecode(map);
+    mapJson[announcementContentId] = issueId;
+    await _preferences.setString(
+        KEY_ANNOUNCEMENT_TO_ISSUE_MAP, jsonEncode(mapJson));
+  }
 }
 
 enum ConflictAction {

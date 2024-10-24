@@ -219,7 +219,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       }
     });
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    unawaited(injector<CustomerSupportService>().getIssues());
+    unawaited(injector<CustomerSupportService>().getChatThreads());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
     NftCollectionBloc.eventController.stream.listen((event) async {
@@ -335,7 +335,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssues();
+    await injector<CustomerSupportService>().getChatThreads();
     await injector<CustomerSupportService>().processMessages();
   }
 

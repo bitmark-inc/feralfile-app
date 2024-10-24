@@ -37,7 +37,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   @override
   void initState() {
     super.initState();
-    unawaited(injector<CustomerSupportService>().getIssues());
+    unawaited(injector<CustomerSupportService>().getChatThreads());
   }
 
   @override
@@ -48,7 +48,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   void didPopNext() {
-    unawaited(injector<CustomerSupportService>().getIssues());
+    unawaited(injector<CustomerSupportService>().getChatThreads());
     super.didPopNext();
   }
 

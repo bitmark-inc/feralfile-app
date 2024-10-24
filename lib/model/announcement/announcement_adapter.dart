@@ -10,8 +10,8 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
         announcementContentId: reader.readString(),
         content: reader.readString(),
         additionalData: reader.readMap().cast<String, dynamic>(),
-        startedAt: reader.readInt(),
-        endedAt: reader.readInt(),
+        startedAt: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
+        endedAt: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
         read: reader.readBool(),
       );
 
@@ -21,8 +21,8 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
       ..writeString(obj.announcementContentId)
       ..writeString(obj.content)
       ..writeMap(obj.additionalData)
-      ..writeInt(obj.startedAt)
-      ..writeInt(obj.endedAt)
+      ..writeInt(obj.startedAt.millisecondsSinceEpoch)
+      ..writeInt(obj.endedAt.millisecondsSinceEpoch)
       ..writeBool(obj.read);
   }
 }

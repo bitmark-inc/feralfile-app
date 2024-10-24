@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -28,12 +29,21 @@ abstract class AnnouncementService {
   AnnouncementLocal? getOldestUnreadAnnouncement();
 
   Future<void> showOldestAnnouncement({bool shouldRepeat = true});
+
+  void linkAnnouncementToIssue(String announcementContentId, String issueId);
+
+  Announcement? findAnnouncementByIssue(String issueId);
+
+  String? findIssueByAnnouncement(String announcementContentId);
 }
 
 class AnnouncementServiceImpl implements AnnouncementService {
   final IAPApi _iapApi;
   final AnnouncementStore _announcementStore;
   final ConfigurationService _configurationService;
+
+  // Map <AnnouncementContentId, IssueId>
+  final Map<String, String> _announcementToIssueMap = {};
 
   AnnouncementServiceImpl(
     this._iapApi,
@@ -185,4 +195,26 @@ class AnnouncementServiceImpl implements AnnouncementService {
           announcement, announcement.announcementContentId);
     });
   }
+
+  @override
+  void linkAnnouncementToIssue(String announcementContentId, String issueId) {
+    injector<ConfigurationService>()
+        .setLinkAnnouncementToIssue(announcementContentId, issueId);
+  }
+
+  @override
+  Announcement? findAnnouncementByIssue(String issueId) {
+    final announcementId = injector<ConfigurationService>()
+        .getAnnouncementContentIdByIssueId(issueId);
+    if (announcementId != null) {
+      return _announcementStore.get(announcementId);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  String? findIssueByAnnouncement(String announcementContentId) =>
+      injector<ConfigurationService>()
+          .getIssueIdByAnnouncementContentId(announcementContentId);
 }

@@ -1,9 +1,11 @@
-class Announcement {
+import 'package:autonomy_flutter/model/customer_support.dart';
+
+class Announcement extends ChatThread {
   final String announcementContentId;
   final String content;
   final Map<String, dynamic> additionalData;
-  final int startedAt;
-  final int endedAt;
+  final DateTime startedAt;
+  final DateTime endedAt;
 
   Announcement({
     required this.announcementContentId,
@@ -18,9 +20,18 @@ class Announcement {
         content: json['content'],
         additionalData: (json['additionalData'] ?? <String, dynamic>{})
             as Map<String, dynamic>,
-        startedAt: DateTime.parse(json['startedAt']).millisecondsSinceEpoch,
-        endedAt: DateTime.parse(json['startedAt']).millisecondsSinceEpoch,
+        startedAt: DateTime.parse(json['startedAt']),
+        endedAt: DateTime.parse(json['endedAt']),
       );
 
-  bool get isExpired => DateTime.now().millisecondsSinceEpoch > endedAt;
+  bool get isExpired => DateTime.now().isAfter(endedAt);
+
+  @override
+  String getListTitle() => 'Announcement';
+
+  @override
+  bool isUnread() => false;
+
+  @override
+  DateTime get sortTime => startedAt;
 }
