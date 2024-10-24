@@ -589,12 +589,10 @@ class _FeralFileApi implements FeralFileApi {
   @override
   Future<FeralFileResponse<AlumniAccount>> getAlumni({
     String alumniID = '',
-    bool includeLinkedAddresses = true,
     bool includeCollaborationAlumniAccounts = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'includeLinkedAddresses': includeLinkedAddresses,
       r'includeCollaborationAlumniAccounts': includeCollaborationAlumniAccounts
     };
     final _headers = <String, dynamic>{};

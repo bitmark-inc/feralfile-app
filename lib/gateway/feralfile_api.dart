@@ -154,7 +154,6 @@ abstract class FeralFileApi {
   @GET('/api/alumni/{alumniId}')
   Future<FeralFileResponse<AlumniAccount>> getAlumni({
     @Path('alumniId') String alumniID = '',
-    @Query('includeLinkedAddresses') bool includeLinkedAddresses = true,
     @Query('includeCollaborationAlumniAccounts')
     bool includeCollaborationAlumniAccounts = true,
   });
