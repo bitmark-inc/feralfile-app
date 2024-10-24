@@ -12,17 +12,16 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/primary_address_channel.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry/sentry.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
-  final PrimaryAddressChannel _primaryAddressChannel;
+  final UserAccountChannel _primaryAddressChannel;
   final CloudManager _cloudObject;
 
   AddressService(this._primaryAddressChannel, this._cloudObject);
@@ -58,19 +57,9 @@ class AddressService {
     return true;
   }
 
-  Future<bool> registerPrimaryAddress(
-      {required AddressInfo info, bool withDidKey = false}) async {
+  Future<bool> registerPrimaryAddress({required AddressInfo info}) async {
     log.info('[AddressService] Registering primary address: ${info.toJson()}');
-    await injector<AuthService>().registerPrimaryAddress(
-        primaryAddressInfo: info, withDidKey: withDidKey);
-    log.info('[AddressService] Primary address registered: ${info.toJson()}');
     final res = await setPrimaryAddressInfo(info: info);
-    // when register primary address, we need to update the auth token
-    log.info(
-        '[AddressService] Getting auth token after primary address registered');
-    await injector<AuthService>().getAuthToken(forceRefresh: true);
-    // we also need to identity the metric client
-    await injector<MetricClientService>().identity();
     return res;
   }
 

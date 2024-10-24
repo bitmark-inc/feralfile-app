@@ -24,6 +24,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  String getAccessToken();
+
+  Future<void> setAccessToken(String value);
+
   bool didMigrateToAccountSetting();
 
   Future<void> setMigrateToAccountSetting(bool value);
@@ -206,6 +210,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyAccessToken = 'access_token';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
@@ -928,6 +933,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
     mapJson[announcementContentId] = issueId;
     await _preferences.setString(
         KEY_ANNOUNCEMENT_TO_ISSUE_MAP, jsonEncode(mapJson));
+  }
+
+  @override
+  String getAccessToken() => _preferences.getString(keyAccessToken) ?? '';
+
+  @override
+  Future<void> setAccessToken(String value) async {
+    await _preferences.setString(keyAccessToken, value);
   }
 }
 

@@ -130,17 +130,16 @@ class CloudManager {
   }
 
   Future<void> copyDataFrom(CloudDatabase source) async {
-    await source.addressDao.getAllAddresses().then((addresses) async {
-      final data = addresses.map((e) => e.toKeyValue).toList();
-      await _walletAddressObject.db.write(data);
-    });
-
-    await source.connectionDao.getConnections().then((connections) async {
-      final data = connections.map((e) => e.toKeyValue).toList();
-      await _connectionObject.db.write(data);
-    });
-
     try {
+      await source.addressDao.getAllAddresses().then((addresses) async {
+        final data = addresses.map((e) => e.toKeyValue).toList();
+        await _walletAddressObject.db.write(data);
+      });
+
+      await source.connectionDao.getConnections().then((connections) async {
+        final data = connections.map((e) => e.toKeyValue).toList();
+        await _connectionObject.db.write(data);
+      });
       await injector<IAPApi>().deleteAllProfiles(_requester);
     } catch (_) {}
   }
@@ -168,13 +167,5 @@ class CloudManager {
 
   Future<void> deleteAll() async {
     await injector<AccountSettingsClient>().delete(vars: {'search': ''});
-  }
-
-  Future<void> uploadCurrentCache() async {
-    await _walletAddressObject.db.uploadCurrentCache();
-    await _connectionObject.db.uploadCurrentCache();
-    await _deviceSettingsDB.uploadCurrentCache();
-    await _userSettingsDB.uploadCurrentCache();
-    await _playlistCloudObject.db.uploadCurrentCache();
   }
 }

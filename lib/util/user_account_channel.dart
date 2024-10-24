@@ -6,45 +6,93 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
 
-class PrimaryAddressChannel {
+class UserAccountChannel {
   final MethodChannel _channel;
 
-  PrimaryAddressChannel()
+  UserAccountChannel()
       : _channel = Platform.isIOS
             ? const MethodChannel('migration_util')
             : const MethodChannel('backup');
+
+  String? _userId;
+  AddressInfo? _primaryAddress;
 
   Future<void> setPrimaryAddress(AddressInfo info) async {
     try {
       await _channel
           .invokeMethod('setPrimaryAddress', {'data': info.toString()});
+      _primaryAddress = info;
     } catch (e) {
       log.info('setPrimaryAddress error: $e');
     }
   }
 
   Future<AddressInfo?> getPrimaryAddress() async {
+    if (_primaryAddress != null) {
+      return _primaryAddress;
+    }
     try {
       final String data = await _channel.invokeMethod('getPrimaryAddress', {});
       if (data.isEmpty) {
-        return null;
+        _primaryAddress = null;
       }
       final primaryAddressInfo = json.decode(data);
-      return AddressInfo.fromJson(primaryAddressInfo);
+      _primaryAddress = AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
       log.info('getPrimaryAddress error: $e');
-      return null;
+      _primaryAddress = null;
     }
+    return _primaryAddress;
   }
 
   Future<bool> clearPrimaryAddress() async {
     try {
       final result = await _channel.invokeMethod('clearPrimaryAddress', {});
+      _primaryAddress = null;
       return result;
     } catch (e) {
       log.info('clearPrimaryAddress error', e);
       return false;
     }
+  }
+
+  Future<bool> setUserId(String userId, {bool isPasskeys = false }) async {
+    try {
+      await _channel.invokeMethod('setUserId', {'data': userId});
+      _userId = userId;
+      return true;
+    } catch (e) {
+      log.info('setUserId error', e);
+      return false;
+    }
+  }
+
+  Future<String> getUserId() async {
+    if (_userId != null) {
+      return _userId!;
+    }
+    try {
+      final userId = await _channel.invokeMethod('getUserId', {});
+      _userId = userId ?? '';
+      return _userId!;
+    } catch (e) {
+      log.info('getUserId error', e);
+      return '';
+    }
+  }
+
+  Future<void> clearUserId() async {
+    try {
+      await _channel.invokeMethod('clearUserId', {});
+      _userId = null;
+    } catch (e) {
+      log.info('clearUserId error', e);
+    }
+  }
+
+  Future<bool> didMigrateUser() async {
+    final userId = await getUserId();
+    return userId.isNotEmpty;
   }
 }
 

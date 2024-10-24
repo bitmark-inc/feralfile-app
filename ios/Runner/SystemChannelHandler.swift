@@ -175,4 +175,71 @@ class SystemChannelHandler: NSObject {
     }
     
     
+    func setUserId(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+                  let data = args["data"] as? String else {
+                result(false)
+                return
+            }
+        let keychain = Keychain()
+        if keychain.set(data.data(using: .utf8)!, forKey: Constant.userIdKey) {
+                result(true)
+            } else {
+                result(false)
+            }
+    }
+    
+    func getUserId(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let keychain = Keychain()
+        
+        guard let data = keychain.getData(Constant.userIdKey, isSync: true),
+              let userId = String(data: data, encoding: .utf8) else {
+                result("")
+                return
+              }
+
+        result(userId)
+    }
+    
+    func clearUserId(call: FlutterMethodCall) {
+        let keychain = Keychain()
+        
+        keychain.remove(key: Constant.userIdKey, isSync: true)
+        return
+    }
+    
+    func setDidRegisterPasskey(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        // Safely extract the arguments and handle cases where "data" is nil or invalid, default to false
+        let args = call.arguments as? [String: Any]
+        let data = (args?["data"] as? Bool) ?? false
+
+        let keychain = Keychain()
+        
+        // Encode Bool to Data
+        let boolData = Data([data ? 1 : 0])
+
+        // Safely store the Bool data in Keychain
+        if keychain.set(boolData, forKey: Constant.didRegisterPasskeys) {
+            result(true)
+        } else {
+            result(false)
+        }
+    }
+
+    func didRegisterPasskey(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let keychain = Keychain()
+
+        // Safely retrieve data from Keychain
+        guard let data = keychain.getData(Constant.didRegisterPasskeys, isSync: true) else {
+            result(false)
+            return
+        }
+
+        // Decode the data back to a Bool
+        let didRegisterPasskeys = data.first == 1
+
+        // Return the Bool value
+        result(didRegisterPasskeys)
+    }
+    
 }

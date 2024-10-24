@@ -32,7 +32,9 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var disposables: CompositeDisposable
     private lateinit var client: BlockstoreClient
-    private final val primaryAddressStoreKey = "primary_address"
+    private val primaryAddressStoreKey = "primary_address"
+    private val userIdStoreKey = "user_id"
+    private val didRegisterPasskeys = "did_register_passkeys"
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine, @NonNull context: Context) {
         this.context = context
@@ -50,6 +52,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             "setPrimaryAddress" -> setPrimaryAddress(call, result)
             "getPrimaryAddress" -> getPrimaryAddress(call, result)
             "clearPrimaryAddress" -> clearPrimaryAddress(call, result)
+            "setUserId" -> setUserId(call, result)
+            "getUserId" -> getUserId(call, result)
+            "clearUserId" -> clearUserId(call, result)
+            "setDidRegisterPasskey" -> setDidRegisterPasskey(call, result)
+            "didRegisterPasskey" -> didRegisterPasskey(call, result)
             "deleteKeys" -> deleteKeys(call, result)
             else -> {
                 result.notImplemented()
@@ -259,6 +266,118 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             }
     }
 
+    private fun setUserId(call: MethodCall, result: MethodChannel.Result) {
+        val data: String = call.argument("data") ?: return
+
+        val storeBytesBuilder = StoreBytesData.Builder()
+            .setKey(userIdStoreKey)
+            .setBytes(data.toByteArray(Charsets.UTF_8))
+
+        client.storeBytes(storeBytesBuilder.build())
+            .addOnSuccessListener {
+
+                Log.e("setUserId", "user id set successfully");
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("setUserId", e.message ?: "")
+                result.error("setUserId error", e.message, e)
+            }
+    }
+
+    private fun getUserId(call: MethodCall, result: MethodChannel.Result) {
+        val request = RetrieveBytesRequest.Builder()
+            .setKeys(listOf(userIdStoreKey))  // Specify the key
+            .build()
+        client.retrieveBytes(request)
+            .addOnSuccessListener {
+                try { // Retrieve bytes using the key
+                    val dataMap = it.blockstoreDataMap[userIdStoreKey]
+                    if (dataMap != null) {
+                        val bytes = dataMap.bytes
+                        val idString = bytes.toString(Charsets.UTF_8)
+                        Log.d("getUserId", idString)
+
+
+                        result.success(idString)
+                    } else {
+                        Log.e("getUserId", "No data found for the key")
+                        result.success(null)
+                    }
+                } catch (e: Exception) {
+                    Log.e("getUserId", e.message ?: "Error decoding data")
+                    //No primary address found
+                    result.success("")
+                }
+            }
+            .addOnFailureListener {
+                //Block store not available
+                result.error("getUserId Block store error", it.message, it)
+            }
+    }
+
+    private fun clearUserId(call: MethodCall, result: MethodChannel.Result) {
+        val retrieveRequest = DeleteBytesRequest.Builder()
+            .setKeys(listOf(userIdStoreKey))
+            .build()
+        client.deleteBytes(retrieveRequest)
+            .addOnSuccessListener {
+                result.success(it)
+            }
+            .addOnFailureListener {
+                result.error("deleteUserId error", it.message, it)
+            }
+    }
+
+    private fun setDidRegisterPasskey(call: MethodCall, result: MethodChannel.Result) {
+        val data: Boolean = call.argument("data") ?: false
+
+        val storeBytesBuilder = StoreBytesData.Builder()
+            .setKey(didRegisterPasskeys)
+            .setBytes(data.toString().toByteArray(Charsets.UTF_8))
+
+        client.storeBytes(storeBytesBuilder.build())
+            .addOnSuccessListener {
+
+                Log.e("setDidRegisterPasskey", data.toString());
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("setDidRegisterPasskey", e.message ?: "")
+                result.error("setDidRegisterPasskey error", e.message, e)
+            }
+    }
+
+    private fun didRegisterPasskey(call: MethodCall, result: MethodChannel.Result) {
+        val request = RetrieveBytesRequest.Builder()
+            .setKeys(listOf(didRegisterPasskeys))  // Specify the key
+            .build()
+        client.retrieveBytes(request)
+            .addOnSuccessListener {
+                try { // Retrieve bytes using the key
+                    val dataMap = it.blockstoreDataMap[userIdStoreKey]
+                    if (dataMap != null) {
+                        val bytes = dataMap.bytes
+                        val resultString = bytes.toString(Charsets.UTF_8)
+                        Log.d("didRegisterPasskey", resultString)
+
+
+                        result.success(resultString.toBoolean())
+                    } else {
+                        Log.e("didRegisterPasskey", "No data found for the key")
+                        result.success(false)
+                    }
+                } catch (e: Exception) {
+                    Log.e("didRegisterPasskey", e.message ?: "Error decoding data")
+                    //No primary address found
+                    result.success(false)
+                }
+            }
+            .addOnFailureListener {
+                //Block store not available
+                result.error("didRegisterPasskey Block store error", it.message, it)
+            }
+    }
 
     private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
         val deleteRequestBuilder = DeleteBytesRequest.Builder()

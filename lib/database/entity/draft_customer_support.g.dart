@@ -15,7 +15,7 @@ DraftCustomerSupportData _$DraftCustomerSupportDataFromJson(
           .toList(),
       title: json['title'] as String?,
       artworkReportID: json['artworkReportID'] as String?,
-      rating: json['rating'] as int? ?? 0,
+      rating: (json['rating'] as num?)?.toInt() ?? 0,
       announcementContentId: json['announcementContentId'] as String?,
     );
 
