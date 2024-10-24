@@ -190,34 +190,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     List<Issue> issues,
     List<AnnouncementLocal> announcements,
   ) {
-    final chatThreads = <ChatThread>[];
-    // sort issue by timestamp and announcement by startedAt
-    issues.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    announcements.sort((a, b) => b.startedAt.compareTo(a.startedAt));
-
-    // merge issues and announcements by timestamp and startedAt
-    var issueIndex = 0;
-    var announcementIndex = 0;
-    while (issueIndex < issues.length &&
-        announcementIndex < announcements.length) {
-      final issue = issues[issueIndex];
-      final announcement = announcements[announcementIndex];
-      if (issue.timestamp.isAfter(announcement.startedAt)) {
-        chatThreads.add(issue);
-        issueIndex++;
-      } else {
-        chatThreads.add(announcement);
-        announcementIndex++;
-      }
-    }
-    while (issueIndex < issues.length) {
-      chatThreads.add(issues[issueIndex]);
-      issueIndex++;
-    }
-    while (announcementIndex < announcements.length) {
-      chatThreads.add(announcements[announcementIndex]);
-      announcementIndex++;
-    }
+    // merge issue and announcement then sort by sortTime
+    final chatThreads = <ChatThread>[...issues, ...announcements]
+      ..sort((a, b) => b.sortTime.compareTo(a.sortTime));
     return chatThreads;
   }
 

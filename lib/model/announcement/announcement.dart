@@ -31,4 +31,7 @@ class Announcement extends ChatThread {
 
   @override
   bool isUnread() => false;
+
+  @override
+  DateTime get sortTime => startedAt;
 }

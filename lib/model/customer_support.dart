@@ -16,6 +16,8 @@ abstract class ChatThread {
   String getListTitle();
 
   bool isUnread();
+
+  DateTime get sortTime;
 }
 
 @JsonSerializable()
@@ -99,6 +101,10 @@ class Issue implements ChatThread {
             announcementContentId ?? this.announcementContentId,
         draft: draft ?? this.draft,
       );
+
+  @override
+  // TODO: implement sortTime
+  DateTime get sortTime => timestamp;
 }
 
 @JsonSerializable()
