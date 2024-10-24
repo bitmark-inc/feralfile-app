@@ -158,23 +158,22 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future<List<ChatThread>> getChatThreads() async {
     final issues = await _getIssues();
     // add announcement
-    final announcement =
-        injector<AnnouncementService>().getLocalAnnouncements();
-
-    announcement.removeWhere((element) {
-      final issueId = injector<AnnouncementService>()
-          .findIssueByAnnouncement(element.announcementContentId);
-      final issue =
-          issues.firstWhereOrNull((element) => element.issueID == issueId);
-      if (issue != null) {
-        final newIssue = issue.copyWith(
-            announcementContentId: element.announcementContentId);
-        final index = issues.indexOf(issue);
-        issues.removeAt(index);
-        issues.insert(index, newIssue);
-      }
-      return issue != null;
-    });
+    final announcement = injector<AnnouncementService>().getLocalAnnouncements()
+      ..removeWhere((element) {
+        final issueId = injector<AnnouncementService>()
+            .findIssueByAnnouncement(element.announcementContentId);
+        final issue =
+            issues.firstWhereOrNull((element) => element.issueID == issueId);
+        if (issue != null) {
+          final newIssue = issue.copyWith(
+              announcementContentId: element.announcementContentId);
+          final index = issues.indexOf(issue);
+          issues
+            ..removeAt(index)
+            ..insert(index, newIssue);
+        }
+        return issue != null;
+      });
 
     final chatThreads = _mergeIssuesAndAnnouncements(issues, announcement);
 
