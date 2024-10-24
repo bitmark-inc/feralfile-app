@@ -1,11 +1,15 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_state.dart';
-import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +43,6 @@ class FeralfileArtworkPreviewWidget extends StatefulWidget {
 class _FeralfileArtworkPreviewWidgetState
     extends State<FeralfileArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  INFTRenderingWidget? _renderingWidget;
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -52,7 +54,6 @@ class _FeralfileArtworkPreviewWidgetState
 
   @override
   void dispose() {
-    _renderingWidget?.dispose();
     super.dispose();
   }
 
@@ -63,93 +64,86 @@ class _FeralfileArtworkPreviewWidgetState
   }
 
   @override
-  void didPopNext() {
-    _renderingWidget?.didPopNext();
-    super.didPopNext();
-  }
-
-  @override
-  void didPushNext() {
-    if (!CustomRouteObserver.onIgnoreBackLayerPopUp) {
-      unawaited(_renderingWidget?.clearPrevious());
-    }
-    super.didPushNext();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    _updateWebviewSize();
-  }
-
-  void _updateWebviewSize() {
-    if (_renderingWidget != null &&
-        _renderingWidget is WebviewNFTRenderingWidget) {
-      // ignore: cast_nullable_to_non_nullable
-      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final previewUrl = widget.payload.artwork.previewURL;
     final thumbnailUrl = widget.payload.artwork.thumbnailURL;
     return BlocProvider(
       create: (_) => RetryCubit(),
       child: BlocBuilder<RetryCubit, int>(
-        builder: (context, attempt) {
-          if (attempt > 0) {
-            _renderingWidget?.dispose();
-            _renderingWidget = null;
-          }
-          return BlocBuilder<FFArtworkPreviewBloc, FFArtworkPreviewState>(
-            bloc: context.read<FFArtworkPreviewBloc>(),
-            builder: (context, state) {
-              final medium = state.mediumMap[previewUrl];
-              if (medium == null) {
-                return const SizedBox();
-              }
-              _renderingWidget ??= buildFeralfileRenderingWidget(
-                context,
-                attempt: attempt > 0 ? attempt : null,
-                isMute: widget.payload.isMute,
-                mimeType: medium,
-                previewURL: previewUrl,
-                thumbnailURL: thumbnailUrl,
-                isScrollable: widget.payload.isScrollable,
-                onLoaded: widget.payload.onLoaded,
-              );
-              switch (medium) {
-                case RenderingType.image:
-                case RenderingType.video:
-                case RenderingType.gif:
-                case RenderingType.svg:
-                  return InteractiveViewer(
-                    minScale: 1,
-                    maxScale: 4,
-                    child: Center(
-                      child: _artworkView(context),
+        builder: (context, attempt) =>
+            BlocBuilder<FFArtworkPreviewBloc, FFArtworkPreviewState>(
+          bloc: context.read<FFArtworkPreviewBloc>(),
+          builder: (context, state) {
+            final medium = state.mediumMap[previewUrl];
+            if (medium == null) {
+              return const SizedBox();
+            }
+            switch (medium) {
+              case RenderingType.image:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: ImageNFTRenderingWidget(
+                      previewURL: previewUrl,
                     ),
-                  );
-                case RenderingType.pdf:
-                  return Center(
-                    child: _artworkView(context),
-                  );
-                default:
-                  return Center(
-                    child: _artworkView(context),
-                  );
-              }
-            },
-          );
-        },
+                  ),
+                );
+              case RenderingType.video:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: VideoNFTRenderingWidget(
+                      key: Key('video_nft_rendering_widget_$previewUrl'),
+                      previewURL: previewUrl,
+                      thumbnailURL: thumbnailUrl,
+                      isMute: widget.payload.isMute,
+                    ),
+                  ),
+                );
+              case RenderingType.gif:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: GifNFTRenderingWidget(
+                      previewURL: previewUrl,
+                    ),
+                  ),
+                );
+              case RenderingType.svg:
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                      child: SVGNFTRenderingWidget(previewURL: previewUrl)),
+                );
+              case RenderingType.pdf:
+                return Center(
+                  child: PDFNFTRenderingWidget(
+                    previewURL: previewUrl,
+                  ),
+                );
+              case RenderingType.audio:
+                return Center(
+                  child: AudioNFTRenderingWidget(
+                    previewURL: previewUrl,
+                    thumbnailURL: thumbnailUrl,
+                    isMute: widget.payload.isMute,
+                  ),
+                );
+              default:
+                return Center(
+                  child: WebviewNFTRenderingWidget(
+                    previewURL: previewUrl,
+                    isMute: widget.payload.isMute,
+                  ),
+                );
+            }
+          },
+        ),
       ),
     );
   }
-
-  Widget _artworkView(BuildContext context) => GestureDetector(
-      onTap: () async {
-        await _renderingWidget?.pauseOrResume();
-      },
-      child: _renderingWidget?.build(context) ?? const SizedBox());
 }

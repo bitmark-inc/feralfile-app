@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
@@ -48,8 +47,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   ShakeDetector? _detector;
   final _focusNode = FocusNode();
-
-  INFTRenderingWidget? _renderingWidget;
 
   late ArtworkIdentity _token;
   late int initialPage;
@@ -97,7 +94,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didPopNext() {
     unawaited(enableLandscapeMode());
     unawaited(WakelockPlus.enable());
-    _renderingWidget?.didPopNext();
     super.didPopNext();
   }
 
