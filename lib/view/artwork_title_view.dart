@@ -20,7 +20,10 @@ class ArtworkTitleView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final title = '${artwork.series!.displayTitle} ${artwork.name}';
+    final isSingle = artwork.series?.isSingle ?? false;
+    final title =
+        '${artwork.series!.displayTitle} '
+        '${isSingle ? '' : '(${artwork.name})'}';
     return Column(
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.start,
       children: [
