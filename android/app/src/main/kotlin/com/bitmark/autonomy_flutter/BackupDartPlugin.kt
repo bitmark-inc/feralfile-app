@@ -277,7 +277,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             .addOnSuccessListener {
 
                 Log.e("setUserId", "user id set successfully");
-                result.success("")
+                result.success(true)
             }
             .addOnFailureListener { e ->
                 Log.e("setUserId", e.message ?: "")
@@ -307,7 +307,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 } catch (e: Exception) {
                     Log.e("getUserId", e.message ?: "Error decoding data")
                     //No primary address found
-                    result.success("")
+                    result.success(null)
                 }
             }
             .addOnFailureListener {

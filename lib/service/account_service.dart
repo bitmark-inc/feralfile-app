@@ -27,9 +27,9 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/ios_backup_channel.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart'
     as primary_address_channel;
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -43,7 +43,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
-  Future<void> migrateAccount();
+  Future<void> migrateAccount(Function() createLoginJwt);
 
   List<WalletAddress> getWalletsAddress(CryptoType cryptoType);
 
@@ -626,13 +626,8 @@ class AccountServiceImpl extends AccountService {
     await _cloudObject.addressObject.updateAddresses([walletAddress]);
   }
 
-  Future<void> _createInitialJwt() async {
-    // this might change to a callback for login finalized
-    //
-  }
-
   @override
-  Future<void> migrateAccount() async {
+  Future<void> migrateAccount(Function() createLoginJwt) async {
     log.info('[AccountService] migrateAccount');
     final cloudDb = injector<CloudDatabase>();
     final isDoneOnboarding = _configurationService.isDoneOnboarding();
@@ -653,11 +648,6 @@ class AccountServiceImpl extends AccountService {
         'isDoneOnboarding: $isDoneOnboarding, '
         'defaultWallet: ${defaultWallet?.uuid}');
 
-    /// in previous version, we assume that if user has primary address,
-    /// that is their default account (using to save cloud data base)
-    /// but if user has no primary address, but have backup version,
-    /// we will take the first uuid as default account
-    ///
     /// Migrate passkeys note:
     /// To simplify this migration on mobile, we will not support restoring
     /// backed-up data for users who uninstall and then reinstall apps that
@@ -677,7 +667,7 @@ class AccountServiceImpl extends AccountService {
         chain: 'ethereum',
         index: 0,
       ));
-      await _createInitialJwt();
+      await createLoginJwt();
       await insertNextAddressFromUuid(wallet.uuid, WalletType.MultiChain,
           name: '');
       await androidBackupKeys();
@@ -694,9 +684,12 @@ class AccountServiceImpl extends AccountService {
           'case 2/3 update/restore app from old version using did key');
       await _addressService.registerPrimaryAddress(
         info: primary_address_channel.AddressInfo(
-            uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
+          uuid: defaultWallet.uuid,
+          chain: 'ethereum',
+          index: 0,
+        ),
       );
-      await _createInitialJwt();
+      await createLoginJwt();
       await _cloudObject.copyDataFrom(cloudDb);
       unawaited(cloudDb.removeAll());
 
@@ -712,7 +705,7 @@ class AccountServiceImpl extends AccountService {
     if (!addressInfo.isEthereum) {
       await _addressService.migrateToEthereumAddress(addressInfo);
     }
-    await _createInitialJwt();
+    await createLoginJwt();
 
     // we don't care for user use tezos primary address.
     // this is to reduce loading time

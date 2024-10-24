@@ -149,7 +149,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
     });
     log.info('[_fetchRuntimeCache] start');
-    await injector<AccountService>().migrateAccount();
+    await injector<AccountService>().migrateAccount(() {});
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');

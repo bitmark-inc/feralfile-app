@@ -1,6 +1,4 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -23,8 +21,7 @@ class GiftHandler {
       try {
         final isSuccess = await authService.redeemGiftCode(giftCode);
         if (isSuccess) {
-          await authService.getAuthToken(forceRefresh: true);
-          injector<SubscriptionBloc>().add(GetSubscriptionEvent());
+          await authService.refreshJWT();
           await navigationService.showRedeemMembershipSuccess();
           return;
         }
