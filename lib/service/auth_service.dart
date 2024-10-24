@@ -18,12 +18,9 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
-import 'package:autonomy_flutter/util/primary_address_channel.dart';
-import 'package:dio/dio.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -104,23 +101,8 @@ class AuthService {
   }
 
   Future<JWT> _getAuthAddress(Map<String, dynamic> payload,
-      {AddressInfo? primaryAddress}) async {
-    try {
-      var newJwt = await _authApi.authAddress(payload);
-      return newJwt;
-    } on DioException catch (e) {
-      if (e.ffErrorCode == 998 && primaryAddress != null) {
-        log.warning('Primary address not registered, retrying');
-        unawaited(Sentry.captureMessage('Primary address not registered, '
-            'registerPrimaryAddress ${primaryAddress.uuid}'));
-        await injector<AddressService>()
-            .registerPrimaryAddress(info: primaryAddress);
-        return await _authApi.authAddress(payload);
-      } else {
-        rethrow;
-      }
-    }
-  }
+          {AddressInfo? primaryAddress}) async =>
+      await _authApi.authAddress(payload);
 
   Future<JWT?> getAuthToken({
     String? messageToSign,

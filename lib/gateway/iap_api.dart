@@ -21,6 +21,11 @@ abstract class IAPApi {
   static const addressAuthenticationPath = '/apis/v2/addresses/auth';
   static const registerPrimaryAddressPath = '/apis/v2/addresses/primary';
 
+  static const shouldIgnoreAuthorizationPaths = [
+    addressAuthenticationPath,
+    registerPrimaryAddressPath,
+  ];
+
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
 
   @POST(addressAuthenticationPath)

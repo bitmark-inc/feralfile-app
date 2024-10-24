@@ -192,6 +192,21 @@ import Logging
                 
             case "clearPrimaryAddress":
                 SystemChannelHandler.shared.clearPrimaryAddress(call: call)
+
+            case "getUserId":
+                SystemChannelHandler.shared.getUserId(call: call, result: result)
+
+            case "setUserId":
+                SystemChannelHandler.shared.setUserId(call: call, result: result)
+
+            case "clearUserId":
+                SystemChannelHandler.shared.clearUserId(call: call)
+
+            case "didRegisterPasskey":
+                SystemChannelHandler.shared.didRegisterPasskey(call: call, result: result)
+
+            case "setDidRegisterPasskey":
+                SystemChannelHandler.shared.setDidRegisterPasskey(call: call, result: result)
                 
             default:
                 result(FlutterMethodNotImplemented)

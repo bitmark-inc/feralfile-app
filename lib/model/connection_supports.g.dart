@@ -10,7 +10,7 @@ BeaconConnectConnection _$BeaconConnectConnectionFromJson(
         Map<String, dynamic> json) =>
     BeaconConnectConnection(
       personaUuid: json['personaUuid'] as String,
-      index: json['index'] as int? ?? 0,
+      index: (json['index'] as num?)?.toInt() ?? 0,
       peer: P2PPeer.fromJson(json['peer'] as Map<String, dynamic>),
     );
 

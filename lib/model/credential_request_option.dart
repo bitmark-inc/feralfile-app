@@ -1,0 +1,99 @@
+import 'package:passkeys/types.dart';
+
+// Main model class for CredentialRequestOption
+class CredentialRequestOption {
+  final PublicKeyCredentialRequestOptions publicKey;
+  final MediationType mediation;
+
+  CredentialRequestOption({
+    required this.publicKey,
+    required this.mediation,
+  });
+
+  factory CredentialRequestOption.fromJson(Map<String, dynamic> json) =>
+      CredentialRequestOption(
+        publicKey:
+            PublicKeyCredentialRequestOptions.fromJson(json['publicKey']),
+        mediation: getMediationTypeFromString(json['mediation']),
+      );
+}
+
+// Model for CredProps (within ClientExtensionResults)
+class CredProps {
+  final bool? rk;
+
+  CredProps({this.rk});
+
+  factory CredProps.fromJson(Map<String, dynamic> json) =>
+      CredProps(rk: json['rk']);
+}
+
+// Model for Extensions (appid, appidExclude, and credProps)
+class Extensions {
+  final bool? appid;
+  final bool? appidExclude;
+  final CredProps? credProps;
+
+  Extensions({
+    this.appid,
+    this.appidExclude,
+    this.credProps,
+  });
+
+  factory Extensions.fromJson(Map<String, dynamic> json) => Extensions(
+        appid: json['appid'],
+        appidExclude: json['appidExclude'],
+        credProps: json['credProps'] != null
+            ? CredProps.fromJson(json['credProps'])
+            : null,
+      );
+}
+
+// Model for PublicKeyCredentialRequestOptions
+class PublicKeyCredentialRequestOptions {
+  final String challenge;
+  final int? timeout;
+  final String? rpId;
+  final List<CredentialType>? allowCredentials;
+  final String? userVerification;
+  final Extensions? extensions;
+
+  PublicKeyCredentialRequestOptions({
+    required this.challenge,
+    this.timeout,
+    this.rpId,
+    this.allowCredentials,
+    this.userVerification,
+    this.extensions,
+  });
+
+  factory PublicKeyCredentialRequestOptions.fromJson(
+          Map<String, dynamic> json) =>
+      PublicKeyCredentialRequestOptions(
+        challenge: json['challenge'],
+        timeout: json['timeout'],
+        rpId: json['rpId'],
+        allowCredentials: json['allowCredentials'] != null
+            ? (json['allowCredentials'] as List)
+                .map((cred) => CredentialType.fromJson(cred))
+                .toList()
+            : null,
+        userVerification: json['userVerification'],
+        extensions: json['extensions'] != null
+            ? Extensions.fromJson(json['extensions'])
+            : null,
+      );
+}
+
+MediationType getMediationTypeFromString(String mediation) {
+  switch (mediation.toLowerCase()) {
+    case 'silent':
+      return MediationType.Silent;
+    case 'optional':
+      return MediationType.Optional;
+    case 'required':
+      return MediationType.Required;
+    default:
+      throw Exception('Unknown mediation type: $mediation');
+  }
+}
