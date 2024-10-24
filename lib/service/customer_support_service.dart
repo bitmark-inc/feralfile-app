@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -155,9 +156,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   // this function is used to get the list of issues, and announcements,
   // if announcements already in the list of issues, it will be removed
   Future<List<ChatThread>> getChatThreads() async {
-    final chatThreads = <ChatThread>[];
     final issues = await _getIssues();
-    chatThreads.addAll(issues);
     // add announcement
     final announcement =
         injector<AnnouncementService>().getLocalAnnouncements();
@@ -170,20 +169,55 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       if (issue != null) {
         final newIssue = issue.copyWith(
             announcementContentId: element.announcementContentId);
-        final index = chatThreads.indexOf(issue);
-        chatThreads.removeAt(index);
-        chatThreads.insert(index, newIssue);
+        final index = issues.indexOf(issue);
+        issues.removeAt(index);
+        issues.insert(index, newIssue);
       }
       return issue != null;
     });
 
-    chatThreads.addAll(announcement);
+    final chatThreads = _mergeIssuesAndAnnouncements(issues, announcement);
 
     numberOfIssuesInfo.value = [
       chatThreads.length,
       chatThreads.where((element) => element.isUnread()).length,
     ];
 
+    return chatThreads;
+  }
+
+  List<ChatThread> _mergeIssuesAndAnnouncements(
+    List<Issue> issues,
+    List<AnnouncementLocal> announcements,
+  ) {
+    final chatThreads = <ChatThread>[];
+    // sort issue by timestamp and announcement by startedAt
+    issues.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    announcements.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+
+    // merge issues and announcements by timestamp and startedAt
+    var issueIndex = 0;
+    var announcementIndex = 0;
+    while (issueIndex < issues.length &&
+        announcementIndex < announcements.length) {
+      final issue = issues[issueIndex];
+      final announcement = announcements[announcementIndex];
+      if (issue.timestamp.isAfter(announcement.startedAt)) {
+        chatThreads.add(issue);
+        issueIndex++;
+      } else {
+        chatThreads.add(announcement);
+        announcementIndex++;
+      }
+    }
+    while (issueIndex < issues.length) {
+      chatThreads.add(issues[issueIndex]);
+      issueIndex++;
+    }
+    while (announcementIndex < announcements.length) {
+      chatThreads.add(announcements[announcementIndex]);
+      announcementIndex++;
+    }
     return chatThreads;
   }
 

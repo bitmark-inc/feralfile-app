@@ -248,26 +248,28 @@ class _SupportListPageState extends State<SupportListPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Text(
-                  announcement.getListTitle(),
-                  style: theme.textTheme.ppMori400Black16,
-                ),
-                if (announcement is AnnouncementLocal &&
-                    !announcement.read) ...[
-                  _unread(),
-                ]
-              ],
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    announcement.getListTitle(),
+                    style: theme.textTheme.ppMori400Black16,
+                  ),
+                  if (announcement is AnnouncementLocal &&
+                      !announcement.read) ...[
+                    _unread(),
+                  ],
+                  const SizedBox(width: 8),
+                ],
+              ),
             ),
             Row(
               children: [
                 Text(
-                  getVerboseDateTimeRepresentation(
-                      DateTime.fromMillisecondsSinceEpoch(
-                          announcement.startedAt)),
+                  getVerboseDateTimeRepresentation(announcement.startedAt),
                   style: theme.textTheme.ppMori400Black14
                       .copyWith(color: AppColor.auQuickSilver),
                 ),
