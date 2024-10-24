@@ -21,7 +21,7 @@ class Announcement extends ChatThread {
         additionalData: (json['additionalData'] ?? <String, dynamic>{})
             as Map<String, dynamic>,
         startedAt: DateTime.parse(json['startedAt']),
-        endedAt: DateTime.parse(json['startedAt']),
+        endedAt: DateTime.parse(json['endedAt']),
       );
 
   bool get isExpired => DateTime.now().isAfter(endedAt);

@@ -30,7 +30,7 @@ class NavigateAdditionalData extends AdditionalData {
           .getAnnouncement(announcementContentId);
       if (announcement != null) {
         await injector<NavigationService>().navigateTo(
-          AppRouter.chatThreadPage,
+          AppRouter.supportThreadPage,
           arguments:
               NewIssueFromAnnouncementPayload(announcement: announcement),
         );
