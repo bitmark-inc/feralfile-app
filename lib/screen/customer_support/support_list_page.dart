@@ -144,13 +144,11 @@ class _SupportListPageState extends State<SupportListPage>
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     child: _announcementRow(issue, hasDivider),
-                    // onTap: () => unawaited(Navigator.of(context).pushNamed(
-                    //   AppRouter.supportThreadPage,
-                    //   arguments: NewIssuePayload(
-                    //     reportIssueType: ReportIssueType.Announcement,
-                    //     announcement: issue,
-                    //   ),
-                    // )),
+                    onTap: () => unawaited(Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments:
+                          NewIssueFromAnnouncementPayload(announcement: issue),
+                    )),
                   ),
                 );
               default:

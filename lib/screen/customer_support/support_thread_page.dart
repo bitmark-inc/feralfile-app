@@ -12,9 +12,11 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -42,6 +44,8 @@ import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
   String? get defaultMessage;
+
+  String get introMessage;
 }
 
 class NewIssuePayload extends SupportThreadPayload {
@@ -55,6 +59,25 @@ class NewIssuePayload extends SupportThreadPayload {
     this.artworkReportID,
     this.defaultMessage,
   });
+
+  @override
+  String get introMessage => ReportIssueType.introMessage(reportIssueType);
+}
+
+class NewIssueFromAnnouncementPayload extends SupportThreadPayload {
+  final Announcement announcement;
+
+  NewIssueFromAnnouncementPayload({
+    required this.announcement,
+    this.defaultMessage,
+  });
+
+  @override
+  final String? defaultMessage;
+
+  @override
+  // TODO: implement introMessage
+  String get introMessage => announcement.content;
 }
 
 class DetailIssuePayload extends SupportThreadPayload {
@@ -72,6 +95,16 @@ class DetailIssuePayload extends SupportThreadPayload {
     this.status = '',
     this.isRated = false,
   });
+
+  @override
+  String get introMessage {
+    final announcement =
+        injector<AnnouncementService>().findAnnouncementByIssue(issueID);
+    if (announcement != null) {
+      return announcement.content;
+    }
+    return ReportIssueType.introMessage(reportIssueType);
+  }
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
@@ -85,6 +118,10 @@ class ExceptionErrorPayload extends SupportThreadPayload {
     required this.metadata,
     this.defaultMessage,
   });
+
+  @override
+  String get introMessage =>
+      ReportIssueType.introMessage(ReportIssueType.Exception);
 }
 
 class SupportThreadPage extends StatefulWidget {
@@ -125,11 +162,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _feralFileService = injector<FeralFileService>();
 
   String? _userId;
+  Announcement? _announcement;
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
         id: _introMessengerID,
-        text: ReportIssueType.introMessage(_reportIssueType),
+        text: widget.payload.introMessage,
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -145,6 +183,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         metadata: {'status': 'rateIssue', 'content': 'rate_issue'.tr()},
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
+
+  void _setIssueId(String issueId) {
+    _issueID = issueId;
+    _announcement =
+        injector<AnnouncementService>().findAnnouncementByIssue(issueId);
+  }
 
   @override
   void initState() {
@@ -176,12 +220,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           });
         });
       }
+    } else if (payload is NewIssueFromAnnouncementPayload) {
+      _reportIssueType = ReportIssueType.Announcement;
     } else if (payload is DetailIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       _status = payload.status;
       _isRated = payload.isRated;
-      _issueID = _customerSupportService.tempIssueIDMap[payload.issueID] ??
-          payload.issueID;
+      // if the issue is already created, we need to set the issueID
+      _setIssueId(_customerSupportService.tempIssueIDMap[payload.issueID] ??
+          payload.issueID);
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
       Future.delayed(const Duration(milliseconds: 300), () {
@@ -711,8 +758,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (update.draft.issueID != _issueID) {
       return;
     }
-
-    _issueID = update.response.issueID;
+    // when user create a new issue, we need to update the issueID
+    _setIssueId(update.response.issueID);
     memoryValues.viewingSupportThreadIssueID = _issueID;
     final newMessages =
         await _convertChatMessage(update.response.message, update.draft.uuid);
@@ -748,6 +795,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           payload.artworkReportID != null &&
           payload.artworkReportID!.isNotEmpty) {
         data.artworkReportID = payload.artworkReportID;
+      } else if (payload is NewIssueFromAnnouncementPayload) {
+        data.announcementContentId = payload.announcement.announcementContentId;
       }
     }
     if (isRating) {

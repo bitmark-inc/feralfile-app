@@ -69,6 +69,36 @@ class Issue implements ChatThread {
 
   @override
   bool isUnread() => unread > 0;
+
+  Issue copyWith({
+    String? issueID,
+    String? status,
+    String? title,
+    List<String>? tags,
+    DateTime? timestamp,
+    int? total,
+    int? unread,
+    int? rating,
+    Message? lastMessage,
+    Message? firstMessage,
+    String? announcementContentId,
+    DraftCustomerSupport? draft,
+  }) =>
+      Issue(
+        issueID: issueID ?? this.issueID,
+        status: status ?? this.status,
+        title: title ?? this.title,
+        tags: tags ?? this.tags,
+        timestamp: timestamp ?? this.timestamp,
+        total: total ?? this.total,
+        unread: unread ?? this.unread,
+        rating: rating ?? this.rating,
+        lastMessage: lastMessage ?? this.lastMessage,
+        firstMessage: firstMessage ?? this.firstMessage,
+        announcementContentId:
+            announcementContentId ?? this.announcementContentId,
+        draft: draft ?? this.draft,
+      );
 }
 
 @JsonSerializable()

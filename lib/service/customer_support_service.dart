@@ -162,8 +162,20 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final announcement =
         injector<AnnouncementService>().getLocalAnnouncements();
 
-    announcement.removeWhere((element) => issues.any((issue) =>
-        issue.announcementContentId == element.announcementContentId));
+    announcement.removeWhere((element) {
+      final issueId = injector<AnnouncementService>()
+          .findIssueByAnnouncement(element.announcementContentId);
+      final issue =
+          issues.firstWhereOrNull((element) => element.issueID == issueId);
+      if (issue != null) {
+        final newIssue = issue.copyWith(
+            announcementContentId: element.announcementContentId);
+        final index = chatThreads.indexOf(issue);
+        chatThreads.removeAt(index);
+        chatThreads.insert(index, newIssue);
+      }
+      return issue != null;
+    });
 
     chatThreads.addAll(announcement);
 
@@ -307,6 +319,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             mutedText: draftMsg.mutedMessages.split('[SEPARATOR]'),
             artworkReportID: data.artworkReportID,
           );
+          if (data.announcementContentId != null) {
+            injector<AnnouncementService>().linkAnnouncementToIssue(
+                data.announcementContentId!, result.issueID);
+          }
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
           await _draftCustomerSupportDao.deleteDraft(draftMsg);
           await _draftCustomerSupportDao.updateIssueID(
@@ -353,8 +369,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     List<SendAttachment>? attachments, {
     String? title,
     List<String>? mutedText,
-    String? announcementID,
     String? artworkReportID,
+    List<String> customTags = const [],
   }) async {
     var issueTitle = title ?? message;
     if (issueTitle == null || issueTitle.isEmpty) {
@@ -362,7 +378,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
 
     // add tags
-    var tags = [reportIssueType];
+    var tags = [...customTags, reportIssueType];
     if (Platform.isIOS) {
       tags.add('iOS');
     } else if (Platform.isAndroid) {
@@ -392,7 +408,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'title': issueTitle,
       'message': submitMessage,
       'tags': tags,
-      'announcement_context_id': announcementID ?? '',
     };
 
     if (artworkReportID != null && artworkReportID.isNotEmpty) {
