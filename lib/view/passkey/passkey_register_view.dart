@@ -25,23 +25,23 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
 
   @override
   Widget build(BuildContext context) => Column(
-    children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _getTitle(context),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _getTitle(context),
+              const SizedBox(height: 20),
+              _getDesc(context),
+            ],
+          ),
           const SizedBox(height: 20),
-          _getDesc(context),
+          _getIcon(),
+          const SizedBox(height: 20),
+          _getAction(context),
+          const SizedBox(height: 20),
+          _havingTrouble(context)
         ],
-      ),
-      const SizedBox(height: 20),
-      _getIcon(),
-      const SizedBox(height: 20),
-      _getAction(context),
-      const SizedBox(height: 20),
-      _havingTrouble(context)
-    ],
-  );
+      );
 
   Widget _getTitle(BuildContext context) => Text(
         _didSuccess ? 'passkey_created'.tr() : 'introducing_passkey'.tr(),
