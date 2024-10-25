@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
@@ -7,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class PasskeyRegisterView extends StatefulWidget {
   const PasskeyRegisterView({super.key});
@@ -116,8 +119,9 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           setState(() {
             _didSuccess = true;
           });
-        } catch (e) {
+        } catch (e, stackTrace) {
           log.info('Failed to register passkey: $e');
+          unawaited(Sentry.captureException(e, stackTrace: stackTrace));
           setState(() {
             _isError = true;
           });
