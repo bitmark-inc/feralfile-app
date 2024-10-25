@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/featured_work_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
-import 'package:autonomy_flutter/screen/feralfile_home/list_artist_view.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/list_alumni_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';

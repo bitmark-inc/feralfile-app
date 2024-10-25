@@ -1,12 +1,12 @@
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 
 class FFSeries {
   final String id;
-  final String artistID;
+  final String artistAlumniAccountID;
   final String? assetID;
   final String title;
   final String? slug;
@@ -18,7 +18,7 @@ class FFSeries {
   final int? displayIndex;
   final int? featuringIndex;
   final FFSeriesSettings? settings;
-  final FFUser? artist;
+  final AlumniAccount? artist;
   final Exhibition? exhibition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -34,7 +34,7 @@ class FFSeries {
 
   FFSeries(
     this.id,
-    this.artistID,
+    this.artistAlumniAccountID,
     this.assetID,
     this.title,
     this.slug,
@@ -67,7 +67,7 @@ class FFSeries {
 
   factory FFSeries.fromJson(Map<String, dynamic> json) => FFSeries(
         json['id'] as String,
-        json['artistID'] as String,
+        json['artistAlumniAccountID'] as String,
         json['assetID'] as String?,
         json['title'] as String,
         json['slug'] as String?,
@@ -82,7 +82,7 @@ class FFSeries {
                 json['settings'] as Map<String, dynamic>),
         json['artist'] == null
             ? null
-            : FFUser.fromJson(json['artist'] as Map<String, dynamic>),
+            : AlumniAccount.fromJson(json['artist'] as Map<String, dynamic>),
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -119,7 +119,7 @@ class FFSeries {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'artistID': artistID,
+        'artistAlumniAccountID': artistAlumniAccountID,
         'assetID': assetID,
         'title': title,
         'slug': slug,
@@ -147,7 +147,7 @@ class FFSeries {
 
   FFSeries copyWith({
     String? id,
-    String? artistID,
+    String? artistAlumniAccountID,
     String? assetID,
     String? title,
     String? slug,
@@ -159,7 +159,7 @@ class FFSeries {
     int? displayIndex,
     int? featuringIndex,
     FFSeriesSettings? settings,
-    FFUser? artist,
+    AlumniAccount? artist,
     Exhibition? exhibition,
     DateTime? createdAt,
     DateTime? mintedAt,
@@ -175,7 +175,7 @@ class FFSeries {
   }) =>
       FFSeries(
         id ?? this.id,
-        artistID ?? this.artistID,
+        artistAlumniAccountID ?? this.artistAlumniAccountID,
         assetID ?? this.assetID,
         title ?? this.title,
         slug ?? this.slug,
