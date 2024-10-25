@@ -33,6 +33,8 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
+import 'package:autonomy_flutter/view/passkey/passkey_login_view.dart';
+import 'package:autonomy_flutter/view/passkey/passkey_register_view.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -1037,6 +1039,44 @@ class UIHelper {
         ),
       ),
     );
+  }
+
+  static Future<dynamic> showPasskeyRegisterDialog(BuildContext context) async =>
+      await showRawCenterSheet(
+        context,
+        content: const PasskeyRegisterView(),
+      );
+
+  static Future<dynamic> showPasskeyLoginDialog(BuildContext context) async {
+    await showRawCenterSheet(
+      context,
+      content: const PasskeyLoginView(),
+    );
+  }
+
+  static Future<dynamic> showRawCenterSheet(BuildContext context,
+      {required Widget content,
+      double horizontalPadding = 20,
+      Color backgroundColor = AppColor.white}) async {
+    UIHelper.hideInfoDialog(context);
+    return await showCupertinoModalPopup(
+        context: context,
+        builder: (context) => Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(context).height - 256,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Flexible(child: content),
+                ),
+              ),
+            ));
   }
 
   static Future<void> showCenterSheet(BuildContext context,

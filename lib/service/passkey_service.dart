@@ -133,6 +133,8 @@ class PasskeyServiceImpl implements PasskeyService {
       'passkeyUserId': _passkeyUserId,
       'public_key_credential': _registerResponse!.toJson(),
     });
+    await _userAccountChannel.setDidRegisterPasskey(true);
+    await _userAccountChannel.setUserId(addressAuthentication['requester']);
     return response;
   }
 }

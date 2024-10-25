@@ -1,0 +1,144 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class PasskeyRegisterView extends StatefulWidget {
+  const PasskeyRegisterView({super.key});
+
+  @override
+  State<PasskeyRegisterView> createState() => _PasskeyRegisterViewState();
+}
+
+class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
+  final _passkeyService = injector.get<PasskeyService>();
+  final _accountService = injector.get<AccountService>();
+
+  bool _isError = false;
+  bool _registering = false;
+  bool _didSuccess = false;
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+        child: Column(
+          children: [
+            _getTitle(context),
+            const SizedBox(height: 20),
+            _getDesc(context),
+            const SizedBox(height: 20),
+            _getIcon(),
+            const SizedBox(height: 20),
+            _getAction(context),
+            const SizedBox(height: 20),
+            _havingTrouble(context)
+          ],
+        ),
+      );
+
+  Widget _getTitle(BuildContext context) => Text(
+        _didSuccess ? 'passkey_created'.tr() : 'introducing_passkey'.tr(),
+        style: Theme.of(context).textTheme.ppMori700Black16,
+      );
+
+  Widget _getDesc(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = theme.textTheme.ppMori400Black14;
+    if (_didSuccess) {
+      return Column(
+        children: [
+          Text(
+            'passkey_created_desc'.tr(),
+            style: style,
+          ),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'introducing_passkey_desc_1'.tr(),
+          style: style,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'introducing_passkey_desc_2'.tr(),
+          style: style,
+        ),
+      ],
+    );
+  }
+
+  Widget _getIcon() {
+    if (_didSuccess) {
+      return SvgPicture.asset(
+        'assets/images/selected_round.svg',
+      );
+    }
+    return SvgPicture.asset(
+      'assets/images/passkey_icon.svg',
+    );
+  }
+
+  Widget _getAction(BuildContext context) {
+    if (_didSuccess) {
+      return PrimaryButton(
+        text: 'continue'.tr(),
+        onTap: () {
+          Navigator.of(context).pop(true);
+        },
+      );
+    }
+    return PrimaryAsyncButton(
+      enabled: !_isError,
+      onTap: () async {
+        if (_registering) {
+          return;
+        }
+        setState(() {
+          _registering = true;
+        });
+        try {
+          await _passkeyService.registerInitiate();
+          await _passkeyService.logInRequest();
+          await _accountService.migrateAccount(() async {
+            await _passkeyService.logInFinalize();
+          });
+          setState(() {
+            _didSuccess = true;
+          });
+        } catch (e) {
+          setState(() {
+            _isError = true;
+          });
+        }
+      },
+      text: 'get_started'.tr(),
+      processingText: 'creating_passkey'.tr(),
+    );
+  }
+
+  Widget _havingTrouble(BuildContext context) {
+    if (_didSuccess || (!_isError && !_registering)) {
+      return const SizedBox();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: GestureDetector(
+        onTap: () {
+          //Navigator.of(context).pop();
+        },
+        child: Text(
+          'having_trouble'.tr(),
+          style: Theme.of(context).textTheme.ppMori400Grey14.copyWith(
+                decoration: TextDecoration.underline,
+              ),
+        ),
+      ),
+    );
+  }
+}

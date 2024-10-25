@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -182,22 +183,21 @@ class _OnboardingPageState extends State<OnboardingPage>
     } else {
       log.info('Passkey is supported. Login with passkey');
       final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
-      if (didRegisterPasskey) {
-        await _loginWithPasskey();
-      } else {
-        await _registerPasskey();
+
+      final didLoginSuccess = didRegisterPasskey
+          ? await _loginWithPasskey()
+          : await _registerPasskey();
+      if (didLoginSuccess != true) {
+        throw Exception('Failed to login with passkey');
       }
     }
-    await injector<AccountService>().migrateAccount(() async {});
   }
 
-  Future<void> _loginWithPasskey() async {
+  Future<dynamic> _loginWithPasskey() async =>
+      await UIHelper.showPasskeyLoginDialog(context);
 
-  }
-
-  Future<void> _registerPasskey() async {
-
-  }
+  Future<dynamic> _registerPasskey() async =>
+      await UIHelper.showPasskeyRegisterDialog(context);
 
   @override
   Widget build(BuildContext context) => Scaffold(
