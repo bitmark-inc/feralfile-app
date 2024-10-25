@@ -52,7 +52,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin, AfterLayoutMixin<OnboardingPage> {
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
-  Timer? _timer;
 
   final _passkeyService = injector.get<PasskeyService>();
   final _authService = injector.get<AuthService>();
@@ -69,11 +68,6 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _timer = Timer(const Duration(seconds: 10), () {
-      log.info('OnboardingPage loading more than 10s');
-      unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
-      // unawaited(injector<NavigationService>().showAppLoadError());
-    });
     unawaited(setup(context).then((_) => _fetchRuntimeCache()));
   }
 
@@ -142,28 +136,17 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _goToTargetScreen(BuildContext context) async {
     log.info('[_goToTargetScreen] start');
-    if (_timer?.isActive ?? false) {
-      _timer?.cancel();
-    }
     unawaited(Navigator.of(context)
         .pushReplacementNamed(AppRouter.homePageNoTransition));
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }
 
   Future<void> _fetchRuntimeCache() async {
-    final timer = Timer(const Duration(seconds: 10), () {
-      log.info('[_createAccountOrRestoreIfNeeded] Loading more than 10s');
-      unawaited(Sentry.captureMessage(
-          '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
-    });
     log.info('[_fetchRuntimeCache] start');
     await _loginProcess();
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
-    if (timer.isActive) {
-      timer.cancel();
-    }
     unawaited(metricClient.identity());
     // count open app
     unawaited(metricClient.addEvent(MetricEventName.openApp));
