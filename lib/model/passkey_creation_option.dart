@@ -1,5 +1,21 @@
 import 'package:passkeys/types.dart';
 
+class CredentialCreationOptionResponse {
+  final CredentialCreationOption credentialCreationOption;
+  final String passkeyUserID;
+  CredentialCreationOptionResponse({
+    required this.credentialCreationOption,
+    required this.passkeyUserID,
+  });
+
+  factory CredentialCreationOptionResponse.fromJson(Map<String, dynamic> json) =>
+      CredentialCreationOptionResponse(
+        credentialCreationOption:
+            CredentialCreationOption.fromJson(json['credential']),
+        passkeyUserID: json['passkeyUserID'],
+      );
+}
+
 class CredentialCreationOption {
   final PublicKey publicKey;
 

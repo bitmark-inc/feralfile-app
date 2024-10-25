@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
@@ -96,11 +98,18 @@ class UserAccountChannel {
   }
 
   Future<bool> didRegisterPasskey() async {
+    if (Platform.isAndroid) {
+      return injector<ConfigurationService>().didRegisterPasskey();
+    }
     final didRegister = await _channel.invokeMethod('didRegisterPasskey', {});
     return didRegister;
   }
 
   Future<bool> setDidRegisterPasskey(bool value) async {
+    if (Platform.isAndroid) {
+      await injector<ConfigurationService>().setRegisterPasskey(value);
+      return true;
+    }
     final didRegister = await _channel.invokeMethod('setDidRegisterPasskey', {
       'data': value,
     });

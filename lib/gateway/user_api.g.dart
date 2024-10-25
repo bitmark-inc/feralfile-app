@@ -19,13 +19,13 @@ class _UserApi implements UserApi {
   String? baseUrl;
 
   @override
-  Future<CredentialCreationOption> registerInitialize() async {
+  Future<CredentialCreationOptionResponse> registerInitialize() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<CredentialCreationOption>(Options(
+        _setStreamType<CredentialCreationOptionResponse>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -41,7 +41,7 @@ class _UserApi implements UserApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = CredentialCreationOption.fromJson(_result.data!);
+    final value = CredentialCreationOptionResponse.fromJson(_result.data!);
     return value;
   }
 

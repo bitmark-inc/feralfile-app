@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
@@ -25,15 +26,22 @@ class PasskeyServiceImpl implements PasskeyService {
 
   RegisterRequestType? _registerRequest;
   RegisterResponseType? _registerResponse;
+  String? _passkeyUserId;
 
   AuthenticateRequestType? _loginRequest;
   AuthenticateResponseType? _loginResponse;
 
   final UserApi _userApi;
   final UserAccountChannel _userAccountChannel;
+  final AddressService _addressService;
 
-  PasskeyServiceImpl(this._userApi, this._userAccountChannel);
+  PasskeyServiceImpl(
+    this._userApi,
+    this._userAccountChannel,
+    this._addressService,
+  );
 
+  /*
   static final AuthenticatorSelectionType _defaultAuthenticatorSelection =
       AuthenticatorSelectionType(
     requireResidentKey: false,
@@ -42,7 +50,10 @@ class PasskeyServiceImpl implements PasskeyService {
   );
 
   static const _defaultRelayingPartyId = 'www.feralfile.com';
-  static const _preferImmediatelyAvailableCredentials = true;
+
+ */
+
+  static const _preferImmediatelyAvailableCredentials = false;
 
   @override
   Future<bool> isPassKeyAvailable() async =>
@@ -56,10 +67,14 @@ class PasskeyServiceImpl implements PasskeyService {
     }
     final response = await _userApi.logInInitialize(userId);
     final pubKey = response.publicKey;
+
+    if (pubKey.rpId == null) {
+      throw Exception('RP ID is not set');
+    }
     _loginRequest = AuthenticateRequestType(
       challenge: pubKey.challenge,
       allowCredentials: pubKey.allowCredentials ?? [],
-      relyingPartyId: pubKey.rpId ?? _defaultRelayingPartyId,
+      relyingPartyId: pubKey.rpId!,
       mediation: response.mediation,
       preferImmediatelyAvailableCredentials:
           _preferImmediatelyAvailableCredentials,
@@ -86,13 +101,16 @@ class PasskeyServiceImpl implements PasskeyService {
   @override
   Future<void> registerInitiate() async {
     final response = await _userApi.registerInitialize();
-    final pubKey = response.publicKey;
+    final pubKey = response.credentialCreationOption.publicKey;
+    if (pubKey.authenticatorSelection == null) {
+      throw Exception('Authenticator selection is not set');
+    }
+    _passkeyUserId = response.passkeyUserID;
     _registerRequest = RegisterRequestType(
       challenge: pubKey.challenge,
       relyingParty: pubKey.rp,
       user: pubKey.user,
-      authSelectionType:
-          pubKey.authenticatorSelection ?? _defaultAuthenticatorSelection,
+      authSelectionType: pubKey.authenticatorSelection!,
       excludeCredentials: pubKey.excludeCredentials ?? [],
     );
   }
@@ -108,7 +126,11 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<JWT> registerFinalize() async {
+    final addressAuthentication =
+        await _addressService.getAddressAuthenticationMap();
     final response = await _userApi.registerFinalize({
+      'addressAuthentication': addressAuthentication,
+      'passkeyUserId': _passkeyUserId,
       'public_key_credential': _registerResponse!.toJson(),
     });
     return response;

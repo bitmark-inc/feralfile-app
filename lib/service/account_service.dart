@@ -43,7 +43,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
-  Future<void> migrateAccount(Function() createLoginJwt);
+  Future<void> migrateAccount(Future<dynamic> Function() createLoginJwt);
 
   List<WalletAddress> getWalletsAddress(CryptoType cryptoType);
 
@@ -627,7 +627,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> migrateAccount(Function() createLoginJwt) async {
+  Future<void> migrateAccount(Future<dynamic> Function() createLoginJwt) async {
     log.info('[AccountService] migrateAccount');
     final cloudDb = injector<CloudDatabase>();
     final isDoneOnboarding = _configurationService.isDoneOnboarding();

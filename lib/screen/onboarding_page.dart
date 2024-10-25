@@ -12,11 +12,13 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -24,6 +26,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -49,6 +52,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
+
+  final _passkeyService = injector.get<PasskeyService>();
+  final _authService = injector.get<AuthService>();
+  final _userAccountChannel = injector.get<UserAccountChannel>();
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -149,7 +156,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
     });
     log.info('[_fetchRuntimeCache] start');
-    await injector<AccountService>().migrateAccount(() {});
+    await _loginProcess();
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
@@ -163,6 +170,33 @@ class _OnboardingPageState extends State<OnboardingPage>
       return;
     }
     await _goToTargetScreen(context);
+  }
+
+  Future<void> _loginProcess() async {
+    final isSupportPasskey = await _passkeyService.isPassKeyAvailable();
+    if (!isSupportPasskey) {
+      log.info('Passkey is not supported. Login with address');
+      await injector<AccountService>().migrateAccount(() async {
+        await _authService.authenticateAddress();
+      });
+    } else {
+      log.info('Passkey is supported. Login with passkey');
+      final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
+      if (didRegisterPasskey) {
+        await _loginWithPasskey();
+      } else {
+        await _registerPasskey();
+      }
+    }
+    await injector<AccountService>().migrateAccount(() async {});
+  }
+
+  Future<void> _loginWithPasskey() async {
+
+  }
+
+  Future<void> _registerPasskey() async {
+
   }
 
   @override

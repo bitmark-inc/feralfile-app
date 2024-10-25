@@ -89,8 +89,6 @@ class AddressService {
             await walletStorage.getETHEip55Address(index: info.index);
         final checksumAddress = address.getETHEip55Address();
         return checksumAddress;
-      case 'tezos':
-        return walletStorage.getTezosAddress(index: info.index);
       default:
         throw UnsupportedError('Unsupported chain: $chain');
     }
@@ -104,7 +102,7 @@ class AddressService {
     return getAddress(info: addressInfo);
   }
 
-  Future<String> getAddressSignature(
+  Future<String> _getAddressSignature(
       {required AddressInfo addressInfo, required String message}) async {
     final walletStorage = WalletStorage(addressInfo.uuid);
     final chain = addressInfo.chain;
@@ -120,17 +118,29 @@ class AddressService {
     return signature;
   }
 
-  Future<String?> getPrimaryAddressSignature({required String message}) async {
-    final addressInfo = await getPrimaryAddressInfo();
-    if (addressInfo == null) {
-      return null;
-    }
-    return getAddressSignature(addressInfo: addressInfo, message: message);
-  }
-
-  String getFeralfileAccountMessage(
+  String _getFeralfileAccountMessage(
           {required String address, required String timestamp}) =>
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
+
+  Future<Map<String, dynamic>> getAddressAuthenticationMap() async {
+    final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      throw Exception(
+          'No primary address found during get address authentication');
+    }
+    final address = await getAddress(info: addressInfo);
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final message =
+        _getFeralfileAccountMessage(address: address, timestamp: timestamp);
+    final signature =
+        await _getAddressSignature(addressInfo: addressInfo, message: message);
+    return {
+      'requester': address,
+      'timestamp': timestamp,
+      'signature': signature,
+      'type': 'ethereum',
+    };
+  }
 
   Future<List<WalletAddress>> getAllAddress() async {
     final addresses = _cloudObject.addressObject.getAllAddresses();

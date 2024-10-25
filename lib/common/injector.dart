@@ -70,6 +70,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -228,9 +229,15 @@ Future<void> setupInjector() async {
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
+
+  injector.registerLazySingleton<PasskeyService>(() => PasskeyServiceImpl(
+        injector(),
+        injector(),
+        injector(),
+      ));
 
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
       (p1, p2) => NftCollectionBloc(
