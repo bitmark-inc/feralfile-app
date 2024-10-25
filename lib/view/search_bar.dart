@@ -20,8 +20,8 @@ class AuSearchBar extends StatefulWidget {
       this.onSearch,
       this.onClear,
       this.controller,
-      this.minSearchLength = 3,
-      this.minSearchLengthWhenPressEnter = 2});
+      this.minSearchLength = 0,
+      this.minSearchLengthWhenPressEnter = 0});
 
   @override
   State<AuSearchBar> createState() => _SearchBarState();
