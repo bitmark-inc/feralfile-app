@@ -1041,7 +1041,8 @@ class UIHelper {
     );
   }
 
-  static Future<dynamic> showPasskeyRegisterDialog(BuildContext context) async =>
+  static Future<dynamic> showPasskeyRegisterDialog(
+          BuildContext context) async =>
       await showRawCenterSheet(
         context,
         content: const PasskeyRegisterView(),
@@ -1061,19 +1062,25 @@ class UIHelper {
     UIHelper.hideInfoDialog(context);
     return await showCupertinoModalPopup(
         context: context,
-        builder: (context) => Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(5),
+        builder: (context) => Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        content,
+                      ],
+                    ),
                   ),
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.sizeOf(context).height - 256,
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Flexible(child: content),
                 ),
               ),
             ));

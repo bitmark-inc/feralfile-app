@@ -49,7 +49,7 @@ class PasskeyServiceImpl implements PasskeyService {
     userVerification: 'preferred',
   );
 
-  static const _defaultRelayingPartyId = 'www.feralfile.com';
+  static const _defaultRelayingPartyId = 'accounts.dev.feralfile.com';
 
  */
 

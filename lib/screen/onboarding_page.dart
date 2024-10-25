@@ -181,7 +181,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         await _authService.authenticateAddress();
       });
     } else {
-      log.info('Passkey is supported. Login with passkey');
+      log.info('Passkey is supported. Authenticate with passkey');
       final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
 
       final didLoginSuccess = didRegisterPasskey

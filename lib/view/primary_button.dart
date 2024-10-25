@@ -41,7 +41,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor:
-              enabled ? color ?? AppColor.feralFileHighlight : disabledColor,
+              enabled ? color ?? AppColor.feralFileLightBlue : disabledColor,
           padding: elevatedPadding,
           shadowColor: Colors.transparent,
           disabledForegroundColor: disabledColor,

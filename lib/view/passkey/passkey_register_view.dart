@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension.dart';
@@ -23,21 +24,24 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
   bool _didSuccess = false;
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        child: Column(
-          children: [
-            _getTitle(context),
-            const SizedBox(height: 20),
-            _getDesc(context),
-            const SizedBox(height: 20),
-            _getIcon(),
-            const SizedBox(height: 20),
-            _getAction(context),
-            const SizedBox(height: 20),
-            _havingTrouble(context)
-          ],
-        ),
-      );
+  Widget build(BuildContext context) => Column(
+    children: [
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _getTitle(context),
+          const SizedBox(height: 20),
+          _getDesc(context),
+        ],
+      ),
+      const SizedBox(height: 20),
+      _getIcon(),
+      const SizedBox(height: 20),
+      _getAction(context),
+      const SizedBox(height: 20),
+      _havingTrouble(context)
+    ],
+  );
 
   Widget _getTitle(BuildContext context) => Text(
         _didSuccess ? 'passkey_created'.tr() : 'introducing_passkey'.tr(),
@@ -94,6 +98,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       );
     }
     return PrimaryAsyncButton(
+      key: const Key('register_button'),
       enabled: !_isError,
       onTap: () async {
         if (_registering) {
@@ -104,7 +109,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         });
         try {
           await _passkeyService.registerInitiate();
-          await _passkeyService.logInRequest();
+          await _passkeyService.registerRequest();
           await _accountService.migrateAccount(() async {
             await _passkeyService.logInFinalize();
           });
@@ -112,6 +117,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
             _didSuccess = true;
           });
         } catch (e) {
+          log.info('Failed to register passkey: $e');
           setState(() {
             _isError = true;
           });
