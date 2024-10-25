@@ -39,7 +39,7 @@ class CsViewThread extends AdditionalData {
   @override
   bool prepareAndDidSuccess() {
     _customerSupportService.triggerReloadMessages.value += 1;
-    unawaited(_customerSupportService.getIssues());
+    unawaited(_customerSupportService.getChatThreads());
     if (issueId == memoryValues.viewingSupportThreadIssueID) {
       return false;
     }

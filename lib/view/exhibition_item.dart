@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -48,7 +48,7 @@ class ExhibitionCard extends StatelessWidget {
             ? exhibition.id == SOURCE_EXHIBITION_ID
                 ? exhibition.curators!
                 : [exhibition.curator!]
-            : <FFUser>[];
+            : <AlumniAccount>[];
 
     return GestureDetector(
       onTap: () async => _onExhibitionTap(context, viewableExhibitions, index),

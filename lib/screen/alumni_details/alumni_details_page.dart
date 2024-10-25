@@ -1,24 +1,24 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_bloc.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_state.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_posts_page.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_works_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_state.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_post_view.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
+import 'package:autonomy_flutter/view/alumni_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_flutter/view/user_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -27,28 +27,28 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class UserDetailsPagePayload {
-  final String userId;
+class AlumniDetailsPagePayload {
+  final String alumniID;
 
-  UserDetailsPagePayload({required this.userId});
+  AlumniDetailsPagePayload({required this.alumniID});
 }
 
-class UserDetailsPage extends StatefulWidget {
-  final UserDetailsPagePayload payload;
+class AlumniDetailsPage extends StatefulWidget {
+  final AlumniDetailsPagePayload payload;
 
-  const UserDetailsPage({required this.payload, super.key});
+  const AlumniDetailsPage({required this.payload, super.key});
 
   @override
-  State<UserDetailsPage> createState() => _UserDetailsPageState();
+  State<AlumniDetailsPage> createState() => _AlumniDetailsPageState();
 }
 
-class _UserDetailsPageState extends State<UserDetailsPage> {
+class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
   @override
   void initState() {
     super.initState();
     context
-        .read<UserDetailsBloc>()
-        .add(ArtistDetailsFetchArtistEvent(artistId: widget.payload.userId));
+        .read<AlumniDetailsBloc>()
+        .add(AlumniDetailsFetchAlumniEvent(alumniID: widget.payload.alumniID));
   }
 
   @override
@@ -60,11 +60,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           },
         ),
         backgroundColor: Colors.black,
-        body: BlocConsumer<UserDetailsBloc, UserDetailsState>(
+        body: BlocConsumer<AlumniDetailsBloc, AlumniDetailsState>(
             listener: (context, state) {},
-            builder: (BuildContext context, UserDetailsState state) {
-              final artist = state.artist;
-              if (artist == null) {
+            builder: (BuildContext context, AlumniDetailsState state) {
+              final alumni = state.alumni;
+              if (alumni == null) {
                 return _loading();
               }
               return _content(context, state);
@@ -75,16 +75,16 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         child: LoadingWidget(),
       );
 
-  Widget _avatar(BuildContext context, FFUser user) {
-    final avatarUrl = user.avatarUrl;
+  Widget _avatar(BuildContext context, AlumniAccount alumni) {
+    final avatarUrl = alumni.avatarUrl;
     return AspectRatio(
       aspectRatio: 1,
-      child: UserAvatar(url: avatarUrl),
+      child: AlumniAvatar(url: avatarUrl),
     );
   }
 
-  Widget _content(BuildContext context, UserDetailsState state) {
-    final user = state.artist!;
+  Widget _content(BuildContext context, AlumniDetailsState state) {
+    final user = state.alumni!;
     final series = state.series;
     return CustomScrollView(
       slivers: [
@@ -94,7 +94,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           child: _userProfile(context, user),
         )),
         if ((series?.length ?? 0) > 0)
-          ..._workSection(context, user, series ?? []),
+          ..._workSection(
+            context,
+            user,
+            series ?? [],
+          ),
         if ((state.exhibitions?.length ?? 0) > 0) ...[
           const SliverToBoxAdapter(
             child: SizedBox(
@@ -115,7 +119,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     );
   }
 
-  Widget _artistUrl(BuildContext context, String url, {String? title}) {
+  Widget _alumniUrl(BuildContext context, String url, {String? title}) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: () {
@@ -143,18 +147,18 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     );
   }
 
-  String _userRole(FFUser user) {
-    if (user.isArtist == true && user.isCurator == true) {
+  String _userRole(AlumniAccount alumni) {
+    if (alumni.isArtist == true && alumni.isCurator == true) {
       return 'artist_curator'.tr();
-    } else if (user.isArtist == true) {
+    } else if (alumni.isArtist == true) {
       return 'artist'.tr();
-    } else if (user.isCurator == true) {
+    } else if (alumni.isCurator == true) {
       return 'curator'.tr();
     }
     return '';
   }
 
-  Widget _userProfile(BuildContext context, FFUser user) {
+  Widget _userProfile(BuildContext context, AlumniAccount alumni) {
     final theme = Theme.of(context);
     final subTitleStyle = theme.textTheme.ppMori400White12
         .copyWith(color: AppColor.auQuickSilver);
@@ -164,7 +168,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         Row(
           children: [
             Expanded(
-              child: _avatar(context, user),
+              child: _avatar(context, alumni),
             ),
           ],
         ),
@@ -172,22 +176,22 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           height: 8,
         ),
         Text(
-          _userRole(user),
+          _userRole(alumni),
           style: subTitleStyle,
         ),
         const SizedBox(
           height: 36,
         ),
         Text(
-          user.displayAlias,
+          alumni.displayAlias,
           style: theme.textTheme.ppMori700White24.copyWith(fontSize: 36),
         ),
         const SizedBox(
           height: 24,
         ),
-        if (user.alumniAccount?.location != null) ...[
+        if (alumni.location != null) ...[
           Text(
-            user.alumniAccount!.location!,
+            alumni.location!,
             style: subTitleStyle.copyWith(
               fontStyle: FontStyle.italic,
             ),
@@ -196,22 +200,21 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             height: 24,
           ),
         ],
-        if (user.alumniAccount?.website != null &&
-            user.alumniAccount!.website!.isNotEmpty) ...[
-          _artistUrl(context, user.alumniAccount!.website!),
+        if (alumni.website != null && alumni.website!.isNotEmpty) ...[
+          _alumniUrl(context, alumni.website!),
           const SizedBox(
             height: 12,
           ),
         ],
-        if (user.instagramUrl != null && user.instagramUrl!.isNotEmpty) ...[
-          _artistUrl(context, user.instagramUrl!, title: 'instagram'.tr()),
+        if (alumni.instagramUrl != null && alumni.instagramUrl!.isNotEmpty) ...[
+          _alumniUrl(context, alumni.instagramUrl!, title: 'instagram'.tr()),
           const SizedBox(
             height: 12,
           ),
         ],
 
-        if (user.twitterUrl != null && user.twitterUrl!.isNotEmpty) ...[
-          _artistUrl(context, user.twitterUrl!, title: 'twitter'.tr()),
+        if (alumni.twitterUrl != null && alumni.twitterUrl!.isNotEmpty) ...[
+          _alumniUrl(context, alumni.twitterUrl!, title: 'twitter'.tr()),
           const SizedBox(
             height: 12,
           ),
@@ -219,9 +222,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         const SizedBox(
           height: 32,
         ),
-        if (user.alumniAccount?.bio != null) ...[
+        if (alumni.bio != null) ...[
           ReadMoreText(
-            text: user.alumniAccount!.bio!,
+            text: alumni.bio!,
             style: theme.textTheme.ppMori400White14,
           ),
           const SizedBox(
@@ -261,21 +264,21 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     );
   }
 
-  void _gotoUserWork(BuildContext context, FFUser user) {
+  void _gotoAlumniWorksPage(BuildContext context, AlumniAccount alumni) {
     unawaited(Navigator.of(context).pushNamed(
-      AppRouter.artistWorksPage,
-      arguments: ArtistWorksPagePayload(user),
+      AppRouter.alumniWorksPage,
+      arguments: AlumniWorksPagePayload(alumni),
     ));
   }
 
   List<Widget> _workSection(
-      BuildContext context, FFUser user, List<FFSeries> series) {
+      BuildContext context, AlumniAccount alumni, List<FFSeries> series) {
     final header =
         _header(context, title: 'works'.tr(), subtitle: '${series.length}');
     final viewAll = PrimaryAsyncButton(
       color: AppColor.white,
       onTap: () {
-        _gotoUserWork(context, user);
+        _gotoAlumniWorksPage(context, alumni);
       },
       text: 'view_all_works'.tr(),
     );
@@ -317,20 +320,20 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     ];
   }
 
-  void _viewAllArtistExhibitions(BuildContext context, FFUser user) {
+  void _viewAllAlumniExhibitions(BuildContext context, AlumniAccount alumni) {
     unawaited(Navigator.of(context).pushNamed(
-      AppRouter.artistExhibitionsPage,
-      arguments: ArtistExhibitionsPagePayload(user),
+      AppRouter.alumniExhibitionsPage,
+      arguments: AlumniExhibitionsPagePayload(alumni),
     ));
   }
 
-  List<Widget> _exhibitionSection(
-      BuildContext context, FFUser user, List<Exhibition> exhibitions) {
+  List<Widget> _exhibitionSection(BuildContext context, AlumniAccount alumni,
+      List<Exhibition> exhibitions) {
     final header = _header(context,
         title: 'exhibitions'.tr(), subtitle: '${exhibitions.length}');
     final viewAll = PrimaryAsyncButton(
       onTap: () {
-        _viewAllArtistExhibitions(context, user);
+        _viewAllAlumniExhibitions(context, alumni);
       },
       color: AppColor.white,
       text: 'view_all_exhibitions'.tr(),
@@ -373,20 +376,20 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     ];
   }
 
-  void _viewAllArtistPosts(BuildContext context, FFUser user) {
+  void _viewAllAlumniPosts(BuildContext context, AlumniAccount alumni) {
     unawaited(Navigator.of(context).pushNamed(
-      AppRouter.artistPostsPage,
-      arguments: ArtistPostsPagePayload(user),
+      AppRouter.alumniPostPage,
+      arguments: AlumniPostsPagePayload(alumni),
     ));
   }
 
   List<Widget> _postSection(
-      BuildContext context, FFUser user, List<Post> posts) {
+      BuildContext context, AlumniAccount alumni, List<Post> posts) {
     final header = _header(context,
         title: 'publications'.tr(), subtitle: '${posts.length}');
     final viewAll = PrimaryAsyncButton(
       onTap: () {
-        _viewAllArtistPosts(context, user);
+        _viewAllAlumniPosts(context, alumni);
       },
       color: AppColor.white,
       text: 'view_all_posts'.tr(),

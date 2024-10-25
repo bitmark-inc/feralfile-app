@@ -8,11 +8,11 @@
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -64,7 +64,8 @@ abstract class FeralFileApi {
     @Query('limit') int? limit,
     @Query('offset') int? offset,
     @Query('keyword') String? keyword,
-    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('relatedAlumniAccountIDs')
+    List<String> relatedAlumniAccountIDs = const [],
     @Query('customQueryParams')
     Map<String, dynamic> customQueryParam = const {},
   });
@@ -123,30 +124,23 @@ abstract class FeralFileApi {
     @Query('includeFirstArtwork') bool includeFirstArtwork = true,
     @Query('onlyViewable') bool onlyViewable = true,
     @Query('keyword') String keyword = '',
-    @Query('artistIDs') List<String> artistIDs = const [],
+    @Query('artistAlumniAccountIDs')
+    List<String> artistAlumniAccountIDs = const [],
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
     // custom query params
     @Query('customQueryParams')
     Map<String, dynamic> customQueryParam = const {},
   });
 
-  @GET('/api/artists')
-  Future<FeralFileListResponse<FFUser>> getArtists({
+  @GET('/api/alumni')
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni({
     @Query('limit') int limit = 20,
     @Query('offset') int offset = 0,
     @Query('sortBy') String sortBy = 'relevance',
     @Query('sortOrder') String sortOrder = 'DESC',
     @Query('keyword') String keyword = '',
-    @Query('unique') bool unique = true,
-  });
-
-  @GET('/api/curators')
-  Future<FeralFileListResponse<FFUser>> getCurators({
-    @Query('limit') int limit = 20,
-    @Query('offset') int offset = 0,
-    @Query('sortBy') String sortBy = 'relevance',
-    @Query('sortOrder') String sortOrder = 'DESC',
-    @Query('keyword') String keyword = '',
+    @Query('isArtist') bool isArtist = false,
+    @Query('isCurator') bool isCurator = false,
     @Query('unique') bool unique = true,
     @Query('excludedFF') bool excludedFF = true,
   });
@@ -157,12 +151,11 @@ abstract class FeralFileApi {
     @Query('excludedFF') bool excludedFF = true,
   });
 
-  @GET('/api/accounts/{accountId}')
-  Future<FeralFileResponse<FFUser>> getUser({
-    @Path('accountId') String accountId = '',
-    @Query('includeLinkedAccounts') bool includeLinkedAccounts = true,
-    @Query('includeCollaborationAccounts')
-    bool includeCollaborationAccounts = true,
+  @GET('/api/alumni/{alumniId}')
+  Future<FeralFileResponse<AlumniAccount>> getAlumni({
+    @Path('alumniId') String alumniID = '',
+    @Query('includeCollaborationAlumniAccounts')
+    bool includeCollaborationAlumniAccounts = true,
   });
 
   @GET('/api/posts')
@@ -170,7 +163,8 @@ abstract class FeralFileApi {
     @Query('sortBy') String sortBy = 'dateTime',
     @Query('sortOrder') String sortOrder = 'DESC',
     @Query('types') List<String> types = const [],
-    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('relatedAlumniAccountIDs')
+    List<String> relatedAlumniAccountIDs = const [],
     @Query('includeExhibition') bool includeExhibition = true,
   });
 }

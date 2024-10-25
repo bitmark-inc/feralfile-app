@@ -9,10 +9,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -45,7 +48,7 @@ abstract class CustomerSupportService {
 
   Future<IssueDetails> getDetails(String issueID);
 
-  Future<List<Issue>> getIssues();
+  Future<List<ChatThread>> getChatThreads();
 
   Future draftMessage(DraftCustomerSupport draft);
 
@@ -93,8 +96,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   bool _isProcessingDraftMessages = false;
 
-  @override
-  Future<List<Issue>> getIssues() async {
+  Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
     try {
       final listIssues = await _customerSupportApi.getIssues();
@@ -147,13 +149,50 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         continue;
       }
     }
+    return issues;
+  }
+
+  @override
+  // this function is used to get the list of issues, and announcements,
+  // if announcements already in the list of issues, it will be removed
+  Future<List<ChatThread>> getChatThreads() async {
+    final issues = await _getIssues();
+    // add announcement
+    final announcement = injector<AnnouncementService>().getLocalAnnouncements()
+      ..removeWhere((element) {
+        final issueId = injector<AnnouncementService>()
+            .findIssueIdByAnnouncement(element.announcementContentId);
+        final issue =
+            issues.firstWhereOrNull((element) => element.issueID == issueId);
+        if (issue != null) {
+          final newIssue = issue.copyWith(
+              announcementContentId: element.announcementContentId);
+          final index = issues.indexOf(issue);
+          issues
+            ..removeAt(index)
+            ..insert(index, newIssue);
+        }
+        return issue != null;
+      });
+
+    final chatThreads = _mergeIssuesAndAnnouncements(issues, announcement);
 
     numberOfIssuesInfo.value = [
-      issues.length,
-      issues.where((element) => element.unread > 0).length,
+      chatThreads.length,
+      chatThreads.where((element) => element.isUnread()).length,
     ];
 
-    return issues;
+    return chatThreads;
+  }
+
+  List<ChatThread> _mergeIssuesAndAnnouncements(
+    List<Issue> issues,
+    List<AnnouncementLocal> announcements,
+  ) {
+    // merge issue and announcement then sort by sortTime
+    final chatThreads = <ChatThread>[...issues, ...announcements]
+      ..sort((a, b) => b.sortTime.compareTo(a.sortTime));
+    return chatThreads;
   }
 
   @override
@@ -287,7 +326,15 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             title: data.title,
             mutedText: draftMsg.mutedMessages.split('[SEPARATOR]'),
             artworkReportID: data.artworkReportID,
+            customTags: [
+              if (data.announcementContentId != null)
+                'announcement_${data.announcementContentId}'
+            ],
           );
+          if (data.announcementContentId != null) {
+            injector<AnnouncementService>().linkAnnouncementToIssue(
+                data.announcementContentId!, result.issueID);
+          }
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
           await _draftCustomerSupportDao.deleteDraft(draftMsg);
           await _draftCustomerSupportDao.updateIssueID(
@@ -334,8 +381,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     List<SendAttachment>? attachments, {
     String? title,
     List<String>? mutedText,
-    String? announcementID,
     String? artworkReportID,
+    List<String> customTags = const [],
   }) async {
     var issueTitle = title ?? message;
     if (issueTitle == null || issueTitle.isEmpty) {
@@ -343,7 +390,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
 
     // add tags
-    var tags = [reportIssueType];
+    var tags = [...customTags, reportIssueType];
     if (Platform.isIOS) {
       tags.add('iOS');
     } else if (Platform.isAndroid) {
@@ -366,6 +413,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       mutedMessage += '$mutedMsg\n';
     }
 
+    // add tags to muted message
+    mutedMessage += '**Tags**: ${tags.join(', ')}\n';
+
     final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n${message ?? ''}";
 
     final payload = {
@@ -373,7 +423,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'title': issueTitle,
       'message': submitMessage,
       'tags': tags,
-      'announcement_context_id': announcementID ?? '',
     };
 
     if (artworkReportID != null && artworkReportID.isNotEmpty) {

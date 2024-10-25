@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/ff_exhibition_participants.dart';
@@ -32,7 +32,7 @@ class ExhibitionPreview extends StatelessWidget {
             ? exhibition.id == SOURCE_EXHIBITION_ID
                 ? exhibition.curators!
                 : [exhibition.curator!]
-            : <FFUser>[];
+            : <AlumniAccount>[];
 
     return Container(
       padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
@@ -54,7 +54,7 @@ class ExhibitionPreview extends StatelessWidget {
             ),
             const SizedBox(height: 3),
             FFExhibitionParticipants(
-              users: listCurators,
+              listAlumni: listCurators,
               textStyle: participantTextStyle,
             ),
           ],
@@ -66,7 +66,7 @@ class ExhibitionPreview extends StatelessWidget {
               style: subTitleTextStyle),
           const SizedBox(height: 3),
           FFExhibitionParticipants(
-            users: exhibition.artists!,
+            listAlumni: exhibition.artists!,
             textStyle: participantTextStyle,
           ),
         ],

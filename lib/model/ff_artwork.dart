@@ -30,7 +30,7 @@ class Artwork {
   final int index;
   final String name;
   final String? category;
-  final String? ownerAccountID;
+  final String? ownerAddress;
   final bool? virgin;
   final bool? burned;
   final String? blockchainStatus;
@@ -52,7 +52,7 @@ class Artwork {
       this.index,
       this.name,
       this.category,
-      this.ownerAccountID,
+      this.ownerAddress,
       this.virgin,
       this.burned,
       this.blockchainStatus,
@@ -74,7 +74,7 @@ class Artwork {
         json['index'] as int,
         json['name'] as String,
         json['category'] as String?,
-        json['ownerAccountID'] as String?,
+        json['ownerAddress'] as String?,
         json['virgin'] as bool?,
         json['burned'] as bool?,
         json['blockchainStatus'] as String?,
@@ -115,7 +115,7 @@ class Artwork {
     int? index,
     String? name,
     String? category,
-    String? ownerAccountID,
+    String? ownerAddress,
     bool? virgin,
     bool? burned,
     String? blockchainStatus,
@@ -137,7 +137,7 @@ class Artwork {
         index ?? this.index,
         name ?? this.name,
         category ?? this.category,
-        ownerAccountID ?? this.ownerAccountID,
+        ownerAddress ?? this.ownerAddress,
         virgin ?? this.virgin,
         burned ?? this.burned,
         blockchainStatus ?? this.blockchainStatus,
@@ -163,7 +163,7 @@ class ArtworkSwap {
   final double? fee;
   final String currency;
   final int artworkIndex;
-  final String ownerAccount;
+  final String ownerAddress;
   final String status;
   final String contractName;
   final String contractAddress;
@@ -182,7 +182,7 @@ class ArtworkSwap {
     required this.seriesID,
     required this.currency,
     required this.artworkIndex,
-    required this.ownerAccount,
+    required this.ownerAddress,
     required this.status,
     required this.contractName,
     required this.contractAddress,
@@ -206,7 +206,7 @@ class ArtworkSwap {
         fee: json['fee']?.toDouble(),
         currency: json['currency'],
         artworkIndex: json['artworkIndex'],
-        ownerAccount: json['ownerAccount'],
+        ownerAddress: json['ownerAddress'],
         status: json['status'],
         contractName: json['contractName'],
         contractAddress: json['contractAddress'],
@@ -228,7 +228,7 @@ class ArtworkSwap {
         'fee': fee,
         'currency': currency,
         'artworkIndex': artworkIndex,
-        'ownerAccount': ownerAccount,
+        'ownerAddress': ownerAddress,
         'status': status,
         'contractName': contractName,
         'contractAddress': contractAddress,
