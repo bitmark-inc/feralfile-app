@@ -161,7 +161,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final announcement = injector<AnnouncementService>().getLocalAnnouncements()
       ..removeWhere((element) {
         final issueId = injector<AnnouncementService>()
-            .findIssueByAnnouncement(element.announcementContentId);
+            .findIssueIdByAnnouncement(element.announcementContentId);
         final issue =
             issues.firstWhereOrNull((element) => element.issueID == issueId);
         if (issue != null) {

@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: unused_field
+// ignore_for_file: unused_field, type_literal_in_constant_pattern
 
 import 'dart:async';
 import 'dart:convert';
@@ -99,7 +99,7 @@ class DetailIssuePayload extends SupportThreadPayload {
   @override
   String get introMessage {
     final announcement =
-        injector<AnnouncementService>().findAnnouncementByIssue(issueID);
+        injector<AnnouncementService>().findAnnouncementByIssueId(issueID);
     if (announcement != null) {
       return announcement.content;
     }
@@ -187,7 +187,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   void _setIssueId(String issueId) {
     _issueID = issueId;
     _announcement =
-        injector<AnnouncementService>().findAnnouncementByIssue(issueId);
+        injector<AnnouncementService>().findAnnouncementByIssueId(issueId);
   }
 
   @override
@@ -202,11 +202,36 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         .addListener(_loadCustomerSupportUpdates);
 
     final payload = widget.payload;
-    if (payload is NewIssuePayload) {
-      _reportIssueType = payload.reportIssueType;
-      if (_reportIssueType == ReportIssueType.Bug &&
-          (payload.defaultMessage?.isEmpty ?? true) &&
-          (payload.artworkReportID?.isEmpty ?? true)) {
+    switch (payload.runtimeType) {
+      case NewIssuePayload:
+        _reportIssueType = (payload as NewIssuePayload).reportIssueType;
+        if (_reportIssueType == ReportIssueType.Bug &&
+            (payload.defaultMessage?.isEmpty ?? true) &&
+            (payload.artworkReportID?.isEmpty ?? true)) {
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (!mounted) {
+              return;
+            }
+            _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
+              if (attachCrashLog) {
+                unawaited(_addDebugLog());
+              } else {
+                UIHelper.hideInfoDialog(context);
+              }
+            });
+          });
+        }
+      case NewIssueFromAnnouncementPayload:
+        _reportIssueType = ReportIssueType.Announcement;
+      case DetailIssuePayload:
+        _reportIssueType = (payload as DetailIssuePayload).reportIssueType;
+        _status = payload.status;
+        _isRated = payload.isRated;
+        // if the issue is already created, we need to set the issueID
+        _setIssueId(_customerSupportService.tempIssueIDMap[payload.issueID] ??
+            payload.issueID);
+      case ExceptionErrorPayload:
+        _reportIssueType = ReportIssueType.Exception;
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) {
             return;
@@ -219,30 +244,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             }
           });
         });
-      }
-    } else if (payload is NewIssueFromAnnouncementPayload) {
-      _reportIssueType = ReportIssueType.Announcement;
-    } else if (payload is DetailIssuePayload) {
-      _reportIssueType = payload.reportIssueType;
-      _status = payload.status;
-      _isRated = payload.isRated;
-      // if the issue is already created, we need to set the issueID
-      _setIssueId(_customerSupportService.tempIssueIDMap[payload.issueID] ??
-          payload.issueID);
-    } else if (payload is ExceptionErrorPayload) {
-      _reportIssueType = ReportIssueType.Exception;
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (!mounted) {
-          return;
-        }
-        _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
-          if (attachCrashLog) {
-            unawaited(_addDebugLog());
-          } else {
-            UIHelper.hideInfoDialog(context);
-          }
-        });
-      });
     }
 
     _textEditingController =
@@ -780,23 +781,27 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = 'TEMP-${const Uuid().v4()}';
 
       final payload = widget.payload;
+      switch (payload.runtimeType) {
+        case ExceptionErrorPayload:
+          final sentryID = (payload as ExceptionErrorPayload).sentryID;
+          if (sentryID.isNotEmpty) {
+            mutedMessages.add(
+                '[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)');
+          }
 
-      if (payload is ExceptionErrorPayload) {
-        final sentryID = payload.sentryID;
-        if (sentryID.isNotEmpty) {
-          mutedMessages.add(
-              '[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)');
-        }
-
-        if (payload.metadata.isNotEmpty) {
-          mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
-        }
-      } else if (payload is NewIssuePayload &&
-          payload.artworkReportID != null &&
-          payload.artworkReportID!.isNotEmpty) {
-        data.artworkReportID = payload.artworkReportID;
-      } else if (payload is NewIssueFromAnnouncementPayload) {
-        data.announcementContentId = payload.announcement.announcementContentId;
+          if (payload.metadata.isNotEmpty) {
+            mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
+          }
+        case NewIssuePayload:
+          if (payload.defaultMessage != null &&
+              payload.defaultMessage!.isNotEmpty) {
+            data.artworkReportID = (payload as NewIssuePayload).artworkReportID;
+          }
+        case NewIssueFromAnnouncementPayload:
+          data.announcementContentId =
+              (payload as NewIssueFromAnnouncementPayload)
+                  .announcement
+                  .announcementContentId;
       }
     }
     if (isRating) {

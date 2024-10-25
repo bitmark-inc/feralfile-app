@@ -32,9 +32,9 @@ abstract class AnnouncementService {
 
   void linkAnnouncementToIssue(String announcementContentId, String issueId);
 
-  Announcement? findAnnouncementByIssue(String issueId);
+  Announcement? findAnnouncementByIssueId(String issueId);
 
-  String? findIssueByAnnouncement(String announcementContentId);
+  String? findIssueIdByAnnouncement(String announcementContentId);
 }
 
 class AnnouncementServiceImpl implements AnnouncementService {
@@ -203,7 +203,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
   }
 
   @override
-  Announcement? findAnnouncementByIssue(String issueId) {
+  Announcement? findAnnouncementByIssueId(String issueId) {
     final announcementId = injector<ConfigurationService>()
         .getAnnouncementContentIdByIssueId(issueId);
     if (announcementId != null) {
@@ -214,7 +214,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
   }
 
   @override
-  String? findIssueByAnnouncement(String announcementContentId) =>
+  String? findIssueIdByAnnouncement(String announcementContentId) =>
       injector<ConfigurationService>()
           .getIssueIdByAnnouncementContentId(announcementContentId);
 }

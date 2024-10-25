@@ -106,6 +106,7 @@ class _SupportListPageState extends State<SupportListPage>
       SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
+            bool hasDivider = index < chatThreads.length - 1;
             final chatThread = chatThreads[index];
             switch (chatThread.runtimeType) {
               case Issue:
@@ -137,7 +138,6 @@ class _SupportListPageState extends State<SupportListPage>
               case AnnouncementLocal:
               case Announcement:
                 final issue = chatThread as Announcement;
-                bool hasDivider = index < chatThreads.length - 1;
                 return Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: ResponsiveLayout.pageEdgeInsets.left),
@@ -176,7 +176,7 @@ class _SupportListPageState extends State<SupportListPage>
                   style: theme.textTheme.ppMori400Black16,
                 ),
                 if (issue.unread > 0) ...[
-                  _unread(),
+                  _unreadChatThreadWidget(),
                 ]
               ],
             ),
@@ -260,7 +260,7 @@ class _SupportListPageState extends State<SupportListPage>
                   ),
                   if (announcement is AnnouncementLocal &&
                       !announcement.read) ...[
-                    _unread(),
+                    _unreadChatThreadWidget(),
                   ],
                   const SizedBox(width: 8),
                 ],
@@ -359,7 +359,7 @@ class _SupportListPageState extends State<SupportListPage>
     }
   }
 
-  Widget _unread() => Row(
+  Widget _unreadChatThreadWidget() => Row(
         children: [
           const SizedBox(width: 8),
           Padding(padding: const EdgeInsets.only(top: 4), child: redDotIcon())
