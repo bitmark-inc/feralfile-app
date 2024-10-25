@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:sentry/sentry.dart';
 
 abstract class DomainService {
   Future<String?> getAddress(String domain);
@@ -9,35 +13,51 @@ abstract class DomainService {
 }
 
 class DomainServiceImpl implements DomainService {
-  static const String _tnsDomain = 'https://api.tezos.domains/graphql';
-  static const String _ensDomain =
-      'https://gateway-arbitrum.network.thegraph.com/api/'
-      '780901e32f46e70908727c94d3119788/subgraphs/id/'
-      '5XqPmWe6gjyrJtFn9cLy237i4cWw2j9HcUJEXsP5qGtH';
-  static const String _tnsQuery = '''
-    { domains(where: { name: { in: ["<var>"] } }) { items { address name} } }
+  static final String _addressEndpoint = Environment.domainResolverUrl;
+
+  static const String _addressQuery = '''
+    query {
+      lookup(inputs: [
+        { chain: "<chain>", name: "<var>", skipCache: false },
+      ]) {
+        chain
+        name
+        address
+        error
+      }
+    }
   ''';
 
-  static const String _ensQuery = '''
-    { domains(where: {name: "<var>"}) { name resolvedAddress { id } } }
-  ''';
+  static const String _subKey = 'lookup';
 
-  static GraphClient get _tnsClient => GraphClient(_tnsDomain);
+  static GraphClient get _ensClient => GraphClient(_addressEndpoint);
 
-  static GraphClient get _ensClient => GraphClient(_ensDomain);
+  Future<String?> _getAddress(String domain, String chain) async {
+    try {
+      final result = await _ensClient.query(
+        doc: _addressQuery
+            .replaceFirst('<var>', domain)
+            .replaceFirst('<chain>', chain),
+        subKey: _subKey,
+      ) as List?;
+      if (result == null || result.isEmpty) {
+        return null;
+      }
+      return result.first['address'];
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   Future<String?> getEthAddress(String domain) async {
     try {
-      final result = await _ensClient.query(
-        doc: _ensQuery.replaceFirst('<var>', domain),
-        subKey: 'domains',
-      );
-      if (result == null || result.isEmpty) {
-        return null;
-      }
-      return result.first['resolvedAddress']['id'];
-    } catch (e) {
+      final ethAddress = await _getAddress(domain, 'ethereum');
+      return ethAddress;
+    } catch (e, s) {
+      unawaited(Sentry.captureException(
+          'Error getting eth address for $domain: $e',
+          stackTrace: s));
       return null;
     }
   }
@@ -45,19 +65,11 @@ class DomainServiceImpl implements DomainService {
   @override
   Future<String?> getTezosAddress(String domain) async {
     try {
-      final result = await _tnsClient.query(
-        doc: _tnsQuery.replaceFirst('<var>', domain),
-        subKey: 'domains',
-      );
-      if (result == null) {
-        return null;
-      }
-      final items = result['items'];
-      if (items == null || items.isEmpty) {
-        return null;
-      }
-      return items.first['address'];
+      final tezosAddress = await _getAddress(domain, 'tezos');
+      return tezosAddress;
     } catch (e) {
+      unawaited(Sentry.captureException(
+          'Error getting tezos address for $domain: $e'));
       return null;
     }
   }
@@ -78,7 +90,12 @@ class GraphClient {
   final String _url;
 
   GraphQLClient get client {
-    final httpLink = HttpLink(_url);
+    final httpLink = HttpLink(
+      _url,
+      defaultHeaders: {
+        'X-API-KEY': Environment.domainResolverApiKey,
+      },
+    );
     final authLink = AuthLink(getToken: _getToken);
     final link = authLink.concat(httpLink);
 
