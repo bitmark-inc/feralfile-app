@@ -79,7 +79,7 @@ class _SearchBarState extends State<AuSearchBar> {
                 onChanged: (value) {
                   widget.onChanged?.call(value);
                   // we allow search when user type at least 3 characters
-                  if (value.length >= widget.minSearchLength) {
+                  if (value.length >= widget.minSearchLength || value.isEmpty) {
                     _timer?.cancel();
                     _timer = Timer(const Duration(milliseconds: 300), () {
                       _callOnSearch(value);
@@ -88,7 +88,8 @@ class _SearchBarState extends State<AuSearchBar> {
                 },
                 onSubmitted: (value) {
                   // we allow search when user type at least 2 characters and press enter
-                  if (value.length >= widget.minSearchLengthWhenPressEnter) {
+                  if (value.length >= widget.minSearchLengthWhenPressEnter ||
+                      value.isEmpty) {
                     _callOnSearch(value);
                   }
                 },
