@@ -74,7 +74,7 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
             await _passkeyService.logInInitiate();
             await _passkeyService.logInRequest();
             await _accountService.migrateAccount(() async {
-              await _passkeyService.registerFinalize();
+              await _passkeyService.logInFinalize();
             });
             if (context.mounted) {
               Navigator.of(context).pop(true);
