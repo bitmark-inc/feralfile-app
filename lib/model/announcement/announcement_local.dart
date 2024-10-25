@@ -25,4 +25,7 @@ class AnnouncementLocal extends Announcement {
         startedAt: announcement.startedAt,
         endedAt: announcement.endedAt,
       );
+
+  @override
+  bool isUnread() => !read;
 }

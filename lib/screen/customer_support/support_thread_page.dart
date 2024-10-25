@@ -5,16 +5,18 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: unused_field
+// ignore_for_file: unused_field, type_literal_in_constant_pattern
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -42,6 +44,8 @@ import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
   String? get defaultMessage;
+
+  String get introMessage;
 }
 
 class NewIssuePayload extends SupportThreadPayload {
@@ -55,6 +59,25 @@ class NewIssuePayload extends SupportThreadPayload {
     this.artworkReportID,
     this.defaultMessage,
   });
+
+  @override
+  String get introMessage => ReportIssueType.introMessage(reportIssueType);
+}
+
+class NewIssueFromAnnouncementPayload extends SupportThreadPayload {
+  final Announcement announcement;
+
+  NewIssueFromAnnouncementPayload({
+    required this.announcement,
+    this.defaultMessage,
+  });
+
+  @override
+  final String? defaultMessage;
+
+  @override
+  // TODO: implement introMessage
+  String get introMessage => announcement.content;
 }
 
 class DetailIssuePayload extends SupportThreadPayload {
@@ -72,6 +95,16 @@ class DetailIssuePayload extends SupportThreadPayload {
     this.status = '',
     this.isRated = false,
   });
+
+  @override
+  String get introMessage {
+    final announcement =
+        injector<AnnouncementService>().findAnnouncementByIssueId(issueID);
+    if (announcement != null) {
+      return announcement.content;
+    }
+    return ReportIssueType.introMessage(reportIssueType);
+  }
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
@@ -85,6 +118,10 @@ class ExceptionErrorPayload extends SupportThreadPayload {
     required this.metadata,
     this.defaultMessage,
   });
+
+  @override
+  String get introMessage =>
+      ReportIssueType.introMessage(ReportIssueType.Exception);
 }
 
 class SupportThreadPage extends StatefulWidget {
@@ -125,11 +162,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _feralFileService = injector<FeralFileService>();
 
   String? _userId;
+  Announcement? _announcement;
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
         id: _introMessengerID,
-        text: ReportIssueType.introMessage(_reportIssueType),
+        text: widget.payload.introMessage,
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -146,6 +184,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
+  void _setIssueId(String issueId) {
+    _issueID = issueId;
+    _announcement =
+        injector<AnnouncementService>().findAnnouncementByIssueId(issueId);
+  }
+
   @override
   void initState() {
     unawaited(_getUserId());
@@ -158,11 +202,36 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         .addListener(_loadCustomerSupportUpdates);
 
     final payload = widget.payload;
-    if (payload is NewIssuePayload) {
-      _reportIssueType = payload.reportIssueType;
-      if (_reportIssueType == ReportIssueType.Bug &&
-          (payload.defaultMessage?.isEmpty ?? true) &&
-          (payload.artworkReportID?.isEmpty ?? true)) {
+    switch (payload.runtimeType) {
+      case NewIssuePayload:
+        _reportIssueType = (payload as NewIssuePayload).reportIssueType;
+        if (_reportIssueType == ReportIssueType.Bug &&
+            (payload.defaultMessage?.isEmpty ?? true) &&
+            (payload.artworkReportID?.isEmpty ?? true)) {
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (!mounted) {
+              return;
+            }
+            _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
+              if (attachCrashLog) {
+                unawaited(_addDebugLog());
+              } else {
+                UIHelper.hideInfoDialog(context);
+              }
+            });
+          });
+        }
+      case NewIssueFromAnnouncementPayload:
+        _reportIssueType = ReportIssueType.Announcement;
+      case DetailIssuePayload:
+        _reportIssueType = (payload as DetailIssuePayload).reportIssueType;
+        _status = payload.status;
+        _isRated = payload.isRated;
+        // if the issue is already created, we need to set the issueID
+        _setIssueId(_customerSupportService.tempIssueIDMap[payload.issueID] ??
+            payload.issueID);
+      case ExceptionErrorPayload:
+        _reportIssueType = ReportIssueType.Exception;
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) {
             return;
@@ -175,27 +244,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             }
           });
         });
-      }
-    } else if (payload is DetailIssuePayload) {
-      _reportIssueType = payload.reportIssueType;
-      _status = payload.status;
-      _isRated = payload.isRated;
-      _issueID = _customerSupportService.tempIssueIDMap[payload.issueID] ??
-          payload.issueID;
-    } else if (payload is ExceptionErrorPayload) {
-      _reportIssueType = ReportIssueType.Exception;
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (!mounted) {
-          return;
-        }
-        _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
-          if (attachCrashLog) {
-            unawaited(_addDebugLog());
-          } else {
-            UIHelper.hideInfoDialog(context);
-          }
-        });
-      });
     }
 
     _textEditingController =
@@ -711,8 +759,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (update.draft.issueID != _issueID) {
       return;
     }
-
-    _issueID = update.response.issueID;
+    // when user create a new issue, we need to update the issueID
+    _setIssueId(update.response.issueID);
     memoryValues.viewingSupportThreadIssueID = _issueID;
     final newMessages =
         await _convertChatMessage(update.response.message, update.draft.uuid);
@@ -733,21 +781,27 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = 'TEMP-${const Uuid().v4()}';
 
       final payload = widget.payload;
+      switch (payload.runtimeType) {
+        case ExceptionErrorPayload:
+          final sentryID = (payload as ExceptionErrorPayload).sentryID;
+          if (sentryID.isNotEmpty) {
+            mutedMessages.add(
+                '[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)');
+          }
 
-      if (payload is ExceptionErrorPayload) {
-        final sentryID = payload.sentryID;
-        if (sentryID.isNotEmpty) {
-          mutedMessages.add(
-              '[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)');
-        }
-
-        if (payload.metadata.isNotEmpty) {
-          mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
-        }
-      } else if (payload is NewIssuePayload &&
-          payload.artworkReportID != null &&
-          payload.artworkReportID!.isNotEmpty) {
-        data.artworkReportID = payload.artworkReportID;
+          if (payload.metadata.isNotEmpty) {
+            mutedMessages.add('METADATA EXCEPTION: ${payload.metadata}');
+          }
+        case NewIssuePayload:
+          if (payload.defaultMessage != null &&
+              payload.defaultMessage!.isNotEmpty) {
+            data.artworkReportID = (payload as NewIssuePayload).artworkReportID;
+          }
+        case NewIssueFromAnnouncementPayload:
+          data.announcementContentId =
+              (payload as NewIssueFromAnnouncementPayload)
+                  .announcement
+                  .announcementContentId;
       }
     }
     if (isRating) {
