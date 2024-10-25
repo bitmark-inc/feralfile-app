@@ -65,6 +65,8 @@ class _ExploreBarState extends State<ExploreBar> {
                 _onSearch(null);
               },
               onChanged: (value) {},
+              minSearchLength: 3,
+              minSearchLengthWhenPressEnter: 2,
             ),
             onCancel: canCancel
                 ? () {
