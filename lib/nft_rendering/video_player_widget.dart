@@ -59,9 +59,6 @@ class _VideoNFTRenderingWidgetState
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    if (_controller != null) {
-      unawaited(_initVideoController());
-    }
   }
 
   @override
@@ -72,24 +69,35 @@ class _VideoNFTRenderingWidgetState
     }
   }
 
-  Future<void> _initVideoController() async {
+  Future<void> _initVideoController(
+      {bool shouldIncreaseRefCountIfALreadyExist = true}) async {
     try {
       final videoUri = Uri.parse(widget.previewURL);
       _controller = await videoControllerManager.requestVideoController(
-          videoUri, beforeVideoControllerDisposed: (controller) {
-        if (context.mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {
-              _isPreviewLoaded = false;
-              _isPlayingFailed = false;
-              _shouldUseThumbnail = true;
-              _controller = null;
-            });
-          });
-        }
-      });
+        videoUri,
+        shouldIncrementRefCountIfAlreadyExists:
+            shouldIncreaseRefCountIfALreadyExist,
+        beforeVideoControllerDisposed: (controller) {
+          if (context.mounted) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) {
+                setState(
+                  () {
+                    _isPreviewLoaded = false;
+                    _isPlayingFailed = false;
+                    _shouldUseThumbnail = true;
+                    _controller = null;
+                  },
+                );
+              },
+            );
+          }
+        },
+      );
       if (widget.isMute) {
         await _controller?.setVolume(0);
+      } else {
+        await _controller?.setVolume(1);
       }
       await _controller?.setLooping(true);
       if (_playAfterInitialized) {
@@ -163,7 +171,10 @@ class _VideoNFTRenderingWidgetState
   @override
   Future<void> didPopNext() async {
     _playAfterInitialized = true;
-    await _initVideoController();
+    // request video controller again
+    // when _controller is already exist in controller pool,
+    // we should not increase the ref count
+    await _initVideoController(shouldIncreaseRefCountIfALreadyExist: false);
   }
 
   @override
