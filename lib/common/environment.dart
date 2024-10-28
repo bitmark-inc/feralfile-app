@@ -71,6 +71,7 @@ class Environment {
       'SENTRY_DSN',
       'ONESIGNAL_APP_ID',
       'TV_API_KEY',
+      'SUPPORT_API_KEY',
     ];
     final missingKeys = <String>[];
     for (var key in keys) {
