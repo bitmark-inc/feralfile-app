@@ -54,10 +54,7 @@ class DomainServiceImpl implements DomainService {
     try {
       final ethAddress = await _getAddress(domain, 'ethereum');
       return ethAddress;
-    } catch (e, s) {
-      unawaited(Sentry.captureException(
-          'Error getting eth address for $domain: $e',
-          stackTrace: s));
+    } catch (e) {
       return null;
     }
   }
