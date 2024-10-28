@@ -69,10 +69,12 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
   }
 
   @override
-  _i6.Future<void> migrateAccount() => (super.noSuchMethod(
+  _i6.Future<void> migrateAccount(
+          _i6.Future<dynamic> Function()? createLoginJwt) =>
+      (super.noSuchMethod(
         Invocation.method(
           #migrateAccount,
-          [],
+          [createLoginJwt],
         ),
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
