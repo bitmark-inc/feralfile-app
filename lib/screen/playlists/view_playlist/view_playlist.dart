@@ -335,22 +335,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
-  Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
-    final playlist = widget.payload.playListModel;
-    final displayKey = playlist?.displayKey;
-    if (displayKey == null) {
-      return Future.value(false);
-    }
-
-    final lastSelectedCanvasDevice =
-        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
-    if (lastSelectedCanvasDevice != null) {
-      return _canvasClientServiceV2.moveToArtwork(lastSelectedCanvasDevice,
-          artworkId: compactedAssetToken.id);
-    }
-    return Future.value(false);
-  }
-
   Widget _assetsWidget(
     BuildContext context,
     List<CompactedAssetToken> tokens, {
@@ -402,8 +386,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             .where((e) => e.pending != true || e.hasMetadata)
                             .toList()
                             .indexOf(asset);
-
-                        unawaited(_moveToArtwork(asset));
 
                         final payload = asset.isPostcard
                             ? PostcardDetailPagePayload(

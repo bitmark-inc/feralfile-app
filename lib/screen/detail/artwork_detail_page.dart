@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
-import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -100,7 +99,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   double? _appBarBottomDy;
   bool _isFullScreen = false;
   ShakeDetector? _detector;
-  PlayListModel? _playlist;
 
   @override
   void initState() {
@@ -120,7 +118,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
-    _playlist = widget.payload.playlist;
   }
 
   @override
@@ -342,9 +339,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             backgroundColor: Colors.transparent,
                             actions: [
                               FFCastButton(
-                                shouldCheckSubscription: widget.payload.playlist
-                                        ?.requiredPremiumToDisplay ??
-                                    true,
                                 displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) {
                                   final artwork = PlayArtworkV2(
@@ -357,9 +351,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                       [artwork],
                                     ),
                                   );
-                                  setState(() {
-                                    _playlist = null;
-                                  });
                                 },
                               ),
                             ],
@@ -449,13 +440,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  String _getDisplayKey(AssetToken asset) {
-    final playlistDisplayKey = _playlist?.displayKey;
-    if (playlistDisplayKey != null) {
-      return playlistDisplayKey;
-    }
-    return asset.id.hashCode.toString();
-  }
+  String _getDisplayKey(AssetToken asset) => asset.id.hashCode.toString();
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
