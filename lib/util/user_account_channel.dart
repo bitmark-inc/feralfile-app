@@ -112,6 +112,8 @@ class UserAccountChannel {
 
   Future<bool> setDidRegisterPasskey(bool value) async {
     if (Platform.isAndroid) {
+      // for Android device, passkey is stored in Google Password Manager,
+      // so it is not synced
       await injector<ConfigurationService>().setDidRegisterPasskey(value);
       return true;
     }
