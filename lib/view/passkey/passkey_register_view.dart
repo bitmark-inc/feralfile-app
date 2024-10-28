@@ -112,7 +112,6 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         });
         try {
           await _passkeyService.registerInitiate();
-          await _passkeyService.registerRequest();
           await _accountService.migrateAccount(() async {
             await _passkeyService.registerFinalize();
           });

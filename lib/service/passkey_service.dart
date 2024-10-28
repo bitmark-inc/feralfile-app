@@ -9,15 +9,11 @@ import 'package:passkeys/types.dart';
 abstract class PasskeyService {
   Future<bool> isPassKeyAvailable();
 
-  Future<void> logInInitiate();
+  Future<AuthenticateResponseType> logInInitiate();
 
-  Future<AuthenticateResponseType> logInRequest();
-
-  Future<JWT> logInFinalize();
+  Future<JWT> logInFinalize(AuthenticateResponseType loginResponse);
 
   Future<void> registerInitiate();
-
-  Future<RegisterResponseType> registerRequest();
 
   Future<JWT> registerFinalize();
 }
@@ -25,12 +21,8 @@ abstract class PasskeyService {
 class PasskeyServiceImpl implements PasskeyService {
   final _passkeyAuthenticator = PasskeyAuthenticator();
 
-  RegisterRequestType? _registerRequest;
   RegisterResponseType? _registerResponse;
   String? _passkeyUserId;
-
-  AuthenticateRequestType? _loginRequest;
-  AuthenticateResponseType? _loginResponse;
 
   final UserApi _userApi;
   final UserAccountChannel _userAccountChannel;
@@ -61,7 +53,12 @@ class PasskeyServiceImpl implements PasskeyService {
       await _passkeyAuthenticator.canAuthenticate();
 
   @override
-  Future<void> logInInitiate() async {
+  Future<AuthenticateResponseType> logInInitiate() async {
+    final loginRequest = await _logInSeverInitiate();
+    return await _passkeyAuthenticator.authenticate(loginRequest);
+  }
+
+  Future<AuthenticateRequestType> _logInSeverInitiate() async {
     final userId = await _userAccountChannel.getUserId();
     if (userId == null) {
       throw Exception('User ID is not set');
@@ -72,7 +69,7 @@ class PasskeyServiceImpl implements PasskeyService {
     if (pubKey.rpId == null) {
       throw Exception('RP ID is not set');
     }
-    _loginRequest = AuthenticateRequestType(
+    return AuthenticateRequestType(
       challenge: pubKey.challenge,
       allowCredentials: pubKey.allowCredentials ?? [],
       relyingPartyId: pubKey.rpId!,
@@ -83,31 +80,27 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<AuthenticateResponseType> logInRequest() async {
-    if (_loginResponse != null) {
-      return _loginResponse!;
-    }
-    _loginResponse = await _passkeyAuthenticator.authenticate(_loginRequest!);
-    return _loginResponse!;
-  }
-
-  @override
-  Future<JWT> logInFinalize() async {
+  Future<JWT> logInFinalize(AuthenticateResponseType loginLocalResponse) async {
     final response = await _userApi.logInFinalize({
-      'public_key_credential': _loginResponse!.toJson(),
+      'public_key_credential': loginLocalResponse.toJson(),
     });
     return response;
   }
 
   @override
   Future<void> registerInitiate() async {
+    final registerRequest = await _initializeServerRegistration();
+    _registerResponse = await _passkeyAuthenticator.register(registerRequest);
+  }
+
+  Future<RegisterRequestType> _initializeServerRegistration() async {
     final response = await _userApi.registerInitialize();
     final pubKey = response.credentialCreationOption.publicKey;
     if (pubKey.authenticatorSelection == null) {
       throw Exception('Authenticator selection is not set');
     }
     _passkeyUserId = response.passkeyUserID;
-    _registerRequest = RegisterRequestType(
+    return RegisterRequestType(
       challenge: pubKey.challenge,
       relyingParty: pubKey.rp,
       user: pubKey.user,
@@ -117,16 +110,10 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<RegisterResponseType> registerRequest() async {
-    if (_registerResponse != null) {
-      return _registerResponse!;
-    }
-    _registerResponse = await _passkeyAuthenticator.register(_registerRequest!);
-    return _registerResponse!;
-  }
-
-  @override
   Future<JWT> registerFinalize() async {
+    if (_registerResponse == null || _passkeyUserId == null) {
+      throw Exception('Initialize registration has not finished');
+    }
     final addressAuthentication =
         await _addressService.getAddressAuthenticationMap();
     final response = await _userApi.registerFinalize({
