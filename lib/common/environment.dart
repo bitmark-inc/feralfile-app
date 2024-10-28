@@ -191,6 +191,9 @@ class Environment {
 
   static String get accountSettingUrl => _readKey('ACCOUNT_SETTING_URL', '');
 
+  static String get domainResolverUrl => _readKey('DOMAIN_RESOLVER_URL', '');
+
+  // secret keys
   static String get chatServerHmacKey =>
       _readKey('CHAT_SERVER_HMAC_KEY', '', isSecret: true);
 
@@ -220,6 +223,9 @@ class Environment {
       _readKey('ONESIGNAL_APP_ID', '', isSecret: true);
 
   static String get tvKey => _readKey('TV_API_KEY', '', isSecret: true);
+
+  static String get domainResolverApiKey =>
+      _readKey('DOMAIN_RESOLVER_API_KEY', '', isSecret: true);
 
   static String get supportApiKey =>
       _readKey('SUPPORT_API_KEY', '', isSecret: true);
