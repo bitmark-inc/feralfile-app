@@ -343,6 +343,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                               assetToken.id,
                               assetToken.owner,
                             ),
+                            shouldUpdateStatusWhenDidPopNext: false,
                           ),
                         ),
                       ),

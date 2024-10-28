@@ -21,6 +21,7 @@ class VideoNFTRenderingWidget extends NFTRenderingWidget {
       noPreviewUrlWidget; // Widget to show when no preview URL is provided
   final Function? onLoaded; // Callback for when the video is loaded
   final Function? onDispose; // Callback for when the widget is disposed
+  final bool resumeWhenPopNext;
 
   const VideoNFTRenderingWidget({
     required this.previewURL,
@@ -32,6 +33,7 @@ class VideoNFTRenderingWidget extends NFTRenderingWidget {
     this.isMute = false,
     this.onLoaded,
     this.onDispose,
+    this.resumeWhenPopNext = true,
   });
 
   @override
@@ -45,13 +47,17 @@ class _VideoNFTRenderingWidgetState
   VideoPlayerController? _controller;
   bool _isPreviewLoaded = false;
   bool _isPlayingFailed = false;
-  bool _playAfterInitialized = true;
+  bool _isPlaying = true;
   bool _shouldUseThumbnail = false;
+
+  // controller status
+  late bool _isMuted;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _isMuted = widget.isMute;
     unawaited(_initVideoController());
   }
 
@@ -69,8 +75,10 @@ class _VideoNFTRenderingWidgetState
     }
   }
 
-  Future<void> _initVideoController(
-      {bool shouldIncreaseRefCountIfALreadyExist = true}) async {
+  Future<void> _initVideoController({
+    bool shouldIncreaseRefCountIfALreadyExist = true,
+    bool shouldPauseOrResume = true,
+  }) async {
     try {
       final videoUri = Uri.parse(widget.previewURL);
       _controller = await videoControllerManager.requestVideoController(
@@ -94,14 +102,18 @@ class _VideoNFTRenderingWidgetState
           }
         },
       );
-      if (widget.isMute) {
-        await _controller?.setVolume(0);
+      if (_isMuted) {
+        await mute();
       } else {
-        await _controller?.setVolume(1);
+        await unmute();
       }
       await _controller?.setLooping(true);
-      if (_playAfterInitialized) {
-        await _controller?.play();
+      if (shouldPauseOrResume) {
+        if (_isPlaying) {
+          await resume();
+        } else {
+          await pause();
+        }
       }
 
       // Callback when the video is loaded
@@ -156,25 +168,27 @@ class _VideoNFTRenderingWidgetState
 
   Future<void> pauseOrResume() async {
     if (_controller?.value.isPlaying ?? false) {
-      await _controller?.pause();
+      await pause();
     } else {
-      await _controller?.play();
+      await resume();
     }
   }
 
   @override
   Future<void> didPushNext() async {
-    _playAfterInitialized = false;
-    await _controller?.pause();
+    await pause();
   }
 
   @override
   Future<void> didPopNext() async {
-    _playAfterInitialized = true;
+    _isPlaying = true;
     // request video controller again
     // when _controller is already exist in controller pool,
     // we should not increase the ref count
-    await _initVideoController(shouldIncreaseRefCountIfALreadyExist: false);
+    await _initVideoController(
+      shouldIncreaseRefCountIfALreadyExist: false,
+      shouldPauseOrResume: widget.resumeWhenPopNext,
+    );
   }
 
   @override
@@ -202,7 +216,7 @@ class _VideoNFTRenderingWidgetState
               ),
             ),
             Visibility(
-              visible: widget.isMute,
+              visible: _isMuted,
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Padding(
@@ -238,20 +252,32 @@ class _VideoNFTRenderingWidgetState
   @override
   Future<void> pause() async {
     await _controller?.pause();
+    setState(() {
+      _isPlaying = false;
+    });
   }
 
   @override
   Future<void> resume() async {
     await _controller?.play();
+    setState(() {
+      _isPlaying = true;
+    });
   }
 
   @override
   Future<void> mute() async {
     await _controller?.setVolume(0);
+    setState(() {
+      _isMuted = true;
+    });
   }
 
   @override
   Future<void> unmute() async {
     await _controller?.setVolume(1);
+    setState(() {
+      _isMuted = false;
+    });
   }
 }

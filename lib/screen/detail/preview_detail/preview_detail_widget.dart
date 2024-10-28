@@ -35,6 +35,11 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final bool useIndexer;
 
+  // this is used to prevent updating status when didPopNext is called
+  // (when pop to navigation page, if the index is not daily,
+  // we should not pause/resume the video)
+  final bool shouldUpdateStatusWhenDidPopNext;
+
   const ArtworkPreviewWidget({
     required this.identity,
     super.key,
@@ -43,6 +48,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
     this.isMute = false,
     this.focusNode,
     this.useIndexer = false,
+    this.shouldUpdateStatusWhenDidPopNext = true,
   });
 
   @override
@@ -144,6 +150,9 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           _currentRenderingWidget = VideoNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
+                            isMute: widget.isMute,
+                            resumeWhenPopNext:
+                                widget.shouldUpdateStatusWhenDidPopNext,
                           );
                           return InteractiveViewer(
                             minScale: 1,
