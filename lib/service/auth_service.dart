@@ -59,7 +59,7 @@ class AuthService {
       });
     }
     final newJwt = await _userApi.refreshJWT(payload);
-    _jwt = newJwt;
+    setAuthToken(newJwt);
     _refreshSubscriptionStatus(newJwt, receiptData: receiptData);
     return newJwt;
   }
@@ -85,6 +85,10 @@ class AuthService {
     }
     injector<SubscriptionBloc>().add(GetSubscriptionEvent());
     injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
+  }
+
+  void setAuthToken(JWT jwt) {
+    _jwt = jwt;
   }
 
   Future<JWT?> getAuthToken() async {

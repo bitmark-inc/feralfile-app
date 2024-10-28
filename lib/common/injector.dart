@@ -237,6 +237,7 @@ Future<void> setupInjector() async {
         injector(),
         injector(),
         injector(),
+        injector(),
       ));
 
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(

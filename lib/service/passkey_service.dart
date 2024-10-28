@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/gateway/user_api.dart';
-import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:passkeys/authenticator.dart';
@@ -11,11 +11,11 @@ abstract class PasskeyService {
 
   Future<AuthenticateResponseType> logInInitiate();
 
-  Future<JWT> logInFinalize(AuthenticateResponseType loginResponse);
+  Future<void> logInFinalize(AuthenticateResponseType loginResponse);
 
   Future<void> registerInitiate();
 
-  Future<JWT> registerFinalize();
+  Future<void> registerFinalize();
 }
 
 class PasskeyServiceImpl implements PasskeyService {
@@ -27,11 +27,13 @@ class PasskeyServiceImpl implements PasskeyService {
   final UserApi _userApi;
   final UserAccountChannel _userAccountChannel;
   final AddressService _addressService;
+  final AuthService _authService;
 
   PasskeyServiceImpl(
     this._userApi,
     this._userAccountChannel,
     this._addressService,
+    this._authService,
   );
 
   /*
@@ -80,9 +82,10 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<JWT> logInFinalize(AuthenticateResponseType loginLocalResponse) async {
+  Future<void> logInFinalize(
+      AuthenticateResponseType loginLocalResponse) async {
     final response = await _userApi.logInFinalize(loginLocalResponse.toJson());
-    return response;
+    _authService.setAuthToken(response);
   }
 
   @override
@@ -108,7 +111,7 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<JWT> registerFinalize() async {
+  Future<void> registerFinalize() async {
     if (_registerResponse == null || _passkeyUserId == null) {
       throw Exception('Initialize registration has not finished');
     }
@@ -122,7 +125,7 @@ class PasskeyServiceImpl implements PasskeyService {
     });
     await _userAccountChannel.setDidRegisterPasskey(true);
     await _userAccountChannel.setUserId(addressAuthentication['requester']);
-    return response;
+    _authService.setAuthToken(response);
   }
 }
 
