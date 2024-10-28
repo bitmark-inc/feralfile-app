@@ -142,17 +142,24 @@ class SentryInterceptor extends InterceptorsWrapper {
 }
 
 class AutonomyAuthInterceptor extends Interceptor {
-  AutonomyAuthInterceptor();
+  // use this apiKey for if jwt is not available
+  final String? apiKey;
+
+  AutonomyAuthInterceptor({this.apiKey});
 
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     final jwt = await injector<AuthService>().getAuthToken();
-    if (jwt == null) {
+    if (jwt == null && apiKey == null) {
       unawaited(Sentry.captureMessage('JWT is null'));
       throw JwtException(message: 'can_not_authenticate_desc'.tr());
     }
-    options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+    if (jwt != null) {
+      options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+    } else {
+      options.headers['x-api-key'] = apiKey;
+    }
 
     return handler.next(options);
   }

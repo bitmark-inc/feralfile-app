@@ -219,4 +219,7 @@ class Environment {
       _readKey('ONESIGNAL_APP_ID', '', isSecret: true);
 
   static String get tvKey => _readKey('TV_API_KEY', '', isSecret: true);
+
+  static String get supportApiKey =>
+      _readKey('SUPPORT_API_KEY', '', isSecret: true);
 }

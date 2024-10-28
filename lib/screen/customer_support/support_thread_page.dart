@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/jwt.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -265,8 +266,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       return _userId!;
     }
     final jwt = await injector<AuthService>().getAuthToken();
-    final data = parseJwt(jwt!.jwtToken);
-    _userId = data['sub'] ?? '';
+    if (jwt != null) {
+      final data = parseJwt(jwt.jwtToken);
+      _userId = data['sub'] ?? '';
+    } else {
+      _userId = await getDeviceID();
+    }
     return _userId!;
   }
 

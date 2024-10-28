@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension.dart';
@@ -135,19 +139,6 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     if (_didSuccess || (!_isError && !_registering)) {
       return const SizedBox();
     }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: GestureDetector(
-        onTap: () {
-          //Navigator.of(context).pop();
-        },
-        child: Text(
-          'having_trouble'.tr(),
-          style: Theme.of(context).textTheme.ppMori400Grey14.copyWith(
-                decoration: TextDecoration.underline,
-              ),
-        ),
-      ),
-    );
+    return const HavingTroubleView();
   }
 }
