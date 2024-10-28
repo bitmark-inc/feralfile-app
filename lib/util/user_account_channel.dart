@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry/sentry.dart';
 
 class UserAccountChannel {
   final MethodChannel _channel;
@@ -35,9 +36,6 @@ class UserAccountChannel {
     }
     try {
       final String data = await _channel.invokeMethod('getPrimaryAddress', {});
-      if (data.isEmpty) {
-        _primaryAddress = null;
-      }
       final primaryAddressInfo = json.decode(data);
       _primaryAddress = AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
@@ -58,13 +56,20 @@ class UserAccountChannel {
     }
   }
 
-  Future<bool> setUserId(String userId, {bool isPasskeys = false}) async {
+  Future<bool> setUserId(String userId) async {
     try {
       await _channel.invokeMethod('setUserId', {'data': userId});
       _userId = userId;
       return true;
     } catch (e) {
       log.info('setUserId error', e);
+      unawaited(Sentry.captureException(
+        e,
+        hint: Hint.withMap({
+          'method': 'setUserId',
+          'userId': userId,
+        }),
+      ));
       return false;
     }
   }
@@ -107,7 +112,7 @@ class UserAccountChannel {
 
   Future<bool> setDidRegisterPasskey(bool value) async {
     if (Platform.isAndroid) {
-      await injector<ConfigurationService>().setRegisterPasskey(value);
+      await injector<ConfigurationService>().setDidRegisterPasskey(value);
       return true;
     }
     final didRegister = await _channel.invokeMethod('setDidRegisterPasskey', {

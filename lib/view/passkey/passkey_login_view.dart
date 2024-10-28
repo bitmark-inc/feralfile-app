@@ -73,6 +73,7 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
           }
           setState(() {
             _isLogging = true;
+            _isError = false;
           });
           try {
             final localResponse = await _passkeyService.logInInitiate();
@@ -87,6 +88,10 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
             unawaited(Sentry.captureException(e, stackTrace: stackTrace));
             setState(() {
               _isError = true;
+            });
+          } finally {
+            setState(() {
+              _isLogging = false;
             });
           }
         },

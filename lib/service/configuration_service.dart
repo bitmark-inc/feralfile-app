@@ -26,11 +26,7 @@ import 'package:uuid/uuid.dart';
 abstract class ConfigurationService {
   bool didRegisterPasskey();
 
-  Future<void> setRegisterPasskey(bool value);
-
-  String getRefreshToken();
-
-  Future<void> setRefreshToken(String value);
+  Future<void> setDidRegisterPasskey(bool value);
 
   bool didMigrateToAccountSetting();
 
@@ -215,7 +211,6 @@ abstract class ConfigurationService {
 
 class ConfigurationServiceImpl implements ConfigurationService {
   static const String keyDidRegisterPasskey = 'did_register_passkey';
-  static const String keyRefreshToken = 'refresh_token';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
@@ -941,19 +936,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  String getRefreshToken() => _preferences.getString(keyRefreshToken) ?? '';
-
-  @override
-  Future<void> setRefreshToken(String value) async {
-    await _preferences.setString(keyRefreshToken, value);
-  }
-
-  @override
   bool didRegisterPasskey() =>
       _preferences.getBool(keyDidRegisterPasskey) ?? false;
 
   @override
-  Future<void> setRegisterPasskey(bool value) async {
+  Future<void> setDidRegisterPasskey(bool value) async {
     await _preferences.setBool(keyDidRegisterPasskey, value);
   }
 }

@@ -1,11 +1,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -113,6 +110,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         }
         setState(() {
           _registering = true;
+          _isError = false;
         });
         try {
           await _passkeyService.registerInitiate();
@@ -127,6 +125,10 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           unawaited(Sentry.captureException(e, stackTrace: stackTrace));
           setState(() {
             _isError = true;
+          });
+        } finally {
+          setState(() {
+            _registering = false;
           });
         }
       },

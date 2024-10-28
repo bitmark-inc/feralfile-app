@@ -733,7 +733,6 @@ class AccountServiceImpl extends AccountService {
     // case 5/6: update/restore app from old version using primary address
 
     if (isDoneOnboarding) {
-      // case 3: restore app from old version using primary address
       log.info('[AccountService] migrateAccount: '
           'case 5 update app from old version using primary address');
       // migrate to ethereum first, then upload to account-settings

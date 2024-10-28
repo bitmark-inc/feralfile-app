@@ -29,18 +29,19 @@ class CredProps {
 }
 
 // Model for Extensions (appid, appidExclude, and credProps)
-class Extensions {
+class CredentialExtensions {
   final bool? appid;
   final bool? appidExclude;
   final CredProps? credProps;
 
-  Extensions({
+  CredentialExtensions({
     this.appid,
     this.appidExclude,
     this.credProps,
   });
 
-  factory Extensions.fromJson(Map<String, dynamic> json) => Extensions(
+  factory CredentialExtensions.fromJson(Map<String, dynamic> json) =>
+      CredentialExtensions(
         appid: json['appid'],
         appidExclude: json['appidExclude'],
         credProps: json['credProps'] != null
@@ -56,7 +57,7 @@ class PublicKeyCredentialRequestOptions {
   final String? rpId;
   final List<CredentialType>? allowCredentials;
   final String? userVerification;
-  final Extensions? extensions;
+  final CredentialExtensions? extensions;
 
   PublicKeyCredentialRequestOptions({
     required this.challenge,
@@ -80,7 +81,7 @@ class PublicKeyCredentialRequestOptions {
             : null,
         userVerification: json['userVerification'],
         extensions: json['extensions'] != null
-            ? Extensions.fromJson(json['extensions'])
+            ? CredentialExtensions.fromJson(json['extensions'])
             : null,
       );
 }
