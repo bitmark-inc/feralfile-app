@@ -358,6 +358,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // refresh playlist token here
     injector<ListPlaylistBloc>()
         .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
+    if (_selectedIndex == HomeNavigatorTab.daily.index) {
+      _dailyWorkKey.currentState?.resumeDailyWork();
+    }
   }
 
   @override

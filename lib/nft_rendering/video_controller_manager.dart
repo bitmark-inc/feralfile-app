@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry/sentry.dart';
 import 'package:video_player/video_player.dart';
 
 final videoControllerManager = VideoControllerManager(maxVideoControllers: 1);
@@ -30,6 +31,9 @@ class VideoControllerManager {
 
   final Map<String, bool> _cyclingUriMap = {};
 
+  final Map<String, int> _controllerRefCount =
+      {}; // Track references per controller
+
   Future<void> _recycleUri(Uri videoUri,
       {bool resetSeekPosition = false}) async {
     final videoPath = videoUri.toString();
@@ -45,27 +49,35 @@ class VideoControllerManager {
     try {
       final controller = _videoControllers[videoPath];
       if (controller != null) {
-        if (resetSeekPosition) {
-          _videoSeekPositionMap.remove(videoPath);
-        } else {
-          final position = controller.value.position;
-          _videoSeekPositionMap[videoPath] = position;
+        _controllerRefCount[videoPath] =
+            (_controllerRefCount[videoPath] ?? 1) - 1;
+        if (_controllerRefCount[videoPath]! <= 0) {
+          if (resetSeekPosition) {
+            _videoSeekPositionMap.remove(videoPath);
+          } else {
+            final position = controller.value.position;
+            _videoSeekPositionMap[videoPath] = position;
+          }
+          try {
+            _beforeVideoControllerDisposedHandlers[videoPath]?.call(controller);
+          } catch (error) {
+            log.info('[VideoControllerManager] Error calling '
+                'beforeVideoControllerDisposed handler '
+                'for $videoUri: $error');
+          }
+          await controller.dispose();
+          _videoControllers.remove(videoPath);
+          _controllerPool.remove(videoPath);
+          _controllerRefCount.remove(videoPath);
         }
-        try {
-          _beforeVideoControllerDisposedHandlers[videoPath]?.call(controller);
-        } catch (error) {
-          log.info('[VideoControllerManager] Error calling '
-              'beforeVideoControllerDisposed handler '
-              'for $videoUri: $error');
-        }
-        await controller.dispose();
-        _videoControllers.remove(videoPath);
-        _controllerPool.remove(videoPath);
       }
       _cyclingUriMap.remove(videoPath);
-    } catch (error) {
+    } catch (error, s) {
       log.info('[VideoControllerManager] Error recycling video '
           'controller for $videoUri: $error');
+      unawaited(Sentry.captureException(
+          'Error recycling video controller for $videoUri, error: $error',
+          stackTrace: s));
       _cyclingUriMap.remove(videoPath);
     }
   }
@@ -97,6 +109,7 @@ class VideoControllerManager {
     Uri videoUri, {
     Function(VideoPlayerController)? onVideoControllerCreated,
     Function(VideoPlayerController)? beforeVideoControllerDisposed,
+    bool shouldIncrementRefCountIfAlreadyExists = true,
   }) async {
     log.info(
         '[VideoControllerManager] Requesting video controller for $videoUri');
@@ -125,6 +138,10 @@ class VideoControllerManager {
         }
         completer.complete(controller);
         _requestVideoControllerCompleters.remove(videoPath);
+        if (shouldIncrementRefCountIfAlreadyExists) {
+          _controllerRefCount[videoPath] =
+              (_controllerRefCount[videoPath] ?? 0) + 1;
+        }
         return controller;
       } else {
         VideoPlayerController controller;
@@ -165,11 +182,19 @@ class VideoControllerManager {
             'Requested video controller for $videoUri');
         completer.complete(controller);
         _requestVideoControllerCompleters.remove(videoPath);
+        _controllerRefCount[videoPath] =
+            (_controllerRefCount[videoPath] ?? 0) + 1;
         return controller;
       }
-    } catch (error) {
+    } catch (error, s) {
       log.info('[VideoControllerManager] '
           'Error requesting video controller for $videoUri: $error');
+      unawaited(
+        Sentry.captureException(
+          'Error requesting video controller for $videoUri, error: $error',
+          stackTrace: s,
+        ),
+      );
       completer.completeError(error);
       _requestVideoControllerCompleters.remove(videoPath);
       return completer.future;
