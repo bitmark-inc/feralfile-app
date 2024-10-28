@@ -14,7 +14,7 @@ abstract class PasskeyService {
 
   Future<AuthenticateResponseType> logInInitiate();
 
-  Future<void> logInFinalize(AuthenticateResponseType loginResponse);
+  Future<void> logInFinalize(AuthenticateResponseType authenticateResponse);
 
   Future<void> registerInitiate();
 
@@ -102,9 +102,9 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<void> logInFinalize(
-      AuthenticateResponseType loginLocalResponse) async {
+      AuthenticateResponseType authenticateResponse) async {
     final response =
-        await _userApi.logInFinalize(loginLocalResponse.toFFJson());
+        await _userApi.logInFinalize(authenticateResponse.toFFJson());
     _authService.setAuthToken(response);
   }
 
