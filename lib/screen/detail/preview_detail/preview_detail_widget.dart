@@ -206,6 +206,7 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           _currentRenderingWidget = WebviewNFTRenderingWidget(
                             key: _artworkKey,
                             previewURL: previewURL,
+                            isMute: widget.isMute,
                           );
                           return Center(
                             child: _currentRenderingWidget,
