@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -147,6 +148,9 @@ class FileLogger {
   }
 
   static String _filterLog(String logText) {
+    if (logText.contains(LoggingInterceptor.errorLogPrefix)) {
+      return logText;
+    }
     String filteredLog = logText;
 
     RegExp combinedRegex = RegExp('("message":".*?")|'

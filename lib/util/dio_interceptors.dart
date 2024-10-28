@@ -34,12 +34,14 @@ class LoggingInterceptor extends Interceptor {
     '${Environment.feralFileAPIURL}/api/artworks',
   ];
 
+  static String errorLogPrefix = 'Respond error:';
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
     apiLog
       ..info('API Request: $curl')
-      ..warning('Respond error: ${err.response}');
+      ..warning('$errorLogPrefix ${err.response}');
     return handler.next(err);
   }
 
