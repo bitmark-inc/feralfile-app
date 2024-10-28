@@ -30,5 +30,5 @@ extension ExploreStatisticsDataExt on ExploreStatisticsData {
   int get totalArtist => artist;
 
   int get totalCurator =>
-      curator - FeralFileExploreHelper.ignoreCuratorIds.length;
+      curator - FeralFileExploreHelper.ignoreCuratorAddresses.length;
 }

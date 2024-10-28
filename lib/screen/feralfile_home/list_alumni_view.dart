@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
+import 'package:autonomy_flutter/view/alumni_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
-import 'package:autonomy_flutter/view/user_widget.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -35,7 +35,7 @@ class ExploreArtistView extends StatefulWidget {
 }
 
 class ExploreArtistViewState extends State<ExploreArtistView> {
-  List<FFUser>? _artists;
+  List<AlumniAccount>? _artists;
   late Paging _paging;
   late ScrollController _scrollController;
   bool _isLoading = false;
@@ -88,12 +88,12 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     );
   }
 
-  Widget _artistView(BuildContext context, List<FFUser> artists) =>
-      ListUserView(
-          users: artists,
-          onUserSelected: (user) {
+  Widget _artistView(BuildContext context, List<AlumniAccount> artists) =>
+      ListAlumniView(
+          listAlumni: artists,
+          onAlumniSelected: (alumni) {
             unawaited(injector<NavigationService>()
-                .openFeralFileArtistPage(user.alumniAccount?.slug ?? user.id));
+                .openFeralFileArtistPage(alumni.slug ?? alumni.id));
           },
           scrollController: _scrollController,
           padding: const EdgeInsets.only(
@@ -113,14 +113,15 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     }
   }
 
-  Future<List<FFUser>> _fetchArtists(BuildContext context) async {
+  Future<List<AlumniAccount>> _fetchArtists(BuildContext context) async {
     if (_isLoading) {
       return [];
     }
     _isLoading = true;
 
-    final resp = await injector<FeralFileService>().exploreArtists(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isArtist: true,
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
@@ -143,8 +144,9 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
       return;
     }
     _isLoading = true;
-    final resp = await injector<FeralFileService>().exploreArtists(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isArtist: true,
       offset: _paging.offset + _paging.limit,
       limit: _paging.limit,
       orderBy: widget.sortBy.queryParam,
@@ -182,7 +184,7 @@ class ExploreCuratorView extends StatefulWidget {
 }
 
 class ExploreCuratorViewState extends State<ExploreCuratorView> {
-  List<FFUser>? _curators;
+  List<AlumniAccount>? _curators;
   late ScrollController _scrollController;
   late Paging _paging;
   bool _isLoading = false;
@@ -235,12 +237,12 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     );
   }
 
-  Widget _curatorView(BuildContext context, List<FFUser> curators) =>
-      ListUserView(
-        users: curators,
-        onUserSelected: (user) {
+  Widget _curatorView(BuildContext context, List<AlumniAccount> curators) =>
+      ListAlumniView(
+        listAlumni: curators,
+        onAlumniSelected: (alumni) {
           unawaited(injector<NavigationService>()
-              .openFeralFileCuratorPage(user.alumniAccount?.slug ?? user.id));
+              .openFeralFileCuratorPage(alumni.slug ?? alumni.id));
         },
         scrollController: _scrollController,
         padding: const EdgeInsets.only(
@@ -261,22 +263,25 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     }
   }
 
-  Future<List<FFUser>> _fetchCurators(BuildContext context) async {
+  Future<List<AlumniAccount>> _fetchCurators(BuildContext context) async {
     if (_isLoading) {
       return [];
     }
     _isLoading = true;
-    final resp = await injector<FeralFileService>().exploreCurators(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isCurator: true,
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
-    final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
+    final ignoreCuratorAddresses =
+        FeralFileExploreHelper.ignoreCuratorAddresses;
     final curators = resp.result;
     final paging = resp.paging!;
     setState(() {
       _curators = curators
-          .where((curator) => !ignoreCuratorIds.contains(curator.id))
+          .where((curator) => !curator.addressesList
+              .any((address) => ignoreCuratorAddresses.contains(address)))
           .toList();
       _paging = paging;
     });
@@ -293,21 +298,24 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       return;
     }
     _isLoading = true;
-    final resp = await injector<FeralFileService>().exploreCurators(
+    final resp = await injector<FeralFileService>().getListAlumni(
       keywork: widget.searchText ?? '',
+      isCurator: true,
       offset: _paging.offset + _paging.limit,
       limit: _paging.limit,
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
 
-    final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
+    final ignoreCuratorAddresses =
+        FeralFileExploreHelper.ignoreCuratorAddresses;
 
     final curators = resp.result;
     final paging = resp.paging!;
     setState(() {
       _curators!.addAll(curators
-          .where((curator) => !ignoreCuratorIds.contains(curator.id))
+          .where((curator) => !curator.addressesList
+              .any((address) => ignoreCuratorAddresses.contains(address)))
           .toList());
       _paging = paging;
     });
@@ -315,24 +323,24 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   }
 }
 
-class ListUserView extends StatefulWidget {
-  final List<FFUser> users;
-  final Function(FFUser) onUserSelected;
+class ListAlumniView extends StatefulWidget {
+  final List<AlumniAccount> listAlumni;
+  final Function(AlumniAccount) onAlumniSelected;
   final ScrollController? scrollController;
   final EdgeInsets padding;
 
-  const ListUserView(
-      {required this.users,
-      required this.onUserSelected,
+  const ListAlumniView(
+      {required this.listAlumni,
+      required this.onAlumniSelected,
       this.scrollController,
       this.padding = const EdgeInsets.all(0),
       super.key});
 
   @override
-  State<ListUserView> createState() => _ListUserViewState();
+  State<ListAlumniView> createState() => _ListAlumniViewState();
 }
 
-class _ListUserViewState extends State<ListUserView> {
+class _ListAlumniViewState extends State<ListAlumniView> {
   late ScrollController _scrollController;
 
   @override
@@ -356,38 +364,38 @@ class _ListUserViewState extends State<ListUserView> {
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final user = widget.users[index];
+                    final alumni = widget.listAlumni[index];
                     return GestureDetector(
                       onTap: () {
-                        widget.onUserSelected(user);
+                        widget.onAlumniSelected(alumni);
                       },
                       child: Container(
                         color: Colors.transparent,
-                        child: _artistItem(context, user),
+                        child: _artistItem(context, alumni),
                       ),
                     );
                   },
-                  childCount: widget.users.length,
+                  childCount: widget.listAlumni.length,
                 )),
           ),
         ],
       );
 
-  Widget _artistAvatar(BuildContext context, FFUser user) {
-    final avatarUrl = user.avatarUrl;
-    return UserAvatar(url: avatarUrl);
+  Widget _artistAvatar(BuildContext context, AlumniAccount alumni) {
+    final avatarUrl = alumni.avatarUrl;
+    return AlumniAvatar(url: avatarUrl);
   }
 
-  Widget _artistItem(BuildContext context, FFUser user) {
+  Widget _artistItem(BuildContext context, AlumniAccount alumni) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AspectRatio(aspectRatio: 1, child: _artistAvatar(context, user)),
+        AspectRatio(aspectRatio: 1, child: _artistAvatar(context, alumni)),
         const SizedBox(height: 14),
         Expanded(
             child: Text(
-          user.displayAlias,
+          alumni.displayAlias,
           style: theme.textTheme.ppMori400White12,
           overflow: TextOverflow.ellipsis,
           maxLines: 2,

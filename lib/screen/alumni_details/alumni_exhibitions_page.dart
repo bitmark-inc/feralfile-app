@@ -1,41 +1,39 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
-class ArtistExhibitionsPagePayload {
-  final FFUser user;
+class AlumniExhibitionsPagePayload {
+  final AlumniAccount alumni;
 
-  ArtistExhibitionsPagePayload(this.user);
+  AlumniExhibitionsPagePayload(this.alumni);
 }
 
-class ArtistExhibitionsPage extends StatefulWidget {
-  final ArtistExhibitionsPagePayload payload;
+class AlumniExhibitionsPage extends StatefulWidget {
+  final AlumniExhibitionsPagePayload payload;
 
-  const ArtistExhibitionsPage({required this.payload, super.key});
+  const AlumniExhibitionsPage({required this.payload, super.key});
 
   @override
-  State<ArtistExhibitionsPage> createState() => _ArtistExhibitionsPageState();
+  State<AlumniExhibitionsPage> createState() => _AlumniExhibitionsPageState();
 }
 
-class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
+class _AlumniExhibitionsPageState extends State<AlumniExhibitionsPage> {
   List<Exhibition>? _exhibitions;
 
   Future<List<Exhibition>> _fetchExhibitions() async {
-    final artist = widget.payload.user;
-    final artistId = artist.id;
-    final linkedAccountIds = artist.alumniAccount?.linkedAddresses ?? [];
+    final alumni = widget.payload.alumni;
     final response = await injector<FeralFileService>().getAllExhibitions(
-      relatedAccountIDs: [artistId, ...linkedAccountIds],
+      relatedAlumniAccountIDs: alumni.allRelatedAccountIDs,
     );
 
     setState(() {
@@ -53,14 +51,14 @@ class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artist = widget.payload.user;
+    final alumni = widget.payload.alumni;
     return Scaffold(
       appBar: getFFAppBar(context,
           onBack: () => Navigator.of(context).pop(),
           title: Column(
             children: [
               Text(
-                artist.displayAlias,
+                alumni.displayAlias,
                 style: theme.textTheme.ppMori400White14,
               ),
               const SizedBox(height: 4),
