@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
@@ -131,7 +132,8 @@ class PasskeyServiceImpl implements PasskeyService {
     final response = await _userApi.registerFinalize({
       'addressAuthentication': addressAuthentication,
       'passkeyUserId': _passkeyUserId,
-      'public_key_credential': _registerResponse!.toJson(),
+      'credentialCreationResponse':
+          _registerResponse!.toCredentialCreationResponseJson(),
     });
     await _userAccountChannel.setDidRegisterPasskey(true);
     await _userAccountChannel.setUserId(addressAuthentication['requester']);

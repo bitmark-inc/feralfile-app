@@ -159,7 +159,9 @@ class FileLogger {
         r'(0x[A-Fa-f0-9]{64}[\s\W])|'
         r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
         r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)|'
-        r'(\\"receipt\\":\{[^{}]*\})');
+        r'(\\"receipt\\":\{[^{}]*\})|'
+        r'(\\"clientDataJSON\\":\\".*?\\")|'
+        r'(\\"attestationObject\\":\\".*?\\")');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
@@ -192,7 +194,13 @@ class FileLogger {
       if (match[11] != null) {
         return r'\"receipt\": REDACTED_RECEIPT';
       }
-      return '';
+      if (match[12] != null) {
+        return r'\"clientDataJSON\":\"REDACTED_CLIENT_DATA_JSON\"';
+      }
+      if (match[13] != null) {
+        return r'\"attestationObject\":\"REDACTED_ATTESTATION_OBJECT\"';
+      }
+      return 'REDACTED_INFORMATION';
     });
 
     return filteredLog;
