@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -56,7 +55,6 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   final _passkeyService = injector.get<PasskeyService>();
   final _authService = injector.get<AuthService>();
-  final _userAccountChannel = injector.get<UserAccountChannel>();
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -175,7 +173,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       });
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
-      final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
+      final didRegisterPasskey = await _passkeyService.didRegisterPasskey();
 
       final didLoginSuccess = didRegisterPasskey
           ? await _loginWithPasskey()

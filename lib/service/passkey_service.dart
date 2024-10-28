@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
+import 'package:flutter/services.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 
@@ -17,6 +20,10 @@ abstract class PasskeyService {
 
   Future<void> registerFinalize();
 
+  Future<bool> didRegisterPasskey();
+
+  Future<bool> setDidRegisterPasskey(bool value);
+
   static String authenticationType = 'public-key';
 }
 
@@ -27,16 +34,22 @@ class PasskeyServiceImpl implements PasskeyService {
   String? _passkeyUserId;
 
   final UserApi _userApi;
-  final UserAccountChannel _userAccountChannel;
+  final ConfigurationService _configurationService;
   final AddressService _addressService;
   final AuthService _authService;
 
+  late final MethodChannel _iosMigrationChannel;
+
   PasskeyServiceImpl(
     this._userApi,
-    this._userAccountChannel,
+    this._configurationService,
     this._addressService,
     this._authService,
-  );
+  ) {
+    if (Platform.isIOS) {
+      _iosMigrationChannel = const MethodChannel('migration_util');
+    }
+  }
 
   /*
   static final AuthenticatorSelectionType _defaultAuthenticatorSelection =
@@ -65,7 +78,9 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   Future<AuthenticateRequestType> _logInSeverInitiate() async {
-    final userId = await _userAccountChannel.getUserId();
+    // userId is the address that sign the message when register,
+    // which is the primary address
+    final userId = await _addressService.getPrimaryAddress();
     if (userId == null) {
       throw Exception('User ID is not set');
     }
@@ -128,9 +143,33 @@ class PasskeyServiceImpl implements PasskeyService {
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
-    await _userAccountChannel.setDidRegisterPasskey(true);
-    await _userAccountChannel.setUserId(addressAuthentication['requester']);
+    await setDidRegisterPasskey(true);
     _authService.setAuthToken(response);
+  }
+
+  @override
+  Future<bool> didRegisterPasskey() async {
+    if (Platform.isAndroid) {
+      return _configurationService.didRegisterPasskey();
+    }
+    final didRegister =
+        await _iosMigrationChannel.invokeMethod('didRegisterPasskey', {});
+    return didRegister;
+  }
+
+  @override
+  Future<bool> setDidRegisterPasskey(bool value) async {
+    if (Platform.isAndroid) {
+      // for Android device, passkey is stored in Google Password Manager,
+      // so it is not synced
+      await _configurationService.setDidRegisterPasskey(value);
+      return true;
+    }
+    final didRegister =
+        await _iosMigrationChannel.invokeMethod('setDidRegisterPasskey', {
+      'data': value,
+    });
+    return didRegister;
   }
 }
 

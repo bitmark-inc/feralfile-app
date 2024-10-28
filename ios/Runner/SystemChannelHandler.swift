@@ -174,40 +174,6 @@ class SystemChannelHandler: NSObject {
         return
     }
     
-    
-    func setUserId(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-                  let data = args["data"] as? String else {
-                result(false)
-                return
-            }
-        let keychain = Keychain()
-        if keychain.set(data.data(using: .utf8)!, forKey: Constant.userIdKey) {
-                result(true)
-            } else {
-                result(false)
-            }
-    }
-    
-    func getUserId(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        
-        guard let data = keychain.getData(Constant.userIdKey, isSync: true),
-              let userId = String(data: data, encoding: .utf8) else {
-                result("")
-                return
-              }
-
-        result(userId)
-    }
-    
-    func clearUserId(call: FlutterMethodCall) {
-        let keychain = Keychain()
-        
-        keychain.remove(key: Constant.userIdKey, isSync: true)
-        return
-    }
-    
     func setDidRegisterPasskey(call: FlutterMethodCall, result: @escaping FlutterResult) {
         // Safely extract the arguments and handle cases where "data" is nil or invalid, default to false
         let args = call.arguments as? [String: Any]

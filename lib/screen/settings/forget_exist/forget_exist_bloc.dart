@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
@@ -68,6 +69,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
+      await injector<PasskeyService>().setDidRegisterPasskey(false);
       await _configurationService.removeAll();
       await injector<CacheManager>().emptyCache();
       await DefaultCacheManager().emptyCache();
@@ -78,7 +80,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await injector<AnnouncementStore>().clear();
       injector<CanvasDeviceBloc>().clear();
       injector<IAPService>().clearReceipt();
-      injector<IAPService>().reset();
+      unawaited(injector<IAPService>().reset());
 
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();
