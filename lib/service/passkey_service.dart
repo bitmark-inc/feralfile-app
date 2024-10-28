@@ -81,9 +81,7 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<JWT> logInFinalize(AuthenticateResponseType loginLocalResponse) async {
-    final response = await _userApi.logInFinalize({
-      'public_key_credential': loginLocalResponse.toJson(),
-    });
+    final response = await _userApi.logInFinalize(loginLocalResponse.toJson());
     return response;
   }
 
