@@ -262,7 +262,7 @@ import Logging
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             SystemChannelHandler.shared.didRegisterPasskeyKeychain { didRegisterPasskey in
-                if !didRegisterPasskey {
+                if let didRegisterPasskey = didRegisterPasskey as? Bool, !didRegisterPasskey {
                         self?.showAuthenticationOverlay()
                         self?.authenticationVC.authentication()
                     }
