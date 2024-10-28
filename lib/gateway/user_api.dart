@@ -5,9 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/credential_request_option.dart';
+import 'package:autonomy_flutter/model/passkey/credential_request_option.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
-import 'package:autonomy_flutter/model/passkey_creation_option.dart';
+import 'package:autonomy_flutter/model/passkey/passkey_creation_option.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 

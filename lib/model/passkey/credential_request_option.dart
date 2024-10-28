@@ -1,20 +1,23 @@
+import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:passkeys/types.dart';
 
 // Main model class for CredentialRequestOption
 class CredentialRequestOption {
   final PublicKeyCredentialRequestOptions publicKey;
-  final MediationType mediation;
+  final MediationType? mediation;
 
   CredentialRequestOption({
     required this.publicKey,
-    required this.mediation,
+    this.mediation,
   });
 
   factory CredentialRequestOption.fromJson(Map<String, dynamic> json) =>
       CredentialRequestOption(
         publicKey:
             PublicKeyCredentialRequestOptions.fromJson(json['publicKey']),
-        mediation: getMediationTypeFromString(json['mediation']),
+        mediation: json['mediation'] == null
+            ? null
+            : getMediationTypeFromString(json['mediation']),
       );
 }
 
@@ -76,7 +79,7 @@ class PublicKeyCredentialRequestOptions {
         rpId: json['rpId'],
         allowCredentials: json['allowCredentials'] != null
             ? (json['allowCredentials'] as List)
-                .map((cred) => CredentialType.fromJson(cred))
+                .map((cred) => getCredentialTypeFromJsonFF(cred))
                 .toList()
             : null,
         userVerification: json['userVerification'],

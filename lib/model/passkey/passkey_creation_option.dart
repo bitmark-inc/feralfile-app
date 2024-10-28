@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:passkeys/types.dart';
 
 class CredentialCreationOptionResponse {
@@ -69,7 +70,7 @@ class PublicKey {
         timeout: json['timeout'],
         excludeCredentials: json['excludeCredentials'] != null
             ? (json['excludeCredentials'] as List)
-                .map((cred) => CredentialType.fromJson(cred))
+                .map((cred) => getCredentialTypeFromJsonFF(cred))
                 .toList()
             : null,
         authenticatorSelection: json['authenticatorSelection'] != null

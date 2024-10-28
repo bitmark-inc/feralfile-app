@@ -16,6 +16,8 @@ abstract class PasskeyService {
   Future<void> registerInitiate();
 
   Future<void> registerFinalize();
+
+  static String authenticationType = 'public-key';
 }
 
 class PasskeyServiceImpl implements PasskeyService {
@@ -48,6 +50,8 @@ class PasskeyServiceImpl implements PasskeyService {
 
  */
 
+  static const _defaultMediation = MediationType.Optional;
+
   static const _preferImmediatelyAvailableCredentials = false;
 
   @override
@@ -75,7 +79,7 @@ class PasskeyServiceImpl implements PasskeyService {
       challenge: pubKey.challenge,
       allowCredentials: pubKey.allowCredentials ?? [],
       relyingPartyId: pubKey.rpId!,
-      mediation: response.mediation,
+      mediation: response.mediation ?? _defaultMediation,
       preferImmediatelyAvailableCredentials:
           _preferImmediatelyAvailableCredentials,
     );
@@ -84,6 +88,8 @@ class PasskeyServiceImpl implements PasskeyService {
   @override
   Future<void> logInFinalize(
       AuthenticateResponseType loginLocalResponse) async {
+    final payload = loginLocalResponse.toJson();
+    payload['type'] = PasskeyService.authenticationType;
     final response = await _userApi.logInFinalize(loginLocalResponse.toJson());
     _authService.setAuthToken(response);
   }

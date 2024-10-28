@@ -1048,12 +1048,11 @@ class UIHelper {
         content: const PasskeyRegisterView(),
       );
 
-  static Future<dynamic> showPasskeyLoginDialog(BuildContext context) async {
-    await showRawCenterSheet(
-      context,
-      content: const PasskeyLoginView(),
-    );
-  }
+  static Future<dynamic> showPasskeyLoginDialog(BuildContext context) async =>
+      await showRawCenterSheet(
+        context,
+        content: const PasskeyLoginView(),
+      );
 
   static Future<dynamic> showRawCenterSheet(BuildContext context,
       {required Widget content,
