@@ -676,7 +676,9 @@ class AccountServiceImpl extends AccountService {
     /// create passkeys, no need to migrate
     if (defaultWallet == null) {
       log.info('[AccountService] migrateAccount: case 1 complete new user');
-      await createNewWallet();
+      await createNewWallet(
+        createLoginJwt: createLoginJwt,
+      );
       unawaited(_cloudObject.setMigrated());
       log.info('[AccountService] migrateAccount: case 1 finished');
       return;
