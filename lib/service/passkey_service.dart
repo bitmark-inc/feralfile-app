@@ -88,9 +88,8 @@ class PasskeyServiceImpl implements PasskeyService {
   @override
   Future<void> logInFinalize(
       AuthenticateResponseType loginLocalResponse) async {
-    final payload = loginLocalResponse.toJson();
-    payload['type'] = PasskeyService.authenticationType;
-    final response = await _userApi.logInFinalize(loginLocalResponse.toJson());
+    final response =
+        await _userApi.logInFinalize(loginLocalResponse.toFFJson());
     _authService.setAuthToken(response);
   }
 

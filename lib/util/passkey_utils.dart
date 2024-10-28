@@ -13,6 +13,20 @@ extension RegisterResponseTypeExt on RegisterResponseType {
       };
 }
 
+extension AuthenticateResponseTypeExt on AuthenticateResponseType {
+  Map<String, dynamic> toFFJson() => {
+        'id': id,
+        'rawId': rawId,
+        'type': PasskeyService.authenticationType,
+        'response': {
+          'clientDataJSON': clientDataJSON,
+          'authenticatorData': authenticatorData,
+          'signature': signature,
+          'userHandle': userHandle,
+        }
+      };
+}
+
 CredentialType getCredentialTypeFromJsonFF(Map<String, dynamic> json) =>
     CredentialType(
       type: json['type'] as String,
