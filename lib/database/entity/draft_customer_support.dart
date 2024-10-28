@@ -60,6 +60,7 @@ class DraftCustomerSupportData {
   String? title;
   int rating;
   String? artworkReportID;
+  String? announcementContentId;
 
   DraftCustomerSupportData({
     this.text,
@@ -67,6 +68,7 @@ class DraftCustomerSupportData {
     this.title,
     this.artworkReportID,
     this.rating = 0,
+    this.announcementContentId,
   });
 
   factory DraftCustomerSupportData.fromJson(Map<String, dynamic> json) =>

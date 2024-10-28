@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -33,10 +33,10 @@ class ArtworkTitleView extends StatelessWidget {
             style: theme.textTheme.ppMori400White14,
           ),
           onTap: () async => {
-            if (artwork.series?.artist?.alumniAccount?.slug != null)
+            if (artwork.series?.artist?.slug != null)
               {
-                injector<NavigationService>().openFeralFileArtistPage(
-                    artwork.series!.artist!.alumniAccount!.slug!)
+                injector<NavigationService>()
+                    .openFeralFileArtistPage(artwork.series!.artist!.slug!)
               }
           },
         ),

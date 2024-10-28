@@ -11,13 +11,17 @@ class AuSearchBar extends StatefulWidget {
   final Function(String)? onSearch;
   final Function(String)? onClear;
   final TextEditingController? controller;
+  final int minSearchLength;
+  final int minSearchLengthWhenPressEnter;
 
   const AuSearchBar(
       {super.key,
       this.onChanged,
       this.onSearch,
       this.onClear,
-      this.controller});
+      this.controller,
+      this.minSearchLength = 0,
+      this.minSearchLengthWhenPressEnter = 0});
 
   @override
   State<AuSearchBar> createState() => _SearchBarState();
@@ -74,13 +78,20 @@ class _SearchBarState extends State<AuSearchBar> {
                 ),
                 onChanged: (value) {
                   widget.onChanged?.call(value);
-                  _timer?.cancel();
-                  _timer = Timer(const Duration(milliseconds: 300), () {
-                    _callOnSearch(value);
-                  });
+                  // we allow search when user type at least 3 characters
+                  if (value.length >= widget.minSearchLength || value.isEmpty) {
+                    _timer?.cancel();
+                    _timer = Timer(const Duration(milliseconds: 300), () {
+                      _callOnSearch(value);
+                    });
+                  }
                 },
                 onSubmitted: (value) {
-                  _callOnSearch(value);
+                  // we allow search when user type at least 2 characters and press enter
+                  if (value.length >= widget.minSearchLengthWhenPressEnter ||
+                      value.isEmpty) {
+                    _callOnSearch(value);
+                  }
                 },
               ),
             ),
@@ -93,7 +104,7 @@ class _SearchBarState extends State<AuSearchBar> {
   void _callOnSearch(String value) {
     withDebounce(() {
       widget.onSearch?.call(value.trim());
-    }, key: 'searchBarKey', debounceTime: 1000);
+    }, key: 'searchBarKey', debounceTime: 300);
   }
 }
 
