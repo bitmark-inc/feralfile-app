@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/util/account_error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -120,9 +121,13 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           setState(() {
             _didSuccess = true;
           });
-        } catch (e, stackTrace) {
+        } on Exception catch (e, stackTrace) {
           log.info('Failed to register passkey: $e');
           unawaited(Sentry.captureException(e, stackTrace: stackTrace));
+          if (context.mounted) {
+            await AccountErrorHandler.showDialog(
+                context, SignInException(e, SignType.register), stackTrace);
+          }
           setState(() {
             _isError = true;
           });
