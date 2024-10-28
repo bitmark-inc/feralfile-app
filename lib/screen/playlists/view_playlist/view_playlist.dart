@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -65,7 +64,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
   late bool editable;
-  final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
   final List<CompactedAssetToken> _featureTokens = [];
 
