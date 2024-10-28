@@ -227,6 +227,10 @@ class SystemChannelHandler: NSObject {
     }
 
     func didRegisterPasskey(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        didRegisterPasskeyKeychain(result: result)
+    }
+    
+    func didRegisterPasskeyKeychain(result: @escaping FlutterResult) {
         let keychain = Keychain()
 
         // Safely retrieve data from Keychain

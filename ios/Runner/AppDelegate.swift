@@ -261,10 +261,12 @@ import Logging
         })
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
-            if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
-                self?.showAuthenticationOverlay()
-                self?.authenticationVC.authentication()
-            }
+            SystemChannelHandler.shared.didRegisterPasskeyKeychain { didRegisterPasskey in
+                if !didRegisterPasskey {
+                        self?.showAuthenticationOverlay()
+                        self?.authenticationVC.authentication()
+                    }
+                }
         }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
