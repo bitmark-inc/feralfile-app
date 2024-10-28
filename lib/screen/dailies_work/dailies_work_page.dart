@@ -125,8 +125,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   void resumeDailyWork() {
-    _artworkKey.currentState?.resume();
-    unmuteDailyWork();
+    if (_pageController?.page == 0) {
+      _artworkKey.currentState?.resume();
+      unmuteDailyWork();
+    }
   }
 
   void muteDailyWork() {
