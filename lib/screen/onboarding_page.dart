@@ -52,6 +52,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin, AfterLayoutMixin<OnboardingPage> {
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
+  Timer? _timer;
 
   final _passkeyService = injector.get<PasskeyService>();
   final _authService = injector.get<AuthService>();
@@ -68,6 +69,12 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
+    _timer = Timer(const Duration(seconds: 10), () {
+      log.info('OnboardingPage loading more than 10s');
+      unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
+      // unawaited(injector<NavigationService>().showAppLoadError());
+    });
+
     unawaited(setup(context).then((_) => _fetchRuntimeCache()));
   }
 
@@ -111,6 +118,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     } catch (e, s) {
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
+    }
+    if (_timer?.isActive ?? false) {
+      _timer?.cancel();
     }
   }
 
