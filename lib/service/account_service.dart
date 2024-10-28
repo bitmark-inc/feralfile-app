@@ -63,7 +63,9 @@ abstract class AccountService {
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
   Future<WalletStorage> createNewWallet(
-      {String name = '', String passphrase = ''});
+      {String name = '',
+      String passphrase = '',
+      Future<dynamic> Function()? createLoginJwt});
 
   Future<WalletStorage> importWords(String words, String passphrase,
       {WalletType walletType = WalletType.MultiChain});
@@ -132,11 +134,25 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<WalletStorage> createNewWallet(
-      {String name = '', String passphrase = ''}) async {
+      {String name = '',
+      String passphrase = '',
+      Future<dynamic> Function()? createLoginJwt}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(passphrase, name);
     log.fine('[AccountService] Created persona $uuid}');
+    await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+      uuid: walletStorage.uuid,
+      chain: 'ethereum',
+      index: 0,
+    ));
+    if (createLoginJwt != null) {
+      await createLoginJwt();
+    }
+    await insertNextAddressFromUuid(walletStorage.uuid, WalletType.MultiChain,
+        name: '');
+    await androidBackupKeys();
     return walletStorage;
   }
 
@@ -660,17 +676,7 @@ class AccountServiceImpl extends AccountService {
     /// create passkeys, no need to migrate
     if (defaultWallet == null) {
       log.info('[AccountService] migrateAccount: case 1 complete new user');
-      final wallet = await createNewWallet();
-      await _addressService.registerPrimaryAddress(
-          info: primary_address_channel.AddressInfo(
-        uuid: wallet.uuid,
-        chain: 'ethereum',
-        index: 0,
-      ));
-      await createLoginJwt();
-      await insertNextAddressFromUuid(wallet.uuid, WalletType.MultiChain,
-          name: '');
-      await androidBackupKeys();
+      await createNewWallet();
       unawaited(_cloudObject.setMigrated());
       log.info('[AccountService] migrateAccount: case 1 finished');
       return;
