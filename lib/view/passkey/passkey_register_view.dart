@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
-import 'package:autonomy_flutter/util/account_error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -49,7 +48,11 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       );
 
   Widget _getTitle(BuildContext context) => Text(
-        _didSuccess ? 'passkey_created'.tr() : 'introducing_passkey'.tr(),
+        _didSuccess
+            ? 'passkey_created'.tr()
+            : _isError
+                ? 'authentication_failed'.tr()
+                : 'introducing_passkey'.tr(),
         style: Theme.of(context).textTheme.ppMori700Black16,
       );
 
@@ -61,6 +64,16 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         children: [
           Text(
             'passkey_created_desc'.tr(),
+            style: style,
+          ),
+        ],
+      );
+    }
+    if (_isError) {
+      return Column(
+        children: [
+          Text(
+            'passkey_error_desc'.tr(),
             style: style,
           ),
         ],
@@ -104,42 +117,39 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     }
     return PrimaryAsyncButton(
       key: const Key('register_button'),
-      enabled: !_isError,
-      onTap: () async {
-        if (_registering) {
-          return;
-        }
-        setState(() {
-          _registering = true;
-          _isError = false;
-        });
-        try {
-          await _passkeyService.registerInitiate();
-          await _accountService.migrateAccount(() async {
-            await _passkeyService.registerFinalize();
-          });
-          setState(() {
-            _didSuccess = true;
-          });
-        } on Exception catch (e, stackTrace) {
-          log.info('Failed to register passkey: $e');
-          unawaited(Sentry.captureException(e, stackTrace: stackTrace));
-          if (context.mounted) {
-            await AccountErrorHandler.showDialog(
-                context, SignInException(e, SignType.register), stackTrace);
-          }
-          setState(() {
-            _isError = true;
-          });
-        } finally {
-          setState(() {
-            _registering = false;
-          });
-        }
-      },
+      onTap: _register,
       text: 'get_started'.tr(),
-      processingText: 'creating_passkey'.tr(),
+      processingText: _isError ? 'try_again'.tr() : 'creating_passkey'.tr(),
     );
+  }
+
+  Future<void> _register() async {
+    if (_registering) {
+      return;
+    }
+    setState(() {
+      _registering = true;
+      _isError = false;
+    });
+    try {
+      await _passkeyService.registerInitiate();
+      await _accountService.migrateAccount(() async {
+        await _passkeyService.registerFinalize();
+      });
+      setState(() {
+        _didSuccess = true;
+      });
+    } on Exception catch (e, stackTrace) {
+      log.info('Failed to register passkey: $e');
+      unawaited(Sentry.captureException(e, stackTrace: stackTrace));
+      setState(() {
+        _isError = true;
+      });
+    } finally {
+      setState(() {
+        _registering = false;
+      });
+    }
   }
 
   Widget _havingTrouble(BuildContext context) {
