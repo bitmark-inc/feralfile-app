@@ -284,8 +284,7 @@ class TVKeyInterceptor extends Interceptor {
       exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
     } catch (e) {
       log.info('[TVKeyInterceptor] Can not parse . ${err.response?.data}');
-      unawaited(showErrorDialogFromException(ErrorBindingException(
-          message: 'tv_error_binding_message'.tr(), originalException: err)));
+      unawaited(Sentry.captureException('TVKeyInterceptor error $e'));
     } finally {
       handler.next(exp);
     }
