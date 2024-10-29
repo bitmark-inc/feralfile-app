@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
@@ -69,7 +70,21 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<bool> isPassKeyAvailable() async =>
-      await _passkeyAuthenticator.canAuthenticate();
+      await _passkeyAuthenticator.canAuthenticate() && await _doesOSSupport();
+
+  Future<bool> _doesOSSupport() async {
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      // Android 9 (API 28) and above
+      return androidInfo.version.sdkInt >= 28;
+    } else {
+      final iosInfo = await deviceInfo.iosInfo;
+      // iOS 16 and above
+      final osVersion = iosInfo.systemVersion.split('.').first;
+      return (int.tryParse(osVersion) ?? 0) >= 16;
+    }
+  }
 
   @override
   Future<AuthenticateResponseType> logInInitiate() async {
