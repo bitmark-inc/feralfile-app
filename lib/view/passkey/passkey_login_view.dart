@@ -79,8 +79,8 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
       _isError = false;
     });
     try {
-      final localResponse = await _passkeyService.logInInitiate();
       await _accountService.migrateAccount(() async {
+        final localResponse = await _passkeyService.logInInitiate();
         await _passkeyService.logInFinalize(localResponse);
       });
       if (mounted) {
