@@ -708,7 +708,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       return;
     }
     final issueDetails = await _customerSupportService.getDetails(_issueID!);
-    await _getUserId();
+    if (issueDetails.issue.userId != null) {
+      _userId = issueDetails.issue.userId;
+    }
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)

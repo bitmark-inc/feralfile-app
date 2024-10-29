@@ -22,6 +22,7 @@ Issue _$IssueFromJson(Map<String, dynamic> json) => Issue(
           : Message.fromJson(json['first_message'] as Map<String, dynamic>),
       rating: (json['rating'] as num).toInt(),
       announcementContentId: json['announcement_content_id'] as String?,
+      userId: json['user_id'] as String?,
     );
 
 Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
@@ -36,6 +37,7 @@ Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
       'last_message': instance.lastMessage,
       'first_message': instance.firstMessage,
       'announcement_content_id': instance.announcementContentId,
+      'user_id': instance.userId,
     };
 
 SendAttachment _$SendAttachmentFromJson(Map<String, dynamic> json) =>
