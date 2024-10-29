@@ -28,10 +28,10 @@ class ExhibitionPreview extends StatelessWidget {
     );
 
     final listCurators =
-        (exhibition.curator != null || exhibition.curators != null)
+        (exhibition.curatorAlumni != null || exhibition.curatorsAlumni != null)
             ? exhibition.id == SOURCE_EXHIBITION_ID
-                ? exhibition.curators!
-                : [exhibition.curator!]
+                ? exhibition.curatorsAlumni!
+                : [exhibition.curatorAlumni!]
             : <AlumniAccount>[];
 
     return Container(
@@ -66,7 +66,7 @@ class ExhibitionPreview extends StatelessWidget {
               style: subTitleTextStyle),
           const SizedBox(height: 3),
           FFExhibitionParticipants(
-            listAlumni: exhibition.artists!,
+            listAlumni: exhibition.artistsAlumni!,
             textStyle: participantTextStyle,
           ),
         ],
