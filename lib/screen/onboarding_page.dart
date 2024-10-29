@@ -52,6 +52,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
+  bool _loadingAnimation = true;
 
   final _passkeyService = injector.get<PasskeyService>();
   final _authService = injector.get<AuthService>();
@@ -174,10 +175,19 @@ class _OnboardingPageState extends State<OnboardingPage>
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
       final didRegisterPasskey = await _passkeyService.didRegisterPasskey();
-
+      if (mounted) {
+        setState(() {
+          _loadingAnimation = false;
+        });
+      }
       final didLoginSuccess = didRegisterPasskey
           ? await _loginWithPasskey()
           : await _registerPasskey();
+      if (mounted) {
+        setState(() {
+          _loadingAnimation = true;
+        });
+      }
       if (didLoginSuccess != true) {
         throw Exception('Failed to login with passkey');
       }
@@ -206,7 +216,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                     const Spacer(),
                     PrimaryButton(
                       text: 'h_loading...'.tr(),
-                      isProcessing: true,
+                      isProcessing: _loadingAnimation,
                       enabled: false,
                       disabledColor: AppColor.auGreyBackground,
                       textColor: AppColor.white,

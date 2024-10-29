@@ -1054,21 +1054,24 @@ class UIHelper {
         content: const PasskeyLoginView(),
       );
 
-  static Future<dynamic> showRawCenterSheet(BuildContext context,
-      {required Widget content,
-      double horizontalPadding = 20,
-      Color backgroundColor = AppColor.white}) async {
+  static Future<dynamic> showRawCenterSheet(
+    BuildContext context, {
+    required Widget content,
+    double horizontalPadding = 20,
+    Color boxColor = AppColor.white,
+    Color backgroundColor = Colors.transparent,
+  }) async {
     UIHelper.hideInfoDialog(context);
     return await showCupertinoModalPopup(
         context: context,
-        builder: (context) => Padding(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-              child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: Center(
+        builder: (context) => Scaffold(
+              backgroundColor: backgroundColor,
+              body: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: backgroundColor,
+                      color: boxColor,
                       borderRadius: BorderRadius.circular(5),
                     ),
                     padding: const EdgeInsets.symmetric(
