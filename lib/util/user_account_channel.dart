@@ -51,6 +51,18 @@ class UserAccountChannel {
       return false;
     }
   }
+
+  Future<bool> didRegisterPasskey() async {
+    final didRegister = await _channel.invokeMethod('didRegisterPasskey', {});
+    return didRegister;
+  }
+
+  Future<bool> setDidRegisterPasskey(bool value) async {
+    final didRegister = await _channel.invokeMethod('setDidRegisterPasskey', {
+      'data': value,
+    });
+    return didRegister;
+  }
 }
 
 class AddressInfo {

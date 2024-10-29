@@ -24,10 +24,6 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  bool didRegisterPasskeyAndroid();
-
-  Future<void> setDidRegisterPasskeyAndroid(bool value);
-
   bool didMigrateToAccountSetting();
 
   Future<void> setMigrateToAccountSetting(bool value);
@@ -210,7 +206,6 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyDidRegisterPasskey = 'did_register_passkey';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
@@ -933,15 +928,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     mapJson[announcementContentId] = issueId;
     await _preferences.setString(
         KEY_ANNOUNCEMENT_TO_ISSUE_MAP, jsonEncode(mapJson));
-  }
-
-  @override
-  bool didRegisterPasskeyAndroid() =>
-      _preferences.getBool(keyDidRegisterPasskey) ?? false;
-
-  @override
-  Future<void> setDidRegisterPasskeyAndroid(bool value) async {
-    await _preferences.setBool(keyDidRegisterPasskey, value);
   }
 }
 

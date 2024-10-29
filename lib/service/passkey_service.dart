@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 
@@ -21,10 +20,6 @@ abstract class PasskeyService {
 
   Future<void> registerFinalize();
 
-  Future<bool> didRegisterPasskey();
-
-  Future<bool> setDidRegisterPasskey(bool value);
-
   static String authenticationType = 'public-key';
 }
 
@@ -35,22 +30,16 @@ class PasskeyServiceImpl implements PasskeyService {
   String? _passkeyUserId;
 
   final UserApi _userApi;
-  final ConfigurationService _configurationService;
+  final UserAccountChannel _userAccountChannel;
   final AddressService _addressService;
   final AuthService _authService;
 
-  late final MethodChannel _iosMigrationChannel;
-
   PasskeyServiceImpl(
     this._userApi,
-    this._configurationService,
+    this._userAccountChannel,
     this._addressService,
     this._authService,
-  ) {
-    if (Platform.isIOS) {
-      _iosMigrationChannel = const MethodChannel('migration_util');
-    }
-  }
+  );
 
   /*
   static final AuthenticatorSelectionType _defaultAuthenticatorSelection =
@@ -163,33 +152,8 @@ class PasskeyServiceImpl implements PasskeyService {
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
-    await setDidRegisterPasskey(true);
+    await _userAccountChannel.setDidRegisterPasskey(true);
     _authService.setAuthToken(response);
-  }
-
-  @override
-  Future<bool> didRegisterPasskey() async {
-    if (Platform.isAndroid) {
-      return _configurationService.didRegisterPasskeyAndroid();
-    }
-    final didRegister =
-        await _iosMigrationChannel.invokeMethod('didRegisterPasskey', {});
-    return didRegister;
-  }
-
-  @override
-  Future<bool> setDidRegisterPasskey(bool value) async {
-    if (Platform.isAndroid) {
-      // for Android device, passkey is stored in Google Password Manager,
-      // so it is not synced
-      await _configurationService.setDidRegisterPasskeyAndroid(value);
-      return true;
-    }
-    final didRegister =
-        await _iosMigrationChannel.invokeMethod('setDidRegisterPasskey', {
-      'data': value,
-    });
-    return didRegister;
   }
 }
 
