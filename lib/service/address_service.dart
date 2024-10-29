@@ -25,19 +25,8 @@ class AddressService {
 
   AddressService(this._primaryAddressChannel, this._cloudObject);
 
-  AddressInfo? _primaryAddressInfo;
-
-  Future<AddressInfo?> getPrimaryAddressInfo() async {
-    if (_primaryAddressInfo != null) {
-      log.info('[AddressService] (Already set) Primary address info:'
-          ' ${_primaryAddressInfo?.toJson()}');
-      return _primaryAddressInfo;
-    }
-    _primaryAddressInfo = await _primaryAddressChannel.getPrimaryAddress();
-    log.info('[AddressService] Primary address info:'
-        ' ${_primaryAddressInfo?.toJson()}');
-    return _primaryAddressInfo;
-  }
+  Future<AddressInfo?> getPrimaryAddressInfo() async =>
+      await _primaryAddressChannel.getPrimaryAddress();
 
   Future<AddressInfo?> migrateToEthereumAddress(
       AddressInfo currentPrimaryAddress) async {
@@ -74,11 +63,8 @@ class AddressService {
     }
   }
 
-  Future<bool> clearPrimaryAddress() async {
-    _primaryAddressInfo = null;
-    await _primaryAddressChannel.clearPrimaryAddress();
-    return true;
-  }
+  Future<bool> clearPrimaryAddress() async =>
+      await _primaryAddressChannel.clearPrimaryAddress();
 
   Future<String> getAddress({required AddressInfo info}) async {
     final walletStorage = WalletStorage(info.uuid);

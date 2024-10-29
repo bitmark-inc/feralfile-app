@@ -42,9 +42,9 @@ class UserAccountChannel {
   }
 
   Future<bool> clearPrimaryAddress() async {
+    _primaryAddress = null;
     try {
       final result = await _channel.invokeMethod('clearPrimaryAddress', {});
-      _primaryAddress = null;
       return result;
     } catch (e) {
       log.info('clearPrimaryAddress error', e);

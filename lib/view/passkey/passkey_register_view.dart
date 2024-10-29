@@ -118,8 +118,8 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     return PrimaryAsyncButton(
       key: const Key('register_button'),
       onTap: _register,
-      text: 'get_started'.tr(),
-      processingText: _isError ? 'try_again'.tr() : 'creating_passkey'.tr(),
+      text: _isError ? 'try_again'.tr() : 'get_started'.tr(),
+      processingText: 'creating_passkey'.tr(),
     );
   }
 
