@@ -19,8 +19,9 @@ import 'package:sentry/sentry.dart';
 
 Future<bool> registerPushNotifications({bool askPermission = false}) async {
   log.info('register notification');
+  bool permission = false;
   if (askPermission) {
-    final permission = Platform.isAndroid
+    permission = Platform.isAndroid
         ? true
         : await OneSignal.shared.promptUserForPushNotificationPermission();
 
@@ -33,7 +34,10 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
     final identityHash = await OneSignalHelper.getIdentityHash();
     final primaryAddress = await injector<AddressService>().getPrimaryAddress();
     await OneSignal.shared.setExternalUserId(primaryAddress!, identityHash);
-    await injector<ConfigurationService>().setNotificationEnabled(true);
+    // we only enable notification if the user has granted permission
+    if (permission) {
+      await injector<ConfigurationService>().setNotificationEnabled(true);
+    }
     return true;
   } catch (error) {
     unawaited(Sentry.captureException(

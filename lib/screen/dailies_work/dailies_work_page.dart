@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -58,6 +59,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   late int _currentIndex;
   ScrollController? _scrollController;
   final _artworkKey = GlobalKey<ArtworkPreviewWidgetState>();
+  final _configService = injector<ConfigurationService>();
 
   @override
   void initState() {
@@ -81,7 +83,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     super.dispose();
   }
 
-  void _pageControllerListenser() {
+  Future<void> _pageControllerListenser() async {
     if (_pageController!.page != 0) {
       pauseDailyWork();
     } else {
@@ -144,6 +146,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut));
   }
 
+  void countInteract() {
+    unawaited(_configService.increaseCountInteractDailyWork());
+  }
+
   Duration? get _calcTotalDuration => const Duration(hours: 24);
 
   Duration get _calcRemainingDuration =>
@@ -196,6 +202,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
             setState(() {
               _currentIndex = index;
             });
+            if (index != 0) {
+              countInteract();
+            }
           },
         ),
         listener: (BuildContext context, DailiesWorkState state) {},
@@ -227,6 +236,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
           FFCastButton(
             displayKey: CastDailyWorkRequest.displayKey,
             onDeviceSelected: (device) {
+              countInteract();
               context.read<CanvasDeviceBloc>().add(
                   CanvasDeviceCastDailyWorkEvent(
                       device, CastDailyWorkRequest()));

@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -34,7 +36,8 @@ class ExploreExhibition extends StatefulWidget {
       other.sortBy == sortBy;
 }
 
-class ExploreExhibitionState extends State<ExploreExhibition> {
+class ExploreExhibitionState extends State<ExploreExhibition>
+    with AfterLayoutMixin {
   List<Exhibition>? _exhibitions;
   late ScrollController _scrollController;
 
@@ -57,6 +60,11 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     if (!oldWidget.isEqual(widget) || true) {
       unawaited(_fetchExhibitions(context));
     }
+  }
+
+  @override
+  Future<void> afterFirstLayout(BuildContext context) async {
+    await injector<ConfigurationService>().increaseCountViewExhibition();
   }
 
   void scrollToTop() {

@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
@@ -16,6 +17,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -203,6 +205,14 @@ abstract class ConfigurationService {
   String? getIssueIdByAnnouncementContentId(String announcementContentId);
 
   String? getAnnouncementContentIdByIssueId(String issueId);
+
+  int countViewExhibition();
+
+  Future<void> increaseCountViewExhibition({int count = 1});
+
+  int countInteractDailyWork();
+
+  Future<void> increaseCountInteractDailyWork({int count = 1});
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -281,6 +291,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
   static const String KEY_REFERRAL_CODE = 'referral_code';
+
+  static const String KEY_VIEW_EXHIBITION = 'view_exhibition';
+
+  static const String KEY_INTERACT_DAILY_WORK = 'interact_daily_work';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -928,6 +942,33 @@ class ConfigurationServiceImpl implements ConfigurationService {
     mapJson[announcementContentId] = issueId;
     await _preferences.setString(
         KEY_ANNOUNCEMENT_TO_ISSUE_MAP, jsonEncode(mapJson));
+  }
+
+  @override
+  int countInteractDailyWork() =>
+      _preferences.getInt(KEY_INTERACT_DAILY_WORK) ?? 0;
+
+  @override
+  int countViewExhibition() => _preferences.getInt(KEY_VIEW_EXHIBITION) ?? 0;
+
+  @override
+  Future<void> increaseCountInteractDailyWork({int count = 1}) async {
+    final int currentCount = _preferences.getInt(KEY_INTERACT_DAILY_WORK) ?? 0;
+    final updatedCount = currentCount + count;
+    if (updatedCount == 3) {
+      unawaited(registerPushNotifications(askPermission: true));
+    }
+    await _preferences.setInt(KEY_INTERACT_DAILY_WORK, updatedCount);
+  }
+
+  @override
+  Future<void> increaseCountViewExhibition({int count = 1}) async {
+    final int currentCount = _preferences.getInt(KEY_VIEW_EXHIBITION) ?? 0;
+    final updatedCount = currentCount + count;
+    if (updatedCount == 3) {
+      unawaited(registerPushNotifications(askPermission: true));
+    }
+    await _preferences.setInt(KEY_VIEW_EXHIBITION, updatedCount);
   }
 }
 
