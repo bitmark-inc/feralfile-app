@@ -18,7 +18,7 @@ class FFSeries {
   final int? displayIndex;
   final int? featuringIndex;
   final FFSeriesSettings? settings;
-  final AlumniAccount? artist;
+  final AlumniAccount? artistAlumni;
   final Exhibition? exhibition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -44,7 +44,7 @@ class FFSeries {
     this.exhibitionID,
     this.metadata,
     this.settings,
-    this.artist,
+    this.artistAlumni,
     this.exhibition,
     this.createdAt,
     this.mintedAt,
@@ -80,9 +80,10 @@ class FFSeries {
             ? null
             : FFSeriesSettings.fromJson(
                 json['settings'] as Map<String, dynamic>),
-        json['artist'] == null
+        json['artistAlumni'] == null
             ? null
-            : AlumniAccount.fromJson(json['artist'] as Map<String, dynamic>),
+            : AlumniAccount.fromJson(
+                json['artistAlumni'] as Map<String, dynamic>),
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -131,7 +132,7 @@ class FFSeries {
         'displayIndex': displayIndex,
         'featuringIndex': featuringIndex,
         'settings': settings,
-        'artist': artist,
+        'artistAlumni': artistAlumni,
         'exhibition': exhibition,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
@@ -159,7 +160,7 @@ class FFSeries {
     int? displayIndex,
     int? featuringIndex,
     FFSeriesSettings? settings,
-    AlumniAccount? artist,
+    AlumniAccount? artistAlumni,
     Exhibition? exhibition,
     DateTime? createdAt,
     DateTime? mintedAt,
@@ -185,7 +186,7 @@ class FFSeries {
         exhibitionID ?? this.exhibitionID,
         metadata ?? this.metadata,
         settings ?? this.settings,
-        artist ?? this.artist,
+        artistAlumni ?? this.artistAlumni,
         exhibition ?? this.exhibition,
         createdAt ?? this.createdAt,
         mintedAt ?? this.mintedAt,
