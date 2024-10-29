@@ -257,7 +257,7 @@ class _SeriesViewState extends State<SeriesView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                series.artist?.displayAlias ?? '',
+                series.artistAlumni?.displayAlias ?? '',
                 style: defaultStyle,
                 overflow: TextOverflow.ellipsis,
               ),

@@ -44,10 +44,10 @@ class ExhibitionCard extends StatelessWidget {
     final subTitleStyle = theme.textTheme.ppMori400Grey12;
 
     final listCurators =
-        (exhibition.curator != null || exhibition.curators != null)
+        (exhibition.curatorAlumni != null || exhibition.curatorsAlumni != null)
             ? exhibition.id == SOURCE_EXHIBITION_ID
-                ? exhibition.curators!
-                : [exhibition.curator!]
+                ? exhibition.curatorsAlumni!
+                : [exhibition.curatorAlumni!]
             : <AlumniAccount>[];
 
     return GestureDetector(
@@ -107,7 +107,7 @@ class ExhibitionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (exhibition.isSoloExhibition &&
-                          exhibition.artists != null) ...[
+                          exhibition.artistsAlumni != null) ...[
                         RichText(
                           textScaler: MediaQuery.textScalerOf(context),
                           text: TextSpan(
@@ -116,7 +116,7 @@ class ExhibitionCard extends StatelessWidget {
                             children: [
                               TextSpan(text: 'works_by'.tr()),
                               ...exhibitionParticipantSpans(
-                                  [exhibition.artists![0]]),
+                                  [exhibition.artistsAlumni![0]]),
                             ],
                           ),
                         ),

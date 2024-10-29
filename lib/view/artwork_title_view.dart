@@ -29,14 +29,14 @@ class ArtworkTitleView extends StatelessWidget {
       children: [
         GestureDetector(
           child: Text(
-            artwork.series!.artist?.displayAlias ?? '',
+            artwork.series!.artistAlumni?.displayAlias ?? '',
             style: theme.textTheme.ppMori400White14,
           ),
           onTap: () async => {
-            if (artwork.series?.artist?.slug != null)
+            if (artwork.series?.artistAlumni?.slug != null)
               {
                 injector<NavigationService>()
-                    .openFeralFileArtistPage(artwork.series!.artist!.slug!)
+                    .openFeralFileArtistPage(artwork.series!.artistAlumni!.slug!)
               }
           },
         ),
