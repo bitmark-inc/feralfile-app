@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:synchronized/synchronized.dart';
 
 abstract class AnnouncementService {
@@ -41,9 +42,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
   final IAPApi _iapApi;
   final AnnouncementStore _announcementStore;
   final ConfigurationService _configurationService;
-
-  // Map <AnnouncementContentId, IssueId>
-  final Map<String, String> _announcementToIssueMap = {};
 
   AnnouncementServiceImpl(
     this._iapApi,
@@ -89,7 +87,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       return [];
     }
     log.info('Fetched announcements: ${announcements.length}');
-    _updateBadger(_queue.length);
+    unawaited(_updateBadger(_queue.length));
     return announcements;
   }
 
@@ -114,7 +112,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
   Future<void> _markAsReadAnnouncement(AnnouncementLocal announcement) async {
     _queue.removeWhere((element) =>
         element.announcementContentId == announcement.announcementContentId);
-    _updateBadger(_queue.length);
+    unawaited(_updateBadger(_queue.length));
     await _saveAnnouncement(announcement.markAsRead());
   }
 
@@ -126,7 +124,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       _queue
           .addAll(allAnnouncements.where((element) => !element.read).toList());
     }
-    _updateBadger(_queue.length);
+    unawaited(_updateBadger(_queue.length));
     return _queue;
   }
 
@@ -181,11 +179,15 @@ class AnnouncementServiceImpl implements AnnouncementService {
     }
   }
 
-  void _updateBadger(int count) {
-    if (count > 0) {
-      unawaited(FlutterAppBadger.updateBadgeCount(count));
-    } else {
-      unawaited(FlutterAppBadger.removeBadge());
+  Future<void> _updateBadger(int count) async {
+    final status = await Permission.notification.status;
+    if (injector<ConfigurationService>().isNotificationEnabled() &&
+        status.isGranted) {
+      if (count > 0) {
+        unawaited(FlutterAppBadger.updateBadgeCount(count));
+      } else {
+        unawaited(FlutterAppBadger.removeBadge());
+      }
     }
   }
 
