@@ -97,6 +97,8 @@ class PasskeyServiceImpl implements PasskeyService {
       mediation: response.mediation ?? _defaultMediation,
       preferImmediatelyAvailableCredentials:
           _preferImmediatelyAvailableCredentials,
+      timeout: pubKey.timeout,
+      userVerification: pubKey.userVerification,
     );
   }
 
@@ -127,6 +129,9 @@ class PasskeyServiceImpl implements PasskeyService {
       user: pubKey.user,
       authSelectionType: pubKey.authenticatorSelection!,
       excludeCredentials: pubKey.excludeCredentials ?? [],
+      attestation: pubKey.attestation,
+      timeout: pubKey.timeout,
+      pubKeyCredParams: pubKey.pubKeyCredParams,
     );
   }
 

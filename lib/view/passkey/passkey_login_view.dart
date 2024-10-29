@@ -86,7 +86,7 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
       if (mounted) {
         Navigator.of(context).pop(true);
       }
-    } on Exception catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       log.info('Failed to login with passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
       setState(() {

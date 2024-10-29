@@ -139,7 +139,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       setState(() {
         _didSuccess = true;
       });
-    } on Exception catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       log.info('Failed to register passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
       setState(() {
