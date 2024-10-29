@@ -292,9 +292,9 @@ extension BeaconConnectService {
         .eraseToAnyPublisher()
     }
 
-    private func startOpenChannelListener(completion: @escaping (Result<(), Beacon.Error>) -> Void) {
+    private func startOpenChannelListener(completion: @escaping (Result<(), Error>) -> Void) {
         guard let beaconClient = beaconClient else {
-            completion(.failure(.uninitialized))
+            completion(.failure(Beacon.Error.uninitialized))
             return
         }
 
