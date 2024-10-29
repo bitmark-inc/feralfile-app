@@ -934,15 +934,15 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             title: 'title'.tr(),
             value: artwork.series!.displayTitle,
           ),
-          if (artwork.series!.artist?.alias != null) ...[
+          if (artwork.series!.artistAlumni?.alias != null) ...[
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
-              value: artwork.series!.artist!.displayAlias,
+              value: artwork.series!.artistAlumni!.displayAlias,
               onTap: () async {
-                if (artwork.series!.artist!.slug != null) {
+                if (artwork.series!.artistAlumni!.slug != null) {
                   await injector<NavigationService>()
-                      .openFeralFileArtistPage(artwork.series!.artist!.slug!);
+                      .openFeralFileArtistPage(artwork.series!.artistAlumni!.slug!);
                 }
               },
             ),

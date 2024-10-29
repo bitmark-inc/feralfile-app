@@ -22,12 +22,12 @@ class Exhibition {
   final String? coverURI;
   final String? thumbnailCoverURI;
   final String mintBlockchain;
-  final AlumniAccount? curator;
-  final List<AlumniAccount>? curators;
-  final List<AlumniAccount>? artists;
+  final AlumniAccount? curatorAlumni;
+  final List<AlumniAccount>? curatorsAlumni;
+  final List<AlumniAccount>? artistsAlumni;
   final List<FFSeries>? series;
   final List<FFContract>? contracts;
-  final AlumniAccount? partner;
+  final AlumniAccount? partnerAlumni;
   final String type;
   final List<Post>? posts;
   final int status;
@@ -46,12 +46,12 @@ class Exhibition {
     required this.status,
     this.coverURI,
     this.thumbnailCoverURI,
-    this.curators,
-    this.artists,
+    this.curatorsAlumni,
+    this.artistsAlumni,
     this.series,
     this.contracts,
-    this.partner,
-    this.curator,
+    this.partnerAlumni,
+    this.curatorAlumni,
     this.posts,
   });
 
@@ -66,10 +66,10 @@ class Exhibition {
         note: json['note'] as String,
         coverURI: json['coverURI'] as String?,
         thumbnailCoverURI: json['thumbnailCoverURI'] as String?,
-        curators: (json['curators'] as List<dynamic>?)
+        curatorsAlumni: (json['curatorsAlumni'] as List<dynamic>?)
             ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
             .toList(),
-        artists: (json['artists'] as List<dynamic>?)
+        artistsAlumni: (json['artistsAlumni'] as List<dynamic>?)
             ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
             .toList(),
         series: (json['series'] as List<dynamic>?)
@@ -79,13 +79,13 @@ class Exhibition {
             ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
             .toList(),
         mintBlockchain: (json['mintBlockchain'] ?? '') as String,
-        partner: json['partner'] == null
+        partnerAlumni: json['partnerAlumni'] == null
             ? null
             : AlumniAccount.fromJson(json['partner'] as Map<String, dynamic>),
         type: json['type'] as String,
-        curator: json['curator'] == null
+        curatorAlumni: json['curatorAlumni'] == null
             ? null
-            : AlumniAccount.fromJson(json['curator'] as Map<String, dynamic>),
+            : AlumniAccount.fromJson(json['curatorAlumni'] as Map<String, dynamic>),
         posts: (json['posts'] as List<dynamic>?)
             ?.map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -103,14 +103,14 @@ class Exhibition {
         'note': note,
         'coverURI': coverURI,
         'thumbnailCoverURI': thumbnailCoverURI,
-        'curators': curators?.map((e) => e.toJson()).toList(),
-        'artists': artists?.map((e) => e.toJson()).toList(),
+        'curatorsAlumni': curatorsAlumni?.map((e) => e.toJson()).toList(),
+        'artistsAlumni': artistsAlumni?.map((e) => e.toJson()).toList(),
         'series': series?.map((e) => e.toJson()).toList(),
         'contracts': contracts?.map((e) => e.toJson()).toList(),
         'mintBlockchain': mintBlockchain,
-        'partner': partner?.toJson(),
+        'partnerAlumni': partnerAlumni?.toJson(),
         'type': type,
-        'curator': curator?.toJson(),
+        'curatorAlumni': curatorAlumni?.toJson(),
         'posts': posts?.map((e) => e.toJson()).toList(),
         'status': status,
       };
@@ -130,12 +130,12 @@ class Exhibition {
     String? coverURI,
     String? thumbnailCoverURI,
     String? mintBlockchain,
-    AlumniAccount? curator,
-    List<AlumniAccount>? curators,
-    List<AlumniAccount>? artists,
+    AlumniAccount? curatorAlumni,
+    List<AlumniAccount>? curatorsAlumni,
+    List<AlumniAccount>? artistsAlumni,
     List<FFSeries>? series,
     List<FFContract>? contracts,
-    AlumniAccount? partner,
+    AlumniAccount? partnerAlumni,
     String? type,
     List<Post>? posts,
     int? status,
@@ -152,12 +152,12 @@ class Exhibition {
         coverURI: coverURI ?? this.coverURI,
         thumbnailCoverURI: thumbnailCoverURI ?? this.thumbnailCoverURI,
         mintBlockchain: mintBlockchain ?? this.mintBlockchain,
-        curator: curator ?? this.curator,
-        curators: curators ?? this.curators,
-        artists: artists ?? this.artists,
+        curatorAlumni: curatorAlumni ?? this.curatorAlumni,
+        curatorsAlumni: curatorsAlumni ?? this.curatorsAlumni,
+        artistsAlumni: artistsAlumni ?? this.artistsAlumni,
         series: series ?? this.series,
         contracts: contracts ?? this.contracts,
-        partner: partner ?? this.partner,
+        partnerAlumni: partnerAlumni ?? this.partnerAlumni,
         type: type ?? this.type,
         posts: posts ?? this.posts,
         status: status ?? this.status,

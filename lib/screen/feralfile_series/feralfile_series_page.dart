@@ -98,7 +98,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             ? const SizedBox()
             : SeriesTitleView(
                 series: series,
-                artist: series.artist,
+                artist: series.artistAlumni,
                 crossAxisAlignment: CrossAxisAlignment.center),
       );
 
