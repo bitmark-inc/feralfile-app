@@ -193,7 +193,7 @@ class SeriesView extends StatefulWidget {
 
 class _SeriesViewState extends State<SeriesView> {
   late ScrollController _scrollController;
-  bool _navigating = false;
+  String? _navigatingSeriesId;
 
   @override
   void initState() {
@@ -321,7 +321,7 @@ class _SeriesViewState extends State<SeriesView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: _navigating
+                      child: _navigatingSeriesId == series.id
                           ? const LoadingWidget()
                           : FFCacheNetworkImage(
                               imageUrl: series.thumbnailUrl ?? '',
@@ -341,7 +341,7 @@ class _SeriesViewState extends State<SeriesView> {
   Future<void> _gotoSeriesDetails(BuildContext context, FFSeries series) async {
     if (series.isSingle) {
       setState(() {
-        _navigating = true;
+        _navigatingSeriesId = series.id;
       });
       final artwork =
           await injector<FeralFileService>().getFirstViewableArtwork(series.id);
@@ -357,7 +357,7 @@ class _SeriesViewState extends State<SeriesView> {
       }
       if (context.mounted) {
         setState(() {
-          _navigating = false;
+          _navigatingSeriesId = null;
         });
       }
     } else {
