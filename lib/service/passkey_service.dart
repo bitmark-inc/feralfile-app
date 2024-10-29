@@ -170,7 +170,7 @@ class PasskeyServiceImpl implements PasskeyService {
   @override
   Future<bool> didRegisterPasskey() async {
     if (Platform.isAndroid) {
-      return _configurationService.didRegisterPasskey();
+      return _configurationService.didRegisterPasskeyAndroid();
     }
     final didRegister =
         await _iosMigrationChannel.invokeMethod('didRegisterPasskey', {});
@@ -182,7 +182,7 @@ class PasskeyServiceImpl implements PasskeyService {
     if (Platform.isAndroid) {
       // for Android device, passkey is stored in Google Password Manager,
       // so it is not synced
-      await _configurationService.setDidRegisterPasskey(value);
+      await _configurationService.setDidRegisterPasskeyAndroid(value);
       return true;
     }
     final didRegister =

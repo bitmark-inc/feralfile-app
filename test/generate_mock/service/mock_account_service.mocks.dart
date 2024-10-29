@@ -167,6 +167,7 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
   _i6.Future<_i2.WalletStorage> createNewWallet({
     String? name = r'',
     String? passphrase = r'',
+    _i6.Future<dynamic> Function()? createLoginJwt,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -175,6 +176,7 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
           {
             #name: name,
             #passphrase: passphrase,
+            #createLoginJwt: createLoginJwt,
           },
         ),
         returnValue: _i6.Future<_i2.WalletStorage>.value(_FakeWalletStorage_0(
@@ -185,6 +187,7 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
             {
               #name: name,
               #passphrase: passphrase,
+              #createLoginJwt: createLoginJwt,
             },
           ),
         )),

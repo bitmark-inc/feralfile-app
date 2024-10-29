@@ -24,9 +24,9 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  bool didRegisterPasskey();
+  bool didRegisterPasskeyAndroid();
 
-  Future<void> setDidRegisterPasskey(bool value);
+  Future<void> setDidRegisterPasskeyAndroid(bool value);
 
   bool didMigrateToAccountSetting();
 
@@ -936,11 +936,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool didRegisterPasskey() =>
+  bool didRegisterPasskeyAndroid() =>
       _preferences.getBool(keyDidRegisterPasskey) ?? false;
 
   @override
-  Future<void> setDidRegisterPasskey(bool value) async {
+  Future<void> setDidRegisterPasskeyAndroid(bool value) async {
     await _preferences.setBool(keyDidRegisterPasskey, value);
   }
 }

@@ -72,17 +72,18 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  bool didRegisterPasskey() => (super.noSuchMethod(
+  bool didRegisterPasskeyAndroid() => (super.noSuchMethod(
         Invocation.method(
-          #didRegisterPasskey,
+          #didRegisterPasskeyAndroid,
           [],
         ),
         returnValue: false,
       ) as bool);
   @override
-  _i5.Future<void> setDidRegisterPasskey(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setDidRegisterPasskeyAndroid(bool? value) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #setDidRegisterPasskey,
+          #setDidRegisterPasskeyAndroid,
           [value],
         ),
         returnValue: _i5.Future<void>.value(),
