@@ -18,7 +18,7 @@ class DomainServiceImpl implements DomainService {
   static const String _addressQuery = '''
     query {
       lookup(inputs: [
-        { chain: "<chain>", name: "<var>", skipCache: false },
+        { chain: "<chain>", name: "<var>", skipCache: true },
       ]) {
         chain
         name
