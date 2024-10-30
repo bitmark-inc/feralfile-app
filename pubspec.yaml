@@ -166,6 +166,7 @@ dependencies:
   just_audio: ^0.9.29
   xml: ^6.1.0
   vector_graphics_compiler: ^1.1.7
+  home_widget: ^0.7.0
 
 
 dependency_overrides:
