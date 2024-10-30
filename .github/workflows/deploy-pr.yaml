@@ -15,7 +15,7 @@ on:
       - 'LICENSE.md'
 
 jobs:
-  if: "! contains(github.event.pull_request.title, 'WIP')"
+  if: ${{ ! contains(github.event.pull_request.title, 'WIP') }}
 
   fetch-deployment:
     runs-on: ubuntu-latest
