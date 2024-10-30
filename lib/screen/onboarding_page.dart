@@ -53,7 +53,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
-  bool _loadingAnimation = true;
+  bool _loadingButton = true;
 
   final _passkeyService = injector.get<PasskeyService>();
   final _userAccountChannel = injector.get<UserAccountChannel>();
@@ -179,7 +179,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
       if (mounted) {
         setState(() {
-          _loadingAnimation = false;
+          _loadingButton = false;
         });
       }
       final didLoginSuccess = didRegisterPasskey
@@ -187,7 +187,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           : await _registerPasskey();
       if (mounted) {
         setState(() {
-          _loadingAnimation = true;
+          _loadingButton = true;
         });
       }
       if (didLoginSuccess != true) {
@@ -216,14 +216,17 @@ class _OnboardingPageState extends State<OnboardingPage>
                 child: Column(
                   children: [
                     const Spacer(),
-                    PrimaryButton(
-                      text: 'h_loading...'.tr(),
-                      isProcessing: _loadingAnimation,
-                      enabled: false,
-                      disabledColor: AppColor.auGreyBackground,
-                      textColor: AppColor.white,
-                      indicatorColor: AppColor.white,
-                    ),
+                    if (_loadingButton)
+                      PrimaryButton(
+                        text: 'h_loading...'.tr(),
+                        isProcessing: true,
+                        enabled: false,
+                        disabledColor: AppColor.auGreyBackground,
+                        textColor: AppColor.white,
+                        indicatorColor: AppColor.white,
+                      )
+                    else
+                      const SizedBox(),
                   ],
                 ),
               ),
