@@ -129,7 +129,7 @@ class GraphClient {
       return result.data;
     } catch (e) {
       log.info('Error querying: $e');
-      await Sentry.captureException('[DomainService] Error querying: $e');
+      unawaited(Sentry.captureException('[DomainService] Error querying: $e'));
       return null;
     }
   }
