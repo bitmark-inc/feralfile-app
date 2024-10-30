@@ -771,7 +771,7 @@ extension PostcardExtension on AssetToken {
         final shareMessage = 'postcard_share_message'.tr(namedArgs: {
           'deeplink': sharePostcardResponse.deeplink!,
         });
-        final result = await Share.share(shareMessage,
+        final result = await Share.shareWithResult(shareMessage,
             sharePositionOrigin: sharePositionOrigin);
         if (result.status == ShareResultStatus.success) {
           await Future.delayed(const Duration(milliseconds: 100));

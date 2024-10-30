@@ -78,7 +78,7 @@ dependencies:
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
-  package_info_plus: ^8.0.3
+  package_info_plus:
   page_transition: ^2.0.5
   path_provider: ^2.1.1
   permission_handler: ^10.0.0
@@ -86,10 +86,10 @@ dependencies:
   qr_flutter: ^4.0.0
   retrofit: null
   roundcheckbox: ^2.0.4+1
-  sentry_dio: ^8.9.0
-  sentry_flutter: ^8.9.0
+  sentry_dio: ^7.9.0
+  sentry_flutter: ^7.9.0
   shake: ^2.0.0
-  share_plus: ^10.0.3
+  share_plus: ^8.0.2
   shared_preferences: ^2.0.0
   synchronized: ^3.0.0+2
   social_share: ^2.3.1
@@ -131,7 +131,7 @@ dependencies:
   flutter_widget_from_html: ^0.10.3
   readmore: ^2.2.0
   elliptic: ^0.3.8
-  sentry: ^8.9.0
+  sentry: ^7.9.0
   path: ^1.9.0
   in_app_purchase_storekit: ^0.3.14
   in_app_purchase_android: ^0.3.4
@@ -142,7 +142,7 @@ dependencies:
   image: ^4.2.0
   widgets_to_image: ^0.0.2
   geocoding: ^2.1.0
-  flutter_inappwebview: ^6.1.5
+  flutter_inappwebview: ^6.0.0
   webview_flutter: ^4.9.0
   html: ^0.15.1
   video_player: ^2.9.2
@@ -172,7 +172,7 @@ dependencies:
 dependency_overrides:
   intl: 0.18.0
   archive: ^3.6.1
-  package_info_plus: ^8.0.3
+  package_info_plus: ^6.0.0
   frontend_server_client: ^4.0.0
   webview_flutter_android: 3.16.1
 
@@ -193,7 +193,7 @@ dev_dependencies:
   dependency_validator: null
   dotenv: ^4.0.1
   html_unescape: ^2.0.0
-  sentry_dart_plugin: ^2.1.0
+  sentry_dart_plugin: ^1.0.0
 
 
 # For information on the generic Dart part of this file, see the
