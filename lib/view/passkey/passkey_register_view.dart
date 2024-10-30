@@ -7,7 +7,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:feralfile_app_theme/extensions/theme_extension.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -110,6 +110,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     if (_didSuccess) {
       return PrimaryButton(
         text: 'continue'.tr(),
+        color: AppColor.feralFileLightBlue,
         onTap: () {
           Navigator.of(context).pop(true);
         },
@@ -117,6 +118,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     }
     return PrimaryAsyncButton(
       key: const Key('register_button'),
+      color: AppColor.feralFileLightBlue,
       onTap: _register,
       text: _isError ? 'try_again'.tr() : 'get_started'.tr(),
       processingText: 'creating_passkey'.tr(),
