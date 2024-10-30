@@ -22,7 +22,7 @@ jobs:
           channel: stable
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.1"
+          xcode-version: "15.2"
 
       - name: Set env
         run: |
@@ -80,8 +80,7 @@ jobs:
           flutter clean
           flutter pub get
           cd ios/
-          rm Podfile.lock
-          pod install --repo-update
+          pod install
 
       # Encrypt secrets before use
       - name: Encrypt Secrets

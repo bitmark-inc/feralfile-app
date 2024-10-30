@@ -53,7 +53,7 @@ void main() async {
           ..enableAutoSessionTracking = true
           ..tracesSampleRate = 0.25
           ..attachStacktrace = true
-          ..beforeSend = (SentryEvent event, Hint hint) {
+          ..beforeSend = (SentryEvent event, {dynamic hint}) {
             // Avoid sending events with "level": "debug"
             if (event.level == SentryLevel.debug) {
               // Return null to drop the event
