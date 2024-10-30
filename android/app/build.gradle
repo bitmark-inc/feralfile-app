@@ -19,6 +19,8 @@ plugins {
     id "kotlinx-serialization"
     id "com.google.gms.google-services"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'kotlin-kapt'
+
 }
 
 def localProperties = new Properties()
@@ -91,7 +93,8 @@ android {
             keyAlias releaseProperties['key.alias']
             keyPassword releaseProperties['key.alias.password']
             storePassword releaseProperties['key.store.password']
-            storeFile rootProject.file('release.keystore') // Update this with the path to your keystore
+            storeFile rootProject.file('release.keystore')
+            // Update this with the path to your keystore
         }
     }
 
@@ -175,6 +178,7 @@ flutter {
 }
 
 dependencies {
+    implementation 'com.google.firebase:protolite-well-known-types:18.0.0'
     def lifecycle_version = "2.6.0-alpha03"
     def beacon_version = "c2434dcc73"
 
@@ -210,4 +214,7 @@ dependencies {
         exclude group: 'com.google.protobuf'
         exclude module: 'jetified-protobuf-java'
     }
+
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+//    kapt 'com.github.bumptech.glide:compiler:4.12.0'
 }
