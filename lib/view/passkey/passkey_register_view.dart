@@ -79,19 +79,9 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         ],
       );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'introducing_passkey_desc_1'.tr(),
-          style: style,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'introducing_passkey_desc_2'.tr(),
-          style: style,
-        ),
-      ],
+    return Text(
+      'introducing_passkey_desc_1'.tr(),
+      style: style,
     );
   }
 
