@@ -104,7 +104,7 @@ class _FfSeriesInfoThumbnailState extends State<FfSeriesInfoThumbnail> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                series.artist?.displayAlias ?? '',
+                series.artistAlumni?.displayAlias ?? '',
                 style: defaultStyle,
                 overflow: TextOverflow.ellipsis,
               ),
