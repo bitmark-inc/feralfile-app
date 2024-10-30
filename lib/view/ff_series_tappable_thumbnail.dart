@@ -32,33 +32,33 @@ class _FfSeriesInfoThumbnailState extends State<FfSeriesInfoThumbnail> {
   @override
   Widget build(BuildContext context) {
     final series = widget.series;
-    return GestureDetector(
-      onTap: () async {
-        await _gotoSeriesDetails(context, series);
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return _navigating
+        ? const LoadingWidget()
+        : GestureDetector(
+            onTap: () async {
+              await _gotoSeriesDetails(context, series);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _navigating
-                      ? const LoadingWidget()
-                      : FFCacheNetworkImage(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: FFCacheNetworkImage(
                           imageUrl: series.thumbnailUrl ?? '',
                           fit: BoxFit.fitWidth,
                         ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 8),
+                _seriesInfo(context, series),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          _seriesInfo(context, series),
-        ],
-      ),
-    );
+          );
   }
 
   Future<void> _gotoSeriesDetails(BuildContext context, FFSeries series) async {
