@@ -57,7 +57,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
                       flex: 5,
                       child: SeriesTitleView(
                         series: payload.artwork.series!,
-                        artist: payload.artwork.series!.artist,
+                        artist: payload.artwork.series!.artistAlumni,
                       ),
                     ),
                     Padding(
