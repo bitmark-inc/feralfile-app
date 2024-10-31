@@ -119,6 +119,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         );
         issues.addAll(listAnonymousIssues);
       }
+      issues.sort((a, b) => b.sortTime.compareTo(a.sortTime));
     } catch (e) {
       log.info('[CS-Service] getIssues error: $e');
       unawaited(Sentry.captureException(e));

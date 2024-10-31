@@ -108,8 +108,7 @@ class Issue implements ChatThread {
       );
 
   @override
-  // TODO: implement sortTime
-  DateTime get sortTime => timestamp;
+  DateTime get sortTime => lastMessage?.timestamp ?? timestamp;
 }
 
 @JsonSerializable()
