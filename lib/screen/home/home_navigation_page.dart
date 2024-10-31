@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
@@ -564,6 +565,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
+    final assetToken = injector<DailyWorkBloc>().state.assetTokens.firstOrNull;
+    if (assetToken != null) {
+      await injector<HomeWidgetService>().setDailyTokenToHomeWidget(assetToken);
+    }
     _triggerShowAnnouncement();
   }
 

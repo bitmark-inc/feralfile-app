@@ -62,6 +62,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
@@ -423,4 +424,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<CloudManager>(() => CloudManager());
 
   injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
+
+  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }

@@ -3,17 +3,19 @@ package com.bitmark.autonomy_flutter
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.widget.RemoteViews
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.AppWidgetTarget
-import com.bumptech.glide.request.transition.Transition
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 /**
  * Implementation of App Widget functionality.
@@ -50,43 +52,51 @@ internal fun updateAppWidget(
     appWidgetId: Int,
     dailyInfo: DailyInfo // dailyInfo is guaranteed to be non-null
 ) {
-    // Construct the RemoteViews object
-    val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
+    val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+    val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+    val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+
+    val layoutId = R.layout.widget_2x2
+//        when {
+//        minWidth >= 220 && minHeight >= 220 -> R.layout.widget_2x2
+//        minWidth >= 110 && minHeight >= 220 -> R.layout.widget_1x2
+//        minWidth >= 220 && minHeight >= 110 -> R.layout.widget_2x1
+//        else -> R.layout.widget_1x1
+//    }
+
+    val views = RemoteViews(context.packageName, layoutId)
 
     // Set text fields with DailyInfo
     views.setTextViewText(R.id.appwidget_title, dailyInfo.title)
     views.setTextViewText(R.id.appwidget_artist, dailyInfo.artistName)
     views.setTextViewText(R.id.appwidget_medium, dailyInfo.medium)
 
-    // Load the thumbnail image
-    val thumbnailUrl = dailyInfo.thumbnailUrl
-    if (thumbnailUrl.isNotEmpty()) {
-        // Use Glide to load the image into the widget
-        Glide.with(context)
-            .asBitmap()
-            .load(thumbnailUrl)
-            .into(object : AppWidgetTarget(context, R.id.appwidget_image, views, appWidgetId) {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    views.setImageViewBitmap(R.id.appwidget_image, resource)
-                    // Update the widget with the new image
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
+    // Load the image from Base64
+    val base64ImageData = dailyInfo.base64ImageData
+    if (base64ImageData.isNotEmpty()) {
+        try {
+            // Decode Base64 string to a byte array
+            val imageBytes = Base64.decode(base64ImageData, Base64.DEFAULT)
+            // Convert byte array to Bitmap
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    // Handle error, if needed, set a placeholder image
-                    views.setImageViewResource(R.id.appwidget_image, R.drawable.failed_daily_image)
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-            })
+            // Set the image to the widget
+            views.setImageViewBitmap(R.id.appwidget_image, bitmap)
+        } catch (e: Exception) {
+            // Handle error in decoding, set a placeholder image
+            views.setImageViewResource(R.id.appwidget_image, R.drawable.failed_daily_image)
+        }
     } else {
-        // If no thumbnail URL, set a placeholder image
+        // If no Base64 data, set a placeholder image
         views.setImageViewResource(R.id.appwidget_image, R.drawable.no_thumbnail)
-        appWidgetManager.updateAppWidget(appWidgetId, views)
     }
+
+    // Update the widget with the new views
+    appWidgetManager.updateAppWidget(appWidgetId, views)
 }
 
 data class DailyInfo(
-    val thumbnailUrl: String,
+    val base64ImageData: String,  // Changed from thumbnailUrl to base64ImageData
     val title: String,
     val artistName: String,
     val medium: String
@@ -98,12 +108,13 @@ fun getDailyInfo(context: Context, date: String, callback: (DailyInfo) -> Unit) 
         try {
 
             // Create a DailyInfo from the API response, if available
-            val dailyInfo = DailyInfo(
-                thumbnailUrl = "https://via.placeholder.com/150",
-                title = "Title",
-                artistName = "Artist",
-                medium = "Medium"
-            )
+            val dailyInfo = null
+//            DailyInfo(
+//                base64ImageData = "Base64 Image Data",
+//                title = "Title",
+//                artistName = "Artist",
+//                medium = "Medium"
+//            )
 
             // If dailyInfo is null, retrieve already set data from local storage
             if (dailyInfo == null) {
@@ -114,9 +125,9 @@ fun getDailyInfo(context: Context, date: String, callback: (DailyInfo) -> Unit) 
                 }
             } else {
                 // If dailyInfo is valid, return it
-                withContext(Dispatchers.Main) {
-                    callback(dailyInfo)
-                }
+//                withContext(Dispatchers.Main) {
+//                    callback(dailyInfo)
+//                }
             }
         } catch (e: Exception) {
             // In case of an exception, fallback to retrieving stored data
@@ -130,18 +141,42 @@ fun getDailyInfo(context: Context, date: String, callback: (DailyInfo) -> Unit) 
 
 private fun getStoredDailyInfo(context: Context): DailyInfo {
     val widgetData = HomeWidgetPlugin.getData(context)
-    val thumbnailUrl =
-        widgetData.getString("thumbnailUrl", "default_thumbnail_url") ?: "default_thumbnail_url"
-    val title = widgetData.getString("title", "default_title") ?: "default_title"
-    val artistName =
-        widgetData.getString("artistName", "default_artist_name") ?: "default_artist_name"
-    val medium = widgetData.getString("medium", "default_medium") ?: "default_medium"
-    // return
+
+    // Format the current date to match the key in the stored data
+    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val currentDateKey = dateFormatter.format(Date())
+
+    // Retrieve JSON string for the current date
+    val jsonString = widgetData.getString(currentDateKey, null)
+
+    if (jsonString != null) {
+        try {
+            // Parse JSON string
+            val jsonObject = JSONObject(jsonString)
+
+            val base64ImageData = jsonObject.optString("base64ImageData", "default_base64ImageData")
+            val title = jsonObject.optString("title", "default_title")
+            val artistName = jsonObject.optString("artistName", "default_artist_name")
+            val medium = jsonObject.optString("medium", "default_medium")
+
+            // Return DailyInfo object with the parsed data
+            return DailyInfo(
+                base64ImageData = base64ImageData,
+                title = title,
+                artistName = artistName,
+                medium = medium
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // Return default DailyInfo if data for current date is not found or parsing fails
     return DailyInfo(
-        thumbnailUrl = thumbnailUrl,
-        title = title,
-        artistName = artistName,
-        medium = medium
+        base64ImageData = "default_base64ImageData",
+        title = "default_title",
+        artistName = "default_artist_name",
+        medium = "default_medium"
     )
 }
 
