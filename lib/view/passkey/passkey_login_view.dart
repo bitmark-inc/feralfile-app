@@ -1,8 +1,5 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -12,19 +9,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-class PasskeyLoginView extends StatefulWidget {
-  const PasskeyLoginView({super.key});
+class PasskeyLoginRetryView extends StatefulWidget {
+  final Future<dynamic> Function() onRetry;
+
+  const PasskeyLoginRetryView({required this.onRetry, super.key});
 
   @override
-  State<PasskeyLoginView> createState() => _PasskeyLoginViewState();
+  State<PasskeyLoginRetryView> createState() => _PasskeyLoginRetryViewState();
 }
 
-class _PasskeyLoginViewState extends State<PasskeyLoginView> {
-  final _passkeyService = injector.get<PasskeyService>();
-  final _accountService = injector.get<AccountService>();
-
-  bool _isError = false;
-  bool _isLogging = false;
+class _PasskeyLoginRetryViewState extends State<PasskeyLoginRetryView> {
+  bool _isRetrying = false;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -42,12 +37,12 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
           const SizedBox(height: 20),
           _getAction(context),
           const SizedBox(height: 20),
-          _havingTrouble(context)
+          const HavingTroubleView(),
         ],
       );
 
   Widget _getTitle(BuildContext context) => Text(
-        _isError ? 'authentication_failed'.tr() : 'login_title'.tr(),
+        'authentication_failed'.tr(),
         style: Theme.of(context).textTheme.ppMori700Black16,
       );
 
@@ -55,7 +50,7 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
     final theme = Theme.of(context);
     final style = theme.textTheme.ppMori400Black14;
     return Text(
-      _isError ? 'passkey_error_desc'.tr() : 'login_desc'.tr(),
+      'passkey_error_desc'.tr(),
       style: style,
     );
   }
@@ -68,42 +63,28 @@ class _PasskeyLoginViewState extends State<PasskeyLoginView> {
         key: const Key('login_button'),
         color: AppColor.feralFileLightBlue,
         onTap: _login,
-        text: _isError ? 'try_again'.tr() : 'login_button'.tr(),
+        text: 'try_again'.tr(),
       );
 
   Future<void> _login() async {
-    if (_isLogging) {
+    if (_isRetrying) {
       return;
     }
     setState(() {
-      _isLogging = true;
-      _isError = false;
+      _isRetrying = true;
     });
     try {
-      await _accountService.migrateAccount(() async {
-        final localResponse = await _passkeyService.logInInitiate();
-        await _passkeyService.logInFinalize(localResponse);
-      });
+      await widget.onRetry();
       if (mounted) {
         Navigator.of(context).pop(true);
       }
     } catch (e, stackTrace) {
       log.info('Failed to login with passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
-      setState(() {
-        _isError = true;
-      });
     } finally {
       setState(() {
-        _isLogging = false;
+        _isRetrying = false;
       });
     }
-  }
-
-  Widget _havingTrouble(BuildContext context) {
-    if (!_isError && !_isLogging) {
-      return const SizedBox();
-    }
-    return const HavingTroubleView();
   }
 }

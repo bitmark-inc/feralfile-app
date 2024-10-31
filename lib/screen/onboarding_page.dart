@@ -196,8 +196,25 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
   }
 
-  Future<dynamic> _loginWithPasskey() async =>
-      await UIHelper.showPasskeyLoginDialog(context);
+  Future<dynamic> _loginWithPasskey() async {
+    try {
+      await _loginAndMigrate();
+      return true;
+    } catch (e, s) {
+      log.info('Failed to login with passkey: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      if (mounted) {
+        return await UIHelper.showPasskeyLoginDialog(context, _loginAndMigrate);
+      }
+    }
+  }
+
+  Future<void> _loginAndMigrate() async {
+    await injector<AccountService>().migrateAccount(() async {
+      final localResponse = await _passkeyService.logInInitiate();
+      await _passkeyService.logInFinalize(localResponse);
+    });
+  }
 
   Future<dynamic> _registerPasskey() async =>
       await UIHelper.showPasskeyRegisterDialog(context);
