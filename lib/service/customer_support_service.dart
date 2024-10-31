@@ -450,7 +450,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final jwt = await injector<AuthService>().getAuthToken();
     if (jwt != null) {
       return await _customerSupportApi.createIssue(payload,
-          token: jwt.jwtToken);
+          token: 'Bearer ${jwt.jwtToken}');
     } else {
       final anonymousDeviceId = _configurationService.getAnonymousDeviceId() ??
           await _configurationService.createAnonymousDeviceId();
