@@ -4,7 +4,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
         google()  // Google's Maven repository
     }
-    ext.kotlin_version = '1.7.20'
+    ext.kotlin_version = '1.9.0'
     dependencies {
         // ...
         // OneSignal-Gradle-Plugin
@@ -113,6 +113,14 @@ android {
         ]
     }
 
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.2"
+    }
+
     buildTypes {
         release {
             if (rootProject.file('release.keystore').exists()) {
@@ -217,4 +225,5 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.12.0'
 //    kapt 'com.github.bumptech.glide:compiler:4.12.0'
+    implementation 'androidx.glance:glance-appwidget:LATEST-VERSION'
 }
