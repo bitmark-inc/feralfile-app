@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -20,9 +19,7 @@ import 'package:sentry/sentry.dart';
 Future<bool> registerPushNotifications({bool askPermission = false}) async {
   log.info('register notification');
   if (askPermission) {
-    final permission = Platform.isAndroid
-        ? true
-        : await OneSignal.Notifications.requestPermission(true);
+    final permission = await OneSignal.Notifications.requestPermission(true);
 
     if (!permission) {
       return false;
@@ -32,6 +29,8 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   try {
     final primaryAddress = await injector<AddressService>().getPrimaryAddress();
     await OneSignal.login(primaryAddress!);
+    await OneSignal.User.pushSubscription.optIn();
+
     await injector<ConfigurationService>().setNotificationEnabled(true);
     return true;
   } catch (error) {
@@ -44,6 +43,7 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
 
 Future<void> deregisterPushNotification() async {
   log.info('unregister notification');
+  await OneSignal.User.pushSubscription.optOut();
   await OneSignal.logout();
 }
 

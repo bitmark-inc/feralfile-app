@@ -29,12 +29,6 @@
         android:roundIcon="${appIconRound}"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:replace="android:label,allowBackup">
-
-        <meta-data
-            android:name="com.onesignal.NotificationServiceExtension"
-            android:value="com.bitmark.autonomy_flutter.service.NotificationServiceExtension" />
-
-        <!-- Branch init -->
         <meta-data
             android:name="io.branch.sdk.BranchKey"
             android:value="${branchKey}" />
