@@ -283,6 +283,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       if (event.notification.additionalData == null) {
         return;
       }
+      event.preventDefault();
       final additionalData =
           AdditionalData.fromJson(event.notification.additionalData!);
       final id = additionalData.announcementContentId ??
