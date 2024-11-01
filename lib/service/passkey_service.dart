@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 
@@ -19,6 +20,8 @@ abstract class PasskeyService {
   Future<void> registerInitiate();
 
   Future<void> registerFinalize();
+
+  ValueNotifier<bool> get isShowingLoginDialog;
 
   static String authenticationType = 'public-key';
 }
@@ -41,21 +44,14 @@ class PasskeyServiceImpl implements PasskeyService {
     this._authService,
   );
 
-  /*
-  static final AuthenticatorSelectionType _defaultAuthenticatorSelection =
-      AuthenticatorSelectionType(
-    requireResidentKey: false,
-    residentKey: 'discouraged',
-    userVerification: 'preferred',
-  );
-
-  static const _defaultRelayingPartyId = 'accounts.dev.feralfile.com';
-
- */
+  final ValueNotifier<bool> _isShowingLoginDialog = ValueNotifier(false);
 
   static const _defaultMediation = MediationType.Optional;
 
   static const _preferImmediatelyAvailableCredentials = false;
+
+  @override
+  ValueNotifier<bool> get isShowingLoginDialog => _isShowingLoginDialog;
 
   @override
   Future<bool> isPassKeyAvailable() async =>
@@ -78,7 +74,15 @@ class PasskeyServiceImpl implements PasskeyService {
   @override
   Future<AuthenticateResponseType> logInInitiate() async {
     final loginRequest = await _logInSeverInitiate();
-    return await _passkeyAuthenticator.authenticate(loginRequest);
+    return await _authenticate(loginRequest);
+  }
+
+  Future<AuthenticateResponseType> _authenticate(
+      AuthenticateRequestType loginRequest) async {
+    _isShowingLoginDialog.value = true;
+    final response = await _passkeyAuthenticator.authenticate(loginRequest);
+    _isShowingLoginDialog.value = false;
+    return response;
   }
 
   Future<AuthenticateRequestType> _logInSeverInitiate() async {
