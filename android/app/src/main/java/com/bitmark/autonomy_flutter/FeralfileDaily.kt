@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.Calendar
+import java.util.TimeZone
 
 /**
  * Implementation of App Widget functionality.
@@ -47,9 +48,9 @@ class FeralfileDaily : AppWidgetProvider() {
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
 
-//            getDailyInfo(context = context) { dailyInfo ->
-//                updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
-//            }
+            getDailyInfo(context = context) { dailyInfo ->
+                updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
+            }
         }
     }
 
@@ -82,8 +83,6 @@ class FeralfileDaily : AppWidgetProvider() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             context.startActivity(openAppIntent)
-
-
         }
     }
 }
@@ -151,12 +150,13 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
     // now - 6h
     // Initialize calendar and set it to midnight 6 hours ago
     val calendar = Calendar.getInstance().apply {
-        add(Calendar.HOUR_OF_DAY, -6)
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0)
         set(Calendar.MILLISECOND, 0)
+        timeZone = TimeZone.getTimeZone("UTC")
     }
+    // to utc timestamp
     val timestamp = calendar.timeInMillis
 
 
