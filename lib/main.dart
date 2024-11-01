@@ -106,9 +106,9 @@ Future<void> runFeralFileApp() async {
     log.info('Error in AuFileService setup: $e');
   }
 
-  OneSignal.initialize(Environment.onesignalAppID);
-  OneSignal.Debug.setLogLevel(OSLogLevel.error);
-  
+  OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
+  OneSignal.shared.setAppId(Environment.onesignalAppID);
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: AppColor.white,
     statusBarIconBrightness: Brightness.dark,
