@@ -43,7 +43,7 @@ end
 
 def one_signal_notification_service_extension
   use_frameworks!
-  pod 'OneSignalXCFramework', '>= 3.4.3', '< 4.0'
+  pod 'OneSignalXCFramework', '>= 5.2.5', '< 6.0'
 end
 
 target 'Runner Notification' do
