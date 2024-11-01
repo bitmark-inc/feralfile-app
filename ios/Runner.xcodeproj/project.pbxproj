@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -253,10 +253,6 @@
 		FAF8CE1D5921CF3A07F21D56 /* Pods-Runner Notification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Notification.debug.xcconfig"; path = "Target Support Files/Pods-Runner Notification/Pods-Runner Notification.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		E941E5182CD4C2AA00228C8A /* OneSignalNotificationServiceExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = OneSignalNotificationServiceExtension; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
 		588939B8280525C200FE3313 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -423,7 +419,6 @@
 				97C146F01CF9000F007C117D /* Runner */,
 				588939BC280525C200FE3313 /* Runner Inhouse Notification */,
 				588939CD28052E3E00FE3313 /* Runner Notification */,
-				E941E5182CD4C2AA00228C8A /* OneSignalNotificationServiceExtension */,
 				97C146EF1CF9000F007C117D /* Products */,
 				3BBCC0A3C0034FEB1A0111DB /* Pods */,
 				48A495939161E7A3DB3133FE /* Frameworks */,
