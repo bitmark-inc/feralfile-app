@@ -386,7 +386,6 @@ class _FeralFileApi implements FeralFileApi {
     final queryParameters = <String, dynamic>{
       r'offset': offset,
       r'limit': limit,
-      r'startDisplayTime': startDisplayTime,
       r'includeSuccessfulSwap': includeSuccessfulSwap,
     };
     queryParameters.removeWhere((k, v) => v == null);
