@@ -12,9 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 
 /**
@@ -27,7 +25,7 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
-            getDailyInfo(context = context, date = "2023-10-31") { dailyInfo ->
+            getDailyInfo(context = context) { dailyInfo ->
                 updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
             }
         }
@@ -52,18 +50,7 @@ internal fun updateAppWidget(
     appWidgetId: Int,
     dailyInfo: DailyInfo // dailyInfo is guaranteed to be non-null
 ) {
-    val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-    val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-    val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-
     val layoutId = R.layout.widget_2x2
-//        when {
-//        minWidth >= 220 && minHeight >= 220 -> R.layout.widget_2x2
-//        minWidth >= 110 && minHeight >= 220 -> R.layout.widget_1x2
-//        minWidth >= 220 && minHeight >= 110 -> R.layout.widget_2x1
-//        else -> R.layout.widget_1x1
-//    }
-
     val views = RemoteViews(context.packageName, layoutId)
 
     // Set text fields with DailyInfo
@@ -103,38 +90,12 @@ data class DailyInfo(
 )
 
 
-fun getDailyInfo(context: Context, date: String, callback: (DailyInfo) -> Unit) {
+fun getDailyInfo(context: Context, callback: (DailyInfo) -> Unit) {
     CoroutineScope(Dispatchers.IO).launch {
-        try {
-
-            // Create a DailyInfo from the API response, if available
-            val dailyInfo = null
-//            DailyInfo(
-//                base64ImageData = "Base64 Image Data",
-//                title = "Title",
-//                artistName = "Artist",
-//                medium = "Medium"
-//            )
-
-            // If dailyInfo is null, retrieve already set data from local storage
-            if (dailyInfo == null) {
-                val localDailyInfo =
-                    getStoredDailyInfo(context = context) // Method to get previously stored data
-                withContext(Dispatchers.Main) {
-                    callback(localDailyInfo)
-                }
-            } else {
-                // If dailyInfo is valid, return it
-//                withContext(Dispatchers.Main) {
-//                    callback(dailyInfo)
-//                }
-            }
-        } catch (e: Exception) {
-            // In case of an exception, fallback to retrieving stored data
-            val localDailyInfo = getStoredDailyInfo(context = context)
-            withContext(Dispatchers.Main) {
-                callback(localDailyInfo)
-            }
+        val localDailyInfo =
+            getStoredDailyInfo(context = context) // Method to get previously stored data
+        withContext(Dispatchers.Main) {
+            callback(localDailyInfo)
         }
     }
 }
@@ -142,9 +103,12 @@ fun getDailyInfo(context: Context, date: String, callback: (DailyInfo) -> Unit) 
 private fun getStoredDailyInfo(context: Context): DailyInfo {
     val widgetData = HomeWidgetPlugin.getData(context)
 
-    // Format the current date to match the key in the stored data
-    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val currentDateKey = dateFormatter.format(Date())
+    // Format the current date to match the key in the stored dat
+    // now - 6h
+    val now = Date()
+    val date = Date(now.time - 6 * 60 * 60 * 1000)
+    // current date to timestamp
+    val currentDateKey = date.time.toString()
 
     // Retrieve JSON string for the current date
     val jsonString = widgetData.getString(currentDateKey, null)
@@ -153,7 +117,6 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
         try {
             // Parse JSON string
             val jsonObject = JSONObject(jsonString)
-
             val base64ImageData = jsonObject.optString("base64ImageData", "default_base64ImageData")
             val title = jsonObject.optString("title", "default_title")
             val artistName = jsonObject.optString("artistName", "default_artist_name")
@@ -173,10 +136,10 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
 
     // Return default DailyInfo if data for current date is not found or parsing fails
     return DailyInfo(
-        base64ImageData = "default_base64ImageData",
-        title = "default_title",
-        artistName = "default_artist_name",
-        medium = "default_medium"
+        base64ImageData = "", // it's will be handle in case when base64ImageData is empty
+        title = "Daily Artwork",
+        artistName = "Daily is not available",
+        medium = ""
     )
 }
 
