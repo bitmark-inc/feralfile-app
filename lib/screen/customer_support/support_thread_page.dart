@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -185,6 +186,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       );
 
   void _setIssueId(String issueId) {
+    final configurationService = injector<ConfigurationService>();
+    final anonymousIssueIds = configurationService.getAnonymousIssueIds();
+
+    if (anonymousIssueIds.contains(issueId)) {
+      _userId = configurationService.getAnonymousDeviceId();
+    }
     _issueID = issueId;
     _announcement =
         injector<AnnouncementService>().findAnnouncementByIssueId(issueId);
