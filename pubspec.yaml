@@ -75,7 +75,7 @@ dependencies:
   measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
-  onesignal_flutter: ^3.3.0
+  onesignal_flutter: ^5.2.6
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
   package_info_plus: ^8.0.3
