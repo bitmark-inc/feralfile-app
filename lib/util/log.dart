@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -147,6 +148,9 @@ class FileLogger {
   }
 
   static String _filterLog(String logText) {
+    if (logText.contains(LoggingInterceptor.errorLogPrefix)) {
+      return logText;
+    }
     String filteredLog = logText;
 
     RegExp combinedRegex = RegExp('("message":".*?")|'
@@ -159,7 +163,9 @@ class FileLogger {
         r'(0x[A-Fa-f0-9]{64}[\s\W])|'
         r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
         r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)|'
-        r'(\\"receipt\\":\{[^{}]*\})');
+        r'(\\"receipt\\":\{[^{}]*\})|'
+        r'(\\"clientDataJSON\\":\\".*?\\")|'
+        r'(\\"attestationObject\\":\\".*?\\")');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
@@ -192,7 +198,13 @@ class FileLogger {
       if (match[11] != null) {
         return r'\"receipt\": REDACTED_RECEIPT';
       }
-      return '';
+      if (match[12] != null) {
+        return r'\"clientDataJSON\":\"REDACTED_CLIENT_DATA_JSON\"';
+      }
+      if (match[13] != null) {
+        return r'\"attestationObject\":\"REDACTED_ATTESTATION_OBJECT\"';
+      }
+      return 'REDACTED_INFORMATION';
     });
 
     return filteredLog;

@@ -37,6 +37,8 @@ class Issue implements ChatThread {
   Message? firstMessage;
   @JsonKey(name: 'announcement_content_id')
   String? announcementContentId;
+  @JsonKey(name: 'user_id')
+  String? userId;
 
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -55,6 +57,7 @@ class Issue implements ChatThread {
     required this.rating,
     this.draft,
     this.announcementContentId,
+    this.userId,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);
@@ -85,6 +88,7 @@ class Issue implements ChatThread {
     Message? firstMessage,
     String? announcementContentId,
     DraftCustomerSupport? draft,
+    String? userId,
   }) =>
       Issue(
         issueID: issueID ?? this.issueID,
@@ -100,11 +104,11 @@ class Issue implements ChatThread {
         announcementContentId:
             announcementContentId ?? this.announcementContentId,
         draft: draft ?? this.draft,
+        userId: userId ?? this.userId,
       );
 
   @override
-  // TODO: implement sortTime
-  DateTime get sortTime => timestamp;
+  DateTime get sortTime => lastMessage?.timestamp ?? timestamp;
 }
 
 @JsonSerializable()

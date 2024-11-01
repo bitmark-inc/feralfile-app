@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'customer_support_api.dart';
+part of 'user_api.dart';
 
 // **************************************************************************
 // RetrofitGenerator
@@ -8,8 +8,8 @@ part of 'customer_support_api.dart';
 
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers
 
-class _CustomerSupportApi implements CustomerSupportApi {
-  _CustomerSupportApi(
+class _UserApi implements UserApi {
+  _UserApi(
     this._dio, {
     this.baseUrl,
   });
@@ -19,21 +19,48 @@ class _CustomerSupportApi implements CustomerSupportApi {
   String? baseUrl;
 
   @override
-  Future<List<Issue>> getIssues({required String token}) async {
+  Future<CredentialCreationOptionResponse> registerInitialize() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': token};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<CredentialCreationOptionResponse>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/apis/users/passkeys/registration/initialize',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = CredentialCreationOptionResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<JWT> registerFinalize(Map<String, dynamic> body) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
     final _result =
-        await _dio.fetch<List<dynamic>>(_setStreamType<List<Issue>>(Options(
-      method: 'GET',
+        await _dio.fetch<Map<String, dynamic>>(_setStreamType<JWT>(Options(
+      method: 'POST',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/v1/issues/',
+              '/apis/users/passkeys/registration/finalize',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -42,98 +69,53 @@ class _CustomerSupportApi implements CustomerSupportApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    var value = _result.data!
-        .map((dynamic i) => Issue.fromJson(i as Map<String, dynamic>))
-        .toList();
+    final value = JWT.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<List<Issue>> getAnonymousIssues({
-    required String apiKey,
-    required String deviceId,
-  }) async {
+  Future<CredentialRequestOption> logInInitialize(String id) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{
-      r'x-api-key': apiKey,
-      r'x-device-id': deviceId,
-    };
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<CredentialRequestOption>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/apis/users/${id}/passkeys/login/initialize',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = CredentialRequestOption.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<JWT> logInFinalize(Map<String, dynamic> body) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
     final _result =
-        await _dio.fetch<List<dynamic>>(_setStreamType<List<Issue>>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/v1/issues/',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    var value = _result.data!
-        .map((dynamic i) => Issue.fromJson(i as Map<String, dynamic>))
-        .toList();
-    return value;
-  }
-
-  @override
-  Future<IssueDetails> getDetails(
-    String issueID, {
-    bool reverse = true,
-  }) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'reverse': reverse};
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio
-        .fetch<Map<String, dynamic>>(_setStreamType<IssueDetails>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/v1/issues/${issueID}',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    final value = IssueDetails.fromJson(_result.data!);
-    return value;
-  }
-
-  @override
-  Future<PostedMessageResponse> createIssue(
-    Map<String, Object> body, {
-    required String token,
-  }) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': token};
-    _headers.removeWhere((k, v) => v == null);
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<PostedMessageResponse>(Options(
+        await _dio.fetch<Map<String, dynamic>>(_setStreamType<JWT>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/v1/issues/',
+              '/apis/users/passkeys/login/finalize',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -142,65 +124,26 @@ class _CustomerSupportApi implements CustomerSupportApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = PostedMessageResponse.fromJson(_result.data!);
+    final value = JWT.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<PostedMessageResponse> createAnonymousIssue(
-    Map<String, Object> body, {
-    required String apiKey,
-    required String deviceId,
-  }) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{
-      r'x-api-key': apiKey,
-      r'x-device-id': deviceId,
-    };
-    _headers.removeWhere((k, v) => v == null);
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<PostedMessageResponse>(Options(
-      method: 'POST',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/v1/issues/',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    final value = PostedMessageResponse.fromJson(_result.data!);
-    return value;
-  }
-
-  @override
-  Future<PostedMessageResponse> commentIssue(
-    String issueID,
-    Map<String, Object> body,
-  ) async {
+  Future<JWT> authenticateAddress(Map<String, dynamic> body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<PostedMessageResponse>(Options(
+    final _result =
+        await _dio.fetch<Map<String, dynamic>>(_setStreamType<JWT>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/v1/issues/${issueID}',
+              '/apis/users/addresses/authenticate',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -209,61 +152,36 @@ class _CustomerSupportApi implements CustomerSupportApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = PostedMessageResponse.fromJson(_result.data!);
+    final value = JWT.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<dynamic> reOpenIssue(String issueID) async {
+  Future<JWT> refreshJWT(Map<String, dynamic> body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
-      method: 'PATCH',
-      headers: _headers,
-      extra: _extra,
-    )
-        .compose(
-          _dio.options,
-          '/v1/issues/${issueID}/reopen',
-          queryParameters: queryParameters,
-          data: _data,
-        )
-        .copyWith(
-            baseUrl: _combineBaseUrls(
-          _dio.options.baseUrl,
-          baseUrl,
-        ))));
-    final value = _result.data;
-    return value;
-  }
-
-  @override
-  Future<void> rateIssue(
-    String issueID,
-    int rating,
-  ) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    await _dio.fetch<void>(_setStreamType<void>(Options(
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _result =
+        await _dio.fetch<Map<String, dynamic>>(_setStreamType<JWT>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
     )
-        .compose(
-          _dio.options,
-          '/v1/issues/${issueID}/rate/${rating}',
-          queryParameters: queryParameters,
-          data: _data,
-        )
-        .copyWith(
-            baseUrl: _combineBaseUrls(
-          _dio.options.baseUrl,
-          baseUrl,
-        ))));
+            .compose(
+              _dio.options,
+              '/apis/users/jwt/refresh',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = JWT.fromJson(_result.data!);
+    return value;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

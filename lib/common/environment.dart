@@ -71,6 +71,7 @@ class Environment {
       'SENTRY_DSN',
       'ONESIGNAL_APP_ID',
       'TV_API_KEY',
+      'SUPPORT_API_KEY',
     ];
     final missingKeys = <String>[];
     for (var key in keys) {
@@ -225,4 +226,7 @@ class Environment {
 
   static String get domainResolverApiKey =>
       _readKey('DOMAIN_RESOLVER_API_KEY', '', isSecret: true);
+
+  static String get supportApiKey =>
+      _readKey('SUPPORT_API_KEY', '', isSecret: true);
 }

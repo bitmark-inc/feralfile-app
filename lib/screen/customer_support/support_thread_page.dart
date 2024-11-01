@@ -192,7 +192,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   @override
   void initState() {
-    unawaited(_getUserId());
     unawaited(injector<CustomerSupportService>().processMessages());
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -260,16 +259,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
-  Future<String> _getUserId() async {
-    if (_userId != null) {
-      return _userId!;
-    }
-    final jwt = await injector<AuthService>().getAuthToken();
-    final data = parseJwt(jwt!.jwtToken);
-    _userId = data['sub'] ?? '';
-    return _userId!;
-  }
-
   Future<void> _addDebugLog() async {
     Navigator.of(context).pop();
 
@@ -294,7 +283,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         .removeListener(_loadIssueDetails);
     _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
-    _textEditingController.dispose();
 
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
@@ -700,10 +688,23 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Future<void> _loadIssueDetails() async {
     if (_issueID == null) {
+      final jwt = await injector<AuthService>().getAuthToken();
+      if (jwt != null) {
+        final data = parseJwt(jwt.jwtToken);
+        if (data['sub'] != _userId) {
+          if (mounted) {
+            setState(() {
+              _userId = data['sub'];
+            });
+          }
+        }
+      }
       return;
     }
     final issueDetails = await _customerSupportService.getDetails(_issueID!);
-    await _getUserId();
+    if (issueDetails.issue.userId != null) {
+      _userId = issueDetails.issue.userId;
+    }
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)

@@ -12,34 +12,21 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/primary_address_channel.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry/sentry.dart';
-import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
-  final PrimaryAddressChannel _primaryAddressChannel;
+  final UserAccountChannel _primaryAddressChannel;
   final CloudManager _cloudObject;
 
   AddressService(this._primaryAddressChannel, this._cloudObject);
 
-  AddressInfo? _primaryAddressInfo;
-
-  Future<AddressInfo?> getPrimaryAddressInfo() async {
-    if (_primaryAddressInfo != null) {
-      log.info('[AddressService] (Already set) Primary address info:'
-          ' ${_primaryAddressInfo?.toJson()}');
-      return _primaryAddressInfo;
-    }
-    _primaryAddressInfo = await _primaryAddressChannel.getPrimaryAddress();
-    log.info('[AddressService] Primary address info:'
-        ' ${_primaryAddressInfo?.toJson()}');
-    return _primaryAddressInfo;
-  }
+  Future<AddressInfo?> getPrimaryAddressInfo() async =>
+      await _primaryAddressChannel.getPrimaryAddress();
 
   Future<AddressInfo?> migrateToEthereumAddress(
       AddressInfo currentPrimaryAddress) async {
@@ -58,19 +45,9 @@ class AddressService {
     return true;
   }
 
-  Future<bool> registerPrimaryAddress(
-      {required AddressInfo info, bool withDidKey = false}) async {
+  Future<bool> registerPrimaryAddress({required AddressInfo info}) async {
     log.info('[AddressService] Registering primary address: ${info.toJson()}');
-    await injector<AuthService>().registerPrimaryAddress(
-        primaryAddressInfo: info, withDidKey: withDidKey);
-    log.info('[AddressService] Primary address registered: ${info.toJson()}');
     final res = await setPrimaryAddressInfo(info: info);
-    // when register primary address, we need to update the auth token
-    log.info(
-        '[AddressService] Getting auth token after primary address registered');
-    await injector<AuthService>().getAuthToken(forceRefresh: true);
-    // we also need to identity the metric client
-    await injector<MetricClientService>().identity();
     return res;
   }
 
@@ -86,11 +63,8 @@ class AddressService {
     }
   }
 
-  Future<bool> clearPrimaryAddress() async {
-    _primaryAddressInfo = null;
-    await _primaryAddressChannel.clearPrimaryAddress();
-    return true;
-  }
+  Future<bool> clearPrimaryAddress() async =>
+      await _primaryAddressChannel.clearPrimaryAddress();
 
   Future<String> getAddress({required AddressInfo info}) async {
     final walletStorage = WalletStorage(info.uuid);
@@ -101,8 +75,6 @@ class AddressService {
             await walletStorage.getETHEip55Address(index: info.index);
         final checksumAddress = address.getETHEip55Address();
         return checksumAddress;
-      case 'tezos':
-        return walletStorage.getTezosAddress(index: info.index);
       default:
         throw UnsupportedError('Unsupported chain: $chain');
     }
@@ -116,7 +88,7 @@ class AddressService {
     return getAddress(info: addressInfo);
   }
 
-  Future<String> getAddressSignature(
+  Future<String> _getAddressSignature(
       {required AddressInfo addressInfo, required String message}) async {
     final walletStorage = WalletStorage(addressInfo.uuid);
     final chain = addressInfo.chain;
@@ -126,52 +98,35 @@ class AddressService {
         signature = await walletStorage.ethSignPersonalMessage(
             utf8.encode(message),
             index: addressInfo.index);
-      case 'tezos':
-        final signatureUInt8List = await walletStorage
-            .tezosSignMessage(utf8.encode(message), index: addressInfo.index);
-        signature = crypto.encodeWithPrefix(
-            prefix: crypto.Prefixes.edsig, bytes: signatureUInt8List);
       default:
         throw UnsupportedError('Unsupported chain: $chain');
     }
     return signature;
   }
 
-  Future<String?> getPrimaryAddressSignature({required String message}) async {
-    final addressInfo = await getPrimaryAddressInfo();
-    if (addressInfo == null) {
-      return null;
-    }
-    return getAddressSignature(addressInfo: addressInfo, message: message);
-  }
-
-  Future<String> getAddressPublicKey({required AddressInfo addressInfo}) async {
-    final walletStorage = WalletStorage(addressInfo.uuid);
-    final chain = addressInfo.chain;
-    String publicKey;
-    switch (chain) {
-      case 'ethereum':
-        publicKey = '';
-      case 'tezos':
-        publicKey =
-            await walletStorage.getTezosPublicKey(index: addressInfo.index);
-      default:
-        throw UnsupportedError('Unsupported chain: $chain');
-    }
-    return publicKey;
-  }
-
-  Future<String> getPrimaryAddressPublicKey() async {
-    final addressInfo = await getPrimaryAddressInfo();
-    if (addressInfo == null) {
-      throw UnsupportedError('Primary address not found');
-    }
-    return getAddressPublicKey(addressInfo: addressInfo);
-  }
-
-  String getFeralfileAccountMessage(
+  String _getFeralfileAccountMessage(
           {required String address, required String timestamp}) =>
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
+
+  Future<Map<String, dynamic>> getAddressAuthenticationMap() async {
+    final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      throw Exception(
+          'No primary address found during get address authentication');
+    }
+    final address = await getAddress(info: addressInfo);
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final message =
+        _getFeralfileAccountMessage(address: address, timestamp: timestamp);
+    final signature =
+        await _getAddressSignature(addressInfo: addressInfo, message: message);
+    return {
+      'requester': address,
+      'timestamp': timestamp,
+      'signature': signature,
+      'type': 'ethereum',
+    };
+  }
 
   Future<List<WalletAddress>> getAllAddress() async {
     final addresses = _cloudObject.addressObject.getAllAddresses();

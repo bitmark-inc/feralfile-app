@@ -192,6 +192,12 @@ import Logging
                 
             case "clearPrimaryAddress":
                 SystemChannelHandler.shared.clearPrimaryAddress(call: call)
+
+            case "didRegisterPasskey":
+                SystemChannelHandler.shared.didRegisterPasskey(call: call, result: result)
+
+            case "setDidRegisterPasskey":
+                SystemChannelHandler.shared.setDidRegisterPasskey(call: call, result: result)
                 
             default:
                 result(FlutterMethodNotImplemented)
@@ -247,8 +253,12 @@ import Logging
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
-                self?.showAuthenticationOverlay()
-                self?.authenticationVC.authentication()
+                SystemChannelHandler.shared.didRegisterPasskeyKeychain { didRegisterPasskey in
+                    if let didRegisterPasskey = didRegisterPasskey as? Bool, !didRegisterPasskey {
+                            self?.showAuthenticationOverlay()
+                            self?.authenticationVC.authentication()
+                        }
+                    }
             }
         }
         

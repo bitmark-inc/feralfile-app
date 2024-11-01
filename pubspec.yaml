@@ -75,7 +75,7 @@ dependencies:
   measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
-  onesignal_flutter: ^3.3.0
+  onesignal_flutter: ^5.2.6
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
   package_info_plus: ^8.0.3
@@ -103,7 +103,7 @@ dependencies:
   uuid:
   web3dart: ^2.5.1
   web_socket_channel:
-  json_annotation: ^4.6.0
+  json_annotation: ^4.9.0
   iso_duration_parser: ^1.1.1
   feralfile_app_theme:
     git:
@@ -166,6 +166,7 @@ dependencies:
   just_audio: ^0.9.29
   xml: ^6.1.0
   vector_graphics_compiler: ^1.1.7
+  passkeys: ^2.0.8
 
 
 dependency_overrides:
