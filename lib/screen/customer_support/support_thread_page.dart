@@ -692,9 +692,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       if (jwt != null) {
         final data = parseJwt(jwt.jwtToken);
         if (data['sub'] != _userId) {
-          setState(() {
-            _userId = data['sub'];
-          });
+          if (mounted) {
+            setState(() {
+              _userId = data['sub'];
+            });
+          }
         }
       }
       return;

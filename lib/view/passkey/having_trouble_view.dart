@@ -11,33 +11,32 @@ class HavingTroubleView extends StatelessWidget {
   const HavingTroubleView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final lastLoginIssueId =
-        injector<ConfigurationService>().getAnonymousIssueIds().lastOrNull;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: GestureDetector(
-        onTap: () async {
-          final payload = lastLoginIssueId == null
-              ? NewIssuePayload(
-                  reportIssueType: ReportIssueType.Bug,
-                )
-              : DetailIssuePayload(
-                  reportIssueType: ReportIssueType.Bug,
-                  issueID: lastLoginIssueId,
-                );
-          await Navigator.of(context).pushNamed(
-            AppRouter.supportThreadPage,
-            arguments: payload,
-          );
-        },
-        child: Text(
-          'having_trouble'.tr(),
-          style: Theme.of(context).textTheme.ppMori400Grey14.copyWith(
-                decoration: TextDecoration.underline,
-              ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: GestureDetector(
+          onTap: () async {
+            final lastLoginIssueId = injector<ConfigurationService>()
+                .getAnonymousIssueIds()
+                .lastOrNull;
+            final payload = lastLoginIssueId == null
+                ? NewIssuePayload(
+                    reportIssueType: ReportIssueType.Bug,
+                  )
+                : DetailIssuePayload(
+                    reportIssueType: ReportIssueType.Bug,
+                    issueID: lastLoginIssueId,
+                  );
+            await Navigator.of(context).pushNamed(
+              AppRouter.supportThreadPage,
+              arguments: payload,
+            );
+          },
+          child: Text(
+            'having_trouble'.tr(),
+            style: Theme.of(context).textTheme.ppMori400Grey14.copyWith(
+                  decoration: TextDecoration.underline,
+                ),
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
