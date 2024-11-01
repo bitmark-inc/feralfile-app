@@ -1,57 +1,82 @@
+<!-- res/layout/widget_layout.xml -->
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/Widget.Android.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.Android.AppWidgetContainer">
 
-    <ImageView
-        android:id="@+id/appwidget_image"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginBottom="12dp"
-        android:scaleType="centerCrop"
-        tools:srcCompat="@tools:sample/backgrounds/scenic[0]" />
-
     <LinearLayout
+        android:id="@+id/daily_widget"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/appwidget_image"
-        android:layout_marginTop="120dp"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/appwidget_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            tools:text="@tools:sample/last_names" />
+        <ImageView
+            android:id="@+id/appwidget_image"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="false"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toTopOf="@+id/info_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@tools:sample/backgrounds/scenic[0]" />
 
-        <TextView
-            android:id="@+id/appwidget_artist"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/info_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="16sp"
-            tools:text="@tools:sample/cities" />
+            android:layout_marginTop="1dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
-            android:id="@+id/appwidget_medium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp"
-            tools:text="@tools:sample/lorem" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/appwidget_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/ppmori_regular"
+                    android:maxLines="1"
+                    android:textColor="@android:color/black"
+                    android:textSize="12sp"
+                    android:textStyle="bold" /> <!-- Use PPMori-Regular font -->
+
+                <TextView
+                    android:id="@+id/appwidget_artist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/ppmori_regular"
+                    android:maxLines="1"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="12sp" /> <!-- Use PPMori-Regular font -->
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/appwidget_feralfile_logo"
+                android:layout_width="24dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Feralfile Logo"
+                android:src="@drawable/feralfile_logo" />
+        </LinearLayout>
     </LinearLayout>
-
 </RelativeLayout>

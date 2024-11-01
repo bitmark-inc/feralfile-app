@@ -49,7 +49,7 @@ class FeralfileDaily : AppWidgetProvider() {
 
 
             // Set up the layout for the widget
-            val views = RemoteViews(context.packageName, R.layout.widget_2x2)
+            val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
 
             // Set onClick to update the widget and open the app
             views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
@@ -97,13 +97,13 @@ internal fun updateAppWidget(
     appWidgetId: Int,
     dailyInfo: DailyInfo // dailyInfo is guaranteed to be non-null
 ) {
-    val layoutId = R.layout.widget_2x2
+    val layoutId = R.layout.feralfile_daily
     val views = RemoteViews(context.packageName, layoutId)
 
     // Set text fields with DailyInfo
     views.setTextViewText(R.id.appwidget_title, dailyInfo.title)
     views.setTextViewText(R.id.appwidget_artist, dailyInfo.artistName)
-    views.setTextViewText(R.id.appwidget_medium, dailyInfo.medium)
+//    views.setTextViewText(R.id.appwidget_medium, dailyInfo.medium)
 
     // Load the image from Base64
     val base64ImageData = dailyInfo.base64ImageData
