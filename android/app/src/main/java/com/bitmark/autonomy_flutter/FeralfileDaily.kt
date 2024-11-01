@@ -15,18 +15,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import timber.log.Timber
 import java.util.Calendar
 
 /**
  * Implementation of App Widget functionality.
  */
 class FeralfileDaily : AppWidgetProvider() {
-
-    companion object {
-        const val ACTION_WIDGET_UPDATE_AND_OPEN =
-            "com.bitmark.feralfile.ACTION_WIDGET_UPDATE_AND_OPEN"
-    }
 
     override fun onUpdate(
         context: Context,
@@ -35,17 +29,14 @@ class FeralfileDaily : AppWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             // Intent to open the app
-            val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                action = ACTION_WIDGET_UPDATE_AND_OPEN
-            }
+            val openAppIntent = Intent(context, MainActivity::class.java)
+            openAppIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             val openAppPendingIntent = PendingIntent.getActivity(
                 context,
                 0,
                 openAppIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-
-            Timber.tag("FeralfileDaily").d("PendingIntent created: %s", openAppPendingIntent)
 
 
             // Set up the layout for the widget
@@ -54,9 +45,11 @@ class FeralfileDaily : AppWidgetProvider() {
             // Set onClick to update the widget and open the app
             views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
 
-            getDailyInfo(context = context) { dailyInfo ->
-                updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
-            }
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+
+//            getDailyInfo(context = context) { dailyInfo ->
+//                updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
+//            }
         }
     }
 
@@ -74,19 +67,23 @@ class FeralfileDaily : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action == ACTION_WIDGET_UPDATE_AND_OPEN) {
-            // Handle the widget update and open app action
+        // Handle the widget update and open app action
+
+
+        // Check if the intent is to open the app
+        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(
                 ComponentName(context, FeralfileDaily::class.java)
             )
             onUpdate(context, appWidgetManager, appWidgetIds)
-
             // Open the app
             val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             context.startActivity(openAppIntent)
+
+
         }
     }
 }
