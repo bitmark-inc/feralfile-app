@@ -15,7 +15,7 @@
 		<string>applinks:feralfile-app-alternate.app.link</string>
 		<string>applinks:app.feralfile.com</string>
 		<string>feralfile-app.test-app.link</string>
-        <string>feralfile-app-alternate.test-app.link</string>
+		<string>feralfile-app-alternate.test-app.link</string>
 		<string>webcredentials:accounts.dev.feralfile.com</string>
 		<string>webcredentials:accounts.feralfile.com</string>
 	</array>
@@ -35,6 +35,7 @@
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.com.bitmark.autonomywallet.storage</string>
+		<string>group.com.bitmark.autonomywallet.onesignal</string>
 	</array>
 	<key>keychain-access-groups</key>
 	<array>

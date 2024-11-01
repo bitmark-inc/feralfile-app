@@ -1,8 +1,8 @@
 //
 //  NotificationService.swift
-//  Runner Notification
+//  OneSignalNotificationServiceExtension
 //
-//  Created by Anh Nguyen on 12/04/2022.
+//  Created by Le Phuoc on 1/11/24.
 //
 
 import UserNotifications

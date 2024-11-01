@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -19,7 +20,9 @@ import 'package:sentry/sentry.dart';
 Future<bool> registerPushNotifications({bool askPermission = false}) async {
   log.info('register notification');
   if (askPermission) {
-    final permission = await OneSignal.Notifications.requestPermission(true);
+    final permission = Platform.isAndroid
+        ? true
+        : await OneSignal.Notifications.requestPermission(true);
 
     if (!permission) {
       return false;
