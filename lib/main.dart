@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
@@ -40,6 +41,23 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:system_date_time_format/system_date_time_format.dart';
+import 'package:workmanager/workmanager.dart';
+
+const dailyWidgetTaskName = 'updateDailyWidgetData';
+const dailyWidgetTaskTag = 'updateDailyWidgetDataTag';
+
+@pragma('vm:entry-point')
+Future<void> callbackDispatcher() async {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      final homeWidgetService = HomeWidgetService();
+      await homeWidgetService.updateDailyTokensToHomeWidget();
+    } catch (e) {
+      throw Exception(e);
+    }
+    return Future.value(true);
+  });
+}
 
 void main() async {
   unawaited(runZonedGuarded(() async {
@@ -131,6 +149,19 @@ void _registerHiveAdapter() {
     ..registerAdapter(AnnouncementLocalAdapter());
 }
 
+Future<void> _startBackgroundUpdate() async {
+  final now = DateTime.now();
+  final uniqueName =
+      '${now.year}-${now.month}-${now.day}'; // Creates a daily unique name
+  await Workmanager().registerPeriodicTask(
+    uniqueName,
+    dailyWidgetTaskName,
+    tag: dailyWidgetTaskTag,
+    frequency: const Duration(minutes: 15),
+    existingWorkPolicy: ExistingWorkPolicy.replace,
+  );
+}
+
 Future<void> _setupApp() async {
   try {
     await setupLogger();
@@ -139,6 +170,10 @@ Future<void> _setupApp() async {
     Sentry.captureException(e);
   }
   await setupInjector();
+
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  await Workmanager().cancelByTag(dailyWidgetTaskTag);
+  _startBackgroundUpdate();
 
   runApp(
     SDTFScope(

@@ -227,3 +227,11 @@ dependencies {
 //    kapt 'com.github.bumptech.glide:compiler:4.12.0'
     implementation 'androidx.glance:glance-appwidget:LATEST-VERSION'
 }
+
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'androidx.work') {
+            details.useVersion '2.8.1'
+        }
+    }
+}

@@ -181,6 +181,9 @@ abstract class FeralFileService {
 
   Future<DailyToken?> getCurrentDailiesToken();
 
+  Future<List<DailyToken>> getUpcomingDailyTokens(
+      {int offset = 0, int limit = 4});
+
   Future<FeralFileListResponse<FFSeries>> exploreArtworks({
     String? sortBy,
     String? sortOrder,
@@ -781,6 +784,14 @@ class FeralFileServiceImpl extends FeralFileService {
         date: dateFormatter.format(date));
     final dailiesTokens = resp.result;
     return dailiesTokens;
+  }
+
+  @override
+  Future<List<DailyToken>> getUpcomingDailyTokens(
+      {int offset = 0, int limit = 4}) async {
+    final resp = await _feralFileApi.getDailiesToken(limit: limit);
+    final dailyTokens = resp.result;
+    return dailyTokens;
   }
 
   @override

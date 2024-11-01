@@ -117,6 +117,30 @@ Future<void> setupLogger() async {
   });
 }
 
+Future<void> setupHomeWidgetInjector() async {
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: const Duration(seconds: 3),
+    receiveTimeout: const Duration(seconds: 3),
+  );
+  final dio = baseDio(dioOptions);
+  injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
+      feralFileDio(dioOptions),
+      baseUrl: Environment.feralFileAPIURL));
+  injector.registerLazySingleton(
+      () => SourceExhibitionAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
+        injector(),
+        injector(),
+      ));
+  final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<IndexerService>(
+      () => IndexerService(indexerClient));
+  injector.registerLazySingleton<RemoteConfigService>(() =>
+      RemoteConfigServiceImpl(
+          RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
+}
+
 Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 

@@ -166,6 +166,7 @@ dependencies:
   xml: ^6.1.0
   vector_graphics_compiler: ^1.1.7
   home_widget: ^0.7.0
+  workmanager: ^0.5.2
 
 
 dependency_overrides:
