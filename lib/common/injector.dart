@@ -292,6 +292,7 @@ Future<void> setupInjector() async {
                   ),
                 ),
                 baseUrl: Environment.customerSupportURL),
+            injector(),
           ));
 
   injector.registerLazySingleton<MerchandiseService>(

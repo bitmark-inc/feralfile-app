@@ -19,10 +19,11 @@ class _CustomerSupportApi implements CustomerSupportApi {
   String? baseUrl;
 
   @override
-  Future<List<Issue>> getIssues() async {
+  Future<List<Issue>> getIssues({required String token}) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
     final Map<String, dynamic>? _data = null;
     final _result =
         await _dio.fetch<List<dynamic>>(_setStreamType<List<Issue>>(Options(
@@ -32,7 +33,43 @@ class _CustomerSupportApi implements CustomerSupportApi {
     )
             .compose(
               _dio.options,
-              '/v1/issues',
+              '/v1/issues/',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    var value = _result.data!
+        .map((dynamic i) => Issue.fromJson(i as Map<String, dynamic>))
+        .toList();
+    return value;
+  }
+
+  @override
+  Future<List<Issue>> getAnonymousIssues({
+    required String apiKey,
+    required String deviceId,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{
+      r'x-api-key': apiKey,
+      r'x-device-id': deviceId,
+    };
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result =
+        await _dio.fetch<List<dynamic>>(_setStreamType<List<Issue>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/issues/',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -78,10 +115,50 @@ class _CustomerSupportApi implements CustomerSupportApi {
   }
 
   @override
-  Future<PostedMessageResponse> createIssue(Map<String, Object> body) async {
+  Future<PostedMessageResponse> createIssue(
+    Map<String, Object> body, {
+    required String token,
+  }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<PostedMessageResponse>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/issues/',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = PostedMessageResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<PostedMessageResponse> createAnonymousIssue(
+    Map<String, Object> body, {
+    required String apiKey,
+    required String deviceId,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{
+      r'x-api-key': apiKey,
+      r'x-device-id': deviceId,
+    };
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _result = await _dio.fetch<Map<String, dynamic>>(

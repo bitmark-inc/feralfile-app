@@ -53,7 +53,6 @@ class _OnboardingPageState extends State<OnboardingPage>
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
-  bool _loadingButton = true;
 
   final _passkeyService = injector.get<PasskeyService>();
   final _userAccountChannel = injector.get<UserAccountChannel>();
@@ -177,19 +176,10 @@ class _OnboardingPageState extends State<OnboardingPage>
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
       final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
-      if (mounted) {
-        setState(() {
-          _loadingButton = false;
-        });
-      }
+      log.info('Passkey registered: $didRegisterPasskey');
       final didLoginSuccess = didRegisterPasskey
           ? await _loginWithPasskey()
           : await _registerPasskey();
-      if (mounted) {
-        setState(() {
-          _loadingButton = true;
-        });
-      }
       if (didLoginSuccess != true) {
         throw Exception('Failed to login with passkey');
       }
@@ -203,9 +193,13 @@ class _OnboardingPageState extends State<OnboardingPage>
     } catch (e, s) {
       log.info('Failed to login with passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
-      if (mounted) {
-        return await UIHelper.showPasskeyLoginDialog(context, _loginAndMigrate);
+      if (!mounted) {
+        return false;
       }
+      final result =
+          await UIHelper.showPasskeyLoginDialog(context, _loginAndMigrate);
+      _passkeyService.isShowingLoginDialog.value = false;
+      return result;
     }
   }
 
@@ -216,8 +210,12 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
-  Future<dynamic> _registerPasskey() async =>
-      await UIHelper.showPasskeyRegisterDialog(context);
+  Future<dynamic> _registerPasskey() async {
+    _passkeyService.isShowingLoginDialog.value = true;
+    final result = await UIHelper.showPasskeyRegisterDialog(context);
+    _passkeyService.isShowingLoginDialog.value = false;
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -233,17 +231,22 @@ class _OnboardingPageState extends State<OnboardingPage>
                 child: Column(
                   children: [
                     const Spacer(),
-                    if (_loadingButton)
-                      PrimaryButton(
-                        text: 'h_loading...'.tr(),
-                        isProcessing: true,
-                        enabled: false,
-                        disabledColor: AppColor.auGreyBackground,
-                        textColor: AppColor.white,
-                        indicatorColor: AppColor.white,
-                      )
-                    else
-                      const SizedBox(),
+                    ValueListenableBuilder(
+                      valueListenable: _passkeyService.isShowingLoginDialog,
+                      builder: (context, value, child) {
+                        if (value) {
+                          return const SizedBox();
+                        }
+                        return PrimaryButton(
+                          text: 'h_loading...'.tr(),
+                          isProcessing: true,
+                          enabled: false,
+                          disabledColor: AppColor.auGreyBackground,
+                          textColor: AppColor.white,
+                          indicatorColor: AppColor.white,
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
