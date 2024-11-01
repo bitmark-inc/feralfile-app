@@ -5,10 +5,11 @@
     android:initialLayout="@layout/feralfile_daily"
     android:maxResizeWidth="220dp"
     android:maxResizeHeight="220dp"
-    android:minWidth="110dp"
-    android:minHeight="110dp"
-    android:previewImage="@drawable/example_appwidget_preview"
+    android:minWidth="100dp"
+    android:minHeight="100dp"
+    android:previewImage="@drawable/daily_preview_image"
     android:previewLayout="@layout/feralfile_daily"
     android:resizeMode="horizontal|vertical"
-    android:updatePeriodMillis="86400000"
+    android:updatePeriodMillis="3600000"
     android:widgetCategory="home_screen" />
+

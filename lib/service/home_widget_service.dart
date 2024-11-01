@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/models/asset_token.dart';
@@ -46,9 +45,12 @@ class HomeWidgetService {
       // convert to hex base 64
       final base64ImageData = base64Encode(imageData);
       final now = DateTime.now();
-      final dateTimeFormatter = DateFormat('yyyy-MM-dd');
+      final sixHoursAgo = now.subtract(Duration(hours: 6));
+      // get only date from six hours ago
+      final key = DateTime(sixHoursAgo.year, sixHoursAgo.month, sixHoursAgo.day)
+          .millisecondsSinceEpoch;
       final data = {
-        dateTimeFormatter.format(now): jsonEncode({
+        key.toString(): jsonEncode({
           'artistName': artistName,
           'title': title,
           'medium': medium,

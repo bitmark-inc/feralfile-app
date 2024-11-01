@@ -1,8 +1,11 @@
 package com.bitmark.autonomy_flutter
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.widget.RemoteViews
@@ -12,19 +15,45 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.util.Date
-
+import timber.log.Timber
+import java.util.Calendar
 
 /**
  * Implementation of App Widget functionality.
  */
 class FeralfileDaily : AppWidgetProvider() {
+
+    companion object {
+        const val ACTION_WIDGET_UPDATE_AND_OPEN =
+            "com.bitmark.feralfile.ACTION_WIDGET_UPDATE_AND_OPEN"
+    }
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
+            // Intent to open the app
+            val openAppIntent = Intent(context, MainActivity::class.java).apply {
+                action = ACTION_WIDGET_UPDATE_AND_OPEN
+            }
+            val openAppPendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                openAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            Timber.tag("FeralfileDaily").d("PendingIntent created: %s", openAppPendingIntent)
+
+
+            // Set up the layout for the widget
+            val views = RemoteViews(context.packageName, R.layout.widget_2x2)
+
+            // Set onClick to update the widget and open the app
+            views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
+
             getDailyInfo(context = context) { dailyInfo ->
                 updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
             }
@@ -41,6 +70,24 @@ class FeralfileDaily : AppWidgetProvider() {
         // Enter relevant functionality for when the last widget is disabled
         // print log
         println("FeralfileDaily onDisabled")
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == ACTION_WIDGET_UPDATE_AND_OPEN) {
+            // Handle the widget update and open app action
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(
+                ComponentName(context, FeralfileDaily::class.java)
+            )
+            onUpdate(context, appWidgetManager, appWidgetIds)
+
+            // Open the app
+            val openAppIntent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(openAppIntent)
+        }
     }
 }
 
@@ -105,10 +152,18 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
 
     // Format the current date to match the key in the stored dat
     // now - 6h
-    val now = Date()
-    val date = Date(now.time - 6 * 60 * 60 * 1000)
-    // current date to timestamp
-    val currentDateKey = date.time.toString()
+    // Initialize calendar and set it to midnight 6 hours ago
+    val calendar = Calendar.getInstance().apply {
+        add(Calendar.HOUR_OF_DAY, -6)
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+    val timestamp = calendar.timeInMillis
+
+
+    val currentDateKey = timestamp.toString()
 
     // Retrieve JSON string for the current date
     val jsonString = widgetData.getString(currentDateKey, null)

@@ -35,6 +35,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.bitmark.feralfile.ACTION_WIDGET_UPDATE_AND_OPEN" />
             </intent-filter>
 
             <meta-data
@@ -91,7 +92,9 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="com.bitmark.feralfile.ACTION_WIDGET_UPDATE_AND_OPEN" />
 
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter android:autoVerify="true">

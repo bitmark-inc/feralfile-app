@@ -9,8 +9,11 @@
     android:theme="@style/Theme.Android.AppWidgetContainer">
 
     <LinearLayout
+        android:id="@+id/daily_widget"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
         android:orientation="vertical">
 
         <ImageView
