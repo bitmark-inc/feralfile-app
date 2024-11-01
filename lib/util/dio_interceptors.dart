@@ -172,12 +172,11 @@ class CustomerSupportInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    final isCustomHeaderApi = options.path == CustomerSupportApi.issuesPath;
+    final isIgnoreHeaderApi = options.path == CustomerSupportApi.issuesPath;
 
-    if (isCustomHeaderApi) {
+    if (isIgnoreHeaderApi) {
       // do nothing get list issues, create issue: add header at api level
     } else {
-      final jwt = await injector<AuthService>().getAuthToken();
       final pathElements = options.path.split('/');
       final anonymousIssueIds =
           injector<ConfigurationService>().getAnonymousIssueIds();
@@ -188,6 +187,7 @@ class CustomerSupportInterceptor extends Interceptor {
         options.headers[CustomerSupportApi.deviceIdHeader] =
             _configurationService.getAnonymousDeviceId();
       } else {
+        final jwt = await injector<AuthService>().getAuthToken();
         // other api, add jwt
         if (jwt != null) {
           options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
