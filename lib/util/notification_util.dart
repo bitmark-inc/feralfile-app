@@ -22,7 +22,7 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   if (askPermission) {
     final permission = Platform.isAndroid
         ? true
-        : await OneSignal.Notifications.requestPermission(true);
+        : await OneSignal.shared.promptUserForPushNotificationPermission();
 
     if (!permission) {
       return false;
@@ -30,8 +30,9 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   }
 
   try {
+    final identityHash = await OneSignalHelper.getIdentityHash();
     final primaryAddress = await injector<AddressService>().getPrimaryAddress();
-    await OneSignal.login(primaryAddress!);
+    await OneSignal.shared.setExternalUserId(primaryAddress!, identityHash);
     await injector<ConfigurationService>().setNotificationEnabled(true);
     return true;
   } catch (error) {
@@ -44,13 +45,13 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
 
 Future<void> deregisterPushNotification() async {
   log.info('unregister notification');
-  await OneSignal.logout();
+  await OneSignal.shared.removeExternalUserId();
 }
 
 class OneSignalHelper {
   static Future<void> setExternalUserId(
       {required String userId, String? authHashToken}) async {
-    await OneSignal.login(userId);
+    await OneSignal.shared.setExternalUserId(userId, authHashToken);
   }
 
   static Future<String> getIdentityHash() async {
