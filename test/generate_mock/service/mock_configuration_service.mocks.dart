@@ -5,9 +5,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
 
-import 'package:autonomy_flutter/model/jwt.dart' as _i6;
-import 'package:autonomy_flutter/model/network.dart' as _i7;
-import 'package:autonomy_flutter/model/sent_artwork.dart' as _i8;
+import 'package:autonomy_flutter/model/jwt.dart' as _i7;
+import 'package:autonomy_flutter/model/network.dart' as _i8;
+import 'package:autonomy_flutter/model/sent_artwork.dart' as _i9;
 import 'package:autonomy_flutter/model/shared_postcard.dart' as _i10;
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart' as _i3;
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart'
@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
 import 'package:autonomy_flutter/service/configuration_service.dart' as _i4;
 import 'package:flutter/material.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:mockito/src/dummies.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -72,6 +72,38 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
+  _i5.Future<String> createAnonymousDeviceId() => (super.noSuchMethod(
+        Invocation.method(
+          #createAnonymousDeviceId,
+          [],
+        ),
+        returnValue: _i5.Future<String>.value(_i6.dummyValue<String>(
+          this,
+          Invocation.method(
+            #createAnonymousDeviceId,
+            [],
+          ),
+        )),
+      ) as _i5.Future<String>);
+  @override
+  List<String> getAnonymousIssueIds() => (super.noSuchMethod(
+        Invocation.method(
+          #getAnonymousIssueIds,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i5.Future<void> addAnonymousIssueId(List<String>? issueIds) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addAnonymousIssueId,
+          [issueIds],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
   bool didMigrateToAccountSetting() => (super.noSuchMethod(
         Invocation.method(
           #didMigrateToAccountSetting,
@@ -124,28 +156,6 @@ class MockConfigurationService extends _i1.Mock
         ),
         returnValue: 0,
       ) as int);
-  @override
-  _i5.Future<void> setRecordOwners(
-    List<String>? owners, {
-    bool? override = false,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setRecordOwners,
-          [owners],
-          {#override: override},
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  List<String> getRecordOwners() => (super.noSuchMethod(
-        Invocation.method(
-          #getRecordOwners,
-          [],
-        ),
-        returnValue: <String>[],
-      ) as List<String>);
   @override
   _i5.Future<void> setHasMerchandiseSupport(
     String? indexId, {
@@ -262,7 +272,7 @@ class MockConfigurationService extends _i1.Mock
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<void> setIAPJWT(_i6.JWT? value) => (super.noSuchMethod(
+  _i5.Future<void> setIAPJWT(_i7.JWT? value) => (super.noSuchMethod(
         Invocation.method(
           #setIAPJWT,
           [value],
@@ -348,7 +358,7 @@ class MockConfigurationService extends _i1.Mock
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
-  List<String> getTempStorageHiddenTokenIDs({_i7.Network? network}) =>
+  List<String> getTempStorageHiddenTokenIDs({_i8.Network? network}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTempStorageHiddenTokenIDs,
@@ -361,7 +371,7 @@ class MockConfigurationService extends _i1.Mock
   _i5.Future<dynamic> updateTempStorageHiddenTokenIDs(
     List<String>? tokenIDs,
     bool? isAdd, {
-    _i7.Network? network,
+    _i8.Network? network,
     bool? override = false,
   }) =>
       (super.noSuchMethod(
@@ -379,16 +389,16 @@ class MockConfigurationService extends _i1.Mock
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
-  List<_i8.SentArtwork> getRecentlySentToken() => (super.noSuchMethod(
+  List<_i9.SentArtwork> getRecentlySentToken() => (super.noSuchMethod(
         Invocation.method(
           #getRecentlySentToken,
           [],
         ),
-        returnValue: <_i8.SentArtwork>[],
-      ) as List<_i8.SentArtwork>);
+        returnValue: <_i9.SentArtwork>[],
+      ) as List<_i9.SentArtwork>);
   @override
   _i5.Future<dynamic> updateRecentlySentToken(
-    List<_i8.SentArtwork>? sentArtwork, {
+    List<_i9.SentArtwork>? sentArtwork, {
     bool? override = false,
   }) =>
       (super.noSuchMethod(
@@ -424,7 +434,7 @@ class MockConfigurationService extends _i1.Mock
           #getAccountHMACSecret,
           [],
         ),
-        returnValue: _i5.Future<String>.value(_i9.dummyValue<String>(
+        returnValue: _i5.Future<String>.value(_i6.dummyValue<String>(
           this,
           Invocation.method(
             #getAccountHMACSecret,
@@ -697,7 +707,7 @@ class MockConfigurationService extends _i1.Mock
           #getVersionInfo,
           [],
         ),
-        returnValue: _i9.dummyValue<String>(
+        returnValue: _i6.dummyValue<String>(
           this,
           Invocation.method(
             #getVersionInfo,
@@ -787,4 +797,31 @@ class MockConfigurationService extends _i1.Mock
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  void setLinkAnnouncementToIssue(
+    String? announcementContentId,
+    String? issueId,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setLinkAnnouncementToIssue,
+          [
+            announcementContentId,
+            issueId,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  String? getIssueIdByAnnouncementContentId(String? announcementContentId) =>
+      (super.noSuchMethod(Invocation.method(
+        #getIssueIdByAnnouncementContentId,
+        [announcementContentId],
+      )) as String?);
+  @override
+  String? getAnnouncementContentIdByIssueId(String? issueId) =>
+      (super.noSuchMethod(Invocation.method(
+        #getAnnouncementContentIdByIssueId,
+        [issueId],
+      )) as String?);
 }

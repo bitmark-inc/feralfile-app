@@ -4,12 +4,11 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
-import 'dart:io' as _i6;
 
 import 'package:autonomy_flutter/gateway/iap_api.dart' as _i4;
-import 'package:autonomy_flutter/model/announcement/announcement.dart' as _i7;
+import 'package:autonomy_flutter/model/announcement/announcement.dart' as _i6;
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart'
-    as _i8;
+    as _i7;
 import 'package:autonomy_flutter/model/jwt.dart' as _i2;
 import 'package:autonomy_flutter/model/ok_response.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
@@ -27,19 +26,9 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeJWT_0 extends _i1.SmartFake implements _i2.JWT {
-  _FakeJWT_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeOnesignalIdentityHash_1 extends _i1.SmartFake
+class _FakeOnesignalIdentityHash_0 extends _i1.SmartFake
     implements _i2.OnesignalIdentityHash {
-  _FakeOnesignalIdentityHash_1(
+  _FakeOnesignalIdentityHash_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -48,8 +37,8 @@ class _FakeOnesignalIdentityHash_1 extends _i1.SmartFake
         );
 }
 
-class _FakeOkResponse_2 extends _i1.SmartFake implements _i3.OkResponse {
-  _FakeOkResponse_2(
+class _FakeOkResponse_1 extends _i1.SmartFake implements _i3.OkResponse {
+  _FakeOkResponse_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -66,67 +55,6 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
     _i1.throwOnMissingStub(this);
   }
 
-  @override
-  _i5.Future<_i2.JWT> authAddress(Map<String, dynamic>? body) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #authAddress,
-          [body],
-        ),
-        returnValue: _i5.Future<_i2.JWT>.value(_FakeJWT_0(
-          this,
-          Invocation.method(
-            #authAddress,
-            [body],
-          ),
-        )),
-      ) as _i5.Future<_i2.JWT>);
-  @override
-  _i5.Future<void> registerPrimaryAddress(Map<String, dynamic>? body) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #registerPrimaryAddress,
-          [body],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<dynamic> uploadProfile(
-    String? requester,
-    String? filename,
-    String? appVersion,
-    _i6.File? data,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #uploadProfile,
-          [
-            requester,
-            filename,
-            appVersion,
-            data,
-          ],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
-  @override
-  _i5.Future<dynamic> getProfileData(
-    String? requester,
-    String? filename,
-    String? version,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getProfileData,
-          [
-            requester,
-            filename,
-            version,
-          ],
-        ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
   @override
   _i5.Future<dynamic> deleteAllProfiles(String? requester) =>
       (super.noSuchMethod(
@@ -153,7 +81,7 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
           [body],
         ),
         returnValue: _i5.Future<_i2.OnesignalIdentityHash>.value(
-            _FakeOnesignalIdentityHash_1(
+            _FakeOnesignalIdentityHash_0(
           this,
           Invocation.method(
             #generateIdentityHash,
@@ -162,23 +90,23 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
         )),
       ) as _i5.Future<_i2.OnesignalIdentityHash>);
   @override
-  _i5.Future<List<_i7.Announcement>> getAnnouncements(
-          _i8.AnnouncementRequest? body) =>
+  _i5.Future<List<_i6.Announcement>> getAnnouncements(
+          _i7.AnnouncementRequest? body) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAnnouncements,
           [body],
         ),
         returnValue:
-            _i5.Future<List<_i7.Announcement>>.value(<_i7.Announcement>[]),
-      ) as _i5.Future<List<_i7.Announcement>>);
+            _i5.Future<List<_i6.Announcement>>.value(<_i6.Announcement>[]),
+      ) as _i5.Future<List<_i6.Announcement>>);
   @override
   _i5.Future<_i3.OkResponse> redeemGiftCode(String? id) => (super.noSuchMethod(
         Invocation.method(
           #redeemGiftCode,
           [id],
         ),
-        returnValue: _i5.Future<_i3.OkResponse>.value(_FakeOkResponse_2(
+        returnValue: _i5.Future<_i3.OkResponse>.value(_FakeOkResponse_1(
           this,
           Invocation.method(
             #redeemGiftCode,
