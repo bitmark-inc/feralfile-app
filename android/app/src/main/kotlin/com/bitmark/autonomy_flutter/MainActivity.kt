@@ -13,7 +13,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View.ACCESSIBILITY_DATA_SENSITIVE_YES
 import android.view.WindowManager.LayoutParams
 import androidx.biometric.BiometricManager
@@ -21,16 +20,12 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.util.concurrent.TimeUnit
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
         var isAuthenticate: Boolean = false
         private const val CHANNEL = "migration_util"
         private val secureScreenChannel = "secure_screen_channel"
-        private var lastAuthTime: Long = 0
-        private val authenticationTimeout = TimeUnit.MINUTES.toMillis(3)
-        private var isThisFirstOnResume = true;
     }
 
     var flutterSharedPreferences: SharedPreferences? = null
@@ -230,38 +225,16 @@ class MainActivity : FlutterFragmentActivity() {
             Context.MODE_PRIVATE
         )
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
-        val didRegisterPasskey =
-            sharedPreferences.getBoolean("flutter.did_register_passkey", false)
-        if (isThisFirstOnResume && didRegisterPasskey) {
-
-            // skip authentication if the user has already registered the passkey in open app
-            isThisFirstOnResume = false
-            // this is not conventional way to do this, but we need skip authenticate after user
-            // authenticate with passkey
-            updateAuthenticationTime()
-            return
-        }
-
-        if (isEnabled && !isAuthenticate && needsReAuthentication()) {
+        if (isEnabled && !isAuthenticate) {
             val biometricManager = BiometricManager.from(this)
             val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
             if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
             ) {
                 val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
-                updateAuthenticationTime()
                 startActivity(intent)
             }
         }
-    }
-
-    private fun updateAuthenticationTime() {
-        lastAuthTime = System.currentTimeMillis()
-    }
-
-    private fun needsReAuthentication(): Boolean {
-        val currentTime = System.currentTimeMillis()
-        return (currentTime - lastAuthTime) > authenticationTimeout
     }
 
     override fun onPause() {

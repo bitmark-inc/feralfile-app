@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:sentry/sentry.dart';
 
@@ -19,7 +18,7 @@ class DomainServiceImpl implements DomainService {
   static const String _addressQuery = '''
     query {
       lookup(inputs: [
-        { chain: "<chain>", name: "<var>", skipCache: true },
+        { chain: "<chain>", name: "<var>", skipCache: false },
       ]) {
         chain
         name
@@ -35,7 +34,6 @@ class DomainServiceImpl implements DomainService {
 
   Future<String?> _getAddress(String domain, String chain) async {
     try {
-      log.info('Getting address for $domain');
       final result = await _ensClient.query(
         doc: _addressQuery
             .replaceFirst('<var>', domain)
@@ -45,13 +43,8 @@ class DomainServiceImpl implements DomainService {
       if (result == null || result.isEmpty) {
         return null;
       }
-      final address = result.first['address'];
-      log.info('Address for $domain: $address');
-      return address;
+      return result.first['address'];
     } catch (e) {
-      log.info('Error getting address for $domain: $e');
-      unawaited(Sentry.captureException(
-          '[DomainService] Error getting address for $domain: $e'));
       return null;
     }
   }
@@ -116,7 +109,6 @@ class GraphClient {
     String? subKey,
   }) async {
     try {
-      log.info('Querying: $doc');
       final options = QueryOptions(
         document: gql(doc),
         variables: vars,
@@ -128,8 +120,6 @@ class GraphClient {
       }
       return result.data;
     } catch (e) {
-      log.info('Error querying: $e');
-      unawaited(Sentry.captureException('[DomainService] Error querying: $e'));
       return null;
     }
   }

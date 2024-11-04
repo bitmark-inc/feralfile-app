@@ -114,26 +114,20 @@ class _MobileInfo extends IDeviceInfo {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
       final machineName = androidInfo.model;
-      const name = 'Android';
-      final vendor = androidInfo.brand;
       final version = androidInfo.version.release;
-      return UserDeviceInfo(machineName, vendor, name, version);
+      return UserDeviceInfo(machineName, version);
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
       final machineName = iOSInfo.utsname.machine;
-      const name = 'iOS';
-      const vendor = 'Apple';
       final version = iOSInfo.systemVersion;
-      return UserDeviceInfo(machineName, vendor, name, version);
+      return UserDeviceInfo(machineName, version);
     }
   }
 }
 
 class UserDeviceInfo {
   final String machineName;
-  final String vendor;
-  final String osName;
   final String oSVersion;
 
-  UserDeviceInfo(this.machineName, this.vendor, this.osName, this.oSVersion);
+  UserDeviceInfo(this.machineName, this.oSVersion);
 }

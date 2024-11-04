@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
@@ -17,8 +16,6 @@ import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -77,7 +74,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   final DraftCustomerSupportDao _draftCustomerSupportDao;
   final CustomerSupportApi _customerSupportApi;
-  final ConfigurationService _configurationService;
 
   @override
   List<String> errorMessages = [];
@@ -96,7 +92,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   CustomerSupportServiceImpl(
     this._draftCustomerSupportDao,
     this._customerSupportApi,
-    this._configurationService,
   );
 
   bool _isProcessingDraftMessages = false;
@@ -104,22 +99,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
     try {
-      final jwt = await injector<AuthService>().getAuthToken();
-      if (jwt != null) {
-        final listIssues = await _customerSupportApi.getIssues(
-            token: 'Bearer ${jwt.jwtToken}');
-        issues.addAll(listIssues);
-      }
-      final anonymousDeviceId = _configurationService.getAnonymousDeviceId();
-      if (anonymousDeviceId != null) {
-        final listAnonymousIssues =
-            await _customerSupportApi.getAnonymousIssues(
-          apiKey: Environment.supportApiKey,
-          deviceId: anonymousDeviceId,
-        );
-        issues.addAll(listAnonymousIssues);
-      }
-      issues.sort((a, b) => b.sortTime.compareTo(a.sortTime));
+      final listIssues = await _customerSupportApi.getIssues();
+      issues.addAll(listIssues);
     } catch (e) {
       log.info('[CS-Service] getIssues error: $e');
       unawaited(Sentry.captureException(e));
@@ -447,18 +428,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     if (artworkReportID != null && artworkReportID.isNotEmpty) {
       payload['artwork_report_id'] = artworkReportID;
     }
-    final jwt = await injector<AuthService>().getAuthToken();
-    if (jwt != null) {
-      return await _customerSupportApi.createIssue(payload,
-          token: 'Bearer ${jwt.jwtToken}');
-    } else {
-      final anonymousDeviceId = _configurationService.getAnonymousDeviceId() ??
-          await _configurationService.createAnonymousDeviceId();
-      final issue = await _customerSupportApi.createAnonymousIssue(payload,
-          apiKey: Environment.supportApiKey, deviceId: anonymousDeviceId);
-      await _configurationService.addAnonymousIssueId([issue.issueID]);
-      return issue;
-    }
+
+    return await _customerSupportApi.createIssue(payload);
   }
 
   Future<PostedMessageResponse> commentIssue(String issueID, String? message,

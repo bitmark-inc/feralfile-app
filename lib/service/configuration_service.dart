@@ -24,14 +24,6 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  String? getAnonymousDeviceId();
-
-  Future<String> createAnonymousDeviceId();
-
-  List<String> getAnonymousIssueIds();
-
-  Future<void> addAnonymousIssueId(List<String> issueIds);
-
   bool didMigrateToAccountSetting();
 
   Future<void> setMigrateToAccountSetting(bool value);
@@ -214,8 +206,6 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyAnonymousDeviceId = 'anonymous_device_id';
-  static const String keyAnonymousIssueIds = 'anonymous_issue_ids';
   static const String keyDidMigrateToAccountSetting =
       'did_migrate_to_account_setting';
   static const String keyDidShowLiveWithArt = 'did_show_live_with_art';
@@ -939,30 +929,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     await _preferences.setString(
         KEY_ANNOUNCEMENT_TO_ISSUE_MAP, jsonEncode(mapJson));
   }
-
-  @override
-  String? getAnonymousDeviceId() =>
-      _preferences.getString(keyAnonymousDeviceId);
-
-  @override
-  Future<String> createAnonymousDeviceId() async {
-    final uuid = const Uuid().v4();
-    final anonymousDeviceId = 'device-$uuid';
-    await _preferences.setString(keyAnonymousDeviceId, anonymousDeviceId);
-    return anonymousDeviceId;
-  }
-
-  @override
-  Future<void> addAnonymousIssueId(List<String> issueIds) {
-    final currentIssueIds = getAnonymousIssueIds()
-      ..addAll(issueIds)
-      ..unique();
-    return _preferences.setStringList(keyAnonymousIssueIds, currentIssueIds);
-  }
-
-  @override
-  List<String> getAnonymousIssueIds() =>
-      _preferences.getStringList(keyAnonymousIssueIds) ?? <String>[];
 }
 
 enum ConflictAction {

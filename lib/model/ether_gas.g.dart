@@ -7,7 +7,7 @@ part of 'ether_gas.dart';
 // **************************************************************************
 
 EtherGas _$EtherGasFromJson(Map<String, dynamic> json) => EtherGas(
-      code: (json['code'] as num).toInt(),
+      code: json['code'] as int,
       data: EtherGasData.fromJson(json['data'] as Map<String, dynamic>),
     );
 
@@ -17,11 +17,11 @@ Map<String, dynamic> _$EtherGasToJson(EtherGas instance) => <String, dynamic>{
     };
 
 EtherGasData _$EtherGasDataFromJson(Map<String, dynamic> json) => EtherGasData(
-      rapid: (json['rapid'] as num?)?.toInt(),
-      fast: (json['fast'] as num?)?.toInt(),
-      standard: (json['standard'] as num?)?.toInt(),
-      slow: (json['slow'] as num?)?.toInt(),
-      timestamp: (json['timestamp'] as num?)?.toInt(),
+      rapid: json['rapid'] as int?,
+      fast: json['fast'] as int?,
+      standard: json['standard'] as int?,
+      slow: json['slow'] as int?,
+      timestamp: json['timestamp'] as int?,
       priceUSD: (json['priceUSD'] as num?)?.toDouble(),
     );
 

@@ -246,7 +246,8 @@ class IAPServiceImpl implements IAPService {
   Future<JWT?> _verifyPurchase(String receiptData) async {
     try {
       log.info('[IAPService] get authToken with receipt');
-      final jwt = await _authService.refreshJWT(receiptData: receiptData);
+      final jwt = await _authService.getAuthToken(
+          receiptData: receiptData, forceRefresh: true);
       return jwt;
     } catch (error) {
       log.info('[IAPService] error when verifying receipt', error);

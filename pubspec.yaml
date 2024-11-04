@@ -102,7 +102,7 @@ dependencies:
   uuid:
   web3dart: ^2.5.1
   web_socket_channel:
-  json_annotation: ^4.9.0
+  json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
   feralfile_app_theme:
     git:
@@ -165,7 +165,6 @@ dependencies:
   just_audio: ^0.9.29
   xml: ^6.1.0
   vector_graphics_compiler: ^1.1.7
-  passkeys: ^2.0.8
   home_widget: ^0.7.0
   workmanager: ^0.5.2
 

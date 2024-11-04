@@ -11,59 +11,38 @@ import 'package:retrofit/retrofit.dart';
 
 part 'customer_support_api.g.dart';
 
-@RestApi(baseUrl: '')
+@RestApi(baseUrl: "")
 abstract class CustomerSupportApi {
   factory CustomerSupportApi(Dio dio, {String baseUrl}) = _CustomerSupportApi;
 
-  static const String issuesPath = '/v1/issues/';
+  @GET("/v1/issues")
+  Future<List<Issue>> getIssues();
 
-  static const String apiKeyHeader = 'x-api-key';
-  static const String deviceIdHeader = 'x-device-id';
-
-  @GET(issuesPath)
-  Future<List<Issue>> getIssues({
-    @Header('Authorization') required String token,
-  });
-
-  @GET(issuesPath)
-  Future<List<Issue>> getAnonymousIssues({
-    @Header(apiKeyHeader) required String apiKey,
-    @Header(deviceIdHeader) required String deviceId,
-  });
-
-  @GET('/v1/issues/{issueID}')
+  @GET("/v1/issues/{issueID}")
   Future<IssueDetails> getDetails(
-    @Path('issueID') String issueID, {
-    @Query('reverse') bool reverse = true,
+    @Path("issueID") String issueID, {
+    @Query("reverse") bool reverse = true,
   });
 
-  @POST(issuesPath)
+  @POST("/v1/issues/")
   Future<PostedMessageResponse> createIssue(
-    @Body() Map<String, Object> body, {
-    @Header('Authorization') required String token,
-  });
-
-  @POST(issuesPath)
-  Future<PostedMessageResponse> createAnonymousIssue(
-    @Body() Map<String, Object> body, {
-    @Header(apiKeyHeader) required String apiKey,
-    @Header(deviceIdHeader) required String deviceId,
-  });
-
-  @POST('/v1/issues/{issueID}')
-  Future<PostedMessageResponse> commentIssue(
-    @Path('issueID') String issueID,
     @Body() Map<String, Object> body,
   );
 
-  @PATCH('/v1/issues/{issueID}/reopen')
-  Future reOpenIssue(
-    @Path('issueID') String issueID,
+  @POST("/v1/issues/{issueID}")
+  Future<PostedMessageResponse> commentIssue(
+    @Path("issueID") String issueID,
+    @Body() Map<String, Object> body,
   );
 
-  @POST('/v1/issues/{issueID}/rate/{rating}')
+  @PATCH("/v1/issues/{issueID}/reopen")
+  Future reOpenIssue(
+    @Path("issueID") String issueID,
+  );
+
+  @POST("/v1/issues/{issueID}/rate/{rating}")
   Future<void> rateIssue(
-    @Path('issueID') String issueID,
-    @Path('rating') int rating,
+    @Path("issueID") String issueID,
+    @Path("rating") int rating,
   );
 }

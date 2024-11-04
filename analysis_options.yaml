@@ -96,7 +96,7 @@ linter:
     sort_unnamed_constructors_first: true
     type_annotate_public_apis: true
     type_init_formals: true
-    type_literal_in_constant_pattern: false
+    type_literal_in_constant_pattern: true
     unawaited_futures: true
     unnecessary_brace_in_string_interps: true
     unnecessary_breaks: true

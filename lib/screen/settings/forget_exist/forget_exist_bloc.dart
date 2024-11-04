@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 
@@ -69,7 +68,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
-      await injector<UserAccountChannel>().setDidRegisterPasskey(false);
       await _configurationService.removeAll();
       await injector<CacheManager>().emptyCache();
       await DefaultCacheManager().emptyCache();
@@ -80,7 +78,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await injector<AnnouncementStore>().clear();
       injector<CanvasDeviceBloc>().clear();
       injector<IAPService>().clearReceipt();
-      unawaited(injector<IAPService>().reset());
+      injector<IAPService>().reset();
 
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();

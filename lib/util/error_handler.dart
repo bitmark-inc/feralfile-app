@@ -118,12 +118,12 @@ ErrorEvent translateError(Object exception) {
 
   if (exception is JwtException) {
     return ErrorEvent(exception, 'can_not_authenticate'.tr(), exception.message,
-        ErrorItemState.getReport);
+        ErrorItemState.close);
   }
 
   if (exception is ErrorBindingException) {
     return ErrorEvent(exception, 'binding_data_issue'.tr(), exception.message,
-        ErrorItemState.general);
+        ErrorItemState.getReport);
   }
 
   return ErrorEvent(

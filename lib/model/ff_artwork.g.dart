@@ -19,7 +19,7 @@ Map<String, dynamic> _$ArtworkResponseToJson(ArtworkResponse instance) =>
 Artwork _$ArtworkFromJson(Map<String, dynamic> json) => Artwork(
       json['id'] as String,
       json['seriesID'] as String,
-      (json['index'] as num).toInt(),
+      json['index'] as int,
       json['name'] as String,
       json['category'] as String?,
       json['ownerAddress'] as String?,
@@ -79,7 +79,7 @@ ArtworkAttribute _$ArtworkAttributeFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       artworkID: json['artworkID'] as String,
       seriesID: json['seriesID'] as String,
-      index: (json['index'] as num).toInt(),
+      index: json['index'] as int,
       percentage: (json['percentage'] as num).toDouble(),
       traitType: json['traitType'] as String,
       value: json['value'] as String,

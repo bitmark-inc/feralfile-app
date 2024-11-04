@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -193,6 +192,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   @override
   void initState() {
+    unawaited(_getUserId());
     unawaited(injector<CustomerSupportService>().processMessages());
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -228,11 +228,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         _status = payload.status;
         _isRated = payload.isRated;
         // if the issue is already created, we need to set the issueID
-        final issueID =
-            _customerSupportService.tempIssueIDMap[payload.issueID] ??
-                payload.issueID;
-        _setIssueId(issueID);
-        unawaited(_getUserId(issueID));
+        _setIssueId(_customerSupportService.tempIssueIDMap[payload.issueID] ??
+            payload.issueID);
       case ExceptionErrorPayload:
         _reportIssueType = ReportIssueType.Exception;
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -263,32 +260,14 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
-  Future<void> _getUserId(String issueId) async {
-    // if userId is already set, we don't need to get the userId
+  Future<String> _getUserId() async {
     if (_userId != null) {
-      return;
+      return _userId!;
     }
-    // if it is an anonymous issue, we need to get the anonymous device id
-    final configurationService = injector<ConfigurationService>();
-    final anonymousIssueIds = configurationService.getAnonymousIssueIds();
-
-    if (anonymousIssueIds.contains(issueId)) {
-      _userId = configurationService.getAnonymousDeviceId();
-      return;
-    }
-
-    // if it is a normal issue, we need to get the userId
     final jwt = await injector<AuthService>().getAuthToken();
-    if (jwt != null) {
-      final data = parseJwt(jwt.jwtToken);
-      if (data['sub'] != _userId) {
-        if (mounted) {
-          setState(() {
-            _userId = data['sub'];
-          });
-        }
-      }
-    }
+    final data = parseJwt(jwt!.jwtToken);
+    _userId = data['sub'] ?? '';
+    return _userId!;
   }
 
   Future<void> _addDebugLog() async {
@@ -315,6 +294,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         .removeListener(_loadIssueDetails);
     _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
+    _textEditingController.dispose();
 
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
@@ -723,9 +703,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       return;
     }
     final issueDetails = await _customerSupportService.getDetails(_issueID!);
-    if (issueDetails.issue.userId != null) {
-      _userId = issueDetails.issue.userId;
-    }
+    await _getUserId();
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)
@@ -783,7 +761,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
     // when user create a new issue, we need to update the issueID
     _setIssueId(update.response.issueID);
-    await _getUserId(update.response.issueID);
     memoryValues.viewingSupportThreadIssueID = _issueID;
     final newMessages =
         await _convertChatMessage(update.response.message, update.draft.uuid);

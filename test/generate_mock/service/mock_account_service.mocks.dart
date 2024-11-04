@@ -69,12 +69,10 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
   }
 
   @override
-  _i6.Future<void> migrateAccount(
-          _i6.Future<dynamic> Function()? createLoginJwt) =>
-      (super.noSuchMethod(
+  _i6.Future<void> migrateAccount() => (super.noSuchMethod(
         Invocation.method(
           #migrateAccount,
-          [createLoginJwt],
+          [],
         ),
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
@@ -164,10 +162,9 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
         returnValue: _i6.Future<bool?>.value(),
       ) as _i6.Future<bool?>);
   @override
-  _i6.Future<_i2.WalletStorage> createNewWallet({
+  _i6.Future<List<_i7.WalletAddress>> createNewWallet({
     String? name = r'',
     String? passphrase = r'',
-    _i6.Future<dynamic> Function()? createLoginJwt,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -176,22 +173,11 @@ class MockAccountService extends _i1.Mock implements _i5.AccountService {
           {
             #name: name,
             #passphrase: passphrase,
-            #createLoginJwt: createLoginJwt,
           },
         ),
-        returnValue: _i6.Future<_i2.WalletStorage>.value(_FakeWalletStorage_0(
-          this,
-          Invocation.method(
-            #createNewWallet,
-            [],
-            {
-              #name: name,
-              #passphrase: passphrase,
-              #createLoginJwt: createLoginJwt,
-            },
-          ),
-        )),
-      ) as _i6.Future<_i2.WalletStorage>);
+        returnValue:
+            _i6.Future<List<_i7.WalletAddress>>.value(<_i7.WalletAddress>[]),
+      ) as _i6.Future<List<_i7.WalletAddress>>);
   @override
   _i6.Future<_i2.WalletStorage> importWords(
     String? words,

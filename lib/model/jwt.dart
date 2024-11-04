@@ -51,19 +51,16 @@ enum MembershipType {
 class JWT {
   int? expireIn;
   String jwtToken;
-  String refreshToken;
 
-  JWT({required this.jwtToken, this.expireIn, this.refreshToken = ''});
+  JWT({required this.jwtToken, this.expireIn});
 
   JWT.fromJson(Map<String, dynamic> json)
       : expireIn = double.tryParse(json['expire_in'].toString())?.toInt(),
-        jwtToken = json['jwt_token'],
-        refreshToken = json['refresh_token'] ?? '';
+        jwtToken = json['jwt_token'];
 
   Map<String, dynamic> toJson() => {
         'expire_in': expireIn,
         'jwt_token': jwtToken,
-        'refresh_token': refreshToken,
       };
 
   bool _isValid() {

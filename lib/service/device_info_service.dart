@@ -13,9 +13,6 @@ import 'package:uuid/uuid.dart';
 class DeviceInfoService {
   String _deviceId = '';
   String _deviceName = '';
-  String _deviceVendor = '';
-  String _deviceOSName = '';
-  String _deviceOSVersion = '';
   bool _didInitialized = false;
 
   // If the device name and id are not available, set default values
@@ -26,15 +23,11 @@ class DeviceInfoService {
       log.info('[DeviceInfoService] already initialized');
       return;
     }
-    // Get device name, id and OS information
+    // Get device name and id
     try {
       final device = DeviceInfo.instance;
       _deviceName = await device.getMachineName() ?? 'Feral File App';
       _deviceId = await getDeviceID();
-      final deviceInfo = await device.getUserDeviceInfo();
-      _deviceVendor = deviceInfo.vendor;
-      _deviceOSName = deviceInfo.osName;
-      _deviceOSVersion = deviceInfo.oSVersion;
     } catch (e) {
       // if failed to get device name and id, set default values
       if (_deviceName.isEmpty) {
@@ -53,9 +46,4 @@ class DeviceInfoService {
   String get deviceId => _deviceId;
 
   String get deviceName => _deviceName;
-  String get deviceVendor => _deviceVendor;
-
-  // OS related information
-  String get deviceOSName => _deviceOSName;
-  String get deviceOSVersion => _deviceOSVersion;
 }

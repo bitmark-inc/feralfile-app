@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
