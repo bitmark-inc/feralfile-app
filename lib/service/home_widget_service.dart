@@ -65,7 +65,7 @@ class HomeWidgetService {
           'base64ImageData': base64ImageData,
         })
       };
-      await updateWidget(data: data);
+      // await updateWidget(data: data);
     }
   }
 

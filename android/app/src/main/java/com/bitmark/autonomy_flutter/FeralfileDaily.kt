@@ -99,7 +99,6 @@ internal fun updateAppWidget(
     // Set text fields with DailyInfo
     views.setTextViewText(R.id.appwidget_title, dailyInfo.title)
     views.setTextViewText(R.id.appwidget_artist, dailyInfo.artistName)
-//    views.setTextViewText(R.id.appwidget_medium, dailyInfo.medium)
 
     // Load the image from Base64
     val base64ImageData = dailyInfo.base64ImageData
@@ -119,6 +118,22 @@ internal fun updateAppWidget(
     } else {
         // If no Base64 data, set a placeholder image
         views.setImageViewResource(R.id.appwidget_image, R.drawable.no_thumbnail)
+    }
+
+    val base64Medium = dailyInfo.medium
+    if (base64Medium.isNotEmpty()) {
+        try {
+            // Decode Base64 string to a byte array
+            val imageBytes = Base64.decode(base64Medium, Base64.DEFAULT)
+            // Convert byte array to Bitmap
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+            // Set the image to the widget
+            views.setImageViewBitmap(R.id.medium_image, bitmap)
+        } catch (e: Exception) {
+            // Handle error in decoding, set a placeholder image
+            views.setImageViewResource(R.id.medium_image, R.drawable.failed_daily_image)
+        }
     }
 
     // Update the widget with the new views
@@ -169,10 +184,10 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
         try {
             // Parse JSON string
             val jsonObject = JSONObject(jsonString)
-            val base64ImageData = jsonObject.optString("base64ImageData", "default_base64ImageData")
+            val base64ImageData = jsonObject.optString("base64ImageData", "")
             val title = jsonObject.optString("title", "default_title")
             val artistName = jsonObject.optString("artistName", "default_artist_name")
-            val medium = jsonObject.optString("medium", "default_medium")
+            val medium = jsonObject.optString("base64MediumIcon", "")
 
             // Return DailyInfo object with the parsed data
             return DailyInfo(
