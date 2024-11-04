@@ -88,6 +88,7 @@ jobs:
 
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
+      - run: flutter clean
       - run: flutter pub cache repair
       - run: flutter pub get
 
