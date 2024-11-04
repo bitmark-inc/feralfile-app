@@ -108,7 +108,6 @@ Future<void> runFeralFileApp() async {
 
   OneSignal.initialize(Environment.onesignalAppID);
   OneSignal.Debug.setLogLevel(OSLogLevel.error);
-  
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: AppColor.white,
     statusBarIconBrightness: Brightness.dark,
