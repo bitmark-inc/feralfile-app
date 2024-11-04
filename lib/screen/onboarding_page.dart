@@ -12,11 +12,13 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -24,6 +26,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -50,6 +54,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   final deepLinkService = injector.get<DeeplinkService>();
   Timer? _timer;
 
+  final _passkeyService = injector.get<PasskeyService>();
+  final _userAccountChannel = injector.get<UserAccountChannel>();
+  final _authService = injector.get<AuthService>();
+
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
     child: Center(
@@ -66,6 +74,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
       // unawaited(injector<NavigationService>().showAppLoadError());
     });
+
     unawaited(setup(context).then((_) => _fetchRuntimeCache()));
   }
 
@@ -110,6 +119,9 @@ class _OnboardingPageState extends State<OnboardingPage>
       log.info('Setup error: $e');
       unawaited(Sentry.captureException('Setup error: $e', stackTrace: s));
     }
+    if (_timer?.isActive ?? false) {
+      _timer?.cancel();
+    }
   }
 
   Future<void> _registerPushNotifications() async {
@@ -134,28 +146,17 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _goToTargetScreen(BuildContext context) async {
     log.info('[_goToTargetScreen] start');
-    if (_timer?.isActive ?? false) {
-      _timer?.cancel();
-    }
     unawaited(Navigator.of(context)
         .pushReplacementNamed(AppRouter.homePageNoTransition));
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }
 
   Future<void> _fetchRuntimeCache() async {
-    final timer = Timer(const Duration(seconds: 10), () {
-      log.info('[_createAccountOrRestoreIfNeeded] Loading more than 10s');
-      unawaited(Sentry.captureMessage(
-          '[_createAccountOrRestoreIfNeeded] Loading more than 10s'));
-    });
     log.info('[_fetchRuntimeCache] start');
-    await injector<AccountService>().migrateAccount();
+    await _loginProcess();
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
-    if (timer.isActive) {
-      timer.cancel();
-    }
     unawaited(metricClient.identity());
     // count open app
     unawaited(metricClient.addEvent(MetricEventName.openApp));
@@ -163,6 +164,57 @@ class _OnboardingPageState extends State<OnboardingPage>
       return;
     }
     await _goToTargetScreen(context);
+  }
+
+  Future<void> _loginProcess() async {
+    final isSupportPasskey = await _passkeyService.isPassKeyAvailable();
+    if (!isSupportPasskey) {
+      log.info('Passkey is not supported. Login with address');
+      await injector<AccountService>().migrateAccount(() async {
+        await _authService.authenticateAddress();
+      });
+    } else {
+      log.info('Passkey is supported. Authenticate with passkey');
+      final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
+      log.info('Passkey registered: $didRegisterPasskey');
+      final didLoginSuccess = didRegisterPasskey
+          ? await _loginWithPasskey()
+          : await _registerPasskey();
+      if (didLoginSuccess != true) {
+        throw Exception('Failed to login with passkey');
+      }
+    }
+  }
+
+  Future<dynamic> _loginWithPasskey() async {
+    try {
+      await _loginAndMigrate();
+      return true;
+    } catch (e, s) {
+      log.info('Failed to login with passkey: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      if (!mounted) {
+        return false;
+      }
+      final result =
+          await UIHelper.showPasskeyLoginDialog(context, _loginAndMigrate);
+      _passkeyService.isShowingLoginDialog.value = false;
+      return result;
+    }
+  }
+
+  Future<void> _loginAndMigrate() async {
+    await injector<AccountService>().migrateAccount(() async {
+      final localResponse = await _passkeyService.logInInitiate();
+      await _passkeyService.logInFinalize(localResponse);
+    });
+  }
+
+  Future<dynamic> _registerPasskey() async {
+    _passkeyService.isShowingLoginDialog.value = true;
+    final result = await UIHelper.showPasskeyRegisterDialog(context);
+    _passkeyService.isShowingLoginDialog.value = false;
+    return result;
   }
 
   @override
@@ -179,13 +231,21 @@ class _OnboardingPageState extends State<OnboardingPage>
                 child: Column(
                   children: [
                     const Spacer(),
-                    PrimaryButton(
-                      text: 'h_loading...'.tr(),
-                      isProcessing: true,
-                      enabled: false,
-                      disabledColor: AppColor.auGreyBackground,
-                      textColor: AppColor.white,
-                      indicatorColor: AppColor.white,
+                    ValueListenableBuilder(
+                      valueListenable: _passkeyService.isShowingLoginDialog,
+                      builder: (context, value, child) {
+                        if (value) {
+                          return const SizedBox();
+                        }
+                        return PrimaryButton(
+                          text: 'h_loading...'.tr(),
+                          isProcessing: true,
+                          enabled: false,
+                          disabledColor: AppColor.auGreyBackground,
+                          textColor: AppColor.white,
+                          indicatorColor: AppColor.white,
+                        );
+                      },
                     ),
                   ],
                 ),

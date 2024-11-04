@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
+import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -45,7 +46,6 @@ import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -71,6 +71,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -84,7 +85,7 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/primary_address_channel.dart';
+import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -221,11 +222,10 @@ Future<void> setupInjector() async {
         injector(),
         injector(),
         injector(),
-        injector(),
       ));
 
-  injector.registerLazySingleton<PrimaryAddressChannel>(
-      () => PrimaryAddressChannel());
+  injector
+      .registerLazySingleton<UserAccountChannel>(() => UserAccountChannel());
 
   injector.registerLazySingleton<AddressService>(
       () => AddressService(injector(), injector()));
@@ -237,6 +237,8 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
+  injector.registerLazySingleton(
+      () => UserApi(dio, baseUrl: Environment.autonomyAuthURL));
 
   final tzktUrl = Environment.appTestnetConfig
       ? Environment.tzktTestnetURL
@@ -252,10 +254,16 @@ Future<void> setupInjector() async {
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector()));
-  injector.registerLazySingleton(() => BackupService(injector()));
+      () => AuthService(injector(), injector(), injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
+
+  injector.registerLazySingleton<PasskeyService>(() => PasskeyServiceImpl(
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+      ));
 
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
       (p1, p2) => NftCollectionBloc(
@@ -271,7 +279,6 @@ Future<void> setupInjector() async {
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
-            injector(),
             injector(),
             injector(),
           ));
@@ -310,6 +317,7 @@ Future<void> setupInjector() async {
                   ),
                 ),
                 baseUrl: Environment.customerSupportURL),
+            injector(),
           ));
 
   injector.registerLazySingleton<MerchandiseService>(

@@ -6,10 +6,10 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
 
-class PrimaryAddressChannel {
+class UserAccountChannel {
   final MethodChannel _channel;
 
-  PrimaryAddressChannel()
+  UserAccountChannel()
       : _channel = Platform.isIOS
             ? const MethodChannel('migration_util')
             : const MethodChannel('backup');
@@ -26,15 +26,12 @@ class PrimaryAddressChannel {
   Future<AddressInfo?> getPrimaryAddress() async {
     try {
       final String data = await _channel.invokeMethod('getPrimaryAddress', {});
-      if (data.isEmpty) {
-        return null;
-      }
       final primaryAddressInfo = json.decode(data);
       return AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
       log.info('getPrimaryAddress error: $e');
-      return null;
     }
+    return null;
   }
 
   Future<bool> clearPrimaryAddress() async {
@@ -45,6 +42,18 @@ class PrimaryAddressChannel {
       log.info('clearPrimaryAddress error', e);
       return false;
     }
+  }
+
+  Future<bool> didRegisterPasskey() async {
+    final didRegister = await _channel.invokeMethod('didRegisterPasskey', {});
+    return didRegister;
+  }
+
+  Future<bool> setDidRegisterPasskey(bool value) async {
+    final didRegister = await _channel.invokeMethod('setDidRegisterPasskey', {
+      'data': value,
+    });
+    return didRegister;
   }
 }
 
