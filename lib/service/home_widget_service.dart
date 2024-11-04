@@ -108,44 +108,49 @@ class HomeWidgetService {
 
   Future<Map<String, String>?> _formatDailyTokenData(
       DailyToken dailyToken) async {
-    final assetTokens = await injector<IndexerService>()
-        .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
-    if (assetTokens.isEmpty) {
+    try {
+      final assetTokens = await injector<IndexerService>()
+          .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
+      if (assetTokens.isEmpty) {
+        return null;
+      }
+
+      final token = assetTokens.first;
+      final artistName = token.artistName;
+      final title = token.displayTitle;
+      final medium = token.medium;
+      final thumbnail = token.galleryThumbnailURL;
+
+      String? base64ImageData;
+      if (thumbnail != null) {
+        final res = await http.get(Uri.parse(thumbnail));
+        final imageData = res.bodyBytes;
+        // convert to hex base 64
+        base64ImageData = base64Encode(imageData);
+      }
+
+      String? base64MediumIcon;
+      if (['video', 'software'].contains(medium)) {
+        // final ByteData data =
+        //     await rootBundle.load('assets/images/widget_medium_icon.svg');
+        // final List<int> bytes = data.buffer.asUint8List();
+        // base64MediumIcon = base64Encode(bytes);
+      }
+
+      print('base64MediumIcon: $base64MediumIcon');
+      final data = {
+        dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
+          'artistName': artistName,
+          'title': title,
+          'base64MediumIcon': base64MediumIcon ?? '',
+          'base64ImageData': base64ImageData,
+        })
+      };
+
+      return data;
+    } catch (e) {
+      print('Error in _formatDailyTokenData: $e');
       return null;
     }
-
-    final token = assetTokens.first;
-    final artistName = token.artistName;
-    final title = token.displayTitle;
-    final medium = token.medium;
-    final thumbnail = token.galleryThumbnailURL;
-
-    String? base64ImageData;
-    if (thumbnail != null) {
-      final res = await http.get(Uri.parse(thumbnail));
-      final imageData = res.bodyBytes;
-      // convert to hex base 64
-      base64ImageData = base64Encode(imageData);
-    }
-
-    String? base64MediumIcon;
-    if (['video', 'software'].contains(medium)) {
-      final ByteData data =
-          await rootBundle.load('assets/images/widget_medium_icon.svg');
-      final List<int> bytes = data.buffer.asUint8List();
-      base64MediumIcon = base64Encode(bytes);
-    }
-
-    print('base64MediumIcon: $base64MediumIcon');
-    final data = {
-      dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
-        'artistName': artistName,
-        'title': title,
-        'base64MediumIcon': base64MediumIcon ?? '',
-        'base64ImageData': base64ImageData,
-      })
-    };
-
-    return data;
   }
 }
