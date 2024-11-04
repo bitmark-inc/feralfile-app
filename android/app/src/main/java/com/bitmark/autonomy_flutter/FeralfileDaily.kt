@@ -30,15 +30,16 @@ class FeralfileDaily : AppWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             // Intent to open the app
-            val openAppIntent = Intent(context, MainActivity::class.java)
-            openAppIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val openAppIntent = Intent(context, MainActivity::class.java).apply {
+                action = "com.bitmark.autonomy_flutter.OPEN_APP"
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
             val openAppPendingIntent = PendingIntent.getActivity(
                 context,
-                0,
+                appWidgetId,
                 openAppIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-
 
             // Set up the layout for the widget
             val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
@@ -68,23 +69,26 @@ class FeralfileDaily : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        // Handle the widget update and open app action
 
-
-        // Check if the intent is to open the app
-        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(
-                ComponentName(context, FeralfileDaily::class.java)
-            )
-            onUpdate(context, appWidgetManager, appWidgetIds)
-            // Open the app
-            val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        when (intent.action) {
+            "com.bitmark.autonomy_flutter.OPEN_APP" -> {
+                // Only handle opening the app without triggering onUpdate
+                val openAppIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(openAppIntent)
             }
-            context.startActivity(openAppIntent)
+
+            AppWidgetManager.ACTION_APPWIDGET_UPDATE -> {
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(
+                    ComponentName(context, FeralfileDaily::class.java)
+                )
+                onUpdate(context, appWidgetManager, appWidgetIds)
+            }
         }
     }
+
 }
 
 internal fun updateAppWidget(
