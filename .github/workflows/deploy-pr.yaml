@@ -16,6 +16,7 @@ on:
 
 jobs:
   fetch-deployment:
+    if: ${{ ! contains(github.event.pull_request.title, 'WIP') }}
     runs-on: ubuntu-latest
     outputs:
       short_version: ${{ steps.extract-version.outputs.short_version }}

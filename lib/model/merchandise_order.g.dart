@@ -42,7 +42,7 @@ Map<String, dynamic> _$OrderDataToJson(OrderData instance) => <String, dynamic>{
 
 Item _$ItemFromJson(Map<String, dynamic> json) => Item(
       variant: Variant.fromJson(json['variant'] as Map<String, dynamic>),
-      quantity: json['quantity'] as int,
+      quantity: (json['quantity'] as num).toInt(),
     );
 
 Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{

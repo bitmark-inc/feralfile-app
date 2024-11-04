@@ -12,7 +12,7 @@ on:
 
 jobs:
   fastlane-deploy:
-    runs-on: macOS-13
+    runs-on: macOS-15
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with master channel

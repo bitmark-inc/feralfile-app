@@ -10,9 +10,10 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/exception.dart';
@@ -35,12 +36,14 @@ class LoggingInterceptor extends Interceptor {
     '${Environment.feralFileAPIURL}/api/artworks',
   ];
 
+  static String errorLogPrefix = 'Respond error:';
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
     apiLog
       ..info('API Request: $curl')
-      ..warning('Respond error: ${err.response}');
+      ..warning('$errorLogPrefix ${err.response}');
     return handler.next(err);
   }
 
@@ -148,17 +151,51 @@ class AutonomyAuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    final shouldIgnoreAuthorizationPath = [
-      IAPApi.addressAuthenticationPath,
-      IAPApi.registerPrimaryAddressPath,
-    ];
-    if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
-      final jwt = await injector<AuthService>().getAuthToken();
-      if (jwt == null) {
-        unawaited(Sentry.captureMessage('JWT is null'));
-        throw JwtException(message: 'can_not_authenticate_desc'.tr());
+    final jwt = await injector<AuthService>().getAuthToken();
+    if (jwt == null) {
+      unawaited(Sentry.captureMessage('JWT is null'));
+      log.info('JWT is null when calling ${options.uri}');
+      throw JwtException(message: 'can_not_authenticate_desc'.tr());
+    }
+
+    options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+
+    return handler.next(options);
+  }
+}
+
+class CustomerSupportInterceptor extends Interceptor {
+  CustomerSupportInterceptor();
+
+  final _configurationService = injector<ConfigurationService>();
+
+  @override
+  Future<void> onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    final isIgnoreHeaderApi = options.path == CustomerSupportApi.issuesPath;
+
+    if (isIgnoreHeaderApi) {
+      // do nothing get list issues, create issue: add header at api level
+    } else {
+      final pathElements = options.path.split('/');
+      final anonymousIssueIds =
+          injector<ConfigurationService>().getAnonymousIssueIds();
+      if (pathElements.any((element) => anonymousIssueIds.contains(element))) {
+        // get issue details, add header
+        options.headers[CustomerSupportApi.apiKeyHeader] =
+            Environment.supportApiKey;
+        options.headers[CustomerSupportApi.deviceIdHeader] =
+            _configurationService.getAnonymousDeviceId();
+      } else {
+        final jwt = await injector<AuthService>().getAuthToken();
+        // other api, add jwt
+        if (jwt != null) {
+          options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+        } else {
+          unawaited(Sentry.captureMessage('JWT is null'));
+          throw JwtException(message: 'can_not_authenticate_desc'.tr());
+        }
       }
-      options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
     }
 
     return handler.next(options);

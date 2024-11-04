@@ -23,7 +23,7 @@ Dio feralFileDio(BaseOptions options) {
 
 Dio customerSupportDio(BaseOptions options) {
   final dio = baseDio(options);
-  dio.interceptors.add(AutonomyAuthInterceptor());
+  dio.interceptors.add(CustomerSupportInterceptor());
   return dio;
 }
 
