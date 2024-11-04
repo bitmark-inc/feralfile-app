@@ -565,9 +565,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
-    final assetToken = injector<DailyWorkBloc>().state.assetTokens.firstOrNull;
-    if (assetToken != null) {
-      await injector<HomeWidgetService>().setDailyTokenToHomeWidget(assetToken);
+    final dailyToken = injector<DailyWorkBloc>().state.currentDailyToken;
+    if (dailyToken != null) {
+      unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     }
     _triggerShowAnnouncement();
   }

@@ -50,6 +50,9 @@ const dailyWidgetTaskTag = 'updateDailyWidgetDataTag';
 Future<void> callbackDispatcher() async {
   Workmanager().executeTask((task, inputData) async {
     try {
+      await getSecretEnv();
+      await dotenv.load();
+      await setupHomeWidgetInjector();
       final homeWidgetService = HomeWidgetService();
       await homeWidgetService.updateDailyTokensToHomeWidget();
     } catch (e) {

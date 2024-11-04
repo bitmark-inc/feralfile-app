@@ -1,10 +1,8 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -54,7 +52,6 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
           currentArtist: currentArtist,
           currentExhibition: currentExhibition));
       // update home widget
-      await injector<HomeWidgetService>().setDailyTokenToHomeWidget(token);
     });
   }
 }

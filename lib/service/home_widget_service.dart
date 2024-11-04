@@ -1,17 +1,14 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
@@ -35,45 +32,12 @@ class HomeWidgetService {
       await HomeWidget.updateWidget(
           name: androidWidgetName,
           androidName: androidWidgetName,
-          qualifiedAndroidName:
-              'com.bitmark.autonomy_flutter.$androidWidgetName',
+          qualifiedAndroidName: '$appGroupId.$androidWidgetName',
           iOSName: iosWidgetName);
     }
   }
 
-  Future<void> setDailyTokenToHomeWidget(AssetToken assetToken) async {
-    final artistName = assetToken.artistName;
-    final title = assetToken.displayTitle;
-    final medium = assetToken.medium;
-    final thumbnail = assetToken.galleryThumbnailURL;
-    // call http get to get image data from thumbnail
-    if (thumbnail != null) {
-      final res = await http.get(Uri.parse(thumbnail));
-      final imageData = res.bodyBytes;
-      // convert to hex base 64
-      final base64ImageData = base64Encode(imageData);
-      final now = DateTime.now();
-      final sixHoursAgo = now.subtract(Duration(hours: 6));
-      // get only date from six hours ago
-      final key = DateTime(sixHoursAgo.year, sixHoursAgo.month, sixHoursAgo.day)
-          .millisecondsSinceEpoch;
-      final data = {
-        key.toString(): jsonEncode({
-          'artistName': artistName,
-          'title': title,
-          'medium': medium,
-          'base64ImageData': base64ImageData,
-        })
-      };
-      // await updateWidget(data: data);
-    }
-  }
-
   Future<void> updateDailyTokensToHomeWidget() async {
-    await getSecretEnv();
-    await dotenv.load();
-    await setupHomeWidgetInjector();
-
     final listDailies =
         await injector<FeralFileService>().getUpcomingDailyTokens(limit: 6);
 
@@ -88,17 +52,21 @@ class HomeWidgetService {
         })
         .values
         .toList();
+    await _updateDailyTokensToHomeWidget(filteredDailies);
+  }
 
+  Future<void> _updateDailyTokensToHomeWidget(
+      List<DailyToken> dailyTokens) async {
     // Format all daily tokens and combine their data
     final Map<String, dynamic> combinedData = {};
-    for (final dailyToken in filteredDailies) {
+    for (final dailyToken in dailyTokens) {
       final data = await _formatDailyTokenData(dailyToken);
       if (data != null) {
         combinedData.addAll(data);
       }
     }
 
-    print('callbackDispatcher combinedData: $combinedData');
+    log.info('callbackDispatcher combinedData: $combinedData');
 
     // Update widget with combined data
     if (combinedData.isNotEmpty) {
@@ -137,7 +105,7 @@ class HomeWidgetService {
         base64MediumIcon = base64Encode(bytes);
       }
 
-      print('base64MediumIcon: $base64MediumIcon');
+      log.info('base64MediumIcon: $base64MediumIcon');
       final data = {
         dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
           'artistName': artistName,
@@ -149,7 +117,7 @@ class HomeWidgetService {
 
       return data;
     } catch (e) {
-      print('Error in _formatDailyTokenData: $e');
+      log.info('Error in _formatDailyTokenData: $e');
       return null;
     }
   }
