@@ -131,10 +131,10 @@ class HomeWidgetService {
 
       String? base64MediumIcon;
       if (['video', 'software'].contains(medium)) {
-        // final ByteData data =
-        //     await rootBundle.load('assets/images/widget_medium_icon.svg');
-        // final List<int> bytes = data.buffer.asUint8List();
-        // base64MediumIcon = base64Encode(bytes);
+        final ByteData data =
+            await rootBundle.load('assets/images/widget_medium_icon.png');
+        final List<int> bytes = data.buffer.asUint8List();
+        base64MediumIcon = base64Encode(bytes);
       }
 
       print('base64MediumIcon: $base64MediumIcon');
