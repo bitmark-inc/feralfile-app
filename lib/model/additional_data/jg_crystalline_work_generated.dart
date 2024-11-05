@@ -15,6 +15,7 @@ class JgCrystallineWorkGenerated extends AdditionalData {
     required this.tokenId,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   @override
@@ -29,7 +30,7 @@ class JgCrystallineWorkGenerated extends AdditionalData {
   }
 
   @override
-  bool prepareAndDidSuccess() {
+  Future<bool> prepareAndDidSuccess() async {
     unawaited(injector<ClientTokenService>().refreshTokens());
     return true;
   }

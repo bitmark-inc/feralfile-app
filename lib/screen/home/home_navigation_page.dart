@@ -86,7 +86,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late int _selectedIndex;
   PageController? _pageController;
   late List<Widget> _pages;
-  final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
   final GlobalKey<OrganizeHomePageState> _organizeHomeKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
@@ -110,14 +109,21 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
+  void _notifyMoveOutDaily() {
+    dailyWorkKey.currentState?.didPushed();
+  }
+
   Future<void> onItemTapped(int index) async {
+    if (index != HomeNavigatorTab.daily.index) {
+      _notifyMoveOutDaily();
+    }
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
         if (index == HomeNavigatorTab.explore.index) {
           feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
-          _dailyWorkKey.currentState?.scrollToTop();
+          dailyWorkKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.collection.index) {
           _organizeHomeKey.currentState?.scrollToTop();
         }
@@ -127,9 +133,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // if tap on daily, resume daily work,
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
-          _dailyWorkKey.currentState?.resumeDailyWork();
+          dailyWorkKey.currentState?.resumeDailyWork();
         } else {
-          _dailyWorkKey.currentState?.pauseDailyWork();
+          dailyWorkKey.currentState?.pauseDailyWork();
         }
       }
       setState(() {
@@ -252,7 +258,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             BlocProvider.value(value: injector<CanvasDeviceBloc>()),
           ],
           child: DailyWorkPage(
-            key: _dailyWorkKey,
+            key: dailyWorkKey,
           )),
       MultiBlocProvider(
           providers: [
@@ -358,7 +364,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     injector<ListPlaylistBloc>()
         .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
     if (_selectedIndex == HomeNavigatorTab.daily.index) {
-      _dailyWorkKey.currentState?.resumeDailyWork();
+      dailyWorkKey.currentState?.resumeDailyWork();
     }
   }
 

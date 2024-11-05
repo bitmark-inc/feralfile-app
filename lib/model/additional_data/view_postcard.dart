@@ -17,6 +17,7 @@ class ViewPostcard extends AdditionalData {
     required this.indexID,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   @override
@@ -49,7 +50,7 @@ class ViewPostcard extends AdditionalData {
   }
 
   @override
-  bool prepareAndDidSuccess() {
+  Future<bool> prepareAndDidSuccess() async {
     unawaited(injector<ClientTokenService>().refreshTokens());
     return true;
   }

@@ -15,6 +15,7 @@ class NavigateAdditionalData extends AdditionalData {
     required this.navigationRoute,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
     this.homeIndex,
   });
 

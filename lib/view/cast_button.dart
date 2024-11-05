@@ -24,6 +24,7 @@ class FFCastButton extends StatefulWidget {
   final String? text;
   final String? type;
   final bool shouldCheckSubscription;
+  final VoidCallback? onTap;
 
   const FFCastButton({
     required this.displayKey,
@@ -32,15 +33,16 @@ class FFCastButton extends StatefulWidget {
     this.onDeviceSelected,
     this.text,
     this.shouldCheckSubscription = true,
+    this.onTap,
   });
 
   @override
-  State<FFCastButton> createState() => _FFCastButtonState();
+  State<FFCastButton> createState() => FFCastButtonState();
 }
 
 final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
-class _FFCastButtonState extends State<FFCastButton> {
+class FFCastButtonState extends State<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _upgradesBloc = injector.get<UpgradesBloc>();
 
@@ -65,14 +67,8 @@ class _FFCastButtonState extends State<FFCastButton> {
           final isSubscribed = subscriptionState.isSubscribed;
           return GestureDetector(
             onTap: () async {
-              if (!widget.shouldCheckSubscription || isSubscribed) {
-                await injector<NavigationService>().showStreamAction(
-                  widget.displayKey,
-                  widget.onDeviceSelected,
-                );
-              } else {
-                await _showUpgradeDialog(context);
-              }
+              widget.onTap?.call();
+              await onTap(context, isSubscribed);
             },
             child: Semantics(
               label: 'cast_icon',
@@ -129,6 +125,17 @@ class _FFCastButtonState extends State<FFCastButton> {
         });
       },
     );
+  }
+
+  Future<void> onTap(BuildContext context ,bool isSubscribed) async {
+    if (!widget.shouldCheckSubscription || isSubscribed) {
+      await injector<NavigationService>().showStreamAction(
+        widget.displayKey,
+        widget.onDeviceSelected,
+      );
+    } else {
+      await _showUpgradeDialog(context);
+    }
   }
 
   Future<void> _showUpgradeDialog(BuildContext context) async {

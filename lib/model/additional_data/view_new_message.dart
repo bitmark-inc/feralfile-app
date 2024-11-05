@@ -21,6 +21,7 @@ class ViewNewMessage extends AdditionalData {
     required this.groupId,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   final RemoteConfigService _remoteConfigService =
@@ -66,7 +67,7 @@ class ViewNewMessage extends AdditionalData {
   }
 
   @override
-  bool prepareAndDidSuccess() {
+  Future<bool> prepareAndDidSuccess() async {
     if (!_remoteConfigService.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
       return false;
     }
