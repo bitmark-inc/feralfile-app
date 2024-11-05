@@ -375,7 +375,9 @@ class IAPServiceImpl implements IAPService {
   @override
   Future<String> getStripeUrl() async {
     try {
-      final res = await injector<IAPApi>().portalUrl() as Map<String, dynamic>;
+      final res =
+          await injector<IAPApi>(instanceName: iapApiTimeout5secInstanceName)
+              .portalUrl() as Map<String, dynamic>;
       return res['url'] as String;
     } catch (error) {
       log.warning('Error when getting stripe portal url: $error');
