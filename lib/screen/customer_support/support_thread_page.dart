@@ -222,7 +222,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           });
         }
       case NewIssueFromAnnouncementPayload:
-        _reportIssueType = ReportIssueType.Announcement;
+        _reportIssueType = ReportIssueType.ChatWithFeralfile;
       case DetailIssuePayload:
         _reportIssueType = (payload as DetailIssuePayload).reportIssueType;
         _status = payload.status;
