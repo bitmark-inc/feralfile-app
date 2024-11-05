@@ -17,11 +17,12 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:overlay_support/overlay_support.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 Widget _notificationToast(BuildContext context, String id,
-        {Function? handler, String? body}) =>
+        {Function? handler, String? body, String? tappingText}) =>
     _SimpleNotificationToast(
       notification: body ?? '',
       key: Key(id),
@@ -29,10 +30,13 @@ Widget _notificationToast(BuildContext context, String id,
         handler?.call();
       },
       addOnTextSpan: [
-        if (handler != null)
+        if (tappingText != null)
           TextSpan(
-            text: ' ${'tap_to_view'.tr()}',
-            style: Theme.of(context).textTheme.ppMori400FFYellow14,
+            text: ' $tappingText',
+            style: Theme.of(context)
+                .textTheme
+                .ppMori400FFYellow14
+                .copyWith(color: AppColor.feralFileLightBlue),
           )
       ],
     );
@@ -196,12 +200,18 @@ Future<void> showNotifications(
 
   configurationService.showingNotification.value = true;
   final notification = showSimpleNotification(
-    _notificationToast(context, id, handler: () async {
-      /// this is how to detect user tap on notification
-      /// this must put before handler?.call() to make sure it's called first
+    _notificationToast(
+      context,
+      id,
+      handler: () async {
+        /// this is how to detect user tap on notification
+        /// this must put before handler?.call() to make sure it's called first
 
-      handler?.call();
-    }, body: body),
+        handler?.call();
+      },
+      body: body,
+      tappingText: additionalData?.linkText,
+    ),
     background: Colors.transparent,
     elevation: 0,
     duration: const Duration(days: 1),

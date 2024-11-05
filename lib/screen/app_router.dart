@@ -133,6 +133,7 @@ import 'package:page_transition/page_transition.dart';
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
 GlobalKey<FeralfileHomePageState> feralFileHomeKey = GlobalKey();
+final GlobalKey<DailyWorkPageState> dailyWorkKey = GlobalKey();
 
 class AppRouter {
   static const createPlayListPage = 'create_playlist_page';

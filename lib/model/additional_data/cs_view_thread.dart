@@ -16,6 +16,7 @@ class CsViewThread extends AdditionalData {
     required this.issueId,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   final CustomerSupportService _customerSupportService =
@@ -37,7 +38,7 @@ class CsViewThread extends AdditionalData {
   }
 
   @override
-  bool prepareAndDidSuccess() {
+  Future<bool> prepareAndDidSuccess() async {
     _customerSupportService.triggerReloadMessages.value += 1;
     unawaited(_customerSupportService.getChatThreads());
     if (issueId == memoryValues.viewingSupportThreadIssueID) {

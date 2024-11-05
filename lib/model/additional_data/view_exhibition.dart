@@ -11,6 +11,7 @@ class ViewExhibitionData extends AdditionalData {
     required this.exhibitionId,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   @override

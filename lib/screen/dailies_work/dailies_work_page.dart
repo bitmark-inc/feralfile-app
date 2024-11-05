@@ -58,6 +58,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
   late int _currentIndex;
   ScrollController? _scrollController;
   final _artworkKey = GlobalKey<ArtworkPreviewWidgetState>();
+  final _displayButtonKey = GlobalKey<FFCastButtonState>();
+
+  DailyToken? get _currentDailyToken =>
+      context.read<DailyWorkBloc>().state.currentDailyToken;
+
+  bool _trackingInterest = false;
+  Timer? _trackingInterestTimer;
+  static const _scrollLikingThreshold = 100.0;
+  static const _stayDurationLikingThreshold = Duration(seconds: 5);
 
   @override
   void initState() {
@@ -65,7 +74,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
     _pageController = PageController();
     _pageController!.addListener(() {
-      _pageControllerListenser();
+      _pageControllerListener();
     });
     _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
@@ -81,12 +90,57 @@ class DailyWorkPageState extends State<DailyWorkPage>
     super.dispose();
   }
 
-  void _pageControllerListenser() {
+  void _pageControllerListener() {
     if (_pageController!.page != 0) {
       pauseDailyWork();
     } else {
       resumeDailyWork();
     }
+  }
+
+  void openDisplayDialog() {
+    // ignore isSubscribed because it's not necessary
+    unawaited(_displayButtonKey.currentState?.onTap(context, true));
+  }
+
+  void didPushed() {
+    _stopTrackingInterest();
+  }
+
+  void trackInterest() {
+    if (_trackingInterest) {
+      return;
+    }
+    log.info('start trackingInterest in Daily');
+    _trackingInterest = true;
+    _trackingInterestTimer = Timer(_stayDurationLikingThreshold, () {
+      _setUserInterested();
+    });
+  }
+
+  void _stopTrackingInterest() {
+    log.info('stopTrackingInterest in Daily');
+    _trackingInterest = false;
+    _trackingInterestTimer?.cancel();
+  }
+
+  void _setUserInterested() {
+    if (!_trackingInterest) {
+      return;
+    }
+    log.info('Set User Interested in Daily');
+    _stopTrackingInterest();
+    if (_currentDailyToken == null) {
+      return;
+    }
+    final data = {
+      MetricParameter.tokenId: _currentDailyToken!.tokenID,
+    };
+    unawaited(injector<MetricClientService>()
+        .addEvent(MetricEventName.playlistView, data: data));
+    unawaited(injector
+        .get<MetricClientService>()
+        .addEvent(MetricEventName.dailyLiked, data: data));
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {
@@ -225,11 +279,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 textAlign: TextAlign.left),
           ),
           FFCastButton(
+            key: _displayButtonKey,
             displayKey: CastDailyWorkRequest.displayKey,
             onDeviceSelected: (device) {
               context.read<CanvasDeviceBloc>().add(
                   CanvasDeviceCastDailyWorkEvent(
                       device, CastDailyWorkRequest()));
+            },
+            onTap: () {
+              _setUserInterested();
             },
             text: 'display'.tr(),
             shouldCheckSubscription: false,
@@ -421,6 +479,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
               unawaited(_pageController?.animateToPage(0,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut));
+            }
+            if (_scrollController!.offset > _scrollLikingThreshold) {
+              _setUserInterested();
             }
             return true;
           },

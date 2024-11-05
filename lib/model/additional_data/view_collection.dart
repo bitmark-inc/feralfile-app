@@ -12,6 +12,7 @@ class ViewCollection extends AdditionalData {
   ViewCollection({
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   @override
@@ -29,7 +30,7 @@ class ViewCollection extends AdditionalData {
   }
 
   @override
-  bool prepareAndDidSuccess() {
+  Future<bool> prepareAndDidSuccess() async {
     unawaited(injector<ClientTokenService>().refreshTokens());
     return true;
   }
