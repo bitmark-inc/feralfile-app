@@ -167,8 +167,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _loginProcess() async {
-    final isSupportPasskey = false;
-    await _passkeyService.isPassKeyAvailable();
+    final isSupportPasskey = await _passkeyService.isPassKeyAvailable();
     if (!isSupportPasskey) {
       log.info('Passkey is not supported. Login with address');
       await injector<AccountService>().migrateAccount(() async {
