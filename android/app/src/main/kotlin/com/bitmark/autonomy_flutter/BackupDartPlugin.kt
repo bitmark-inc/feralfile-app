@@ -269,33 +269,37 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     }
 
     private fun didRegisterPasskey(call: MethodCall, result: MethodChannel.Result) {
+        didRegisterPasskeyResult {
+            result.success(it)
+        }
+    }
+
+    fun didRegisterPasskeyResult(callback: (Boolean) -> Unit) {
         val request = RetrieveBytesRequest.Builder()
             .setKeys(listOf(didRegisterPasskeys))  // Specify the key
             .build()
+
         client.retrieveBytes(request)
             .addOnSuccessListener {
-                try { // Retrieve bytes using the key
+                try {
                     val dataMap = it.blockstoreDataMap[didRegisterPasskeys]
                     if (dataMap != null) {
                         val bytes = dataMap.bytes
                         val resultString = bytes.toString(Charsets.UTF_8)
                         Log.d("didRegisterPasskey", resultString)
-
-
-                        result.success(resultString.toBoolean())
+                        callback(resultString.toBoolean())
                     } else {
                         Log.e("didRegisterPasskey", "No data found for the key")
-                        result.success(false)
+                        callback(false)
                     }
                 } catch (e: Exception) {
                     Log.e("didRegisterPasskey", e.message ?: "Error decoding data")
-                    //No primary address found
-                    result.success(false)
+                    callback(false)
                 }
             }
             .addOnFailureListener {
-                //Block store not available
-                result.error("didRegisterPasskey Block store error", it.message, it)
+                Log.e("didRegisterPasskey", "Block store error: ${it.message}")
+                callback(false)
             }
     }
 
