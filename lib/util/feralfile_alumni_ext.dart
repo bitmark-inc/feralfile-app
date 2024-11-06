@@ -10,6 +10,20 @@ extension AlumniAccountExt on AlumniAccount {
       ? getFFUrl(avatarURI!)
       : null;
 
+  List<String> get websiteUrl {
+    final listRawWebsite =
+        website?.split('&').map((e) => e.trim()).where((e) => e.isNotEmpty) ??
+            [];
+    final listWebsite = listRawWebsite.map((e) {
+      if (e.startsWith('http')) {
+        return e;
+      }
+
+      return 'http://$e';
+    }).toList();
+    return listWebsite;
+  }
+
   String? get instagramUrl {
     final instagramID = socialNetworks?.instagramID;
     if (instagramID == null || instagramID.isEmpty) {

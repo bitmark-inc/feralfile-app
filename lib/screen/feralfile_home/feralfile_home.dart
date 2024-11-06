@@ -26,9 +26,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum FeralfileHomeTab {
-  featured,
-  artworks,
   exhibitions,
+  artworks,
+  featured,
   artists,
   curators,
   rAndD;
@@ -127,7 +127,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     context.read<FeralfileHomeBloc>().add(FeralFileHomeFetchDataEvent());
-    _selectedIndex = FeralfileHomeTab.featured.index;
+    _selectedIndex = FeralfileHomeTab.exhibitions.index;
   }
 
   Widget _castButton(BuildContext context, List<Artwork> featuredArtworks) {
@@ -234,13 +234,14 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     final numberFormater = NumberFormat('#,###', 'en_US');
     return [
       Item(
-        id: FeralfileHomeTab.featured.index.toString(),
-        title: 'featured'.tr(),
-        subtitle: state.featuredArtworks != null
-            ? numberFormater.format(state.featuredArtworks!.length)
+        id: FeralfileHomeTab.exhibitions.index.toString(),
+        title: 'exhibitions'.tr(),
+        subtitle: state.exploreStatisticsData != null
+            ? numberFormater
+                .format(state.exploreStatisticsData!.totalExhibition)
             : '-',
         onSelected: () {
-          _selectTab(FeralfileHomeTab.featured);
+          _selectTab(FeralfileHomeTab.exhibitions);
         },
       ),
       Item(
@@ -254,14 +255,13 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         },
       ),
       Item(
-        id: FeralfileHomeTab.exhibitions.index.toString(),
-        title: 'exhibitions'.tr(),
-        subtitle: state.exploreStatisticsData != null
-            ? numberFormater
-                .format(state.exploreStatisticsData!.totalExhibition)
+        id: FeralfileHomeTab.featured.index.toString(),
+        title: 'featured'.tr(),
+        subtitle: state.featuredArtworks != null
+            ? numberFormater.format(state.featuredArtworks!.length)
             : '-',
         onSelected: () {
-          _selectTab(FeralfileHomeTab.exhibitions);
+          _selectTab(FeralfileHomeTab.featured);
         },
       ),
       Item(

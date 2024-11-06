@@ -47,7 +47,7 @@ class AdditionalData {
             return defaultAdditionalData;
           }
           return CsViewThread(
-            issueId: issueId,
+            issueId: issueId.toString(),
             notificationType: notificationType,
             announcementContentId: announcementContentId,
             linkText: linkText,
