@@ -25,7 +25,9 @@ enum MetricEventName {
 enum MetricParameter {
   tokenId,
   section,
-  exhibitionId;
+  exhibitionId,
+  localTime,
+  ;
 
   String get name {
     switch (this) {
@@ -35,6 +37,8 @@ enum MetricParameter {
         return 'section';
       case MetricParameter.exhibitionId:
         return 'exhibitionID';
+      case MetricParameter.localTime:
+        return 'localTime';
     }
   }
 }

@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
@@ -1892,6 +1893,32 @@ class UIHelper {
       currentContext,
       'upgraded_notification_body'.tr(),
       'subscription_upgraded',
+    );
+  }
+
+  static Future<dynamic> showNotificationPrompt(
+      EnableNotificationPromptType type) async {
+    final context = injector<NavigationService>().context;
+    if (!context.mounted) {
+      return null;
+    }
+    return await showDialog(
+      context,
+      type.title,
+      Column(
+        children: [
+          Text(type.description,
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 20),
+          PrimaryButton(
+            onTap: () async {
+              Navigator.of(context).pop(true);
+              await Navigator.of(context).pushNamed(AppRouter.preferencesPage);
+            },
+            text: 'enable'.tr(),
+          ),
+        ],
+      ),
     );
   }
 }

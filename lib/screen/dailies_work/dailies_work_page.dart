@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_pag
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
@@ -134,13 +135,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
     if (_currentDailyToken == null) {
       return;
     }
-    final data = {
-      MetricParameter.tokenId: _currentDailyToken!.tokenID,
-      MetricParameter.localTime: DateTime.now().toIso8601String(),
-    };
-    unawaited(injector
-        .get<MetricClientService>()
-        .addEvent(MetricEventName.dailyLiked, data: data));
+    unawaited(injector<UserInteractivityService>()
+        .likeDailyWork(_currentDailyToken!));
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {

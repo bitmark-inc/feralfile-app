@@ -24,6 +24,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  int getDailyLikedCount();
+
+  Future<void> setDailyLikedCount(int count);
+
   String? getAnonymousDeviceId();
 
   Future<String> createAnonymousDeviceId();
@@ -214,6 +218,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyDailyLikedCount = 'daily_liked_count';
   static const String keyAnonymousDeviceId = 'anonymous_device_id';
   static const String keyAnonymousIssueIds = 'anonymous_issue_ids';
   static const String keyDidMigrateToAccountSetting =
@@ -963,6 +968,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   List<String> getAnonymousIssueIds() =>
       _preferences.getStringList(keyAnonymousIssueIds) ?? <String>[];
+
+  @override
+  int getDailyLikedCount() => _preferences.getInt(keyDailyLikedCount) ?? 0;
+
+  @override
+  Future<void> setDailyLikedCount(int count) async {
+    await _preferences.setInt(keyDailyLikedCount, count);
+  }
 }
 
 enum ConflictAction {
