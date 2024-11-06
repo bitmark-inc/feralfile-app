@@ -27,7 +27,7 @@ class Announcement extends ChatThread {
   bool get isExpired => DateTime.now().isAfter(endedAt);
 
   @override
-  String getListTitle() => 'Announcement';
+  String getListTitle() => 'chat_with_feralfile'.tr();
 
   @override
   bool isUnread() => false;
