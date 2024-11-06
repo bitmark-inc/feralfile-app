@@ -55,13 +55,13 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final connectedDevice = widget.displayKey == null
             ? null
             : state.lastSelectedActiveDeviceForKey(widget.displayKey!);
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: Row(
+        return Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
                   Expanded(
                       child: (connectedDevice != null)
@@ -98,82 +98,83 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   )
                 ],
               ),
-            ),
-            if (devices.isNotEmpty) ...[
-              const SizedBox(height: 40),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.zero,
-                itemCount: devices.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final device = devices[index].device;
-                  final isControlling =
-                      device.deviceId == connectedDevice?.deviceId;
-                  return Column(
-                    children: [
-                      Builder(
-                        builder: (context) => StreamDrawerItem(
-                          item: OptionItem(
-                              title: device.name,
-                              onTap: () {
-                                log.info('device selected: ${device.deviceId}');
-                                widget.onDeviceSelected?.call(device);
-                                Navigator.pop(context);
-                              }),
-                          backgroundColor: connectedDevice == null
-                              ? AppColor.white
-                              : isControlling
-                                  ? AppColor.feralFileLightBlue
-                                  : AppColor.disabledColor,
-                          isControlling: isControlling,
-                          onRotateClicked: () => onRotate(context),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      )
-                    ],
-                  );
-                },
-              ),
-              if (connectedDevice != null) ...[
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(
-                      color: AppColor.white,
-                    ),
-                  ),
-                  width: MediaQuery.of(context).size.width,
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: InkWell(
-                      splashFactory: InkSparkle.splashFactory,
-                      borderRadius: BorderRadius.circular(50),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Center(
-                          child: Text(
-                            'disconnect'.tr(),
-                            style: theme.textTheme.ppMori400White14,
+              if (devices.isNotEmpty) ...[
+                const SizedBox(height: 40),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: devices.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final device = devices[index].device;
+                    final isControlling =
+                        device.deviceId == connectedDevice?.deviceId;
+                    return Column(
+                      children: [
+                        Builder(
+                          builder: (context) => StreamDrawerItem(
+                            item: OptionItem(
+                                title: device.name,
+                                onTap: () {
+                                  log.info(
+                                      'device selected: ${device.deviceId}');
+                                  widget.onDeviceSelected?.call(device);
+                                  Navigator.pop(context);
+                                }),
+                            backgroundColor: connectedDevice == null
+                                ? AppColor.white
+                                : isControlling
+                                    ? AppColor.feralFileLightBlue
+                                    : AppColor.disabledColor,
+                            isControlling: isControlling,
+                            onRotateClicked: () => onRotate(context),
                           ),
                         ),
+                        const SizedBox(
+                          height: 15,
+                        )
+                      ],
+                    );
+                  },
+                ),
+                if (connectedDevice != null) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(
+                        color: AppColor.white,
                       ),
-                      onTap: () async {
-                        await onDisconnect();
-                      },
+                    ),
+                    width: MediaQuery.of(context).size.width,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        splashFactory: InkSparkle.splashFactory,
+                        borderRadius: BorderRadius.circular(50),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Center(
+                            child: Text(
+                              'disconnect'.tr(),
+                              style: theme.textTheme.ppMori400White14,
+                            ),
+                          ),
+                        ),
+                        onTap: () async {
+                          await onDisconnect();
+                        },
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
+                ],
+              ] else ...[
+                const SizedBox(height: 15),
+                _instructionDetailWidget(context),
               ],
-            ] else ...[
-              const SizedBox(height: 15),
-              _instructionDetailWidget(context),
+              const SizedBox(height: 10),
             ],
-            const SizedBox(height: 10),
-          ],
+          ),
         );
       },
     );

@@ -35,8 +35,12 @@ class _AlumniPostsPageState extends State<AlumniPostsPage> {
     final response = await injector<FeralFileService>().getPosts(
       relatedAlumniAccountIDs: alumni.allRelatedAccountIDs,
     );
-    setState(() {
-      _posts = response;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _posts = response;
+        });
+      }
     });
     return response;
   }

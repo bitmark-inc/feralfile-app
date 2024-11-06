@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -388,7 +387,6 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
 
   void _onTapArtwork(BuildContext context, AssetToken token) {
     _gotoArtworkDetails(context, token);
-    unawaited(_moveToArtwork(token));
   }
 
   void _gotoArtworkDetails(BuildContext context, AssetToken token) {
@@ -402,27 +400,6 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
         shouldUseLocalCache: false,
       ),
     ));
-  }
-
-  // when displaying, tap on the artwork to move to the artwork
-  Future<bool> _moveToArtwork(AssetToken assetToken) {
-    final displayKey = widget.tokenIDs.displayKey;
-    if (displayKey == null) {
-      return Future.value(false);
-    }
-
-    final lastSelectedCanvasDevice =
-        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
-    if (lastSelectedCanvasDevice != null) {
-      final artwork = PlayArtworkV2(
-        token: CastAssetToken(id: assetToken.id),
-        duration: 0,
-      );
-      _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
-          lastSelectedCanvasDevice, [artwork]));
-      return Future.value(true);
-    }
-    return Future.value(false);
   }
 
   Widget _infoHeader(BuildContext context, AssetToken asset, String? artistName,
