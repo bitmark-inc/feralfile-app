@@ -69,6 +69,8 @@ class VideoControllerManager {
           _videoControllers.remove(videoPath);
           _controllerPool.remove(videoPath);
           _controllerRefCount.remove(videoPath);
+        } else {
+          await controller.setVolume(0);
         }
       }
       _cyclingUriMap.remove(videoPath);

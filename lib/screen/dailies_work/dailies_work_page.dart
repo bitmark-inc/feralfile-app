@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -387,6 +388,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               },
               builder: (context, state) {
                 final assetToken = state.assetTokens.firstOrNull;
+                final artwork = state.currentDailyToken?.artwork;
                 if (assetToken == null) {
                   return const LoadingWidget();
                 }
@@ -420,10 +422,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                       ),
                     Container(
                       padding: const EdgeInsets.all(16),
-                      child: _tokenInfo(
-                        context,
-                        assetToken,
-                      ),
+                      child: _tokenInfo(context, assetToken, artwork),
                     )
                   ],
                 );
@@ -434,17 +433,22 @@ class DailyWorkPageState extends State<DailyWorkPage>
         ],
       );
 
-  Widget _tokenInfo(BuildContext context, AssetToken assetToken) {
+  Widget _tokenInfo(
+      BuildContext context, AssetToken assetToken, Artwork? artwork) {
     final identityState = context.watch<IdentityBloc>().state;
     final artistName =
         assetToken.artistName?.toIdentityOrMask(identityState.identityMap) ??
             assetToken.artistID ??
             '';
+    final title = assetToken.displayTitle ?? '';
+    final titleWithEditionName = assetToken.editionName != null
+        ? '$title ${assetToken.editionName}'
+        : title;
     return Row(
       children: [
         Expanded(
           child: ArtworkDetailsHeader(
-            title: assetToken.displayTitle ?? '',
+            title: titleWithEditionName,
             subTitle: artistName,
             onSubTitleTap: assetToken.artistID != null && assetToken.isFeralfile
                 ? () => unawaited(injector<NavigationService>()
