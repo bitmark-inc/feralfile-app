@@ -134,7 +134,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     },
     'daily': {
       'scheduleTime': '6',
-      'backgroundColor': '#000000',
+      'backgroundColor': '#ffa000',
     }
   };
 

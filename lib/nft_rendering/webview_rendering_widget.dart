@@ -169,6 +169,21 @@ class _WebviewNFTRenderingWidgetState
           await _webViewController?.evaluateJavascript(
               source: javascriptString);
 
+          // Check if background color is set
+          await _webViewController?.evaluateJavascript(
+            source: '''
+            if (window.getComputedStyle(document.body).backgroundColor == 'rgba(0, 0, 0, 0)') {
+              document.body.style.backgroundColor = 
+              'rgba(
+                ${backgroundColor.red}, 
+                ${backgroundColor.green}, 
+                ${backgroundColor.blue}, 
+                1
+              )';
+            }
+          ''',
+          );
+
           if (widget.isMute) {
             await mute();
           }

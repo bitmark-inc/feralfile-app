@@ -339,7 +339,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
                         ConfigKey.backgroundColor, '#000000');
                 final dailyBackgroundColor = Color(int.parse(
                     dailyBackgroundColorHex.replaceFirst('#', '0xFF')));
-
                 return Column(
                   children: [
                     Expanded(
