@@ -30,7 +30,7 @@ abstract class IAPApi {
   Future<OnesignalIdentityHash> generateIdentityHash(
       @Body() Map<String, String> body);
 
-  @GET('/apis/v2/announcements')
+  @GET('/apis/v2/notifications')
   Future<List<Announcement>> getAnnouncements(@Body() AnnouncementRequest body);
 
   @POST('/apis/v2/gift-code/{id}/redeem')
