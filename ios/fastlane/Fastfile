@@ -134,8 +134,8 @@ platform :ios do
 			    compileBitcode: false,
 				method: "ad-hoc",
 				provisioningProfiles: {
-					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc New",
-					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification New",
+					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
+					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
