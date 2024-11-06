@@ -67,7 +67,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   bool _trackingInterest = false;
   Timer? _trackingInterestTimer;
   static const _scrollLikingThreshold = 100.0;
-  static const _stayDurationLikingThreshold = Duration(seconds: 5);
+  static const _stayDurationLikingThreshold = Duration(seconds: 10);
 
   @override
   void initState() {
@@ -136,9 +136,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
     }
     final data = {
       MetricParameter.tokenId: _currentDailyToken!.tokenID,
+      MetricParameter.localTime: DateTime.now().toIso8601String(),
     };
-    unawaited(injector<MetricClientService>()
-        .addEvent(MetricEventName.playlistView, data: data));
     unawaited(injector
         .get<MetricClientService>()
         .addEvent(MetricEventName.dailyLiked, data: data));
