@@ -103,6 +103,8 @@ import 'package:web3dart/web3dart.dart';
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
+const iapApiTimeout5secInstanceName = 'iapApiTimeout5sec';
+
 Future<void> setupLogger() async {
   await FileLogger.initializeLogging();
 
@@ -212,6 +214,11 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
+
+  injector.registerLazySingleton(
+      () => IAPApi(dio, baseUrl: Environment.autonomyAuthURL),
+      instanceName: iapApiTimeout5secInstanceName);
+
   injector.registerLazySingleton(
       () => UserApi(dio, baseUrl: Environment.autonomyAuthURL));
 
