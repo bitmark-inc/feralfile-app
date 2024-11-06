@@ -43,6 +43,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:system_date_time_format/system_date_time_format.dart';
 import 'package:workmanager/workmanager.dart';
 
+const dailyWidgetTaskUniqueName =
+    'feralfile.workmanager.iOSBackgroundAppRefresh';
 const dailyWidgetTaskName = 'updateDailyWidgetData';
 const dailyWidgetTaskTag = 'updateDailyWidgetDataTag';
 
@@ -53,11 +55,15 @@ Future<void> callbackDispatcher() async {
       await getSecretEnv();
       await dotenv.load();
       await setupHomeWidgetInjector();
-      final homeWidgetService = HomeWidgetService();
-      await homeWidgetService.updateDailyTokensToHomeWidget();
+      if (task == dailyWidgetTaskUniqueName || task == dailyWidgetTaskName) {
+        final homeWidgetService = HomeWidgetService();
+        await homeWidgetService.init();
+        await homeWidgetService.updateDailyTokensToHomeWidget();
+      }
     } catch (e) {
       throw Exception(e);
     }
+
     return Future.value(true);
   });
 }
@@ -152,12 +158,21 @@ void _registerHiveAdapter() {
     ..registerAdapter(AnnouncementLocalAdapter());
 }
 
+Future<void> _setupWorkManager() async {
+  try {
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+    Workmanager()
+        .cancelByTag(dailyWidgetTaskTag)
+        .catchError((e) => log.info('Error in cancelTaskByTag: $e'));
+    await _startBackgroundUpdate();
+  } catch (e) {
+    log.info('Error in _setupWorkManager: $e');
+  }
+}
+
 Future<void> _startBackgroundUpdate() async {
-  final now = DateTime.now();
-  final uniqueName =
-      '${now.year}-${now.month}-${now.day}'; // Creates a daily unique name
   await Workmanager().registerPeriodicTask(
-    uniqueName,
+    dailyWidgetTaskUniqueName,
     dailyWidgetTaskName,
     tag: dailyWidgetTaskTag,
     frequency: const Duration(minutes: 15),
@@ -173,10 +188,7 @@ Future<void> _setupApp() async {
     Sentry.captureException(e);
   }
   await setupInjector();
-
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-  await Workmanager().cancelByTag(dailyWidgetTaskTag);
-  _startBackgroundUpdate();
+  await _setupWorkManager();
 
   runApp(
     SDTFScope(

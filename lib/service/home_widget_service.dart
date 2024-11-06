@@ -12,19 +12,20 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
-  final String appGroupId = 'com.bitmark.autonomy_flutter';
+  final String iOSAppGroupId = 'group.com.bitmark.autonomywallet.storage';
+  final String appId = 'com.bitmark.autonomy_flutter';
   final String androidWidgetName = 'FeralfileDaily';
-  final String iosWidgetName = 'iosWidgetName'; // TODO: Update this value
+  final String iosWidgetName = 'Daily_Widget'; // TODO: Update this value
 
   Future<void> init() async {
-    await HomeWidget.setAppGroupId(appGroupId);
+    await HomeWidget.setAppGroupId(iOSAppGroupId);
     HomeWidget.widgetClicked.listen((widgetName) {
       log.info('[HomeWidgetService] Widget clicked: $widgetName');
     });
   }
 
   Future<void> updateWidget(
-      {required Map<String, dynamic> data, bool shouldUpdate = true}) async {
+      {required Map<String, String> data, bool shouldUpdate = true}) async {
     data.forEach((key, value) {
       HomeWidget.saveWidgetData(key, value);
     });
@@ -32,7 +33,7 @@ class HomeWidgetService {
       await HomeWidget.updateWidget(
           name: androidWidgetName,
           androidName: androidWidgetName,
-          qualifiedAndroidName: '$appGroupId.$androidWidgetName',
+          qualifiedAndroidName: '$appId.$androidWidgetName',
           iOSName: iosWidgetName);
     }
   }
@@ -58,7 +59,7 @@ class HomeWidgetService {
   Future<void> _updateDailyTokensToHomeWidget(
       List<DailyToken> dailyTokens) async {
     // Format all daily tokens and combine their data
-    final Map<String, dynamic> combinedData = {};
+    final Map<String, String> combinedData = {};
     for (final dailyToken in dailyTokens) {
       final data = await _formatDailyTokenData(dailyToken);
       if (data != null) {
@@ -105,7 +106,6 @@ class HomeWidgetService {
         base64MediumIcon = base64Encode(bytes);
       }
 
-      log.info('base64MediumIcon: $base64MediumIcon');
       final data = {
         dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
           'artistName': artistName,
