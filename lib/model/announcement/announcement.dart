@@ -7,6 +7,9 @@ class Announcement extends ChatThread {
   final Map<String, dynamic> additionalData;
   final DateTime startedAt;
   final DateTime endedAt;
+  final String? imageURL;
+  final String? notificationType;
+  final String? deliveryTimeOfDay;
 
   Announcement({
     required this.announcementContentId,
@@ -14,15 +17,21 @@ class Announcement extends ChatThread {
     required this.additionalData,
     required this.startedAt,
     required this.endedAt,
+    this.imageURL,
+    this.notificationType,
+    this.deliveryTimeOfDay,
   });
 
   factory Announcement.fromJson(Map<String, dynamic> json) => Announcement(
-        announcementContentId: json['announcementContentID'],
+        announcementContentId: json['notificationContentID'],
         content: json['content'],
         additionalData: (json['additionalData'] ?? <String, dynamic>{})
             as Map<String, dynamic>,
         startedAt: DateTime.parse(json['startedAt']),
         endedAt: DateTime.parse(json['endedAt']),
+        imageURL: json['imageURL'],
+        notificationType: json['notificationType'],
+        deliveryTimeOfDay: json['deliveryTimeOfDay'],
       );
 
   bool get isExpired => DateTime.now().isAfter(endedAt);
