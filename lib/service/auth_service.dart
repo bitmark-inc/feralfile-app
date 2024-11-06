@@ -37,7 +37,7 @@ class AuthService {
   );
 
   void reset() {
-    _jwt = null;
+    setAuthToken(null);
   }
 
   Future<JWT> refreshJWT({String? receiptData}) async {
@@ -59,21 +59,19 @@ class AuthService {
       });
     }
     final newJwt = await _userApi.refreshJWT(payload);
-    setAuthToken(newJwt);
-    _refreshSubscriptionStatus(newJwt, receiptData: receiptData);
+    setAuthToken(newJwt, receiptData: receiptData);
     return newJwt;
   }
 
   Future<JWT> authenticateAddress() async {
     final payload = await _addressService.getAddressAuthenticationMap();
     final jwt = await _userApi.authenticateAddress(payload);
-    _jwt = jwt;
-    _refreshSubscriptionStatus(jwt);
+    setAuthToken(jwt);
     return jwt;
   }
 
-  void _refreshSubscriptionStatus(JWT jwt, {String? receiptData}) {
-    if (jwt.isValid(withSubscription: true)) {
+  void _refreshSubscriptionStatus(JWT? jwt, {String? receiptData}) {
+    if (jwt?.isValid(withSubscription: true) ?? false) {
       log.info('jwt with valid subscription');
       unawaited(_configurationService
           .setIAPReceipt(receiptData ?? _configurationService.getIAPReceipt()));
@@ -87,8 +85,9 @@ class AuthService {
     injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
-  void setAuthToken(JWT jwt) {
+  void setAuthToken(JWT? jwt, {String? receiptData}) {
     _jwt = jwt;
+    _refreshSubscriptionStatus(jwt, receiptData: receiptData);
   }
 
   Future<JWT?> getAuthToken() async {
