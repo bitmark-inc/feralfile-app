@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -23,6 +24,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -45,6 +47,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
@@ -1049,5 +1052,27 @@ class NavigationService {
 
   Future<void> openUrl(Uri uri) async {
     await _browser.openUrl(uri.toString());
+  }
+
+  Future<void> showBackupRecoveryPhraseDialog() async {
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final uuid = primaryAddressInfo?.uuid;
+    final walletStorage = uuid == null ? null : WalletStorage(uuid);
+    if (context.mounted) {
+      await UIHelper.showInfoDialog(
+        context,
+        'secure_your_access_with_backup'.tr(),
+        'your_device_not_support_passkey_desc'.tr(),
+        closeButton: 'backup_recovery_phrase'.tr(),
+        onClose: walletStorage == null
+            ? null
+            : () {
+                injector<NavigationService>().navigateTo(
+                    AppRouter.recoveryPhrasePage,
+                    arguments: RecoveryPhrasePayload(wallet: walletStorage));
+              },
+      );
+    }
   }
 }
