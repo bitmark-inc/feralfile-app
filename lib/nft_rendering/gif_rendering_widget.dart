@@ -13,6 +13,7 @@ class GifNFTRenderingWidget extends NFTRenderingWidget {
   final Widget? loadingWidget;
   final Widget? errorWidget;
   final VoidCallback? onLoaded;
+  final Color? backgroundColor;
 
   const GifNFTRenderingWidget({
     required this.previewURL,
@@ -21,6 +22,7 @@ class GifNFTRenderingWidget extends NFTRenderingWidget {
     this.loadingWidget,
     this.errorWidget,
     this.onLoaded,
+    this.backgroundColor,
   });
 
   @override
@@ -56,6 +58,7 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
           }
           return widget.loadingWidget ?? const LoadingWidget();
         },
+        color: widget.backgroundColor,
         errorBuilder: (context, error, stackTrace) => Center(
               child: _fallbackWebview(),
             ));
@@ -67,6 +70,7 @@ class _GifNFTRenderingWidgetState extends State<GifNFTRenderingWidget> {
       child: FeralFileWebview(
         key: Key('FeralFileWebview_$previewURL'),
         uri: Uri.parse(previewURL),
+        backgroundColor: widget.backgroundColor ?? Colors.transparent,
         onResourceError: (controller, error) {
           unawaited(Sentry.captureException(
             error,

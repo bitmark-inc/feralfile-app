@@ -334,6 +334,12 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 if (assetToken == null) {
                   return const LoadingWidget();
                 }
+                final dailyBackgroundColorHex = injector<RemoteConfigService>()
+                    .getConfig<String>(ConfigGroup.daily,
+                        ConfigKey.backgroundColor, '#000000');
+                final dailyBackgroundColor = Color(int.parse(
+                    dailyBackgroundColorHex.replaceFirst('#', '0xFF')));
+
                 return Column(
                   children: [
                     Expanded(
@@ -348,6 +354,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                               assetToken.owner,
                             ),
                             shouldUpdateStatusWhenDidPopNext: false,
+                            backgroundColor: dailyBackgroundColor,
                           ),
                         ),
                       ),

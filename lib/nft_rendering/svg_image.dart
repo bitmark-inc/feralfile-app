@@ -9,6 +9,7 @@ class SvgImage extends StatefulWidget {
   final WidgetBuilder? unsupportWidgetBuilder;
   final VoidCallback? onLoaded;
   final VoidCallback? onError;
+  final Color? backgroundColor;
 
   const SvgImage({
     required this.url,
@@ -19,6 +20,7 @@ class SvgImage extends StatefulWidget {
     this.onLoaded,
     this.onError,
     this.unsupportWidgetBuilder,
+    this.backgroundColor,
   });
 
   String getHtml(String svgImageURL) => '''
@@ -67,6 +69,7 @@ class _SvgImageState extends State<SvgImage> {
     return FeralFileWebview(
       key: Key(widget.url),
       uri: Uri.dataFromString(widget.getHtml(widget.url)),
+      backgroundColor: widget.backgroundColor ?? Colors.transparent,
       onLoaded: (controller) {
         widget.onLoaded?.call();
       },

@@ -34,6 +34,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final bool isMute;
   final FocusNode? focusNode;
   final bool useIndexer;
+  final Color? backgroundColor;
 
   // this is used to prevent updating status when didPopNext is called
   // (when pop to navigation page, if the index is not daily,
@@ -49,6 +50,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
     this.focusNode,
     this.useIndexer = false,
     this.shouldUpdateStatusWhenDidPopNext = true,
+    this.backgroundColor,
   });
 
   @override
@@ -157,8 +159,9 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           return InteractiveViewer(
                             minScale: 1,
                             maxScale: 4,
-                            child: Center(
-                              child: _currentRenderingWidget,
+                            child: Container(
+                              color: widget.backgroundColor,
+                              child: Center(child: _currentRenderingWidget),
                             ),
                           );
                         case RenderingType.gif:
@@ -207,6 +210,7 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             key: _artworkKey,
                             previewURL: previewURL,
                             isMute: widget.isMute,
+                            backgroundColor: widget.backgroundColor,
                           );
                           return Center(
                             child: _currentRenderingWidget,

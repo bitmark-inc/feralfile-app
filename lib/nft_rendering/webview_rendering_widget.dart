@@ -17,6 +17,7 @@ class WebviewNFTRenderingWidget extends NFTRenderingWidget {
   final Widget loadingWidget;
   final FocusNode? focusNode;
   final Function(WebViewController)? onLoaded;
+  final Color? backgroundColor;
 
   const WebviewNFTRenderingWidget({
     required this.previewURL,
@@ -26,6 +27,7 @@ class WebviewNFTRenderingWidget extends NFTRenderingWidget {
     this.isMute = false,
     this.focusNode,
     this.onLoaded,
+    this.backgroundColor,
   });
 
   @override
@@ -39,7 +41,7 @@ class _WebviewNFTRenderingWidgetState
   ValueNotifier<bool> isPausing = ValueNotifier(false);
   WebViewController? _webViewController;
   final TextEditingController _textController = TextEditingController();
-  final Color backgroundColor = Colors.black;
+  late final Color backgroundColor;
   bool isPreviewLoaded = false;
 
   @override
@@ -63,6 +65,7 @@ class _WebviewNFTRenderingWidgetState
   @override
   void initState() {
     super.initState();
+    backgroundColor = widget.backgroundColor ?? Colors.white;
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -165,21 +168,6 @@ class _WebviewNFTRenderingWidgetState
         ''';
           await _webViewController?.evaluateJavascript(
               source: javascriptString);
-
-          // Check if background color is set
-          await _webViewController?.evaluateJavascript(
-            source: '''
-            if (window.getComputedStyle(document.body).backgroundColor == 'rgba(0, 0, 0, 0)') {
-              document.body.style.backgroundColor = 
-              'rgba(
-                ${backgroundColor.red}, 
-                ${backgroundColor.green}, 
-                ${backgroundColor.blue}, 
-                1
-              )';
-            }
-          ''',
-          );
 
           if (widget.isMute) {
             await mute();
