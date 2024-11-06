@@ -38,13 +38,13 @@ List<TextSpan> exhibitionParticipantSpans(List<AlumniAccount> participants) {
                       .openFeralFileCuratorPage(alumni.slug!)
                   : injector<NavigationService>()
                       .openFeralFileArtistPage(alumni.slug!));
-            } else if (alumni.website != null) {
-              await launchUrl(Uri.parse(alumni.website!));
+            } else if (alumni.websiteUrl.isNotEmpty) {
+              await launchUrl(Uri.parse(alumni.websiteUrl.first));
             }
           },
         text: alumni.displayAlias,
         style: TextStyle(
-          decoration: alumni.slug != null || alumni.website != null
+          decoration: alumni.slug != null || alumni.websiteUrl.isNotEmpty
               ? TextDecoration.underline
               : TextDecoration.none,
         ),
