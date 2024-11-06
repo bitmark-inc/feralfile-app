@@ -106,9 +106,10 @@ class HomeWidgetService {
         base64MediumIcon = base64Encode(bytes);
       }
 
+      final now = DateTime.now();
       final data = {
         dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
-          'artistName': artistName,
+          'artistName': '$artistName ${now.hour}:${now.minute}:${now.second}',
           'title': title,
           'base64MediumIcon': base64MediumIcon ?? '',
           'base64ImageData': base64ImageData,
