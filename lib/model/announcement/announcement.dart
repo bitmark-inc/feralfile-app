@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class Announcement extends ChatThread {
   final String announcementContentId;

@@ -4,8 +4,8 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/ff_exhibition_participants.dart';
-import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/john_gerrard_live_performance.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -43,9 +43,12 @@ class ExhibitionPreview extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             child: _buildExhibitionMedia(context, exhibition),
           ),
-          HeaderView(
-            title: exhibition.title,
+          Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
+            child: TitleText(
+              title: exhibition.title,
+              ellipsis: false,
+            ),
           ),
           if (listCurators.isNotEmpty) ...[
             Text(
