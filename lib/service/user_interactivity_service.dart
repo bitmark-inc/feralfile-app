@@ -32,7 +32,8 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
   }
 
   Future<void> _likeDailyWorkActionResponse() async {
-    final isNotificationEnabled = _configurationService.isNotificationEnabled();
+    /// temporary implementation
+    const isNotificationEnabled = true;
     if (!isNotificationEnabled) {
       final likedCount = _configurationService.getDailyLikedCount();
       if (likedCount >= 3) {

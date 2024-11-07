@@ -56,20 +56,6 @@ class PreferenceView extends StatelessWidget {
           addDivider(),
           Padding(
             padding: padding,
-            child: _preferenceItem(
-                context,
-                'notifications'.tr(),
-                'receive_notification'.tr(),
-                state.isNotificationEnabled, (value) {
-              final newState = state.copyWith(isNotificationEnabled: value);
-              context
-                  .read<PreferencesBloc>()
-                  .add(PreferenceUpdateEvent(newState));
-            }),
-          ),
-          addDivider(),
-          Padding(
-            padding: padding,
             child: _preferenceItemWithBuilder(
               context,
               'analytics'.tr(),
