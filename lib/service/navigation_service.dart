@@ -1095,7 +1095,7 @@ class NavigationService {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 4),
                 Padding(
                   padding: const EdgeInsets.only(left: 20),
                   child: Row(
