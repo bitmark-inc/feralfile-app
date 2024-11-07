@@ -299,7 +299,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       /// should complete event after getting all data needed
       /// and before calling async function
       Future.delayed(const Duration(milliseconds: 500), () async {
-        await injector<AnnouncementService>().fetchAnnouncements();
         if (!mounted) {
           return;
         }
