@@ -62,4 +62,12 @@ abstract class IAPApi {
 
   @GET('/apis/memberships/subscriptions/active')
   Future<dynamic> getCustomActiveSubscription();
+
+  @GET('/apis/users/notifications/settings/me')
+  Future<Map<String, dynamic>> getNotificationSettings();
+
+  @PUT('/apis/users/notifications/settings')
+  Future<void> updateNotificationSettings(
+    @Body() Map<String, dynamic> body,
+  );
 }

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -48,4 +49,7 @@ class Announcement extends ChatThread {
 
   @override
   DateTime get sortTime => startedAt;
+
+  NotificationSettingType? get notificationSettingType =>
+      NotificationSettingType.fromString(notificationType ?? '');
 }

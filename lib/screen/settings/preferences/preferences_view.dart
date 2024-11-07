@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.d
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,21 @@ class PreferenceView extends StatelessWidget {
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));
               },
+            ),
+          ),
+          addDivider(),
+          Padding(
+            padding: padding,
+            child: TappableForwardRowWithContent(
+              onTap: () {},
+              leftWidget: Text(
+                'notifications'.tr(),
+                style: theme.textTheme.ppMori400Black16,
+              ),
+              bottomWidget: Text(
+                'customize_how_you_stay'.tr(),
+                style: theme.textTheme.ppMori400Black14,
+              ),
             ),
           ),
           addDivider(),
