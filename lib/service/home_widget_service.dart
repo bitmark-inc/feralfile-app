@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -26,9 +27,10 @@ class HomeWidgetService {
 
   Future<void> updateWidget(
       {required Map<String, String> data, bool shouldUpdate = true}) async {
-    data.forEach((key, value) {
-      HomeWidget.saveWidgetData(key, value);
-    });
+    await Future.wait(
+      data.entries
+          .map((entry) => HomeWidget.saveWidgetData(entry.key, entry.value)),
+    );
     if (shouldUpdate) {
       await HomeWidget.updateWidget(
           name: androidWidgetName,
@@ -40,7 +42,7 @@ class HomeWidgetService {
 
   Future<void> updateDailyTokensToHomeWidget() async {
     final listDailies =
-        await injector<FeralFileService>().getUpcomingDailyTokens(limit: 6);
+        await injector<FeralFileService>().getUpcomingDailyTokens();
 
     // Filter out dailies that have the same date
     final filteredDailies = listDailies
@@ -53,6 +55,7 @@ class HomeWidgetService {
         })
         .values
         .toList();
+
     await _updateDailyTokensToHomeWidget(filteredDailies);
   }
 
@@ -111,8 +114,8 @@ class HomeWidgetService {
         dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
           'artistName': '$artistName ${now.hour}:${now.minute}:${now.second}',
           'title': title,
-          'base64MediumIcon': base64MediumIcon ?? '',
-          'base64ImageData': base64ImageData,
+          'base64MediumIcon': '',
+          'base64ImageData': '',
         })
       };
 

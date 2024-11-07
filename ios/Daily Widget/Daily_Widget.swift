@@ -163,8 +163,6 @@ struct Daily_WidgetEntryView : View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
-                        
-                        Text(entry.date, style: .time)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .layoutPriority(1)
