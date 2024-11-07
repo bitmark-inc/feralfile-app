@@ -1276,12 +1276,14 @@ class UIHelper {
                         ),
                         padding: const EdgeInsets.symmetric(
                             vertical: 20, horizontal: 15),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            content,
-                          ],
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              content,
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -1951,7 +1953,11 @@ class UIHelper {
     return await showCenterDialog(
       context,
       content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(type.title,
+              style: Theme.of(context).textTheme.ppMori700White24),
+          const SizedBox(height: 20),
           Text(type.description,
               style: Theme.of(context).textTheme.ppMori400White14),
           const SizedBox(height: 20),
@@ -1960,7 +1966,7 @@ class UIHelper {
               Navigator.of(context).pop(true);
               await Navigator.of(context).pushNamed(AppRouter.preferencesPage);
             },
-            text: 'go_to_notification'.tr(),
+            text: 'go_to_notifications'.tr(),
           ),
         ],
       ),
