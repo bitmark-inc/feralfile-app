@@ -126,11 +126,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _registerPushNotifications() async {
     try {
-      final isNotificationEnabled =
-          injector<ConfigurationService>().isNotificationEnabled();
-      if (isNotificationEnabled) {
-        await registerPushNotifications();
-      }
+      await registerPushNotifications();
     } catch (e, s) {
       log.info('registerPushNotifications error: $e');
       unawaited(Sentry.captureException('registerPushNotifications error: $e',
