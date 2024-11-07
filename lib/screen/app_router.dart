@@ -1079,7 +1079,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(providers: [
             BlocProvider(
-              create: (_) => DailyWorkBloc(injector(), injector()),
+              create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: canvasDeviceBloc),
           ], child: const DailyWorkPage()),

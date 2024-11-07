@@ -1245,6 +1245,52 @@ class UIHelper {
             ));
   }
 
+  static Future<dynamic> showCenterDialog(BuildContext context,
+      {required Widget content}) async {
+    UIHelper.hideInfoDialog(context);
+    final theme = Theme.of(context);
+    return await showCupertinoModalPopup(
+        context: context,
+        builder: (context) => Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Stack(
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: AppColor.primaryBlack.withOpacity(0.5),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: theme.auGreyBackground,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        constraints: const BoxConstraints(
+                          maxHeight: 600,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            content,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ));
+  }
+
   static Future<void> showCenterMenu(BuildContext context,
       {required List<OptionItem> options}) async {
     final theme = Theme.of(context);
@@ -1902,10 +1948,9 @@ class UIHelper {
     if (!context.mounted) {
       return null;
     }
-    return await showDialog(
+    return await showCenterDialog(
       context,
-      type.title,
-      Column(
+      content: Column(
         children: [
           Text(type.description,
               style: Theme.of(context).textTheme.ppMori400White14),
@@ -1915,7 +1960,7 @@ class UIHelper {
               Navigator.of(context).pop(true);
               await Navigator.of(context).pushNamed(AppRouter.preferencesPage);
             },
-            text: 'enable'.tr(),
+            text: 'go_to_notification'.tr(),
           ),
         ],
       ),

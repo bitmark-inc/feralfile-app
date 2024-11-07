@@ -67,7 +67,7 @@ class ViewNewMessage extends AdditionalData {
   }
 
   @override
-  Future<bool> prepareAndDidSuccess() async {
+  bool prepareAndDidSuccess() {
     if (!_remoteConfigService.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
       return false;
     }

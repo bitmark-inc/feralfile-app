@@ -28,6 +28,10 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
     unawaited(
         _metricClientService.addEvent(MetricEventName.dailyLiked, data: data));
 
+    await _likeDailyWorkActionResponse();
+  }
+
+  Future<void> _likeDailyWorkActionResponse() async {
     final isNotificationEnabled = _configurationService.isNotificationEnabled();
     if (!isNotificationEnabled) {
       final likedCount = _configurationService.getDailyLikedCount();

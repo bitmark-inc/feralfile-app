@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -47,7 +48,7 @@ class DailyNotificationData extends AdditionalData {
 
   final _navigationService = injector<NavigationService>();
   final _feralFileService = injector<FeralFileService>();
-  DailyToken? _dailyToken;
+  final _dailyWorkBloc = injector<DailyWorkBloc>();
 
   DailyNotificationData({
     required this.dailyNotificationType,
@@ -64,18 +65,17 @@ class DailyNotificationData extends AdditionalData {
     log.info('DailyNotificationData: handle tap');
     bool isDailyTokenAvailable = await prepareAndDidSuccess();
     if (!isDailyTokenAvailable) {
-      log.warning('Tapped at daily notification: dailyToken is null');
-      unawaited(Sentry.captureMessage(
-          'Tapped at daily notification: dailyToken is null'));
+      _logAndSendSentryForNullData('dailyToken');
       return;
     }
+    final dailyToken = injector<DailyWorkBloc>().state.currentDailyToken;
     switch (dailyNotificationType) {
       case DailyNotificationType.viewDaily:
       case DailyNotificationType.revisitDaily:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
         dailyWorkKey.currentState?.trackInterest();
       case DailyNotificationType.viewDailySeries:
-        final artwork = _dailyToken!.artwork;
+        final artwork = dailyToken!.artwork;
         if (artwork == null) {
           _logAndSendSentryForNullData('artwork');
           return;
@@ -92,7 +92,7 @@ class DailyNotificationData extends AdditionalData {
           ),
         );
       case DailyNotificationType.viewDailyExhibition:
-        final artwork = _dailyToken!.artwork;
+        final artwork = dailyToken!.artwork;
         if (artwork == null) {
           _logAndSendSentryForNullData('artwork');
           return;
@@ -112,14 +112,13 @@ class DailyNotificationData extends AdditionalData {
               ExhibitionDetailPayload(exhibitions: [exhibition], index: 0),
         );
       case DailyNotificationType.meetDailyArtist:
-        final artwork = _dailyToken!.artwork;
-        if (artwork == null) {
-          _logAndSendSentryForNullData('artwork');
+        final artistID = _dailyWorkBloc.state.assetTokens.firstOrNull?.artistID;
+
+        if (artistID == null) {
+          _logAndSendSentryForNullData('artistID');
           return;
         }
-        final series = await _feralFileService.getSeries(artwork.seriesID);
-        final alumniID = series.artistAlumniAccountID;
-        await injector<NavigationService>().openFeralFileArtistPage(alumniID);
+        await injector<NavigationService>().openFeralFileArtistPage(artistID);
       case DailyNotificationType.displayDailyOnTV:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
         await Future.delayed(const Duration(milliseconds: 300), () {
@@ -137,11 +136,13 @@ class DailyNotificationData extends AdditionalData {
 
   @override
   Future<bool> prepareAndDidSuccess() async {
-    if (_dailyToken != null) {
-      return true;
+    DailyToken? dailyToken = _dailyWorkBloc.state.currentDailyToken;
+    if (dailyToken == null) {
+      log.warning('DailyNotificationData: dailyToken is null, retrying');
+      await Future.delayed(const Duration(milliseconds: 1000));
+      dailyToken = _dailyWorkBloc.state.currentDailyToken;
     }
-    _dailyToken = await _feralFileService.getCurrentDailiesToken();
-    if (_dailyToken == null) {
+    if (dailyToken == null) {
       log.warning('DailyNotificationData: dailyToken is null');
       unawaited(
           Sentry.captureMessage('DailyNotificationData: dailyToken is null'));

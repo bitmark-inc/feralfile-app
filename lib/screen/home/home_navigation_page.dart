@@ -36,6 +36,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -253,7 +254,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       MultiBlocProvider(
           providers: [
             BlocProvider(
-              create: (_) => DailyWorkBloc(injector(), injector()),
+              create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: injector<CanvasDeviceBloc>()),
           ],
@@ -539,7 +540,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _triggerShowAnnouncement() {
-    unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
+    unawaited(Future.delayed(const Duration(milliseconds: 2000), () {
+      UIHelper.showNotificationPrompt(EnableNotificationPromptType.getUpdate);
       _announcementService.fetchAnnouncements().then(
         (_) async {
           await _announcementService.showOldestAnnouncement();

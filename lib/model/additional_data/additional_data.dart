@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
 import 'package:autonomy_flutter/model/additional_data/daily_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
@@ -26,7 +28,7 @@ class AdditionalData {
   bool get isTappable => false;
 
   static AdditionalData fromJson(Map<String, dynamic> json, {String? type}) {
-    final announcementContentId = json['announcementContentID'];
+    final notificationContentId = json['notificationContentID'];
     try {
       final notificationType =
           NotificationType.fromString(type ?? json['notification_type']);
@@ -34,7 +36,7 @@ class AdditionalData {
 
       final defaultAdditionalData = AdditionalData(
         notificationType: notificationType,
-        announcementContentId: announcementContentId,
+        announcementContentId: notificationContentId,
         linkText: linkText,
       );
 
@@ -49,7 +51,7 @@ class AdditionalData {
           return CsViewThread(
             issueId: issueId.toString(),
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.artworkCreated:
@@ -57,7 +59,7 @@ class AdditionalData {
         case NotificationType.galleryNewNft:
           return view_collection_handler.ViewCollection(
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.newMessage:
@@ -69,7 +71,7 @@ class AdditionalData {
           return ViewNewMessage(
             groupId: groupId,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.newPostcardTrip:
@@ -82,7 +84,7 @@ class AdditionalData {
           return ViewPostcard(
             indexID: indexID,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.jgCrystallineWorkHasArrived:
@@ -90,7 +92,7 @@ class AdditionalData {
           return ViewExhibitionData(
             exhibitionId: jgExhibitionId ?? '',
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.jgCrystallineWorkGenerated:
@@ -102,7 +104,7 @@ class AdditionalData {
           return JgCrystallineWorkGenerated(
             tokenId: tokenId,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.exhibitionViewingOpening:
@@ -116,7 +118,7 @@ class AdditionalData {
           return ViewExhibitionData(
             exhibitionId: exhibitionId,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
         case NotificationType.navigate:
@@ -125,7 +127,7 @@ class AdditionalData {
           return NavigateAdditionalData(
             navigationRoute: navigationRoute,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             homeIndex: homeIndex,
             linkText: linkText,
           );
@@ -139,7 +141,7 @@ class AdditionalData {
           return DailyNotificationData(
             dailyNotificationType: dailyType,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             linkText: linkText,
           );
 
@@ -150,7 +152,7 @@ class AdditionalData {
       log.info('AdditionalData: error parsing additional data');
       return AdditionalData(
           notificationType: NotificationType.general,
-          announcementContentId: announcementContentId);
+          announcementContentId: notificationContentId);
     }
   }
 
@@ -158,5 +160,5 @@ class AdditionalData {
     log.info('AdditionalData: handle tap: $notificationType');
   }
 
-  Future<bool> prepareAndDidSuccess() => Future.value(true);
+  FutureOr<bool> prepareAndDidSuccess() => Future.value(true);
 }

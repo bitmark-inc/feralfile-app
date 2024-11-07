@@ -151,7 +151,6 @@ class FileLogger {
     if (logText.contains(LoggingInterceptor.errorLogPrefix)) {
       return logText;
     }
-    return logText;
     String filteredLog = logText;
 
     RegExp combinedRegex = RegExp('("message":".*?")|'
