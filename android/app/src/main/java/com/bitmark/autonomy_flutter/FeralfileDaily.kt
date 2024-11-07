@@ -47,7 +47,7 @@ class FeralfileDaily : AppWidgetProvider() {
             // Set onClick to update the widget and open the app
             views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
 
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
 
             getDailyInfo(context = context) { dailyInfo ->
                 updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
