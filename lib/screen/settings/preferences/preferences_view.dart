@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.da
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
+import 'package:autonomy_flutter/view/preference_item.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -36,17 +37,16 @@ class PreferenceView extends StatelessWidget {
         children: [
           Padding(
             padding: padding,
-            child: _preferenceItem(
-              context,
-              state.authMethodName,
-              'use_device_passcode'.tr(args: [
+            child: PreferenceItem(
+              title: state.authMethodName,
+              description: 'use_device_passcode'.tr(args: [
                 if (state.authMethodName != 'device_passcode'.tr())
                   state.authMethodName
                 else
                   'device_passcode'.tr()
               ]),
-              state.isDevicePasscodeEnabled,
-              (value) {
+              isEnabled: state.isDevicePasscodeEnabled,
+              onChanged: (value) {
                 final newState = state.copyWith(isDevicePasscodeEnabled: value);
                 context
                     .read<PreferencesBloc>()
@@ -58,7 +58,10 @@ class PreferenceView extends StatelessWidget {
           Padding(
             padding: padding,
             child: TappableForwardRowWithContent(
-              onTap: () {},
+              onTap: () async {
+                await Navigator.of(context)
+                    .pushNamed(AppRouter.notificationsPage);
+              },
               leftWidget: Text(
                 'notifications'.tr(),
                 style: theme.textTheme.ppMori400Black16,
@@ -119,32 +122,6 @@ class PreferenceView extends StatelessWidget {
         ],
       );
     });
-  }
-
-  Widget _preferenceItem(BuildContext context, String title, String description,
-      bool isEnabled, ValueChanged<bool> onChanged) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: theme.textTheme.ppMori400Black16),
-            AuToggle(
-              value: isEnabled,
-              onToggle: onChanged,
-            ),
-          ],
-        ),
-        const SizedBox(height: 7),
-        Text(
-          description,
-          style: theme.textTheme.ppMori400Black14,
-        ),
-      ],
-    );
   }
 
   Widget _preferenceItemWithBuilder(BuildContext context, String title,

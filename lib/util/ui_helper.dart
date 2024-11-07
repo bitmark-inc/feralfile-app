@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
-import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
@@ -36,7 +35,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_login_view.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_register_view.dart';
-import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -1579,47 +1577,6 @@ class UIHelper {
     );
   }
 
-  static Future<void> showPostcardUpdates(BuildContext context) async {
-    final result = await showPostCardDialog(
-        context,
-        'postcard_notifications'.tr(),
-        Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text(
-                'postcard_updates_content'.tr(),
-                style: Theme.of(context).textTheme.moMASans700AuGrey18,
-              ),
-            ),
-            const SizedBox(height: 40),
-            PostcardAsyncButton(
-              text: 'enable'.tr(),
-              color: AppColor.momaGreen,
-              onTap: () async {
-                bool result = false;
-                try {
-                  result = await registerPushNotifications(askPermission: true);
-                } catch (error) {
-                  log.warning('Error when setting notification: $error');
-                }
-                if (!context.mounted) {
-                  return;
-                }
-                Navigator.pop(context, result);
-              },
-            ),
-          ],
-        ),
-        isDismissible: true);
-    if (result) {
-      if (!context.mounted) {
-        return;
-      }
-      await _showPostcardInfo(context, message: 'postcard_noti_enabled'.tr());
-    }
-  }
-
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
     await UIHelper.showDialog(
       context,
@@ -1876,20 +1833,6 @@ class UIHelper {
         showDialog: () async =>
             showPostcardDrawerAction(context, options: options),
         autoDismissAfter: Duration(seconds: lastInSec));
-  }
-
-  static Future<void> _showPostcardInfo(BuildContext context,
-      {String message = '', Widget? icon}) async {
-    final options = [
-      OptionItem(
-        title: message,
-        icon: icon,
-      ),
-    ];
-    await showAutoDismissDialog(context,
-        showDialog: () async =>
-            showPostcardDrawerAction(context, options: options),
-        autoDismissAfter: const Duration(seconds: 2));
   }
 
   static Future<void> showPostcardStampPhotoAccessFailed(

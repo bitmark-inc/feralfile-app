@@ -82,10 +82,6 @@ abstract class ConfigurationService {
 
   bool isDevicePasscodeEnabled();
 
-  Future<void> setNotificationEnabled(bool value);
-
-  bool isNotificationEnabled();
-
   Future<void> setAnalyticEnabled(bool value);
 
   bool isAnalyticsEnabled();
@@ -235,7 +231,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_JWT = 'key_iap_jwt';
   static const String IS_PREMIUM = 'is_premium';
   static const String KEY_DEVICE_PASSCODE = 'device_passcode';
-  static const String KEY_NOTIFICATION = 'notifications';
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
@@ -354,10 +349,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool isAnalyticsEnabled() => _preferences.getBool(KEY_ANALYTICS) ?? true;
 
   @override
-  bool isNotificationEnabled() =>
-      _preferences.getBool(KEY_NOTIFICATION) ?? false;
-
-  @override
   bool isDoneOnboarding() => _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
 
   @override
@@ -376,12 +367,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
     }
-  }
-
-  @override
-  Future<void> setNotificationEnabled(bool value) async {
-    log.info('setNotificationEnabled: $value');
-    await _preferences.setBool(KEY_NOTIFICATION, value);
   }
 
   @override

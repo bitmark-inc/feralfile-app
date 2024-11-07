@@ -325,7 +325,7 @@ class _IAPApi implements IAPApi {
     )
             .compose(
               _dio.options,
-              '/apis/users/notifications/settings/me',
+              '/apis/v2/notifications/settings/me',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -346,13 +346,13 @@ class _IAPApi implements IAPApi {
     final _data = <String, dynamic>{};
     _data.addAll(body);
     await _dio.fetch<void>(_setStreamType<void>(Options(
-      method: 'PUT',
+      method: 'PATCH',
       headers: _headers,
       extra: _extra,
     )
         .compose(
           _dio.options,
-          '/apis/users/notifications/settings',
+          '/apis/v2/notifications/settings',
           queryParameters: queryParameters,
           data: _data,
         )

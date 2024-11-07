@@ -30,13 +30,12 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   static bool get isOnChanging => _isOnChanging;
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, '', false)) {
+      : super(PreferenceState(false, false, '', false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
       final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
-      final notificationEnabled = _configurationService.isNotificationEnabled();
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       final hasHiddenArtwork =
@@ -44,7 +43,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
 
       emit(PreferenceState(
           passcodeEnabled && canCheckBiometrics,
-          notificationEnabled,
           analyticsEnabled,
           _authMethodTitle(),
           hasHiddenArtwork));
@@ -73,22 +71,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
         } else {
           event.newState.isDevicePasscodeEnabled = false;
           unawaited(openAppSettings());
-        }
-      }
-
-      if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
-        try {
-          if (event.newState.isNotificationEnabled) {
-            event.newState.isNotificationEnabled =
-                await registerPushNotifications(askPermission: true);
-          } else {
-            unawaited(deregisterPushNotification());
-          }
-
-          await _configurationService
-              .setNotificationEnabled(event.newState.isNotificationEnabled);
-        } catch (error) {
-          log.warning('Error when setting notification: $error');
         }
       }
 
