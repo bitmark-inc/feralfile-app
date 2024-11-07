@@ -177,7 +177,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     final isSupportPasskey = await _passkeyService.isPassKeyAvailable();
     if (!isSupportPasskey) {
       log.info('Passkey is not supported. Login with address');
+      _passkeyService.isShowingLoginDialog.value = true;
       await _showBackupRecoveryPhraseDialog();
+      _passkeyService.isShowingLoginDialog.value = false;
       return false;
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
