@@ -8,50 +8,177 @@
 import WidgetKit
 import SwiftUI
 
-struct Provider: AppIntentTimelineProvider {
+private let widgetGroupId = "group.com.bitmark.autonomywallet.storage"
+struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())
+        SimpleEntry(date: Date(), dailyInfo: nil)
     }
 
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: configuration)
+    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+        let dailyInfo = getStoredDailyInfo();
+        let entry = SimpleEntry(
+              date: Date(),
+              dailyInfo: dailyInfo
+        )
+        
+        completion(entry)
     }
-    
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-        var entries: [SimpleEntry] = []
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, configuration: configuration)
-            entries.append(entry)
+    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+        getSnapshot(in: context) { (entry) in
+              let timeline = Timeline(entries: [entry], policy: .atEnd)
+              completion(timeline)
+            }
+    }
+
+
+    func getStoredDailyInfo() -> DailyInfo {
+        let widgetData = UserDefaults.init(suiteName: widgetGroupId)
+        
+        // Get current date timestamp at 0 a.m UTC
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let components = calendar.dateComponents([.year, .month, .day], from: Date())
+        let timestamp = calendar.date(from: components)!.timeIntervalSince1970 * 1000
+        
+        let currentDateKey = String(Int(timestamp))
+        
+        // Retrieve JSON string for the current date
+        if let jsonString = widgetData?.string(forKey: currentDateKey) {
+            do {
+                if let jsonData = jsonString.data(using: .utf8),
+                   let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                    
+                    let title = jsonObject["title"] as? String ?? nil
+                    let artistName = jsonObject["artistName"] as? String ?? nil
+                    let base64MediumIcon = jsonObject["base64MediumIcon"] as? String ?? nil
+                    let base64ImageData = jsonObject["base64ImageData"] as? String ?? nil
+                    
+                    return DailyInfo(
+                        title: title,
+                        artistName: artistName,
+                        base64ImageData: base64ImageData,
+                        base64MediumIcon: base64MediumIcon
+                    )
+                }
+            } catch {
+                print("Error parsing JSON: \(error)")
+            }
         }
-
-        return Timeline(entries: entries, policy: .atEnd)
+        
+        return DailyInfo(
+            title: nil,
+            artistName: nil,
+            base64ImageData: nil,
+            base64MediumIcon: nil
+        )
     }
+}
 
-//    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
+struct DailyInfo {
+    let title: String?
+    let artistName: String?
+    let base64ImageData: String?
+    let base64MediumIcon: String?
 }
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let configuration: ConfigurationAppIntent
+    let dailyInfo: DailyInfo?
 }
 
 struct Daily_WidgetEntryView : View {
     var entry: Provider.Entry
+    @State var infoViewHeight : CGFloat = 0
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.widgetFamily) var family
+    
+    private var heightReader: some View {
+        GeometryReader { reader in
+            Color.clear
+            .onChange(of: reader.size.height, initial: true) { oldVal, newVal in
+                infoViewHeight = newVal
+            }
+        }
+    }
+    
+    private func imageFromBase64(_ base64String: String) -> UIImage? {
+        guard let imageData = Data(base64Encoded: base64String) else { return nil }
+        return UIImage(data: imageData)
+    }
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
+        
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                ZStack {
+                    if let artworkThumbnail = imageFromBase64(entry.dailyInfo?.base64ImageData ?? "") {
+                        Image(uiImage: artworkThumbnail)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: geo.size.width, maxHeight: geo.size.height - infoViewHeight)
+                            .clipped()
+                    } else {
+                        colorScheme == .dark ? Color("#1C1C1E").edgesIgnoringSafeArea(.all) : Color.white.edgesIgnoringSafeArea(.all)
+                    }
 
-            Text("Favorite Emoji:")
-            Text(entry.configuration.favoriteEmoji)
+                    
+                    if let mediumIcon = imageFromBase64(entry.dailyInfo?.base64MediumIcon ?? "") {
+                        Image(uiImage: mediumIcon)
+                            .resizable()
+                            .frame(width: 60, height: 58, alignment: .center)
+                    }
+                }
+                .frame(
+                    maxWidth: geo.size.width,
+                    maxHeight: geo.size.height - infoViewHeight
+                )
+                
+                HStack(spacing: family == .systemSmall ? 10 : 20) {
+                    VStack(alignment: .leading, spacing: -2) {
+                        if let artistName = entry.dailyInfo?.artistName {
+                            Text("\(artistName),")
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
+                                .font(.footnote)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        } else {
+                            Text("Daily artwork")
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
+                                .font(.footnote.bold())
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                        
+                        if let artworkTitle = entry.dailyInfo?.title {
+                            Text(artworkTitle)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
+                                .font(.footnote.bold().italic())
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        } else {
+                            Text("Daily artwork is not available")
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
+                                .font(.footnote)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .layoutPriority(1)
+                    
+                    Image(colorScheme == .dark ? "FFDarkIcon" : "FFLightIcon").frame(width: 30, height: 20)
+
+                }
+                .padding(.all, 15)
+                .frame(maxWidth: .infinity)
+                .background(colorScheme == .dark ? Color("#1C1C1E") : Color.white)
+                .background { heightReader }
+            }
+            .frame(maxWidth: geo.size.width, maxHeight: .infinity)
         }
+        
+        
     }
 }
 
@@ -59,30 +186,22 @@ struct Daily_Widget: Widget {
     let kind: String = "Daily_Widget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-            Daily_WidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            if #available(iOS 17.0, *) {
+                Daily_WidgetEntryView(entry: entry)
+                    .containerBackground(.fill.tertiary, for: .widget)
+            } else {
+                Daily_WidgetEntryView(entry: entry)
+                    .padding()
+                    .background()
+            }
         }
-    }
-}
-
-extension ConfigurationAppIntent {
-    fileprivate static var smiley: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
-        return intent
-    }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
+        .contentMarginsDisabled()
     }
 }
 
 #Preview(as: .systemSmall) {
     Daily_Widget()
 } timeline: {
-    SimpleEntry(date: .now, configuration: .smiley)
-    SimpleEntry(date: .now, configuration: .starEyes)
+    SimpleEntry(date: .now, dailyInfo: nil)
 }

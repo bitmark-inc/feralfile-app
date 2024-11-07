@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -12,34 +13,36 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
-  final String appGroupId = 'com.bitmark.autonomy_flutter';
+  final String iOSAppGroupId = 'group.com.bitmark.autonomywallet.storage';
+  final String appId = 'com.bitmark.autonomy_flutter';
   final String androidWidgetName = 'FeralfileDaily';
-  final String iosWidgetName = 'iosWidgetName'; // TODO: Update this value
+  final String iosWidgetName = 'Daily_Widget'; // TODO: Update this value
 
   Future<void> init() async {
-    await HomeWidget.setAppGroupId(appGroupId);
+    await HomeWidget.setAppGroupId(iOSAppGroupId);
     HomeWidget.widgetClicked.listen((widgetName) {
       log.info('[HomeWidgetService] Widget clicked: $widgetName');
     });
   }
 
   Future<void> updateWidget(
-      {required Map<String, dynamic> data, bool shouldUpdate = true}) async {
-    data.forEach((key, value) {
-      HomeWidget.saveWidgetData(key, value);
-    });
+      {required Map<String, String> data, bool shouldUpdate = true}) async {
+    await Future.wait(
+      data.entries
+          .map((entry) => HomeWidget.saveWidgetData(entry.key, entry.value)),
+    );
     if (shouldUpdate) {
       await HomeWidget.updateWidget(
           name: androidWidgetName,
           androidName: androidWidgetName,
-          qualifiedAndroidName: '$appGroupId.$androidWidgetName',
+          qualifiedAndroidName: '$appId.$androidWidgetName',
           iOSName: iosWidgetName);
     }
   }
 
   Future<void> updateDailyTokensToHomeWidget() async {
     final listDailies =
-        await injector<FeralFileService>().getUpcomingDailyTokens(limit: 6);
+        await injector<FeralFileService>().getUpcomingDailyTokens();
 
     // Filter out dailies that have the same date
     final filteredDailies = listDailies
@@ -52,13 +55,14 @@ class HomeWidgetService {
         })
         .values
         .toList();
+
     await _updateDailyTokensToHomeWidget(filteredDailies);
   }
 
   Future<void> _updateDailyTokensToHomeWidget(
       List<DailyToken> dailyTokens) async {
     // Format all daily tokens and combine their data
-    final Map<String, dynamic> combinedData = {};
+    final Map<String, String> combinedData = {};
     for (final dailyToken in dailyTokens) {
       final data = await _formatDailyTokenData(dailyToken);
       if (data != null) {
@@ -105,13 +109,13 @@ class HomeWidgetService {
         base64MediumIcon = base64Encode(bytes);
       }
 
-      log.info('base64MediumIcon: $base64MediumIcon');
+      final now = DateTime.now();
       final data = {
         dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
-          'artistName': artistName,
+          'artistName': '$artistName ${now.hour}:${now.minute}:${now.second}',
           'title': title,
-          'base64MediumIcon': base64MediumIcon ?? '',
-          'base64ImageData': base64ImageData,
+          'base64MediumIcon': '',
+          'base64ImageData': '',
         })
       };
 

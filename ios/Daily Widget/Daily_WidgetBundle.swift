@@ -12,7 +12,5 @@ import SwiftUI
 struct Daily_WidgetBundle: WidgetBundle {
     var body: some Widget {
         Daily_Widget()
-        Daily_WidgetControl()
-        Daily_WidgetLiveActivity()
     }
 }
