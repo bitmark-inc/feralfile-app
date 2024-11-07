@@ -1081,17 +1081,35 @@ class NavigationService {
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.only(left: 20),
-                  child: Text(
-                    'step_1_backup_recovery'.tr(),
-                    style: Theme.of(context).textTheme.ppMori400White14,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('1. ',
+                          style: Theme.of(context).textTheme.ppMori400White14),
+                      Expanded(
+                        child: Text(
+                          'step_1_backup_recovery'.tr(),
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.only(left: 20),
-                  child: Text(
-                    'step_2_move_to_another_wallet'.tr(),
-                    style: Theme.of(context).textTheme.ppMori400White14,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('2. ',
+                          style: Theme.of(context).textTheme.ppMori400White14),
+                      Expanded(
+                        child: Text(
+                          'step_2_move_to_another_wallet'.tr(),
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
