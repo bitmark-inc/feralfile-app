@@ -1737,7 +1737,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomywallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Wallet Appstore";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Wallet Adhoc";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Autonomy_Wallet_Appstore;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1759,6 +1759,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = Z5CE7A3A7N;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Runner Notification/Info.plist";
@@ -1775,6 +1776,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomywallet.notification;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Wallet Push Notification Appstore";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Autonomy_Wallet_Push_Notification_Appstore;
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
