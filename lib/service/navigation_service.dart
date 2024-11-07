@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
@@ -27,6 +28,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
@@ -39,6 +41,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -1060,18 +1063,55 @@ class NavigationService {
     final uuid = primaryAddressInfo?.uuid;
     final walletStorage = uuid == null ? null : WalletStorage(uuid);
     if (context.mounted) {
-      await UIHelper.showInfoDialog(
+      await UIHelper.showDialog(
         context,
-        'secure_your_access_with_backup'.tr(),
-        'your_device_not_support_passkey_desc'.tr(),
-        closeButton: 'backup_recovery_phrase'.tr(),
-        onClose: walletStorage == null
-            ? null
-            : () {
-                injector<NavigationService>().navigateTo(
-                    AppRouter.recoveryPhrasePage,
-                    arguments: RecoveryPhrasePayload(wallet: walletStorage));
+        'upgrade_required'.tr(),
+        Column(
+          children: [
+            Text(
+              'your_device_not_support_passkey_desc'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Text(
+                'step_1_backup_recovery'.tr(),
+                style: Theme.of(context).textTheme.ppMori400White14,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Text(
+                'step_2_move_to_another_wallet'.tr(),
+                style: Theme.of(context).textTheme.ppMori400White14,
+              ),
+            ),
+            const SizedBox(height: 20),
+            PrimaryButton(
+              text: 'backup_recovery_phrase'.tr(),
+              onTap: walletStorage == null
+                  ? null
+                  : () {
+                      navigateTo(AppRouter.recoveryPhrasePage,
+                          arguments:
+                              RecoveryPhrasePayload(wallet: walletStorage));
+                    },
+            ),
+            const SizedBox(height: 20),
+            PrimaryButton(
+              text: 'need_help'.tr(),
+              onTap: () {
+                navigateTo(
+                  AppRouter.supportThreadPage,
+                  arguments:
+                      NewIssuePayload(reportIssueType: ReportIssueType.Bug),
+                );
               },
+            ),
+          ],
+        ),
       );
     }
   }
