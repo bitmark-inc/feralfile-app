@@ -51,7 +51,10 @@ Widget _inAppNotificationToast(BuildContext context, String body, String key,
         if (notificationOpenedHandler != null)
           TextSpan(
             text: ' ${'tap_to_view'.tr()}',
-            style: Theme.of(context).textTheme.ppMori400FFYellow14,
+            style: Theme.of(context)
+                .textTheme
+                .ppMori400FFYellow14
+                .copyWith(color: AppColor.feralFileLightBlue),
           )
       ],
     );
