@@ -19,8 +19,8 @@ class Announcement extends ChatThread {
     required this.startedAt,
     required this.endedAt,
     required this.inAppEnabled,
+    required this.notificationType,
     this.imageURL,
-    this.notificationType,
     this.deliveryTimeOfDay,
   });
 

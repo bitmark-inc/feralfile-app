@@ -19,6 +19,7 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
   @override
   void write(BinaryWriter writer, AnnouncementLocal obj) {
     obj.additionalData['~inAppEnabled'] = obj.inAppEnabled;
+    obj.additionalData['~notificationType'] = obj.notificationType;
     writer
       ..writeString(obj.announcementContentId)
       ..writeString(obj.content)

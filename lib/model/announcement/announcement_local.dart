@@ -10,6 +10,7 @@ class AnnouncementLocal extends Announcement {
     required super.startedAt,
     required super.endedAt,
     required super.inAppEnabled,
+    required super.notificationType,
     this.read = false,
   });
 
@@ -28,6 +29,7 @@ class AnnouncementLocal extends Announcement {
         startedAt: startedAt,
         endedAt: endedAt,
         inAppEnabled: additionalData['~inAppEnabled'] ?? true,
+        notificationType: additionalData['~notificationType'],
         read: read,
       );
 
@@ -44,6 +46,7 @@ class AnnouncementLocal extends Announcement {
         startedAt: announcement.startedAt,
         endedAt: announcement.endedAt,
         inAppEnabled: announcement.inAppEnabled,
+        notificationType: announcement.notificationType,
       );
 
   @override

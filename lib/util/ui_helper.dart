@@ -1955,8 +1955,7 @@ class UIHelper {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(type.title,
-              style: Theme.of(context).textTheme.ppMori700White24),
+          Text(type.title, style: Theme.of(context).textTheme.ppMori700White24),
           const SizedBox(height: 20),
           Text(type.description,
               style: Theme.of(context).textTheme.ppMori400White14),
