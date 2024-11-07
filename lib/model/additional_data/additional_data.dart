@@ -133,7 +133,7 @@ class AdditionalData {
           );
         case NotificationType.daily:
           final subType = json['notification_sub_type'];
-          final dailyType = DailyNotificationType.fromString(subType?? '');
+          final dailyType = DailyNotificationType.fromString(subType ?? '');
           if (dailyType == null) {
             log.warning('AdditionalData: dailyType is null');
             return defaultAdditionalData;

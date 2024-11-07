@@ -9,8 +9,27 @@ class AnnouncementLocal extends Announcement {
     required super.additionalData,
     required super.startedAt,
     required super.endedAt,
+    required super.inAppEnabled,
     this.read = false,
   });
+
+  static AnnouncementLocal addFromAdditionalData({
+    required String announcementContentId,
+    required String content,
+    required Map<String, dynamic> additionalData,
+    required DateTime startedAt,
+    required DateTime endedAt,
+    required bool read,
+  }) =>
+      AnnouncementLocal(
+        announcementContentId: announcementContentId,
+        content: content,
+        additionalData: additionalData,
+        startedAt: startedAt,
+        endedAt: endedAt,
+        inAppEnabled: additionalData['~inAppEnabled'] ?? true,
+        read: read,
+      );
 
   AnnouncementLocal markAsRead() {
     read = true;
@@ -24,6 +43,7 @@ class AnnouncementLocal extends Announcement {
         additionalData: announcement.additionalData,
         startedAt: announcement.startedAt,
         endedAt: announcement.endedAt,
+        inAppEnabled: announcement.inAppEnabled,
       );
 
   @override

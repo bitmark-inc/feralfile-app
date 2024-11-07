@@ -127,7 +127,7 @@ class FFCastButtonState extends State<FFCastButton> {
     );
   }
 
-  Future<void> onTap(BuildContext context ,bool isSubscribed) async {
+  Future<void> onTap(BuildContext context, bool isSubscribed) async {
     if (!widget.shouldCheckSubscription || isSubscribed) {
       await injector<NavigationService>().showStreamAction(
         widget.displayKey,

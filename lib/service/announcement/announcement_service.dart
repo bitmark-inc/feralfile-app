@@ -22,11 +22,7 @@ abstract class AnnouncementService {
 
   Future<void> markAsRead(String? announcementContentId);
 
-  List<AnnouncementLocal> getUnreadAnnouncements();
-
   AnnouncementLocal? getAnnouncement(String? announcementContentId);
-
-  AnnouncementLocal? getOldestUnreadAnnouncement();
 
   Future<void> showOldestAnnouncement({bool shouldRepeat = true});
 
@@ -41,9 +37,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
   final IAPApi _iapApi;
   final AnnouncementStore _announcementStore;
   final ConfigurationService _configurationService;
-
-  // Map <AnnouncementContentId, IssueId>
-  final Map<String, String> _announcementToIssueMap = {};
 
   AnnouncementServiceImpl(
     this._iapApi,
@@ -118,13 +111,13 @@ class AnnouncementServiceImpl implements AnnouncementService {
     await _saveAnnouncement(announcement.markAsRead());
   }
 
-  @override
-  List<AnnouncementLocal> getUnreadAnnouncements() {
-    _queue.removeWhere((element) => element.read);
+  List<AnnouncementLocal> _getAnnouncementsToShow() {
+    _queue.removeWhere((element) => element.read || !element.inAppEnabled);
     if (_queue.isEmpty) {
       final allAnnouncements = getLocalAnnouncements();
-      _queue
-          .addAll(allAnnouncements.where((element) => !element.read).toList());
+      _queue.addAll(allAnnouncements
+          .where((element) => !element.read && element.inAppEnabled)
+          .toList());
     }
     _updateBadger(_queue.length);
     return _queue;
@@ -138,15 +131,14 @@ class AnnouncementServiceImpl implements AnnouncementService {
     return _announcementStore.get(announcementContentId);
   }
 
-  @override
-  AnnouncementLocal? getOldestUnreadAnnouncement() {
-    final announcements = getUnreadAnnouncements();
+  AnnouncementLocal? _getOldestUnreadAnnouncement() {
+    final announcements = _getAnnouncementsToShow();
     return announcements.firstOrNull;
   }
 
   @override
   Future<void> showOldestAnnouncement({bool shouldRepeat = true}) async {
-    final announcement = getOldestUnreadAnnouncement();
+    final announcement = _getOldestUnreadAnnouncement();
     if (announcement != null) {
       final context = injector<NavigationService>().context;
       final data = announcement.additionalData;

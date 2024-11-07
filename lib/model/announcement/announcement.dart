@@ -10,6 +10,7 @@ class Announcement extends ChatThread {
   final String? imageURL;
   final String? notificationType;
   final String? deliveryTimeOfDay;
+  final bool inAppEnabled;
 
   Announcement({
     required this.announcementContentId,
@@ -17,6 +18,7 @@ class Announcement extends ChatThread {
     required this.additionalData,
     required this.startedAt,
     required this.endedAt,
+    required this.inAppEnabled,
     this.imageURL,
     this.notificationType,
     this.deliveryTimeOfDay,
@@ -33,6 +35,7 @@ class Announcement extends ChatThread {
         imageURL: json['imageURL'],
         notificationType: json['notificationType'],
         deliveryTimeOfDay: json['deliveryTimeOfDay'],
+        inAppEnabled: json['inAppEnabled'],
       );
 
   bool get isExpired => DateTime.now().isAfter(endedAt);
