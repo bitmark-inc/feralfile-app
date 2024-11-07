@@ -30,10 +30,12 @@ class MainActivity : FlutterFragmentActivity() {
         private val secureScreenChannel = "secure_screen_channel"
         private var lastAuthTime: Long = 0
         private val authenticationTimeout = TimeUnit.MINUTES.toMillis(3)
-        private var isThisFirstOnResume = true;
+        private var isThisFirstOnResume = true
     }
 
     var flutterSharedPreferences: SharedPreferences? = null
+
+    private val backupDartPlugin: BackupDartPlugin = BackupDartPlugin()
 
     private fun settingFlutterView() {
         val flutterView = FlutterView(this)
@@ -92,7 +94,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
-        BackupDartPlugin().createChannels(flutterEngine, applicationContext)
+        backupDartPlugin.createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
 
         MethodChannel(
@@ -230,27 +232,26 @@ class MainActivity : FlutterFragmentActivity() {
             Context.MODE_PRIVATE
         )
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
-        val didRegisterPasskey =
-            sharedPreferences.getBoolean("flutter.did_register_passkey", false)
-        if (isThisFirstOnResume && didRegisterPasskey) {
-
-            // skip authentication if the user has already registered the passkey in open app
-            isThisFirstOnResume = false
-            // this is not conventional way to do this, but we need skip authenticate after user
-            // authenticate with passkey
-            updateAuthenticationTime()
-            return
-        }
-
-        if (isEnabled && !isAuthenticate && needsReAuthentication()) {
-            val biometricManager = BiometricManager.from(this)
-            val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-            if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
-            ) {
-                val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
+        backupDartPlugin.didRegisterPasskeyResult { didRegisterPasskey ->
+            if (isThisFirstOnResume && didRegisterPasskey) {
+                // skip authentication if the user has already registered the passkey in open app
+                isThisFirstOnResume = false
+                // this is not conventional way to do this, but we need skip authenticate after user
+                // authenticate with passkey
                 updateAuthenticationTime()
-                startActivity(intent)
+                return@didRegisterPasskeyResult
+            }
+
+            if (isEnabled && !isAuthenticate && needsReAuthentication()) {
+                val biometricManager = BiometricManager.from(this)
+                val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+                if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                    == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
+                ) {
+                    val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
+                    updateAuthenticationTime()
+                    startActivity(intent)
+                }
             }
         }
     }

@@ -200,12 +200,16 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
             height: 24,
           ),
         ],
-        if (alumni.website != null && alumni.website!.isNotEmpty) ...[
-          _alumniUrl(context, alumni.website!),
-          const SizedBox(
-            height: 12,
-          ),
-        ],
+        if (alumni.websiteUrl.isNotEmpty)
+          ...alumni.websiteUrl
+              .map((url) => [
+                    _alumniUrl(context, url),
+                    const SizedBox(
+                      height: 12,
+                    )
+                  ])
+              .expand((element) => element),
+
         if (alumni.instagramUrl != null && alumni.instagramUrl!.isNotEmpty) ...[
           _alumniUrl(context, alumni.instagramUrl!, title: 'instagram'.tr()),
           const SizedBox(
