@@ -7,8 +7,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.util.Base64
 import android.widget.RemoteViews
+import android.widget.RemoteViews.RemoteResponse
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +31,7 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
+            println("FeralfileDaily onUpdate $appWidgetId")
             // Intent to open the app
             val openAppIntent = Intent(context, MainActivity::class.java).apply {
                 action = "com.bitmark.autonomy_flutter.OPEN_APP"
@@ -45,9 +48,14 @@ class FeralfileDaily : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
 
             // Set onClick to update the widget and open the app
+//            views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
             views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val remoteResponse = RemoteResponse.fromPendingIntent(openAppPendingIntent)
+                views.setOnCheckedChangeResponse(R.id.daily_widget, remoteResponse)
+            }
             appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+
 
             getDailyInfo(context = context) { dailyInfo ->
                 updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
@@ -69,6 +77,8 @@ class FeralfileDaily : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
+
+        println("FeralfileDaily onReceive ${intent.action}")
 
         when (intent.action) {
             "com.bitmark.autonomy_flutter.OPEN_APP" -> {
