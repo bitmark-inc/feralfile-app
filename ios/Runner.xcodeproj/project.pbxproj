@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -279,6 +279,28 @@
 		FAF8CE1D5921CF3A07F21D56 /* Pods-Runner Notification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Notification.debug.xcconfig"; path = "Target Support Files/Pods-Runner Notification/Pods-Runner Notification.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5833A1D02CD32AD800688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5833A1B42CD32AD600688F66 /* Daily WidgetExtension */;
+		};
+		5833A3332CD472D200688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5833A31E2CD472D100688F66 /* Daily Widget InhouseExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5833A1BA2CD32AD600688F66 /* Daily Widget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5833A1D02CD32AD800688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget"; sourceTree = "<group>"; };
+		5833A3222CD472D100688F66 /* Daily Widget Inhouse */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5833A3332CD472D200688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget Inhouse"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		5833A1B22CD32AD600688F66 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -416,20 +438,6 @@
 				5833A1B82CD32AD600688F66 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		5833A1BA2CD32AD600688F66 /* Daily Widget */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Daily Widget";
-			sourceTree = "<group>";
-		};
-		5833A3222CD472D100688F66 /* Daily Widget Inhouse */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Daily Widget Inhouse";
 			sourceTree = "<group>";
 		};
 		588939BC280525C200FE3313 /* Runner Inhouse Notification */ = {
