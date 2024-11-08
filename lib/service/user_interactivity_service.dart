@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 abstract class UserInteractivityService {
   Future<void> likeDailyWork(DailyToken dailyToken);
@@ -32,8 +33,7 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
   }
 
   Future<void> _likeDailyWorkActionResponse() async {
-    /// temporary implementation
-    const isNotificationEnabled = true;
+    final isNotificationEnabled = OneSignal.Notifications.permission;
     if (!isNotificationEnabled) {
       final likedCount = _configurationService.getDailyLikedCount();
       if (likedCount >= 3) {

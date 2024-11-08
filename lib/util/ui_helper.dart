@@ -54,6 +54,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
@@ -1968,7 +1969,7 @@ class UIHelper {
           PrimaryButton(
             onTap: () async {
               Navigator.of(context).pop(true);
-              await Navigator.of(context).pushNamed(AppRouter.preferencesPage);
+              openAppSettings();
             },
             text: 'go_to_notifications'.tr(),
           ),

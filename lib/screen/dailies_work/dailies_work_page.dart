@@ -65,8 +65,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   DailyToken? get _currentDailyToken => _dailyWorkBloc.state.currentDailyToken;
 
-  bool _trackingInterest = false;
-  Timer? _trackingInterestTimer;
+  bool _trackingDailyLiked = false;
+  Timer? _trackingDailyLikedTimer;
   static const _scrollLikingThreshold = 100.0;
   static const _stayDurationLikingThreshold = Duration(seconds: 10);
 
@@ -107,32 +107,32 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   void didPushed() {
-    _stopTrackingInterest();
+    _stopTrackingLiked();
   }
 
   void trackInterest() {
-    if (_trackingInterest) {
+    if (_trackingDailyLiked) {
       return;
     }
     log.info('start trackingInterest in Daily');
-    _trackingInterest = true;
-    _trackingInterestTimer = Timer(_stayDurationLikingThreshold, () {
-      _setUserInterested();
+    _trackingDailyLiked = true;
+    _trackingDailyLikedTimer = Timer(_stayDurationLikingThreshold, () {
+      _setUserLiked();
     });
   }
 
-  void _stopTrackingInterest() {
+  void _stopTrackingLiked() {
     log.info('stopTrackingInterest in Daily');
-    _trackingInterest = false;
-    _trackingInterestTimer?.cancel();
+    _trackingDailyLiked = false;
+    _trackingDailyLikedTimer?.cancel();
   }
 
-  void _setUserInterested() {
-    if (!_trackingInterest) {
+  void _setUserLiked() {
+    if (!_trackingDailyLiked) {
       return;
     }
     log.info('Set User Interested in Daily');
-    _stopTrackingInterest();
+    _stopTrackingLiked();
     if (_currentDailyToken == null) {
       return;
     }
@@ -285,7 +285,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                       device, CastDailyWorkRequest()));
             },
             onTap: () {
-              _setUserInterested();
+              _setUserLiked();
             },
             text: 'display'.tr(),
             shouldCheckSubscription: false,
@@ -484,7 +484,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   curve: Curves.easeInOut));
             }
             if (_scrollController!.offset > _scrollLikingThreshold) {
-              _setUserInterested();
+              _setUserLiked();
             }
             return true;
           },
