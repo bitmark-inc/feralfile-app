@@ -111,6 +111,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
     await _saveAnnouncement(announcement.markAsRead());
   }
 
+  /// unread and in-app enabled announcements
   List<AnnouncementLocal> _getAnnouncementsToShow() {
     _queue.removeWhere((element) => element.read || !element.inAppEnabled);
     if (_queue.isEmpty) {

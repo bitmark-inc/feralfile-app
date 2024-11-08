@@ -30,10 +30,10 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
     unawaited(
         _metricClientService.addEvent(MetricEventName.dailyLiked, data: data));
     log.info('Liked daily work: ${dailyToken.tokenID}');
-    await _likeDailyWorkActionResponse();
+    await _countDailyLiked();
   }
 
-  Future<void> _likeDailyWorkActionResponse() async {
+  Future<void> _countDailyLiked() async {
     final isNotificationEnabled = OneSignal.Notifications.permission;
     if (!isNotificationEnabled) {
       final likedCount = _configurationService.getDailyLikedCount();
