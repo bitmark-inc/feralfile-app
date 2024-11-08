@@ -278,12 +278,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     _triggerShowAnnouncement();
 
-    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
       log.info('Receive notification: ${event.notification.additionalData}');
       if (event.notification.additionalData == null) {
-        event.complete(null);
         return;
       }
+      event.preventDefault();
       final additionalData =
           AdditionalData.fromJson(event.notification.additionalData!);
       final id = additionalData.announcementContentId ??
@@ -292,7 +292,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
       /// should complete event after getting all data needed
       /// and before calling async function
-      event.complete(null);
       Future.delayed(const Duration(milliseconds: 500), () async {
         await injector<AnnouncementService>().fetchAnnouncements();
         if (!mounted) {
@@ -307,7 +306,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         );
       });
     });
-    OneSignal.shared.setNotificationOpenedHandler((openedResult) async {
+    OneSignal.Notifications.addClickListener((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');
       final additionalData =
