@@ -40,6 +40,9 @@ jobs:
           bundler-cache: true
           working-directory: ios
 
+      - name: Update cocoapods
+        run: gem install cocoapods
+
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: |
