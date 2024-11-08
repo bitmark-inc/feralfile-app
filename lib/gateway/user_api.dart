@@ -29,9 +29,6 @@ abstract class UserApi {
   @POST('/apis/users/passkeys/login/finalize')
   Future<JWT> logInFinalize(@Body() Map<String, dynamic> body);
 
-  @POST('/apis/users/addresses/authenticate')
-  Future<JWT> authenticateAddress(@Body() Map<String, dynamic> body);
-
   @POST('/apis/users/jwt/refresh')
   Future<JWT> refreshJWT(@Body() Map<String, dynamic> body);
 }

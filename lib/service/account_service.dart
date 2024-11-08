@@ -241,39 +241,6 @@ class AccountServiceImpl extends AccountService {
     }
   }
 
-  Future<WalletAddress> getPrimaryWallet() async {
-    final primaryAddress =
-        await injector<AddressService>().getPrimaryAddressInfo();
-    if (primaryAddress == null) {
-      log.info('[AccountService] getPrimaryWallet - '
-          'PrimaryAddressInfo not found');
-      unawaited(Sentry.captureMessage(
-          '[PrimaryAddressInfo] PrimaryAddressInfo found'));
-      throw AccountException(message: 'PrimaryAddressInfo found');
-    }
-    var addresses =
-        _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
-
-    if (addresses.isEmpty) {
-      await _restoreAddressesFromOS();
-
-      await Future.delayed(const Duration(seconds: 1));
-      addresses =
-          _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
-    }
-
-    final primaryWallet = addresses
-        .firstWhereOrNull((element) => element.index == primaryAddress.index);
-    if (primaryWallet == null) {
-      log.info('[AccountService] getPrimaryWallet - '
-          'PrimaryWallet not found, primaryAddress: $primaryAddress');
-      unawaited(
-          Sentry.captureMessage('[PrimaryAddressInfo] No PrimaryWallet found'));
-      throw AccountException(message: 'No PrimaryWallet found');
-    }
-    return primaryWallet;
-  }
-
   Future deleteWalletAddress(WalletAddress walletAddress) async {
     await _cloudObject.addressObject.deleteAddress(walletAddress);
     await _nftCollectionAddressService.deleteAddresses([walletAddress.address]);

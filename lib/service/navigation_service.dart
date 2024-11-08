@@ -12,8 +12,10 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
@@ -23,8 +25,10 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
@@ -37,6 +41,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -45,6 +50,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
@@ -1049,5 +1055,102 @@ class NavigationService {
 
   Future<void> openUrl(Uri uri) async {
     await _browser.openUrl(uri.toString());
+  }
+
+  Future<void> showBackupRecoveryPhraseDialog() async {
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final uuid = primaryAddressInfo?.uuid;
+    final walletStorage = uuid == null ? null : WalletStorage(uuid);
+    if (context.mounted) {
+      await UIHelper.showCenterSheet(context,
+          content: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'upgrade_required'.tr(),
+                  style: Theme.of(context).textTheme.ppMori700White24,
+                ),
+                const SizedBox(height: 50),
+                Text(
+                  'your_device_not_support_passkey_desc'.tr(),
+                  style: Theme.of(context).textTheme.ppMori400White14,
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('1. ',
+                          style: Theme.of(context).textTheme.ppMori400White14),
+                      Expanded(
+                        child: Text(
+                          'step_1_backup_recovery'.tr(),
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('2. ',
+                          style: Theme.of(context).textTheme.ppMori400White14),
+                      Expanded(
+                        child: Text(
+                          'step_2_move_to_another_wallet'.tr(),
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Column(
+                  children: [
+                    PrimaryButton(
+                      text: 'backup_recovery_phrase'.tr(),
+                      onTap: walletStorage == null
+                          ? null
+                          : () {
+                              navigateTo(AppRouter.recoveryPhrasePage,
+                                  arguments: RecoveryPhrasePayload(
+                                      wallet: walletStorage));
+                            },
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      child: Text('need_help'.tr(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .ppMori400White14
+                              .copyWith(
+                                color: AppColor.auQuickSilver,
+                                decoration: TextDecoration.underline,
+                              )),
+                      onTap: () {
+                        navigateTo(
+                          AppRouter.supportThreadPage,
+                          arguments: NewIssuePayload(
+                              reportIssueType: ReportIssueType.Bug),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          backgroundColor: AppColor.auGreyBackground,
+          withExitButton: false,
+          verticalPadding: 0);
+    }
   }
 }
