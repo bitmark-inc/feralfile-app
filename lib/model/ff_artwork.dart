@@ -36,6 +36,7 @@ class Artwork {
   final String? blockchainStatus;
   final bool? isExternal;
   final String thumbnailURI;
+  final String? thumbnailDisplay;
   final String previewURI;
   final Map<String, dynamic>? metadata;
   final DateTime? mintedAt;
@@ -58,6 +59,7 @@ class Artwork {
       this.blockchainStatus,
       this.isExternal,
       this.thumbnailURI,
+      this.thumbnailDisplay,
       this.previewURI,
       this.metadata,
       this.mintedAt,
@@ -80,6 +82,7 @@ class Artwork {
         json['blockchainStatus'] as String?,
         json['isExternal'] as bool?,
         json['thumbnailURI'] as String,
+        json['thumbnailDisplay'] as String?,
         json['previewURI'] as String,
         json['metadata'] as Map<String, dynamic>?,
         json['mintedAt'] == null || (json['mintedAt'] as String).isEmpty
@@ -121,6 +124,7 @@ class Artwork {
     String? blockchainStatus,
     bool? isExternal,
     String? thumbnailURI,
+    String? thumbnailDisplay,
     String? previewURI,
     Map<String, dynamic>? metadata,
     DateTime? mintedAt,
@@ -143,6 +147,7 @@ class Artwork {
         blockchainStatus ?? this.blockchainStatus,
         isExternal ?? this.isExternal,
         thumbnailURI ?? this.thumbnailURI,
+        thumbnailDisplay ?? this.thumbnailDisplay,
         previewURI ?? this.previewURI,
         metadata ?? this.metadata,
         mintedAt ?? this.mintedAt,

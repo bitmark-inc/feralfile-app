@@ -28,6 +28,7 @@ Artwork _$ArtworkFromJson(Map<String, dynamic> json) => Artwork(
       json['blockchainStatus'] as String?,
       json['isExternal'] as bool?,
       json['thumbnailURI'] as String,
+      json['thumbnailDisplay'] as String?,
       json['previewURI'] as String,
       json['metadata'] as Map<String, dynamic>?,
       json['mintedAt'] == null
@@ -63,6 +64,7 @@ Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
       'blockchainStatus': instance.blockchainStatus,
       'isExternal': instance.isExternal,
       'thumbnailURI': instance.thumbnailURI,
+      'thumbnailDisplay': instance.thumbnailDisplay,
       'previewURI': instance.previewURI,
       'metadata': instance.metadata,
       'mintedAt': instance.mintedAt?.toIso8601String(),

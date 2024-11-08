@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 import 'package:home_widget/home_widget.dart';
@@ -104,7 +105,10 @@ class HomeWidgetService {
       final artistName = token.artistName;
       final title = token.displayTitle;
       final medium = token.medium;
-      final thumbnail = token.galleryThumbnailURL;
+      final isFeralFileToken = token.isFeralfile;
+      final thumbnail = isFeralFileToken
+          ? dailyToken.artwork!.dailyThumbnailURL
+          : token.galleryThumbnailURL;
 
       String? base64ImageData;
       if (thumbnail != null) {
