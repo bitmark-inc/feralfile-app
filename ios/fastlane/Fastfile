@@ -233,6 +233,7 @@ platform :ios do
 				provisioningProfiles: {
 					"com.bitmark.autonomywallet": "Autonomy_Wallet_Appstore",
 					"com.bitmark.autonomywallet.notification": "Autonomy_Wallet_Push_Notification_Appstore",
+					"com.bitmark.autonomywallet.widget": "Feral File app widget",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
