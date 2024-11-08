@@ -36,7 +36,7 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "2.6"
+          ruby-version: "2.7"
           bundler-cache: true
           working-directory: ios
 
