@@ -96,8 +96,11 @@ struct Daily_WidgetEntryView : View {
     private var heightReader: some View {
         GeometryReader { reader in
             Color.clear
-            .onChange(of: reader.size.height, initial: true) { oldVal, newVal in
-                infoViewHeight = newVal
+            .onAppear() {
+                infoViewHeight = reader.size.height
+            }
+            .onChange(of: reader.size.height) { val in
+                infoViewHeight = val
             }
         }
     }
@@ -182,6 +185,16 @@ struct Daily_WidgetEntryView : View {
     }
 }
 
+extension WidgetConfiguration {
+    func disableContentMarginsIfNeeded() -> some WidgetConfiguration {
+        if #available(iOSApplicationExtension 17.0, *) {
+            return self.contentMarginsDisabled()
+        } else {
+            return self
+        }
+    }
+}
+
 struct Daily_Widget: Widget {
     let kind: String = "Daily_Widget"
 
@@ -192,16 +205,17 @@ struct Daily_Widget: Widget {
                     .containerBackground(.fill.tertiary, for: .widget)
             } else {
                 Daily_WidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
             }
         }
-        .contentMarginsDisabled()
+        .disableContentMarginsIfNeeded()
     }
 }
 
-#Preview(as: .systemSmall) {
-    Daily_Widget()
-} timeline: {
-    SimpleEntry(date: .now, dailyInfo: nil)
+struct Daily_Widget_Previews: PreviewProvider {
+  static var previews: some View {
+      Daily_WidgetEntryView(
+        entry: SimpleEntry(date: .now, dailyInfo: nil)
+    )
+    .previewContext(WidgetPreviewContext(family: .systemSmall))
+  }
 }
