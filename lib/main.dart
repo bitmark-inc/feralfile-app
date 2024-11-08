@@ -56,11 +56,10 @@ Future<void> callbackDispatcher() async {
         await getSecretEnv();
         await dotenv.load();
         await setupHomeWidgetInjector();
-        final homeWidgetService = HomeWidgetService();
-        await homeWidgetService.init();
-        await homeWidgetService.updateDailyTokensToHomeWidget();
+        await injector<HomeWidgetService>().updateDailyTokensToHomeWidget();
       }
     } catch (e) {
+      print('callbackDispatcher error: $e');
       throw Exception(e);
     }
 
@@ -159,7 +158,7 @@ void _registerHiveAdapter() {
 
 Future<void> _setupWorkManager() async {
   try {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+    await Workmanager().initialize(callbackDispatcher);
     Workmanager()
         .cancelByTag(dailyWidgetTaskTag)
         .catchError((e) => log.info('Error in cancelTaskByTag: $e'));
@@ -188,7 +187,7 @@ Future<void> _setupApp() async {
     Sentry.captureException(e);
   }
   await setupInjector();
-  await _setupWorkManager();
+  unawaited(_setupWorkManager());
 
   runApp(
     SDTFScope(

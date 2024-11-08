@@ -142,6 +142,7 @@ Future<void> setupHomeWidgetInjector() async {
   injector.registerLazySingleton<RemoteConfigService>(() =>
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
+  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }
 
 Future<void> setupInjector() async {
