@@ -131,7 +131,7 @@ class AdditionalData {
             homeIndex: homeIndex,
             linkText: linkText,
           );
-        case NotificationType.daily:
+        case NotificationType.dailyArtworkReminders:
           final subType = json['notification_sub_type'];
           final dailyType = DailyNotificationType.fromString(subType ?? '');
           if (dailyType == null) {

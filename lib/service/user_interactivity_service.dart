@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -28,7 +29,7 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
     };
     unawaited(
         _metricClientService.addEvent(MetricEventName.dailyLiked, data: data));
-
+    log.info('Liked daily work: ${dailyToken.tokenID}');
     await _likeDailyWorkActionResponse();
   }
 
@@ -81,6 +82,6 @@ enum EnableNotificationPromptType {
 
   static EnableNotificationPromptType getRandomType() {
     const values = EnableNotificationPromptType.values;
-    return values[Random().nextInt(values.length)];
+    return values[math.Random().nextInt(values.length)];
   }
 }
