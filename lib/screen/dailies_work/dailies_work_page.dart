@@ -61,9 +61,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
   ScrollController? _scrollController;
   final _artworkKey = GlobalKey<ArtworkPreviewWidgetState>();
   final _displayButtonKey = GlobalKey<FFCastButtonState>();
+  late final DailyWorkBloc _dailyWorkBloc;
 
-  DailyToken? get _currentDailyToken =>
-      context.read<DailyWorkBloc>().state.currentDailyToken;
+  DailyToken? get _currentDailyToken => _dailyWorkBloc.state.currentDailyToken;
 
   bool _trackingInterest = false;
   Timer? _trackingInterestTimer;
@@ -73,7 +73,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
   @override
   void initState() {
     super.initState();
-    context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+    _dailyWorkBloc = injector<DailyWorkBloc>();
+    _dailyWorkBloc.add(GetDailyAssetTokenEvent());
     _pageController = PageController();
     _pageController!.addListener(() {
       _pageControllerListener();
@@ -151,7 +152,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     _timer?.cancel();
     _timer = Timer(duration, () {
       log.info('Get Daily Asset Token');
-      context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+      _dailyWorkBloc.add(GetDailyAssetTokenEvent());
     });
   }
 
@@ -235,6 +236,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   Widget _buildBody() => BlocConsumer<DailyWorkBloc, DailiesWorkState>(
+        bloc: _dailyWorkBloc,
         builder: (context, state) => PageView(
           controller: _pageController,
           scrollDirection: Axis.vertical,
@@ -366,6 +368,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
           ),
           Expanded(
             child: BlocConsumer<DailyWorkBloc, DailiesWorkState>(
+              bloc: _dailyWorkBloc,
               listener: (context, state) {
                 if (state.assetTokens.isNotEmpty) {
                   // get identity
@@ -461,6 +464,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   ) {
     final theme = Theme.of(context);
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
+      bloc: _dailyWorkBloc,
       builder: (context, state) {
         final assetToken = state.assetTokens.firstOrNull;
         if (assetToken == null) {
