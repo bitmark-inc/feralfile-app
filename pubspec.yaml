@@ -147,7 +147,6 @@ dependencies:
   html: ^0.15.1
   video_player: ^2.9.2
   walletconnect_flutter_v2: ^2.1.11
-  awesome_notifications: ^0.8.3
   shimmer: ^3.0.0
   graphql_flutter:
   card_swiper: ^3.0.1

@@ -33,7 +33,6 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -90,7 +89,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
-  final _notificationService = injector<nc.NotificationService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
@@ -296,8 +294,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           event.notification.notificationId;
       final body = event.notification.body;
 
-      /// should complete event after getting all data needed
-      /// and before calling async function
       Future.delayed(const Duration(milliseconds: 500), () async {
         if (!mounted) {
           return;
@@ -575,10 +571,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   FutureOr<void> afterFirstLayout(BuildContext context) async {
     if (widget.payload.startedTab != _initialTab) {
       await onItemTapped(widget.payload.startedTab.index);
-    }
-    final initialAction = _notificationService.initialAction;
-    if (initialAction != null) {
-      await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
   }
 }
