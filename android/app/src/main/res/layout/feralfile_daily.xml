@@ -57,6 +57,15 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/appwidget_artist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/ppmori_regular"
+                    android:maxLines="1"
+                    android:textColor="@android:color/black"
+                    android:textSize="12sp" /> <!-- Use PPMori-Regular font -->
+                <TextView
                     android:id="@+id/appwidget_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -67,16 +76,6 @@
                     android:textColor="@android:color/black"
                     android:textSize="12sp"
                     android:textStyle="bold" /> <!-- Use PPMori-Regular font -->
-
-                <TextView
-                    android:id="@+id/appwidget_artist"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/ppmori_regular"
-                    android:maxLines="1"
-                    android:textColor="@android:color/darker_gray"
-                    android:textSize="12sp" /> <!-- Use PPMori-Regular font -->
             </LinearLayout>
 
             <ImageView

@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.os.Bundle
 import android.util.Base64
 import android.widget.RemoteViews
 import android.widget.RemoteViews.RemoteResponse
@@ -17,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import timber.log.Timber
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -24,14 +26,13 @@ import java.util.TimeZone
  * Implementation of App Widget functionality.
  */
 class FeralfileDaily : AppWidgetProvider() {
-
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
-            println("FeralfileDaily onUpdate $appWidgetId")
+            Timber.d("FeralfileDaily onUpdate $appWidgetId")
             // Intent to open the app
             val openAppIntent = Intent(context, MainActivity::class.java).apply {
                 action = "com.bitmark.autonomy_flutter.OPEN_APP"
@@ -48,7 +49,6 @@ class FeralfileDaily : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
 
             // Set onClick to update the widget and open the app
-//            views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
             views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val remoteResponse = RemoteResponse.fromPendingIntent(openAppPendingIntent)
@@ -66,19 +66,19 @@ class FeralfileDaily : AppWidgetProvider() {
     override fun onEnabled(context: Context) {
         // Enter relevant functionality for when the first widget is created
         // print log
-        println("FeralfileDaily onEnabled")
+        Timber.tag("FeralfileDaily").d("FeralfileDaily onEnabled")
     }
 
     override fun onDisabled(context: Context) {
         // Enter relevant functionality for when the last widget is disabled
         // print log
-        println("FeralfileDaily onDisabled")
+        Timber.tag("FeralfileDaily").d("FeralfileDaily onDisabled")
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        println("FeralfileDaily onReceive ${intent.action}")
+        Timber.tag("FeralfileDaily").d("FeralfileDaily onReceive %s", intent.action)
 
         when (intent.action) {
             "com.bitmark.autonomy_flutter.OPEN_APP" -> {
@@ -99,6 +99,22 @@ class FeralfileDaily : AppWidgetProvider() {
         }
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+
+        // Handle theme update
+        Timber.tag("FeralfileDaily").d("Theme or configuration change detected")
+        onUpdate(
+            context,
+            appWidgetManager,
+            appWidgetManager.getAppWidgetIds(ComponentName(context, FeralfileDaily::class.java))
+        )
+    }
 }
 
 internal fun updateAppWidget(
@@ -212,16 +228,22 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
             )
         } catch (e: Exception) {
             e.printStackTrace()
+            return getDefaultDailyInfo()
         }
     }
 
     // Return default DailyInfo if data for current date is not found or parsing fails
+    return getDefaultDailyInfo()
+}
+
+private fun getDefaultDailyInfo(): DailyInfo {
     return DailyInfo(
-        base64ImageData = "", // it's will be handle in case when base64ImageData is empty
+        base64ImageData = "",
         title = "Daily Artwork",
         artistName = "Daily is not available",
         medium = ""
     )
 }
+
 
 
