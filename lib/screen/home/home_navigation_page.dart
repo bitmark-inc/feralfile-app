@@ -133,6 +133,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
           dailyWorkKey.currentState?.resumeDailyWork();
+          dailyWorkKey.currentState?.trackInterest();
         } else {
           dailyWorkKey.currentState?.pauseDailyWork();
         }

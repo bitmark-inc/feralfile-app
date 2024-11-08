@@ -73,7 +73,6 @@ class DailyNotificationData extends AdditionalData {
       case DailyNotificationType.viewDaily:
       case DailyNotificationType.revisitDaily:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
-        dailyWorkKey.currentState?.trackInterest();
       case DailyNotificationType.viewDailySeries:
         final artwork = dailyToken!.artwork;
         if (artwork == null) {

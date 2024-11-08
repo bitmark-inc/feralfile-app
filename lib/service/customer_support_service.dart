@@ -101,6 +101,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   bool _isProcessingDraftMessages = false;
 
+  /// will add this after backend support
   static const _supportChatNotificationTypes = [];
 
   Future<List<Issue>> _getIssues() async {

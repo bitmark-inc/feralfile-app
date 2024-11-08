@@ -110,6 +110,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
     _stopTrackingLiked();
   }
 
+  void didTapDaily() {
+    trackInterest();
+  }
+
   void trackInterest() {
     if (_trackingDailyLiked) {
       return;
@@ -260,6 +264,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   .addEvent(MetricEventName.dailyView, data: {
                 MetricParameter.tokenId: current.assetTokens.first.id,
               }));
+              trackInterest();
             }
           }
           return true;

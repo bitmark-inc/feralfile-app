@@ -30,7 +30,7 @@ enum NotificationType {
   exhibitionSaleClosing,
   navigate,
   general,
-  daily,
+  dailyArtworkReminders,
   ;
 
   // toString method
@@ -67,8 +67,8 @@ enum NotificationType {
         return 'navigate';
       case NotificationType.general:
         return 'general';
-      case NotificationType.daily:
-        return 'daily';
+      case NotificationType.dailyArtworkReminders:
+        return 'daily_artwork_reminders';
     }
   }
 
@@ -103,8 +103,8 @@ enum NotificationType {
         return NotificationType.exhibitionSaleClosing;
       case 'navigate':
         return NotificationType.navigate;
-      case 'daily':
-        return NotificationType.daily;
+      case 'daily_artwork_reminders':
+        return NotificationType.dailyArtworkReminders;
       default:
         return NotificationType.general;
     }
