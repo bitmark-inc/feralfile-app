@@ -261,6 +261,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (_issueID != null && !_issueID!.startsWith('TEMP')) {
       unawaited(_loadIssueDetails());
     }
+    _markAnnouncementAsRead();
+  }
+
+  void _markAnnouncementAsRead() {
+    if (widget.payload is NewIssueFromAnnouncementPayload) {
+      final announcement =
+          (widget.payload as NewIssueFromAnnouncementPayload).announcement;
+      unawaited(injector<AnnouncementService>()
+          .markAsRead(announcement.announcementContentId));
+    }
   }
 
   Future<void> _getUserId(String issueId) async {

@@ -6,7 +6,8 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
   final int typeId = 10;
 
   @override
-  AnnouncementLocal read(BinaryReader reader) => AnnouncementLocal(
+  AnnouncementLocal read(BinaryReader reader) =>
+      AnnouncementLocal.addFromAdditionalData(
         announcementContentId: reader.readString(),
         content: reader.readString(),
         additionalData: reader.readMap().cast<String, dynamic>(),
@@ -17,6 +18,8 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
 
   @override
   void write(BinaryWriter writer, AnnouncementLocal obj) {
+    obj.additionalData['~inAppEnabled'] = obj.inAppEnabled;
+    obj.additionalData['~notificationType'] = obj.notificationType;
     writer
       ..writeString(obj.announcementContentId)
       ..writeString(obj.content)

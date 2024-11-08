@@ -101,6 +101,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   bool _isProcessingDraftMessages = false;
 
+  /// will add this after backend support
+  static const _supportChatNotificationTypes = [];
+
   Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
     try {
@@ -179,6 +182,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     // add announcement
     final announcement = injector<AnnouncementService>().getLocalAnnouncements()
       ..removeWhere((element) {
+        final type = element.notificationType ?? '';
+        if (!_supportChatNotificationTypes.contains(type)) {
+          return true;
+        }
         final issueId = injector<AnnouncementService>()
             .findIssueIdByAnnouncement(element.announcementContentId);
         final issue =

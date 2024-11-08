@@ -33,7 +33,6 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -86,12 +85,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late int _selectedIndex;
   PageController? _pageController;
   late List<Widget> _pages;
-  final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
   final GlobalKey<OrganizeHomePageState> _organizeHomeKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
-  final _notificationService = injector<nc.NotificationService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
@@ -110,14 +107,21 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
+  void _notifyMoveOutDaily() {
+    dailyWorkKey.currentState?.didPushed();
+  }
+
   Future<void> onItemTapped(int index) async {
+    if (index != HomeNavigatorTab.daily.index) {
+      _notifyMoveOutDaily();
+    }
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
         if (index == HomeNavigatorTab.explore.index) {
           feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
-          _dailyWorkKey.currentState?.scrollToTop();
+          dailyWorkKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.collection.index) {
           _organizeHomeKey.currentState?.scrollToTop();
         }
@@ -127,9 +131,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // if tap on daily, resume daily work,
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
-          _dailyWorkKey.currentState?.resumeDailyWork();
+          dailyWorkKey.currentState?.resumeDailyWork();
+          dailyWorkKey.currentState?.trackInterest();
         } else {
-          _dailyWorkKey.currentState?.pauseDailyWork();
+          dailyWorkKey.currentState?.pauseDailyWork();
         }
       }
       setState(() {
@@ -247,12 +252,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       MultiBlocProvider(
           providers: [
             BlocProvider(
-              create: (_) => DailyWorkBloc(injector(), injector()),
+              create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: injector<CanvasDeviceBloc>()),
           ],
           child: DailyWorkPage(
-            key: _dailyWorkKey,
+            key: dailyWorkKey,
           )),
       MultiBlocProvider(
           providers: [
@@ -290,10 +295,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           event.notification.notificationId;
       final body = event.notification.body;
 
-      /// should complete event after getting all data needed
-      /// and before calling async function
       Future.delayed(const Duration(milliseconds: 500), () async {
-        await injector<AnnouncementService>().fetchAnnouncements();
         if (!mounted) {
           return;
         }
@@ -358,7 +360,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     injector<ListPlaylistBloc>()
         .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
     if (_selectedIndex == HomeNavigatorTab.daily.index) {
-      _dailyWorkKey.currentState?.resumeDailyWork();
+      dailyWorkKey.currentState?.resumeDailyWork();
     }
   }
 
@@ -533,7 +535,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _triggerShowAnnouncement() {
-    unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
+    unawaited(Future.delayed(const Duration(milliseconds: 2000), () {
       _announcementService.fetchAnnouncements().then(
         (_) async {
           await _announcementService.showOldestAnnouncement();
@@ -570,10 +572,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   FutureOr<void> afterFirstLayout(BuildContext context) async {
     if (widget.payload.startedTab != _initialTab) {
       await onItemTapped(widget.payload.startedTab.index);
-    }
-    final initialAction = _notificationService.initialAction;
-    if (initialAction != null) {
-      await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
   }
 }

@@ -2,7 +2,9 @@ enum MetricEventName {
   openApp,
   dailyView,
   playlistView,
-  exhibitionView;
+  exhibitionView,
+  dailyLiked,
+  ;
 
   String get name {
     switch (this) {
@@ -14,6 +16,8 @@ enum MetricEventName {
         return 'PLAYLIST_VIEW';
       case MetricEventName.exhibitionView:
         return 'EXHIBITION_VIEW';
+      case MetricEventName.dailyLiked:
+        return 'DAILY_LIKED';
     }
   }
 }
@@ -21,7 +25,9 @@ enum MetricEventName {
 enum MetricParameter {
   tokenId,
   section,
-  exhibitionId;
+  exhibitionId,
+  localTime,
+  ;
 
   String get name {
     switch (this) {
@@ -31,6 +37,8 @@ enum MetricParameter {
         return 'section';
       case MetricParameter.exhibitionId:
         return 'exhibitionID';
+      case MetricParameter.localTime:
+        return 'localTime';
     }
   }
 }

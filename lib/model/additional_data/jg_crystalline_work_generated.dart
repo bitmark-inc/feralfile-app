@@ -15,6 +15,7 @@ class JgCrystallineWorkGenerated extends AdditionalData {
     required this.tokenId,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   @override

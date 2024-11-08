@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_pag
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
@@ -59,14 +60,24 @@ class DailyWorkPageState extends State<DailyWorkPage>
   late int _currentIndex;
   ScrollController? _scrollController;
   final _artworkKey = GlobalKey<ArtworkPreviewWidgetState>();
+  final _displayButtonKey = GlobalKey<FFCastButtonState>();
+  late final DailyWorkBloc _dailyWorkBloc;
+
+  DailyToken? get _currentDailyToken => _dailyWorkBloc.state.currentDailyToken;
+
+  bool _trackingDailyLiked = false;
+  Timer? _trackingDailyLikedTimer;
+  static const _scrollLikingThreshold = 100.0;
+  static const _stayDurationLikingThreshold = Duration(seconds: 10);
 
   @override
   void initState() {
     super.initState();
-    context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+    _dailyWorkBloc = injector<DailyWorkBloc>();
+    _dailyWorkBloc.add(GetDailyAssetTokenEvent());
     _pageController = PageController();
     _pageController!.addListener(() {
-      _pageControllerListenser();
+      _pageControllerListener();
     });
     _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
@@ -82,12 +93,55 @@ class DailyWorkPageState extends State<DailyWorkPage>
     super.dispose();
   }
 
-  void _pageControllerListenser() {
+  void _pageControllerListener() {
     if (_pageController!.page != 0) {
       pauseDailyWork();
     } else {
       resumeDailyWork();
     }
+  }
+
+  void openDisplayDialog() {
+    // ignore isSubscribed because it's not necessary
+    unawaited(_displayButtonKey.currentState?.onTap(context, true));
+  }
+
+  void didPushed() {
+    _stopTrackingLiked();
+  }
+
+  void didTapDaily() {
+    trackInterest();
+  }
+
+  void trackInterest() {
+    if (_trackingDailyLiked) {
+      return;
+    }
+    log.info('start trackingInterest in Daily');
+    _trackingDailyLiked = true;
+    _trackingDailyLikedTimer = Timer(_stayDurationLikingThreshold, () {
+      _setUserLiked();
+    });
+  }
+
+  void _stopTrackingLiked() {
+    log.info('stopTrackingInterest in Daily');
+    _trackingDailyLiked = false;
+    _trackingDailyLikedTimer?.cancel();
+  }
+
+  void _setUserLiked() {
+    if (!_trackingDailyLiked) {
+      return;
+    }
+    log.info('Set User Interested in Daily');
+    _stopTrackingLiked();
+    if (_currentDailyToken == null) {
+      return;
+    }
+    unawaited(injector<UserInteractivityService>()
+        .likeDailyWork(_currentDailyToken!));
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {
@@ -102,7 +156,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     _timer?.cancel();
     _timer = Timer(duration, () {
       log.info('Get Daily Asset Token');
-      context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+      _dailyWorkBloc.add(GetDailyAssetTokenEvent());
     });
   }
 
@@ -186,6 +240,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   Widget _buildBody() => BlocConsumer<DailyWorkBloc, DailiesWorkState>(
+        bloc: _dailyWorkBloc,
         builder: (context, state) => PageView(
           controller: _pageController,
           scrollDirection: Axis.vertical,
@@ -209,6 +264,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   .addEvent(MetricEventName.dailyView, data: {
                 MetricParameter.tokenId: current.assetTokens.first.id,
               }));
+              trackInterest();
             }
           }
           return true;
@@ -226,11 +282,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 textAlign: TextAlign.left),
           ),
           FFCastButton(
+            key: _displayButtonKey,
             displayKey: CastDailyWorkRequest.displayKey,
             onDeviceSelected: (device) {
               context.read<CanvasDeviceBloc>().add(
                   CanvasDeviceCastDailyWorkEvent(
                       device, CastDailyWorkRequest()));
+            },
+            onTap: () {
+              _setUserLiked();
             },
             text: 'display'.tr(),
             shouldCheckSubscription: false,
@@ -313,6 +373,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
           ),
           Expanded(
             child: BlocConsumer<DailyWorkBloc, DailiesWorkState>(
+              bloc: _dailyWorkBloc,
               listener: (context, state) {
                 if (state.assetTokens.isNotEmpty) {
                   // get identity
@@ -408,6 +469,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   ) {
     final theme = Theme.of(context);
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
+      bloc: _dailyWorkBloc,
       builder: (context, state) {
         final assetToken = state.assetTokens.firstOrNull;
         if (assetToken == null) {
@@ -425,6 +487,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
               unawaited(_pageController?.animateToPage(0,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut));
+            }
+            if (_scrollController!.offset > _scrollLikingThreshold) {
+              _setUserLiked();
             }
             return true;
           },

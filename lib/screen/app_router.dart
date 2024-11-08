@@ -133,6 +133,7 @@ import 'package:page_transition/page_transition.dart';
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
 GlobalKey<FeralfileHomePageState> feralFileHomeKey = GlobalKey();
+final GlobalKey<DailyWorkPageState> dailyWorkKey = GlobalKey();
 
 class AppRouter {
   static const createPlayListPage = 'create_playlist_page';
@@ -1078,7 +1079,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(providers: [
             BlocProvider(
-              create: (_) => DailyWorkBloc(injector(), injector()),
+              create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: canvasDeviceBloc),
           ], child: const DailyWorkPage()),

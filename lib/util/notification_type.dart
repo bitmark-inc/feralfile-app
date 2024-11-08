@@ -29,7 +29,9 @@ enum NotificationType {
   exhibitionSalesOpening,
   exhibitionSaleClosing,
   navigate,
-  general;
+  general,
+  dailyArtworkReminders,
+  ;
 
   // toString method
   @override
@@ -65,6 +67,8 @@ enum NotificationType {
         return 'navigate';
       case NotificationType.general:
         return 'general';
+      case NotificationType.dailyArtworkReminders:
+        return 'daily_artwork_reminders';
     }
   }
 
@@ -99,6 +103,8 @@ enum NotificationType {
         return NotificationType.exhibitionSaleClosing;
       case 'navigate':
         return NotificationType.navigate;
+      case 'daily_artwork_reminders':
+        return NotificationType.dailyArtworkReminders;
       default:
         return NotificationType.general;
     }
@@ -138,7 +144,7 @@ class NotificationHandler {
       return;
     }
     // prepare for handling notification
-    final shouldShow = additionalData.prepareAndDidSuccess();
+    final shouldShow = await additionalData.prepareAndDidSuccess();
     if (!shouldShow || !context.mounted) {
       return;
     }

@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
@@ -53,6 +54,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
@@ -1249,6 +1251,54 @@ class UIHelper {
             ));
   }
 
+  static Future<dynamic> showCenterDialog(BuildContext context,
+      {required Widget content}) async {
+    UIHelper.hideInfoDialog(context);
+    final theme = Theme.of(context);
+    return await showCupertinoModalPopup(
+        context: context,
+        builder: (context) => Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Stack(
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: AppColor.primaryBlack.withOpacity(0.5),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: theme.auGreyBackground,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        constraints: const BoxConstraints(
+                          maxHeight: 600,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 15),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              content,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ));
+  }
+
   static Future<void> showCenterMenu(BuildContext context,
       {required List<OptionItem> options}) async {
     final theme = Theme.of(context);
@@ -1897,6 +1947,34 @@ class UIHelper {
       currentContext,
       'upgraded_notification_body'.tr(),
       'subscription_upgraded',
+    );
+  }
+
+  static Future<dynamic> showNotificationPrompt(
+      EnableNotificationPromptType type) async {
+    final context = injector<NavigationService>().context;
+    if (!context.mounted) {
+      return null;
+    }
+    return await showCenterDialog(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(type.title, style: Theme.of(context).textTheme.ppMori700White24),
+          const SizedBox(height: 20),
+          Text(type.description,
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 20),
+          PrimaryButton(
+            onTap: () async {
+              Navigator.of(context).pop(true);
+              openAppSettings();
+            },
+            text: 'go_to_notifications'.tr(),
+          ),
+        ],
+      ),
     );
   }
 }
