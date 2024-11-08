@@ -23,7 +23,7 @@ import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
-import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:autonomy_flutter/util/notifications/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';

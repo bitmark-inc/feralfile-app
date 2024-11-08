@@ -5,7 +5,9 @@ enum NotificationSettingType {
   exhibitionUpdates,
   collectionUpdates,
   eventsActivities,
-  supportMessages;
+  supportMessages,
+  announcement,
+  ;
 
   static NotificationSettingType? fromString(String value) {
     switch (value.toLowerCase()) {
@@ -19,6 +21,7 @@ enum NotificationSettingType {
         return NotificationSettingType.eventsActivities;
       case 'support_messages':
         return NotificationSettingType.supportMessages;
+      case 'announcement':
       default:
         return null;
     }
@@ -36,6 +39,8 @@ enum NotificationSettingType {
         return 'events_activities';
       case NotificationSettingType.supportMessages:
         return 'support_messages';
+      case NotificationSettingType.announcement:
+        return 'announcement';
     }
   }
 
