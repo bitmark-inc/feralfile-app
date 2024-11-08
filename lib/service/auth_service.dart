@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -26,14 +25,12 @@ class AuthService {
   final IAPApi _authApi;
   final UserApi _userApi;
   final ConfigurationService _configurationService;
-  final AddressService _addressService;
   JWT? _jwt;
 
   AuthService(
     this._authApi,
     this._userApi,
     this._configurationService,
-    this._addressService,
   );
 
   void reset() {
@@ -61,13 +58,6 @@ class AuthService {
     final newJwt = await _userApi.refreshJWT(payload);
     setAuthToken(newJwt, receiptData: receiptData);
     return newJwt;
-  }
-
-  Future<JWT> authenticateAddress() async {
-    final payload = await _addressService.getAddressAuthenticationMap();
-    final jwt = await _userApi.authenticateAddress(payload);
-    setAuthToken(jwt);
-    return jwt;
   }
 
   void _refreshSubscriptionStatus(JWT? jwt, {String? receiptData}) {

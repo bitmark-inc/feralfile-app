@@ -12,11 +12,11 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -56,7 +56,6 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   final _passkeyService = injector.get<PasskeyService>();
   final _userAccountChannel = injector.get<UserAccountChannel>();
-  final _authService = injector.get<AuthService>();
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -72,7 +71,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     _timer = Timer(const Duration(seconds: 10), () {
       log.info('OnboardingPage loading more than 10s');
       unawaited(Sentry.captureMessage('OnboardingPage loading more than 10s'));
-      // unawaited(injector<NavigationService>().showAppLoadError());
     });
 
     unawaited(setup(context).then((_) => _fetchRuntimeCache()));
@@ -153,7 +151,12 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _fetchRuntimeCache() async {
     log.info('[_fetchRuntimeCache] start');
-    await _loginProcess();
+    final isSuccess = await _loginProcess();
+    if (!isSuccess) {
+      log.info('Login process failed');
+      unawaited(Sentry.captureMessage('Login process failed'));
+      return;
+    }
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
@@ -166,13 +169,18 @@ class _OnboardingPageState extends State<OnboardingPage>
     await _goToTargetScreen(context);
   }
 
-  Future<void> _loginProcess() async {
+  Future<void> _showBackupRecoveryPhraseDialog() async {
+    await injector<NavigationService>().showBackupRecoveryPhraseDialog();
+  }
+
+  Future<bool> _loginProcess() async {
     final isSupportPasskey = await _passkeyService.isPassKeyAvailable();
     if (!isSupportPasskey) {
       log.info('Passkey is not supported. Login with address');
-      await injector<AccountService>().migrateAccount(() async {
-        await _authService.authenticateAddress();
-      });
+      _passkeyService.isShowingLoginDialog.value = true;
+      await _showBackupRecoveryPhraseDialog();
+      _passkeyService.isShowingLoginDialog.value = false;
+      return false;
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
       final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
@@ -183,6 +191,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       if (didLoginSuccess != true) {
         throw Exception('Failed to login with passkey');
       }
+      return true;
     }
   }
 
