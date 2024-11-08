@@ -239,7 +239,7 @@ Future<void> setupInjector() async {
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 

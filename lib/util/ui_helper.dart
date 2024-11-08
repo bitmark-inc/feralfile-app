@@ -1097,61 +1097,66 @@ class UIHelper {
       String? exitButton,
       Function()? exitButtonOnTap,
       double horizontalPadding = 20,
+      double verticalPadding = 128,
+      bool withExitButton = true,
       Color backgroundColor = AppColor.feralFileHighlight}) async {
     UIHelper.hideInfoDialog(context);
     await showCupertinoModalPopup(
-        context: context,
-        builder: (context) => Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding, vertical: 128),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: backgroundColor,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    constraints: const BoxConstraints(
-                      maxHeight: 600,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        content,
-                        const SizedBox(height: 20),
-                        if (actionButtonOnTap != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
-                            child: PrimaryButton(
-                              text: actionButton ?? '',
-                              onTap: actionButtonOnTap,
-                              textColor: AppColor.primaryBlack,
-                              color: AppColor.feralFileLightBlue,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 15,
-                          )
-                        ],
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: PrimaryButton(
-                              text: exitButton ?? 'close'.tr(),
-                              onTap: exitButtonOnTap ??
-                                  () {
-                                    Navigator.pop(context);
-                                  },
-                              textColor: AppColor.primaryBlack,
-                              color: AppColor.feralFileLightBlue),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+      context: context,
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding, vertical: verticalPadding),
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(5),
               ),
-            ));
+              constraints: const BoxConstraints(
+                maxHeight: 600,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  content,
+                  const SizedBox(height: 20),
+                  if (actionButtonOnTap != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                      child: PrimaryButton(
+                        text: actionButton ?? '',
+                        onTap: actionButtonOnTap,
+                        textColor: AppColor.primaryBlack,
+                        color: AppColor.feralFileLightBlue,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    )
+                  ],
+                  if (withExitButton) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: PrimaryButton(
+                          text: exitButton ?? 'close'.tr(),
+                          onTap: exitButtonOnTap ??
+                              () {
+                                Navigator.pop(context);
+                              },
+                          textColor: AppColor.primaryBlack,
+                          color: AppColor.feralFileLightBlue),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   static Future<dynamic> showLiveWithArtIntro(BuildContext context) async {
