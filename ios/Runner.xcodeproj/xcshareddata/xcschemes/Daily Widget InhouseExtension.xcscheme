@@ -16,7 +16,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5833A2CF2CD381A900688F66"
+               BlueprintIdentifier = "5833A31E2CD472D100688F66"
                BuildableName = "Daily Widget InhouseExtension.appex"
                BlueprintName = "Daily Widget InhouseExtension"
                ReferencedContainer = "container:Runner.xcodeproj">

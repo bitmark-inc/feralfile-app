@@ -267,7 +267,8 @@ import workmanager
         WorkmanagerPlugin.setPluginRegistrantCallback { registry in
             GeneratedPluginRegistrant.register(with: registry)
         }
-        WorkmanagerPlugin.registerPeriodicTask(withIdentifier: "feralfile.workmanager.iOSBackgroundAppRefresh", frequency: NSNumber(value: 15 * 60))
+        // Register a periodic task with 4 hours frequency. The frequency is in seconds.
+        WorkmanagerPlugin.registerPeriodicTask(withIdentifier: "feralfile.workmanager.iOSBackgroundAppRefresh", frequency: NSNumber(value: 4 * 60 * 60))
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
