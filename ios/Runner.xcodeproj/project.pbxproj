@@ -296,10 +296,10 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		5833A1BA2CD32AD600688F66 /* Daily Widget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5833A1D02CD32AD800688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget"; sourceTree = "<group>"; };
-		5833A3222CD472D100688F66 /* Daily Widget Inhouse */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5833A3332CD472D200688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget Inhouse"; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
+/* Begin PBXGroup section */
+		5833A1BA2CD32AD600688F66 /* Daily Widget */ = {isa = PBXGroup; exceptions = (5833A1D02CD32AD800688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget"; sourceTree = "<group>"; };
+		5833A3222CD472D100688F66 /* Daily Widget Inhouse */ = {isa = PBXGroup; exceptions = (5833A3332CD472D200688F66 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget Inhouse"; sourceTree = "<group>"; };
+/* End PBXGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5833A1B22CD32AD600688F66 /* Frameworks */ = {
