@@ -31,3 +31,13 @@ Future<http.Response> callRequest(Uri uri) async {
     "Keep-Alive": "timeout=5, max=1000"
   });
 }
+
+String? getVariantFromCloudFlareImageUrl(String url) {
+  final RegExp regex = RegExp(r'^https?://[^/]+/[^/]+/[^/]+/([^/]+)$');
+  final Match? match = regex.firstMatch(url);
+  if (match != null && match.groupCount == 1) {
+    return match.group(1);
+  } else {
+    return null;
+  }
+}

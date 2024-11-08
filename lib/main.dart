@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
@@ -40,6 +41,32 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:system_date_time_format/system_date_time_format.dart';
+import 'package:workmanager/workmanager.dart';
+
+const dailyWidgetTaskUniqueName =
+    'feralfile.workmanager.iOSBackgroundAppRefresh';
+const dailyWidgetTaskName = 'updateDailyWidgetData';
+const dailyWidgetTaskTag = 'updateDailyWidgetDataTag';
+
+@pragma('vm:entry-point')
+Future<void> callbackDispatcher() async {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      if (task == dailyWidgetTaskUniqueName || task == dailyWidgetTaskName) {
+        await getSecretEnv();
+        await dotenv.load();
+        await setupHomeWidgetInjector();
+        final homeWidgetService = HomeWidgetService();
+        await homeWidgetService.init();
+        await homeWidgetService.updateDailyTokensToHomeWidget();
+      }
+    } catch (e) {
+      throw Exception(e);
+    }
+
+    return Future.value(true);
+  });
+}
 
 void main() async {
   unawaited(runZonedGuarded(() async {
@@ -130,6 +157,29 @@ void _registerHiveAdapter() {
     ..registerAdapter(AnnouncementLocalAdapter());
 }
 
+Future<void> _setupWorkManager() async {
+  try {
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+    Workmanager()
+        .cancelByTag(dailyWidgetTaskTag)
+        .catchError((e) => log.info('Error in cancelTaskByTag: $e'));
+    await _startBackgroundUpdate();
+  } catch (e) {
+    log.info('Error in _setupWorkManager: $e');
+  }
+}
+
+Future<void> _startBackgroundUpdate() async {
+  await Workmanager().registerPeriodicTask(
+    dailyWidgetTaskUniqueName,
+    dailyWidgetTaskName,
+    tag: dailyWidgetTaskTag,
+    frequency: const Duration(hours: 4),
+    existingWorkPolicy: ExistingWorkPolicy.replace,
+    constraints: Constraints(networkType: NetworkType.connected),
+  );
+}
+
 Future<void> _setupApp() async {
   try {
     await setupLogger();
@@ -138,6 +188,7 @@ Future<void> _setupApp() async {
     Sentry.captureException(e);
   }
   await setupInjector();
+  await _setupWorkManager();
 
   runApp(
     SDTFScope(
