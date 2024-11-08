@@ -68,7 +68,7 @@ class DailyNotificationData extends AdditionalData {
       _logAndSendSentryForNullData('dailyToken');
       return;
     }
-    final dailyToken = injector<DailyWorkBloc>().state.currentDailyToken;
+    final dailyToken = _dailyWorkBloc.state.currentDailyToken;
     switch (dailyNotificationType) {
       case DailyNotificationType.viewDaily:
       case DailyNotificationType.revisitDaily:

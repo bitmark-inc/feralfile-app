@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/model/announcement/announcement.dart';
 class AnnouncementLocal extends Announcement {
   bool read;
 
-  AnnouncementLocal({
+  AnnouncementLocal._({
     required super.announcementContentId,
     required super.content,
     required super.additionalData,
@@ -22,7 +22,7 @@ class AnnouncementLocal extends Announcement {
     required DateTime endedAt,
     required bool read,
   }) =>
-      AnnouncementLocal(
+      AnnouncementLocal._(
         announcementContentId: announcementContentId,
         content: content,
         additionalData: additionalData,
@@ -39,7 +39,7 @@ class AnnouncementLocal extends Announcement {
   }
 
   static AnnouncementLocal fromAnnouncement(Announcement announcement) =>
-      AnnouncementLocal(
+      AnnouncementLocal._(
         announcementContentId: announcement.announcementContentId,
         content: announcement.content,
         additionalData: announcement.additionalData,

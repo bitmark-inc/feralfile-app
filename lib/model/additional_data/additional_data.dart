@@ -160,5 +160,5 @@ class AdditionalData {
     log.info('AdditionalData: handle tap: $notificationType');
   }
 
-  FutureOr<bool> prepareAndDidSuccess() => Future.value(true);
+  FutureOr<bool> prepareAndDidSuccess() => true;
 }
