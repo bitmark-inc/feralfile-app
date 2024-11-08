@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViews.RemoteResponse
 import es.antonborri.home_widget.HomeWidgetPlugin
@@ -32,34 +33,46 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
-            Timber.d("FeralfileDaily onUpdate $appWidgetId")
-            // Intent to open the app
-            val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                action = "com.bitmark.autonomy_flutter.OPEN_APP"
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            val openAppPendingIntent = PendingIntent.getActivity(
-                context,
-                appWidgetId,
-                openAppIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+            Log.d("FeralfileDaily", "onUpdate $appWidgetId")
+            updateWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
 
-            // Set up the layout for the widget
-            val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
+    private fun updateWidget(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int
+    ) {
+        // Intent to open the app
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            action = "com.bitmark.autonomy_flutter.OPEN_APP"
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
 
-            // Set onClick to update the widget and open the app
-            views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val remoteResponse = RemoteResponse.fromPendingIntent(openAppPendingIntent)
-                views.setOnCheckedChangeResponse(R.id.daily_widget, remoteResponse)
-            }
-            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+        // Ensure PendingIntent is always recreated
+        val openAppPendingIntent = PendingIntent.getActivity(
+            context,
+            appWidgetId,  // Use unique request code per widget ID
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
+        // Set up the layout for the widget
+        val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
+        views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
 
-            getDailyInfo(context = context) { dailyInfo ->
-                updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
-            }
+        // If Android 12 or above, set RemoteResponse for additional interaction
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val remoteResponse = RemoteResponse.fromPendingIntent(openAppPendingIntent)
+            views.setOnCheckedChangeResponse(R.id.daily_widget, remoteResponse)
+        }
+
+        // Trigger full widget update
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+
+        // Update widget content with latest data
+        getDailyInfo(context) { dailyInfo ->
+            updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
         }
     }
 
@@ -109,10 +122,10 @@ class FeralfileDaily : AppWidgetProvider() {
 
         // Handle theme update
         Timber.tag("FeralfileDaily").d("Theme or configuration change detected")
-        onUpdate(
+        updateWidget(
             context,
             appWidgetManager,
-            appWidgetManager.getAppWidgetIds(ComponentName(context, FeralfileDaily::class.java))
+            appWidgetId
         )
     }
 }
