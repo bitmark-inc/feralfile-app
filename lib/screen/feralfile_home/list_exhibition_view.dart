@@ -54,9 +54,8 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
   @override
   void didUpdateWidget(covariant ExploreExhibition oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!oldWidget.isEqual(widget) || true) {
-      unawaited(_fetchExhibitions(context));
-    }
+    unawaited(_fetchExhibitions(context));
+    scrollToTop();
   }
 
   void scrollToTop() {

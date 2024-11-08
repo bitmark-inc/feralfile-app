@@ -57,9 +57,8 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
   @override
   void didUpdateWidget(covariant ExploreArtistView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!oldWidget.isEqual(widget) || true) {
-      unawaited(_fetchArtists(context));
-    }
+    unawaited(_fetchArtists(context));
+    scrollToTop();
   }
 
   @override
@@ -206,9 +205,8 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   @override
   void didUpdateWidget(covariant ExploreCuratorView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!oldWidget.isEqual(widget) || true) {
-      unawaited(_fetchCurators(context));
-    }
+    unawaited(_fetchCurators(context));
+    scrollToTop();
   }
 
   @override

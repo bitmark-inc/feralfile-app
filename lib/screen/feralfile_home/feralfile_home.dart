@@ -27,8 +27,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum FeralfileHomeTab {
   exhibitions,
-  artworks,
   featured,
+  artworks,
   artists,
   curators,
   rAndD;
@@ -245,16 +245,6 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         },
       ),
       Item(
-        id: FeralfileHomeTab.artworks.index.toString(),
-        title: '_artworks'.tr(),
-        subtitle: state.exploreStatisticsData != null
-            ? numberFormater.format(state.exploreStatisticsData!.totalArtwork)
-            : '-',
-        onSelected: () {
-          _selectTab(FeralfileHomeTab.artworks);
-        },
-      ),
-      Item(
         id: FeralfileHomeTab.featured.index.toString(),
         title: 'featured'.tr(),
         subtitle: state.featuredArtworks != null
@@ -262,6 +252,16 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             : '-',
         onSelected: () {
           _selectTab(FeralfileHomeTab.featured);
+        },
+      ),
+      Item(
+        id: FeralfileHomeTab.artworks.index.toString(),
+        title: '_artworks'.tr(),
+        subtitle: state.exploreStatisticsData != null
+            ? numberFormater.format(state.exploreStatisticsData!.totalArtwork)
+            : '-',
+        onSelected: () {
+          _selectTab(FeralfileHomeTab.artworks);
         },
       ),
       Item(
