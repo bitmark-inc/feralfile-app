@@ -36,9 +36,12 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "2.6"
+          ruby-version: "3.1"
           bundler-cache: true
           working-directory: ios
+
+      - name: Update cocoapods
+        run: gem install cocoapods
 
       - uses: webfactory/ssh-agent@v0.9.0
         with:

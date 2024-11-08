@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/common.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
+import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -169,6 +171,11 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 extension ArtworkExt on Artwork {
   String get thumbnailURL => getFFUrl(thumbnailURI);
 
+  String get dailyThumbnailURL {
+    final dailyThumbnailURI = thumbnailDisplay ?? thumbnailURI;
+    return getFFUrl(dailyThumbnailURI, variant: CloudFlareVariant.l.value);
+  }
+
   String get previewURL => getFFUrl(previewURI);
 
   bool get isScrollablePreviewURL {
@@ -264,10 +271,14 @@ extension ArtworkExt on Artwork {
   }
 }
 
-String getFFUrl(String uri) {
+String getFFUrl(String uri, {String variant = 'thumbnailLarge'}) {
   // case 1: cloudflare
-  const variant = 'thumbnailLarge';
-  if (uri.startsWith(cloudFlarePrefix) && !uri.endsWith(variant)) {
+  if (uri.startsWith(cloudFlarePrefix)) {
+    final imageVariant = getVariantFromCloudFlareImageUrl(uri);
+    if (imageVariant != null) {
+      return uri;
+    }
+
     return '$uri/$variant';
   }
 
