@@ -69,9 +69,8 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
   @override
   void didUpdateWidget(covariant ExploreSeriesView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!oldWidget.isEqual(widget) || true) {
-      unawaited(_fetchSeries(context));
-    }
+    unawaited(_fetchSeries(context));
+    scrollToTop();
   }
 
   @override
