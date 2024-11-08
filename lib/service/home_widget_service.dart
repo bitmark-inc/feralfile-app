@@ -6,7 +6,7 @@ import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter/services.dart' show ByteData, rootBundle;
+import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -16,7 +16,11 @@ class HomeWidgetService {
   final String iOSAppGroupId = 'group.com.bitmark.autonomywallet.storage';
   final String appId = 'com.bitmark.autonomy_flutter';
   final String androidWidgetName = 'FeralfileDaily';
-  final String iosWidgetName = 'Daily_Widget'; // TODO: Update this value
+  final String iosWidgetName = 'Daily_Widget';
+
+  HomeWidgetService() {
+    unawaited(init());
+  }
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
@@ -27,10 +31,15 @@ class HomeWidgetService {
 
   Future<void> updateWidget(
       {required Map<String, String> data, bool shouldUpdate = true}) async {
-    await Future.wait(
-      data.entries
-          .map((entry) => HomeWidget.saveWidgetData(entry.key, entry.value)),
-    );
+    try {
+      await Future.wait(
+        data.entries
+            .map((entry) => HomeWidget.saveWidgetData(entry.key, entry.value)),
+      );
+    } catch (e) {
+      log.info('Error in saveWidgetData: $e');
+    }
+
     if (shouldUpdate) {
       await HomeWidget.updateWidget(
           name: androidWidgetName,
@@ -41,22 +50,26 @@ class HomeWidgetService {
   }
 
   Future<void> updateDailyTokensToHomeWidget() async {
-    final listDailies =
-        await injector<FeralFileService>().getUpcomingDailyTokens();
+    try {
+      final listDailies =
+          await injector<FeralFileService>().getUpcomingDailyTokens();
 
-    // Filter out dailies that have the same date
-    final filteredDailies = listDailies
-        .fold<Map<String, DailyToken>>({}, (map, token) {
-          final dateKey = token.displayTime.toIso8601String().split('T')[0];
-          if (!map.containsKey(dateKey)) {
-            map[dateKey] = token;
-          }
-          return map;
-        })
-        .values
-        .toList();
+      // Filter out dailies that have the same date
+      final filteredDailies = listDailies
+          .fold<Map<String, DailyToken>>({}, (map, token) {
+            final dateKey = token.displayTime.toIso8601String().split('T')[0];
+            if (!map.containsKey(dateKey)) {
+              map[dateKey] = token;
+            }
+            return map;
+          })
+          .values
+          .toList();
 
-    await _updateDailyTokensToHomeWidget(filteredDailies);
+      await _updateDailyTokensToHomeWidget(filteredDailies);
+    } catch (e) {
+      log.info('Error in updateDailyTokensToHomeWidget: $e');
+    }
   }
 
   Future<void> _updateDailyTokensToHomeWidget(
@@ -96,9 +109,11 @@ class HomeWidgetService {
       String? base64ImageData;
       if (thumbnail != null) {
         final res = await http.get(Uri.parse(thumbnail));
-        final imageData = res.bodyBytes;
-        // convert to hex base 64
-        base64ImageData = base64Encode(imageData);
+
+        if (res.statusCode == 200) {
+          Uint8List imageBytes = res.bodyBytes;
+          base64ImageData = base64Encode(imageBytes);
+        }
       }
 
       String? base64MediumIcon;

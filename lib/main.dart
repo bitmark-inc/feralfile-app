@@ -52,10 +52,10 @@ const dailyWidgetTaskTag = 'updateDailyWidgetDataTag';
 Future<void> callbackDispatcher() async {
   Workmanager().executeTask((task, inputData) async {
     try {
-      await getSecretEnv();
-      await dotenv.load();
-      await setupHomeWidgetInjector();
       if (task == dailyWidgetTaskUniqueName || task == dailyWidgetTaskName) {
+        await getSecretEnv();
+        await dotenv.load();
+        await setupHomeWidgetInjector();
         final homeWidgetService = HomeWidgetService();
         await homeWidgetService.init();
         await homeWidgetService.updateDailyTokensToHomeWidget();
@@ -174,8 +174,9 @@ Future<void> _startBackgroundUpdate() async {
     dailyWidgetTaskUniqueName,
     dailyWidgetTaskName,
     tag: dailyWidgetTaskTag,
-    frequency: const Duration(minutes: 15),
+    frequency: const Duration(hours: 4),
     existingWorkPolicy: ExistingWorkPolicy.replace,
+    constraints: Constraints(networkType: NetworkType.connected),
   );
 }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
@@ -53,8 +55,8 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
           currentDailyToken: dailiesToken,
           currentArtist: currentArtist,
           currentExhibition: currentExhibition));
-      // update home widget
-      await injector<HomeWidgetService>().updateDailyTokensToHomeWidget();
+
+      unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     });
   }
 }
