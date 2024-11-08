@@ -115,7 +115,7 @@ class _IAPApi implements IAPApi {
     )
             .compose(
               _dio.options,
-              '/apis/v2/announcements',
+              '/apis/v2/notifications',
               queryParameters: queryParameters,
               data: _data,
             )

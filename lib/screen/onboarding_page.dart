@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
@@ -101,14 +100,6 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<ConfigurationService>()
           .setVersionInfo(packageInfo.version);
 
-      final notificationService = injector<NotificationService>();
-      unawaited(
-        notificationService.initNotification().then(
-          (_) {
-            notificationService.startListeningNotificationEvents();
-          },
-        ),
-      );
       await disableLandscapeMode();
       unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
       DailiesHelper.updateDailies([]);
@@ -124,11 +115,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _registerPushNotifications() async {
     try {
-      final isNotificationEnabled =
-          injector<ConfigurationService>().isNotificationEnabled();
-      if (isNotificationEnabled) {
-        await registerPushNotifications();
-      }
+      await registerPushNotifications();
     } catch (e, s) {
       log.info('registerPushNotifications error: $e');
       unawaited(Sentry.captureException('registerPushNotifications error: $e',

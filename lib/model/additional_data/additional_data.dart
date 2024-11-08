@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
+import 'package:autonomy_flutter/model/additional_data/daily_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
 import 'package:autonomy_flutter/model/additional_data/navigate_additional_data.dart';
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
@@ -14,23 +17,28 @@ import 'package:flutter/cupertino.dart';
 class AdditionalData {
   final NotificationType notificationType;
   final String? announcementContentId;
+  final String? linkText;
 
   AdditionalData({
     required this.notificationType,
     this.announcementContentId,
+    this.linkText,
   });
 
   bool get isTappable => false;
 
   static AdditionalData fromJson(Map<String, dynamic> json, {String? type}) {
-    final announcementContentId = json['announcementContentID'];
+    final notificationContentId = json['notification_content_id'];
     try {
       final notificationType =
           NotificationType.fromString(type ?? json['notification_type']);
+      final String? linkText = json['link_text'];
 
       final defaultAdditionalData = AdditionalData(
-          notificationType: notificationType,
-          announcementContentId: announcementContentId);
+        notificationType: notificationType,
+        announcementContentId: notificationContentId,
+        linkText: linkText,
+      );
 
       switch (notificationType) {
         case NotificationType.customerSupportNewMessage:
@@ -43,14 +51,16 @@ class AdditionalData {
           return CsViewThread(
             issueId: issueId.toString(),
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.artworkCreated:
         case NotificationType.artworkReceived:
         case NotificationType.galleryNewNft:
           return view_collection_handler.ViewCollection(
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.newMessage:
           final groupId = json['group_id'];
@@ -61,7 +71,8 @@ class AdditionalData {
           return ViewNewMessage(
             groupId: groupId,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.newPostcardTrip:
         case NotificationType.postcardShareExpired:
@@ -73,14 +84,16 @@ class AdditionalData {
           return ViewPostcard(
             indexID: indexID,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.jgCrystallineWorkHasArrived:
           final jgExhibitionId = JohnGerrardHelper.exhibitionID;
           return ViewExhibitionData(
             exhibitionId: jgExhibitionId ?? '',
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.jgCrystallineWorkGenerated:
           final tokenId = json['token_id'];
@@ -91,7 +104,8 @@ class AdditionalData {
           return JgCrystallineWorkGenerated(
             tokenId: tokenId,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.exhibitionViewingOpening:
         case NotificationType.exhibitionSalesOpening:
@@ -104,7 +118,8 @@ class AdditionalData {
           return ViewExhibitionData(
             exhibitionId: exhibitionId,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
           );
         case NotificationType.navigate:
           final navigationRoute = json['navigation_route'];
@@ -112,9 +127,24 @@ class AdditionalData {
           return NavigateAdditionalData(
             navigationRoute: navigationRoute,
             notificationType: notificationType,
-            announcementContentId: announcementContentId,
+            announcementContentId: notificationContentId,
             homeIndex: homeIndex,
+            linkText: linkText,
           );
+        case NotificationType.daily:
+          final subType = json['notification_sub_type'];
+          final dailyType = DailyNotificationType.fromString(subType ?? '');
+          if (dailyType == null) {
+            log.warning('AdditionalData: dailyType is null');
+            return defaultAdditionalData;
+          }
+          return DailyNotificationData(
+            dailyNotificationType: dailyType,
+            notificationType: notificationType,
+            announcementContentId: notificationContentId,
+            linkText: linkText,
+          );
+
         default:
           return defaultAdditionalData;
       }
@@ -122,7 +152,7 @@ class AdditionalData {
       log.info('AdditionalData: error parsing additional data');
       return AdditionalData(
           notificationType: NotificationType.general,
-          announcementContentId: announcementContentId);
+          announcementContentId: notificationContentId);
     }
   }
 
@@ -130,5 +160,5 @@ class AdditionalData {
     log.info('AdditionalData: handle tap: $notificationType');
   }
 
-  bool prepareAndDidSuccess() => true;
+  FutureOr<bool> prepareAndDidSuccess() => true;
 }

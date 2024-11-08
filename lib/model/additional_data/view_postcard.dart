@@ -17,6 +17,7 @@ class ViewPostcard extends AdditionalData {
     required this.indexID,
     required super.notificationType,
     super.announcementContentId,
+    super.linkText,
   });
 
   @override
