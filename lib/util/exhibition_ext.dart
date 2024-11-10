@@ -172,7 +172,9 @@ extension ArtworkExt on Artwork {
   String get thumbnailURL => getFFUrl(thumbnailURI);
 
   String get dailyThumbnailURL {
-    final dailyThumbnailURI = thumbnailDisplay ?? thumbnailURI;
+    final dailyThumbnailURI = (thumbnailDisplay?.isNotEmpty == true)
+        ? thumbnailDisplay!
+        : thumbnailURI;
     return getFFUrl(dailyThumbnailURI, variant: CloudFlareVariant.l.value);
   }
 
