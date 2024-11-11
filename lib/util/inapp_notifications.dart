@@ -232,6 +232,7 @@ Future<void> showNotifications(
   });
 }
 
+/// same as showInfoNotification, need to unify.
 void showInAppNotifications(BuildContext context, String body, String key,
     {Function()? notificationOpenedHandler}) {
   showSimpleNotification(
@@ -246,19 +247,21 @@ void showInAppNotifications(BuildContext context, String body, String key,
   Vibrate.feedback(FeedbackType.warning);
 }
 
+/// for in-app notification with no CTA
+/// Use case: feedback to user,
+/// example:"Address copied to clipboard.", "Connected to Chromecast TV."
+/// Auto dismiss
 void showInfoNotification(
   Key key,
   String info, {
   Duration? duration,
   Widget? frontWidget,
-  dynamic Function()? openHandler,
   List<InlineSpan>? addOnTextSpan,
 }) {
   showSimpleNotification(
       _SimpleNotificationToast(
         key: key,
         notification: info,
-        notificationOpenedHandler: openHandler,
         frontWidget: frontWidget,
         addOnTextSpan: addOnTextSpan,
       ),
