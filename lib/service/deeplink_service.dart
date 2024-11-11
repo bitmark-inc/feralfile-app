@@ -148,6 +148,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleDappConnectDeeplink(link);
         case DeepLinkHandlerType.irl:
           await _handleIRL(link);
+        case DeepLinkHandlerType.homeWidget:
+          await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.unknown:
           unawaited(_navigationService.showUnknownLink());
       }
@@ -325,6 +327,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       unawaited(_navigationService.navigateTo(AppRouter.irlWebView,
           arguments: IRLWebScreenPayload(urlDecode)));
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> _handleHomeWidgetDeeplink(String link) async {
+    log.info('[DeeplinkService] _handleHomeWidgetDeeplink');
+    final homeWidgetPrefix = Constants.homeWidgetDeepLinks
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (homeWidgetPrefix != null) {
+      final urlDecode = Uri.decodeFull(link.replaceFirst(homeWidgetPrefix, ''));
+      final uri = Uri.tryParse(urlDecode);
+      if (uri == null) {
+        return false;
+      }
+
+      final widget = uri.queryParameters['widget'];
+      switch (widget) {
+        case 'daily':
+          try {
+            await _navigationService.navigatePath(
+              AppRouter.dailyWorkPage,
+            );
+          } catch (e) {
+            log.info('[DeeplinkService] navigatePath to dailyPage error: $e');
+          }
+
+        default:
+          break;
+      }
+
       return true;
     }
 
@@ -759,6 +793,7 @@ enum DeepLinkHandlerType {
   branch,
   dAppConnect,
   irl,
+  homeWidget,
   unknown,
   ;
 
@@ -774,6 +809,11 @@ enum DeepLinkHandlerType {
 
     if (Constants.branchDeepLinks.any((prefix) => value.startsWith(prefix))) {
       return DeepLinkHandlerType.branch;
+    }
+
+    if (Constants.homeWidgetDeepLinks
+        .any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.homeWidget;
     }
 
     return DeepLinkHandlerType.unknown;
