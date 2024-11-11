@@ -52,7 +52,7 @@ class AuthService {
         platform = 'google';
       }
       payload.addAll({
-        'receipt': {'platform': platform, 'receipt_data': receiptData}
+        'inAppReceipt': {'platform': platform, 'receipt_data': receiptData}
       });
     }
     final newJwt = await _userApi.refreshJWT(payload);
