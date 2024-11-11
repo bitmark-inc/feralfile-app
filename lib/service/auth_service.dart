@@ -42,7 +42,7 @@ class AuthService {
     if (refreshToken == null || refreshToken.isEmpty) {
       throw JwtException(message: 'refresh_token_empty'.tr());
     }
-    final Map<String, dynamic> payload = {'refresh_token': refreshToken};
+    final Map<String, dynamic> payload = {'refreshToken': refreshToken};
     if (receiptData != null) {
       // add the receipt data if available
       final String platform;
