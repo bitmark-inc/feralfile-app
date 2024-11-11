@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
+import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_state.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -65,7 +66,9 @@ class _FeralfileArtworkPreviewWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final previewUrl = widget.payload.artwork.previewURL;
+    final previewUrl = testArtworkMode
+        ? testArtworkPreviewURL!
+        : widget.payload.artwork.previewURL;
     final thumbnailUrl = widget.payload.artwork.thumbnailURL;
     return BlocProvider(
       create: (_) => RetryCubit(),

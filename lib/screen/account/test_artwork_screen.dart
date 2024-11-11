@@ -1,11 +1,5 @@
-import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
-import 'package:autonomy_flutter/nft_rendering/gif_rendering_widget.dart';
-import 'package:autonomy_flutter/nft_rendering/image_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
-import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
-import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
-import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
-import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -13,6 +7,10 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+bool testArtworkMode = false;
+String? testArtworkRenderingType;
+String? testArtworkPreviewURL;
 
 class TestArtworkScreen extends StatefulWidget {
   const TestArtworkScreen({super.key});
@@ -35,7 +33,6 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
   ];
   final _urlController = TextEditingController();
   String _renderingType = RenderingTypeExtension.auto;
-  Widget? _renderingWidget;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -70,6 +67,10 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
                       }),
                   PrimaryAsyncButton(
                     onTap: () async {
+                      final isInhouse = await isAppCenterBuild();
+                      if (!isInhouse) {
+                        return;
+                      }
                       if (_urlController.text.isNotEmpty &&
                           _renderingType.isNotEmpty) {
                         String renderingType = _renderingType;
@@ -86,83 +87,27 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
                           } else {
                             renderingType = RenderingType.webview;
                           }
+
+                          setState(() {
+                            testArtworkMode = true;
+                            testArtworkRenderingType = renderingType;
+                            testArtworkPreviewURL = link;
+                          });
                         }
-
-                        Widget renderingWidget;
-                        final previewURL = link;
-
-                        switch (renderingType) {
-                          case RenderingType.image:
-                            renderingWidget = InteractiveViewer(
-                              minScale: 1,
-                              maxScale: 4,
-                              child: Center(
-                                child: ImageNFTRenderingWidget(
-                                  previewURL: previewURL,
-                                ),
-                              ),
-                            );
-                          case RenderingType.video:
-                            renderingWidget = InteractiveViewer(
-                              minScale: 1,
-                              maxScale: 4,
-                              child: Center(
-                                child: VideoNFTRenderingWidget(
-                                  previewURL: previewURL,
-                                ),
-                              ),
-                            );
-                          case RenderingType.gif:
-                            renderingWidget = InteractiveViewer(
-                              minScale: 1,
-                              maxScale: 4,
-                              child: Center(
-                                child: GifNFTRenderingWidget(
-                                  previewURL: previewURL,
-                                ),
-                              ),
-                            );
-                          case RenderingType.svg:
-                            renderingWidget = InteractiveViewer(
-                              minScale: 1,
-                              maxScale: 4,
-                              child: Center(
-                                  child: SVGNFTRenderingWidget(
-                                      previewURL: previewURL)),
-                            );
-                          case RenderingType.pdf:
-                            renderingWidget = Center(
-                              child: PDFNFTRenderingWidget(
-                                previewURL: previewURL,
-                              ),
-                            );
-                          case RenderingType.audio:
-                            renderingWidget = Center(
-                              child: AudioNFTRenderingWidget(
-                                previewURL: previewURL,
-                              ),
-                            );
-                          default:
-                            renderingWidget = Center(
-                              child: WebviewNFTRenderingWidget(
-                                previewURL: previewURL,
-                              ),
-                            );
-                        }
-
-                        setState(() {
-                          _renderingWidget = renderingWidget;
-                        });
                       }
                     },
                     text: 'test_artwork'.tr(),
                   ),
-                  Visibility(
-                    visible: _renderingWidget != null,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: _renderingWidget,
-                    ),
+                  PrimaryButton(
+                    enabled: testArtworkMode,
+                    onTap: () {
+                      setState(() {
+                        testArtworkMode = false;
+                        testArtworkRenderingType = null;
+                        testArtworkPreviewURL = null;
+                      });
+                    },
+                    text: 'Turn off test artwork mode',
                   ),
                 ],
               ),

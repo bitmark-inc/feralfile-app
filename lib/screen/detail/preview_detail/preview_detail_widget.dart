@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/nft_rendering/pdf_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/video_player_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
+import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
@@ -131,9 +132,17 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             alignment: Alignment.center,
                             child: PostcardRatio(assetToken: assetToken));
                       }
-                      final previewURL = assetToken.getPreviewUrl() ?? '';
+                      late final String previewURL;
+                      late final String mimeType;
+                      if (testArtworkMode) {
+                        previewURL = testArtworkPreviewURL!;
+                        mimeType = testArtworkRenderingType!;
+                      } else {
+                        previewURL = assetToken.getPreviewUrl() ?? '';
+                        mimeType = assetToken.getMimeType;
+                      }
 
-                      switch (assetToken.getMimeType) {
+                      switch (mimeType) {
                         case RenderingType.image:
                           _currentRenderingWidget = ImageNFTRenderingWidget(
                             key: _artworkKey,
