@@ -20,8 +20,8 @@ enum NotificationDataType {
   exhibitionSalesOpening,
   exhibitionSaleClosing,
   navigate,
-  general,
   dailyArtworkReminders,
+  general,
   ;
 
   // toString method

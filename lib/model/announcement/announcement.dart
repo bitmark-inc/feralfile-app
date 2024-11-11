@@ -9,7 +9,7 @@ class Announcement extends ChatThread {
   final DateTime startedAt;
   final DateTime endedAt;
   final String? imageURL;
-  final String? notificationType;
+  final NotificationSettingType? notificationType;
   final String? deliveryTimeOfDay;
   final bool inAppEnabled;
 
@@ -34,7 +34,8 @@ class Announcement extends ChatThread {
         endedAt: DateTime.tryParse(json['endedAt'] ?? '') ??
             DateTime.now().add(const Duration(days: 365)),
         imageURL: json['imageURL'],
-        notificationType: json['notificationType'],
+        notificationType:
+            NotificationSettingType.fromString(json['notificationType'] ?? ''),
         deliveryTimeOfDay: json['deliveryTimeOfDay'],
         inAppEnabled: json['inAppEnabled'],
       );
@@ -49,7 +50,4 @@ class Announcement extends ChatThread {
 
   @override
   DateTime get sortTime => startedAt;
-
-  NotificationSettingType? get notificationSettingType =>
-      NotificationSettingType.fromString(notificationType ?? '');
 }
