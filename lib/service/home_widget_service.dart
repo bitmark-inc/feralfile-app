@@ -25,9 +25,6 @@ class HomeWidgetService {
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
-    HomeWidget.widgetClicked.listen((widgetName) {
-      log.info('[HomeWidgetService] Widget clicked: $widgetName');
-    });
   }
 
   Future<void> updateWidget(
