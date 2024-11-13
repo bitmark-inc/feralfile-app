@@ -30,7 +30,7 @@ class IndexerCollectionPage extends StatefulWidget {
 }
 
 class _IndexerCollectionPageState extends State<IndexerCollectionPage> {
-  late final IndexerCollectionBloc _feralFileSeriesBloc;
+  late final IndexerCollectionBloc _indexerCollectionBloc;
   static const _padding = 14.0;
   static const _axisSpacing = 5.0;
   final PagingController<int, AssetToken> _pagingController =
@@ -39,8 +39,8 @@ class _IndexerCollectionPageState extends State<IndexerCollectionPage> {
   @override
   void initState() {
     super.initState();
-    _feralFileSeriesBloc = context.read<IndexerCollectionBloc>();
-    _feralFileSeriesBloc
+    _indexerCollectionBloc = context.read<IndexerCollectionBloc>();
+    _indexerCollectionBloc
         .add(IndexerCollectionGetCollectionEvent(widget.payload.collection.id));
     _pagingController.addPageRequestListener((pageKey) async {
       await _fetchPage(context, pageKey);
