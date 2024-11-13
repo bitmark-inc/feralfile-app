@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
@@ -20,7 +19,7 @@ class Exhibition {
   final String note;
 
   final String? coverURI;
-  final String? thumbnailCoverURI;
+  final String? coverDisplay;
   final String mintBlockchain;
   final AlumniAccount? curatorAlumni;
   final List<AlumniAccount>? curatorsAlumni;
@@ -45,7 +44,7 @@ class Exhibition {
     required this.type,
     required this.status,
     this.coverURI,
-    this.thumbnailCoverURI,
+    this.coverDisplay,
     this.curatorsAlumni,
     this.artistsAlumni,
     this.series,
@@ -65,7 +64,6 @@ class Exhibition {
         noteBrief: json['noteBrief'] as String,
         note: json['note'] as String,
         coverURI: json['coverURI'] as String?,
-        thumbnailCoverURI: json['thumbnailCoverURI'] as String?,
         curatorsAlumni: (json['curatorsAlumni'] as List<dynamic>?)
             ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -85,7 +83,8 @@ class Exhibition {
         type: json['type'] as String,
         curatorAlumni: json['curatorAlumni'] == null
             ? null
-            : AlumniAccount.fromJson(json['curatorAlumni'] as Map<String, dynamic>),
+            : AlumniAccount.fromJson(
+                json['curatorAlumni'] as Map<String, dynamic>),
         posts: (json['posts'] as List<dynamic>?)
             ?.map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -102,7 +101,6 @@ class Exhibition {
         'noteBrief': noteBrief,
         'note': note,
         'coverURI': coverURI,
-        'thumbnailCoverURI': thumbnailCoverURI,
         'curatorsAlumni': curatorsAlumni?.map((e) => e.toJson()).toList(),
         'artistsAlumni': artistsAlumni?.map((e) => e.toJson()).toList(),
         'series': series?.map((e) => e.toJson()).toList(),
@@ -114,9 +112,6 @@ class Exhibition {
         'posts': posts?.map((e) => e.toJson()).toList(),
         'status': status,
       };
-
-  String getThumbnailURL() =>
-      '${Environment.feralFileAssetURL}/$thumbnailCoverURI';
 
   Exhibition copyWith({
     String? id,
@@ -150,7 +145,6 @@ class Exhibition {
         noteBrief: noteBrief ?? this.noteBrief,
         note: note ?? this.note,
         coverURI: coverURI ?? this.coverURI,
-        thumbnailCoverURI: thumbnailCoverURI ?? this.thumbnailCoverURI,
         mintBlockchain: mintBlockchain ?? this.mintBlockchain,
         curatorAlumni: curatorAlumni ?? this.curatorAlumni,
         curatorsAlumni: curatorsAlumni ?? this.curatorsAlumni,
