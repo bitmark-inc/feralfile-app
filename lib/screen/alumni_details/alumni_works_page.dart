@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/alumni_details/alumni_details_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
@@ -11,6 +12,7 @@ import 'package:autonomy_flutter/view/loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/models/user_collection.dart';
 
 class AlumniWorksPagePayload {
   final AlumniAccount alumni;
@@ -29,14 +31,20 @@ class AlumniWorksPage extends StatefulWidget {
 
 class _AlumniWorksPageState extends State<AlumniWorksPage> {
   List<FFSeries>? _seriesList;
+  List<UserCollection>? _userCollections;
 
   Future<List<FFSeries>> _fetchSeriesList() async {
     final alumni = widget.payload.alumni;
     final response = await injector<FeralFileService>().exploreArtworks(
       artistIds: alumni.allRelatedAccountIDs,
     );
+
+    final indexerCollections =
+        await getIndexerUserCollections(alumni.allRelatedAddresses);
+
     setState(() {
       _seriesList = response.result;
+      _userCollections = indexerCollections;
     });
     return response.result;
   }
@@ -93,7 +101,9 @@ class _AlumniWorksPageState extends State<AlumniWorksPage> {
     }
     return SeriesView(
       series: seriesList,
+      userCollections: _userCollections ?? [],
       padding: const EdgeInsets.only(bottom: 48),
+      artist: widget.payload.alumni,
     );
   }
 }

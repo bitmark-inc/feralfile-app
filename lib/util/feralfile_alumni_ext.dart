@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/util/alias_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:collection/collection.dart';
 
 extension AlumniAccountExt on AlumniAccount {
   String get displayAlias =>
@@ -78,5 +79,11 @@ extension AlumniAccountExt on AlumniAccount {
     }
 
     return accountIDs;
+  }
+
+  List<String> get allRelatedAddresses {
+    final addresses = addressesList.whereNotNull().toList()
+      ..addAll(associatedAddresses ?? []);
+    return addresses;
   }
 }

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -139,7 +140,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             ),
             builderDelegate: PagedChildBuilderDelegate<Artwork>(
               itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
-                artwork: artwork,
+                url: artwork.dailyThumbnailURL,
                 cacheWidth: cacheWidth,
                 cacheHeight: cacheHeight,
                 onTap: () async {

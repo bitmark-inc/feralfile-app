@@ -3,8 +3,9 @@ import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:nft_collection/models/user_collection.dart';
 
-class FFSeries {
+class FFSeries extends ArtistCollection {
   final String id;
   final String artistAlumniAccountID;
   final String? assetID;

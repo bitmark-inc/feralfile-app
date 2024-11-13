@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:nft_collection/models/user_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AlumniDetailsPagePayload {
@@ -98,6 +99,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
             context,
             user,
             series ?? [],
+            state.userCollections,
           ),
         if ((state.exhibitions?.length ?? 0) > 0) ...[
           const SliverToBoxAdapter(
@@ -275,8 +277,8 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
     ));
   }
 
-  List<Widget> _workSection(
-      BuildContext context, AlumniAccount alumni, List<FFSeries> series) {
+  List<Widget> _workSection(BuildContext context, AlumniAccount alumni,
+      List<FFSeries> series, List<UserCollection> userCollections) {
     final header =
         _header(context, title: 'works'.tr(), subtitle: '${series.length}');
     final viewAll = PrimaryAsyncButton(
@@ -298,7 +300,9 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
                 series: series.length > viewALlBreakpoint
                     ? series.sublist(0, viewALlBreakpoint)
                     : series,
+                userCollections: userCollections,
                 isScrollable: false,
+                artist: alumni,
               ),
             ),
           ],
