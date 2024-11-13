@@ -10,7 +10,9 @@ import 'dart:async';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/preferences_statresponsive.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
+import 'package:autonomy_flutter/view/au_toggle.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -79,32 +81,6 @@ class PreferenceView extends StatelessWidget {
         ],
       );
     });
-  }
-
-  Widget _preferenceItem(BuildContext context, String title, String description,
-      bool isEnabled, ValueChanged<bool> onChanged) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: theme.textTheme.ppMori400Black16),
-            AuToggle(
-              value: isEnabled,
-              onToggle: onChanged,
-            ),
-          ],
-        ),
-        const SizedBox(height: 7),
-        Text(
-          description,
-          style: theme.textTheme.ppMori400Black14,
-        ),
-      ],
-    );
   }
 
   Widget _preferenceItemWithBuilder(BuildContext context, String title,
