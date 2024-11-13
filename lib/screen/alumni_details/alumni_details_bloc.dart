@@ -27,8 +27,6 @@ class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
 
       final indexerCollections =
           await getIndexerUserCollections(alumni.allRelatedAddresses);
-      final userCollections =
-          await mergeCollectionAndSeries(indexerCollections, artworks.result);
       final exhibitions = await _feralFileService.getAllExhibitions(
         relatedAlumniAccountIDs: alumni.allRelatedAccountIDs,
       );
@@ -61,16 +59,4 @@ Future<List<UserCollection>> getIndexerUserCollections(
     collections.addAll(collection);
   }
   return collections;
-}
-
-Future<List<ArtistCollection>> mergeCollectionAndSeries(
-    List<UserCollection> collections, List<FFSeries> series) async {
-  final List<ArtistCollection> result = [];
-  for (var collection in collections) {
-    final isDuplicated = false;
-    if (!isDuplicated) {
-      result.add(collection);
-    }
-  }
-  return result;
 }

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_post_view.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/alumni_widget.dart';
@@ -279,8 +280,10 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
 
   List<Widget> _workSection(BuildContext context, AlumniAccount alumni,
       List<FFSeries> series, List<UserCollection> userCollections) {
-    final header =
-        _header(context, title: 'works'.tr(), subtitle: '${series.length}');
+    final listSeriesAndColections =
+        series.mergeIndexerCollection(userCollections);
+    final header = _header(context,
+        title: 'works'.tr(), subtitle: '${listSeriesAndColections.length}');
     final viewAll = PrimaryAsyncButton(
       color: AppColor.white,
       onTap: () {
@@ -297,10 +300,9 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
           children: [
             Expanded(
               child: SeriesView(
-                series: series.length > viewALlBreakpoint
-                    ? series.sublist(0, viewALlBreakpoint)
-                    : series,
+                series: series,
                 userCollections: userCollections,
+                limit: viewALlBreakpoint,
                 isScrollable: false,
                 artist: alumni,
               ),
@@ -314,7 +316,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: series.length > viewALlBreakpoint
+        child: listSeriesAndColections.length > viewALlBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,

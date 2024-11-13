@@ -5,6 +5,24 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:nft_collection/models/user_collection.dart';
 
+class SecondaryMarket {
+  final String name;
+  final String url;
+
+  SecondaryMarket(this.name, this.url);
+
+  factory SecondaryMarket.fromJson(Map<String, dynamic> json) =>
+      SecondaryMarket(
+        json['name'] as String,
+        json['url'] as String,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'url': url,
+      };
+}
+
 class FFSeries extends ArtistCollection {
   final String id;
   final String artistAlumniAccountID;
