@@ -10,10 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_statresponsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -33,27 +30,6 @@ class PreferenceView extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: padding,
-            child: _preferenceItem(
-              context,
-              state.authMethodName,
-              'use_device_passcode'.tr(args: [
-                if (state.authMethodName != 'device_passcode'.tr())
-                  state.authMethodName
-                else
-                  'device_passcode'.tr()
-              ]),
-              state.isDevicePasscodeEnabled,
-              (value) {
-                final newState = state.copyWith(isDevicePasscodeEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-          ),
-          addDivider(),
           Padding(
             padding: padding,
             child: _preferenceItemWithBuilder(
