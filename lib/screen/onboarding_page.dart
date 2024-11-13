@@ -184,7 +184,9 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<dynamic> _loginWithPasskey() async {
     try {
+      log.info('Login with passkey');
       await _loginAndMigrate();
+      log.info('Login with passkey done');
       return true;
     } catch (e, s) {
       log.info('Failed to login with passkey: $e');
@@ -200,16 +202,28 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _loginAndMigrate() async {
+    log.info('Login and migrate');
     await injector<AccountService>().migrateAccount(() async {
-      final localResponse = await _passkeyService.logInInitiate();
-      await _passkeyService.logInFinalize(localResponse);
+      try {
+        log.info('[_loginAndMigrate] create JWT token');
+        final localResponse = await _passkeyService.logInInitiate();
+        await _passkeyService.logInFinalize(localResponse);
+        log.info('[_loginAndMigrate] create JWT token done');
+      } catch (e, s) {
+        log.info('Failed to create login JWT: $e');
+        unawaited(Sentry.captureException(e, stackTrace: s));
+        rethrow;
+      }
     });
+    log.info('Login and migrate done');
   }
 
   Future<dynamic> _registerPasskey() async {
+    log.info('Register passkey');
     _passkeyService.isShowingLoginDialog.value = true;
     final result = await UIHelper.showPasskeyRegisterDialog(context);
     _passkeyService.isShowingLoginDialog.value = false;
+    log.info('Register passkey done, result: $result');
     return result;
   }
 
