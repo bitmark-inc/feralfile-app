@@ -284,7 +284,7 @@ String getFFUrl(String uri, {String? variant}) {
       return uri;
     }
 
-    return '$uri/${variant ?? CloudFlareVariant.l.value}';
+    return '$uri/${variant ?? CloudFlareVariant.m.value}';
   }
 
   // case 2 => full cdn
