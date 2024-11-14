@@ -14,7 +14,9 @@ import 'package:passkeys/types.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class PasskeyService {
-  Future<bool> isPassKeyAvailable();
+  Future<bool> doesOSSupport();
+
+  Future<bool> canAuthenticate();
 
   Future<AuthenticateResponseType> logInInitiate();
 
@@ -57,10 +59,7 @@ class PasskeyServiceImpl implements PasskeyService {
   ValueNotifier<bool> get isShowingLoginDialog => _isShowingLoginDialog;
 
   @override
-  Future<bool> isPassKeyAvailable() async =>
-      await _passkeyAuthenticator.canAuthenticate() && await _doesOSSupport();
-
-  Future<bool> _doesOSSupport() async {
+  Future<bool> doesOSSupport() async {
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
@@ -73,6 +72,10 @@ class PasskeyServiceImpl implements PasskeyService {
       return (int.tryParse(osVersion) ?? 0) >= 16;
     }
   }
+
+  @override
+  Future<bool> canAuthenticate() async =>
+      await _passkeyAuthenticator.canAuthenticate();
 
   @override
   Future<AuthenticateResponseType> logInInitiate() async {

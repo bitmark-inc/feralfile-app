@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -54,6 +55,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -1064,66 +1066,129 @@ class NavigationService {
     final walletStorage = uuid == null ? null : WalletStorage(uuid);
     if (context.mounted) {
       await UIHelper.showCenterSheet(context,
-          content: Padding(
+          content: PopScope(
+            canPop: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'upgrade_required'.tr(),
+                    style: Theme.of(context).textTheme.ppMori700White24,
+                  ),
+                  const SizedBox(height: 50),
+                  Text(
+                    'your_device_not_support_passkey_desc'.tr(),
+                    style: Theme.of(context).textTheme.ppMori400White14,
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('1. ',
+                            style:
+                                Theme.of(context).textTheme.ppMori400White14),
+                        Expanded(
+                          child: Text(
+                            'step_1_backup_recovery'.tr(),
+                            style: Theme.of(context).textTheme.ppMori400White14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('2. ',
+                            style:
+                                Theme.of(context).textTheme.ppMori400White14),
+                        Expanded(
+                          child: Text(
+                            'step_2_move_to_another_wallet'.tr(),
+                            style: Theme.of(context).textTheme.ppMori400White14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Column(
+                    children: [
+                      PrimaryButton(
+                        text: 'backup_recovery_phrase'.tr(),
+                        onTap: walletStorage == null
+                            ? null
+                            : () {
+                                navigateTo(AppRouter.recoveryPhrasePage,
+                                    arguments: RecoveryPhrasePayload(
+                                        wallet: walletStorage));
+                              },
+                      ),
+                      const SizedBox(height: 20),
+                      GestureDetector(
+                        child: Text('need_help'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .ppMori400White14
+                                .copyWith(
+                                  color: AppColor.auQuickSilver,
+                                  decoration: TextDecoration.underline,
+                                )),
+                        onTap: () {
+                          navigateTo(
+                            AppRouter.supportThreadPage,
+                            arguments: NewIssuePayload(
+                                reportIssueType: ReportIssueType.Bug),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          backgroundColor: AppColor.auGreyBackground,
+          withExitButton: false,
+          verticalPadding: 0);
+    }
+  }
+
+  Future<void> showAuthenticationUpdateRequired() async {
+    await UIHelper.showCenterSheet(context,
+        content: PopScope(
+          canPop: false,
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'upgrade_required'.tr(),
+                  'authentication_update_required'.tr(),
                   style: Theme.of(context).textTheme.ppMori700White24,
                 ),
                 const SizedBox(height: 50),
                 Text(
-                  'your_device_not_support_passkey_desc'.tr(),
+                  Platform.isAndroid
+                      ? 'authentication_update_required_desc_android'.tr()
+                      : 'authentication_update_required_desc_ios'.tr(),
                   style: Theme.of(context).textTheme.ppMori400White14,
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('1. ',
-                          style: Theme.of(context).textTheme.ppMori400White14),
-                      Expanded(
-                        child: Text(
-                          'step_1_backup_recovery'.tr(),
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('2. ',
-                          style: Theme.of(context).textTheme.ppMori400White14),
-                      Expanded(
-                        child: Text(
-                          'step_2_move_to_another_wallet'.tr(),
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 const SizedBox(height: 20),
                 Column(
                   children: [
                     PrimaryButton(
-                      text: 'backup_recovery_phrase'.tr(),
-                      onTap: walletStorage == null
-                          ? null
-                          : () {
-                              navigateTo(AppRouter.recoveryPhrasePage,
-                                  arguments: RecoveryPhrasePayload(
-                                      wallet: walletStorage));
-                            },
+                      text: 'go_to_settings'.tr(),
+                      onTap: () async {
+                        await openAppSettings();
+                      },
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
@@ -1148,9 +1213,9 @@ class NavigationService {
               ],
             ),
           ),
-          backgroundColor: AppColor.auGreyBackground,
-          withExitButton: false,
-          verticalPadding: 0);
-    }
+        ),
+        backgroundColor: AppColor.auGreyBackground,
+        withExitButton: false,
+        verticalPadding: 0);
   }
 }
