@@ -432,6 +432,7 @@ class FeralFileServiceImpl extends FeralFileService {
         null,
         previewURI ?? '',
         {},
+        {},
         DateTime.now(),
         DateTime.now(),
         DateTime.now(),
@@ -748,6 +749,7 @@ class FeralFileServiceImpl extends FeralFileService {
         'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
         null,
         'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+        {},
         {
           'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
         },
