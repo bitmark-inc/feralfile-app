@@ -127,6 +127,10 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
   _i5.Future<void> sendEvent(
     Map<String, dynamic>? metrics,
     String? deviceId,
+    String? deviceName,
+    String? deviceVendor,
+    String? deviceModel,
+    String? devicePlatform,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -134,6 +138,10 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
           [
             metrics,
             deviceId,
+            deviceName,
+            deviceVendor,
+            deviceModel,
+            devicePlatform,
           ],
         ),
         returnValue: _i5.Future<void>.value(),

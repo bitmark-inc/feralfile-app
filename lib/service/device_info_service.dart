@@ -13,6 +13,7 @@ import 'package:uuid/uuid.dart';
 class DeviceInfoService {
   String _deviceId = '';
   String _deviceName = '';
+  String _deviceModel = '';
   String _deviceVendor = '';
   String _deviceOSName = '';
   String _deviceOSVersion = '';
@@ -29,9 +30,10 @@ class DeviceInfoService {
     // Get device name, id and OS information
     try {
       final device = DeviceInfo.instance;
-      _deviceName = await device.getMachineName() ?? 'Feral File App';
       _deviceId = await getDeviceID();
       final deviceInfo = await device.getUserDeviceInfo();
+      _deviceName = deviceInfo.name;
+      _deviceModel = deviceInfo.model;
       _deviceVendor = deviceInfo.vendor;
       _deviceOSName = deviceInfo.osName;
       _deviceOSVersion = deviceInfo.oSVersion;
@@ -53,6 +55,7 @@ class DeviceInfoService {
   String get deviceId => _deviceId;
 
   String get deviceName => _deviceName;
+  String get deviceModel => _deviceModel;
   String get deviceVendor => _deviceVendor;
 
   // OS related information
