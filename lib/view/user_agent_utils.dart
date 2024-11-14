@@ -113,27 +113,31 @@ class _MobileInfo extends IDeviceInfo {
   Future<UserDeviceInfo> getUserDeviceInfo() async {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
-      final machineName = androidInfo.model;
-      const name = 'Android';
-      final vendor = androidInfo.brand;
-      final version = androidInfo.version.release;
-      return UserDeviceInfo(machineName, vendor, name, version);
+      final model = androidInfo.model;
+      final vendor = androidInfo.manufacturer;
+      final name = '$vendor ${androidInfo.brand} $model';
+      const osName = 'Android';
+      final osVersion = androidInfo.version.release;
+      return UserDeviceInfo(name, model, vendor, osName, osVersion);
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
-      final machineName = iOSInfo.utsname.machine;
-      const name = 'iOS';
+      final model = iOSInfo.utsname.machine;
       const vendor = 'Apple';
-      final version = iOSInfo.systemVersion;
-      return UserDeviceInfo(machineName, vendor, name, version);
+      final name = '$vendor $model';
+      const osName = 'iOS';
+      final osVersion = iOSInfo.systemVersion;
+      return UserDeviceInfo(name, model, vendor, osName, osVersion);
     }
   }
 }
 
 class UserDeviceInfo {
-  final String machineName;
+  final String name;
+  final String model;
   final String vendor;
   final String osName;
   final String oSVersion;
 
-  UserDeviceInfo(this.machineName, this.vendor, this.osName, this.oSVersion);
+  UserDeviceInfo(this.name, this.model, this.vendor, this.osName,
+      this.oSVersion);
 }
