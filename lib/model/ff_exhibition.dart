@@ -64,6 +64,7 @@ class Exhibition {
         noteBrief: json['noteBrief'] as String,
         note: json['note'] as String,
         coverURI: json['coverURI'] as String?,
+        coverDisplay: json['coverDisplay'] as String?,
         curatorsAlumni: (json['curatorsAlumni'] as List<dynamic>?)
             ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -101,6 +102,7 @@ class Exhibition {
         'noteBrief': noteBrief,
         'note': note,
         'coverURI': coverURI,
+        'coverDisplay': coverDisplay,
         'curatorsAlumni': curatorsAlumni?.map((e) => e.toJson()).toList(),
         'artistsAlumni': artistsAlumni?.map((e) => e.toJson()).toList(),
         'series': series?.map((e) => e.toJson()).toList(),
@@ -123,6 +125,7 @@ class Exhibition {
     String? noteBrief,
     String? note,
     String? coverURI,
+    String? coverDisplay,
     String? thumbnailCoverURI,
     String? mintBlockchain,
     AlumniAccount? curatorAlumni,
@@ -145,6 +148,7 @@ class Exhibition {
         noteBrief: noteBrief ?? this.noteBrief,
         note: note ?? this.note,
         coverURI: coverURI ?? this.coverURI,
+        coverDisplay: coverDisplay ?? this.coverDisplay,
         mintBlockchain: mintBlockchain ?? this.mintBlockchain,
         curatorAlumni: curatorAlumni ?? this.curatorAlumni,
         curatorsAlumni: curatorsAlumni ?? this.curatorsAlumni,

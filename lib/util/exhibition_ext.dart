@@ -21,10 +21,8 @@ import 'package:sentry/sentry.dart';
 
 extension ExhibitionExt on Exhibition {
   String get coverUrl {
-    if (coverDisplay?.isNotEmpty == true) {
-      return getFFUrl(coverDisplay!);
-    }
-    return '${Environment.feralFileAssetURL}/$coverURI';
+    final uri = (coverDisplay?.isNotEmpty == true) ? coverDisplay! : coverURI;
+    return getFFUrl(uri ?? '');
   }
 
   bool get isGroupExhibition => type == 'group';
