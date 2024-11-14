@@ -182,8 +182,26 @@ extension ArtworkExt on Artwork {
   String get previewURL {
     final displayUri =
         Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
-    final uri = (displayUri?.isNotEmpty == true) ? displayUri! : previewURI;
+    final brandWidth = injector<RemoteConfigService>().getConfig<double?>(
+      ConfigGroup.videoSettings,
+      ConfigKey.clientBandwidthHint,
+      null,
+    );
+    final uri = (displayUri?.isNotEmpty == true)
+        ? _urlWithClientBandwidthHint(displayUri!, brandWidth)
+        : previewURI;
     return getFFUrl(uri);
+  }
+
+  String _urlWithClientBandwidthHint(String uri, double? bandwidth) {
+    final queryParameters = <String, String>{};
+    if (bandwidth != null) {
+      queryParameters['bandwidth'] = bandwidth.toString();
+    }
+    final urlWithClientBandwidthHint = Uri.tryParse(uri)?.replace(
+      queryParameters: queryParameters,
+    );
+    return urlWithClientBandwidthHint.toString();
   }
 
   bool get isScrollablePreviewURL {
