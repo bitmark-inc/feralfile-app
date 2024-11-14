@@ -63,7 +63,6 @@ class MetricClientService {
         ...rawData,
         'platform': platform,
         'device': {
-          'osName': injector<DeviceInfoService>().deviceOSName,
           'osVersion': injector<DeviceInfoService>().deviceOSVersion,
         },
       }
