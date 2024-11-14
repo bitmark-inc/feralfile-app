@@ -47,6 +47,10 @@ abstract class IAPApi {
   Future<void> sendEvent(
     @Body() Map<String, dynamic> metrics,
     @Header('x-device-id') String deviceId,
+    @Header('x-device-name') String deviceName,
+    @Header('x-device-vendor') String deviceVendor,
+    @Header('x-device-model') String deviceModel,
+    @Header('x-device-platform') String devicePlatform,
   );
 
   @DELETE('/apis/metric-devices/{id}')
