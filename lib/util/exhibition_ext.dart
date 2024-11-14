@@ -22,7 +22,7 @@ import 'package:sentry/sentry.dart';
 extension ExhibitionExt on Exhibition {
   String get coverUrl {
     final uri = (coverDisplay?.isNotEmpty == true) ? coverDisplay! : coverURI;
-    return getFFUrl(uri ?? '');
+    return getFFUrl(uri);
   }
 
   bool get isGroupExhibition => type == 'group';

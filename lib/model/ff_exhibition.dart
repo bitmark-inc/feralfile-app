@@ -18,7 +18,7 @@ class Exhibition {
   final String noteBrief;
   final String note;
 
-  final String? coverURI;
+  final String coverURI;
   final String? coverDisplay;
   final String mintBlockchain;
   final AlumniAccount? curatorAlumni;
@@ -43,7 +43,7 @@ class Exhibition {
     required this.mintBlockchain,
     required this.type,
     required this.status,
-    this.coverURI,
+    required this.coverURI,
     this.coverDisplay,
     this.curatorsAlumni,
     this.artistsAlumni,
@@ -63,7 +63,7 @@ class Exhibition {
         noteTitle: json['noteTitle'] as String,
         noteBrief: json['noteBrief'] as String,
         note: json['note'] as String,
-        coverURI: json['coverURI'] as String?,
+        coverURI: json['coverURI'] as String,
         coverDisplay: json['coverDisplay'] as String?,
         curatorsAlumni: (json['curatorsAlumni'] as List<dynamic>?)
             ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))

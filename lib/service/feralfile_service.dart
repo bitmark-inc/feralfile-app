@@ -513,7 +513,7 @@ class FeralFileServiceImpl extends FeralFileService {
   String _getThumbnailURI(FFSeries series, int artworkIndex) =>
       series.uniqueThumbnailPath != null
           ? '${series.uniqueThumbnailPath}/$artworkIndex-large.jpg'
-          : series.thumbnailURI ?? '';
+          : series.thumbnailURI;
 
   Future<FeralFileListResponse<Artwork>> _fakeSeriesArtworks(
       String seriesId, Exhibition exhibition,

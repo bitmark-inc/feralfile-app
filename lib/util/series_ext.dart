@@ -45,11 +45,8 @@ extension FFSeriesExt on FFSeries {
 
   String? get thumbnailUrl {
     final uri = (thumbnailDisplay?.isNotEmpty ?? false)
-        ? thumbnailDisplay
+        ? thumbnailDisplay!
         : thumbnailURI;
-    if (uri == null || uri.isEmpty) {
-      return null;
-    }
     return getFFUrl(uri);
   }
 }

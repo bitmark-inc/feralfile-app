@@ -12,7 +12,7 @@ class FFSeries {
   final String? slug;
   final String medium;
   final String? description;
-  final String? thumbnailURI;
+  final String thumbnailURI;
   final String? thumbnailDisplay;
   final String exhibitionID;
   final Map<String, dynamic>? metadata;
@@ -75,7 +75,7 @@ class FFSeries {
         json['slug'] as String?,
         json['medium'] as String,
         json['description'] as String?,
-        json['thumbnailURI'] as String?,
+        json['thumbnailURI'] as String,
         json['thumbnailDisplay'] as String?,
         json['exhibitionID'] as String,
         json['metadata'] as Map<String, dynamic>?,
