@@ -166,7 +166,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<bool> _loginProcess() async {
     final doesOSSupport = await _passkeyService.doesOSSupport();
-    final canAuthenticate = false; //await _passkeyService.canAuthenticate();
+    final canAuthenticate = await _passkeyService.canAuthenticate();
     if (!doesOSSupport || !canAuthenticate) {
       if (!doesOSSupport) {
         log.info('OS does not support passkey');
