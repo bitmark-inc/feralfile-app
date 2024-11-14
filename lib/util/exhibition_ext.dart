@@ -20,7 +20,10 @@ import 'package:collection/collection.dart';
 import 'package:sentry/sentry.dart';
 
 extension ExhibitionExt on Exhibition {
-  String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
+  String get coverUrl {
+    final uri = (coverDisplay?.isNotEmpty == true) ? coverDisplay! : coverURI;
+    return getFFUrl(uri);
+  }
 
   bool get isGroupExhibition => type == 'group';
 
@@ -169,13 +172,11 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 
 // Artwork Ext
 extension ArtworkExt on Artwork {
-  String get thumbnailURL => getFFUrl(thumbnailURI);
-
-  String get dailyThumbnailURL {
-    final dailyThumbnailURI = (thumbnailDisplay?.isNotEmpty == true)
+  String get thumbnailURL {
+    final uri = (thumbnailDisplay?.isNotEmpty == true)
         ? thumbnailDisplay!
         : thumbnailURI;
-    return getFFUrl(dailyThumbnailURI, variant: CloudFlareVariant.l.value);
+    return getFFUrl(uri, variant: CloudFlareVariant.l.value);
   }
 
   String get previewURL => getFFUrl(previewURI);
@@ -273,7 +274,7 @@ extension ArtworkExt on Artwork {
   }
 }
 
-String getFFUrl(String uri, {String variant = 'thumbnailLarge'}) {
+String getFFUrl(String uri, {String? variant}) {
   // case 1: cloudflare
   if (uri.startsWith(cloudFlarePrefix)) {
     final imageVariant = getVariantFromCloudFlareImageUrl(uri);
@@ -281,7 +282,7 @@ String getFFUrl(String uri, {String variant = 'thumbnailLarge'}) {
       return uri;
     }
 
-    return '$uri/$variant';
+    return '$uri/${variant ?? CloudFlareVariant.m.value}';
   }
 
   // case 2 => full cdn

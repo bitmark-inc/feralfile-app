@@ -12,7 +12,8 @@ class FFSeries {
   final String? slug;
   final String medium;
   final String? description;
-  final String? thumbnailURI;
+  final String thumbnailURI;
+  final String? thumbnailDisplay;
   final String exhibitionID;
   final Map<String, dynamic>? metadata;
   final int? displayIndex;
@@ -41,6 +42,7 @@ class FFSeries {
     this.medium,
     this.description,
     this.thumbnailURI,
+    this.thumbnailDisplay,
     this.exhibitionID,
     this.metadata,
     this.settings,
@@ -73,7 +75,8 @@ class FFSeries {
         json['slug'] as String?,
         json['medium'] as String,
         json['description'] as String?,
-        json['thumbnailURI'] as String?,
+        json['thumbnailURI'] as String,
+        json['thumbnailDisplay'] as String?,
         json['exhibitionID'] as String,
         json['metadata'] as Map<String, dynamic>?,
         json['settings'] == null
@@ -155,6 +158,7 @@ class FFSeries {
     String? medium,
     String? description,
     String? thumbnailURI,
+    String? thumbnailDisplay,
     String? exhibitionID,
     Map<String, dynamic>? metadata,
     int? displayIndex,
@@ -183,6 +187,7 @@ class FFSeries {
         medium ?? this.medium,
         description ?? this.description,
         thumbnailURI ?? this.thumbnailURI,
+        thumbnailDisplay ?? this.thumbnailDisplay,
         exhibitionID ?? this.exhibitionID,
         metadata ?? this.metadata,
         settings ?? this.settings,
