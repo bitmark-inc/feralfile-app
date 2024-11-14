@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -178,7 +179,12 @@ extension ArtworkExt on Artwork {
     return getFFUrl(dailyThumbnailURI, variant: CloudFlareVariant.l.value);
   }
 
-  String get previewURL => getFFUrl(previewURI);
+  String get previewURL {
+    final displayUri =
+        Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
+    final uri = (displayUri?.isNotEmpty == true) ? displayUri! : previewURI;
+    return getFFUrl(uri);
+  }
 
   bool get isScrollablePreviewURL {
     final remoteConfigService = injector<RemoteConfigService>();
