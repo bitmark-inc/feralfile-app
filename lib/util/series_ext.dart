@@ -44,8 +44,12 @@ extension FFSeriesExt on FFSeries {
           ? (metadata!['mediumDescription'] as List<dynamic>).join('\n')
           : null;
 
-  String? get thumbnailUrl =>
-      thumbnailURI == null ? null : getFFUrl(thumbnailURI!);
+  String? get thumbnailUrl {
+    final uri = (thumbnailDisplay?.isNotEmpty ?? false)
+        ? thumbnailDisplay!
+        : thumbnailURI;
+    return getFFUrl(uri);
+  }
 
   List<SecondaryMarket> listSecondaryMarkets() {
     final metadata = this.metadata;

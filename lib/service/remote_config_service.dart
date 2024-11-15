@@ -132,7 +132,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
         '0ae03302f46d0e110b7c40472a4badda40e78356a598f342dca036a012c003c9d128b8c61083e14076937e8706ba50f37b094761a94614347c'
       ]
     },
-    'daily': {'scheduleTime': '6'}
+    'daily': {'scheduleTime': '6'},
+    'video_settings': {
+      'client_bandwidth_hint': null,
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -200,6 +203,7 @@ enum ConfigGroup {
   johnGerrard,
   membership,
   daily,
+  videoSettings,
 }
 
 // ConfigGroup getString extension
@@ -230,6 +234,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'membership';
       case ConfigGroup.daily:
         return 'daily';
+      case ConfigGroup.videoSettings:
+        return 'video_settings';
     }
   }
 }
@@ -269,6 +275,7 @@ enum ConfigKey {
   customNote,
   lifetime,
   scheduleTime,
+  clientBandwidthHint,
 }
 
 // ConfigKey getString extension
@@ -343,6 +350,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'lifetime';
       case ConfigKey.scheduleTime:
         return 'scheduleTime';
+      case ConfigKey.clientBandwidthHint:
+        return 'client_bandwidth_hint';
     }
   }
 }

@@ -140,7 +140,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             ),
             builderDelegate: PagedChildBuilderDelegate<Artwork>(
               itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
-                url: artwork.dailyThumbnailURL,
+                url: artwork.thumbnailURL,
                 cacheWidth: cacheWidth,
                 cacheHeight: cacheHeight,
                 onTap: () async {

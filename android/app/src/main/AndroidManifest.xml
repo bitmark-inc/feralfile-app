@@ -213,6 +213,11 @@
                     android:host="feralfile-app-alternate.test-app.link"
                     android:scheme="https" />
             </intent-filter>
+
+            <!-- Home widget -->
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".EmergencyLog"

@@ -13,6 +13,7 @@ import android.util.Base64
 import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViews.RemoteResponse
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,7 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.util.Calendar
 import java.util.TimeZone
+import android.net.Uri
 
 /**
  * Implementation of App Widget functionality.
@@ -50,11 +52,10 @@ class FeralfileDaily : AppWidgetProvider() {
         }
 
         // Ensure PendingIntent is always recreated
-        val openAppPendingIntent = PendingIntent.getActivity(
+        val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
             context,
-            appWidgetId,  // Use unique request code per widget ID
-            openAppIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            MainActivity::class.java,
+            Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
         )
 
         // Set up the layout for the widget

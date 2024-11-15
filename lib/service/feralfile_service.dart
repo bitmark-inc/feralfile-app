@@ -432,6 +432,7 @@ class FeralFileServiceImpl extends FeralFileService {
         null,
         previewURI ?? '',
         {},
+        {},
         DateTime.now(),
         DateTime.now(),
         DateTime.now(),
@@ -513,7 +514,7 @@ class FeralFileServiceImpl extends FeralFileService {
   String _getThumbnailURI(FFSeries series, int artworkIndex) =>
       series.uniqueThumbnailPath != null
           ? '${series.uniqueThumbnailPath}/$artworkIndex-large.jpg'
-          : series.thumbnailURI ?? '';
+          : series.thumbnailURI;
 
   Future<FeralFileListResponse<Artwork>> _fakeSeriesArtworks(
       String seriesId, Exhibition exhibition,
@@ -748,6 +749,7 @@ class FeralFileServiceImpl extends FeralFileService {
         'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
         null,
         'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+        {},
         {
           'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
         },

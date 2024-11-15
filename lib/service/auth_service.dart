@@ -42,7 +42,7 @@ class AuthService {
     if (refreshToken == null || refreshToken.isEmpty) {
       throw JwtException(message: 'refresh_token_empty'.tr());
     }
-    final Map<String, dynamic> payload = {'refresh_token': refreshToken};
+    final Map<String, dynamic> payload = {'refreshToken': refreshToken};
     if (receiptData != null) {
       // add the receipt data if available
       final String platform;
@@ -52,7 +52,7 @@ class AuthService {
         platform = 'google';
       }
       payload.addAll({
-        'receipt': {'platform': platform, 'receipt_data': receiptData}
+        'inAppReceipt': {'platform': platform, 'receipt_data': receiptData}
       });
     }
     final newJwt = await _userApi.refreshJWT(payload);

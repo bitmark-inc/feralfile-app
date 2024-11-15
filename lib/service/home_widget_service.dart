@@ -25,9 +25,6 @@ class HomeWidgetService {
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
-    HomeWidget.widgetClicked.listen((widgetName) {
-      log.info('[HomeWidgetService] Widget clicked: $widgetName');
-    });
   }
 
   Future<void> updateWidget(
@@ -107,7 +104,7 @@ class HomeWidgetService {
       final medium = token.medium;
       final isFeralFileToken = token.isFeralfile;
       final thumbnail = isFeralFileToken
-          ? dailyToken.artwork!.dailyThumbnailURL
+          ? dailyToken.artwork!.thumbnailURL
           : token.galleryThumbnailURL;
 
       String? base64ImageData;

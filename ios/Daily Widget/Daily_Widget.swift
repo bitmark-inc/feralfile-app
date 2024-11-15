@@ -179,9 +179,7 @@ struct Daily_WidgetEntryView : View {
                 .background { heightReader }
             }
             .frame(maxWidth: geo.size.width, maxHeight: .infinity)
-        }
-        
-        
+        }.widgetURL(URL(string: "home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget"))
     }
 }
 
