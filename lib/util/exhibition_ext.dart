@@ -182,13 +182,13 @@ extension ArtworkExt on Artwork {
   String get previewURL {
     final displayUri =
         Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
-    final brandWidth = injector<RemoteConfigService>().getConfig<double?>(
+    final bandWidth = injector<RemoteConfigService>().getConfig<double?>(
       ConfigGroup.videoSettings,
       ConfigKey.clientBandwidthHint,
       null,
     );
     final uri = (displayUri?.isNotEmpty == true)
-        ? _urlWithClientBandwidthHint(displayUri!, brandWidth)
+        ? _urlWithClientBandwidthHint(displayUri!, bandWidth)
         : previewURI;
     return getFFUrl(uri);
   }
