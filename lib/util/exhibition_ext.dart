@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -179,7 +180,33 @@ extension ArtworkExt on Artwork {
     return getFFUrl(uri, variant: CloudFlareVariant.l.value);
   }
 
-  String get previewURL => getFFUrl(previewURI);
+  String get previewURL {
+    final displayUri =
+        Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
+    String uri;
+    if (displayUri?.isNotEmpty == true) {
+      final bandWidth = injector<RemoteConfigService>().getConfig<double?>(
+        ConfigGroup.videoSettings,
+        ConfigKey.clientBandwidthHint,
+        null,
+      );
+      uri = _urlWithClientBandwidthHint(displayUri!, bandWidth);
+    } else {
+      uri = previewURI;
+    }
+    return getFFUrl(uri);
+  }
+
+  String _urlWithClientBandwidthHint(String uri, double? bandwidth) {
+    final queryParameters = <String, String>{};
+    if (bandwidth != null) {
+      queryParameters['bandwidth'] = bandwidth.toString();
+    }
+    final urlWithClientBandwidthHint = Uri.tryParse(uri)?.replace(
+      queryParameters: queryParameters,
+    );
+    return urlWithClientBandwidthHint.toString();
+  }
 
   bool get isScrollablePreviewURL {
     final remoteConfigService = injector<RemoteConfigService>();

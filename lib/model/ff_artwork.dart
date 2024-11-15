@@ -38,6 +38,7 @@ class Artwork {
   final String thumbnailURI;
   final String? thumbnailDisplay;
   final String previewURI;
+  final Map<String, String> previewDisplay;
   final Map<String, dynamic>? metadata;
   final DateTime? mintedAt;
   final DateTime? createdAt;
@@ -61,6 +62,7 @@ class Artwork {
       this.thumbnailURI,
       this.thumbnailDisplay,
       this.previewURI,
+      this.previewDisplay,
       this.metadata,
       this.mintedAt,
       this.createdAt,
@@ -84,6 +86,8 @@ class Artwork {
         json['thumbnailURI'] as String,
         json['thumbnailDisplay'] as String?,
         json['previewURI'] as String,
+        (json['previewDisplay'] as Map<String, dynamic>)
+            .map((key, value) => MapEntry(key, value as String)),
         json['metadata'] as Map<String, dynamic>?,
         json['mintedAt'] == null || (json['mintedAt'] as String).isEmpty
             ? null
@@ -126,6 +130,7 @@ class Artwork {
     String? thumbnailURI,
     String? thumbnailDisplay,
     String? previewURI,
+    Map<String, String>? previewDisplay,
     Map<String, dynamic>? metadata,
     DateTime? mintedAt,
     DateTime? createdAt,
@@ -149,6 +154,7 @@ class Artwork {
         thumbnailURI ?? this.thumbnailURI,
         thumbnailDisplay ?? this.thumbnailDisplay,
         previewURI ?? this.previewURI,
+        previewDisplay ?? this.previewDisplay,
         metadata ?? this.metadata,
         mintedAt ?? this.mintedAt,
         createdAt ?? this.createdAt,
