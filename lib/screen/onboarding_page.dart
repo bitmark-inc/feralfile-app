@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry/sentry.dart';
@@ -55,6 +56,8 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   final _passkeyService = injector.get<PasskeyService>();
   final _userAccountChannel = injector.get<UserAccountChannel>();
+  bool? _isLoginSuccess;
+  late StreamSubscription<FGBGType> _fgbgSubscription;
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -64,6 +67,32 @@ class _OnboardingPageState extends State<OnboardingPage>
       ),
     ),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    log.info('OnboardingPage initState');
+    // on foreground listener
+    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+  }
+
+  void _handleForeBackground(FGBGType event) {
+    if (event == FGBGType.foreground) {
+      if (didRunSetup && _isLoginSuccess == false) {
+        // if setup is done and login is failed, try to login again
+        injector<NavigationService>().goBack(result: false);
+        unawaited(_fetchRuntimeCache());
+      }
+    } else {
+      log.info('App is in background');
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_fgbgSubscription.cancel());
+    super.dispose();
+  }
 
   @override
   void afterFirstLayout(BuildContext context) {
@@ -138,7 +167,13 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _fetchRuntimeCache() async {
     log.info('[_fetchRuntimeCache] start');
-    final isSuccess = await _loginProcess();
+    bool isSuccess = false;
+    try {
+      isSuccess = await _loginProcess();
+    } catch (e, s) {
+      log.info('Failed to login process: $e');
+    }
+    _isLoginSuccess = isSuccess;
     if (!isSuccess) {
       log.info('Login process failed');
       unawaited(Sentry.captureMessage('Login process failed'));
@@ -171,15 +206,17 @@ class _OnboardingPageState extends State<OnboardingPage>
       if (!doesOSSupport) {
         log.info('OS does not support passkey');
         _passkeyService.isShowingLoginDialog.value = true;
-        await _showBackupRecoveryPhraseDialog();
-        _passkeyService.isShowingLoginDialog.value = false;
+        unawaited(_showBackupRecoveryPhraseDialog().then((_) {
+          _passkeyService.isShowingLoginDialog.value = false;
+        }));
         return false;
       }
       if (!canAuthenticate) {
         log.info('OS supports passkey but cannot authenticate');
         _passkeyService.isShowingLoginDialog.value = true;
-        await _showAuthenticationUpdateRequired();
-        _passkeyService.isShowingLoginDialog.value = false;
+        unawaited(_showAuthenticationUpdateRequired().then((_) {
+          _passkeyService.isShowingLoginDialog.value = false;
+        }));
         return false;
       }
       return false;
@@ -218,18 +255,27 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _loginAndMigrate() async {
     log.info('Login and migrate');
-    await injector<AccountService>().migrateAccount(() async {
-      try {
-        log.info('[_loginAndMigrate] create JWT token');
-        final localResponse = await _passkeyService.logInInitiate();
-        await _passkeyService.logInFinalize(localResponse);
-        log.info('[_loginAndMigrate] create JWT token done');
-      } catch (e, s) {
-        log.info('Failed to create login JWT: $e');
-        unawaited(Sentry.captureException(e, stackTrace: s));
-        rethrow;
-      }
-    });
+    _isLoginSuccess = null;
+    try {
+      await injector<AccountService>().migrateAccount(() async {
+        try {
+          log.info('[_loginAndMigrate] create JWT token');
+          final localResponse = await _passkeyService.logInInitiate();
+          await _passkeyService.logInFinalize(localResponse);
+          log.info('[_loginAndMigrate] create JWT token done');
+        } catch (e, s) {
+          log.info('Failed to create login JWT: $e');
+          unawaited(Sentry.captureException(e, stackTrace: s));
+          rethrow;
+        }
+      });
+      _isLoginSuccess = true;
+    } catch (e, s) {
+      _isLoginSuccess = false;
+      log.info('Failed to migrate account: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      rethrow;
+    }
     log.info('Login and migrate done');
   }
 
