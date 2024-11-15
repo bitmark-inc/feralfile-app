@@ -348,7 +348,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
       color: AppColor.white,
       text: 'view_all_exhibitions'.tr(),
     );
-    const viewALlBreakpoint = 2;
+    const viewAllBreakpoint = 2;
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
@@ -359,8 +359,8 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         children: [
           Expanded(
             child: ListExhibitionView(
-              exhibitions: exhibitions.length > viewALlBreakpoint
-                  ? exhibitions.sublist(0, viewALlBreakpoint)
+              exhibitions: exhibitions.length > viewAllBreakpoint
+                  ? exhibitions.sublist(0, viewAllBreakpoint)
                   : exhibitions,
               isScrollable: false,
             ),
@@ -376,7 +376,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: exhibitions.length > viewALlBreakpoint
+        child: exhibitions.length > viewAllBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,
@@ -404,7 +404,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
       color: AppColor.white,
       text: 'view_all_posts'.tr(),
     );
-    const viewALlBreakpoint = 2;
+    const viewAllBreakpoint = 2;
 
     return [
       SliverToBoxAdapter(child: header),
@@ -416,8 +416,8 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
           children: [
             Expanded(
               child: ListPostView(
-                posts: posts.length > viewALlBreakpoint
-                    ? posts.sublist(0, viewALlBreakpoint)
+                posts: posts.length > viewAllBreakpoint
+                    ? posts.sublist(0, viewAllBreakpoint)
                     : posts,
                 isScrollable: false,
               ),
@@ -435,7 +435,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: posts.length > viewALlBreakpoint
+        child: posts.length > viewAllBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,
