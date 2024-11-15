@@ -54,8 +54,8 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
+import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:overlay_support/src/overlay_state_finder.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -177,6 +177,16 @@ class NavigationService {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       UIHelper.hideInfoDialog(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> openAuthenticationSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.biometricEnroll();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.faceIDAndPasscode();
     }
   }
 
@@ -1186,8 +1196,8 @@ class NavigationService {
                   children: [
                     PrimaryButton(
                       text: 'go_to_settings'.tr(),
-                      onTap: () async {
-                        await openAppSettings();
+                      onTap: () {
+                        openAuthenticationSettings();
                       },
                     ),
                     const SizedBox(height: 20),
