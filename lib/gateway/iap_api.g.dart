@@ -352,7 +352,7 @@ class _IAPApi implements IAPApi {
     )
         .compose(
           _dio.options,
-          '/apis/v2/notifications/settings',
+          '/apis/v2/notifications/settings/me',
           queryParameters: queryParameters,
           data: _data,
         )

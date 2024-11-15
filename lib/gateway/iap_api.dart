@@ -66,7 +66,7 @@ abstract class IAPApi {
   @GET('/apis/v2/notifications/settings/me')
   Future<Map<String, dynamic>> getNotificationSettings();
 
-  @PATCH('/apis/v2/notifications/settings')
+  @PATCH('/apis/v2/notifications/settings/me')
   Future<void> updateNotificationSettings(
     @Body() Map<String, dynamic> body,
   );
