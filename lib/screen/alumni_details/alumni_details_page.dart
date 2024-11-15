@@ -291,7 +291,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
       },
       text: 'view_all_works'.tr(),
     );
-    const viewALlBreakpoint = 4;
+    const viewAllBreakpoint = 4;
 
     return [
       SliverToBoxAdapter(child: header),
@@ -302,7 +302,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
               child: SeriesView(
                 series: series,
                 userCollections: userCollections,
-                limit: viewALlBreakpoint,
+                limit: viewAllBreakpoint,
                 isScrollable: false,
                 artist: alumni,
               ),
@@ -316,7 +316,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: listSeriesAndColections.length > viewALlBreakpoint
+        child: listSeriesAndColections.length > viewAllBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,

@@ -83,7 +83,11 @@ extension AlumniAccountExt on AlumniAccount {
 
   List<String> get allRelatedAddresses {
     final addresses = addressesList.whereNotNull().toList()
-      ..addAll(associatedAddresses ?? []);
+      ..addAll(associatedAddresses ?? [])
+      ..addAll(collaborationAlumniAccounts
+              ?.map((e) => e.addressesList.whereNotNull().toList())
+              .flattened ??
+          []);
     return addresses;
   }
 }
