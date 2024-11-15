@@ -1,16 +1,21 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/ff_series_tappable_thumbnail.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:autonomy_flutter/view/user_collection_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/models/user_collection.dart';
 
 class ExploreSeriesView extends StatefulWidget {
   final String? searchText;
@@ -38,6 +43,7 @@ class ExploreSeriesView extends StatefulWidget {
 
 class ExploreSeriesViewState extends State<ExploreSeriesView> {
   List<FFSeries>? _series;
+  List<UserCollection>? _userCollection;
   late Paging _paging;
   late ScrollController _scrollController;
   bool _isLoading = false;
@@ -92,8 +98,11 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
     );
   }
 
-  Widget _seriesView(BuildContext context, List<FFSeries> series) => SeriesView(
+  Widget _seriesView(BuildContext context, List<FFSeries> series,
+          List<UserCollection> userCollection) =>
+      SeriesView(
         series: series,
+        userCollections: userCollection,
         scrollController: _scrollController,
         padding: const EdgeInsets.only(bottom: 100),
       );
@@ -105,7 +114,7 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
     } else if (_series!.isEmpty) {
       return _emptyView(context);
     } else {
-      return _seriesView(context, _series!);
+      return _seriesView(context, _series!, _userCollection ?? []);
     }
   }
 
@@ -127,6 +136,7 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
     final paging = res.paging!;
     setState(() {
       _series = series;
+
       _paging = paging;
     });
     _isLoading = false;
@@ -166,16 +176,22 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
 
 class SeriesView extends StatefulWidget {
   final List<FFSeries> series;
+  final List<UserCollection> userCollections;
+  final AlumniAccount? artist;
   final ScrollController? scrollController;
   final bool isScrollable;
   final EdgeInsets padding;
+  final int? limit;
 
   const SeriesView({
     required this.series,
+    required this.userCollections,
     this.scrollController,
+    this.artist,
     super.key,
     this.isScrollable = true,
     this.padding = EdgeInsets.zero,
+    this.limit,
   });
 
   @override
@@ -191,51 +207,68 @@ class _SeriesViewState extends State<SeriesView> {
     _scrollController = widget.scrollController ?? ScrollController();
   }
 
+  List<ArtistCollection> getAllSeriesAndCollections() {
+    final allSeries = widget.series;
+    final allCollections = widget.userCollections;
+    final List<ArtistCollection> result =
+        mergeCollectionAndSeries(allCollections, allSeries);
+    return result;
+  }
+
   @override
-  Widget build(BuildContext context) => CustomScrollView(
-        controller: _scrollController,
-        shrinkWrap: true,
-        physics: widget.isScrollable
-            ? const AlwaysScrollableScrollPhysics()
-            : const NeverScrollableScrollPhysics(),
-        slivers: [
-          SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 188 / 307,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final series = widget.series[index];
-                final border = Border(
-                  top: const BorderSide(
-                    color: AppColor.auGreyBackground,
-                  ),
-                  right: BorderSide(
-                    color:
-                        // if index is even, show border on the right
-                        index.isEven
-                            ? AppColor.auGreyBackground
-                            : Colors.transparent,
-                  ),
-                  // if last row, add border on the bottom
-                  bottom: index >= widget.series.length - 2
-                      ? const BorderSide(
-                          color: AppColor.auGreyBackground,
-                        )
-                      : BorderSide.none,
-                );
-                return _seriesItem(context, series, border);
-              },
-              childCount: widget.series.length,
-            ),
+  Widget build(BuildContext context) {
+    final listSeriesAndCollections = getAllSeriesAndCollections();
+    return CustomScrollView(
+      controller: _scrollController,
+      shrinkWrap: true,
+      physics: widget.isScrollable
+          ? const AlwaysScrollableScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
+      slivers: [
+        SliverGrid(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 188 / 307,
           ),
-          SliverPadding(
-            padding: widget.padding,
-            sliver: const SliverToBoxAdapter(),
-          ),
-        ],
-      );
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final item = listSeriesAndCollections[index];
+            final border = Border(
+              top: const BorderSide(
+                color: AppColor.auGreyBackground,
+              ),
+              right: BorderSide(
+                color:
+                    // if index is even, show border on the right
+                    index.isEven
+                        ? AppColor.auGreyBackground
+                        : Colors.transparent,
+              ),
+              // if last row, add border on the bottom
+              bottom: index >= listSeriesAndCollections.length - 2
+                  ? const BorderSide(
+                      color: AppColor.auGreyBackground,
+                    )
+                  : BorderSide.none,
+            );
+            if (item is FFSeries) {
+              return _seriesItem(context, item, border);
+            } else if (item is UserCollection) {
+              return _userCollectionItem(context, item, border);
+            } else {
+              throw Exception('Unknown item type');
+            }
+          },
+              childCount: widget.limit == null
+                  ? listSeriesAndCollections.length
+                  : min(widget.limit!, listSeriesAndCollections.length)),
+        ),
+        SliverPadding(
+          padding: widget.padding,
+          sliver: const SliverToBoxAdapter(),
+        ),
+      ],
+    );
+  }
 
   Widget _seriesItem(BuildContext context, FFSeries series, Border border) =>
       Container(
@@ -246,5 +279,18 @@ class _SeriesViewState extends State<SeriesView> {
         ),
         padding: const EdgeInsets.all(8),
         child: FfSeriesInfoThumbnail(series: series),
+      );
+
+  Widget _userCollectionItem(
+          BuildContext context, UserCollection collection, Border border) =>
+      Container(
+        decoration: BoxDecoration(
+          // border on the top and right
+          border: border,
+          color: Colors.transparent,
+        ),
+        padding: const EdgeInsets.all(8),
+        child: UserCollectionThumbnail(
+            collection: collection, artist: widget.artist),
       );
 }
