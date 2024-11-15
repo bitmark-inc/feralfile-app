@@ -75,7 +75,10 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<bool> canAuthenticate() async =>
-      await _passkeyAuthenticator.canAuthenticate();
+      Platform.isAndroid ? await _passkeyAuthenticator.canAuthenticate() : true;
+
+  // passkey available always return true for iOS
+  // if no verification method is available, the user will be prompted to set up passcode or faceID
 
   @override
   Future<AuthenticateResponseType> logInInitiate() async {

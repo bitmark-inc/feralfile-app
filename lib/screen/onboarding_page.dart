@@ -80,6 +80,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (event == FGBGType.foreground) {
       if (didRunSetup && _isLoginSuccess == false) {
         // if setup is done and login is failed, try to login again
+        injector<NavigationService>().goBack(result: false);
         unawaited(_fetchRuntimeCache());
       }
     } else {
@@ -166,7 +167,12 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _fetchRuntimeCache() async {
     log.info('[_fetchRuntimeCache] start');
-    final isSuccess = await _loginProcess();
+    bool isSuccess = false;
+    try {
+      isSuccess = await _loginProcess();
+    } catch (e, s) {
+      log.info('Failed to login process: $e');
+    }
     _isLoginSuccess = isSuccess;
     if (!isSuccess) {
       log.info('Login process failed');
@@ -249,18 +255,27 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _loginAndMigrate() async {
     log.info('Login and migrate');
-    await injector<AccountService>().migrateAccount(() async {
-      try {
-        log.info('[_loginAndMigrate] create JWT token');
-        final localResponse = await _passkeyService.logInInitiate();
-        await _passkeyService.logInFinalize(localResponse);
-        log.info('[_loginAndMigrate] create JWT token done');
-      } catch (e, s) {
-        log.info('Failed to create login JWT: $e');
-        unawaited(Sentry.captureException(e, stackTrace: s));
-        rethrow;
-      }
-    });
+    _isLoginSuccess = null;
+    try {
+      await injector<AccountService>().migrateAccount(() async {
+        try {
+          log.info('[_loginAndMigrate] create JWT token');
+          final localResponse = await _passkeyService.logInInitiate();
+          await _passkeyService.logInFinalize(localResponse);
+          log.info('[_loginAndMigrate] create JWT token done');
+        } catch (e, s) {
+          log.info('Failed to create login JWT: $e');
+          unawaited(Sentry.captureException(e, stackTrace: s));
+          rethrow;
+        }
+      });
+      _isLoginSuccess = true;
+    } catch (e, s) {
+      _isLoginSuccess = false;
+      log.info('Failed to migrate account: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      rethrow;
+    }
     log.info('Login and migrate done');
   }
 
