@@ -13,48 +13,57 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-enum DailyNotificationType {
-  viewDaily,
-  revisitDaily,
+enum DailyCTATarget {
+  dailyPage,
   viewDailySeries,
   viewDailyExhibition,
-  meetDailyArtist,
+  viewDailyArtist,
   displayDailyOnTV,
   ;
 
-  static DailyNotificationType? fromString(String value) {
+  @override
+  String toString() {
+    switch (this) {
+      case DailyCTATarget.dailyPage:
+        return 'daily_page';
+      case DailyCTATarget.viewDailySeries:
+        return 'view_daily_series';
+      case DailyCTATarget.viewDailyExhibition:
+        return 'view_daily_exhibition';
+      case DailyCTATarget.viewDailyArtist:
+        return 'view_daily_artist';
+      case DailyCTATarget.displayDailyOnTV:
+        return 'display_daily_on_tv';
+    }
+  }
+
+  static DailyCTATarget? fromString(String value) {
     switch (value) {
-      case 'view_daily':
-        return DailyNotificationType.viewDaily;
-      case 'revisit_daily':
-        return DailyNotificationType.revisitDaily;
+      case 'daily_page':
+        return DailyCTATarget.dailyPage;
       case 'view_daily_series':
-        return DailyNotificationType.viewDailySeries;
+        return DailyCTATarget.viewDailySeries;
       case 'view_daily_exhibition':
-        return DailyNotificationType.viewDailyExhibition;
-      case 'meet_daily_artist':
-        return DailyNotificationType.meetDailyArtist;
+        return DailyCTATarget.viewDailyExhibition;
+      case 'view_daily_artist':
+        return DailyCTATarget.viewDailyArtist;
       case 'display_daily_on_tv':
-        return DailyNotificationType.displayDailyOnTV;
+        return DailyCTATarget.displayDailyOnTV;
       default:
-        log.info('DailyNotificationType: fromString: unknown value: $value');
         return null;
     }
   }
 }
 
 class DailyNotificationData extends AdditionalData {
-  final DailyNotificationType dailyNotificationType;
-
   final _navigationService = injector<NavigationService>();
   final _feralFileService = injector<FeralFileService>();
   final _dailyWorkBloc = injector<DailyWorkBloc>();
 
   DailyNotificationData({
-    required this.dailyNotificationType,
     required super.notificationType,
     super.announcementContentId,
-    super.linkText,
+    super.cta,
   });
 
   @override
@@ -63,17 +72,29 @@ class DailyNotificationData extends AdditionalData {
   @override
   Future<void> handleTap(BuildContext context) async {
     log.info('DailyNotificationData: handle tap');
+
+    if (cta == null) {
+      log.info('DailyNotificationData: cta is null');
+      return;
+    }
+
     bool isDailyTokenAvailable = await prepareAndDidSuccess();
     if (!isDailyTokenAvailable) {
       _logAndSendSentryForNullData('dailyToken');
       return;
     }
     final dailyToken = _dailyWorkBloc.state.currentDailyToken;
-    switch (dailyNotificationType) {
-      case DailyNotificationType.viewDaily:
-      case DailyNotificationType.revisitDaily:
+    final dailyCTATarget = DailyCTATarget.fromString(cta!.navigationRoute);
+
+    if (dailyCTATarget == null) {
+      log.info('Invalid daily cta target ${cta!.navigationRoute}');
+      return;
+    }
+
+    switch (dailyCTATarget) {
+      case DailyCTATarget.dailyPage:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
-      case DailyNotificationType.viewDailySeries:
+      case DailyCTATarget.viewDailySeries:
         final artwork = dailyToken!.artwork;
         if (artwork == null) {
           _logAndSendSentryForNullData('artwork');
@@ -90,7 +111,7 @@ class DailyNotificationData extends AdditionalData {
             exhibitionId: series.exhibitionID,
           ),
         );
-      case DailyNotificationType.viewDailyExhibition:
+      case DailyCTATarget.viewDailyExhibition:
         final artwork = dailyToken!.artwork;
         if (artwork == null) {
           _logAndSendSentryForNullData('artwork');
@@ -110,7 +131,7 @@ class DailyNotificationData extends AdditionalData {
           arguments:
               ExhibitionDetailPayload(exhibitions: [exhibition], index: 0),
         );
-      case DailyNotificationType.meetDailyArtist:
+      case DailyCTATarget.viewDailyArtist:
         final artistID = _dailyWorkBloc.state.assetTokens.firstOrNull?.artistID;
 
         if (artistID == null) {
@@ -118,13 +139,11 @@ class DailyNotificationData extends AdditionalData {
           return;
         }
         await injector<NavigationService>().openFeralFileArtistPage(artistID);
-      case DailyNotificationType.displayDailyOnTV:
+      case DailyCTATarget.displayDailyOnTV:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
         await Future.delayed(const Duration(milliseconds: 300), () {
           dailyWorkKey.currentState?.openDisplayDialog();
         });
-
-      default:
     }
   }
 

@@ -527,8 +527,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                           if (isCopied) {
                             return;
                           }
-                          showInfoNotification(const Key('address'),
-                              'address_copied_to_clipboard'.tr());
+
+                          showSimpleNotificationToast(
+                            key: const Key('address'),
+                            content: 'address_copied_to_clipboard'.tr(),
+                          );
+
                           unawaited(
                               Clipboard.setData(ClipboardData(text: address)));
                           setState(() {

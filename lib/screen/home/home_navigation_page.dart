@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
+import 'package:autonomy_flutter/util/notifications/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
@@ -293,17 +294,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           AdditionalData.fromJson(event.notification.additionalData!);
       final id = additionalData.announcementContentId ??
           event.notification.notificationId;
-      final body = event.notification.body;
 
       Future.delayed(const Duration(milliseconds: 500), () async {
         if (!mounted) {
           return;
         }
-        await NotificationHandler.instance.shouldShowNotifications(
+        await NotificationHandler.instance.shouldShowInAppNotification(
           context,
           additionalData,
           id,
-          body ?? '',
           _pageController,
         );
       });
@@ -313,15 +312,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           '${openedResult.notification.additionalData}');
       final additionalData =
           AdditionalData.fromJson(openedResult.notification.additionalData!);
-      final id = additionalData.announcementContentId ??
-          openedResult.notification.notificationId;
-      final body = openedResult.notification.body;
-      await _announcementService.fetchAnnouncements();
+      if (additionalData.notificationType != NotificationType.announcement) {
+        await _announcementService.fetchAnnouncements();
+      }
+
       if (!mounted) {
         return;
       }
+
       unawaited(NotificationHandler.instance
-          .handleNotificationClicked(context, additionalData, id, body ?? ''));
+          .handlePushNotificationClicked(context, additionalData));
     });
 
     if (!widget.payload.fromOnboarding) {
@@ -535,7 +535,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _triggerShowAnnouncement() {
-    unawaited(Future.delayed(const Duration(milliseconds: 2000), () {
+    unawaited(Future.delayed(const Duration(milliseconds: 0), () {
       _announcementService.fetchAnnouncements().then(
         (_) async {
           await _announcementService.showOldestAnnouncement();

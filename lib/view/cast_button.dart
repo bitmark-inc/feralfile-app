@@ -128,6 +128,10 @@ class FFCastButtonState extends State<FFCastButton> {
   }
 
   Future<void> onTap(BuildContext context, bool isSubscribed) async {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      UIHelper.showUpgradedNotification();
+    });
+    return;
     if (!widget.shouldCheckSubscription || isSubscribed) {
       await injector<NavigationService>().showStreamAction(
         widget.displayKey,

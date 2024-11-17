@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/additional_data/announcement_data.dart';
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
 import 'package:autonomy_flutter/model/additional_data/daily_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
 import 'package:autonomy_flutter/model/additional_data/navigate_additional_data.dart';
+import 'package:autonomy_flutter/model/additional_data/chat_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
     as view_collection_handler;
 import 'package:autonomy_flutter/model/additional_data/view_exhibition.dart';
@@ -14,15 +16,31 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notifications/notification_type.dart';
 import 'package:flutter/cupertino.dart';
 
+class CallToAction {
+  final String? text;
+  final String navigationRoute;
+
+  CallToAction(this.text, this.navigationRoute);
+
+  factory CallToAction.fromJson(Map<String, dynamic> json) => CallToAction(
+        json['cta_text'] as String?,
+        json['navigation_route'] as String,
+      );
+}
+
 class AdditionalData {
-  final NotificationDataType notificationType;
+  final NotificationType notificationType;
   final String? announcementContentId;
-  final String? linkText;
+  final String? title;
+  final CallToAction? cta;
+  final List<CallToAction>? listCustomCta;
 
   AdditionalData({
     required this.notificationType,
     this.announcementContentId,
-    this.linkText,
+    this.cta,
+    this.title,
+    this.listCustomCta,
   });
 
   bool get isTappable => false;
@@ -31,18 +49,52 @@ class AdditionalData {
     final notificationContentId = json['notification_content_id'];
     try {
       final notificationType =
-          NotificationDataType.fromString(type ?? json['notification_type']);
-      final String? linkText = json['link_text'];
+          NotificationType.fromString(type ?? json['notification_type']);
+      final String? title = json['title'];
+      final cta = json['cta'] == null
+          ? null
+          : CallToAction.fromJson(Map<String, dynamic>.from(json['cta']));
 
       final defaultAdditionalData = AdditionalData(
         notificationType: notificationType,
         announcementContentId: notificationContentId,
-        linkText: linkText,
+        cta: cta,
+        title: title,
       );
 
       switch (notificationType) {
-        case NotificationDataType.customerSupportNewMessage:
-        case NotificationDataType.customerSupportCloseIssue:
+        case NotificationType.supportMessage:
+          return ChatNotificationData(
+            notificationType: notificationType,
+            announcementContentId: notificationContentId,
+            cta: cta,
+            title: title,
+          );
+        case NotificationType.dailyArtworkReminders:
+          return DailyNotificationData(
+            notificationType: notificationType,
+            announcementContentId: notificationContentId,
+            cta: cta,
+          );
+        case NotificationType.announcement:
+          final listCustomCta = json['custom_data'] != null &&
+                  json['custom_data']['button_cta_list'] != null
+              ? (json['custom_data']['button_cta_list'] as List)
+                  .map((e) =>
+                      CallToAction.fromJson(Map<String, dynamic>.from(e)))
+                  .toList()
+              : null;
+
+          return AnnouncementData(
+            notificationType: notificationType,
+            announcementContentId: notificationContentId,
+            cta: cta,
+            title: title,
+            listCustomCta: listCustomCta,
+          );
+
+        case NotificationType.customerSupportNewMessage:
+        case NotificationType.customerSupportCloseIssue:
           final issueId = json['issue_id'];
           if (issueId == null) {
             log.warning('AdditionalData: issueId is null');
@@ -52,17 +104,17 @@ class AdditionalData {
             issueId: issueId.toString(),
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.artworkCreated:
-        case NotificationDataType.artworkReceived:
-        case NotificationDataType.galleryNewNft:
+        case NotificationType.artworkCreated:
+        case NotificationType.artworkReceived:
+        case NotificationType.galleryNewNft:
           return view_collection_handler.ViewCollection(
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.newMessage:
+        case NotificationType.newMessage:
           final groupId = json['group_id'];
           if (groupId == null) {
             log.warning('AdditionalData: groupId is null');
@@ -72,10 +124,10 @@ class AdditionalData {
             groupId: groupId,
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.newPostcardTrip:
-        case NotificationDataType.postcardShareExpired:
+        case NotificationType.newPostcardTrip:
+        case NotificationType.postcardShareExpired:
           final indexID = json['indexID'];
           if (indexID == null) {
             log.warning('AdditionalData: indexID is null');
@@ -85,17 +137,17 @@ class AdditionalData {
             indexID: indexID,
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.jgCrystallineWorkHasArrived:
+        case NotificationType.jgCrystallineWorkHasArrived:
           final jgExhibitionId = JohnGerrardHelper.exhibitionID;
           return ViewExhibitionData(
             exhibitionId: jgExhibitionId ?? '',
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.jgCrystallineWorkGenerated:
+        case NotificationType.jgCrystallineWorkGenerated:
           final tokenId = json['token_id'];
           if (tokenId == null) {
             log.warning('AdditionalData: tokenId is null');
@@ -105,11 +157,11 @@ class AdditionalData {
             tokenId: tokenId,
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.exhibitionViewingOpening:
-        case NotificationDataType.exhibitionSalesOpening:
-        case NotificationDataType.exhibitionSaleClosing:
+        case NotificationType.exhibitionViewingOpening:
+        case NotificationType.exhibitionSalesOpening:
+        case NotificationType.exhibitionSaleClosing:
           final exhibitionId = json['exhibition_id'];
           if (exhibitionId == null) {
             log.warning('AdditionalData: exhibitionId is null');
@@ -119,9 +171,9 @@ class AdditionalData {
             exhibitionId: exhibitionId,
             notificationType: notificationType,
             announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
-        case NotificationDataType.navigate:
+        case NotificationType.navigate:
           final navigationRoute = json['navigation_route'];
           final homeIndex = json['home_index'];
           return NavigateAdditionalData(
@@ -129,20 +181,7 @@ class AdditionalData {
             notificationType: notificationType,
             announcementContentId: notificationContentId,
             homeIndex: homeIndex,
-            linkText: linkText,
-          );
-        case NotificationDataType.dailyArtworkReminders:
-          final subType = json['notification_sub_type'];
-          final dailyType = DailyNotificationType.fromString(subType ?? '');
-          if (dailyType == null) {
-            log.warning('AdditionalData: dailyType is null');
-            return defaultAdditionalData;
-          }
-          return DailyNotificationData(
-            dailyNotificationType: dailyType,
-            notificationType: notificationType,
-            announcementContentId: notificationContentId,
-            linkText: linkText,
+            cta: cta,
           );
 
         default:
@@ -151,7 +190,7 @@ class AdditionalData {
     } catch (_) {
       log.info('AdditionalData: error parsing additional data');
       return AdditionalData(
-          notificationType: NotificationDataType.general,
+          notificationType: NotificationType.general,
           announcementContentId: notificationContentId);
     }
   }

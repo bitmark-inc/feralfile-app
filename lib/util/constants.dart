@@ -286,10 +286,10 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
-  static const ChatWithFeralfile = 'chat with Feral File';
+  static const ChatSupport = 'chat support';
 
   static List<String> get getList =>
-      [Bug, Exception, Announcement, MerchandiseIssue, ChatWithFeralfile];
+      [Bug, Exception, Announcement, MerchandiseIssue, ChatSupport];
 
   static List<String> get getSuggestList => [Bug];
 
@@ -299,7 +299,7 @@ class ReportIssueType {
         return 'Report a bug';
       case Announcement:
         return 'announcement'.tr();
-      case ChatWithFeralfile:
+      case ChatSupport:
         return 'chat_with_feralfile'.tr();
       case MerchandiseIssue:
         return 'Merchandise issue';

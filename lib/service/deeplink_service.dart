@@ -687,9 +687,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (!isSuccessful) {
           await _navigationService.showCannotConnectTv();
         } else {
-          showInfoNotification(
-            const Key('connected_to_canvas'),
-            'connected_to_display'.tr(),
+          showSimpleNotificationToast(
+            key: const Key('connected_to_canvas'),
+            content: 'connected_to_display'.tr(),
             addOnTextSpan: [
               TextSpan(
                 text: device.name,
@@ -699,7 +699,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
                     .copyWith(color: AppColor.feralFileLightBlue),
               )
             ],
-            frontWidget: SvgPicture.asset(
+            leading: SvgPicture.asset(
               'assets/images/checkbox_icon.svg',
               width: 24,
             ),
@@ -708,9 +708,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         return;
       }
       if (isSuccessful) {
-        showInfoNotification(
-          const Key('connected_to_canvas'),
-          'connected_to_display'.tr(),
+        showSimpleNotificationToast(
+          key: const Key('connected_to_canvas'),
+          content: 'connected_to_display'.tr(),
           addOnTextSpan: [
             TextSpan(
               text: device.name,
@@ -720,7 +720,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
                   .copyWith(color: AppColor.feralFileLightBlue),
             )
           ],
-          frontWidget: SvgPicture.asset(
+          leading: SvgPicture.asset(
             'assets/images/checkbox_icon.svg',
             width: 24,
           ),

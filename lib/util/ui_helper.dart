@@ -1094,6 +1094,7 @@ class UIHelper {
       Function()? actionButtonOnTap,
       String? exitButton,
       Function()? exitButtonOnTap,
+      double? radius,
       double horizontalPadding = 20,
       double verticalPadding = 128,
       bool withExitButton = true,
@@ -1110,7 +1111,7 @@ class UIHelper {
             child: Container(
               decoration: BoxDecoration(
                 color: backgroundColor,
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(radius ?? 5),
               ),
               constraints: const BoxConstraints(
                 maxHeight: 600,
@@ -1120,7 +1121,8 @@ class UIHelper {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   content,
-                  const SizedBox(height: 20),
+                  if (actionButtonOnTap != null || withExitButton)
+                    const SizedBox(height: 20),
                   if (actionButtonOnTap != null) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
@@ -1885,10 +1887,11 @@ class UIHelper {
     if (!currentContext.mounted) {
       return;
     }
-    showInAppNotifications(
-      currentContext,
-      'upgraded_notification_body'.tr(),
-      'subscription_upgraded',
+
+    showSimpleNotificationToast(
+      key: const Key('subscription_upgraded'),
+      content: 'upgraded_notification_body'.tr(),
+      vibrateFeedbackType: FeedbackType.warning,
     );
   }
 

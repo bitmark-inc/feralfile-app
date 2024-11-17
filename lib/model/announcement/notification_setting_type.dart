@@ -22,6 +22,7 @@ enum NotificationSettingType {
       case 'support_messages':
         return NotificationSettingType.supportMessages;
       case 'announcement':
+        return NotificationSettingType.announcement;
       default:
         return null;
     }

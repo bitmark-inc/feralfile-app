@@ -147,7 +147,7 @@ class _SupportListPageState extends State<SupportListPage>
                     onTap: () => unawaited(Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
                       arguments:
-                          NewIssueFromAnnouncementPayload(announcement: issue),
+                          ChatSupportPayload(announcement: issue),
                     )),
                   ),
                 );

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notifications/notification_type.dart';
 import 'package:flutter/material.dart';
 
 class NotificationHandler {
@@ -14,23 +17,36 @@ class NotificationHandler {
   final AnnouncementService _announcementService =
       injector<AnnouncementService>();
 
-  Future<void> handleNotificationClicked(BuildContext context,
-      AdditionalData additionalData, String id, String body,
-      {String channel = 'push'}) async {
-    log.info('Tap to notification: $body ');
+  Future<void> handlePushNotificationClicked(
+    BuildContext context,
+    AdditionalData additionalData,
+  ) async {
+    log.info('handlePushNotificationClicked');
+    if (additionalData.notificationType != NotificationType.announcement) {
+      await _announcementService
+          .markAsRead(additionalData.announcementContentId);
+      if (!context.mounted) {
+        return;
+      }
+      await additionalData.handleTap(context);
+    }
+  }
 
+  Future<void> handleInAppNotificationClicked(
+    BuildContext context,
+    AdditionalData additionalData,
+  ) async {
+    log.info('handleInAppNotificationClicked');
     await _announcementService.markAsRead(additionalData.announcementContentId);
     if (!context.mounted) {
       return;
     }
-    await additionalData.handleTap(context);
   }
 
-  Future<void> shouldShowNotifications(
+  Future<void> shouldShowInAppNotification(
       BuildContext context,
       AdditionalData additionalData,
       String id,
-      String body,
       PageController? pageController) async {
     /// after getting additionalData
     await _announcementService.fetchAnnouncements();
@@ -43,13 +59,17 @@ class NotificationHandler {
       return;
     }
 
-    await _showNotification(context, id, body, pageController, additionalData);
+    await _showInAppNotification(
+      context,
+      id,
+      pageController,
+      additionalData,
+    );
   }
 
-  Future<void> _showNotification(
+  Future<void> _showInAppNotification(
     BuildContext context,
     String id,
-    String body,
     PageController? pageController,
     AdditionalData additionalData,
   ) async {
@@ -58,6 +78,7 @@ class NotificationHandler {
     if (announcement?.read == true) {
       return;
     }
+
     if (announcement?.isExpired == true) {
       await _announcementService
           .markAsRead(announcement?.announcementContentId);
@@ -65,25 +86,22 @@ class NotificationHandler {
       return;
     }
 
-    await showNotifications(
+    await showInAppNotifications(
       context,
       id,
-      body: body,
+      additionalData,
+      body: announcement?.content ?? '',
       handler: additionalData.isTappable
           ? () async {
-              await handleNotificationClicked(
+              await handleInAppNotificationClicked(
                 context,
                 additionalData,
-                id,
-                body,
-                channel: 'in-app',
               );
             }
           : null,
       callBackOnDismiss: () async {
         await _announcementService.showOldestAnnouncement();
       },
-      additionalData: additionalData,
     );
   }
 }
