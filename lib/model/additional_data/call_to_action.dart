@@ -25,7 +25,8 @@ enum CTATarget {
   preferencesPage,
   subscriptionPage,
   dataManagementPage,
-  dailyWorkPage;
+  dailyWorkPage,
+  notificationsPage;
 
   // toString method
   @override
@@ -61,6 +62,8 @@ enum CTATarget {
         return 'data_management_page';
       case CTATarget.dailyWorkPage:
         return 'daily_work_page';
+      case CTATarget.notificationsPage:
+        return 'notifications_page';
     }
   }
 
@@ -97,6 +100,8 @@ enum CTATarget {
         return CTATarget.dataManagementPage;
       case 'daily_work_page':
         return CTATarget.dailyWorkPage;
+      case 'notifications_page':
+        return CTATarget.notificationsPage;
       default:
         return CTATarget.general;
     }
