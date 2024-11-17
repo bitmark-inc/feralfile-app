@@ -102,17 +102,99 @@ class _SimpleNotificationToast extends StatelessWidget {
   }
 }
 
-class _TopBannerNotification extends StatelessWidget {
+class _TopBannerNotification extends StatefulWidget {
   final String notification;
   final AdditionalData additionalData;
   final Function? openedHandler;
+  final DateTime? receivedTime;
 
   const _TopBannerNotification({
     required Key key,
     required this.notification,
     required this.additionalData,
     this.openedHandler,
+    this.receivedTime,
   }) : super(key: key);
+
+  @override
+  State<_TopBannerNotification> createState() => _TopBannerNotificationState();
+}
+
+class _TopBannerNotificationState extends State<_TopBannerNotification> {
+  Timer? _timer;
+  String _timeString = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.receivedTime != null) {
+      _updateTimeString();
+      _startTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    final now = DateTime.now();
+    final difference = now.difference(widget.receivedTime!);
+
+    _timer?.cancel();
+
+    if (difference.inMinutes < 60) {
+      // Update every minute for the first hour
+      _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+        final updatedDifference =
+            DateTime.now().difference(widget.receivedTime!);
+        if (updatedDifference.inMinutes >= 60) {
+          // Switch to hourly updates
+          _startTimer();
+        } else {
+          _updateTimeString();
+        }
+      });
+    } else {
+      // For notifications over 1 hour old:
+      // First, schedule update at the next hour mark
+      final minutesUntilNextHour = 60 - (difference.inMinutes % 60);
+      _timer = Timer(Duration(minutes: minutesUntilNextHour), () {
+        _updateTimeString();
+        // Then switch to regular hourly updates
+        _timer?.cancel();
+        _timer = Timer.periodic(const Duration(hours: 1), (_) {
+          _updateTimeString();
+        });
+      });
+    }
+  }
+
+  void _updateTimeString() {
+    if (mounted) {
+      setState(() {
+        _timeString = _getReceivedTimeString();
+      });
+    }
+  }
+
+  String _getReceivedTimeString() {
+    final now = DateTime.now();
+    final difference = now.difference(widget.receivedTime!);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      final minutes = difference.inMinutes;
+      return '${minutes}m ago';
+    } else {
+      final hours = difference.inHours;
+      return '${hours}h ago';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -127,19 +209,20 @@ class _TopBannerNotification extends StatelessWidget {
         children: [
           RichText(
             text: TextSpan(
-              text: notification,
+              text: widget.notification,
               style: theme.textTheme.ppMori400White14,
               children: [
-                if (additionalData.cta != null) ...[
+                if (widget.additionalData.cta != null) ...[
                   TextSpan(
-                    text: ' ${additionalData.cta!.text ?? 'Tap to view'}',
+                    text:
+                        ' ${widget.additionalData.cta!.text ?? 'Tap to view'}',
                     style: theme.textTheme.ppMori400FFYellow14
                         .copyWith(color: AppColor.feralFileLightBlue),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
-                        hideOverlay(key!);
-                        await additionalData.handleTap(context);
-                        openedHandler?.call();
+                        hideOverlay(widget.key!);
+                        await widget.additionalData.handleTap(context);
+                        widget.openedHandler?.call();
                       },
                   ),
                 ]
@@ -154,6 +237,13 @@ class _TopBannerNotification extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
+              if (widget.receivedTime != null)
+                Text(
+                  _timeString,
+                  style: theme.textTheme.ppMori400Grey12.copyWith(
+                    color: AppColor.secondarySpanishGrey,
+                  ),
+                ),
               const SizedBox(),
               GestureDetector(
                 child: Text(
@@ -164,7 +254,7 @@ class _TopBannerNotification extends StatelessWidget {
                     decorationColor: AppColor.secondarySpanishGrey,
                   ),
                 ),
-                onTap: () => {hideOverlay(key!)},
+                onTap: () => {hideOverlay(widget.key!)},
               )
             ],
           )
@@ -281,6 +371,7 @@ OverlaySupportEntry showTopBannerNotification(
   required String body,
   required AdditionalData additionalData,
   Function? handler,
+  DateTime? receivedTime,
 }) =>
     showSimpleNotification(
       _TopBannerNotification(
@@ -288,6 +379,7 @@ OverlaySupportEntry showTopBannerNotification(
         notification: body,
         additionalData: additionalData,
         openedHandler: handler,
+        receivedTime: receivedTime,
       ),
       key: Key(id),
       background: Colors.transparent,
@@ -327,6 +419,7 @@ Future<void> showInAppNotifications(
   Function? handler,
   Function? callBackOnDismiss,
   String? body,
+  DateTime? receivedTime,
 }) async {
   final configurationService = injector<ConfigurationService>();
   if (configurationService.showingNotification.value) {
@@ -349,6 +442,7 @@ Future<void> showInAppNotifications(
       context,
       id: id,
       body: body ?? '',
+      receivedTime: receivedTime,
       additionalData: additionalData,
       handler: handler,
     );

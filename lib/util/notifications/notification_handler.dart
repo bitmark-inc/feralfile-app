@@ -91,6 +91,7 @@ class NotificationHandler {
       id,
       additionalData,
       body: announcement?.content ?? '',
+      receivedTime: announcement?.startedAt,
       handler: additionalData.isTappable
           ? () async {
               await handleInAppNotificationClicked(
