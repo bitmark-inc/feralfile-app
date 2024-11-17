@@ -84,7 +84,8 @@ class DailyNotificationData extends AdditionalData {
       return;
     }
     final dailyToken = _dailyWorkBloc.state.currentDailyToken;
-    final dailyCTATarget = DailyCTATarget.fromString(cta!.navigationRoute);
+    final dailyCTATarget =
+        DailyCTATarget.fromString(cta!.navigationRoute.toString());
 
     if (dailyCTATarget == null) {
       log.info('Invalid daily cta target ${cta!.navigationRoute}');

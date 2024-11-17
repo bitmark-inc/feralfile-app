@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
+import 'package:autonomy_flutter/model/additional_data/call_to_action.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -132,9 +133,7 @@ class _TopBannerNotification extends StatelessWidget {
                 if (additionalData.cta != null) ...[
                   TextSpan(
                     text: ' ${additionalData.cta!.text ?? 'Tap to view'}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .ppMori400FFYellow14
+                    style: theme.textTheme.ppMori400FFYellow14
                         .copyWith(color: AppColor.feralFileLightBlue),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
@@ -159,11 +158,11 @@ class _TopBannerNotification extends StatelessWidget {
               GestureDetector(
                 child: Text(
                   'dismiss'.tr(),
-                  style: Theme.of(context).textTheme.ppMori400Grey12.copyWith(
-                        color: AppColor.secondarySpanishGrey,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColor.secondarySpanishGrey,
-                      ),
+                  style: theme.textTheme.ppMori400Grey12.copyWith(
+                    color: AppColor.secondarySpanishGrey,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColor.secondarySpanishGrey,
+                  ),
                 ),
                 onTap: () => {hideOverlay(key!)},
               )
@@ -235,9 +234,11 @@ class _PopUpOverlayNotification extends StatelessWidget {
                     text: additionalData.cta!.text ?? '',
                     onTap: () async {
                       Navigator.of(context).pop();
-                      if (additionalData.cta!.text != 'general') {
-                        await injector<NavigationService>()
-                            .navigatePath(additionalData.cta!.navigationRoute);
+                      if (additionalData.cta!.navigationRoute !=
+                          CTATarget.general) {
+                        await injector<NavigationService>().navigatePath(
+                          additionalData.cta!.navigationRoute.toString(),
+                        );
                       }
                     },
                   ),
@@ -256,9 +257,11 @@ class _PopUpOverlayNotification extends StatelessWidget {
                       ),
                       onTap: () async {
                         Navigator.of(context).pop();
-                        if (additionalData.cta!.text != 'general') {
-                          await injector<NavigationService>()
-                              .navigatePath(cta.navigationRoute);
+                        if (additionalData.cta!.navigationRoute !=
+                            CTATarget.general) {
+                          await injector<NavigationService>().navigatePath(
+                            cta.navigationRoute.toString(),
+                          );
                         }
                       },
                     ),

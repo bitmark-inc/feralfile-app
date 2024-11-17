@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/model/additional_data/announcement_data.dart';
+import 'package:autonomy_flutter/model/additional_data/call_to_action.dart';
+import 'package:autonomy_flutter/model/additional_data/chat_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
 import 'package:autonomy_flutter/model/additional_data/daily_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
 import 'package:autonomy_flutter/model/additional_data/navigate_additional_data.dart';
-import 'package:autonomy_flutter/model/additional_data/chat_notification_data.dart';
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
     as view_collection_handler;
 import 'package:autonomy_flutter/model/additional_data/view_exhibition.dart';
@@ -15,18 +16,6 @@ import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notifications/notification_type.dart';
 import 'package:flutter/cupertino.dart';
-
-class CallToAction {
-  final String? text;
-  final String navigationRoute;
-
-  CallToAction(this.text, this.navigationRoute);
-
-  factory CallToAction.fromJson(Map<String, dynamic> json) => CallToAction(
-        json['cta_text'] as String?,
-        json['navigation_route'] as String,
-      );
-}
 
 class AdditionalData {
   final NotificationType notificationType;
