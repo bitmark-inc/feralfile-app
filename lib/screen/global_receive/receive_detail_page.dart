@@ -139,7 +139,6 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
       key: const Key('address'),
       content: 'address_copied_to_clipboard'.tr(),
     );
-    Vibrate.feedback(FeedbackType.light);
     unawaited(Clipboard.setData(ClipboardData(text: widget.payload.address)));
   }
 }

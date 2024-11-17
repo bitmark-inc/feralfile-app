@@ -257,8 +257,7 @@ class _PopUpOverlayNotification extends StatelessWidget {
                       ),
                       onTap: () async {
                         Navigator.of(context).pop();
-                        if (additionalData.cta!.navigationRoute !=
-                            CTATarget.general) {
+                        if (cta.navigationRoute != CTATarget.general) {
                           await injector<NavigationService>().navigatePath(
                             cta.navigationRoute.toString(),
                           );
