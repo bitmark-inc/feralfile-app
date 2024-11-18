@@ -232,8 +232,8 @@ Future<void> setupInjector() async {
   injector
       .registerLazySingleton<UserAccountChannel>(() => UserAccountChannel());
 
-  injector.registerLazySingleton<AddressService>(
-      () => AddressService(injector(), injector()));
+  injector
+      .registerLazySingleton<AddressService>(() => AddressService(injector()));
 
   injector.registerLazySingleton<KeychainService>(() => KeychainService());
 
