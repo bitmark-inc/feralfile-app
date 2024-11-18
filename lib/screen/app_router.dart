@@ -243,6 +243,7 @@ class AppRouter {
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
+    final notificationSettingsBloc = injector<NotificationSettingsBloc>();
 
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
@@ -922,8 +923,8 @@ class AppRouter {
       case notificationsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => NotificationSettingsBloc(injector())
+            builder: (context) => BlocProvider.value(
+                  value: notificationSettingsBloc
                     ..add(GetNotificationSettingsEvent()),
                   child: const NotificationsPage(),
                 ));
@@ -1095,6 +1096,10 @@ class AppRouter {
               create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: canvasDeviceBloc),
+            BlocProvider.value(
+              value: notificationSettingsBloc
+                ..add(GetNotificationSettingsEvent()),
+            ),
           ], child: const DailyWorkPage()),
         );
 

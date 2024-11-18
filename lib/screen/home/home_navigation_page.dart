@@ -25,6 +25,8 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_state.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -95,6 +97,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
   final _subscriptionBloc = injector<SubscriptionBloc>();
+  final _notificationSettingsBloc = injector<NotificationSettingsBloc>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -133,7 +136,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
           dailyWorkKey.currentState?.resumeDailyWork();
-          dailyWorkKey.currentState?.trackInterest();
+          dailyWorkKey.currentState?.trackStayOnDaily();
         } else {
           dailyWorkKey.currentState?.pauseDailyWork();
         }
@@ -256,6 +259,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: injector<CanvasDeviceBloc>()),
+            BlocProvider.value(
+                value: _notificationSettingsBloc
+                  ..add(GetNotificationSettingsEvent()))
           ],
           child: DailyWorkPage(
             key: dailyWorkKey,

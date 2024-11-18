@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 abstract class UserInteractivityService {
   Future<void> likeDailyWork(DailyToken dailyToken);
+  Future<void> countDailyLiked();
 }
 
 class UserInteractivityServiceImpl implements UserInteractivityService {
@@ -30,14 +33,17 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
     unawaited(
         _metricClientService.addEvent(MetricEventName.dailyLiked, data: data));
     log.info('Liked daily work: ${dailyToken.tokenID}');
-    await _countDailyLiked();
   }
 
-  Future<void> _countDailyLiked() async {
-    final isNotificationEnabled = OneSignal.Notifications.permission;
-    if (!isNotificationEnabled) {
+  @override
+  Future<void> countDailyLiked() async {
+    final isDailiesNotificationEnabled =
+        injector<NotificationSettingsBloc>().state.notificationSettings[
+                NotificationSettingType.dailyArtworkReminders] ??
+            false;
+    if (!isDailiesNotificationEnabled) {
       final likedCount = _configurationService.getDailyLikedCount();
-      if (likedCount >= 3) {
+      if (likedCount + 1 >= 3) {
         await _showEnableNotificationDialog();
       } else {
         await _configurationService.setDailyLikedCount(likedCount + 1);
