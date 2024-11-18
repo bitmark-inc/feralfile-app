@@ -1222,7 +1222,6 @@ class NavigationService {
 
   Future<JWT?> showRefreshJwtFailedDialog(
       {required Future<JWT> Function() onRetry}) async {
-    JWT? jwt;
     final res = await UIHelper.showCustomDialog(
       context: context,
       child: PopScope(
@@ -1239,7 +1238,7 @@ class NavigationService {
             PrimaryButton(
               text: 'sign_in'.tr(),
               onTap: () async {
-                jwt = await onRetry();
+                final jwt = await onRetry();
                 if (context.mounted) {
                   Navigator.pop(context, jwt);
                 }
@@ -1249,6 +1248,6 @@ class NavigationService {
         ),
       ),
     );
-    return jwt;
+    return res;
   }
 }
