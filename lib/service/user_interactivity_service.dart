@@ -20,6 +20,7 @@ abstract class UserInteractivityService {
 class UserInteractivityServiceImpl implements UserInteractivityService {
   final ConfigurationService _configurationService;
   final MetricClientService _metricClientService;
+  bool _isShowingNotificationDialog = false;
 
   UserInteractivityServiceImpl(
       this._configurationService, this._metricClientService);
@@ -37,6 +38,10 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
 
   @override
   Future<void> countDailyLiked() async {
+    if (_isShowingNotificationDialog) {
+      return;
+    }
+
     final isDailiesNotificationEnabled =
         injector<NotificationSettingsBloc>().state.notificationSettings[
                 NotificationSettingType.dailyArtworkReminders] ??
@@ -44,7 +49,12 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
     if (!isDailiesNotificationEnabled) {
       final likedCount = _configurationService.getDailyLikedCount();
       if (likedCount + 1 >= 3) {
-        await _showEnableNotificationDialog();
+        _isShowingNotificationDialog = true;
+        try {
+          await _showEnableNotificationDialog();
+        } finally {
+          _isShowingNotificationDialog = false;
+        }
       } else {
         await _configurationService.setDailyLikedCount(likedCount + 1);
       }
