@@ -13,10 +13,11 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View.ACCESSIBILITY_DATA_SENSITIVE_YES
 import android.view.WindowManager.LayoutParams
 import androidx.biometric.BiometricManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
@@ -232,16 +233,18 @@ class MainActivity : FlutterFragmentActivity() {
             Context.MODE_PRIVATE
         )
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
-        backupDartPlugin.didRegisterPasskeyResult { didRegisterPasskey ->
-            if (isThisFirstOnResume && didRegisterPasskey) {
-                // skip authentication if the user has already registered the passkey in open app
-                isThisFirstOnResume = false
-                // this is not conventional way to do this, but we need skip authenticate after user
-                // authenticate with passkey
-                updateAuthenticationTime()
-                return@didRegisterPasskeyResult
-            }
 
+        backupDartPlugin.getJWT { jsonString ->
+            // decode jsonString
+            val type = object : TypeToken<Map<String, Any>>() {}.type
+            val map: Map<String, Any> = Gson().fromJson(jsonString, type)
+            val refreshTokenExpiredAtString = map["refresh_expire_at"] as? String ?: return@getJWT
+            val refreshTokenExpiredAt = java.time.Instant.parse(refreshTokenExpiredAtString)
+            val isExpired = refreshTokenExpiredAt.isBefore(java.time.Instant.now())
+            if (isExpired) {
+                updateAuthenticationTime()
+                return@getJWT
+            }
             if (isEnabled && !isAuthenticate && needsReAuthentication()) {
                 val biometricManager = BiometricManager.from(this)
                 val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager

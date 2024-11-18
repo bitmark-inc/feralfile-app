@@ -6,6 +6,8 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
@@ -62,9 +64,12 @@ Dio baseDio(BaseOptions options) {
     logPrint: (message) {
       log.warning('[request retry] $message');
     },
-    retryEvaluator: (error, attempt) {
+    retryEvaluator: (error, attempt) async {
       if (error.statusCode == 404) {
         return false;
+      }
+      if (error.statusCode == 401) {
+        await injector<AuthService>().refreshJWT();
       }
       if (error.isPostcardClaimEmptyLimited || error.isClaimPassLimit) {
         return false;

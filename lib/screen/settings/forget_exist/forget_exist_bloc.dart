@@ -85,7 +85,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();
 
-      _authService.reset();
+      await _authService.reset();
       unawaited(injector<CacheManager>().emptyCache());
       unawaited(DefaultCacheManager().emptyCache());
       memoryValues = MemoryValues();

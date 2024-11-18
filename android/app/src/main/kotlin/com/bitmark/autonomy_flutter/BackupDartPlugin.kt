@@ -33,6 +33,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     private lateinit var disposables: CompositeDisposable
     private lateinit var client: BlockstoreClient
     private val primaryAddressStoreKey = "primary_address"
+    private val jwtStoreKey = "jwt"
     private val didRegisterPasskeys = "did_register_passkeys"
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine, @NonNull context: Context) {
@@ -54,6 +55,9 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             "deleteKeys" -> deleteKeys(call, result)
             "setDidRegisterPasskey" -> setDidRegisterPasskey(call, result)
             "didRegisterPasskey" -> didRegisterPasskey(call, result)
+            "setJWT" -> setJWT(call, result)
+            "getJWT" -> getJWT(call, result)
+            "clearJWT" -> clearJWT(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -303,6 +307,29 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             }
     }
 
+    fun getJWT(callback: (String?) -> Unit) {
+        val request = RetrieveBytesRequest.Builder()
+            .setKeys(listOf(jwtStoreKey))  // Specify the key
+            .build()
+
+        client.retrieveBytes(request)
+            .addOnSuccessListener {
+                val dataMap = it.blockstoreDataMap[jwtStoreKey]
+                if (dataMap != null) {
+                    val bytes = dataMap.bytes
+                    val jsonString = bytes.toString(Charsets.UTF_8)
+                    Log.d("getJWT", "Retrieved JSON: $jsonString")
+                    callback(jsonString)
+                } else {
+                    callback(null)
+                }
+            }
+            .addOnFailureListener {
+                Log.e("didRegisterPasskey", "Block store error: ${it.message}")
+                callback(null)
+            }
+    }
+
 
     private fun clearPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
         val retrieveRequest = DeleteBytesRequest.Builder()
@@ -327,6 +354,65 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             .addOnFailureListener { e ->
                 Log.e("BackupDartPlugin", e.message ?: "")
                 result.error("deleteKeys error", e.message, e)
+            }
+    }
+
+    private fun setJWT(call: MethodCall, result: MethodChannel.Result) {
+        val data: String = call.argument("data") ?: return
+
+        val storeBytesBuilder = StoreBytesData.Builder()
+            .setKey("jwt")
+            .setBytes(data.toByteArray(Charsets.UTF_8))
+
+        client.storeBytes(storeBytesBuilder.build())
+            .addOnSuccessListener {
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("setJWT", e.message ?: "")
+                result.error("setJWT error", e.message, e)
+            }
+    }
+
+    private fun getJWT(call: MethodCall, result: MethodChannel.Result) {
+        val request = RetrieveBytesRequest.Builder()
+            .setKeys(listOf(jwtStoreKey))  // Specify the key
+            .build()
+        client.retrieveBytes(request)
+            .addOnSuccessListener {
+                try { // Retrieve bytes using the key
+                    val dataMap = it.blockstoreDataMap[jwtStoreKey]
+                    if (dataMap != null) {
+                        val bytes = dataMap.bytes
+                        val jsonString = bytes.toString(Charsets.UTF_8)
+                        Log.d("getJWT", "Retrieved JSON: $jsonString")
+                        result.success(jsonString)
+                    } else {
+                        Log.e("getJWT", "No data found for the key")
+                        result.success(null)
+                    }
+                } catch (e: Exception) {
+                    Log.e("getJWT", e.message ?: "Error decoding data")
+                    result.success("")
+                }
+            }
+            .addOnFailureListener {
+                //Block store not available
+                result.error("getJWT Block store error", it.message, it)
+
+            }
+    }// Specify the key
+
+    private fun clearJWT(call: MethodCall, result: MethodChannel.Result) {
+        val retrieveRequest = DeleteBytesRequest.Builder()
+            .setKeys(listOf(jwtStoreKey))
+            .build()
+        client.deleteBytes(retrieveRequest)
+            .addOnSuccessListener {
+                result.success(it)
+            }
+            .addOnFailureListener {
+                result.error("deleteJWT error", it.message, it)
             }
     }
 }
