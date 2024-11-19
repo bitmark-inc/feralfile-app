@@ -102,7 +102,6 @@ abstract class FeralFileApi {
   Future<FeralFileListResponse<DailyToken>> getDailiesToken({
     @Query('offset') int? offset = 0,
     @Query('limit') int? limit = 1,
-    @Query('startDisplayTime') String? startDisplayTime,
     @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
   });
 

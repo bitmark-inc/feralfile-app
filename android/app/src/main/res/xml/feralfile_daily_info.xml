@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/app_widget_description"
+    android:initialKeyguardLayout="@layout/feralfile_daily"
+    android:initialLayout="@layout/feralfile_daily"
+    android:maxResizeWidth="700dp"
+    android:maxResizeHeight="700dp"
+    android:minWidth="100dp"
+    android:minHeight="100dp"
+    android:previewImage="@drawable/daily_preview_image"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="3600000"
+    android:widgetCategory="home_screen" />
+

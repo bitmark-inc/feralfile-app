@@ -380,14 +380,12 @@ class _FeralFileApi implements FeralFileApi {
   Future<FeralFileListResponse<DailyToken>> getDailiesToken({
     int? offset = 0,
     int? limit = 1,
-    String? startDisplayTime,
     bool? includeSuccessfulSwap = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'offset': offset,
       r'limit': limit,
-      r'startDisplayTime': startDisplayTime,
       r'includeSuccessfulSwap': includeSuccessfulSwap,
     };
     queryParameters.removeWhere((k, v) => v == null);

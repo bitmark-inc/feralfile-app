@@ -48,7 +48,7 @@ class _JohnGerrardLivePerformanceWidgetState
   @override
   Widget build(BuildContext context) {
     final previewUrl = widget.exhibition.series!.first.galleryURL;
-    final thumbnailUrl = widget.exhibition.series!.first.thumbnailURI;
+    final thumbnailUrl = widget.exhibition.series!.first.thumbnailUrl;
     return BlocProvider(
       create: (_) => RetryCubit(),
       child: BlocBuilder<RetryCubit, int>(

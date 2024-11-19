@@ -1,6 +1,4 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,13 +7,13 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class FFArtworkThumbnailView extends StatelessWidget {
   const FFArtworkThumbnailView(
-      {required this.artwork,
+      {required this.url,
       this.cacheWidth,
       this.cacheHeight,
       super.key,
       this.onTap});
 
-  final Artwork artwork;
+  final String url;
   final Function? onTap;
   final int? cacheWidth;
   final int? cacheHeight;
@@ -25,7 +23,7 @@ class FFArtworkThumbnailView extends StatelessWidget {
       onTap: () => onTap?.call(),
       child: FFCacheNetworkImage(
         cacheManager: injector<CacheManager>(),
-        imageUrl: artwork.thumbnailURL,
+        imageUrl: url,
         memCacheWidth: cacheWidth,
         memCacheHeight: cacheHeight,
         maxWidthDiskCache: cacheWidth,

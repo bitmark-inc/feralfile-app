@@ -16,41 +16,6 @@ Map<String, dynamic> _$ArtworkResponseToJson(ArtworkResponse instance) =>
       'result': instance.result,
     };
 
-Artwork _$ArtworkFromJson(Map<String, dynamic> json) => Artwork(
-      json['id'] as String,
-      json['seriesID'] as String,
-      (json['index'] as num).toInt(),
-      json['name'] as String,
-      json['category'] as String?,
-      json['ownerAddress'] as String?,
-      json['virgin'] as bool?,
-      json['burned'] as bool?,
-      json['blockchainStatus'] as String?,
-      json['isExternal'] as bool?,
-      json['thumbnailURI'] as String,
-      json['previewURI'] as String,
-      json['metadata'] as Map<String, dynamic>?,
-      json['mintedAt'] == null
-          ? null
-          : DateTime.parse(json['mintedAt'] as String),
-      json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      json['updatedAt'] == null
-          ? null
-          : DateTime.parse(json['updatedAt'] as String),
-      json['isArchived'] as bool?,
-      json['series'] == null
-          ? null
-          : FFSeries.fromJson(json['series'] as Map<String, dynamic>),
-      json['swap'] == null
-          ? null
-          : ArtworkSwap.fromJson(json['swap'] as Map<String, dynamic>),
-      (json['artworkAttributes'] as List<dynamic>?)
-          ?.map((e) => ArtworkAttribute.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
 Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
       'id': instance.id,
       'seriesID': instance.seriesID,
@@ -63,7 +28,9 @@ Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
       'blockchainStatus': instance.blockchainStatus,
       'isExternal': instance.isExternal,
       'thumbnailURI': instance.thumbnailURI,
+      'thumbnailDisplay': instance.thumbnailDisplay,
       'previewURI': instance.previewURI,
+      'previewDisplay': instance.previewDisplay,
       'metadata': instance.metadata,
       'mintedAt': instance.mintedAt?.toIso8601String(),
       'createdAt': instance.createdAt?.toIso8601String(),

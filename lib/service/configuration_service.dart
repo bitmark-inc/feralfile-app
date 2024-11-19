@@ -336,8 +336,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDevicePasscodeEnabled() =>
-      _preferences.getBool(KEY_DEVICE_PASSCODE) ?? false;
+  bool isDevicePasscodeEnabled() => true; // always enabled
 
   @override
   Future<void> setDevicePasscodeEnabled(bool value) async {

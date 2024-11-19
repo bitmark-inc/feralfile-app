@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:nft_collection/models/user_collection.dart';
 
 extension FFSeriesExt on FFSeries {
   String get displayTitle {
@@ -43,8 +44,45 @@ extension FFSeriesExt on FFSeries {
           ? (metadata!['mediumDescription'] as List<dynamic>).join('\n')
           : null;
 
-  String? get thumbnailUrl =>
-      thumbnailURI == null ? null : getFFUrl(thumbnailURI!);
+  String? get thumbnailUrl {
+    final uri = (thumbnailDisplay?.isNotEmpty ?? false)
+        ? thumbnailDisplay!
+        : thumbnailURI;
+    return getFFUrl(uri);
+  }
+
+  List<SecondaryMarket> listSecondaryMarkets() {
+    final metadata = this.metadata;
+    final secondaryMarkets = metadata?['secondaryMarkets'] as List?;
+    if (secondaryMarkets == null) {
+      return [];
+    }
+    return secondaryMarkets
+        .map((e) => SecondaryMarket.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  String _convertExternalLinkToSlug(List<SecondaryMarket> secondaryMarkets) {
+    if (secondaryMarkets.isEmpty) {
+      return '';
+    }
+    for (var secondaryLink in secondaryMarkets) {
+      if (secondaryLink.name == 'OpenSea') {
+        final collectionSlug = secondaryLink.url.split('collection/').last;
+        return collectionSlug.split('?').first;
+      }
+    }
+
+    return '';
+  }
+
+  String externalLinkToSlug() =>
+      _convertExternalLinkToSlug(listSecondaryMarkets());
+
+  List<String> listContracts() {
+    final exhibition = this.exhibition;
+    return exhibition?.contracts?.map((e) => e.address).toList() ?? [];
+  }
 }
 
 extension FFSeriesListExt on List<FFSeries> {
@@ -63,4 +101,28 @@ extension FFSeriesListExt on List<FFSeries> {
     });
     return this;
   }
+
+  List<ArtistCollection> mergeIndexerCollection(
+          List<UserCollection> collections) =>
+      mergeCollectionAndSeries(collections, this);
+}
+
+List<ArtistCollection> mergeCollectionAndSeries(
+    List<UserCollection> collections, List<FFSeries> series) {
+  final List<ArtistCollection> result = [...series];
+  for (var collection in collections) {
+    final exhibitionContract = [];
+    for (final s in series) {
+      exhibitionContract.addAll(s.listContracts());
+    }
+    exhibitionContract.toSet().toList();
+    final isDuplicated = series.any((s) =>
+        s.externalLinkToSlug().contains(collection.externalID) ||
+        collection.contracts.any((collectionContract) =>
+            exhibitionContract.contains(collectionContract)));
+    if (!isDuplicated) {
+      result.add(collection);
+    }
+  }
+  return result;
 }

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/common.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -10,6 +12,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
+import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -18,7 +21,10 @@ import 'package:collection/collection.dart';
 import 'package:sentry/sentry.dart';
 
 extension ExhibitionExt on Exhibition {
-  String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
+  String get coverUrl {
+    final uri = (coverDisplay?.isNotEmpty == true) ? coverDisplay! : coverURI;
+    return getFFUrl(uri);
+  }
 
   bool get isGroupExhibition => type == 'group';
 
@@ -167,9 +173,40 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 
 // Artwork Ext
 extension ArtworkExt on Artwork {
-  String get thumbnailURL => getFFUrl(thumbnailURI);
+  String get thumbnailURL {
+    final uri = (thumbnailDisplay?.isNotEmpty == true)
+        ? thumbnailDisplay!
+        : thumbnailURI;
+    return getFFUrl(uri, variant: CloudFlareVariant.l.value);
+  }
 
-  String get previewURL => getFFUrl(previewURI);
+  String get previewURL {
+    final displayUri =
+        Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
+    String uri;
+    if (displayUri?.isNotEmpty == true) {
+      final bandWidth = injector<RemoteConfigService>().getConfig<double?>(
+        ConfigGroup.videoSettings,
+        ConfigKey.clientBandwidthHint,
+        null,
+      );
+      uri = _urlWithClientBandwidthHint(displayUri!, bandWidth);
+    } else {
+      uri = previewURI;
+    }
+    return getFFUrl(uri);
+  }
+
+  String _urlWithClientBandwidthHint(String uri, double? bandwidth) {
+    final queryParameters = <String, String>{};
+    if (bandwidth != null) {
+      queryParameters['bandwidth'] = bandwidth.toString();
+    }
+    final urlWithClientBandwidthHint = Uri.tryParse(uri)?.replace(
+      queryParameters: queryParameters,
+    );
+    return urlWithClientBandwidthHint.toString();
+  }
 
   bool get isScrollablePreviewURL {
     final remoteConfigService = injector<RemoteConfigService>();
@@ -264,11 +301,15 @@ extension ArtworkExt on Artwork {
   }
 }
 
-String getFFUrl(String uri) {
+String getFFUrl(String uri, {String? variant}) {
   // case 1: cloudflare
-  const variant = 'thumbnailLarge';
-  if (uri.startsWith(cloudFlarePrefix) && !uri.endsWith(variant)) {
-    return '$uri/$variant';
+  if (uri.startsWith(cloudFlarePrefix)) {
+    final imageVariant = getVariantFromCloudFlareImageUrl(uri);
+    if (imageVariant != null) {
+      return uri;
+    }
+
+    return '$uri/${variant ?? CloudFlareVariant.m.value}';
   }
 
   // case 2 => full cdn

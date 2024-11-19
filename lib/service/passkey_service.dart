@@ -1,17 +1,22 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class PasskeyService {
-  Future<bool> isPassKeyAvailable();
+  Future<bool> doesOSSupport();
+
+  Future<bool> canAuthenticate();
 
   Future<AuthenticateResponseType> logInInitiate();
 
@@ -54,10 +59,7 @@ class PasskeyServiceImpl implements PasskeyService {
   ValueNotifier<bool> get isShowingLoginDialog => _isShowingLoginDialog;
 
   @override
-  Future<bool> isPassKeyAvailable() async =>
-      await _passkeyAuthenticator.canAuthenticate() && await _doesOSSupport();
-
-  Future<bool> _doesOSSupport() async {
+  Future<bool> doesOSSupport() async {
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
@@ -72,17 +74,40 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
+  Future<bool> canAuthenticate() async =>
+      Platform.isAndroid ? await _passkeyAuthenticator.canAuthenticate() : true;
+
+  // passkey available always return true for iOS
+  // if no verification method is available, the user will be prompted to set up passcode or faceID
+
+  @override
   Future<AuthenticateResponseType> logInInitiate() async {
-    final loginRequest = await _logInSeverInitiate();
-    return await _authenticate(loginRequest);
+    try {
+      log.info('Login initiate');
+      final loginRequest = await _logInSeverInitiate();
+      log.info('Login initiate done, login request: $loginRequest');
+      return await _authenticate(loginRequest);
+    } catch (e, s) {
+      log.info('Failed to login initiate: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      rethrow;
+    }
   }
 
   Future<AuthenticateResponseType> _authenticate(
       AuthenticateRequestType loginRequest) async {
-    _isShowingLoginDialog.value = true;
-    final response = await _passkeyAuthenticator.authenticate(loginRequest);
-    _isShowingLoginDialog.value = false;
-    return response;
+    log.info('Authenticate, show login dialog');
+    try {
+      _isShowingLoginDialog.value = true;
+      final response = await _passkeyAuthenticator.authenticate(loginRequest);
+      _isShowingLoginDialog.value = false;
+      log.info('Authenticate done, return response: $response');
+      return response;
+    } catch (e, s) {
+      log.info('Failed to authenticate: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      rethrow;
+    }
   }
 
   Future<AuthenticateRequestType> _logInSeverInitiate() async {
@@ -113,15 +138,32 @@ class PasskeyServiceImpl implements PasskeyService {
   @override
   Future<void> logInFinalize(
       AuthenticateResponseType authenticateResponse) async {
-    final response =
-        await _userApi.logInFinalize(authenticateResponse.toFFJson());
-    _authService.setAuthToken(response);
+    try {
+      log.info('Login finalize');
+      final response =
+          await _userApi.logInFinalize(authenticateResponse.toFFJson());
+      log.info('Login finalize done, set auth token');
+      _authService.setAuthToken(response);
+      log.info('Login finalize done');
+    } catch (e, s) {
+      log.info('Failed to login finalize: $e');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      rethrow;
+    }
   }
 
   @override
   Future<void> registerInitiate() async {
-    final registerRequest = await _initializeServerRegistration();
-    _registerResponse = await _passkeyAuthenticator.register(registerRequest);
+    try {
+      log.info('Register initiate');
+      final registerRequest = await _initializeServerRegistration();
+      _registerResponse = await _passkeyAuthenticator.register(registerRequest);
+      log.info('Register initiate done, register response: $_registerResponse');
+    } catch (e) {
+      log.info('Failed to register initiate: $e');
+      unawaited(Sentry.captureException(e));
+      rethrow;
+    }
   }
 
   Future<RegisterRequestType> _initializeServerRegistration() async {

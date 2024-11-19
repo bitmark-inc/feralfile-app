@@ -3,8 +3,27 @@ import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:nft_collection/models/user_collection.dart';
 
-class FFSeries {
+class SecondaryMarket {
+  final String name;
+  final String url;
+
+  SecondaryMarket(this.name, this.url);
+
+  factory SecondaryMarket.fromJson(Map<String, dynamic> json) =>
+      SecondaryMarket(
+        json['name'] as String,
+        json['url'] as String,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'url': url,
+      };
+}
+
+class FFSeries extends ArtistCollection {
   final String id;
   final String artistAlumniAccountID;
   final String? assetID;
@@ -12,7 +31,8 @@ class FFSeries {
   final String? slug;
   final String medium;
   final String? description;
-  final String? thumbnailURI;
+  final String thumbnailURI;
+  final String? thumbnailDisplay;
   final String exhibitionID;
   final Map<String, dynamic>? metadata;
   final int? displayIndex;
@@ -41,6 +61,7 @@ class FFSeries {
     this.medium,
     this.description,
     this.thumbnailURI,
+    this.thumbnailDisplay,
     this.exhibitionID,
     this.metadata,
     this.settings,
@@ -73,7 +94,8 @@ class FFSeries {
         json['slug'] as String?,
         json['medium'] as String,
         json['description'] as String?,
-        json['thumbnailURI'] as String?,
+        json['thumbnailURI'] as String,
+        json['thumbnailDisplay'] as String?,
         json['exhibitionID'] as String,
         json['metadata'] as Map<String, dynamic>?,
         json['settings'] == null
@@ -155,6 +177,7 @@ class FFSeries {
     String? medium,
     String? description,
     String? thumbnailURI,
+    String? thumbnailDisplay,
     String? exhibitionID,
     Map<String, dynamic>? metadata,
     int? displayIndex,
@@ -183,6 +206,7 @@ class FFSeries {
         medium ?? this.medium,
         description ?? this.description,
         thumbnailURI ?? this.thumbnailURI,
+        thumbnailDisplay ?? this.thumbnailDisplay,
         exhibitionID ?? this.exhibitionID,
         metadata ?? this.metadata,
         settings ?? this.settings,

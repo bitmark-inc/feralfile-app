@@ -1061,6 +1061,7 @@ class UIHelper {
     Color boxColor = AppColor.white,
     Color backgroundColor = Colors.transparent,
   }) async {
+    log.info('[UIHelper] showRawCenterSheet');
     UIHelper.hideInfoDialog(context);
     return await showCupertinoModalPopup(
         context: context,

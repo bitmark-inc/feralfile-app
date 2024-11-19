@@ -233,6 +233,7 @@ platform :ios do
 				provisioningProfiles: {
 					"com.bitmark.autonomywallet": "Autonomy_Wallet_Appstore",
 					"com.bitmark.autonomywallet.notification": "Autonomy_Wallet_Push_Notification_Appstore",
+					"com.bitmark.autonomywallet.widget": "Feral File app widget",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
@@ -316,6 +317,7 @@ platform :ios do
 
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Feral_File_app_widget.mobileprovision")
 
 		update_info_plist(
           xcodeproj: "Runner.xcodeproj",

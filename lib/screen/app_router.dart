@@ -67,6 +67,8 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
+import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
+import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -201,6 +203,7 @@ class AppRouter {
   static const exhibitionDetailPage = 'exhibition_detail_page';
   static const ffArtworkPreviewPage = 'ff_artwork_preview_page';
   static const feralFileSeriesPage = 'feral_file_series_page';
+  static const indexerCollectionPage = 'indexer_collection_page';
   static const tbSendTransactionPage = 'tb_send_transaction_page';
   static const viewExistingAddressPage = 'view_existing_address_page';
   static const sendCryptoPage = 'send_crypto_page';
@@ -849,6 +852,21 @@ class AppRouter {
                   ],
                   child: FeralFileSeriesPage(
                     payload: settings.arguments! as FeralFileSeriesPagePayload,
+                  ),
+                ));
+
+      case indexerCollectionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => IndexerCollectionBloc(injector()),
+                    ),
+                  ],
+                  child: IndexerCollectionPage(
+                    payload:
+                        settings.arguments! as IndexerCollectionPagePayload,
                   ),
                 ));
 

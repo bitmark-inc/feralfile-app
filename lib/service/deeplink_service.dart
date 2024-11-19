@@ -9,6 +9,7 @@
 
 import 'dart:async';
 
+import 'package:app_links/app_links.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
@@ -45,7 +46,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
   Future setup();
@@ -100,13 +100,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
 
     try {
-      final initialLink = await getInitialLink();
+      final appLink = AppLinks();
+      final initialLink = await appLink.getInitialLinkString();
       log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
         handleDeeplink(initialLink);
       }
 
-      linkStream.listen(handleDeeplink);
+      appLink.uriLinkStream.listen((link) {
+        log.info('[DeeplinkService] uriLinkStream: $link');
+        handleDeeplink(link.toString());
+      });
     } on PlatformException {
       //Ignore
     }
@@ -144,6 +148,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleDappConnectDeeplink(link);
         case DeepLinkHandlerType.irl:
           await _handleIRL(link);
+        case DeepLinkHandlerType.homeWidget:
+          await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.unknown:
           unawaited(_navigationService.showUnknownLink());
       }
@@ -321,6 +327,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       unawaited(_navigationService.navigateTo(AppRouter.irlWebView,
           arguments: IRLWebScreenPayload(urlDecode)));
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> _handleHomeWidgetDeeplink(String link) async {
+    log.info('[DeeplinkService] _handleHomeWidgetDeeplink');
+    final homeWidgetPrefix = Constants.homeWidgetDeepLinks
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (homeWidgetPrefix != null) {
+      final urlDecode = Uri.decodeFull(link.replaceFirst(homeWidgetPrefix, ''));
+      final uri = Uri.tryParse(urlDecode);
+      if (uri == null) {
+        return false;
+      }
+
+      final widget = uri.queryParameters['widget'];
+      switch (widget) {
+        case 'daily':
+          try {
+            await _navigationService.navigatePath(
+              AppRouter.dailyWorkPage,
+            );
+          } catch (e) {
+            log.info('[DeeplinkService] navigatePath to dailyPage error: $e');
+          }
+
+        default:
+          break;
+      }
+
       return true;
     }
 
@@ -556,7 +594,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             source: activationSource,
             thumbnailURL: thumbnailURL,
           );
-          log.info('[DeeplinkService] playlist_activation ${activation}');
+          log.info('[DeeplinkService] playlist_activation $activation');
           await _navigationService.navigateTo(
             AppRouter.playlistActivationPage,
             arguments: PlaylistActivationPagePayload(
@@ -755,6 +793,7 @@ enum DeepLinkHandlerType {
   branch,
   dAppConnect,
   irl,
+  homeWidget,
   unknown,
   ;
 
@@ -770,6 +809,11 @@ enum DeepLinkHandlerType {
 
     if (Constants.branchDeepLinks.any((prefix) => value.startsWith(prefix))) {
       return DeepLinkHandlerType.branch;
+    }
+
+    if (Constants.homeWidgetDeepLinks
+        .any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.homeWidget;
     }
 
     return DeepLinkHandlerType.unknown;

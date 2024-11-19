@@ -36,7 +36,9 @@ class Artwork {
   final String? blockchainStatus;
   final bool? isExternal;
   final String thumbnailURI;
+  final String? thumbnailDisplay;
   final String previewURI;
+  final Map<String, String> previewDisplay;
   final Map<String, dynamic>? metadata;
   final DateTime? mintedAt;
   final DateTime? createdAt;
@@ -58,7 +60,9 @@ class Artwork {
       this.blockchainStatus,
       this.isExternal,
       this.thumbnailURI,
+      this.thumbnailDisplay,
       this.previewURI,
+      this.previewDisplay,
       this.metadata,
       this.mintedAt,
       this.createdAt,
@@ -80,7 +84,10 @@ class Artwork {
         json['blockchainStatus'] as String?,
         json['isExternal'] as bool?,
         json['thumbnailURI'] as String,
+        json['thumbnailDisplay'] as String?,
         json['previewURI'] as String,
+        (json['previewDisplay'] as Map<String, dynamic>)
+            .map((key, value) => MapEntry(key, value as String)),
         json['metadata'] as Map<String, dynamic>?,
         json['mintedAt'] == null || (json['mintedAt'] as String).isEmpty
             ? null
@@ -121,7 +128,9 @@ class Artwork {
     String? blockchainStatus,
     bool? isExternal,
     String? thumbnailURI,
+    String? thumbnailDisplay,
     String? previewURI,
+    Map<String, String>? previewDisplay,
     Map<String, dynamic>? metadata,
     DateTime? mintedAt,
     DateTime? createdAt,
@@ -143,7 +152,9 @@ class Artwork {
         blockchainStatus ?? this.blockchainStatus,
         isExternal ?? this.isExternal,
         thumbnailURI ?? this.thumbnailURI,
+        thumbnailDisplay ?? this.thumbnailDisplay,
         previewURI ?? this.previewURI,
+        previewDisplay ?? this.previewDisplay,
         metadata ?? this.metadata,
         mintedAt ?? this.mintedAt,
         createdAt ?? this.createdAt,

@@ -181,6 +181,9 @@ abstract class FeralFileService {
 
   Future<DailyToken?> getCurrentDailiesToken();
 
+  Future<List<DailyToken>> getUpcomingDailyTokens(
+      {int offset = 0, int limit = 3});
+
   Future<FeralFileListResponse<FFSeries>> exploreArtworks({
     String? sortBy,
     String? sortOrder,
@@ -426,7 +429,9 @@ class FeralFileServiceImpl extends FeralFileService {
         'blockchainStatus',
         false,
         thumbnailURI,
+        null,
         previewURI ?? '',
+        {},
         {},
         DateTime.now(),
         DateTime.now(),
@@ -509,7 +514,7 @@ class FeralFileServiceImpl extends FeralFileService {
   String _getThumbnailURI(FFSeries series, int artworkIndex) =>
       series.uniqueThumbnailPath != null
           ? '${series.uniqueThumbnailPath}/$artworkIndex-large.jpg'
-          : series.thumbnailURI ?? '';
+          : series.thumbnailURI;
 
   Future<FeralFileListResponse<Artwork>> _fakeSeriesArtworks(
       String seriesId, Exhibition exhibition,
@@ -742,7 +747,9 @@ class FeralFileServiceImpl extends FeralFileService {
         '',
         false,
         'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
+        null,
         'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+        {},
         {
           'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
         },
@@ -781,6 +788,14 @@ class FeralFileServiceImpl extends FeralFileService {
         date: dateFormatter.format(date));
     final dailiesTokens = resp.result;
     return dailiesTokens;
+  }
+
+  @override
+  Future<List<DailyToken>> getUpcomingDailyTokens(
+      {int offset = 0, int limit = 3}) async {
+    final resp = await _feralFileApi.getDailiesToken(limit: limit);
+    final dailyTokens = resp.result;
+    return dailyTokens;
   }
 
   @override

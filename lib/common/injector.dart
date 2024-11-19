@@ -63,6 +63,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
@@ -118,6 +119,33 @@ Future<void> setupLogger() async {
       Sentry.captureException('Error logging record: $e', stackTrace: s);
     }
   });
+}
+
+Future<void> setupHomeWidgetInjector() async {
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: const Duration(seconds: 3),
+    receiveTimeout: const Duration(seconds: 3),
+  );
+  final dio = baseDio(dioOptions);
+  injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
+      feralFileDio(dioOptions),
+      baseUrl: Environment.feralFileAPIURL));
+  injector.registerLazySingleton(
+      () => SourceExhibitionAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
+        injector(),
+        injector(),
+      ));
+  final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<IndexerApi>(
+      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
+  injector.registerLazySingleton<IndexerService>(
+      () => IndexerService(indexerClient, injector()));
+  injector.registerLazySingleton<RemoteConfigService>(() =>
+      RemoteConfigServiceImpl(
+          RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
+  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }
 
 Future<void> setupInjector() async {
@@ -328,8 +356,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
       feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
-  injector.registerLazySingleton<IndexerApi>(
-      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
       postcardDio(dioOptions.copyWith(
@@ -338,8 +364,10 @@ Future<void> setupInjector() async {
       baseUrl: Environment.auClaimAPIURL));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<IndexerApi>(
+      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
   injector.registerLazySingleton<IndexerService>(
-      () => IndexerService(indexerClient));
+      () => IndexerService(indexerClient, injector()));
 
   injector.registerLazySingleton<EthereumService>(() =>
       EthereumServiceImpl(injector(), injector(), injector(), injector()));
@@ -444,4 +472,5 @@ Future<void> setupInjector() async {
       () => NotificationSettingsBloc(
             injector(),
           ));
+  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }

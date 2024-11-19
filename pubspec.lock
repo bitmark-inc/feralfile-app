@@ -49,6 +49,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  app_links:
+    dependency: "direct main"
+    description:
+      name: app_links
+      sha256: ad1a6d598e7e39b46a34f746f9a8b011ee147e4c275d407fa457e7a62f84dd99
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.2"
+  app_links_linux:
+    dependency: transitive
+    description:
+      name: app_links_linux
+      sha256: f5f7173a78609f3dfd4c2ff2c95bd559ab43c80a87dc6a095921d96c05688c81
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
+  app_links_platform_interface:
+    dependency: transitive
+    description:
+      name: app_links_platform_interface
+      sha256: "05f5379577c513b534a29ddea68176a4d4802c46180ee8e2e966257158772a3f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
+  app_links_web:
+    dependency: transitive
+    description:
+      name: app_links_web
+      sha256: af060ed76183f9e2b87510a9480e56a5352b6c249778d07bd2c95fc35632a555
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   appium_driver:
     dependency: "direct dev"
     description:
@@ -105,14 +137,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.1"
-  background_fetch:
-    dependency: "direct main"
-    description:
-      name: background_fetch
-      sha256: "4ac8c0d3df7f0f339e0047b36240537504faceb259f28a909be69379e6912854"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   base_x:
     dependency: transitive
     description:
@@ -1015,10 +1039,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_slidable
-      sha256: "19ed4813003a6ff4e9c6bcce37e792a2a358919d7603b2b31ff200229191e44c"
+      sha256: "2c5611c0b44e20d180e4342318e1bbc28b0a44ad2c442f5df16962606fd3e8e3"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.1"
   flutter_staggered_grid_view:
     dependency: transitive
     description:
@@ -1338,6 +1362,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
+  gtk:
+    dependency: transitive
+    description:
+      name: gtk
+      sha256: e8ce9ca4b1df106e4d72dad201d345ea1a036cc12c360f1a7d5a758f78ffa42c
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   hand_signature:
     dependency: "direct main"
     description:
@@ -1370,6 +1402,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  home_widget:
+    dependency: "direct main"
+    description:
+      name: home_widget
+      sha256: b313e3304c0429669fddf1286e1fbf61a64b873f38ba30b3eb890ef0d7560b12
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   html:
     dependency: "direct main"
     description:
@@ -1828,10 +1868,10 @@ packages:
     dependency: "direct main"
     description:
       name: mixpanel_flutter
-      sha256: "7ecd7169acfbda58d9afb35cc4fab8db57410b5f26907206e53d72a86955eb8e"
+      sha256: c1e35c54d8cfc1c50d35d2e8cc11416295efc45bb6dcaa88aec8f82219274833
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.2"
+    version: "2.3.3"
   mockito:
     dependency: "direct dev"
     description:
@@ -1884,8 +1924,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1a281ef3b56bef685a50e7d5099c8aab13314440"
-      resolved-ref: "1a281ef3b56bef685a50e7d5099c8aab13314440"
+      ref: b7ae2ec870c38b3c17df32db5e4af6e64f7a4efb
+      resolved-ref: b7ae2ec870c38b3c17df32db5e4af6e64f7a4efb
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1937,6 +1977,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  open_settings_plus:
+    dependency: "direct main"
+    description:
+      name: open_settings_plus
+      sha256: "5f813700e62bc77db830e0225e09e77c6573c67784a4e7b00483f3a16341c081"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.3"
   openapi_generator_annotations:
     dependency: transitive
     description:
@@ -2045,26 +2093,26 @@ packages:
     dependency: "direct main"
     description:
       name: path_provider
-      sha256: a1aa8aaa2542a6bc57e381f132af822420216c80d4781f7aa085ca3229208aaa
+      sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "2.1.5"
   path_provider_android:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: "5d44fc3314d969b84816b569070d7ace0f1dea04bd94a83f74c4829615d22ad8"
+      sha256: c464428172cb986b758c6d1724c603097febb8fb855aa265aeecc9280c294d4a
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.12"
   path_provider_foundation:
     dependency: transitive
     description:
       name: path_provider_foundation
-      sha256: "1b744d3d774e5a879bb76d6cd1ecee2ba2c6960c03b1020cd35212f6aa267ac5"
+      sha256: f234384a3fdd67f989b4d54a5d73ca2a6c422fa55ae694381ae0f4375cd1ea16
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.0"
+    version: "2.4.0"
   path_provider_linux:
     dependency: transitive
     description:
@@ -2783,30 +2831,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  uni_links:
-    dependency: "direct main"
-    description:
-      name: uni_links
-      sha256: "051098acfc9e26a9fde03b487bef5d3d228ca8f67693480c6f33fd4fbb8e2b6e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.1"
-  uni_links_platform_interface:
-    dependency: transitive
-    description:
-      name: uni_links_platform_interface
-      sha256: "929cf1a71b59e3b7c2d8a2605a9cf7e0b125b13bc858e55083d88c62722d4507"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
-  uni_links_web:
-    dependency: transitive
-    description:
-      name: uni_links_web
-      sha256: "7539db908e25f67de2438e33cc1020b30ab94e66720b5677ba6763b25f6394df"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
   unicode:
     dependency: transitive
     description:
@@ -3127,6 +3151,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  workmanager:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: b783000
+      resolved-ref: b783000c18f6e066f3d81d5ecc352f3ce61860f6
+      url: "https://github.com/fluttercommunity/flutter_workmanager.git"
+    source: git
+    version: "0.5.2"
   x25519:
     dependency: transitive
     description:

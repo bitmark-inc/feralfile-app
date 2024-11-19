@@ -63,8 +63,6 @@ class MetricClientService {
         ...rawData,
         'platform': platform,
         'device': {
-          'vendor': injector<DeviceInfoService>().deviceVendor,
-          'osName': injector<DeviceInfoService>().deviceOSName,
           'osVersion': injector<DeviceInfoService>().deviceOSVersion,
         },
       }
@@ -76,7 +74,14 @@ class MetricClientService {
       ]
     };
     try {
-      await injector<IAPApi>().sendEvent(metrics, _identifier);
+      await injector<IAPApi>().sendEvent(
+        metrics,
+        _identifier,
+        injector<DeviceInfoService>().deviceName,
+        injector<DeviceInfoService>().deviceVendor,
+        injector<DeviceInfoService>().deviceModel,
+        injector<DeviceInfoService>().deviceOSName,
+      );
       log.info('Metric add event success: ${event.name}');
     } catch (e) {
       log.info('Metric add event error: $e');

@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 
 class AlumniDetailsEvent {}
 
@@ -21,6 +22,9 @@ class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
       final artworks = await _feralFileService.exploreArtworks(
         artistIds: alumni.allRelatedAccountIDs,
       );
+
+      final indexerCollections = await injector<IndexerService>()
+          .getCollectionsByAddresses(alumni.allRelatedAddresses);
       final exhibitions = await _feralFileService.getAllExhibitions(
         relatedAlumniAccountIDs: alumni.allRelatedAccountIDs,
       );
@@ -32,6 +36,7 @@ class AlumniDetailsBloc extends AuBloc<AlumniDetailsEvent, AlumniDetailsState> {
         series: artworks.result,
         exhibitions: exhibitions,
         posts: post,
+        userCollections: indexerCollections,
       ));
     });
   }

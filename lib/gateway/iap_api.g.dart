@@ -185,10 +185,20 @@ class _IAPApi implements IAPApi {
   Future<void> sendEvent(
     Map<String, dynamic> metrics,
     String deviceId,
+    String deviceName,
+    String deviceVendor,
+    String deviceModel,
+    String devicePlatform,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'x-device-id': deviceId};
+    final _headers = <String, dynamic>{
+      r'x-device-id': deviceId,
+      r'x-device-name': deviceName,
+      r'x-device-vendor': deviceVendor,
+      r'x-device-model': deviceModel,
+      r'x-device-platform': devicePlatform,
+    };
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(metrics);
