@@ -27,12 +27,36 @@ class UserInteractivityServiceImpl implements UserInteractivityService {
 
   @override
   Future<void> likeDailyWork(DailyToken dailyToken) async {
+    // Check if already liked today
+    final lastLikedTime = _configurationService.getLastDailyLikedTime();
+    final now = DateTime.now();
+    if (lastLikedTime != null) {
+      final lastLiked = DateTime.parse(lastLikedTime);
+      if (lastLiked.year == now.year &&
+          lastLiked.month == now.month &&
+          lastLiked.day == now.day) {
+        log.info('Already liked a daily work today');
+        return;
+      }
+    }
+
+    final isDailiesNotificationEnabled =
+        injector<NotificationSettingsBloc>().state.notificationSettings[
+                NotificationSettingType.dailyArtworkReminders] ??
+            false;
+    if (!isDailiesNotificationEnabled) {
+      log.info('Dailies notification is disabled');
+      return;
+    }
+
     final data = {
       MetricParameter.tokenId: dailyToken.tokenID,
-      MetricParameter.localTime: DateTime.now().toIso8601String(),
+      MetricParameter.localTime: now.toIso8601String(),
     };
     unawaited(
         _metricClientService.addEvent(MetricEventName.dailyLiked, data: data));
+
+    await _configurationService.setLastDailyLikedTime(now.toIso8601String());
     log.info('Liked daily work: ${dailyToken.tokenID}');
   }
 
