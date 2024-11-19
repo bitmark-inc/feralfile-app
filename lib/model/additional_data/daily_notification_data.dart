@@ -74,7 +74,7 @@ class DailyNotificationData extends AdditionalData {
     log.info('DailyNotificationData: handle tap');
 
     if (cta == null) {
-      log.info('DailyNotificationData: cta is null');
+      _logAndSendSentryForNullData('cta');
       return;
     }
 

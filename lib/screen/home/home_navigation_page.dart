@@ -538,13 +538,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _triggerShowAnnouncement() {
-    unawaited(Future.delayed(const Duration(milliseconds: 0), () {
-      _announcementService.fetchAnnouncements().then(
-        (_) async {
-          await _announcementService.showOldestAnnouncement();
-        },
-      );
-    }));
+    unawaited(_announcementService.fetchAnnouncements().then(
+      (_) async {
+        await _announcementService.showOldestAnnouncement();
+      },
+    ));
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {

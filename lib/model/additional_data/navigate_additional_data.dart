@@ -32,8 +32,7 @@ class NavigateAdditionalData extends AdditionalData {
       if (announcement != null) {
         await injector<NavigationService>().navigateTo(
           AppRouter.supportThreadPage,
-          arguments:
-              ChatSupportPayload(announcement: announcement),
+          arguments: ChatSupportPayload(announcement: announcement),
         );
       }
       return;

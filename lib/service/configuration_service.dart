@@ -212,7 +212,7 @@ abstract class ConfigurationService {
 
   String? getAnnouncementContentIdByIssueId(String issueId);
 
-  String? getLastDailyLikedTime();
+  DateTime? getLastDailyLikedTime();
 
   Future<void> setLastDailyLikedTime(String timestamp);
 }
@@ -968,8 +968,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  String? getLastDailyLikedTime() =>
-      _preferences.getString(KEY_LAST_DAILY_LIKED_TIME);
+  DateTime? getLastDailyLikedTime() {
+    final lastLikedTime = _preferences.getString(KEY_LAST_DAILY_LIKED_TIME);
+
+    if (lastLikedTime != null && lastLikedTime.isNotEmpty) {
+      return DateTime.parse(lastLikedTime);
+    }
+
+    return null;
+  }
 
   @override
   Future<void> setLastDailyLikedTime(String timestamp) async {

@@ -146,8 +146,7 @@ class _SupportListPageState extends State<SupportListPage>
                     child: _announcementRow(issue, hasDivider),
                     onTap: () => unawaited(Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
-                      arguments:
-                          ChatSupportPayload(announcement: issue),
+                      arguments: ChatSupportPayload(announcement: issue),
                     )),
                   ),
                 );
