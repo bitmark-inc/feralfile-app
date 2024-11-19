@@ -48,7 +48,7 @@ class _UserCollectionThumbnailState extends State<UserCollectionThumbnail> {
             ),
           ),
           const SizedBox(height: 8),
-          _seriesInfo(context, collection, artist),
+          _collectionInfo(context, collection, artist),
         ],
       ),
     );
@@ -65,10 +65,14 @@ class _UserCollectionThumbnailState extends State<UserCollectionThumbnail> {
     ));
   }
 
-  Widget _seriesInfo(
+  Widget _collectionInfo(
       BuildContext context, UserCollection collection, AlumniAccount? artist) {
     final theme = Theme.of(context);
     final defaultStyle = theme.textTheme.ppMori400White12;
+    final sourceUrl = collection.projectURL.isNotEmpty
+        ? collection.projectURL
+        : collection.sourceURL;
+    final source = Uri.tryParse(sourceUrl)?.host ?? collection.source;
     return Row(
       children: [
         Expanded(
@@ -89,6 +93,9 @@ class _UserCollectionThumbnailState extends State<UserCollectionThumbnail> {
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 4),
+              Text(source,
+                  style: defaultStyle, overflow: TextOverflow.ellipsis),
             ],
           ),
         )
