@@ -527,6 +527,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_checkForReferralCode());
+    dailyWorkKey.currentState?.cancelTrackingUserInterest();
   }
 
   Future<void> _checkForReferralCode() async {
@@ -569,6 +570,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await _remoteConfig.loadConfigs(forceRefresh: true);
 
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
+    dailyWorkKey.currentState?.resumeTrackingUserInterest();
     _triggerShowAnnouncement();
   }
 
