@@ -469,8 +469,7 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
 
   injector.registerLazySingleton<NotificationSettingsBloc>(
-      () => NotificationSettingsBloc(
-            injector(),
-          ));
+      () => NotificationSettingsBloc(injector(), injector()));
+
   injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }

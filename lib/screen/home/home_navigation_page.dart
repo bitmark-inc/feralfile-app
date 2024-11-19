@@ -112,14 +112,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
-  void _notifyMoveOutDaily() {
-    dailyWorkKey.currentState?.didPushed();
-  }
-
   Future<void> onItemTapped(int index) async {
-    if (index != HomeNavigatorTab.daily.index) {
-      _notifyMoveOutDaily();
-    }
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
@@ -137,9 +130,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
           dailyWorkKey.currentState?.resumeDailyWork();
-          dailyWorkKey.currentState?.trackStayOnDaily();
+          dailyWorkKey.currentState?.resumeTrackingUserInterest();
         } else {
           dailyWorkKey.currentState?.pauseDailyWork();
+          dailyWorkKey.currentState?.cancelTrackingUserInterest();
         }
       }
       setState(() {
@@ -368,6 +362,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
     if (_selectedIndex == HomeNavigatorTab.daily.index) {
       dailyWorkKey.currentState?.resumeDailyWork();
+      dailyWorkKey.currentState?.resumeTrackingUserInterest();
     }
   }
 

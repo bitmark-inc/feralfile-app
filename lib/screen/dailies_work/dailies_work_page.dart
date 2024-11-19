@@ -75,7 +75,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Timer? _trackingStayOnDailyTimer;
   static const _scrollLikingThreshold = 100.0;
   static const _stayDurationLikingThreshold = Duration(seconds: 10);
-  late Map<UserLikeInteraction, bool> userLikeInteractions;
+  late Map<UserLikeInteraction, bool> _userLikeInteractions;
 
   @override
   void initState() {
@@ -88,7 +88,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     });
     _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
-    userLikeInteractions = {
+    _userLikeInteractions = {
       UserLikeInteraction.stayOnDailyArtwork: false,
       UserLikeInteraction.readArtworkInformation: false,
       UserLikeInteraction.tappingTheDisplayButton: false,
@@ -118,34 +118,26 @@ class DailyWorkPageState extends State<DailyWorkPage>
     unawaited(_displayButtonKey.currentState?.onTap(context, true));
   }
 
-  void didPushed() {
-    _cancelTrackingTimer();
-  }
-
-  void didTapDaily() {
-    trackStayOnDaily();
-  }
-
   void trackStayOnDaily() {
-    if (userLikeInteractions[UserLikeInteraction.stayOnDailyArtwork] ?? false) {
+    if (_userLikeInteractions[UserLikeInteraction.stayOnDailyArtwork] ??
+        false) {
       return;
     }
 
-    log.info('start trackingStayOnDaily timer');
     _cancelTrackingTimer();
+    log.info('DailyWorkPage start trackingStayOnDaily timer');
     _trackingStayOnDailyTimer = Timer(_stayDurationLikingThreshold, () {
       _setUserLiked(UserLikeInteraction.stayOnDailyArtwork);
     });
   }
 
   void _cancelTrackingTimer() {
-    log.info('stopTrackingInterest in Daily');
     _trackingStayOnDailyTimer?.cancel();
   }
 
   void _setUserLiked(UserLikeInteraction interaction) {
-    log.info('_setUserLiked: $interaction');
-    if (userLikeInteractions[interaction] ?? false) {
+    log.info('DailyWorkPage _setUserLiked: $interaction');
+    if (_userLikeInteractions[interaction] ?? false) {
       return;
     }
 
@@ -158,7 +150,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
       return;
     }
 
-    userLikeInteractions[interaction] = true;
+    _userLikeInteractions[interaction] = true;
     unawaited(_submitUserLike());
   }
 
@@ -224,6 +216,27 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   void unmuteDailyWork() {
     _artworkKey.currentState?.unmute();
+  }
+
+  void cancelTrackingUserInterest() {
+    log.info('DailyWorkPage cancelTrackingUserInterest');
+    _trackingDailyLiked = false;
+    _cancelTrackingTimer();
+  }
+
+  void resumeTrackingUserInterest() {
+    log.info('DailyWorkPage resumeTrackingUserInterest');
+    _resetUserLikedInteraction();
+    trackStayOnDaily();
+  }
+
+  void _resetUserLikedInteraction() {
+    _trackingDailyLiked = true;
+    _userLikeInteractions = {
+      UserLikeInteraction.stayOnDailyArtwork: false,
+      UserLikeInteraction.readArtworkInformation: false,
+      UserLikeInteraction.tappingTheDisplayButton: false,
+    };
   }
 
   void scrollToTop() {
