@@ -13,6 +13,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View.ACCESSIBILITY_DATA_SENSITIVE_YES
 import android.view.WindowManager.LayoutParams
 import androidx.biometric.BiometricManager
@@ -22,6 +23,7 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
 class MainActivity : FlutterFragmentActivity() {
@@ -235,11 +237,24 @@ class MainActivity : FlutterFragmentActivity() {
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
 
         backupDartPlugin.getJWT { jsonString ->
+            if (jsonString.isNullOrEmpty()) {
+                Log.e("getJWT", "JWT retrieval failed or returned null")
+                return@getJWT
+            }
             // decode jsonString
             val type = object : TypeToken<Map<String, Any>>() {}.type
             val map: Map<String, Any> = Gson().fromJson(jsonString, type)
-            val refreshTokenExpiredAtString = map["refresh_expire_at"] as? String ?: return@getJWT
-            val refreshTokenExpiredAt = java.time.Instant.parse(refreshTokenExpiredAtString)
+            val refreshTokenExpiredAtString = map["refresh_expire_at"] as? String ?: run {
+                Log.e("getJWT", "Missing 'refresh_expire_at' in JWT")
+                return@getJWT
+            }
+
+            val refreshTokenExpiredAt = try {
+                java.time.Instant.parse(refreshTokenExpiredAtString)
+            } catch (e: DateTimeParseException) {
+                Log.e("getJWT", "Invalid date format: $refreshTokenExpiredAtString")
+                return@getJWT
+            }
             val isExpired = refreshTokenExpiredAt.isBefore(java.time.Instant.now())
             if (isExpired) {
                 updateAuthenticationTime()
