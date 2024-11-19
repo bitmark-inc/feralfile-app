@@ -37,26 +37,6 @@ class PreferenceView extends StatelessWidget {
         children: [
           Padding(
             padding: padding,
-            child: PreferenceItem(
-              title: state.authMethodName,
-              description: 'use_device_passcode'.tr(args: [
-                if (state.authMethodName != 'device_passcode'.tr())
-                  state.authMethodName
-                else
-                  'device_passcode'.tr()
-              ]),
-              isEnabled: state.isDevicePasscodeEnabled,
-              onChanged: (value) {
-                final newState = state.copyWith(isDevicePasscodeEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-          ),
-          addDivider(),
-          Padding(
-            padding: padding,
             child: TappableForwardRowWithContent(
               onTap: () async {
                 await Navigator.of(context)
