@@ -31,18 +31,19 @@ class AuthService {
   JWT? _jwt;
   final UserAccountChannel _userAccountChannel;
 
-  AuthService(this._authApi,
-      this._userApi,
-      this._configurationService,
-      this._userAccountChannel,);
+  AuthService(
+    this._authApi,
+    this._userApi,
+    this._configurationService,
+    this._userAccountChannel,
+  );
 
   Future<void> reset() async {
     await setAuthToken(null);
   }
 
   Future<JWT> _refreshJWT({String? receiptData}) async {
-    final jwt = _jwt;
-    final refreshToken = jwt?.refreshToken;
+    final refreshToken = _jwt?.refreshToken;
     if (refreshToken == null || refreshToken.isEmpty) {
       throw JwtException(message: 'refresh_token_empty'.tr());
     }
@@ -73,7 +74,7 @@ class AuthService {
       );
     } catch (e) {
       refreshedJwt =
-      await injector<NavigationService>().showRefreshJwtFailedDialog(
+          await injector<NavigationService>().showRefreshJwtFailedDialog(
         onRetry: () async {
           final refreshJwt = await injector<PasskeyService>().requestJwt();
           return refreshJwt;
