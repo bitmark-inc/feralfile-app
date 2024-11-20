@@ -172,7 +172,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     bool isSuccess = false;
     try {
       isSuccess = await _loginProcess();
-    } catch (e, s) {
+    } catch (e) {
       log.info('Failed to login process: $e');
     }
     _isLoginSuccess = isSuccess;
@@ -264,9 +264,12 @@ class _OnboardingPageState extends State<OnboardingPage>
           final jwt =
               await injector<AuthService>().getAuthToken(shouldRefresh: false);
           final refreshToken = jwt?.refreshToken;
-          final isRefreshTokenExpired = (jwt?.refreshExpireAt
-                  ?.isBefore(DateTime.now().subtract(Duration(seconds: 0))) ??
-              true);
+          final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
+                DateTime.now().subtract(
+                  const Duration(hours: 24),
+                ),
+              ) ??
+              true;
           if (jwt?.isValid() == true &&
               refreshToken != null &&
               !isRefreshTokenExpired &&
