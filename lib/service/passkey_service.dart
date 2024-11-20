@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/user_api.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -20,11 +21,13 @@ abstract class PasskeyService {
 
   Future<AuthenticateResponseType> logInInitiate();
 
-  Future<void> logInFinalize(AuthenticateResponseType authenticateResponse);
+  Future<JWT> logInFinalize(AuthenticateResponseType authenticateResponse);
 
   Future<void> registerInitiate();
 
-  Future<void> registerFinalize();
+  Future<JWT> registerFinalize();
+
+  Future<JWT> requestJwt();
 
   ValueNotifier<bool> get isShowingLoginDialog;
 
@@ -136,15 +139,15 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<void> logInFinalize(
+  Future<JWT> logInFinalize(
       AuthenticateResponseType authenticateResponse) async {
     try {
       log.info('Login finalize');
-      final response =
-          await _userApi.logInFinalize(authenticateResponse.toFFJson());
+      final jwt = await _userApi.logInFinalize(authenticateResponse.toFFJson());
       log.info('Login finalize done, set auth token');
-      _authService.setAuthToken(response);
+      await _authService.setAuthToken(jwt);
       log.info('Login finalize done');
+      return jwt;
     } catch (e, s) {
       log.info('Failed to login finalize: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
@@ -186,20 +189,28 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<void> registerFinalize() async {
+  Future<JWT> registerFinalize() async {
     if (_registerResponse == null || _passkeyUserId == null) {
       throw Exception('Initialize registration has not finished');
     }
     final addressAuthentication =
         await _addressService.getAddressAuthenticationMap();
-    final response = await _userApi.registerFinalize({
+    final jwt = await _userApi.registerFinalize({
       'addressAuthentication': addressAuthentication,
       'passkeyUserId': _passkeyUserId,
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
     await _userAccountChannel.setDidRegisterPasskey(true);
-    _authService.setAuthToken(response);
+    await _authService.setAuthToken(jwt);
+    return jwt;
+  }
+
+  @override
+  Future<JWT> requestJwt() async {
+    final localResponse = await logInInitiate();
+    final jwt = await logInFinalize(localResponse);
+    return jwt;
   }
 }
 

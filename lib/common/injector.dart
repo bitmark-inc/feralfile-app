@@ -248,8 +248,9 @@ Future<void> setupInjector() async {
       () => IAPApi(dio, baseUrl: Environment.autonomyAuthURL),
       instanceName: iapApiTimeout5secInstanceName);
 
+  final userApiDio = baseDio(dioOptions);
   injector.registerLazySingleton(
-      () => UserApi(dio, baseUrl: Environment.autonomyAuthURL));
+      () => UserApi(userApiDio, baseUrl: Environment.autonomyAuthURL));
 
   injector.registerLazySingleton<UserInteractivityService>(
       () => UserInteractivityServiceImpl(injector(), injector()));
@@ -268,7 +269,7 @@ Future<void> setupInjector() async {
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
