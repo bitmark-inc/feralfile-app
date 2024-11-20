@@ -338,7 +338,3 @@ class TVKeyInterceptor extends Interceptor {
     }
   }
 }
-
-class PasskeyInterceptor extends Interceptor {
-  PasskeyInterceptor();
-}

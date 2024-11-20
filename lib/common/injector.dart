@@ -246,7 +246,6 @@ Future<void> setupInjector() async {
       instanceName: iapApiTimeout5secInstanceName);
 
   final userApiDio = baseDio(dioOptions);
-  userApiDio.interceptors.add(PasskeyInterceptor());
   injector.registerLazySingleton(
       () => UserApi(userApiDio, baseUrl: Environment.autonomyAuthURL));
 
