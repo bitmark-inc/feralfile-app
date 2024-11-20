@@ -176,12 +176,12 @@ class SystemChannelHandler: NSObject {
     
     func setJWT(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
-              let data = args["data"] as? String else {
-            result(false)
-            return
-        }
+                  let data = args["data"] as? String else {
+                result(false)
+                return
+            }
         let keychain = Keychain()
-        if keychain.set(data.data(using: .utf8), forKey: Constant.jwt) {
+        if keychain.set(data.data(using: .utf8)!, forKey: Constant.jwtKey) {
             result(true)
         } else {
             result(false)
@@ -189,21 +189,13 @@ class SystemChannelHandler: NSObject {
     }
     
     func getJWT(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        
-        guard let data = keychain.getData(Constant.jwt, isSync: true),
-              let jwt = String(data: data, encoding: .utf8) else {
-            result("")
-            return
-        }
-        
-        result(jwt)
+        getJWT(result: result)
     }
     
     func clearJWT(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let keychain = Keychain()
         
-        keychain.remove(key: Constant.jwt, isSync: true)
+        keychain.remove(key: Constant.jwtKey, isSync: true)
         result(true)
     }
     
@@ -245,10 +237,10 @@ class SystemChannelHandler: NSObject {
         result(didRegisterPasskeys)
     }
     
-    func getJWT(result: @escaping flutterResult) {
+    func getJWT(result: @escaping FlutterResult) {
         let keychain = Keychain()
-        guard let data = keychain.getData(Constant.jwt, isSync: true),
-              let jwt = String(data: data, encoding: .utf8) else {
+        guard let data = keychain.getData(Constant.jwtKey, isSync: true),
+              let jwt = String(data: data, encoding: .utf8), !jwt.isEmpty else {
             result("")
             return
         }

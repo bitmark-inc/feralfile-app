@@ -264,34 +264,35 @@ import workmanager
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
                 SystemChannelHandler.shared.getJWT { jwtRaw in
-                    guard let jwtRaw = jwtRaw else {
-                            print("JWT is nil or invalid")
-                            return
-                        }
-
-                        do {
-                            // Decode the JWT and check its expiration
-                            if let jwtData = jwtRaw.data(using: .utf8),
-                               let json = try JSONSerialization.jsonObject(with: jwtData, options: []) as? [String: Any],
-                               let refreshTokenExpiredAtString = json["refresh_expire_at"] as? String,
-                               let refreshTokenExpiredAt = ISO8601DateFormatter().date(from: refreshTokenExpiredAtString) {
-
-                                // Check if the token is expired
-                                let isExpired = refreshTokenExpiredAt < Date()
-                                if isExpired {
-                                    print("Token is expired")
-                                    return
-                                }
-
-                                // If not expired, trigger authentication
-                                self?.showAuthenticationOverlay()
-                                self?.authenticationVC.authentication()
-                            } else {
-                                print("Failed to decode JWT or missing required fields")
+                    guard let jwtRaw = jwtRaw as? String, !jwtRaw.isEmpty else {
+                        print("JWT is nil or invalid")
+                        return
+                    }
+                    
+                    do {
+                        // Decode the JWT and check its expiration
+                        if let jwtData = jwtRaw.data(using: .utf8),
+                           let json = try JSONSerialization.jsonObject(with: jwtData, options: []) as? [String: Any],
+                           let refreshTokenExpiredAtString = json["refresh_expire_at"] as? String,
+                           let refreshTokenExpiredAt = ISO8601DateFormatter().date(from: refreshTokenExpiredAtString) {
+                            
+                            // Check if the token is expired
+                            let isExpired = refreshTokenExpiredAt < Date()
+                            if isExpired {
+                                print("Token is expired")
+                                return
                             }
-                        } catch {
-                            print("Error decoding JWT: \(error.localizedDescription)")
+                            
+                            // If not expired, trigger authentication
+                            self?.showAuthenticationOverlay()
+                            self?.authenticationVC.authentication()
+                        } else {
+                            print("Failed to decode JWT or missing required fields")
                         }
+                    } catch {
+                        print("Error decoding JWT: \(error.localizedDescription)")
+                    }
+                }
             }
         }
         

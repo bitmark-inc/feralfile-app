@@ -77,8 +77,9 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<bool> canAuthenticate() async =>
-      await _passkeyAuthenticator.canAuthenticate();
+  Future<bool> canAuthenticate() async => true;
+
+  //await _passkeyAuthenticator.canAuthenticate();
 
   @override
   Future<AuthenticateResponseType> logInInitiate() async {
