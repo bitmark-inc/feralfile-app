@@ -77,6 +77,7 @@ dependencies:
   mixpanel_flutter: ^2.0.0
   onesignal_flutter: ^5.2.6
   open_settings: ^2.0.2
+  open_settings_plus: ^0.3.3
   overlay_support: ^2.0.0
   package_info_plus: ^8.0.3
   page_transition: ^2.0.5
@@ -116,7 +117,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 1a281ef3b56bef685a50e7d5099c8aab13314440
+      ref: b7ae2ec870c38b3c17df32db5e4af6e64f7a4efb
   flutter_branch_sdk: ^7.0.2
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2

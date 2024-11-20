@@ -188,9 +188,7 @@ extension AssetTokenExtension on AssetToken {
 
   String? getPreviewUrl() {
     if (previewURL != null) {
-      final url = medium == null
-          ? previewURL!
-          : _replaceIPFSPreviewURL(previewURL!, medium!);
+      final url = replaceIPFSPreviewURL(previewURL!);
       return url;
     }
     return null;
@@ -566,14 +564,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   }
 }
 
-String _replaceIPFSPreviewURL(String url, String medium) {
-  // Don't replace CloudflareIPFS in iOS
-  // iOS can't render a cloudfare video issue
-  // More information: https://stackoverflow.com/questions/33823411/avplayer-fails-to-play-video-sometimes
-  // if (Platform.isIOS && medium == 'video') {
-  //   return url;
-  // }
-
+String replaceIPFSPreviewURL(String url) {
   url =
       url.replacePrefix(IPFS_PREFIX, '${Environment.autonomyIpfsPrefix}/ipfs/');
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);

@@ -137,8 +137,10 @@ Future<void> setupHomeWidgetInjector() async {
         injector(),
       ));
   final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<IndexerApi>(
+      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
   injector.registerLazySingleton<IndexerService>(
-      () => IndexerService(indexerClient));
+      () => IndexerService(indexerClient, injector()));
   injector.registerLazySingleton<RemoteConfigService>(() =>
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
@@ -354,8 +356,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
       feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
-  injector.registerLazySingleton<IndexerApi>(
-      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
       postcardDio(dioOptions.copyWith(
@@ -364,8 +364,10 @@ Future<void> setupInjector() async {
       baseUrl: Environment.auClaimAPIURL));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<IndexerApi>(
+      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
   injector.registerLazySingleton<IndexerService>(
-      () => IndexerService(indexerClient));
+      () => IndexerService(indexerClient, injector()));
 
   injector.registerLazySingleton<EthereumService>(() =>
       EthereumServiceImpl(injector(), injector(), injector(), injector()));

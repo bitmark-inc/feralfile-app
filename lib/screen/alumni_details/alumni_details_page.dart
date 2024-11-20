@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_post_view.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/alumni_widget.dart';
@@ -25,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:nft_collection/models/user_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AlumniDetailsPagePayload {
@@ -98,6 +100,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
             context,
             user,
             series ?? [],
+            state.userCollections,
           ),
         if ((state.exhibitions?.length ?? 0) > 0) ...[
           const SliverToBoxAdapter(
@@ -275,10 +278,12 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
     ));
   }
 
-  List<Widget> _workSection(
-      BuildContext context, AlumniAccount alumni, List<FFSeries> series) {
-    final header =
-        _header(context, title: 'works'.tr(), subtitle: '${series.length}');
+  List<Widget> _workSection(BuildContext context, AlumniAccount alumni,
+      List<FFSeries> series, List<UserCollection> userCollections) {
+    final listSeriesAndColections =
+        series.mergeIndexerCollection(userCollections);
+    final header = _header(context,
+        title: 'works'.tr(), subtitle: '${listSeriesAndColections.length}');
     final viewAll = PrimaryAsyncButton(
       color: AppColor.white,
       onTap: () {
@@ -286,7 +291,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
       },
       text: 'view_all_works'.tr(),
     );
-    const viewALlBreakpoint = 4;
+    const viewAllBreakpoint = 4;
 
     return [
       SliverToBoxAdapter(child: header),
@@ -295,10 +300,11 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
           children: [
             Expanded(
               child: SeriesView(
-                series: series.length > viewALlBreakpoint
-                    ? series.sublist(0, viewALlBreakpoint)
-                    : series,
+                series: series,
+                userCollections: userCollections,
+                limit: viewAllBreakpoint,
                 isScrollable: false,
+                artist: alumni,
               ),
             ),
           ],
@@ -310,7 +316,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: series.length > viewALlBreakpoint
+        child: listSeriesAndColections.length > viewAllBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,
@@ -342,7 +348,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
       color: AppColor.white,
       text: 'view_all_exhibitions'.tr(),
     );
-    const viewALlBreakpoint = 2;
+    const viewAllBreakpoint = 2;
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
@@ -353,8 +359,8 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         children: [
           Expanded(
             child: ListExhibitionView(
-              exhibitions: exhibitions.length > viewALlBreakpoint
-                  ? exhibitions.sublist(0, viewALlBreakpoint)
+              exhibitions: exhibitions.length > viewAllBreakpoint
+                  ? exhibitions.sublist(0, viewAllBreakpoint)
                   : exhibitions,
               isScrollable: false,
             ),
@@ -370,7 +376,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: exhibitions.length > viewALlBreakpoint
+        child: exhibitions.length > viewAllBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,
@@ -398,7 +404,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
       color: AppColor.white,
       text: 'view_all_posts'.tr(),
     );
-    const viewALlBreakpoint = 2;
+    const viewAllBreakpoint = 2;
 
     return [
       SliverToBoxAdapter(child: header),
@@ -410,8 +416,8 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
           children: [
             Expanded(
               child: ListPostView(
-                posts: posts.length > viewALlBreakpoint
-                    ? posts.sublist(0, viewALlBreakpoint)
+                posts: posts.length > viewAllBreakpoint
+                    ? posts.sublist(0, viewAllBreakpoint)
                     : posts,
                 isScrollable: false,
               ),
@@ -429,7 +435,7 @@ class _AlumniDetailsPageState extends State<AlumniDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: posts.length > viewALlBreakpoint
+        child: posts.length > viewAllBreakpoint
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: viewAll,
