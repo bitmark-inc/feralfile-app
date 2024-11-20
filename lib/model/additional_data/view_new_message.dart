@@ -21,7 +21,7 @@ class ViewNewMessage extends AdditionalData {
     required this.groupId,
     required super.notificationType,
     super.announcementContentId,
-    super.linkText,
+    super.cta,
   });
 
   final RemoteConfigService _remoteConfigService =

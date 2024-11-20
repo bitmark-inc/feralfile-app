@@ -64,6 +64,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       final localAnnouncement = _announcementStore.getAll();
       announcements.removeWhere((element) => localAnnouncement.any((local) =>
           local.announcementContentId == element.announcementContentId));
+
       for (final announcement in announcements) {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
@@ -155,9 +156,11 @@ class AnnouncementServiceImpl implements AnnouncementService {
         }
         return;
       }
-      await showNotifications(
+
+      await showInAppNotifications(
         context,
         announcement.announcementContentId,
+        additionalData,
         body: announcement.content,
         handler: additionalData.isTappable
             ? () async {
@@ -169,7 +172,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
             await showOldestAnnouncement();
           }
         },
-        additionalData: additionalData,
       );
     }
   }

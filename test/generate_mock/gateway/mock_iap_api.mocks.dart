@@ -182,4 +182,24 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
         ),
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
+  @override
+  _i5.Future<Map<String, dynamic>> getNotificationSettings() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getNotificationSettings,
+          [],
+        ),
+        returnValue:
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
+  @override
+  _i5.Future<void> updateNotificationSettings(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateNotificationSettings,
+          [body],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }

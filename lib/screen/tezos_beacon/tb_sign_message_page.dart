@@ -130,10 +130,10 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     }
 
     Navigator.of(context).pop(signature);
-    showInfoNotification(
-      const Key('signed'),
-      'signed'.tr(),
-      frontWidget: SvgPicture.asset(
+    showSimpleNotificationToast(
+      key: const Key('signed'),
+      content: 'signed'.tr(),
+      leading: SvgPicture.asset(
         'assets/images/checkbox_icon.svg',
         width: 24,
       ),

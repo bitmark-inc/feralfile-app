@@ -17,14 +17,12 @@ class PreferenceUpdateEvent extends PreferenceEvent {
 
 class PreferenceState {
   bool isDevicePasscodeEnabled;
-  bool isNotificationEnabled;
   final bool isAnalyticEnabled;
   final String authMethodName;
   final bool hasHiddenArtworks;
 
   PreferenceState(
     this.isDevicePasscodeEnabled,
-    this.isNotificationEnabled,
     this.isAnalyticEnabled,
     this.authMethodName,
     this.hasHiddenArtworks,
@@ -32,14 +30,12 @@ class PreferenceState {
 
   PreferenceState copyWith({
     bool? isDevicePasscodeEnabled,
-    bool? isNotificationEnabled,
     bool? isAnalyticEnabled,
     String? authMethodName,
     bool? hasHiddenArtworks,
   }) =>
       PreferenceState(
         isDevicePasscodeEnabled ?? this.isDevicePasscodeEnabled,
-        isNotificationEnabled ?? this.isNotificationEnabled,
         isAnalyticEnabled ?? this.isAnalyticEnabled,
         authMethodName ?? this.authMethodName,
         hasHiddenArtworks ?? this.hasHiddenArtworks,

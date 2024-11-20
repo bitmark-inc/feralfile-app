@@ -83,7 +83,10 @@ class TezosBeaconService implements BeaconHandler {
     if (_requestSignMessageForConnectionFlag) {
       _requestSignMessageForConnectionFlag = false;
       Future.delayed(const Duration(seconds: 3), () {
-        showInfoNotification(const Key('switchBack'), 'you_all_set'.tr());
+        showSimpleNotificationToast(
+          key: const Key('switchBack'),
+          content: 'you_all_set'.tr(),
+        );
       });
     }
   }
