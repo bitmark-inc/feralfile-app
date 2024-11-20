@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -78,6 +79,8 @@ class AnnouncementServiceImpl implements AnnouncementService {
       }
       await _configurationService.setLastPullAnnouncementTime(
           DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+      unawaited(injector<CustomerSupportService>().getChatThreads());
     } catch (e) {
       log.info('Error fetching announcements: $e');
       return [];

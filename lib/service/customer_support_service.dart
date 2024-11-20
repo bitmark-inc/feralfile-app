@@ -15,12 +15,14 @@ import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
+import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notifications/notification_type.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +104,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   bool _isProcessingDraftMessages = false;
 
   /// will add this after backend support
-  static const _supportChatNotificationTypes = [];
+  static const _supportChatNotificationTypes = [
+    NotificationSettingType.supportMessages
+  ];
 
   Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
