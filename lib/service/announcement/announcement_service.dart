@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -64,6 +65,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       final localAnnouncement = _announcementStore.getAll();
       announcements.removeWhere((element) => localAnnouncement.any((local) =>
           local.announcementContentId == element.announcementContentId));
+
       for (final announcement in announcements) {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
@@ -77,6 +79,8 @@ class AnnouncementServiceImpl implements AnnouncementService {
       }
       await _configurationService.setLastPullAnnouncementTime(
           DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+      unawaited(injector<CustomerSupportService>().getChatThreads());
     } catch (e) {
       log.info('Error fetching announcements: $e');
       return [];
@@ -155,9 +159,11 @@ class AnnouncementServiceImpl implements AnnouncementService {
         }
         return;
       }
-      await showNotifications(
+
+      await showInAppNotifications(
         context,
         announcement.announcementContentId,
+        additionalData,
         body: announcement.content,
         handler: additionalData.isTappable
             ? () async {
@@ -169,7 +175,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
             await showOldestAnnouncement();
           }
         },
-        additionalData: additionalData,
       );
     }
   }
