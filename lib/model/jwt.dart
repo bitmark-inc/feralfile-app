@@ -52,18 +52,26 @@ class JWT {
   int? expireIn;
   String jwtToken;
   String refreshToken;
+  DateTime? refreshExpireAt;
 
-  JWT({required this.jwtToken, this.expireIn, this.refreshToken = ''});
+  JWT(
+      {required this.jwtToken,
+      this.refreshExpireAt,
+      this.expireIn,
+      this.refreshToken = ''});
 
   JWT.fromJson(Map<String, dynamic> json)
       : expireIn = double.tryParse(json['expire_in'].toString())?.toInt(),
         jwtToken = json['jwt_token'],
-        refreshToken = json['refresh_token'] ?? '';
+        refreshToken = json['refresh_token'] ?? '',
+        refreshExpireAt = DateTime.tryParse(json['refresh_expire_at'] ?? '') ??
+            DateTime.now();
 
   Map<String, dynamic> toJson() => {
         'expire_in': expireIn,
         'jwt_token': jwtToken,
         'refresh_token': refreshToken,
+        'refresh_expire_at': refreshExpireAt?.toIso8601String(),
       };
 
   bool _isValid() {
@@ -114,6 +122,12 @@ class JWT {
 
   @override
   String toString() => jwtToken;
+
+  JWT copyWith({required String jwtToken, int? expireIn}) => JWT(
+      jwtToken: jwtToken,
+      expireIn: expireIn,
+      refreshToken: refreshToken,
+      refreshExpireAt: refreshExpireAt);
 }
 
 enum MembershipSource {

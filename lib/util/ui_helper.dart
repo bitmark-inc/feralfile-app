@@ -1660,7 +1660,7 @@ class UIHelper {
     );
   }
 
-  static Future<void> showCustomDialog(
+  static Future<dynamic> showCustomDialog(
       {required BuildContext context,
       required Widget child,
       bool isDismissible = false,
