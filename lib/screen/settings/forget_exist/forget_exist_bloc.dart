@@ -26,7 +26,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:autonomy_flutter/util/notifications/notification_util.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
