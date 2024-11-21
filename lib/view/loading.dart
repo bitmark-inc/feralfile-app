@@ -7,6 +7,7 @@ import 'package:gif_view/gif_view.dart';
 class LoadingWidget extends StatelessWidget {
   final bool invertColors;
   final Color? backgroundColor;
+
   const LoadingWidget(
       {super.key, this.invertColors = false, this.backgroundColor});
 
@@ -15,8 +16,6 @@ class LoadingWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      width: double.infinity,
-      height: double.infinity,
       color: backgroundColor ?? AppColor.primaryBlack,
       child: Center(
         child: Column(

@@ -341,12 +341,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDevicePasscodeEnabled() => true; // always enabled
+  bool isDevicePasscodeEnabled() => false; // always enabled
 
   @override
   Future<void> setDevicePasscodeEnabled(bool value) async {
     log.info('setDevicePasscodeEnabled: $value');
-    await _preferences.setBool(KEY_DEVICE_PASSCODE, value);
+    await _preferences.setBool(KEY_DEVICE_PASSCODE, false);
   }
 
   @override

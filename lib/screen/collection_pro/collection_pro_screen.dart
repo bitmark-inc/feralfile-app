@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
@@ -121,47 +120,9 @@ class CollectionProState extends State<CollectionPro>
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: getDarkEmptyAppBar(Colors.transparent),
-        backgroundColor: AppColor.primaryBlack,
-        body: SafeArea(
-          top: false,
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              children: [
-                _header(context),
-                const SizedBox(height: 20),
-                if (isShowSearchBar)
-                  ActionBar(
-                    searchBar: AuSearchBar(
-                      onChanged: (text) {},
-                      onSearch: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                      onClear: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                    ),
-                    onCancel: () {
-                      setState(() {
-                        searchStr.value = '';
-                        isShowSearchBar = false;
-                      });
-                    },
-                  ),
-                Expanded(
-                  child: _body(context),
-                ),
-              ],
-            ),
-          ),
-        ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: _body(context),
       );
 
   Widget _header(BuildContext context) {
@@ -250,6 +211,41 @@ class CollectionProState extends State<CollectionPro>
                     controller: _scrollController,
                     shrinkWrap: true,
                     slivers: [
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: MediaQuery.of(context).padding.top,
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _header(context),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 20),
+                      ),
+                      if (isShowSearchBar)
+                        SliverToBoxAdapter(
+                          child: ActionBar(
+                            searchBar: AuSearchBar(
+                              onChanged: (text) {},
+                              onSearch: (text) {
+                                setState(() {
+                                  searchStr.value = text;
+                                });
+                              },
+                              onClear: (text) {
+                                setState(() {
+                                  searchStr.value = text;
+                                });
+                              },
+                            ),
+                            onCancel: () {
+                              setState(() {
+                                searchStr.value = '';
+                                isShowSearchBar = false;
+                              });
+                            },
+                          ),
+                        ),
                       if (!isEmptyView)
                         SliverToBoxAdapter(
                           child: ValueListenableBuilder(

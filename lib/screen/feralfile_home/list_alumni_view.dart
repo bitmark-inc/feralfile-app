@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/explore_search_bar.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -14,24 +16,12 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ExploreArtistView extends StatefulWidget {
-  final String? searchText;
-  final Map<FilterType, FilterValue> filters;
-  final SortBy sortBy;
+  final Widget? header;
 
-  const ExploreArtistView(
-      {required this.filters,
-      required this.sortBy,
-      this.searchText,
-      super.key});
+  const ExploreArtistView({super.key, this.header});
 
   @override
   State<ExploreArtistView> createState() => ExploreArtistViewState();
-
-  bool isEqual(Object other) =>
-      other is ExploreArtistView &&
-      other.searchText == searchText &&
-      other.filters == filters &&
-      other.sortBy == sortBy;
 }
 
 class ExploreArtistViewState extends State<ExploreArtistView> {
@@ -39,6 +29,9 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
   late Paging _paging;
   late ScrollController _scrollController;
   bool _isLoading = false;
+
+  late String? _searchText;
+  late SortBy _sortBy;
 
   @override
   void initState() {
@@ -51,14 +44,14 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
         unawaited(_loadMore());
       }
     });
+    _searchText = null;
+    _sortBy = FeralfileHomeTab.artists.getDefaultSortBy();
     unawaited(_fetchArtists(context));
   }
 
   @override
   void didUpdateWidget(covariant ExploreArtistView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    unawaited(_fetchArtists(context));
-    scrollToTop();
   }
 
   @override
@@ -75,11 +68,6 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     ));
   }
 
-  Widget _loadingView(BuildContext context) => const Padding(
-        padding: EdgeInsets.only(bottom: 100),
-        child: LoadingWidget(),
-      );
-
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
@@ -87,30 +75,43 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     );
   }
 
-  Widget _artistView(BuildContext context, List<AlumniAccount> artists) =>
+  Widget _getExploreBar(BuildContext context) => ExploreBar(
+        key: const ValueKey(FeralfileHomeTab.artists),
+        onUpdate: (searchText, filters, sortBy) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _searchText = searchText;
+              _sortBy = sortBy;
+            });
+            await _fetchArtists(context);
+          });
+        },
+        tab: FeralfileHomeTab.artists,
+      );
+
+  Widget _artistView(BuildContext context, List<AlumniAccount>? artists) =>
       ListAlumniView(
-          listAlumni: artists,
-          onAlumniSelected: (alumni) {
-            unawaited(injector<NavigationService>()
-                .openFeralFileArtistPage(alumni.slug ?? alumni.id));
-          },
-          scrollController: _scrollController,
-          padding: const EdgeInsets.only(
-            left: 12,
-            right: 12,
-            bottom: 100,
-          ));
+        listAlumni: artists,
+        onAlumniSelected: (alumni) {
+          unawaited(injector<NavigationService>()
+              .openFeralFileArtistPage(alumni.slug ?? alumni.id));
+        },
+        scrollController: _scrollController,
+        padding: const EdgeInsets.only(
+          left: 12,
+          right: 12,
+          bottom: 100,
+        ),
+        header: widget.header,
+        exploreBar: _getExploreBar(context),
+        emptyWidget: _emptyView(context),
+      );
 
   @override
-  Widget build(BuildContext context) {
-    if (_artists == null) {
-      return _loadingView(context);
-    } else if (_artists!.isEmpty) {
-      return _emptyView(context);
-    } else {
-      return _artistView(context, _artists!);
-    }
-  }
+  Widget build(BuildContext context) => _artistView(context, _artists);
 
   Future<List<AlumniAccount>> _fetchArtists(BuildContext context) async {
     if (_isLoading) {
@@ -119,10 +120,10 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     _isLoading = true;
 
     final resp = await injector<FeralFileService>().getListAlumni(
-      keywork: widget.searchText ?? '',
+      keywork: _searchText ?? '',
       isArtist: true,
-      orderBy: widget.sortBy.queryParam,
-      sortOrder: widget.sortBy.sortOrder.queryParam,
+      orderBy: _sortBy.queryParam,
+      sortOrder: _sortBy.sortOrder.queryParam,
     );
     final artists = resp.result;
     final paging = resp.paging!;
@@ -144,11 +145,11 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     }
     _isLoading = true;
     final resp = await injector<FeralFileService>().getListAlumni(
-      keywork: widget.searchText ?? '',
+      keywork: _searchText ?? '',
       isArtist: true,
       offset: _paging.offset + _paging.limit,
       limit: _paging.limit,
-      orderBy: widget.sortBy.queryParam,
+      orderBy: _sortBy.queryParam,
     );
 
     final artists = resp.result;
@@ -162,24 +163,12 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
 }
 
 class ExploreCuratorView extends StatefulWidget {
-  final String? searchText;
-  final Map<FilterType, FilterValue> filters;
-  final SortBy sortBy;
+  final Widget? header;
 
-  const ExploreCuratorView(
-      {required this.filters,
-      required this.sortBy,
-      this.searchText,
-      super.key});
+  const ExploreCuratorView({super.key, this.header});
 
   @override
   State<ExploreCuratorView> createState() => ExploreCuratorViewState();
-
-  bool isEqual(Object other) =>
-      other is ExploreCuratorView &&
-      other.searchText == searchText &&
-      other.filters == filters &&
-      other.sortBy == sortBy;
 }
 
 class ExploreCuratorViewState extends State<ExploreCuratorView> {
@@ -187,6 +176,9 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   late ScrollController _scrollController;
   late Paging _paging;
   bool _isLoading = false;
+
+  late String? _searchText;
+  late SortBy _sortBy;
 
   @override
   void initState() {
@@ -199,6 +191,8 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
         unawaited(_loadMore());
       }
     });
+    _searchText = null;
+    _sortBy = FeralfileHomeTab.curators.getDefaultSortBy();
     unawaited(_fetchCurators(context));
   }
 
@@ -223,11 +217,6 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     ));
   }
 
-  Widget _loadingView(BuildContext context) => const Padding(
-        padding: EdgeInsets.only(bottom: 100),
-        child: LoadingWidget(),
-      );
-
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
@@ -235,7 +224,24 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     );
   }
 
-  Widget _curatorView(BuildContext context, List<AlumniAccount> curators) =>
+  Widget _getExploreBar(BuildContext context) => ExploreBar(
+        key: const ValueKey(FeralfileHomeTab.artists),
+        onUpdate: (searchText, filters, sortBy) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _searchText = searchText;
+              _sortBy = sortBy;
+            });
+            await _fetchCurators(context);
+          });
+        },
+        tab: FeralfileHomeTab.artists,
+      );
+
+  Widget _curatorView(BuildContext context, List<AlumniAccount>? curators) =>
       ListAlumniView(
         listAlumni: curators,
         onAlumniSelected: (alumni) {
@@ -248,18 +254,13 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
           right: 12,
           bottom: 100,
         ),
+        header: widget.header,
+        exploreBar: _getExploreBar(context),
+        emptyWidget: _emptyView(context),
       );
 
   @override
-  Widget build(BuildContext context) {
-    if (_curators == null) {
-      return _loadingView(context);
-    } else if (_curators!.isEmpty) {
-      return _emptyView(context);
-    } else {
-      return _curatorView(context, _curators!);
-    }
-  }
+  Widget build(BuildContext context) => _curatorView(context, _curators);
 
   Future<List<AlumniAccount>> _fetchCurators(BuildContext context) async {
     if (_isLoading) {
@@ -267,10 +268,10 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     }
     _isLoading = true;
     final resp = await injector<FeralFileService>().getListAlumni(
-      keywork: widget.searchText ?? '',
+      keywork: _searchText ?? '',
       isCurator: true,
-      orderBy: widget.sortBy.queryParam,
-      sortOrder: widget.sortBy.sortOrder.queryParam,
+      orderBy: _sortBy.queryParam,
+      sortOrder: _sortBy.sortOrder.queryParam,
     );
     final ignoreCuratorAddresses =
         FeralFileExploreHelper.ignoreCuratorAddresses;
@@ -297,12 +298,12 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     }
     _isLoading = true;
     final resp = await injector<FeralFileService>().getListAlumni(
-      keywork: widget.searchText ?? '',
+      keywork: _searchText ?? '',
       isCurator: true,
       offset: _paging.offset + _paging.limit,
       limit: _paging.limit,
-      orderBy: widget.sortBy.queryParam,
-      sortOrder: widget.sortBy.sortOrder.queryParam,
+      orderBy: _sortBy.queryParam,
+      sortOrder: _sortBy.sortOrder.queryParam,
     );
 
     final ignoreCuratorAddresses =
@@ -322,17 +323,24 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
 }
 
 class ListAlumniView extends StatefulWidget {
-  final List<AlumniAccount> listAlumni;
+  final List<AlumniAccount>? listAlumni;
   final Function(AlumniAccount) onAlumniSelected;
   final ScrollController? scrollController;
   final EdgeInsets padding;
+  final Widget? header;
+  final Widget? exploreBar;
+  final Widget? emptyWidget;
 
-  const ListAlumniView(
-      {required this.listAlumni,
-      required this.onAlumniSelected,
-      this.scrollController,
-      this.padding = const EdgeInsets.all(0),
-      super.key});
+  const ListAlumniView({
+    required this.listAlumni,
+    required this.onAlumniSelected,
+    this.scrollController,
+    this.padding = const EdgeInsets.all(0),
+    super.key,
+    this.header,
+    this.exploreBar,
+    this.emptyWidget,
+  });
 
   @override
   State<ListAlumniView> createState() => _ListAlumniViewState();
@@ -347,35 +355,61 @@ class _ListAlumniViewState extends State<ListAlumniView> {
     _scrollController = widget.scrollController ?? ScrollController();
   }
 
+  Widget _loadingView(BuildContext context) => const Padding(
+        padding: EdgeInsets.only(top: 150),
+        child: LoadingWidget(),
+      );
+
   @override
   Widget build(BuildContext context) => CustomScrollView(
         controller: _scrollController,
         slivers: [
-          SliverPadding(
-            padding: widget.padding,
-            sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 102.0 / 152,
-                  crossAxisSpacing: 24,
-                  mainAxisSpacing: 30,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final alumni = widget.listAlumni[index];
-                    return GestureDetector(
-                      onTap: () {
-                        widget.onAlumniSelected(alumni);
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: _artistItem(context, alumni),
-                      ),
-                    );
-                  },
-                  childCount: widget.listAlumni.length,
-                )),
-          ),
+          if (widget.exploreBar != null || widget.header != null) ...[
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.of(context).padding.top + 32),
+            ),
+            SliverToBoxAdapter(
+              child: widget.header ?? const SizedBox.shrink(),
+            ),
+            SliverToBoxAdapter(
+              child: widget.exploreBar ?? const SizedBox.shrink(),
+            ),
+          ],
+          if (widget.listAlumni == null) ...[
+            SliverToBoxAdapter(
+              child: _loadingView(context),
+            ),
+          ] else if (widget.listAlumni!.isEmpty) ...[
+            SliverToBoxAdapter(
+              child: widget.emptyWidget ?? const SizedBox.shrink(),
+            ),
+          ] else ...[
+            SliverPadding(
+              padding: widget.padding,
+              sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 102.0 / 152,
+                    crossAxisSpacing: 24,
+                    mainAxisSpacing: 30,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final alumni = widget.listAlumni![index];
+                      return GestureDetector(
+                        onTap: () {
+                          widget.onAlumniSelected(alumni);
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                          child: _artistItem(context, alumni),
+                        ),
+                      );
+                    },
+                    childCount: widget.listAlumni!.length,
+                  )),
+            ),
+          ],
         ],
       );
 
