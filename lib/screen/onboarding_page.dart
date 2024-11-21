@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
@@ -275,8 +274,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               !isRefreshTokenExpired) {
             // jwt is valid, no need to login again
             log.info('JWT is valid, no need to login again');
-            // ask biometric
-            await LocalAuthenticationService.checkLocalAuth();
+
             return;
           }
           log.info('[_loginAndMigrate] create JWT token');
