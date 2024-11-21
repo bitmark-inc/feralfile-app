@@ -12,13 +12,16 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -170,7 +173,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     bool isSuccess = false;
     try {
       isSuccess = await _loginProcess();
-    } catch (e, s) {
+    } catch (e) {
       log.info('Failed to login process: $e');
     }
     _isLoginSuccess = isSuccess;
@@ -259,9 +262,25 @@ class _OnboardingPageState extends State<OnboardingPage>
     try {
       await injector<AccountService>().migrateAccount(() async {
         try {
+          final jwt =
+              await injector<AuthService>().getAuthToken(shouldRefresh: false);
+          final refreshToken = jwt?.refreshToken;
+          final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
+                DateTime.now().subtract(REFRESH_JWT_DURATION_BEFORE_EXPIRE),
+              ) ??
+              true;
+          if (jwt?.isValid() == true &&
+              refreshToken != null &&
+              refreshToken.isNotEmpty &&
+              !isRefreshTokenExpired) {
+            // jwt is valid, no need to login again
+            log.info('JWT is valid, no need to login again');
+            // ask biometric
+            await LocalAuthenticationService.checkLocalAuth();
+            return;
+          }
           log.info('[_loginAndMigrate] create JWT token');
-          final localResponse = await _passkeyService.logInInitiate();
-          await _passkeyService.logInFinalize(localResponse);
+          await _passkeyService.requestJwt();
           log.info('[_loginAndMigrate] create JWT token done');
         } catch (e, s) {
           log.info('Failed to create login JWT: $e');

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
@@ -54,6 +55,33 @@ class UserAccountChannel {
       'data': value,
     });
     return didRegister;
+  }
+
+  Future<void> setJWT(JWT jwt) async {
+    try {
+      await _channel.invokeMethod('setJWT', {'data': jsonEncode(jwt.toJson())});
+    } catch (e) {
+      log.info('setJWT error: $e');
+    }
+  }
+
+  Future<JWT?> getJWT() async {
+    try {
+      final String? data = await _channel.invokeMethod('getJWT', {});
+      final jwt = json.decode(data ?? '{}');
+      return JWT.fromJson(jwt);
+    } catch (e) {
+      log.info('getJWT error: $e');
+    }
+    return null;
+  }
+
+  Future<void> clearJWT() async {
+    try {
+      await _channel.invokeMethod('clearJWT', {});
+    } catch (e) {
+      log.info('clearJWT error: $e');
+    }
   }
 }
 
