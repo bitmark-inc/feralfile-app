@@ -250,9 +250,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _pages = <Widget>[
       MultiBlocProvider(
           providers: [
-            BlocProvider(
-              create: (_) => injector<DailyWorkBloc>(),
-            ),
+            BlocProvider.value(value: injector<DailyWorkBloc>()),
             BlocProvider.value(value: injector<CanvasDeviceBloc>()),
             BlocProvider.value(
                 value: _notificationSettingsBloc
