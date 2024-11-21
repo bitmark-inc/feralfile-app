@@ -274,11 +274,13 @@ class NavigationService {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       bool dialogShowed = false;
-      showInfoNotificationWithLink(
-        contactingKey,
-        'establishing_contact'.tr(),
-        frontWidget: loadingIndicator(valueColor: AppColor.white),
-        bottomRightWidget: GestureDetector(
+
+      showSimpleNotificationToast(
+        key: contactingKey,
+        content: 'establishing_contact'.tr(),
+        leading: loadingIndicator(valueColor: AppColor.white),
+        duration: const Duration(seconds: 15),
+        rightBottomWidget: GestureDetector(
           onTap: () {
             dialogShowed = true;
             waitTooLongDialog();
@@ -295,7 +297,6 @@ class NavigationService {
                 ),
           ),
         ),
-        duration: const Duration(seconds: 15),
       );
       final OverlaySupportState? overlaySupport = findOverlayState();
       Future.delayed(const Duration(seconds: 4), () {

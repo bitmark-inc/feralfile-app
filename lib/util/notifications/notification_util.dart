@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -33,8 +32,6 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
     final primaryAddress = await injector<AddressService>().getPrimaryAddress();
     await OneSignal.login(primaryAddress!);
     await OneSignal.User.pushSubscription.optIn();
-
-    await injector<ConfigurationService>().setNotificationEnabled(true);
     return true;
   } catch (error) {
     unawaited(Sentry.captureException(

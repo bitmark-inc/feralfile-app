@@ -112,6 +112,9 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_state.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notifications_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
@@ -176,6 +179,7 @@ class AppRouter {
   static const sendArtworkReviewPage = 'send_artwork_review_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const preferencesPage = 'preferences_page';
+  static const notificationsPage = 'notifications_page';
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
@@ -242,6 +246,7 @@ class AppRouter {
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
+    final notificationSettingsBloc = injector<NotificationSettingsBloc>();
 
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
@@ -933,6 +938,15 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                 ], child: const PreferencePage()));
 
+      case notificationsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider.value(
+                  value: notificationSettingsBloc
+                    ..add(GetNotificationSettingsEvent()),
+                  child: const NotificationsPage(),
+                ));
+
       case subscriptionPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1100,6 +1114,10 @@ class AppRouter {
               create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: canvasDeviceBloc),
+            BlocProvider.value(
+              value: notificationSettingsBloc
+                ..add(GetNotificationSettingsEvent()),
+            ),
           ], child: const DailyWorkPage()),
         );
 

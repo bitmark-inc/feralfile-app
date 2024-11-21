@@ -19,8 +19,8 @@ class MetricClientService {
   String _defaultIdentifier() => injector<DeviceInfoService>().deviceId;
 
   Future<void> initService({String? identifier}) async {
-    log.info('[MetricClientService] initService');
     _identifier = identifier ?? _defaultIdentifier();
+    log.info('[MetricClientService] initService $_identifier');
   }
 
   Future<void> identity() async {

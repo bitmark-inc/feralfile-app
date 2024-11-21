@@ -444,8 +444,12 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                           if (isCopied) {
                             return;
                           }
-                          showInfoNotification(const Key('address'),
-                              'address_copied_to_clipboard'.tr());
+
+                          showSimpleNotificationToast(
+                            key: const Key('address'),
+                            content: 'address_copied_to_clipboard'.tr(),
+                          );
+
                           unawaited(
                               Clipboard.setData(ClipboardData(text: _address)));
                           setState(() {

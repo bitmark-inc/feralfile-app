@@ -40,6 +40,7 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -467,6 +468,9 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<CloudManager>(() => CloudManager());
 
   injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
+
+  injector.registerLazySingleton<NotificationSettingsBloc>(
+      () => NotificationSettingsBloc(injector(), injector()));
 
   injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }
