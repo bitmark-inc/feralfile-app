@@ -37,7 +37,7 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     _scrollController = ScrollController();
     _searchText = null;
     _filters = {};
-    _sortBy = SortBy.openAt;
+    _sortBy = FeralfileHomeTab.exhibitions.getDefaultSortBy();
     unawaited(_fetchExhibitions(context));
   }
 
