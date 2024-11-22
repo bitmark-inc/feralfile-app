@@ -65,7 +65,7 @@ class AuthService {
     return newJwt;
   }
 
-  Future<JWT> refreshJWT({String? receiptData}) async {
+  Future<JWT> refreshJWT({String? receiptData, bool shouldRetry = true}) async {
     JWT? refreshedJwt;
     try {
       final newJwt = await _refreshJWT(receiptData: receiptData);
@@ -76,13 +76,15 @@ class AuthService {
     } catch (e) {
       unawaited(Sentry.captureException(
           'Failed to refresh JWT, request passkey again, error: $e'));
-      refreshedJwt =
-          await injector<NavigationService>().showRefreshJwtFailedDialog(
-        onRetry: () async {
-          final refreshJwt = await injector<PasskeyService>().requestJwt();
-          return refreshJwt;
-        },
-      );
+      if (shouldRetry) {
+        refreshedJwt =
+            await injector<NavigationService>().showRefreshJwtFailedDialog(
+          onRetry: () async {
+            final refreshJwt = await injector<PasskeyService>().requestJwt();
+            return refreshJwt;
+          },
+        );
+      }
     }
     if (refreshedJwt == null) {
       throw JwtException(message: 'jwt_refresh_failed'.tr());
