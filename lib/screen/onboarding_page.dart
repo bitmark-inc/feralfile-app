@@ -277,7 +277,8 @@ class _OnboardingPageState extends State<OnboardingPage>
 
             return;
           }
-          log.info('[_loginAndMigrate] create JWT token');
+          log.info(
+              'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
           await _passkeyService.requestJwt();
           log.info('[_loginAndMigrate] create JWT token done');
         } catch (e, s) {
