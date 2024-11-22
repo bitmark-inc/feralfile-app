@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreferencePage extends StatefulWidget {
-  const PreferencePage({super.key});
+  const PreferencePage({Key? key}) : super(key: key);
 
   @override
   State<PreferencePage> createState() => _PreferencePageState();
@@ -30,27 +30,29 @@ class _PreferencePageState extends State<PreferencePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: getBackAppBar(
-          context,
-          title: 'preferences'.tr(),
-          onBack: () {
-            Navigator.of(context).pop();
-          },
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        title: "preferences".tr(),
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            addTitleSpace(),
+            Column(
+              children: [
+                PreferenceView(
+                  key: _preferenceKey,
+                ),
+              ],
+            ),
+          ],
         ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              addTitleSpace(),
-              Column(
-                children: [
-                  PreferenceView(
-                    key: _preferenceKey,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
+      ),
+    );
+  }
 }

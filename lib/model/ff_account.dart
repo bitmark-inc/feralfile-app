@@ -128,10 +128,12 @@ class FileInfo {
         status: json['status'],
         version: json['version'],
         metadata: json['metadata'] == null ||
-                json['metadata'].isEmpty ||
-                (json['metadata'] as Map)['urlOverwrite'] == null
+                (json['metadata'] as Map<String, dynamic>).isEmpty ||
+                (json['metadata'] as Map<String, dynamic>)['urlOverwrite'] ==
+                    null
             ? null
-            : FileAssetMetadata.fromJson(json['metadata']),
+            : FileAssetMetadata.fromJson(
+                json['metadata'] as Map<String, dynamic>),
         createdAt: json['createdAt'],
         updatedAt: json['updatedAt'],
       );

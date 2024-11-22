@@ -175,7 +175,7 @@ class ActionMessageResponse {
 
   factory ActionMessageResponse.fromJson(Map<String, dynamic> json) =>
       ActionMessageResponse(
-        message: json['result']['message'] ?? '',
+        message: (json['result']['message'] as String?) ?? '',
       );
 
   Map<String, dynamic> toJson() => {
@@ -190,8 +190,9 @@ class FFListSeriesResponse {
 
   factory FFListSeriesResponse.fromJson(Map<String, dynamic> json) =>
       FFListSeriesResponse(
-        result:
-            (json['result'] as List).map((e) => FFSeries.fromJson(e)).toList(),
+        result: (json['result'] as List<dynamic>)
+            .map((e) => FFSeries.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -206,8 +207,9 @@ class FFListArtworksResponse {
 
   factory FFListArtworksResponse.fromJson(Map<String, dynamic> json) =>
       FFListArtworksResponse(
-        result:
-            (json['result'] as List).map((e) => Artwork.fromJson(e)).toList(),
+        result: (json['result'] as List<dynamic>)
+            .map((e) => Artwork.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -223,7 +225,9 @@ class FeralFileResponse<T> {
   factory FeralFileResponse.fromJson(Map<String, dynamic> json,
           {T Function(Map<String, dynamic>)? fromJson}) =>
       FeralFileResponse(
-        result: fromJson != null ? fromJson(json['result']) : json['result'],
+        result: fromJson != null 
+            ? fromJson(json['result'] as Map<String, dynamic>) 
+            : json['result'] as T,
       );
 
   Map<String, dynamic> toJson() => {

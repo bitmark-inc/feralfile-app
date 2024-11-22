@@ -13,11 +13,11 @@ class CredentialRequestOption {
 
   factory CredentialRequestOption.fromJson(Map<String, dynamic> json) =>
       CredentialRequestOption(
-        publicKey:
-            PublicKeyCredentialRequestOptions.fromJson(json['publicKey']),
+        publicKey: PublicKeyCredentialRequestOptions.fromJson(
+            json['publicKey'] as Map<String, dynamic>),
         mediation: json['mediation'] == null
             ? null
-            : getMediationTypeFromString(json['mediation']),
+            : getMediationTypeFromString(json['mediation'] as String),
       );
 }
 
@@ -28,7 +28,7 @@ class CredProps {
   CredProps({this.rk});
 
   factory CredProps.fromJson(Map<String, dynamic> json) =>
-      CredProps(rk: json['rk']);
+      CredProps(rk: json['rk'] as bool?);
 }
 
 // Model for Extensions (appid, appidExclude, and credProps)
@@ -45,10 +45,10 @@ class CredentialExtensions {
 
   factory CredentialExtensions.fromJson(Map<String, dynamic> json) =>
       CredentialExtensions(
-        appid: json['appid'],
-        appidExclude: json['appidExclude'],
+        appid: json['appid'] as bool?,
+        appidExclude: json['appidExclude'] as bool?,
         credProps: json['credProps'] != null
-            ? CredProps.fromJson(json['credProps'])
+            ? CredProps.fromJson(json['credProps'] as Map<String, dynamic>)
             : null,
       );
 }
@@ -74,17 +74,19 @@ class PublicKeyCredentialRequestOptions {
   factory PublicKeyCredentialRequestOptions.fromJson(
           Map<String, dynamic> json) =>
       PublicKeyCredentialRequestOptions(
-        challenge: json['challenge'],
-        timeout: json['timeout'],
-        rpId: json['rpId'],
+        challenge: json['challenge'] as String,
+        timeout: json['timeout'] as int?,
+        rpId: json['rpId'] as String?,
         allowCredentials: json['allowCredentials'] != null
             ? (json['allowCredentials'] as List)
-                .map((cred) => getCredentialTypeFromJsonFF(cred))
+                .map((cred) =>
+                    getCredentialTypeFromJsonFF(cred as Map<String, dynamic>))
                 .toList()
             : null,
-        userVerification: json['userVerification'],
+        userVerification: json['userVerification'] as String?,
         extensions: json['extensions'] != null
-            ? CredentialExtensions.fromJson(json['extensions'])
+            ? CredentialExtensions.fromJson(
+                json['extensions'] as Map<String, dynamic>)
             : null,
       );
 }

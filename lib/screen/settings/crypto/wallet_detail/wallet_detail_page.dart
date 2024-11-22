@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -527,12 +527,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                           if (isCopied) {
                             return;
                           }
-
-                          showSimpleNotificationToast(
-                            key: const Key('address'),
-                            content: 'address_copied_to_clipboard'.tr(),
-                          );
-
+                          showInfoNotification(const Key('address'),
+                              'address_copied_to_clipboard'.tr());
                           unawaited(
                               Clipboard.setData(ClipboardData(text: address)));
                           setState(() {

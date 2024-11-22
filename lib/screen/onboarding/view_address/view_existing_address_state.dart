@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 

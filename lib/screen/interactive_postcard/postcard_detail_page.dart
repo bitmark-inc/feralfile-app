@@ -223,6 +223,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     });
   }
 
+  Future<void> _postcardUpdated(BuildContext context) async {
+    await UIHelper.showPostcardUpdates(context);
+  }
+
   Future<void> _socialShare(BuildContext context, AssetToken asset) {
     final theme = Theme.of(context);
     final tags = [
@@ -412,6 +416,22 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           });
         } else {
           timer?.cancel();
+        }
+
+        final alreadyShowPostcardUpdate = _configurationService
+            .getAlreadyShowPostcardUpdates()
+            .any((element) =>
+                element.id == assetToken.id &&
+                element.owner == assetToken.owner);
+        if (!alreadyShowPostcardUpdate) {
+          if (!_configurationService.isNotificationEnabled()) {
+            if (!mounted) {
+              return;
+            }
+            unawaited(_postcardUpdated(context));
+          }
+          unawaited(_configurationService.setAlreadyShowPostcardUpdates(
+              [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]));
         }
 
         if (assetToken.didSendNext) {

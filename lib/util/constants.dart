@@ -148,8 +148,6 @@ const double cellSpacing = 3;
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
-const Duration REFRESH_JWT_DURATION_BEFORE_EXPIRE = Duration(hours: 24);
-
 const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
 const Color POSTCARD_PINK_BUTTON_COLOR = Color.fromRGBO(231, 75, 168, 1);
 const Color POSTCARD_GREEN_BUTTON_COLOR = Color.fromRGBO(79, 174, 79, 1);
@@ -288,10 +286,10 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
-  static const ChatSupport = 'chat support';
+  static const ChatWithFeralfile = 'chat with Feral File';
 
   static List<String> get getList =>
-      [Bug, Exception, Announcement, MerchandiseIssue, ChatSupport];
+      [Bug, Exception, Announcement, MerchandiseIssue, ChatWithFeralfile];
 
   static List<String> get getSuggestList => [Bug];
 
@@ -301,7 +299,7 @@ class ReportIssueType {
         return 'Report a bug';
       case Announcement:
         return 'announcement'.tr();
-      case ChatSupport:
+      case ChatWithFeralfile:
         return 'chat_with_feralfile'.tr();
       case MerchandiseIssue:
         return 'Merchandise issue';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 
 class WalletAddressCloudObject {
   final AccountSettingsDB _accountSettingsDB;
@@ -34,7 +34,7 @@ class WalletAddressCloudObject {
     if (value.isEmpty) {
       return null;
     }
-    final addressJson = jsonDecode(value.first['value']!);
+    final addressJson = jsonDecode(value.first['value']!) as Map<String, dynamic>;
     return WalletAddress.fromJson(addressJson);
   }
 
@@ -60,7 +60,7 @@ class WalletAddressCloudObject {
 
   List<WalletAddress> getAllAddresses() {
     final addresses = _accountSettingsDB.values
-        .map((value) => WalletAddress.fromJson(jsonDecode(value)))
+        .map((value) => WalletAddress.fromJson(jsonDecode(value) as Map<String, dynamic>))
         .toList();
     return addresses;
   }

@@ -162,16 +162,6 @@ class AutonomyAuthInterceptor extends Interceptor {
 
     return handler.next(options);
   }
-
-  @override
-  Future<void> onError(
-      DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
-      // handle 401 error: refresh JWT
-      await injector<AuthService>().refreshJWT();
-    }
-    return handler.next(err);
-  }
 }
 
 class CustomerSupportInterceptor extends Interceptor {

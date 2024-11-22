@@ -25,8 +25,6 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_state.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -43,8 +41,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
-import 'package:autonomy_flutter/util/notifications/notification_type.dart';
+import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
@@ -98,7 +95,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
   final _subscriptionBloc = injector<SubscriptionBloc>();
-  final _notificationSettingsBloc = injector<NotificationSettingsBloc>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -112,7 +108,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
+  void _notifyMoveOutDaily() {
+    dailyWorkKey.currentState?.didPushed();
+  }
+
   Future<void> onItemTapped(int index) async {
+    if (index != HomeNavigatorTab.daily.index) {
+      _notifyMoveOutDaily();
+    }
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
@@ -130,10 +133,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
           dailyWorkKey.currentState?.resumeDailyWork();
-          dailyWorkKey.currentState?.resumeTrackingUserInterest();
+          dailyWorkKey.currentState?.trackInterest();
         } else {
           dailyWorkKey.currentState?.pauseDailyWork();
-          dailyWorkKey.currentState?.cancelTrackingUserInterest();
         }
       }
       setState(() {
@@ -254,9 +256,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               create: (_) => injector<DailyWorkBloc>(),
             ),
             BlocProvider.value(value: injector<CanvasDeviceBloc>()),
-            BlocProvider.value(
-                value: _notificationSettingsBloc
-                  ..add(GetNotificationSettingsEvent()))
           ],
           child: DailyWorkPage(
             key: dailyWorkKey,
@@ -295,15 +294,17 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           AdditionalData.fromJson(event.notification.additionalData!);
       final id = additionalData.announcementContentId ??
           event.notification.notificationId;
+      final body = event.notification.body;
 
       Future.delayed(const Duration(milliseconds: 500), () async {
         if (!mounted) {
           return;
         }
-        await NotificationHandler.instance.shouldShowInAppNotification(
+        await NotificationHandler.instance.shouldShowNotifications(
           context,
           additionalData,
           id,
+          body ?? '',
           _pageController,
         );
       });
@@ -313,16 +314,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           '${openedResult.notification.additionalData}');
       final additionalData =
           AdditionalData.fromJson(openedResult.notification.additionalData!);
-      if (additionalData.notificationType != NotificationType.announcement) {
-        await _announcementService.fetchAnnouncements();
-      }
-
+      final id = additionalData.announcementContentId ??
+          openedResult.notification.notificationId;
+      final body = openedResult.notification.body;
+      await _announcementService.fetchAnnouncements();
       if (!mounted) {
         return;
       }
-
       unawaited(NotificationHandler.instance
-          .handlePushNotificationClicked(context, additionalData));
+          .handleNotificationClicked(context, additionalData, id, body ?? ''));
     });
 
     if (!widget.payload.fromOnboarding) {
@@ -362,7 +362,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
     if (_selectedIndex == HomeNavigatorTab.daily.index) {
       dailyWorkKey.currentState?.resumeDailyWork();
-      dailyWorkKey.currentState?.resumeTrackingUserInterest();
     }
   }
 
@@ -527,7 +526,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_checkForReferralCode());
-    dailyWorkKey.currentState?.cancelTrackingUserInterest();
   }
 
   Future<void> _checkForReferralCode() async {
@@ -538,11 +536,13 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _triggerShowAnnouncement() {
-    unawaited(_announcementService.fetchAnnouncements().then(
-      (_) async {
-        await _announcementService.showOldestAnnouncement();
-      },
-    ));
+    unawaited(Future.delayed(const Duration(milliseconds: 2000), () {
+      _announcementService.fetchAnnouncements().then(
+        (_) async {
+          await _announcementService.showOldestAnnouncement();
+        },
+      );
+    }));
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -568,7 +568,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await _remoteConfig.loadConfigs(forceRefresh: true);
 
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
-    dailyWorkKey.currentState?.resumeTrackingUserInterest();
     _triggerShowAnnouncement();
   }
 

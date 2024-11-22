@@ -8,8 +8,6 @@
 // ignore_for_file: cascade_invocations
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -40,7 +38,6 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -78,7 +75,6 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -100,7 +96,6 @@ import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:web3dart/web3dart.dart';
 
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
@@ -138,44 +133,15 @@ Future<void> setupHomeWidgetInjector() async {
         injector(),
       ));
   final indexerClient = IndexerClient(Environment.indexerURL);
-  injector.registerLazySingleton<IndexerApi>(
-      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
   injector.registerLazySingleton<IndexerService>(
-      () => IndexerService(indexerClient, injector()));
+      () => IndexerService(indexerClient));
   injector.registerLazySingleton<RemoteConfigService>(() =>
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
-  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }
 
 Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
-
-  final mainnetDB =
-      await $FloorAppDatabase.databaseBuilder('app_database.db').addMigrations([
-    migrateV1ToV2,
-    migrateV2ToV3,
-    migrateV3ToV4,
-    migrateV4ToV5,
-    migrateV5ToV6,
-    migrateV6ToV7,
-    migrateV7ToV8,
-    migrateV8ToV9,
-    migrateV9ToV10,
-    migrateV10ToV11,
-    migrateV11ToV12,
-    migrateV12ToV13,
-    migrateV13ToV14,
-    migrateV14ToV15,
-    migrateV15ToV16,
-    migrateV16ToV17,
-    migrateV17ToV18,
-    migrateV18ToV19,
-    migrateV19ToV20,
-  ]).build();
-
-  final cloudDB =
-      await $FloorCloudDatabase.databaseBuilder('cloud_database.db').build();
 
   injector.registerLazySingleton(() => NavigationService());
 
@@ -206,7 +172,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
   injector.registerLazySingleton(
       () => NftCollection.database.predefinedCollectionDao);
-  injector.registerLazySingleton(() => cloudDB);
 
   final authenticatedDio =
       baseDio(dioOptions); // Authenticated dio instance for AU servers
@@ -248,9 +213,8 @@ Future<void> setupInjector() async {
       () => IAPApi(dio, baseUrl: Environment.autonomyAuthURL),
       instanceName: iapApiTimeout5secInstanceName);
 
-  final userApiDio = baseDio(dioOptions);
   injector.registerLazySingleton(
-      () => UserApi(userApiDio, baseUrl: Environment.autonomyAuthURL));
+      () => UserApi(dio, baseUrl: Environment.autonomyAuthURL));
 
   injector.registerLazySingleton<UserInteractivityService>(
       () => UserInteractivityServiceImpl(injector(), injector()));
@@ -269,7 +233,7 @@ Future<void> setupInjector() async {
       RemoteConfigServiceImpl(
           RemoteConfigApi(dio, baseUrl: Environment.remoteConfigURL)));
   injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
@@ -323,7 +287,6 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<CustomerSupportService>(
       () => CustomerSupportServiceImpl(
-            mainnetDB.draftCustomerSupportDao,
             CustomerSupportApi(
                 customerSupportDio(
                   dioOptions.copyWith(
@@ -349,33 +312,21 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<DomainAddressService>(
       () => DomainAddressServiceImpl(injector()));
 
-  injector.registerLazySingleton(
-      () => Web3Client(Environment.web3RpcURL, injector()));
-
   injector.registerLazySingleton<ClientTokenService>(
       () => ClientTokenService(injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
       feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
-
-  injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      postcardDio(dioOptions.copyWith(
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30))),
-      baseUrl: Environment.auClaimAPIURL));
-
-  final indexerClient = IndexerClient(Environment.indexerURL);
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
+
+  final indexerClient = IndexerClient(Environment.indexerURL);
   injector.registerLazySingleton<IndexerService>(
-      () => IndexerService(indexerClient, injector()));
+      () => IndexerService(indexerClient));
 
   injector.registerLazySingleton<EthereumService>(() =>
       EthereumServiceImpl(injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
-  injector
-      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
-  injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   injector.registerLazySingleton<PlaylistService>(() => PlayListServiceImp(
       injector(), injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
@@ -468,9 +419,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<CloudManager>(() => CloudManager());
 
   injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
-
-  injector.registerLazySingleton<NotificationSettingsBloc>(
-      () => NotificationSettingsBloc(injector(), injector()));
 
   injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
 }

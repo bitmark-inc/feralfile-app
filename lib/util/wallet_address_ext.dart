@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 

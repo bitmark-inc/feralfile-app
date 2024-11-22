@@ -10,8 +10,8 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';

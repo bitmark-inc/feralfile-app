@@ -12,7 +12,7 @@ class ViewCollection extends AdditionalData {
   ViewCollection({
     required super.notificationType,
     super.announcementContentId,
-    super.cta,
+    super.linkText,
   });
 
   @override

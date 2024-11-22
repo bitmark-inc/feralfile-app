@@ -8,7 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
+
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -444,12 +444,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                           if (isCopied) {
                             return;
                           }
-
-                          showSimpleNotificationToast(
-                            key: const Key('address'),
-                            content: 'address_copied_to_clipboard'.tr(),
-                          );
-
+                          showInfoNotification(const Key('address'),
+                              'address_copied_to_clipboard'.tr());
                           unawaited(
                               Clipboard.setData(ClipboardData(text: _address)));
                           setState(() {

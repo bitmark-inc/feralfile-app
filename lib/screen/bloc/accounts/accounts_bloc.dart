@@ -9,8 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -35,21 +34,9 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<GetAccountsEvent>((event, emit) async {
-      final connections = _cloudObject.connectionObject.getLinkedAccounts();
       final addresses = _cloudObject.addressObject.getAllAddresses();
 
       List<Account> accounts = await _getAccountWallet(addresses);
-
-      for (var connection in connections) {
-        if (accounts
-            .map((e) => e.accountNumber)
-            .toList()
-            .contains(connection.accountNumber)) {
-          continue;
-        }
-        accounts.add(_getAccountFromConnectionAddress(
-            connection, connection.accountNumber));
-      }
 
       accounts.sort(_compareAccount);
 
@@ -90,20 +77,14 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<SaveAccountOrderEvent>((event, emit) async {
       final accounts = event.accounts;
       final List<WalletAddress> walletAddresses = [];
-      final List<Connection> connections = [];
       for (int i = 0; i < accounts.length; i++) {
         final account = accounts[i];
         if (account.walletAddress != null) {
           final walletAddress = account.walletAddress!;
           walletAddresses.add(walletAddress.copyWith(accountOrder: i));
-        } else {
-          final connection = account.connections!.first..accountOrder = i;
-          connections.add(connection);
         }
       }
       await _cloudObject.addressObject.updateAddresses(walletAddresses);
-
-      await _cloudObject.connectionObject.writeConnections(connections);
     });
 
     on<GetAccountsIRLEvent>((event, emit) async {
@@ -197,17 +178,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
   }
 
-  Future<Connection?> getExistingAccount(String accountNumber) async {
-    final existingConnections = _cloudObject.connectionObject
-        .getConnectionsByAccountNumber(accountNumber);
-
-    if (existingConnections.isEmpty) {
-      return null;
-    }
-
-    return existingConnections.first;
-  }
-
   Future<List<Account>> _getAccountWallet(
       List<WalletAddress> walletAddresses) async {
     final List<WalletAddress> addresses = [...walletAddresses];
@@ -243,19 +213,4 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
   int _compareAccountWithoutOrder(Account a, Account b) =>
       a.createdAt.compareTo(b.createdAt);
-
-  Account _getAccountFromConnectionAddress(
-      Connection connection, String address) {
-    final cryptoType = CryptoType.fromAddress(address).source;
-    final name = connection.name.isNotEmpty ? connection.name : cryptoType;
-    return Account(
-      key: connection.key,
-      accountNumber: address,
-      connections: [connection],
-      blockchain: cryptoType,
-      name: name,
-      createdAt: connection.createdAt,
-      accountOrder: connection.accountOrder,
-    );
-  }
 }

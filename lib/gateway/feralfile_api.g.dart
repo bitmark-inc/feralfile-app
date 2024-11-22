@@ -580,7 +580,8 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = ExploreStatisticsData.fromJson(_result.data!['result']);
+    final value = ExploreStatisticsData.fromJson(
+        _result.data!['result'] as Map<String, dynamic>);
     return value;
   }
 

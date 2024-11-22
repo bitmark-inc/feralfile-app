@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';

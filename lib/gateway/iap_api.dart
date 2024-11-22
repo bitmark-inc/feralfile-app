@@ -47,10 +47,6 @@ abstract class IAPApi {
   Future<void> sendEvent(
     @Body() Map<String, dynamic> metrics,
     @Header('x-device-id') String deviceId,
-    @Header('x-device-name') String deviceName,
-    @Header('x-device-vendor') String deviceVendor,
-    @Header('x-device-model') String deviceModel,
-    @Header('x-device-platform') String devicePlatform,
   );
 
   @DELETE('/apis/metric-devices/{id}')
@@ -66,12 +62,4 @@ abstract class IAPApi {
 
   @GET('/apis/memberships/subscriptions/active')
   Future<dynamic> getCustomActiveSubscription();
-
-  @GET('/apis/v2/notifications/settings/me')
-  Future<Map<String, dynamic>> getNotificationSettings();
-
-  @PATCH('/apis/v2/notifications/settings/me')
-  Future<void> updateNotificationSettings(
-    @Body() Map<String, dynamic> body,
-  );
 }

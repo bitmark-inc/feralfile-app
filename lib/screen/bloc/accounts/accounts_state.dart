@@ -51,7 +51,6 @@ class FetchAllAddressesEvent extends AccountsEvent {}
 
 class Account {
   String key;
-  List<Connection>? connections;
   String name;
   String? blockchain;
   WalletAddress? walletAddress;
@@ -70,7 +69,6 @@ class Account {
   Account({
     required this.key,
     required this.createdAt,
-    this.connections,
     this.blockchain,
     this.walletAddress,
     this.accountNumber = '',
@@ -85,7 +83,6 @@ class Account {
     }
 
     return other.key == key &&
-        listEquals(other.connections, connections) &&
         other.name == name &&
         other.blockchain == blockchain &&
         other.walletAddress == walletAddress &&
@@ -97,7 +94,6 @@ class Account {
   @override
   int get hashCode =>
       key.hashCode ^
-      connections.hashCode ^
       name.hashCode ^
       blockchain.hashCode ^
       walletAddress.hashCode ^
@@ -141,18 +137,6 @@ class AccountsState {
 }
 
 abstract class AccountBlocStateEvent {}
-
-class LinkAccountSuccess extends AccountBlocStateEvent {
-  final Connection connection;
-
-  LinkAccountSuccess(this.connection);
-}
-
-class AlreadyLinkedError extends AccountBlocStateEvent {
-  final Connection connection;
-
-  AlreadyLinkedError(this.connection);
-}
 
 class FetchAllAddressesSuccessEvent extends AccountBlocStateEvent {
   final List<String> addresses;

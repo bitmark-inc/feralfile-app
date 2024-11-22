@@ -138,33 +138,47 @@ class RequestBody {
     Request request;
     switch (command) {
       case CastCommand.checkStatus:
-        request = CheckDeviceStatusRequest.fromJson(json['request']);
+        request = CheckDeviceStatusRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.castListArtwork:
-        request = CastListArtworkRequest.fromJson(json['request']);
+        request = CastListArtworkRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.castDaily:
-        request = CastDailyWorkRequest.fromJson(json['request']);
+        request = CastDailyWorkRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.cancelCasting:
-        request = CancelCastingRequest.fromJson(json['request']);
+        request = CancelCastingRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.appendArtworkToCastingList:
-        request = AppendArtworkToCastingListRequest.fromJson(json['request']);
+        request = AppendArtworkToCastingListRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.pauseCasting:
-        request = PauseCastingRequest.fromJson(json['request']);
+        request = PauseCastingRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.resumeCasting:
-        request = ResumeCastingRequest.fromJson(json['request']);
+        request = ResumeCastingRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.nextArtwork:
-        request = NextArtworkRequest.fromJson(json['request']);
+        request = NextArtworkRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.previousArtwork:
-        request = PreviousArtworkRequest.fromJson(json['request']);
+        request = PreviousArtworkRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.moveToArtwork:
-        request = MoveToArtworkRequest.fromJson(json['request']);
+        request = MoveToArtworkRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.updateDuration:
-        request = UpdateDurationRequest.fromJson(json['request']);
+        request = UpdateDurationRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.castExhibition:
-        request = CastExhibitionRequest.fromJson(json['request']);
+        request = CastExhibitionRequest.fromJson(
+            json['request'] as Map<String, dynamic>);
       case CastCommand.connect:
-        request = ConnectRequestV2.fromJson(json['request']);
+        request =
+            ConnectRequestV2.fromJson(json['request'] as Map<String, dynamic>);
       case CastCommand.disconnect:
-        request = DisconnectRequestV2.fromJson(json['request']);
+        request = DisconnectRequestV2.fromJson(
+            json['request'] as Map<String, dynamic>);
       default:
         throw ArgumentError('Unknown command: $commandString');
     }
@@ -224,9 +238,9 @@ class DeviceInfoV2 {
   });
 
   factory DeviceInfoV2.fromJson(Map<String, dynamic> json) => DeviceInfoV2(
-        deviceId: json['device_id'],
-        deviceName: json['device_name'],
-        platform: DevicePlatform.values[json['platform'] ?? 0],
+        deviceId: json['device_id'] as String,
+        deviceName: json['device_name'] as String,
+        platform: DevicePlatform.values[json['platform'] as int? ?? 0],
       );
 
   Map<String, dynamic> toJson() => {
@@ -247,8 +261,9 @@ class ConnectRequestV2 implements Request {
 
   factory ConnectRequestV2.fromJson(Map<String, dynamic> json) =>
       ConnectRequestV2(
-        clientDevice: DeviceInfoV2.fromJson(json['clientDevice']),
-        primaryAddress: json['primaryAddress'],
+        clientDevice:
+            DeviceInfoV2.fromJson(json['clientDevice'] as Map<String, dynamic>),
+        primaryAddress: json['primaryAddress'] as String?,
       );
 
   @override
@@ -271,9 +286,10 @@ class ConnectReplyV2 extends ReplyWithOK {
       };
 
   factory ConnectReplyV2.fromJson(Map<String, dynamic> json) => ConnectReplyV2(
-        ok: json['ok'],
+        ok: json['ok'] as bool,
         canvasDevice: json['canvasDevice'] != null
-            ? DeviceInfoV2.fromJson(json['canvasDevice'])
+            ? DeviceInfoV2.fromJson(
+                json['canvasDevice'] as Map<String, dynamic>)
             : null,
       );
 }
@@ -321,8 +337,8 @@ class CastArtwork implements Request {
   CastArtwork({required this.url, required this.mimetype});
 
   factory CastArtwork.fromJson(Map<String, dynamic> json) => CastArtwork(
-        url: json['url'],
-        mimetype: json['mimetype'],
+        url: json['url'] as String,
+        mimetype: json['mimetype'] as String,
       );
 
   @override
@@ -346,12 +362,12 @@ class PlayArtworkV2 {
 
   factory PlayArtworkV2.fromJson(Map<String, dynamic> json) => PlayArtworkV2(
         token: json['token'] != null
-            ? CastAssetToken.fromJson(json['token'])
+            ? CastAssetToken.fromJson(json['token'] as Map<String, dynamic>)
             : null,
         artwork: json['artwork'] != null
-            ? CastArtwork.fromJson(json['artwork'])
+            ? CastArtwork.fromJson(json['artwork'] as Map<String, dynamic>)
             : null,
-        duration: json['duration'],
+        duration: json['duration'] as int,
       );
 
   Map<String, dynamic> toJson() => {
@@ -373,9 +389,9 @@ class CastListArtworkRequest implements Request {
 
   factory CastListArtworkRequest.fromJson(Map<String, dynamic> json) =>
       CastListArtworkRequest(
-        artworks: List<PlayArtworkV2>.from(
-            json['artworks'].map((x) => PlayArtworkV2.fromJson(x))),
-        startTime: json['startTime'],
+        artworks: List<PlayArtworkV2>.from((json['artworks'] as List)
+            .map((x) => PlayArtworkV2.fromJson(x as Map<String, dynamic>))),
+        startTime: json['startTime'] as int?,
       );
 
   @override
@@ -418,15 +434,16 @@ class CheckDeviceStatusReply extends Reply {
       CheckDeviceStatusReply(
         artworks: json['artworks'] == null
             ? []
-            : List<PlayArtworkV2>.from(
-                json['artworks'].map((x) => PlayArtworkV2.fromJson(x))),
-        startTime: json['startTime'],
+            : List<PlayArtworkV2>.from((json['artworks'] as List)
+                .map((x) => PlayArtworkV2.fromJson(x as Map<String, dynamic>))),
+        startTime: json['startTime'] as int?,
         connectedDevice: json['connectedDevice'] != null
-            ? DeviceInfoV2.fromJson(json['connectedDevice'])
+            ? DeviceInfoV2.fromJson(
+                json['connectedDevice'] as Map<String, dynamic>)
             : null,
-        exhibitionId: json['exhibitionId'],
-        catalogId: json['catalogId'],
-        displayKey: json['displayKey'],
+        exhibitionId: json['exhibitionId'] as String?,
+        catalogId: json['catalogId'] as String?,
+        displayKey: json['displayKey'] as String?,
       );
 
   @override
@@ -445,7 +462,7 @@ class CastListArtworkReply extends ReplyWithOK {
   CastListArtworkReply({required super.ok});
 
   factory CastListArtworkReply.fromJson(Map<String, dynamic> json) =>
-      CastListArtworkReply(ok: json['ok']);
+      CastListArtworkReply(ok: json['ok'] as bool);
 
   @override
   Map<String, dynamic> toJson() => {
@@ -469,7 +486,7 @@ class CancelCastingReply extends ReplyWithOK {
   CancelCastingReply({required super.ok});
 
   factory CancelCastingReply.fromJson(Map<String, dynamic> json) =>
-      CancelCastingReply(ok: json['ok']);
+      CancelCastingReply(ok: json['ok'] as bool);
 }
 
 // Class representing AppendArtworkToCastingListRequest message
@@ -796,8 +813,8 @@ class DragGestureRequest implements Request {
   @override
   factory DragGestureRequest.fromJson(Map<String, dynamic> json) =>
       DragGestureRequest(
-        cursorOffsets: List<CursorOffset>.from(
-            json['cursorOffsets'].map((x) => CursorOffset.fromJson(x))),
+        cursorOffsets: List<CursorOffset>.from((json['cursorOffsets'] as List)
+            .map((x) => CursorOffset.fromJson(x as Map<String, dynamic>))),
       );
 }
 

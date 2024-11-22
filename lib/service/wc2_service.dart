@@ -11,7 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
+
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';

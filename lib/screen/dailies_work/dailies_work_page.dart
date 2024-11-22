@@ -44,12 +44,6 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum UserLikeInteraction {
-  stayOnDailyArtwork,
-  readArtworkInformation,
-  tappingTheDisplayButton,
-}
-
 class DailyWorkPage extends StatefulWidget {
   const DailyWorkPage({super.key});
 
@@ -72,10 +66,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
   DailyToken? get _currentDailyToken => _dailyWorkBloc.state.currentDailyToken;
 
   bool _trackingDailyLiked = false;
-  Timer? _trackingStayOnDailyTimer;
+  Timer? _trackingDailyLikedTimer;
   static const _scrollLikingThreshold = 100.0;
   static const _stayDurationLikingThreshold = Duration(seconds: 10);
-  late Map<UserLikeInteraction, bool> _userLikeInteractions;
 
   @override
   void initState() {
@@ -88,11 +81,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
     });
     _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
-    _userLikeInteractions = {
-      UserLikeInteraction.stayOnDailyArtwork: false,
-      UserLikeInteraction.readArtworkInformation: false,
-      UserLikeInteraction.tappingTheDisplayButton: false,
-    };
   }
 
   @override
@@ -118,54 +106,42 @@ class DailyWorkPageState extends State<DailyWorkPage>
     unawaited(_displayButtonKey.currentState?.onTap(context, true));
   }
 
-  void trackStayOnDaily() {
-    if (_userLikeInteractions[UserLikeInteraction.stayOnDailyArtwork] ??
-        false) {
+  void didPushed() {
+    _stopTrackingLiked();
+  }
+
+  void didTapDaily() {
+    trackInterest();
+  }
+
+  void trackInterest() {
+    if (_trackingDailyLiked) {
       return;
     }
-
-    _cancelTrackingTimer();
-    log.info('DailyWorkPage start trackingStayOnDaily timer');
-    _trackingStayOnDailyTimer = Timer(_stayDurationLikingThreshold, () {
-      _setUserLiked(UserLikeInteraction.stayOnDailyArtwork);
+    log.info('start trackingInterest in Daily');
+    _trackingDailyLiked = true;
+    _trackingDailyLikedTimer = Timer(_stayDurationLikingThreshold, () {
+      _setUserLiked();
     });
   }
 
-  void _cancelTrackingTimer() {
-    _trackingStayOnDailyTimer?.cancel();
+  void _stopTrackingLiked() {
+    log.info('stopTrackingInterest in Daily');
+    _trackingDailyLiked = false;
+    _trackingDailyLikedTimer?.cancel();
   }
 
-  void _setUserLiked(UserLikeInteraction interaction) {
-    log.info('DailyWorkPage _setUserLiked: $interaction');
-    if (_userLikeInteractions[interaction] ?? false) {
+  void _setUserLiked() {
+    if (!_trackingDailyLiked) {
       return;
     }
-
-    if (interaction == UserLikeInteraction.stayOnDailyArtwork) {
-      _cancelTrackingTimer();
-    }
-
+    log.info('Set User Interested in Daily');
+    _stopTrackingLiked();
     if (_currentDailyToken == null) {
-      log.info('Cannot like: _currentDailyToken is null');
       return;
     }
-
-    _userLikeInteractions[interaction] = true;
-    unawaited(_submitUserLike());
-  }
-
-  Future<void> _submitUserLike() async {
-    try {
-      if (_trackingDailyLiked) {
-        await injector<UserInteractivityService>()
-            .likeDailyWork(_currentDailyToken!);
-      }
-      _trackingDailyLiked = false;
-
-      await injector<UserInteractivityService>().countDailyLiked();
-    } catch (e, stack) {
-      log.warning('Error submitting user like: $e', e, stack);
-    }
+    unawaited(injector<UserInteractivityService>()
+        .likeDailyWork(_currentDailyToken!));
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {
@@ -216,27 +192,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   void unmuteDailyWork() {
     _artworkKey.currentState?.unmute();
-  }
-
-  void cancelTrackingUserInterest() {
-    log.info('DailyWorkPage cancelTrackingUserInterest');
-    _trackingDailyLiked = false;
-    _cancelTrackingTimer();
-  }
-
-  void resumeTrackingUserInterest() {
-    log.info('DailyWorkPage resumeTrackingUserInterest');
-    _resetUserLikedInteraction();
-    trackStayOnDaily();
-  }
-
-  void _resetUserLikedInteraction() {
-    _trackingDailyLiked = true;
-    _userLikeInteractions = {
-      UserLikeInteraction.stayOnDailyArtwork: false,
-      UserLikeInteraction.readArtworkInformation: false,
-      UserLikeInteraction.tappingTheDisplayButton: false,
-    };
   }
 
   void scrollToTop() {
@@ -309,8 +264,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   .addEvent(MetricEventName.dailyView, data: {
                 MetricParameter.tokenId: current.assetTokens.first.id,
               }));
-              _trackingDailyLiked = true;
-              trackStayOnDaily();
+              trackInterest();
             }
           }
           return true;
@@ -336,7 +290,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                       device, CastDailyWorkRequest()));
             },
             onTap: () {
-              _setUserLiked(UserLikeInteraction.tappingTheDisplayButton);
+              _setUserLiked();
             },
             text: 'display'.tr(),
             shouldCheckSubscription: false,
@@ -535,7 +489,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   curve: Curves.easeInOut));
             }
             if (_scrollController!.offset > _scrollLikingThreshold) {
-              _setUserLiked(UserLikeInteraction.readArtworkInformation);
+              _setUserLiked();
             }
             return true;
           },

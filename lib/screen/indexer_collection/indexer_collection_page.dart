@@ -9,7 +9,7 @@ import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_st
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
+import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
 import 'package:autonomy_flutter/view/user_collection_title_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -107,6 +107,7 @@ class _IndexerCollectionPageState extends State<IndexerCollectionPage> {
     final cacheWidth =
         (MediaQuery.sizeOf(context).width - _padding * 2 - _axisSpacing * 2) ~/
             3;
+    final cacheHeight = (cacheWidth / ratio).toInt();
     return Padding(
       padding:
           const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
@@ -123,11 +124,10 @@ class _IndexerCollectionPageState extends State<IndexerCollectionPage> {
               childAspectRatio: ratio,
             ),
             builderDelegate: PagedChildBuilderDelegate<AssetToken>(
-              itemBuilder: (context, artwork, index) => GaleryThumbnailItem(
-                assetToken: CompactedAssetToken.fromAssetToken(artwork),
-                usingThumbnailID: true,
-                cachedImageSize: cacheWidth,
-                aspectRatio: ratio,
+              itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
+                url: artwork.galleryThumbnailURL ?? '',
+                cacheWidth: cacheWidth,
+                cacheHeight: cacheHeight,
                 onTap: () async {
                   await Navigator.of(context).pushNamed(
                     AppRouter.artworkDetailsPage,

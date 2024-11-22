@@ -29,18 +29,17 @@ class ChatAuthResponse {
   final String token;
 
   ChatAuthResponse(this.token);
-
   factory ChatAuthResponse.fromJson(Map<String, dynamic> json) =>
-      ChatAuthResponse(json['token']);
+      ChatAuthResponse(json['token'] as String);
 }
 
 class SetChatAliasResponse {
-  final Map<String, String> aliaes;
+  final Map<String, String> aliases;
 
-  SetChatAliasResponse(this.aliaes);
+  SetChatAliasResponse(this.aliases);
 
   factory SetChatAliasResponse.fromJson(Map<String, dynamic> json) =>
-      SetChatAliasResponse(json['aliases']);
+      SetChatAliasResponse(json['aliases'] as Map<String, String>);
 }
 
 class GetChatAliasResponse {
@@ -49,8 +48,9 @@ class GetChatAliasResponse {
   GetChatAliasResponse(this.aliases);
 
   factory GetChatAliasResponse.fromJson(Map<String, dynamic> json) =>
-      GetChatAliasResponse(
-          (json['aliases'] as List).map((e) => ChatAlias.fromJson(e)).toList());
+      GetChatAliasResponse((json['aliases'] as List)
+          .map((e) => ChatAlias.fromJson(e as Map<String, dynamic>))
+          .toList());
 }
 
 class ChatAlias {
@@ -62,7 +62,9 @@ class ChatAlias {
       {required this.address, required this.alias, required this.groupID});
 
   factory ChatAlias.fromJson(Map<String, dynamic> json) => ChatAlias(
-      address: json['address'], alias: json['alias'], groupID: json['groupID']);
+      address: json['address'] as String,
+      alias: json['alias'] as String,
+      groupID: json['groupID'] as String);
 
   Map<String, dynamic> toJson() => {
         'address': address,

@@ -30,6 +30,6 @@ abstract class PubdocAPI {
 extension PubdocAPIHelpers on PubdocAPI {
   Future<VersionsInfo> getVersionsInfo() async {
     final value = await getVersionContent();
-    return VersionsInfo.fromJson(jsonDecode(value));
+    return VersionsInfo.fromJson(jsonDecode(value) as Map<String, dynamic>);
   }
 }

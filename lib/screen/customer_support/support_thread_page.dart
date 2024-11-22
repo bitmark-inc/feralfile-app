@@ -65,14 +65,12 @@ class NewIssuePayload extends SupportThreadPayload {
   String get introMessage => ReportIssueType.introMessage(reportIssueType);
 }
 
-class ChatSupportPayload extends SupportThreadPayload {
+class NewIssueFromAnnouncementPayload extends SupportThreadPayload {
   final Announcement announcement;
-  final String? title;
 
-  ChatSupportPayload({
+  NewIssueFromAnnouncementPayload({
     required this.announcement,
     this.defaultMessage,
-    this.title,
   });
 
   @override
@@ -165,7 +163,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _feralFileService = injector<FeralFileService>();
 
   String? _userId;
-  String? _supportMessageTitle;
   Announcement? _announcement;
 
   types.TextMessage get _introMessenger => types.TextMessage(
@@ -224,9 +221,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             });
           });
         }
-      case ChatSupportPayload:
-        _reportIssueType = ReportIssueType.ChatSupport;
-        _supportMessageTitle = (payload as ChatSupportPayload).title;
+      case NewIssueFromAnnouncementPayload:
+        _reportIssueType = ReportIssueType.ChatWithFeralfile;
       case DetailIssuePayload:
         _reportIssueType = (payload as DetailIssuePayload).reportIssueType;
         _status = payload.status;
@@ -269,8 +265,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _markAnnouncementAsRead() {
-    if (widget.payload is ChatSupportPayload) {
-      final announcement = (widget.payload as ChatSupportPayload).announcement;
+    if (widget.payload is NewIssueFromAnnouncementPayload) {
+      final announcement =
+          (widget.payload as NewIssueFromAnnouncementPayload).announcement;
       unawaited(injector<AnnouncementService>()
           .markAsRead(announcement.announcementContentId));
     }
@@ -404,10 +401,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return Scaffold(
         appBar: getBackAppBar(
           context,
-          title:
-              (_supportMessageTitle != null && _supportMessageTitle!.isNotEmpty)
-                  ? _supportMessageTitle!
-                  : ReportIssueType.toTitle(_reportIssueType),
+          title: ReportIssueType.toTitle(_reportIssueType),
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
@@ -836,10 +830,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               payload.defaultMessage!.isNotEmpty) {
             data.artworkReportID = (payload as NewIssuePayload).artworkReportID;
           }
-        case ChatSupportPayload:
-          data.announcementContentId = (payload as ChatSupportPayload)
-              .announcement
-              .announcementContentId;
+        case NewIssueFromAnnouncementPayload:
+          data.announcementContentId =
+              (payload as NewIssueFromAnnouncementPayload)
+                  .announcement
+                  .announcementContentId;
       }
     }
     if (isRating) {

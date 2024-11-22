@@ -244,36 +244,39 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
 
 MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
   final theme = Theme.of(context);
-  final bodyText2 = theme.textTheme.ppMori400White14;
+  final bodyText2 = theme.textTheme.ppMori400White12;
   return MarkdownStyleSheet(
-    a: theme.textTheme.ppMori400Black14.copyWith(
-      color: AppColor.feralFileLightBlue,
+    a: const TextStyle(
+      fontFamily: AppTheme.ppMori,
+      color: AppColor.feralFileHighlight,
+      fontWeight: FontWeight.w400,
+      fontSize: 14,
     ),
-    p: theme.textTheme.ppMori400White14,
+    p: theme.textTheme.ppMori400Black14,
     pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.ppMori700White14,
+    h1: theme.textTheme.ppMori700Black14,
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.ppMori700White14,
+    h2: theme.textTheme.ppMori700Black14,
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.ppMori700White14,
+    h3: theme.textTheme.ppMori700Black14,
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.ppMori700White14,
+    h4: theme.textTheme.ppMori700Black14,
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.ppMori700White14,
+    h5: theme.textTheme.ppMori700Black14,
     h5Padding: EdgeInsets.zero,
     h6: theme.textTheme.ppMori700White14,
     h6Padding: EdgeInsets.zero,
-    em: theme.textTheme.ppMori400White14,
-    strong: theme.textTheme.ppMori700White14,
-    del: theme.textTheme.ppMori400White14
-        .copyWith(decoration: TextDecoration.lineThrough),
+    em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
+    strong: theme.textTheme.ppMori700Black14,
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: Colors.black),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.primary),
     blockSpacing: 16,
     listIndent: 24,
-    listBullet: bodyText2.copyWith(color: Colors.white),
+    listBullet: bodyText2.copyWith(color: Colors.black),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
     tableBody: bodyText2,

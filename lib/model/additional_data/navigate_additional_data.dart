@@ -15,7 +15,7 @@ class NavigateAdditionalData extends AdditionalData {
     required this.navigationRoute,
     required super.notificationType,
     super.announcementContentId,
-    super.cta,
+    super.linkText,
     this.homeIndex,
   });
 
@@ -32,7 +32,8 @@ class NavigateAdditionalData extends AdditionalData {
       if (announcement != null) {
         await injector<NavigationService>().navigateTo(
           AppRouter.supportThreadPage,
-          arguments: ChatSupportPayload(announcement: announcement),
+          arguments:
+              NewIssueFromAnnouncementPayload(announcement: announcement),
         );
       }
       return;

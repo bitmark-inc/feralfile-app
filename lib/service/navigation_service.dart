@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -274,13 +273,11 @@ class NavigationService {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       bool dialogShowed = false;
-
-      showSimpleNotificationToast(
-        key: contactingKey,
-        content: 'establishing_contact'.tr(),
-        leading: loadingIndicator(valueColor: AppColor.white),
-        duration: const Duration(seconds: 15),
-        rightBottomWidget: GestureDetector(
+      showInfoNotificationWithLink(
+        contactingKey,
+        'establishing_contact'.tr(),
+        frontWidget: loadingIndicator(valueColor: AppColor.white),
+        bottomRightWidget: GestureDetector(
           onTap: () {
             dialogShowed = true;
             waitTooLongDialog();
@@ -297,6 +294,7 @@ class NavigationService {
                 ),
           ),
         ),
+        duration: const Duration(seconds: 15),
       );
       final OverlaySupportState? overlaySupport = findOverlayState();
       Future.delayed(const Duration(seconds: 4), () {
@@ -1229,36 +1227,5 @@ class NavigationService {
         backgroundColor: AppColor.auGreyBackground,
         withExitButton: false,
         verticalPadding: 0);
-  }
-
-  Future<JWT?> showRefreshJwtFailedDialog(
-      {required Future<JWT> Function() onRetry}) async {
-    final res = await UIHelper.showCustomDialog(
-      context: context,
-      child: PopScope(
-        canPop: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('session_expired'.tr(),
-                style: Theme.of(context).textTheme.ppMori700White24),
-            const SizedBox(height: 20),
-            Text('session_expired_desc'.tr(),
-                style: Theme.of(context).textTheme.ppMori400White14),
-            const SizedBox(height: 20),
-            PrimaryButton(
-              text: 'sign_in'.tr(),
-              onTap: () async {
-                final jwt = await onRetry();
-                if (context.mounted) {
-                  Navigator.pop(context, jwt);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-    return res;
   }
 }

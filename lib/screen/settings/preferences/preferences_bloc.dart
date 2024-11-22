@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -29,12 +30,13 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   static bool get isOnChanging => _isOnChanging;
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, '', false)) {
+      : super(PreferenceState(false, false, false, '', false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
       final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
+      final notificationEnabled = _configurationService.isNotificationEnabled();
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       final hasHiddenArtwork =
@@ -42,6 +44,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
 
       emit(PreferenceState(
           passcodeEnabled && canCheckBiometrics,
+          notificationEnabled,
           analyticsEnabled,
           _authMethodTitle(),
           hasHiddenArtwork));
@@ -70,6 +73,22 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
         } else {
           event.newState.isDevicePasscodeEnabled = false;
           unawaited(openAppSettings());
+        }
+      }
+
+      if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
+        try {
+          if (event.newState.isNotificationEnabled) {
+            event.newState.isNotificationEnabled =
+                await registerPushNotifications(askPermission: true);
+          } else {
+            unawaited(deregisterPushNotification());
+          }
+
+          await _configurationService
+              .setNotificationEnabled(event.newState.isNotificationEnabled);
+        } catch (error) {
+          log.warning('Error when setting notification: $error');
         }
       }
 

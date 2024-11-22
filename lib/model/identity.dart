@@ -13,7 +13,7 @@ class BlockchainIdentity {
   BlockchainIdentity(this.accountNumber, this.blockchain, this.name);
 
   BlockchainIdentity.fromJson(Map<String, dynamic> json)
-      : accountNumber = json['accountNumber'],
-        blockchain = json['blockchain'],
-        name = json['name'];
+      : accountNumber = json['accountNumber'] as String,
+        blockchain = json['blockchain'] as String,
+        name = json['name'] as String;
 }

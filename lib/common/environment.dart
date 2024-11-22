@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/encrypt_env/secrets.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry/sentry.dart';
@@ -16,7 +15,7 @@ import 'package:sentry/sentry.dart';
 class Environment {
   static String _readKey(String key, String defaultValue,
       {bool isSecret = false}) {
-    final res = (isSecret ? cachedSecretEnv : dotenv.env)[key];
+    final res = dotenv.env[key];
     if (res == null || res.isEmpty) {
       unawaited(Sentry.captureMessage('Environment variable $key is not set'));
       return defaultValue;

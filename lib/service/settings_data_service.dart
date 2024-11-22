@@ -8,7 +8,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
+
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -42,9 +42,11 @@ class SettingsDataServiceImpl implements SettingsDataService {
   // device settings
   static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
   static const _keyDevicePasscodeEnabled = 'devicePasscodeEnabled';
+  static const _keyNotificationEnabled = 'notificationEnabled';
   static const _deviceSettingsKeys = [
     _keyIsAnalyticsEnabled,
     _keyDevicePasscodeEnabled,
+    _keyNotificationEnabled,
     _keyPlaylists,
     _keyHiddenLinkedAccountsFromGallery,
   ];
@@ -85,6 +87,9 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     await _configurationService.setDevicePasscodeEnabled(
         data[_keyDevicePasscodeEnabled] as bool? ?? false);
+
+    await _configurationService
+        .setNotificationEnabled(data[_keyNotificationEnabled] as bool? ?? true);
 
     await _configurationService.updateTempStorageHiddenTokenIDs(
         (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
@@ -149,6 +154,15 @@ class SettingsDataServiceImpl implements SettingsDataService {
       newSettings.add({
         'key': _keyDevicePasscodeEnabled,
         'value': devicePasscodeEnabled,
+      });
+    }
+
+    final notificationEnabled =
+        jsonEncode(_configurationService.isNotificationEnabled());
+    if (currentSettings[_keyNotificationEnabled] != notificationEnabled) {
+      newSettings.add({
+        'key': _keyNotificationEnabled,
+        'value': notificationEnabled,
       });
     }
 

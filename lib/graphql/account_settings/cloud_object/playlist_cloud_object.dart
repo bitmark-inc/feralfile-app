@@ -14,8 +14,9 @@ class PlaylistCloudObject {
       _db.delete(playlists.map((e) => e.key).toList());
 
   List<PlayListModel> getPlaylists() {
-    final playlists =
-        _db.values.map((e) => PlayListModel.fromJson(jsonDecode(e))).toList();
+    final playlists = _db.values
+        .map((e) => PlayListModel.fromJson(jsonDecode(e) as Map<String, dynamic>))
+        .toList();
     return playlists;
   }
 
@@ -24,7 +25,7 @@ class PlaylistCloudObject {
     if (rawString == null || rawString.isEmpty) {
       return null;
     }
-    return PlayListModel.fromJson(jsonDecode(rawString));
+    return PlayListModel.fromJson(jsonDecode(rawString) as Map<String, dynamic>);
   }
 
   Future<void> setPlaylists(List<PlayListModel> playlists) async {

@@ -6,15 +6,11 @@ import 'package:nft_collection/models/asset_token.dart';
 class GaleryThumbnailItem extends StatefulWidget {
   final CompactedAssetToken assetToken;
   final bool usingThumbnailID;
-  final int cachedImageSize;
-  final double aspectRatio;
   final Function? onTap;
 
   const GaleryThumbnailItem(
       {required this.assetToken,
       super.key,
-      this.cachedImageSize = 200,
-      this.aspectRatio = 1.0,
       this.onTap,
       this.usingThumbnailID = false});
 
@@ -23,6 +19,8 @@ class GaleryThumbnailItem extends StatefulWidget {
 }
 
 class _GaleryThumbnailItemState extends State<GaleryThumbnailItem> {
+  final _cachedImageSize = 200;
+
   @override
   Widget build(BuildContext context) {
     final asset = widget.assetToken;
@@ -44,8 +42,7 @@ class _GaleryThumbnailItemState extends State<GaleryThumbnailItem> {
           : tokenGalleryThumbnailWidget(
               context,
               asset,
-              widget.cachedImageSize,
-              ratio: widget.aspectRatio,
+              _cachedImageSize,
               usingThumbnailID: widget.usingThumbnailID,
             ),
       onTap: () {

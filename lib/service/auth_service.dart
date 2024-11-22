@@ -17,11 +17,8 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class AuthService {
@@ -29,20 +26,18 @@ class AuthService {
   final UserApi _userApi;
   final ConfigurationService _configurationService;
   JWT? _jwt;
-  final UserAccountChannel _userAccountChannel;
 
   AuthService(
     this._authApi,
     this._userApi,
     this._configurationService,
-    this._userAccountChannel,
   );
 
-  Future<void> reset() async {
-    await setAuthToken(null);
+  void reset() {
+    setAuthToken(null);
   }
 
-  Future<JWT> _refreshJWT({String? receiptData}) async {
+  Future<JWT> refreshJWT({String? receiptData}) async {
     final refreshToken = _jwt?.refreshToken;
     if (refreshToken == null || refreshToken.isEmpty) {
       throw JwtException(message: 'refresh_token_empty'.tr());
@@ -61,31 +56,8 @@ class AuthService {
       });
     }
     final newJwt = await _userApi.refreshJWT(payload);
+    setAuthToken(newJwt, receiptData: receiptData);
     return newJwt;
-  }
-
-  Future<JWT> refreshJWT({String? receiptData}) async {
-    JWT? refreshedJwt;
-    try {
-      final newJwt = await _refreshJWT(receiptData: receiptData);
-      refreshedJwt = _jwt!.copyWith(
-        jwtToken: newJwt.jwtToken,
-        expireIn: newJwt.expireIn,
-      );
-    } catch (e) {
-      refreshedJwt =
-          await injector<NavigationService>().showRefreshJwtFailedDialog(
-        onRetry: () async {
-          final refreshJwt = await injector<PasskeyService>().requestJwt();
-          return refreshJwt;
-        },
-      );
-    }
-    if (refreshedJwt == null) {
-      throw JwtException(message: 'jwt_refresh_failed'.tr());
-    }
-    await setAuthToken(refreshedJwt, receiptData: receiptData);
-    return refreshedJwt;
   }
 
   void _refreshSubscriptionStatus(JWT? jwt, {String? receiptData}) {
@@ -103,25 +75,17 @@ class AuthService {
     injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
-  Future<void> setAuthToken(JWT? jwt, {String? receiptData}) async {
-    if (jwt == null) {
-      await _userAccountChannel.clearJWT();
-    } else {
-      await _userAccountChannel.setJWT(jwt);
-    }
+  void setAuthToken(JWT? jwt, {String? receiptData}) {
     _jwt = jwt;
     _refreshSubscriptionStatus(jwt, receiptData: receiptData);
   }
 
-  Future<JWT?> getAuthToken({bool shouldRefresh = true}) async {
-    // if current jwt is null, try to get it from the channel
-    _jwt ??= await _userAccountChannel.getJWT();
-
-    if (shouldRefresh) {
-      // if jwt is invalid, try to refresh it
-      if (_jwt?.isValid() != true) {
-        _jwt = await refreshJWT();
-      }
+  Future<JWT?> getAuthToken() async {
+    if (_jwt == null) {
+      return null;
+    }
+    if (!_jwt!.isValid()) {
+      await refreshJWT();
     }
     return _jwt;
   }

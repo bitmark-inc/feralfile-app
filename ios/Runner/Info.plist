@@ -2,20 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<key>CFBundleLocalizations</key>
 	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER).notification</string>
-		<string>feralfile.workmanager.iOSBackgroundAppRefresh</string>
+		<string>en</string>
+		<string>es</string>
 	</array>
-	<key>FlutterDeepLinkingEnabled</key>
-	<true/>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Feral File</string>
+	<string>$(FLAVOR_APP_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,118 +18,39 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>autonomy_flutter</string>
+	<string>$(FLAVOR_APP_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(MARKETING_VERSION)</string>
+	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>me.autonomy</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>wc</string>
-				<string>autonomy</string>
-				<string>autonomy-tezos</string>
-				<string>tezos</string>
-				<string>autonomy-wc</string>
-				<string>autonomy-app</string>
-				<string>feralfile</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>FDMaximumConcurrentTasks</key>
-	<integer>10</integer>
-	<key>LSApplicationCategoryType</key>
-	<string></string>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_googlecast._tcp</string>
-		<string>_YOUR_APP_ID._googlecast._tcp</string>
-		<string>_feralFileCanvas._tcp</string>
-	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>QR code scanning requires camera access.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Allow Feral File to use Face ID to authenticate.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Allow Feral File to use your location</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Allow Feral File to use your location</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Allow Feral File to use your location</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Viewing artwork with microphone enable.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library.</string>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>processing</string>
-		<string>remote-notification</string>
-	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-	<key>UIStatusBarHidden</key>
-	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
+		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>branch_key</key>
-	<dict>
-		<key>live</key>
-		<string></string>
-		<key>test</key>
-		<string></string>
-	</dict>
-	<key>branch_universal_link_domains</key>
-	<array>
-		<string>link.autonomy.io</string>
-		<string>autonomy-app.app.link</string>
-		<string>autonomy-app-alternate.app.link</string>
-		<string>autonomy-app.test.app.link</string>
-		<string>autonomy-app-alternate.test.app.link</string>
-		<string>app.feralfile.com</string>
-		<string>feralfile-app.app.link</string>
-		<string>feralfile-app-alternate.app.link</string>
-		<string>feralfile-app.test-app.link</string>
-		<string>feralfile-app-alternate.test-app.link</string>
-	</array>
-	<key>io.flutter.embedded_views_preview</key>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>
 </plist>

@@ -203,11 +203,10 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 if (!mounted) {
                   return;
                 }
-
-                showSimpleNotificationToast(
-                  key: const Key('signed'),
-                  content: 'signed'.tr(),
-                  leading: SvgPicture.asset(
+                showInfoNotification(
+                  const Key('signed'),
+                  'signed'.tr(),
+                  frontWidget: SvgPicture.asset(
                     'assets/images/checkbox_icon.svg',
                     width: 24,
                   ),

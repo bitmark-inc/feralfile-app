@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
-import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 
 class AnnouncementLocal extends Announcement {
   bool read;
@@ -29,10 +28,8 @@ class AnnouncementLocal extends Announcement {
         additionalData: additionalData,
         startedAt: startedAt,
         endedAt: endedAt,
-        inAppEnabled: additionalData['~inAppEnabled'] ?? true,
-        notificationType: NotificationSettingType.fromString(
-          additionalData['~notificationType'] ?? '',
-        ),
+        inAppEnabled: additionalData['~inAppEnabled'] as bool? ?? true,
+        notificationType: additionalData['~notificationType'] as String?,
         read: read,
       );
 

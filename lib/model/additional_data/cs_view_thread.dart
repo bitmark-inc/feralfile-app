@@ -16,7 +16,7 @@ class CsViewThread extends AdditionalData {
     required this.issueId,
     required super.notificationType,
     super.announcementContentId,
-    super.cta,
+    super.linkText,
   });
 
   final CustomerSupportService _customerSupportService =
