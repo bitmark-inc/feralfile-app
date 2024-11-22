@@ -1233,6 +1233,7 @@ class NavigationService {
 
   Future<JWT?> showRefreshJwtFailedDialog(
       {required Future<JWT> Function() onRetry}) async {
+    log.info('showRefreshJwtFailedDialog');
     final res = await UIHelper.showCustomDialog(
       context: context,
       child: PopScope(

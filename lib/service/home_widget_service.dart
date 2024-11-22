@@ -81,8 +81,6 @@ class HomeWidgetService {
       }
     }
 
-    log.info('callbackDispatcher combinedData: $combinedData');
-
     // Update widget with combined data
     if (combinedData.isNotEmpty) {
       await updateWidget(data: combinedData);

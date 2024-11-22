@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -73,6 +74,8 @@ class AuthService {
         expireIn: newJwt.expireIn,
       );
     } catch (e) {
+      unawaited(Sentry.captureException(
+          'Failed to refresh JWT, request passkey again, error: $e'));
       refreshedJwt =
           await injector<NavigationService>().showRefreshJwtFailedDialog(
         onRetry: () async {
