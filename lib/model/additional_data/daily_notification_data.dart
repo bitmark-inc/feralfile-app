@@ -37,7 +37,7 @@ enum DailyCTATarget {
     }
   }
 
-  static DailyCTATarget? fromString(String value) {
+  static DailyCTATarget? fromString(String? value) {
     switch (value) {
       case 'daily_page':
         return DailyCTATarget.dailyPage;
@@ -59,11 +59,13 @@ class DailyNotificationData extends AdditionalData {
   final _navigationService = injector<NavigationService>();
   final _feralFileService = injector<FeralFileService>();
   final _dailyWorkBloc = injector<DailyWorkBloc>();
+  final DailyCTATarget? dailyCTATarget;
 
   DailyNotificationData({
     required super.notificationType,
     super.announcementContentId,
     super.cta,
+    this.dailyCTATarget,
   });
 
   @override
@@ -84,15 +86,13 @@ class DailyNotificationData extends AdditionalData {
       return;
     }
     final dailyToken = _dailyWorkBloc.state.currentDailyToken;
-    final dailyCTATarget =
-        DailyCTATarget.fromString(cta!.navigationRoute.toString());
 
     if (dailyCTATarget == null) {
       log.info('Invalid daily cta target ${cta!.navigationRoute}');
       return;
     }
 
-    switch (dailyCTATarget) {
+    switch (dailyCTATarget!) {
       case DailyCTATarget.dailyPage:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
       case DailyCTATarget.viewDailySeries:

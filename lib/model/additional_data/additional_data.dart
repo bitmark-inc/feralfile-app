@@ -60,10 +60,14 @@ class AdditionalData {
             title: title,
           );
         case NotificationType.dailyArtworkReminders:
+          final dailyCTATarget = json['cta'] == null
+              ? null
+              : DailyCTATarget.fromString(json['cta']['navigation_route']);
           return DailyNotificationData(
             notificationType: notificationType,
             announcementContentId: notificationContentId,
             cta: cta,
+            dailyCTATarget: dailyCTATarget,
           );
         case NotificationType.announcement:
           final listCustomCta = json['custom_data'] != null &&
