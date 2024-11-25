@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
@@ -123,8 +124,10 @@ class HomeWidgetService {
         base64MediumIcon = base64Encode(bytes);
       }
 
+      final dateKey = DateFormat('yyyy-MM-dd').format(dailyToken.displayTime);
+
       final data = {
-        dailyToken.displayTime.millisecondsSinceEpoch.toString(): jsonEncode({
+        dateKey: jsonEncode({
           'artistName': '$artistName',
           'title': title,
           'base64MediumIcon': base64MediumIcon ?? '',
