@@ -21,9 +21,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import timber.log.Timber
-import java.util.Calendar
-import java.util.TimeZone
 import android.net.Uri
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * Implementation of App Widget functionality.
@@ -205,21 +205,7 @@ fun getDailyInfo(context: Context, callback: (DailyInfo) -> Unit) {
 private fun getStoredDailyInfo(context: Context): DailyInfo {
     val widgetData = HomeWidgetPlugin.getData(context)
 
-    // Format the current date to match the key in the stored dat
-    // now - 6h
-    // Initialize calendar and set it to midnight 6 hours ago
-    val calendar = Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-    // to utc timestamp
-    val timestamp = calendar.timeInMillis
-
-
-    val currentDateKey = timestamp.toString()
+    val currentDateKey = getCurrentDateKey();
 
     // Retrieve JSON string for the current date
     val jsonString = widgetData.getString(currentDateKey, null)
@@ -248,6 +234,12 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
 
     // Return default DailyInfo if data for current date is not found or parsing fails
     return getDefaultDailyInfo()
+}
+
+private fun getCurrentDateKey(): String {
+    val currentDate = LocalDate.now()
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    return currentDate.format(formatter)
 }
 
 private fun getDefaultDailyInfo(): DailyInfo {

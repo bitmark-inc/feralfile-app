@@ -35,14 +35,14 @@ struct Provider: TimelineProvider {
     func getStoredDailyInfo() -> DailyInfo {
         let widgetData = UserDefaults.init(suiteName: widgetGroupId)
         
-        // Get current date timestamp at 0 a.m UTC
-        var calendar = Calendar.current
-        calendar.timeZone = TimeZone(identifier: "UTC")!
-        let components = calendar.dateComponents([.year, .month, .day], from: Date())
-        let timestamp = calendar.date(from: components)!.timeIntervalSince1970 * 1000
-        
-        let currentDateKey = String(Int(timestamp))
-        
+        let currentDate = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale.current
+        formatter.timeZone = TimeZone.current
+
+        let currentDateKey = formatter.string(from: currentDate) // Format the date to string
+
         // Retrieve JSON string for the current date
         if let jsonString = widgetData?.string(forKey: currentDateKey) {
             do {
