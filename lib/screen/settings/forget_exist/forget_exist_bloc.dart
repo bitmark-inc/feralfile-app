@@ -9,8 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -34,8 +32,6 @@ import 'package:nft_collection/database/nft_collection_database.dart';
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;
   final IAPApi _iapApi;
-  final CloudDatabase _cloudDatabase;
-  final AppDatabase _appDatabase;
   final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
   final AddressService _addressService;
@@ -43,8 +39,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   ForgetExistBloc(
     this._authService,
     this._iapApi,
-    this._cloudDatabase,
-    this._appDatabase,
     this._nftCollectionDatabase,
     this._configurationService,
     this._addressService,
@@ -66,8 +60,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
         log.info('Error when delete all profiles: $e');
       }
 
-      await _cloudDatabase.removeAll();
-      await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
       await injector<UserAccountChannel>().setDidRegisterPasskey(false);
       await _configurationService.removeAll();

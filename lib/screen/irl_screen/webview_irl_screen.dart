@@ -2,15 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -23,7 +19,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
-import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/select_address.dart';
 import 'package:collection/collection.dart';
@@ -33,9 +28,7 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:tezart/tezart.dart';
 import 'package:uuid/uuid.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final IRLWebScreenPayload payload;
@@ -374,126 +367,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     }
   }
 
-  Future<JSResult?> _sendTransaction(List<dynamic> args) async {
-    try {
-      log.info('[IRLWebScreen] sendTransaction: $args');
-      if (args.firstOrNull == null || args.firstOrNull is! Map) {
-        return _logAndReturnJSResult(
-          '_sendTransaction',
-          JSResult.error('Payload is invalid'),
-        );
-      }
-      final argument = IRLSendTransactionPayload.fromJson(args.firstOrNull);
-
-      final account = await getAccountByAddress(
-        address: argument.sourceAddress,
-        chain: argument.chain,
-      );
-
-      if (account == null) {
-        return _logAndReturnJSResult(
-          '_sendTransaction',
-          JSResult.error(
-            '''
-            Wallet not found. Chain ${argument.chain},
-            address: ${argument.sourceAddress}
-            ''',
-          ),
-        );
-      }
-      if (!mounted) {
-        return _logAndReturnJSResult(
-          '_sendTransaction',
-          JSResult(),
-        );
-      }
-
-      switch (argument.chain.caip2Namespace) {
-        case Wc2Chain.ethereum:
-          try {
-            var transaction = argument.transactions.firstOrNull ?? {};
-            if (transaction['data'] == null) {
-              transaction['data'] = '';
-            }
-            if (transaction['gas'] == null) {
-              transaction['gas'] = '';
-            }
-            if (transaction['to'] == null) {
-              return _logAndReturnJSResult(
-                '_sendTransaction',
-                JSResult.error('Invalid transaction: no recipient'),
-              );
-            }
-
-            final args = WCSendTransactionPageArgs(
-              const PairingMetadata(
-                  name: '', description: '', url: '', icons: []),
-              WCEthereumTransaction.fromJson(transaction),
-              account.wallet.uuid,
-              account.index,
-            );
-
-            final txHash = await Navigator.of(context).pushNamed(
-              AppRouter.wcSendTransactionPage,
-              arguments: args,
-            );
-            if (txHash == null) {
-              return _logAndReturnJSResult(
-                '_sendTransaction',
-                JSResult.error('Rejected'),
-              );
-            }
-            return _logAndReturnJSResult(
-              '_sendTransaction',
-              JSResult.result(txHash),
-            );
-          } catch (e) {
-            return _logAndReturnJSResult(
-              '_sendTransaction',
-              JSResult.error(e.toString()),
-            );
-          }
-
-        case Wc2Chain.tezos:
-          var operations =
-              argument.transactions.map((e) => Operation.fromJson(e)).toList();
-
-          final beaconRequest = BeaconRequest(
-            account.wallet.uuid,
-            operations: operations,
-            sourceAddress: argument.sourceAddress,
-          );
-          final txHash = mounted
-              ? await Navigator.of(context).pushNamed(
-                  AppRouter.tbSendTransactionPage,
-                  arguments: beaconRequest,
-                )
-              : null;
-          if (txHash == null) {
-            return _logAndReturnJSResult(
-              '_sendTransaction',
-              JSResult.error('Rejected'),
-            );
-          }
-
-          return _logAndReturnJSResult(
-            '_sendTransaction',
-            JSResult.result(txHash),
-          );
-        default:
-          return _logAndReturnJSResult(
-            '_sendTransaction',
-            JSResult(),
-          );
-      }
-    } catch (e) {
-      return _logAndReturnJSResult(
-        '_sendTransaction',
-        JSResult.error(e.toString()),
-      );
-    }
-  }
-
   void _addJavaScriptHandler() {
     _controller?.addJavaScriptHandler(
       handlerName: 'getAddress',
@@ -513,10 +386,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _controller?.addJavaScriptHandler(
       handlerName: 'signMessage',
       callback: _signMessage,
-    );
-    _controller?.addJavaScriptHandler(
-      handlerName: 'sendTransaction',
-      callback: _sendTransaction,
     );
 
     _controller?.addJavaScriptHandler(
