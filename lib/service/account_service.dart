@@ -9,14 +9,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
-
-import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
+import 'package:autonomy_flutter/model/wallet_addressdart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';

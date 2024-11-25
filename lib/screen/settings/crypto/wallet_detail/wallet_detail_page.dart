@@ -9,14 +9,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
-import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';

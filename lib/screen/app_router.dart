@@ -5,15 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-
-import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/common/injector.dart';mport 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
-import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_bloc.dart';
@@ -23,20 +18,12 @@ import 'package:autonomy_flutter/screen/alumni_details/alumni_posts_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_works_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
-import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
-import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
-import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merchandise_orders_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
@@ -69,24 +56,10 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_select_account_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/prompt_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
-import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
@@ -117,13 +90,7 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
@@ -636,15 +603,6 @@ class AppRouter {
       case importSeedsPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ImportSeedsPage());
-
-      case selectAddressesPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => ScanWalletBloc(injector(), injector()),
-                  child: SelectAddressesPage(
-                      payload: settings.arguments! as SelectAddressesPayload),
-                ));
 
       case nameAddressPersonaPage:
         return CupertinoPageRoute(
