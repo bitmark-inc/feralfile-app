@@ -7,7 +7,7 @@
 
 import 'dart:convert';
 
-import 'package:floor/floor.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'draft_customer_support.g.dart';
@@ -23,17 +23,18 @@ extension RawValue on CSMessageType {
   String get rawValue => toString().split('.').last;
 }
 
-@entity
+@Entity()
 class DraftCustomerSupport {
-  @primaryKey
+  @Id()
+  int id = 0;
   String uuid;
   String issueID;
   String type;
   String data; // jsonData
+  @Property(type: PropertyType.date)
   DateTime createdAt;
   String reportIssueType;
   String mutedMessages;
-  @ignore
   int rating;
 
   DraftCustomerSupport({

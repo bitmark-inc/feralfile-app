@@ -7,14 +7,15 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:hive/hive.dart';
 import 'package:nft_collection/graphql/model/identity.dart';
+import 'package:nft_collection/models/identity.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 part 'identity_state.dart';
 
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
-  final Box<String> _identityBox;
+  final Box<Identity> _identityBox;
   final IndexerService _indexerService;
 
   static const localIdentityCacheDuration = Duration(days: 1);
@@ -32,7 +33,10 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
             return;
           }
 
-          final identity = _identityBox.get(address);
+          final identity = _identityBox
+              .query(Identity_.accountNumber.equals(address))
+              .build()
+              .findFirst();
           if (identity != null) {
             if (identity.queriedAt
                     .add(localIdentityCacheDuration)
@@ -46,7 +50,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
               resultFromDB[address] = identity.name;
             } else {
               // Remove those item from the database
-              await _identityBox.delete(identity);
+              await _identityBox.removeAsync(identity);
               // Re-query from the API
               unknownIdentities.add(address);
             }
@@ -66,10 +70,10 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
         // Get from the API
         await Future.forEach(unknownIdentities, (address) async {
           try {
-            final request = QueryIdentityRequest(account: address as String);
+            final request = QueryIdentityRequest(account: address);
             final identity = await _indexerService.getIdentity(request);
             resultFromAPI[address] = identity.name;
-            await _identityBox.put(identity.accountNumber, identity.name);
+            await _identityBox.putAsync(identity);
           } catch (_) {
             // Ignore bad API responses
             return;
@@ -92,9 +96,9 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
       // Get from the API
       await Future.forEach(event.addresses, (address) async {
         try {
-          final request = QueryIdentityRequest(account: address as String);
+          final request = QueryIdentityRequest(account: address);
           final identity = await _indexerService.getIdentity(request);
-          await _identityBox.put(identity.accountNumber, identity.name);
+          await _identityBox.putAsync(identity);
         } catch (_) {
           // Ignore bad API responses
           return;
@@ -103,7 +107,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
     });
 
     on<RemoveAllEvent>((event, emit) async {
-      await _identityBox.clear();
+      await _identityBox.removeAllAsync();
     });
   }
 }
