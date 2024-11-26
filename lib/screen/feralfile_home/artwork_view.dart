@@ -214,15 +214,11 @@ class _SeriesViewState extends State<SeriesView> {
     final allCollections = widget.userCollections;
     if (allSeries == null && allCollections == null) {
       return null;
-    } else if (allSeries == null) {
-      return allCollections;
-    } else if (allCollections == null) {
-      return allSeries;
-    } else {
-      final List<ArtistCollection> result =
-          mergeCollectionAndSeries(allCollections, allSeries);
-      return result;
     }
+
+    return (allSeries == null || allCollections == null)
+        ? allCollections ?? allSeries
+        : mergeCollectionAndSeries(allCollections, allSeries);
   }
 
   Widget _loadingView(BuildContext context) => const Padding(
