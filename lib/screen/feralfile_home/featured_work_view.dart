@@ -26,8 +26,13 @@ import 'package:nft_collection/services/tokens_service.dart';
 
 class FeaturedWorkView extends StatefulWidget {
   final List<String> tokenIDs;
+  final Widget? header;
 
-  const FeaturedWorkView({required this.tokenIDs, super.key});
+  const FeaturedWorkView({
+    required this.tokenIDs,
+    required this.header,
+    super.key,
+  });
 
   @override
   State<FeaturedWorkView> createState() => FeaturedWorkViewState();
@@ -83,191 +88,180 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   }
 
   Widget _loadingView(BuildContext context) => Container(
-        padding: const EdgeInsets.only(bottom: 80),
-        constraints: const BoxConstraints.expand(),
+        padding: const EdgeInsets.only(top: 150),
         child: const LoadingWidget(),
       );
 
   @override
-  Widget build(BuildContext context) {
-    if (_featureTokens == null || _featureTokens!.isEmpty) {
-      return _loadingView(context);
-    } else {
-      return Column(
-        children: [
-          BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-            bloc: injector<CanvasDeviceBloc>(),
-            builder: (context, canvasDeviceState) {
-              final displayKey = widget.tokenIDs.displayKey;
-              final isPlaylistCasting = canvasDeviceState
-                      .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
-                  null;
-              if (isPlaylistCasting && _shouldShowControllerBar) {
-                return Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: PlaylistControl(
-                    displayKey: displayKey!,
-                  ),
-                );
-              } else {
-                return const SizedBox();
+  Widget build(BuildContext context) => GestureDetector(
+        onVerticalDragStart: (details) {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(_scrollController.offset);
+          }
+        },
+        child: NotificationListener<UserScrollNotification>(
+          onNotification: (notification) {
+            if (notification.direction == ScrollDirection.forward) {
+              if (!_shouldShowControllerBar) {
+                setState(() {
+                  _shouldShowControllerBar = true;
+                });
               }
-            },
-          ),
-          Expanded(
-            child: GestureDetector(
-              onVerticalDragStart: (details) {
-                if (_scrollController.hasClients) {
-                  _scrollController.jumpTo(_scrollController.offset);
-                }
-              },
-              child: NotificationListener<UserScrollNotification>(
-                onNotification: (notification) {
-                  if (notification.direction == ScrollDirection.forward) {
-                    if (!_shouldShowControllerBar) {
-                      setState(() {
-                        _shouldShowControllerBar = true;
-                      });
+            } else if (notification.direction == ScrollDirection.reverse) {
+              if (_shouldShowControllerBar) {
+                setState(() {
+                  _shouldShowControllerBar = false;
+                });
+              }
+            }
+            return true;
+          },
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                  child: SizedBox(
+                height: MediaQuery.of(context).padding.top + 32,
+              )),
+              SliverToBoxAdapter(
+                child: widget.header ?? const SizedBox(),
+              ),
+              SliverToBoxAdapter(
+                child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: _canvasDeviceBloc,
+                  builder: (context, canvasDeviceState) {
+                    final displayKey = widget.tokenIDs.displayKey;
+                    final isPlaylistCasting = canvasDeviceState
+                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
+                        null;
+                    if (isPlaylistCasting && _shouldShowControllerBar) {
+                      return Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: PlaylistControl(
+                          displayKey: displayKey!,
+                        ),
+                      );
+                    } else {
+                      return const SizedBox();
                     }
-                  } else if (notification.direction ==
-                      ScrollDirection.reverse) {
-                    if (_shouldShowControllerBar) {
-                      setState(() {
-                        _shouldShowControllerBar = false;
-                      });
-                    }
-                  }
-                  return true;
-                },
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                        bloc: injector<CanvasDeviceBloc>(),
-                        builder: (context, canvasDeviceState) {
-                          final displayKey = widget.tokenIDs.displayKey;
-                          final isPlaylistCasting =
-                              canvasDeviceState.lastSelectedActiveDeviceForKey(
-                                      displayKey ?? '') !=
-                                  null;
-                          return Visibility(
-                            visible:
-                                isPlaylistCasting && !_shouldShowControllerBar,
-                            child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: PlaylistControl(
-                                displayKey: displayKey!,
+                  },
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: injector<CanvasDeviceBloc>(),
+                  builder: (context, canvasDeviceState) {
+                    final displayKey = widget.tokenIDs.displayKey;
+                    final isPlaylistCasting = canvasDeviceState
+                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
+                        null;
+                    return Visibility(
+                      visible: isPlaylistCasting && !_shouldShowControllerBar,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: PlaylistControl(
+                          displayKey: displayKey!,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (_featureTokens == null) ...[
+                SliverToBoxAdapter(
+                  child: _loadingView(context),
+                ),
+              ] else ...[
+                SliverPadding(
+                  padding: EdgeInsets.zero,
+                  sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final token = _featureTokens![index];
+                      return BlocBuilder<IdentityBloc, IdentityState>(
+                        builder: (context, state) {
+                          final artistName =
+                              state.identityMap[token.artistName] ??
+                                  token.artistName ??
+                                  token.artistID ??
+                                  '';
+                          return GestureDetector(
+                            onTap: () {
+                              _onTapArtwork(context, token);
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Column(
+                                children: [
+                                  Builder(builder: (context) {
+                                    final thumbnailUrl =
+                                        token.thumbnailURL ?? '';
+                                    final width =
+                                        _imageSize[thumbnailUrl]?.width;
+                                    final height =
+                                        _imageSize[thumbnailUrl]?.height;
+                                    double? aspectRatio;
+                                    if (width != null &&
+                                        height != null &&
+                                        height != 0) {
+                                      aspectRatio = width / height;
+                                    }
+                                    return AspectRatio(
+                                      aspectRatio: aspectRatio ?? 1.0,
+                                      // Provide a default aspect
+                                      // ratio if null
+                                      child: CachedNetworkImage(
+                                        imageUrl: token.thumbnailURL ?? '',
+                                        cacheManager: injector<CacheManager>(),
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.error),
+                                        placeholder: (context, url) => SizedBox(
+                                          height: height,
+                                          child: const LoadingWidget(),
+                                        ),
+                                        imageBuilder:
+                                            (context, imageProvider) => Image(
+                                          image: imageProvider,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                  _infoHeader(context, token, artistName, false,
+                                      context.read<CanvasDeviceBloc>().state),
+                                ],
                               ),
                             ),
                           );
                         },
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: EdgeInsets.zero,
-                      sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final token = _featureTokens![index];
-                          return BlocBuilder<IdentityBloc, IdentityState>(
-                            builder: (context, state) {
-                              final artistName =
-                                  state.identityMap[token.artistName] ??
-                                      token.artistName ??
-                                      token.artistID ??
-                                      '';
-                              return GestureDetector(
-                                onTap: () {
-                                  _onTapArtwork(context, token);
-                                },
-                                child: Container(
-                                  color: Colors.transparent,
-                                  child: Column(
-                                    children: [
-                                      Builder(builder: (context) {
-                                        final thumbnailUrl =
-                                            token.thumbnailURL ?? '';
-                                        final width =
-                                            _imageSize[thumbnailUrl]?.width;
-                                        final height =
-                                            _imageSize[thumbnailUrl]?.height;
-                                        double? aspectRatio;
-                                        if (width != null &&
-                                            height != null &&
-                                            height != 0) {
-                                          aspectRatio = width / height;
-                                        }
-                                        return AspectRatio(
-                                          aspectRatio: aspectRatio ?? 1.0,
-                                          // Provide a default aspect
-                                          // ratio if null
-                                          child: CachedNetworkImage(
-                                            imageUrl: token.thumbnailURL ?? '',
-                                            cacheManager:
-                                                injector<CacheManager>(),
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error),
-                                            placeholder: (context, url) =>
-                                                SizedBox(
-                                              height: height,
-                                              child: const LoadingWidget(),
-                                            ),
-                                            imageBuilder:
-                                                (context, imageProvider) =>
-                                                    Image(
-                                              image: imageProvider,
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                      _infoHeader(
-                                          context,
-                                          token,
-                                          artistName,
-                                          false,
-                                          context
-                                              .read<CanvasDeviceBloc>()
-                                              .state),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        childCount: _featureTokens?.length ?? 0,
-                      )),
-                    ),
-                    // show loading when loading more
-                    SliverToBoxAdapter(
-                      child: _isLoading && _paging.offset != 0
-                          ? const SizedBox(
-                              height: 100,
-                              child: LoadingWidget(),
-                            )
-                          : const SizedBox(),
-                    ),
-                    // safe height for bottom
-                    SliverToBoxAdapter(
-                      child: Container(
-                        height: 80,
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                    childCount: _featureTokens?.length ?? 0,
+                  )),
+                )
+              ],
+              // show loading when loading more
+              SliverToBoxAdapter(
+                child: _isLoading && _paging.offset != 0
+                    ? const SizedBox(
+                        height: 100,
+                        child: LoadingWidget(),
+                      )
+                    : const SizedBox(),
+              ),
+              // safe height for bottom
+              SliverToBoxAdapter(
+                child: Container(
+                  height: 80,
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       );
-    }
-  }
 
   Future<List<AssetToken>> _getTokens(
       BuildContext context, List<String> tokenIds) async {

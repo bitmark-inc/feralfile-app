@@ -11,6 +11,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -121,7 +122,15 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<DeviceInfoService>().init();
       await injector<MetricClientService>().initService();
 
-      unawaited(injector<RemoteConfigService>().loadConfigs());
+      unawaited(
+        injector<RemoteConfigService>().loadConfigs().then((_) {
+          log.info('Remote config loaded');
+        }, onError: (e) {
+          log.info('Failed to load remote config: $e');
+        }).whenComplete(() {
+          injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+        }),
+      );
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
 
       await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);

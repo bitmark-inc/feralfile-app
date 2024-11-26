@@ -654,10 +654,6 @@ class NavigationService {
         route = AppRouter.homePageNoTransition;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.curators;
-      case AppRouter.rAndDPage:
-        route = AppRouter.homePageNoTransition;
-        homeNavigationTab = HomeNavigatorTab.explore;
-        exploreTab = FeralfileHomeTab.rAndD;
       case AppRouter.organizePage:
         route = AppRouter.homePageNoTransition;
         homeNavigationTab = HomeNavigatorTab.collection;
