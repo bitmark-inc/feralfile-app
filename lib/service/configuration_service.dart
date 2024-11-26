@@ -342,7 +342,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDevicePasscodeEnabled() => false; // always enabled
+  bool isDevicePasscodeEnabled() => true; // always enabled
 
   @override
   Future<void> setDevicePasscodeEnabled(bool value) async {
