@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
+import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -70,6 +71,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
         await _saveAnnouncement(localAnnouncement);
+
         if (_queue.isNotEmpty &&
             !_queue.any((element) =>
                 element.announcementContentId ==
@@ -117,16 +119,21 @@ class AnnouncementServiceImpl implements AnnouncementService {
 
   /// unread and in-app enabled announcements
   List<AnnouncementLocal> _getAnnouncementsToShow() {
-    _queue.removeWhere((element) => element.read || !element.inAppEnabled);
+    _queue.removeWhere((element) => !_shouldDisplayAnnouncement(element));
     if (_queue.isEmpty) {
       final allAnnouncements = getLocalAnnouncements();
       _queue.addAll(allAnnouncements
-          .where((element) => !element.read && element.inAppEnabled)
+          .where((element) => _shouldDisplayAnnouncement(element))
           .toList());
     }
     _updateBadger(_queue.length);
     return _queue;
   }
+
+  bool _shouldDisplayAnnouncement(AnnouncementLocal announcement) =>
+      !announcement.read &&
+      announcement.inAppEnabled &&
+      announcement.notificationType == NotificationSettingType.announcement;
 
   @override
   AnnouncementLocal? getAnnouncement(String? announcementContentId) {
