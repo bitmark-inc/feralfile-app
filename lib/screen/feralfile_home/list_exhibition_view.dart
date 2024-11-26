@@ -76,14 +76,9 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
         key: const ValueKey(FeralfileHomeTab.exhibitions),
         onUpdate: (searchText, filters, sortBy) async {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _searchText = searchText;
-              _filters = filters;
-              _sortBy = sortBy;
-            });
+            _searchText = searchText;
+            _filters = filters;
+            _sortBy = sortBy;
             await _fetchExhibitions(context);
           });
         },

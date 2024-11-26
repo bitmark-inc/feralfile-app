@@ -79,13 +79,8 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
         key: const ValueKey(FeralfileHomeTab.artists),
         onUpdate: (searchText, filters, sortBy) {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _searchText = searchText;
-              _sortBy = sortBy;
-            });
+            _searchText = searchText;
+            _sortBy = sortBy;
             await _fetchArtists(context);
           });
         },
@@ -228,13 +223,8 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
         key: const ValueKey(FeralfileHomeTab.artists),
         onUpdate: (searchText, filters, sortBy) {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _searchText = searchText;
-              _sortBy = sortBy;
-            });
+            _searchText = searchText;
+            _sortBy = sortBy;
             await _fetchCurators(context);
           });
         },
