@@ -122,13 +122,15 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<DeviceInfoService>().init();
       await injector<MetricClientService>().initService();
 
-      unawaited(injector<RemoteConfigService>().loadConfigs().then((_) {
-        log.info('Remote config loaded');
-        injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
-      }, onError: (e, s) {
-        log.info('Failed to load remote config: $e');
-        injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
-      }));
+      unawaited(
+        injector<RemoteConfigService>().loadConfigs().then((_) {
+          log.info('Remote config loaded');
+        }, onError: (e) {
+          log.info('Failed to load remote config: $e');
+        }).whenComplete(() {
+          injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+        }),
+      );
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
 
       await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
