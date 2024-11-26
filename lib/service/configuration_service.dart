@@ -347,7 +347,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDevicePasscodeEnabled(bool value) async {
     log.info('setDevicePasscodeEnabled: $value');
-    await _preferences.setBool(KEY_DEVICE_PASSCODE, false);
+    await _preferences.setBool(KEY_DEVICE_PASSCODE, true);
   }
 
   @override
