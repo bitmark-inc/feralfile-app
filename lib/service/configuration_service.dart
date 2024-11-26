@@ -11,10 +11,6 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -47,16 +43,6 @@ abstract class ConfigurationService {
   Future<void> setLastPullAnnouncementTime(int lastPullTime);
 
   int getLastPullAnnouncementTime();
-
-  Future<void> setHasMerchandiseSupport(String indexId,
-      {bool value = true, bool isOverride = false});
-
-  bool hasMerchandiseSupport(String indexId);
-
-  Future<void> setPostcardChatConfig(PostcardChatConfig config);
-
-  PostcardChatConfig getPostcardChatConfig(
-      {required String address, required String id});
 
   Future<void> setDidMigrateAddress(bool value);
 
@@ -105,9 +91,6 @@ abstract class ConfigurationService {
 
   List<SentArtwork> getRecentlySentToken();
 
-  Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
-      {bool override = false});
-
   Future<void> setReadReleaseNotesInVersion(String version);
 
   String? getReadReleaseNotesVersion();
@@ -151,60 +134,13 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showingNotification;
 
-  List<SharedPostcard> getSharedPostcard();
-
-  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
-      {bool override = false, bool isRemoved = false});
-
-  Future<void> removeSharedPostcardWhere(bool Function(SharedPostcard) test);
-
-  List<String> getListPostcardMint();
-
-  Future<void> setListPostcardMint(List<String> tokenID,
-      {bool override = false, bool isRemoved = false});
-
-  List<StampingPostcard> getStampingPostcard();
-
-  Future<void> updateStampingPostcard(List<StampingPostcard> values,
-      {bool override = false, bool isRemove = false});
-
-  Future<void> setProcessingStampPostcard(List<ProcessingStampPostcard> values,
-      {bool override = false, bool isRemove = false});
-
-  List<ProcessingStampPostcard> getProcessingStampPostcard();
-
-  Future<void> setAutoShowPostcard(bool value);
-
-  bool isAutoShowPostcard();
-
-  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt();
-
-  Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
-      {bool override = false});
-
-  Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
-      {bool override = false});
-
-  List<PostcardIdentity> getAlreadyShowPostcardUpdates();
-
   String getVersionInfo();
 
   Future<void> setVersionInfo(String version);
 
   List<String> getHiddenOrSentTokenIDs();
 
-  Future<void> setShowPostcardBanner(bool bool);
-
-  bool getShowPostcardBanner();
-
-  Future<void> setShowAddAddressBanner(bool bool);
-
   bool getShowAddAddressBanner();
-
-  Future<void> setMerchandiseOrderIds(List<String> ids,
-      {bool override = false});
-
-  List<String> getMerchandiseOrderIds();
 
   Future<void> setReferralCode(String referralCode);
 
@@ -416,31 +352,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
-      {bool override = false}) async {
-    const key = KEY_RECENTLY_SENT_TOKEN;
-    await _removeExpiredSentToken(
-        DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME));
-    final updateTokens =
-        sentArtwork.map((e) => jsonEncode(e.toJson())).toList();
-
-    if (override) {
-      await _preferences.setStringList(key, updateTokens);
-    } else {
-      var sentTokenIDs = _preferences.getStringList(key) ?? []
-        ..addAll(updateTokens);
-      await _preferences.setStringList(key, sentTokenIDs.toSet().toList());
-    }
-  }
-
-  Future _removeExpiredSentToken(DateTime timestampExpired) async {
-    List<SentArtwork> token = getRecentlySentToken()
-      ..removeWhere((element) => element.timestamp.isBefore(timestampExpired));
-    await _preferences.setStringList(KEY_RECENTLY_SENT_TOKEN,
-        token.map((e) => jsonEncode(e.toJson())).toList());
-  }
-
-  @override
   Future<void> setReadReleaseNotesInVersion(String version) async {
     await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
   }
@@ -563,171 +474,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<SharedPostcard> getSharedPostcard() {
-    final sharedPostcardString =
-        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
-    return sharedPostcardString
-        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
-        .toSet()
-        .toList();
-  }
-
-  @override
-  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
-      {bool override = false, bool isRemoved = false}) async {
-    const key = KEY_SHARED_POSTCARD;
-    final updatePostcards =
-        sharedPostcards.map((e) => jsonEncode(e.toJson())).toList();
-
-    if (override) {
-      await _preferences.setStringList(key, updatePostcards);
-    } else {
-      var sentPostcard = _preferences.getStringList(key) ?? [];
-      if (isRemoved) {
-        sentPostcard
-            .removeWhere((element) => updatePostcards.contains(element));
-      } else {
-        sentPostcard.addAll(updatePostcards);
-      }
-      final uniqueSharedPostcard = sentPostcard
-          .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
-          .toList()
-        ..sort((e1, e2) {
-          if (e2.sharedAt == null || e1.sharedAt == null) {
-            return 0;
-          }
-          return e2.sharedAt!.compareTo(e1.sharedAt!);
-        })
-        ..unique((element) => element.tokenID + element.owner);
-      await _preferences.setStringList(key,
-          uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
-    }
-  }
-
-  @override
-  Future<void> removeSharedPostcardWhere(bool Function(SharedPostcard) test) {
-    final sharedPostcardString =
-        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
-    final sharedPostcards = sharedPostcardString
-        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
-        .toSet()
-        .toList()
-      ..removeWhere(test);
-    return updateSharedPostcard(sharedPostcards, override: true);
-  }
-
-  @override
-  List<String> getListPostcardMint() =>
-      _preferences.getStringList(POSTCARD_MINT) ?? [];
-
-  @override
-  Future<void> setListPostcardMint(List<String> tokenID,
-      {bool override = false, bool isRemoved = false}) async {
-    if (override) {
-      await _preferences.setStringList(POSTCARD_MINT, tokenID);
-    } else {
-      var currentPostcardMints =
-          _preferences.getStringList(POSTCARD_MINT) ?? [];
-      if (isRemoved) {
-        currentPostcardMints
-            .removeWhere((element) => tokenID.contains(element));
-      } else {
-        currentPostcardMints.addAll(tokenID);
-      }
-      await _preferences.setStringList(POSTCARD_MINT, currentPostcardMints);
-    }
-  }
-
-  @override
-  List<StampingPostcard> getStampingPostcard() =>
-      _preferences
-          .getStringList(KEY_STAMPING_POSTCARD)
-          ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
-          .toList()
-          .where((element) => element.timestamp
-              .isAfter(DateTime.now().subtract(STAMPING_POSTCARD_LIMIT_TIME)))
-          .toList() ??
-      [];
-
-  @override
-  Future<void> updateStampingPostcard(List<StampingPostcard> values,
-      {bool override = false, bool isRemove = false}) async {
-    const key = KEY_STAMPING_POSTCARD;
-    final updatePostcards = values.map((e) => jsonEncode(e.toJson())).toList();
-
-    if (override) {
-      await _preferences.setStringList(key, updatePostcards);
-    } else {
-      var currentStampingPostcard = _preferences.getStringList(key) ?? [];
-
-      if (isRemove) {
-        currentStampingPostcard
-            .removeWhere((element) => updatePostcards.contains(element));
-      } else {
-        currentStampingPostcard.addAll(updatePostcards);
-      }
-      await _preferences.setStringList(
-          key, currentStampingPostcard.toSet().toList());
-    }
-  }
-
-  @override
-  bool isAutoShowPostcard() =>
-      _preferences.getBool(KEY_AUTO_SHOW_POSTCARD) ?? false;
-
-  @override
-  Future<void> setAutoShowPostcard(bool value) async {
-    log.info('setAutoShowPostcard: $value');
-    await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
-  }
-
-  @override
-  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt() =>
-      _preferences
-          .getStringList(KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD)
-          ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
-          .toList() ??
-      [];
-
-  @override
-  Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> values,
-      {bool override = false}) async {
-    const key = KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD;
-    final updateValues = values.map((e) => jsonEncode(e.toJson())).toList();
-
-    if (override) {
-      await _preferences.setStringList(key, updateValues);
-    } else {
-      var currentValue = _preferences.getStringList(key) ?? []
-        ..addAll(updateValues);
-      await _preferences.setStringList(key, currentValue.toSet().toList());
-    }
-  }
-
-  @override
-  List<PostcardIdentity> getAlreadyShowPostcardUpdates() =>
-      _preferences
-          .getStringList(KEY_ALREADY_SHOW_POSTCARD_UPDATES)
-          ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
-          .toList() ??
-      [];
-
-  @override
-  Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
-      {bool override = false}) {
-    const key = KEY_ALREADY_SHOW_POSTCARD_UPDATES;
-    final updateValues = value.map((e) => jsonEncode(e.toJson())).toList();
-
-    if (override) {
-      return _preferences.setStringList(key, updateValues);
-    } else {
-      var currentValue = _preferences.getStringList(key) ?? []
-        ..addAll(updateValues);
-      return _preferences.setStringList(key, currentValue.toSet().toList());
-    }
-  }
-
-  @override
   String getVersionInfo() => _preferences.getString(KEY_PACKAGE_INFO) ?? '';
 
   @override
@@ -745,93 +491,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  PostcardChatConfig getPostcardChatConfig(
-      {required String address, required String id}) {
-    final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
-    final chatConfigs =
-        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList();
-    return chatConfigs.firstWhereOrNull(
-            (element) => element.address == address && element.tokenId == id) ??
-        PostcardChatConfig(address: address, tokenId: id);
-  }
-
-  @override
-  Future<void> setPostcardChatConfig(PostcardChatConfig config) async {
-    final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
-    final chatConfigs =
-        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList()
-          ..removeWhere((element) =>
-              element.address == config.address &&
-              element.tokenId == config.tokenId)
-          ..add(config);
-    await _preferences.setStringList(
-        KEY_POSTCARD_CHAT_CONFIG,
-        chatConfigs
-            .map((e) => jsonEncode(e.toJson()))
-            .toList()
-            .toSet()
-            .toList());
-  }
-
-  @override
-  bool hasMerchandiseSupport(String indexId) {
-    final merchandiseSupportIndexIds =
-        _preferences.getStringList(KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID) ?? [];
-    return merchandiseSupportIndexIds.contains(indexId);
-  }
-
-  @override
-  Future<void> setHasMerchandiseSupport(String indexId,
-      {bool value = true, bool isOverride = false}) async {
-    if (isOverride) {
-      await _preferences
-          .setStringList(KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID, [indexId]);
-    } else {
-      final merchandiseSupportIndexIds =
-          _preferences.getStringList(KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID) ??
-              [];
-      if (value) {
-        merchandiseSupportIndexIds.add(indexId);
-        merchandiseSupportIndexIds.toSet().toList();
-      } else {
-        merchandiseSupportIndexIds.remove(indexId);
-      }
-      await _preferences.setStringList(
-          KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID, merchandiseSupportIndexIds);
-    }
-  }
-
-  @override
-  List<ProcessingStampPostcard> getProcessingStampPostcard() =>
-      _preferences
-          .getStringList(KEY_PROCESSING_STAMP_POSTCARD)
-          ?.map((e) => ProcessingStampPostcard.fromJson(jsonDecode(e)))
-          .toList() ??
-      [];
-
-  @override
-  Future<void> setProcessingStampPostcard(List<ProcessingStampPostcard> values,
-      {bool override = false, bool isRemove = false}) {
-    const key = KEY_PROCESSING_STAMP_POSTCARD;
-    final updatePostcards = values.map((e) => jsonEncode(e.toJson())).toList();
-
-    if (override) {
-      return _preferences.setStringList(key, updatePostcards);
-    } else {
-      var currentStampingPostcard = _preferences.getStringList(key) ?? [];
-
-      if (isRemove) {
-        currentStampingPostcard
-            .removeWhere((element) => updatePostcards.contains(element));
-      } else {
-        currentStampingPostcard.addAll(updatePostcards);
-      }
-      return _preferences.setStringList(
-          key, currentStampingPostcard.toSet().toList());
-    }
-  }
-
-  @override
   List<String> getHiddenOrSentTokenIDs() {
     final hiddenTokens = getTempStorageHiddenTokenIDs();
     final recentlySent = getRecentlySentToken();
@@ -846,40 +505,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setShowPostcardBanner(bool bool) async {
-    await _preferences.setBool(KEY_SHOW_POSTCARD_BANNER, bool);
-  }
-
-  @override
-  bool getShowPostcardBanner() =>
-      _preferences.getBool(KEY_SHOW_POSTCARD_BANNER) ?? true;
-
-  @override
-  Future<void> setShowAddAddressBanner(bool bool) async {
-    await _preferences.setBool(KEY_SHOW_ADD_ADDRESS_BANNER, bool);
-  }
-
-  @override
   bool getShowAddAddressBanner() =>
       _preferences.getBool(KEY_SHOW_ADD_ADDRESS_BANNER) ?? true;
-
-  @override
-  List<String> getMerchandiseOrderIds() =>
-      _preferences.getStringList(KEY_MERCHANDISE_ORDER_IDS) ?? [];
-
-  @override
-  Future<void> setMerchandiseOrderIds(List<String> ids,
-      {bool override = false}) async {
-    if (override) {
-      await _preferences.setStringList(KEY_MERCHANDISE_ORDER_IDS, ids);
-    } else {
-      final currentIds =
-          _preferences.getStringList(KEY_MERCHANDISE_ORDER_IDS) ?? []
-            ..addAll(ids);
-      await _preferences.setStringList(
-          KEY_MERCHANDISE_ORDER_IDS, currentIds.toSet().toList());
-    }
-  }
 
   @override
   int getLastPullAnnouncementTime() =>

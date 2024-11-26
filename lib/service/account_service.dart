@@ -11,12 +11,10 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/model/wallet_addressdart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -26,7 +24,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart'
     as primary_address_channel;
-import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
@@ -36,39 +33,17 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/address_service.dart' as nft;
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
   Future<void> migrateAccount(Future<dynamic> Function() createLoginJwt);
 
+  // get all addresses
   List<WalletAddress> getWalletsAddress(CryptoType cryptoType);
 
-  Future<WalletStorage> getDefaultAccount();
+  Future<WalletAddress> nameLinkedAccount(WalletAddress address, String name);
 
-  Future<WalletIndex> getAccountByAddress({
-    required String chain,
-    required String address,
-  });
-
-  Future androidBackupKeys();
-
-  Future deleteAllKeys();
-
-  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
-
-  Future<bool?> isAndroidEndToEndEncryptionAvailable();
-
-  Future<WalletStorage> createNewWallet(
-      {String name = '',
-      String passphrase = '',
-      Future<dynamic> Function()? createLoginJwt});
-
-  Future<WalletStorage> importWords(String words, String passphrase,
-      {WalletType walletType = WalletType.MultiChain});
-
-  Future<Connection> nameLinkedAccount(Connection connection, String name);
-
-  Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType,
+  Future<WalletAddress> linkManuallyAddress(
+      String address, CryptoType cryptoType,
       {String? name});
 
   Future deleteLinkedAccount(Connection connection);
@@ -88,31 +63,14 @@ abstract class AccountService {
 
   Future<List<String>> getShowedAddresses();
 
-  Future<bool> addAddressWallet(String uuid, List<AddressInfo> addresses);
-
-  Future<void> deleteAddressWallet(WalletAddress walletAddress);
-
-  Future<WalletAddress?> getWalletByAddress(String address);
-
   Future<void> updateAddressWallet(WalletAddress walletAddress);
 
   List<Connection> getAllViewOnlyAddresses();
-
-  Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
-      {String? name});
-
-  Future<List<WalletAddress>> insertNextAddressFromUuid(
-      String uuid, WalletType walletType,
-      {String? name});
-
-  Future<List<WalletAddress>> insertAddressAtIndexAndUuid(String uuid,
-      {required WalletType walletType, required int index, String? name});
 
   Future<String?> getBackupDeviceID();
 }
 
 class AccountServiceImpl extends AccountService {
-  final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _androidBackupChannel = AndroidBackupChannel();
   final IOSBackupChannel _iosBackupChannel = IOSBackupChannel();
@@ -127,74 +85,6 @@ class AccountServiceImpl extends AccountService {
     this._addressService,
     this._cloudObject,
   );
-
-  @override
-  Future<WalletStorage> createNewWallet(
-      {String name = '',
-      String passphrase = '',
-      Future<dynamic> Function()? createLoginJwt}) async {
-    final uuid = const Uuid().v4();
-    final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(passphrase, name);
-    log.fine('[AccountService] Created persona $uuid}');
-    await _addressService.registerPrimaryAddress(
-        info: primary_address_channel.AddressInfo(
-      uuid: walletStorage.uuid,
-      chain: 'ethereum',
-      index: 0,
-    ));
-    if (createLoginJwt != null) {
-      await createLoginJwt();
-    }
-    await insertNextAddressFromUuid(walletStorage.uuid, WalletType.MultiChain,
-        name: '');
-    await androidBackupKeys();
-    return walletStorage;
-  }
-
-  @override
-  Future<WalletStorage> importWords(String words, String passphrase,
-      {WalletType walletType = WalletType.MultiChain}) async {
-    late String firstEthAddress;
-    try {
-      firstEthAddress =
-          await LibAukDart.calculateFirstEthAddress(words, passphrase);
-    } catch (e) {
-      rethrow;
-    }
-
-    final addresses = _cloudObject.addressObject.getAllAddresses()
-      ..unique((element) => element.uuid);
-    for (final address in addresses) {
-      final ethAddress = await address.wallet.getETHAddress();
-      if (ethAddress == firstEthAddress) {
-        return address.wallet;
-      }
-    }
-
-    final uuid = const Uuid().v4();
-    final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.importKey(
-        words, passphrase, '', DateTime.now().microsecondsSinceEpoch);
-
-    if (Platform.isAndroid) {
-      final backupAccounts = await _androidBackupChannel.restoreKeys();
-      await _androidBackupChannel
-          .backupKeys([...backupAccounts.map((e) => e.uuid), uuid]);
-    }
-
-    log.fine('[AccountService] imported persona $uuid');
-    return walletStorage;
-  }
-
-  @override
-  Future<WalletStorage> getDefaultAccount() async {
-    final defaultWallet = await _getDefaultWallet();
-    if (defaultWallet == null) {
-      throw AccountException(message: 'Default wallet not found');
-    }
-    return defaultWallet;
-  }
 
   @override
   Future<WalletIndex> getAccountByAddress({
@@ -282,7 +172,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType,
+  Future<WalletAddress> linkManuallyAddress(
+      String address, CryptoType cryptoType,
       {String? name}) async {
     String checkSumAddress = address;
     if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.USDC) {
@@ -292,12 +183,13 @@ class AccountServiceImpl extends AccountService {
     if (walletAddress.any((element) => element.address == checkSumAddress)) {
       throw LinkAddressException(message: 'already_imported_address'.tr());
     }
-    final doubleConnections = _cloudObject.connectionObject
-        .getConnectionsByAccountNumber(checkSumAddress);
-    if (doubleConnections.isNotEmpty) {
+    final doubleAddress = _cloudObject.addressObject
+        .getAllAddresses()
+        .firstWhereOrNull((element) => element.address == checkSumAddress);
+    if (doubleAddress != null) {
       throw LinkAddressException(message: 'already_viewing_address'.tr());
     }
-    final connection = Connection(
+    final walletAddress = WalletAddress(
       key: checkSumAddress,
       name: name ?? cryptoType.source,
       data: '{"blockchain":"${cryptoType.source}"}',
@@ -426,22 +318,11 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Connection> nameLinkedAccount(
-      Connection connection, String name) async {
-    connection.name = name;
-    await _cloudObject.connectionObject.writeConnection(connection);
-    return connection;
-  }
-
-  Future<Connection?> getExistingAccount(String accountNumber) async {
-    final existingConnections = _cloudObject.connectionObject
-        .getConnectionsByAccountNumber(accountNumber);
-
-    if (existingConnections.isEmpty) {
-      return null;
-    }
-
-    return existingConnections.first;
+  Future<WalletAddress> nameLinkedAccount(
+      WalletAddress address, String name) async {
+    final newAddress = address.copyWith(name: name);
+    await _cloudObject.addressObject.updateAddresses([newAddress]);
+    return newAddress;
   }
 
   @override

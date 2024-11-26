@@ -20,14 +20,6 @@ class ClientTokenService {
   Future<List<String>> getAddresses() async =>
       await _accountService.getAllAddresses();
 
-  Future<List<String>> getManualTokenIds() async {
-    final tokenIndexerIDs = _cloudObjects.connectionObject
-        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
-        .map((e) => e.key)
-        .toList();
-    return tokenIndexerIDs;
-  }
-
   Future refreshTokens(
       {bool checkPendingToken = false, bool syncAddresses = false}) async {
     if (syncAddresses && !_nftBloc.prefs.getDidSyncAddress()) {
@@ -39,11 +31,8 @@ class ClientTokenService {
           hiddenAddresses.map((e) => e.address).toList(), true);
       unawaited(_nftBloc.prefs.setDidSyncAddress(true));
     }
-    final indexerIds = await getManualTokenIds();
 
-    _nftBloc.add(RefreshNftCollectionByOwners(
-      debugTokens: indexerIds,
-    ));
+    _nftBloc.add(RefreshNftCollectionByOwners());
 
     if (checkPendingToken) {
       final activeAddresses = await _accountService.getShowedAddresses();

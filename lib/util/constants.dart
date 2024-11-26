@@ -5,14 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
-
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
-import 'package:autonomy_flutter/util/fee_util.dart';
-import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -25,7 +20,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
-const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
 const IPFS_PREFIX = 'ipfs://';
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
@@ -55,8 +49,6 @@ const COLLECTOR_RIGHTS_MEMENTO_DOCS =
 const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     '/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md';
 
-const POSTCARD_RIGHTS_DOCS =
-    'https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md';
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   '00370334-6151-4c04-b6be-dc09e325d57d',
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
@@ -145,54 +137,6 @@ const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3;
 
-const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
-const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
-
-const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
-const Color POSTCARD_PINK_BUTTON_COLOR = Color.fromRGBO(231, 75, 168, 1);
-const Color POSTCARD_GREEN_BUTTON_COLOR = Color.fromRGBO(79, 174, 79, 1);
-
-const POSTCARD_ABOUT_THE_PROJECT =
-    'https://www.moma.org/calendar/exhibitions/5618?preview=true';
-
-final moMAGeoLocation = GeoLocation(
-    position: const Location(lat: 40.761, lon: -73.980), address: 'MoMA');
-
-final internetUserGeoLocation =
-    GeoLocation(position: const Location(lat: null, lon: null), address: 'Web');
-
-const int MAX_STAMP_IN_POSTCARD = 15;
-
-const int STAMP_SIZE = 2160;
-
-const String POSTCARD_LOCATION_HIVE_BOX = 'postcard_location_hive_box';
-
-const String MIXPANEL_HIVE_BOX = 'mixpanel_hive_box';
-
-const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
-    'postcard software artwork loaded';
-const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = 'finish getNewStamp';
-
-const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
-const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
-
-double get postcardAspectRatio => Platform.isAndroid
-    ? POSTCARD_ASPECT_RATIO_ANDROID
-    : POSTCARD_ASPECT_RATIO_IOS;
-
-const double STAMP_ASPECT_RATIO = 345.0 / 378;
-
-const POSTCARD_SHARE_LINK_VALID_DURATION = Duration(hours: 24);
-
-const USDC_CONTRACT_ADDRESS_GOERLI =
-    '0x07865c6E87B9F70255377e024ace6630C1Eaa37F';
-const USDC_CONTRACT_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-const DEFAULT_FEE_OPTION = FeeOption.MEDIUM;
-
-String get usdcContractAddress => Environment.appTestnetConfig
-    ? USDC_CONTRACT_ADDRESS_GOERLI
-    : USDC_CONTRACT_ADDRESS;
-
 const TV_APP_STORE_URL =
     'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv';
 
@@ -206,13 +150,7 @@ const AUTONOMY_RAW_DOCUMENT_PREFIX =
 
 const markdownExt = '.md';
 
-const String POSTCARD_SIGN_PREFIX = 'Tezos Signed Message:';
-
-const CONNECT_FAILED_DURATION = Duration(seconds: 10);
-
 const int COLLECTION_INITIAL_MIN_SIZE = 20;
-
-const int LEADERBOARD_PAGE_SIZE = 50;
 
 const int maxCollectionListSize = 3;
 
@@ -220,9 +158,6 @@ const maxRetryCount = 3;
 
 const double collectionListArtworkAspectRatio = 375 / 210.94;
 const String collectionListArtworkThumbnailVariant = 'thumbnailList';
-
-const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
-const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
 
 const String SOURCE_EXHIBITION_ID = 'source';
 const List<String> YOUTUBE_DOMAINS = ['youtube.com', 'youtu.be'];
@@ -275,10 +210,6 @@ class GallerySortProperty {
   static const Chain = 'Chain';
 
   static List<String> get getList => [Source, Medium, Artist, Chain];
-}
-
-extension RawValue on WalletApp {
-  String get rawValue => toString().split('.').last;
 }
 
 class ReportIssueType {
@@ -475,51 +406,11 @@ class Constants {
     'https://app.feralfile.com',
   ];
 
-  static const wcPrefixes = [
-    'https://au.bitmark.com/apps/wc?uri=',
-    'https://au.bitmark.com/apps/wc/wc?uri=',
-    'https://autonomy.io/apps/wc?uri=',
-    'https://autonomy.io/apps/wc/wc?uri=',
-    'autonomy://wc?uri=',
-    'autonomy-wc://wc?uri=',
-    'https://app.feralfile.com/apps/wc?uri=',
-    'https://app.feralfile.com/apps/wc/wc?uri=',
-    'feralfile://wc?uri=',
-    'feralfile-wc://wc?uri=',
-  ];
-
-  static const tzPrefixes = [
-    'https://au.bitmark.com/apps/tezos?uri=',
-    'https://autonomy.io/apps/tezos?uri=',
-    'https://feralfile.com/apps/tezos?uri=',
-  ];
-
-  static const wcDeeplinkPrefixes = [
-    'wc:',
-    'autonomy-wc:',
-    'feralfile-wc:',
-  ];
-
-  static const tbDeeplinkPrefixes = [
-    'tezos://',
-    'autonomy-tezos://',
-    'feralfile-tezos://',
-  ];
-
-  static const postcardPayToMintPrefixes = [
-    'https://autonomy.io/apps/moma-postcards/purchase',
-  ];
-
   static const navigationPrefixes = [
     'feralfile://navigation/',
   ];
 
   static const dAppConnectPrefixes = [
-    ...wcPrefixes,
-    ...tzPrefixes,
-    ...wcDeeplinkPrefixes,
-    ...tbDeeplinkPrefixes,
-    ...postcardPayToMintPrefixes,
     ...navigationPrefixes,
   ];
 }

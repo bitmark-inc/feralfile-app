@@ -9,8 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -138,20 +138,5 @@ class AddressService {
         .getAddressesByType(CryptoType.ETH.source)
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return addresses;
-  }
-
-  AddressInfo pickAddressAsPrimary() {
-    log.info('[AddressService] Picking address as primary');
-    final ethAddresses = getAllEthereumAddress();
-    if (ethAddresses.isEmpty) {
-      log.info('[AddressService] No address found');
-      throw UnsupportedError('No address found');
-    }
-    final selectedAddress = ethAddresses.first;
-    log.info('[AddressService] Selected address: $selectedAddress');
-    return AddressInfo(
-        uuid: selectedAddress.uuid,
-        index: selectedAddress.index,
-        chain: selectedAddress.cryptoType.toLowerCase());
   }
 }
