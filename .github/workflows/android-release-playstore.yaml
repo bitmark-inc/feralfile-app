@@ -56,7 +56,7 @@ jobs:
 
       - name: Submodules update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
-      - run: flutter pub cache repair
+      - run: flutter pub cache repair || true
       - run: flutter pub get
 
       # Encrypt secrets before use
