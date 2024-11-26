@@ -285,29 +285,30 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     _triggerShowAnnouncement();
 
-    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      log.info('Receive notification: ${event.notification.additionalData}');
-      if (event.notification.additionalData == null) {
-        return;
-      }
-      event.preventDefault();
-      final additionalData =
-          AdditionalData.fromJson(event.notification.additionalData!);
-      final id = additionalData.announcementContentId ??
-          event.notification.notificationId;
+    // OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    //   log.info('Receive notification: ${event.notification.additionalData}');
+    //   if (event.notification.additionalData == null) {
+    //     return;
+    //   }
+    //   event.preventDefault();
+    //   final additionalData =
+    //       AdditionalData.fromJson(event.notification.additionalData!);
+    //   final id = additionalData.announcementContentId ??
+    //       event.notification.notificationId;
 
-      Future.delayed(const Duration(milliseconds: 500), () async {
-        if (!mounted) {
-          return;
-        }
-        await NotificationHandler.instance.shouldShowInAppNotification(
-          context,
-          additionalData,
-          id,
-          _pageController,
-        );
-      });
-    });
+    //   Future.delayed(const Duration(milliseconds: 500), () async {
+    //     if (!mounted) {
+    //       return;
+    //     }
+    //     await NotificationHandler.instance.shouldShowInAppNotification(
+    //       context,
+    //       additionalData,
+    //       id,
+    //       _pageController,
+    //     );
+    //   });
+    // });
+
     OneSignal.Notifications.addClickListener((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');
