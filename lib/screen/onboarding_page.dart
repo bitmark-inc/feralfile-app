@@ -275,16 +275,23 @@ class _OnboardingPageState extends State<OnboardingPage>
                 DateTime.now().subtract(REFRESH_JWT_DURATION_BEFORE_EXPIRE),
               ) ??
               true;
-          if (jwt?.isValid() == true &&
-              refreshToken != null &&
+          if (refreshToken != null &&
               refreshToken.isNotEmpty &&
               !isRefreshTokenExpired) {
             // jwt is valid, no need to login again
-            log.info('JWT is valid, no need to login again');
-
+            log.info('JWT refresh token is valid, '
+                'no need to request passkey again again');
+            if (jwt?.isValid() == true) {
+              log.info('JWT is valid, no need to refresh');
+            } else {
+              log.info('JWT is invalid, refresh JWT token');
+              await injector<AuthService>().getAuthToken();
+            }
+            log.info('[_loginAndMigrate] JWT now is valid');
             return;
           }
-          log.info('[_loginAndMigrate] create JWT token');
+          log.info(
+              'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
           await _passkeyService.requestJwt();
           log.info('[_loginAndMigrate] create JWT token done');
         } catch (e, s) {

@@ -208,8 +208,12 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<JWT> requestJwt() async {
+    log.info('[PasskeyService] Request JWT');
     final localResponse = await logInInitiate();
+    log.info('[PasskeyService] Log in initiated');
     final jwt = await logInFinalize(localResponse);
+    log.info('[PasskeyService] Log in finalized');
+    log.info('[PasskeyService] return JWT done');
     return jwt;
   }
 }

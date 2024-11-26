@@ -165,6 +165,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
         announcement.announcementContentId,
         additionalData,
         body: announcement.content,
+        receivedTime: announcement.startedAt,
         handler: additionalData.isTappable
             ? () async {
                 await additionalData.handleTap(context);

@@ -67,6 +67,7 @@ class UserAccountChannel {
 
   Future<JWT?> getJWT() async {
     try {
+      log.info('getJWT from channel');
       final String? data = await _channel.invokeMethod('getJWT', {});
       final jwt = json.decode(data ?? '{}');
       return JWT.fromJson(jwt);
