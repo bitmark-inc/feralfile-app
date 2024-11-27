@@ -114,8 +114,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     if (legacyHiddenLinkedAccountsFromGallery != null &&
         legacyHiddenLinkedAccountsFromGallery.isNotEmpty) {
       final linkedAccounts =
-          injector<CloudManager>().connectionObject.getLinkedAccounts();
-      final List<Connection> hiddenLinkAccounts = [];
+          injector<CloudManager>().addressObject.getLinkedAccounts();
       for (var address in legacyHiddenLinkedAccountsFromGallery) {
         final account = linkedAccounts
             .firstWhereOrNull((element) => element.accountNumber == address);

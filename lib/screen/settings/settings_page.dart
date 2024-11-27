@@ -6,17 +6,13 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -26,7 +22,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/version_check.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -145,30 +140,6 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                   ),
                   addOnlyDivider(),
-                  _settingItem(
-                    title: 'back_up'.tr(),
-                    icon: SvgPicture.asset('assets/images/icon_backup.svg'),
-                    onTap: () async {
-                      if (Platform.isAndroid) {
-                        final isAndroidEndToEndEncryptionAvailable =
-                            await injector<AccountService>()
-                                .isAndroidEndToEndEncryptionAvailable();
-                        if (!context.mounted) {
-                          return;
-                        }
-                        await Navigator.of(context).pushNamed(
-                            AppRouter.cloudAndroidPage,
-                            arguments: CloudAndroidPagePayload(
-                                isEncryptionAvailable:
-                                    isAndroidEndToEndEncryptionAvailable));
-                      } else {
-                        await Navigator.of(context).pushNamed(
-                            AppRouter.cloudPage,
-                            arguments: CloudPagePayload(section: 'nameAlias'));
-                      }
-                    },
-                    stateWidget: const CloudState(),
-                  ),
                   addOnlyDivider(),
                   _settingItem(
                     title: 'hidden_artwork'.tr(),

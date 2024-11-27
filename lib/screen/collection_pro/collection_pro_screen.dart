@@ -368,7 +368,6 @@ class CollectionProState extends State<CollectionPro>
     setState(() {
       _showGetStartedBanner = false;
     });
-    await _configurationService.setShowPostcardBanner(false);
   }
 
   Future<void> _onGetStarted() async {

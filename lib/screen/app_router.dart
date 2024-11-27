@@ -5,7 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';mport 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
@@ -21,8 +22,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merchandise_orders_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';

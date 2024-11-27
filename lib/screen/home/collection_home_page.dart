@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -64,18 +63,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final _deepLinkService = injector<DeeplinkService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
-  late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
 
   @override
   void initState() {
     super.initState();
-    _showPostcardBanner = _configurationService.getShowPostcardBanner();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-    unawaited(_configurationService.setAutoShowPostcard(true));
   }
 
   void _scrollListenerToLoadMore() {
@@ -122,7 +118,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     //check minted postcard and navigator to artwork detail
     final config = injector.get<ConfigurationService>();
-    final listTokenMints = config.getListPostcardMint();
     if (tokens.any((element) =>
         listTokenMints.contains(element.id) && element.pending != true)) {
       final tokenMints = tokens

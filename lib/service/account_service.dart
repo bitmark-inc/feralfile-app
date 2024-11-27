@@ -179,8 +179,8 @@ class AccountServiceImpl extends AccountService {
     if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.USDC) {
       checkSumAddress = address.getETHEip55Address();
     }
-    final walletAddress = _cloudObject.addressObject.getAllAddresses();
-    if (walletAddress.any((element) => element.address == checkSumAddress)) {
+    final walletAddresses = _cloudObject.addressObject.getAllAddresses();
+    if (walletAddresses.any((element) => element.address == checkSumAddress)) {
       throw LinkAddressException(message: 'already_imported_address'.tr());
     }
     final doubleAddress = _cloudObject.addressObject
@@ -190,31 +190,15 @@ class AccountServiceImpl extends AccountService {
       throw LinkAddressException(message: 'already_viewing_address'.tr());
     }
     final walletAddress = WalletAddress(
-      key: checkSumAddress,
+      address: checkSumAddress,
+      cryptoType: cryptoType.source,
+      createdAt: DateTime.now(),
       name: name ?? cryptoType.source,
-      data: '{"blockchain":"${cryptoType.source}"}',
-      connectionType: ConnectionType.manuallyAddress.rawValue,
-      accountNumber: checkSumAddress,
-      createdAt: DateTime.now(),
     );
 
-    await _cloudObject.connectionObject.writeConnection(connection);
+    await _cloudObject.addressObject.insertAddresses([walletAddress]);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
-    return connection;
-  }
-
-  @override
-  Future linkIndexerTokenID(String indexerTokenID) async {
-    final connection = Connection(
-      key: indexerTokenID,
-      name: '',
-      data: '',
-      connectionType: ConnectionType.manuallyIndexerTokenID.rawValue,
-      accountNumber: '',
-      createdAt: DateTime.now(),
-    );
-
-    await _cloudObject.connectionObject.writeConnection(connection);
+    return walletAddress;
   }
 
   @override
