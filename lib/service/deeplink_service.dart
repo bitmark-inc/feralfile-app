@@ -727,7 +727,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         } else {
           showSimpleNotificationToast(
             key: const Key('connected_to_canvas'),
-            content: 'connected_to_display'.tr(),
+            content: '${'connected_to_display'.tr()} ',
             addOnTextSpan: [
               TextSpan(
                 text: device.name,
@@ -748,7 +748,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (isSuccessful) {
         showSimpleNotificationToast(
           key: const Key('connected_to_canvas'),
-          content: 'connected_to_display'.tr(),
+          content: '${'connected_to_display'.tr()} ',
           addOnTextSpan: [
             TextSpan(
               text: device.name,

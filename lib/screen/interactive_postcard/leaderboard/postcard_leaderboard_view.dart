@@ -202,7 +202,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                             ),
                             if (isYour)
                               TextSpan(
-                                text: '_your'.tr(),
+                                text: ' ${'_your'.tr()}',
                               ),
                           ],
                         ),

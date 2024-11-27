@@ -236,7 +236,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     showSimpleNotificationToast(
       key: const Key('connected'),
-      content: 'connected_to'.tr(),
+      content: '${'connected_to'.tr()} ',
       leading: SvgPicture.asset(
         'assets/images/checkbox_icon.svg',
         width: 24,

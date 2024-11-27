@@ -125,7 +125,7 @@ class _FfSeriesInfoThumbnailState extends State<FfSeriesInfoThumbnail> {
                     style: defaultStyle.copyWith(color: AppColor.auQuickSilver),
                     children: [
                       TextSpan(
-                        text: 'exhibited_in'.tr(),
+                        text: '${'exhibited_in'.tr()} ',
                       ),
                       TextSpan(
                         text: series.exhibition!.title,
