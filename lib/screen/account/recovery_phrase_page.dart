@@ -304,7 +304,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               style: theme.textTheme.ppMori400Black14,
               children: <TextSpan>[
                 TextSpan(
-                  text: 'yrp_we’ve_safely'.tr(),
+                  text: '${'yrp_we’ve_safely'.tr()} ',
                 ),
                 if (Platform.isIOS) iCloudKeychain else androidBlockStore,
                 TextSpan(
@@ -321,14 +321,14 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               children: [
                 if (Platform.isIOS) iCloudKeychain else androidBlockStore,
                 TextSpan(
-                  text: '_is_'.tr(),
+                  text: '${'_is_'.tr()} ',
                 ),
                 TextSpan(
                   text: 'turned_off'.tr().toLowerCase(),
                   style: theme.textTheme.ppMori700Black14,
                 ),
                 TextSpan(
-                  text: 'unable_backup'.tr(),
+                  text: ' ${'unable_backup'.tr()}',
                   style: theme.textTheme.ppMori400Black14,
                 ),
               ],

@@ -340,9 +340,9 @@ class _AccountsViewState extends State<AccountsView> {
                         style: theme.primaryTextTheme.ppMori400White14,
                         children: <TextSpan>[
                           TextSpan(
-                            text: (account.walletAddress != null)
+                            text: '${(account.walletAddress != null)
                                 ? 'sure_delete_account'.tr()
-                                : 'sure_remove_account'.tr(),
+                                : 'sure_remove_account'.tr()} ',
                             //'Are you sure you want to delete the account ',
                           ),
                           TextSpan(
