@@ -19,11 +19,9 @@ import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
@@ -130,8 +128,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleBranchDeeplink(link, onFinish: onFinished);
         case DeepLinkHandlerType.dAppConnect:
           await _handleDappConnectDeeplink(link);
-        case DeepLinkHandlerType.irl:
-          await _handleIRL(link);
         case DeepLinkHandlerType.homeWidget:
           await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.unknown:
@@ -158,34 +154,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _navigationService.navigatePath(navigationPath);
       return true;
     }
-    return false;
-  }
-
-  Future<bool> _handleIRL(String link) async {
-    log.info('[DeeplinkService] _handleIRL');
-    final irlPrefix = IRL_DEEPLINK_PREFIXES
-        .firstWhereOrNull((element) => link.startsWith(element));
-    if (irlPrefix != null) {
-      final urlDecode = Uri.decodeFull(link.replaceFirst(irlPrefix, ''));
-
-      final uri = Uri.tryParse(urlDecode);
-      if (uri == null) {
-        return false;
-      }
-
-      if (Environment.irlWhitelistUrls.isNotEmpty) {
-        final validUrl = Environment.irlWhitelistUrls.any(
-          (element) => uri.host.contains(element),
-        );
-        if (!validUrl) {
-          return false;
-        }
-      }
-      unawaited(_navigationService.navigateTo(AppRouter.irlWebView,
-          arguments: IRLWebScreenPayload(urlDecode)));
-      return true;
-    }
-
     return false;
   }
 
@@ -256,13 +224,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info('source: ${data['source']}');
     final source = data['source'];
     switch (source) {
-      case 'autonomy_irl':
-        final url = data['irl_url'];
-        if (url != null) {
-          log.info('[DeeplinkService] _handleIRL $url');
-          await _handleIRL(url);
-        }
-
       case 'feralfile_display':
         {
           final reportId = data['reportId'];
@@ -277,92 +238,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
             final device = CanvasDevice.fromJson(payload);
             await _handleFeralFileDisplayConnecting(device, onFinish);
           }
-        }
-
-      case 'InstantPurchase':
-        final url = data['callback_url'];
-        final expiredAt = data['expired_at'];
-        if (expiredAt != null) {
-          final expiredAtDate =
-              DateTime.fromMillisecondsSinceEpoch(int.tryParse(expiredAt) ?? 0);
-          if (expiredAtDate.isBefore(DateTime.now())) {
-            unawaited(_navigationService.showQRExpired());
-            break;
-          }
-        }
-        final instantToken = data['instant_purchase_token'];
-        final purchaseToken = data['purchase_token'];
-        if (url != null &&
-            data['chain'] != null &&
-            instantToken != null &&
-            purchaseToken != null) {
-          final chain = data['chain'].toString().toLowerCase();
-          late String? primaryAddress;
-          final addressService = injector<AddressService>();
-          try {
-            final primaryAddressInfo =
-                await addressService.getPrimaryAddressInfo();
-            if (primaryAddressInfo != null &&
-                primaryAddressInfo.chain == chain) {
-              log.info(
-                  '[DeeplinkService] InstancePurchase: primary address found');
-              primaryAddress =
-                  await addressService.getAddress(info: primaryAddressInfo);
-            } else {
-              log.info('[DeeplinkService] '
-                  'InstancePurchase: use address with most tokens');
-              final addressWallets = await addressService.getAllAddress();
-              addressWallets.removeWhere(
-                  (element) => element.cryptoType.toLowerCase() != chain);
-              if (addressWallets.isEmpty) {
-                primaryAddress = null;
-              } else {
-                primaryAddress = addressWallets.first.address;
-              }
-            }
-          } catch (e) {
-            log.info('[DeeplinkService] get primary address error $e');
-            primaryAddress = null;
-          }
-          _navigationService.popUntilHome();
-          if (primaryAddress == null) {
-            await _navigationService.addressNotFoundError();
-          } else {
-            final link =
-                '$url&ba=$primaryAddress&ipt=$instantToken&pt=$purchaseToken';
-            log.info('InstantPurchase: $link');
-            await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
-                isPlainUI: true,
-                statusBarColor: AppColor.white,
-                isDarkStatusBar: false));
-          }
-        }
-
-      case 'membership_subscription':
-        final String url = data['callbackURL']!;
-        final primaryAddress =
-            await injector<AddressService>().getPrimaryAddress();
-        _navigationService.popUntilHome();
-        if (primaryAddress == null) {
-          await _navigationService.addressNotFoundError();
-        } else {
-          final uri = Uri.parse(url);
-          final isPremium = await injector<IAPService>().isSubscribed();
-          final queryParameters = {
-            'a': primaryAddress,
-            'mt': isPremium ? 'premium' : 'none',
-          }..addAll(uri.queryParameters);
-          final newUri = uri.replace(queryParameters: queryParameters);
-          final link = newUri.toString();
-          log.info('MembershipSubscription: $link');
-          await _navigationService.goToIRLWebview(
-            IRLWebScreenPayload(
-              link,
-              isPlainUI: true,
-              statusBarColor: AppColor.white,
-              isDarkStatusBar: false,
-            ),
-          );
         }
 
       case 'gift_membership':
@@ -527,7 +402,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 enum DeepLinkHandlerType {
   branch,
   dAppConnect,
-  irl,
   homeWidget,
   unknown,
   ;
@@ -536,10 +410,6 @@ enum DeepLinkHandlerType {
     if (Constants.dAppConnectPrefixes
         .any((prefix) => value.startsWith(prefix))) {
       return DeepLinkHandlerType.dAppConnect;
-    }
-
-    if (IRL_DEEPLINK_PREFIXES.any((prefix) => value.startsWith(prefix))) {
-      return DeepLinkHandlerType.irl;
     }
 
     if (Constants.branchDeepLinks.any((prefix) => value.startsWith(prefix))) {

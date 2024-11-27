@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/data/api/indexer_api.dart';
@@ -19,13 +18,6 @@ import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry/sentry.dart';
 
 class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
-  final AssetTokenDao _assetTokenDao;
-  final AssetDao _assetDao;
-  final ProvenanceDao _provenanceDao;
-  final IndexerService _indexerService;
-  final TokenDao _tokenDao;
-  final IndexerApi _indexerApi;
-
   ArtworkDetailBloc(
     this._assetTokenDao,
     this._assetDao,
@@ -36,8 +28,8 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   ) : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
       final tokens = await _tokenDao.findTokensByID(event.identity.id);
-      Map<String, int> owners = {};
-      for (var token in tokens) {
+      final owners = <String, int>{};
+      for (final token in tokens) {
         if (token.balance != null && token.balance! > 0) {
           owners[token.owner] = token.balance!;
         }
@@ -49,26 +41,29 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
         final assetToken = await _indexerService.getNftTokens(request);
 
         if (assetToken.isNotEmpty) {
-          final isViewOnly = await assetToken.first.isViewOnly();
-          emit(ArtworkDetailState(
-            assetToken: assetToken.first,
-            provenances: assetToken.first.provenance,
-            owners: owners,
-            isViewOnly: isViewOnly,
-          ));
+          emit(
+            ArtworkDetailState(
+              assetToken: assetToken.first,
+              provenances: assetToken.first.provenance,
+              owners: owners,
+            ),
+          );
         }
         return;
       }
       final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
-          event.identity.id, event.identity.owner);
+        event.identity.id,
+        event.identity.owner,
+      );
       final provenances =
           await _provenanceDao.findProvenanceByTokenID(event.identity.id);
-      final isViewOnly = await assetToken?.isViewOnly();
-      emit(ArtworkDetailState(
-        assetToken: assetToken,
-        provenances: provenances,
-        owners: owners,
-      ).copyWith(isViewOnly: isViewOnly));
+      emit(
+        ArtworkDetailState(
+          assetToken: assetToken,
+          provenances: provenances,
+          owners: owners,
+        ),
+      );
       if (assetToken != null &&
           assetToken.asset != null &&
           (assetToken.mimeType?.isEmpty ?? true)) {
@@ -80,11 +75,13 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
                 .timeout(const Duration(milliseconds: 10000));
             assetToken.asset!.mimeType = res.headers['content-type'];
             unawaited(_assetDao.updateAsset(assetToken.asset!));
-            emit(ArtworkDetailState(
-              assetToken: assetToken,
-              provenances: provenances,
-              owners: owners,
-            ));
+            emit(
+              ArtworkDetailState(
+                assetToken: assetToken,
+                provenances: provenances,
+                owners: owners,
+              ),
+            );
           } catch (error) {
             log.info('ArtworkDetailGetInfoEvent: preview url error', error);
           }
@@ -94,13 +91,23 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     });
   }
 
+  final AssetTokenDao _assetTokenDao;
+  final AssetDao _assetDao;
+  final ProvenanceDao _provenanceDao;
+  final IndexerService _indexerService;
+  final TokenDao _tokenDao;
+  final IndexerApi _indexerApi;
+
   Future<void> _indexHistory(String tokenId) async {
     try {
       await _indexerApi.indexTokenHistory({'indexID': tokenId});
     } catch (e) {
       log.info('index history error: $e');
-      unawaited(Sentry.captureException(
-          '[ArtworkDetailBloc] index history error: $e'));
+      unawaited(
+        Sentry.captureException(
+          '[ArtworkDetailBloc] index history error: $e',
+        ),
+      );
     }
   }
 }

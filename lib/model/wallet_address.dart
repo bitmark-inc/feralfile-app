@@ -1,22 +1,29 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:nft_collection/models/address_index.dart';
 
 class WalletAddress implements SettingObject {
-  final String address;
-  final String cryptoType;
-  final DateTime createdAt;
-  final bool isHidden;
-  final String? name;
-
   WalletAddress({
     required this.address,
-    required this.cryptoType,
     required this.createdAt,
     this.isHidden = false,
-    this.name,
-  });
+    String? name,
+  }) : name = name ?? CryptoType.fromAddress(address).name;
+
+  // fromJson and toJson methods
+  factory WalletAddress.fromJson(Map<String, dynamic> json) => WalletAddress(
+        address: json['address'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        isHidden: json['isHidden'] as bool,
+        name: json['name'] as String?,
+      );
+
+  final String address;
+  final DateTime createdAt;
+  final bool isHidden;
+  final String name;
 
   WalletAddress copyWith({
     String? address,
@@ -27,7 +34,6 @@ class WalletAddress implements SettingObject {
   }) =>
       WalletAddress(
         address: address ?? this.address,
-        cryptoType: cryptoType ?? this.cryptoType,
         createdAt: createdAt ?? this.createdAt,
         isHidden: isHidden ?? this.isHidden,
         name: name ?? this.name,
@@ -36,18 +42,8 @@ class WalletAddress implements SettingObject {
   AddressIndex get addressIndex =>
       AddressIndex(address: address, createdAt: createdAt);
 
-  // fromJson and toJson methods
-  factory WalletAddress.fromJson(Map<String, dynamic> json) => WalletAddress(
-        address: json['address'] as String,
-        cryptoType: json['cryptoType'] as String,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        isHidden: json['isHidden'] as bool,
-        name: json['name'] as String?,
-      );
-
   Map<String, dynamic> toJson() => {
         'address': address,
-        'cryptoType': cryptoType,
         'createdAt': createdAt.toIso8601String(),
         'isHidden': isHidden,
         'name': name,
@@ -64,4 +60,8 @@ class WalletAddress implements SettingObject {
 
   @override
   String get value => jsonEncode(toJson());
+
+  CryptoType get cryptoType {
+    return CryptoType.fromAddress(address);
+  }
 }

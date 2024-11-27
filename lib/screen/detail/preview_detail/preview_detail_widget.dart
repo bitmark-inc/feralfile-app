@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/nft_rendering/audio_rendering_widget.dart';
@@ -18,9 +20,6 @@ import 'package:autonomy_flutter/nft_rendering/webview_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
@@ -28,18 +27,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
-  final ArtworkIdentity identity;
-  final Function({WebViewController? webViewController, int? time})? onLoaded;
-  final Function({int? time})? onDispose;
-  final bool isMute;
-  final FocusNode? focusNode;
-  final bool useIndexer;
-
-  // this is used to prevent updating status when didPopNext is called
-  // (when pop to navigation page, if the index is not daily,
-  // we should not pause/resume the video)
-  final bool shouldUpdateStatusWhenDidPopNext;
-
   const ArtworkPreviewWidget({
     required this.identity,
     super.key,
@@ -50,6 +37,21 @@ class ArtworkPreviewWidget extends StatefulWidget {
     this.useIndexer = false,
     this.shouldUpdateStatusWhenDidPopNext = true,
   });
+
+  final ArtworkIdentity identity;
+  final FutureOr<void> Function({
+    WebViewController? webViewController,
+    int? time,
+  })? onLoaded;
+  final FutureOr<void> Function({int? time})? onDispose;
+  final bool isMute;
+  final FocusNode? focusNode;
+  final bool useIndexer;
+
+  // this is used to prevent updating status when didPopNext is called
+  // (when pop to navigation page, if the index is not daily,
+  // we should not pause/resume the video)
+  final bool shouldUpdateStatusWhenDidPopNext;
 
   @override
   State<ArtworkPreviewWidget> createState() => ArtworkPreviewWidgetState();
@@ -67,9 +69,14 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     WidgetsBinding.instance.addObserver(this);
     super.initState();
     _artworkKey = GlobalKey<NFTRenderingWidgetState>(
-        debugLabel: 'artwork_preview_key_${widget.identity}');
-    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
-        useIndexer: widget.useIndexer));
+      debugLabel: 'artwork_preview_key_${widget.identity}',
+    );
+    bloc.add(
+      ArtworkPreviewDetailGetAssetTokenEvent(
+        widget.identity,
+        useIndexer: widget.useIndexer,
+      ),
+    );
   }
 
   @override
@@ -77,9 +84,14 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.identity != widget.identity) {
       _artworkKey = GlobalKey<NFTRenderingWidgetState>(
-          debugLabel: 'artwork_preview_key_${widget.identity}');
-      bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
-          useIndexer: widget.useIndexer));
+        debugLabel: 'artwork_preview_key_${widget.identity}',
+      );
+      bloc.add(
+        ArtworkPreviewDetailGetAssetTokenEvent(
+          widget.identity,
+          useIndexer: widget.useIndexer,
+        ),
+      );
     }
   }
 
@@ -126,11 +138,6 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                   create: (_) => RetryCubit(),
                   child: BlocBuilder<RetryCubit, int>(
                     builder: (context, attempt) {
-                      if (assetToken.isPostcard) {
-                        return Container(
-                            alignment: Alignment.center,
-                            child: PostcardRatio(assetToken: assetToken));
-                      }
                       final previewURL = assetToken.getPreviewUrl() ?? '';
 
                       switch (assetToken.getMimeType) {
@@ -223,57 +230,4 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
           }
         },
       );
-}
-
-class PostcardPreviewWidget extends StatefulWidget {
-  final ArtworkIdentity identity;
-  final bool useIndexer;
-
-  const PostcardPreviewWidget({
-    required this.identity,
-    super.key,
-    this.useIndexer = false,
-  });
-
-  @override
-  State<PostcardPreviewWidget> createState() => _PostcardPreviewWidgetState();
-}
-
-class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
-    with WidgetsBindingObserver, RouteAware {
-  final bloc = PostcardDetailBloc(injector(), injector(), injector(),
-      injector(), injector(), injector(), injector(), injector());
-
-  @override
-  void initState() {
-    bloc.add(PostcardDetailGetInfoEvent(widget.identity,
-        useIndexer: widget.useIndexer));
-    WidgetsBinding.instance.addObserver(this);
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-    super.didChangeDependencies();
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      BlocBuilder<PostcardDetailBloc, PostcardDetailState>(
-          bloc: bloc,
-          builder: (context, state) {
-            final assetToken = state.assetToken;
-            if (assetToken != null) {
-              return BlocProvider(
-                create: (_) => RetryCubit(),
-                child: BlocBuilder<RetryCubit, int>(
-                  builder: (context, attempt) => Container(
-                      alignment: Alignment.center,
-                      child: PostcardRatio(assetToken: assetToken)),
-                ),
-              );
-            }
-            return const SizedBox();
-          });
 }

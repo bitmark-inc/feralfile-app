@@ -8,10 +8,9 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -22,9 +21,9 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class NameViewOnlyAddressPage extends StatefulWidget {
-  final Connection connection;
+  const NameViewOnlyAddressPage({required this.address, super.key});
 
-  const NameViewOnlyAddressPage({required this.connection, super.key});
+  final WalletAddress address;
 
   @override
   State<NameViewOnlyAddressPage> createState() =>
@@ -45,7 +44,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   @override
   void initState() {
     super.initState();
-    _nameController.text = widget.connection.name;
+    _nameController.text = widget.address.name;
   }
 
   @override
@@ -55,7 +54,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   }
 
   Future<void> _deleteConnection(BuildContext context) async {
-    await injector<AccountService>().deleteLinkedAccount(widget.connection);
+    await injector<AddressService>().deleteAddress(widget.address);
   }
 
   @override
@@ -64,14 +63,17 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        appBar: getBackAppBar(context, title: 'view_existing_address'.tr(),
-            onBack: () async {
-          await _deleteConnection(context);
-          if (!context.mounted) {
-            return;
-          }
-          Navigator.of(context).pop();
-        }),
+        appBar: getBackAppBar(
+          context,
+          title: 'view_existing_address'.tr(),
+          onBack: () async {
+            await _deleteConnection(context);
+            if (!context.mounted) {
+              return;
+            }
+            Navigator.of(context).pop();
+          },
+        ),
         body: Container(
           margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
@@ -89,16 +91,17 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
                       ),
                       const SizedBox(height: 15),
                       AuTextField(
-                          labelSemantics: 'enter_alias_link',
-                          title: '',
-                          placeholder: 'enter_alias'.tr(),
-                          controller: _nameController,
-                          onChanged: (valueChanged) {
-                            if (_nameController.text.trim().isEmpty !=
-                                _isSavingAliasDisabled) {
-                              saveAliasButtonChangedState();
-                            }
-                          }),
+                        labelSemantics: 'enter_alias_link',
+                        title: '',
+                        placeholder: 'enter_alias'.tr(),
+                        controller: _nameController,
+                        onChanged: (valueChanged) {
+                          if (_nameController.text.trim().isEmpty !=
+                              _isSavingAliasDisabled) {
+                            saveAliasButtonChangedState();
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -111,12 +114,11 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
                       onTap: _isSavingAliasDisabled
                           ? null
                           : () async {
-                              final newConnection = widget.connection
-                                ..name = _nameController.text;
+                              final newConnection = widget.address
+                                  .copyWith(name: _nameController.text);
 
-                              await injector<CloudManager>()
-                                  .connectionObject
-                                  .writeConnection(newConnection);
+                              await injector<AddressService>()
+                                  .insertAddresses([newConnection]);
                               _doneNaming();
                             },
                     ),
@@ -131,9 +133,11 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   }
 
   void _doneNaming() {
-    Navigator.of(context).popUntil((route) =>
-        route.settings.name == AppRouter.homePageNoTransition ||
-        route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.walletPage);
+    Navigator.of(context).popUntil(
+      (route) =>
+          route.settings.name == AppRouter.homePageNoTransition ||
+          route.settings.name == AppRouter.homePage ||
+          route.settings.name == AppRouter.walletPage,
+    );
   }
 }

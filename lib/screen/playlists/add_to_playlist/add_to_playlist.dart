@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -26,9 +24,9 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
 class AddToCollectionScreen extends StatefulWidget {
-  final PlayListModel playList;
-
   const AddToCollectionScreen({required this.playList, super.key});
+
+  final PlayListModel playList;
 
   @override
   State<AddToCollectionScreen> createState() => _AddToCollectionScreenState();
@@ -93,26 +91,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
-  List<String> getManualTokenIds() {
-    final cloudObject = injector<CloudManager>();
-    final tokenIndexerIDs = cloudObject.addressObject
-        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
-        .map((e) => e.key)
-        .toList();
-    return tokenIndexerIDs;
-  }
-
-  Future<List<String>> getAddresses() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddresses();
-  }
-
   void refreshTokens() {
-    final indexerIds = getManualTokenIds();
-
-    nftBloc.add(RefreshNftCollectionByOwners(
-      debugTokens: indexerIds,
-    ));
+    nftBloc.add(RefreshNftCollectionByOwners());
   }
 
   @override
@@ -164,7 +144,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
         final nftState = nftBloc.state;
         final selectedCount = nftState.tokens.items
             .where(
-                (element) => state.selectedIDs?.contains(element.id) ?? false)
+              (element) => state.selectedIDs?.contains(element.id) ?? false,
+            )
             .length;
         return Scaffold(
           backgroundColor: AppColor.primaryBlack,
@@ -188,13 +169,13 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
             actions: [
               GestureDetector(
                 onTap: () {
-                  selectedCount > 0
-                      ? bloc.add(
-                          CreatePlaylist(
-                            name: widget.playList.name ?? '',
-                          ),
-                        )
-                      : null;
+                  if (selectedCount > 0) {
+                    bloc.add(
+                      CreatePlaylist(
+                        name: widget.playList.name ?? '',
+                      ),
+                    );
+                  }
                 },
                 child: Padding(
                   padding:
@@ -210,60 +191,63 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
-                bloc: nftBloc,
-                builder: (context, nftState) => SafeArea(
-                      top: false,
-                      bottom: false,
-                      child: Column(
+              bloc: nftBloc,
+              builder: (context, nftState) => SafeArea(
+                top: false,
+                bottom: false,
+                child: Column(
+                  children: [
+                    if (_showSearchBar)
+                      Column(
                         children: [
-                          if (_showSearchBar)
-                            Column(
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(15, 20, 15, 18),
-                                  child: ActionBar(
-                                    searchBar: AuSearchBar(
-                                      onChanged: (text) {
-                                        setState(() {
-                                          _searchText = text;
-                                        });
-                                      },
-                                    ),
-                                    onCancel: () async {
-                                      setState(() {
-                                        _searchText = '';
-                                        _showSearchBar = false;
-                                      });
-                                      await _scrollToTop();
-                                    },
-                                  ),
-                                ),
-                                addOnlyDivider(),
-                              ],
-                            ),
-                          Expanded(
-                            child: NftCollectionGrid(
-                              state: nftState.state,
-                              tokens: nftState.tokens.items,
-                              loadingIndicatorBuilder: loadingView,
-                              customGalleryViewBuilder: (context, tokens) =>
-                                  _assetsWidget(
-                                context,
-                                reoderPlaylist(
-                                    tokens: setupPlayList(tokens: tokens),
-                                    selectedTokenIds: _initSelectedTokenIds),
-                                onChanged: (tokenID, value) => bloc.add(
-                                  UpdateItemPlaylist(
-                                      tokenID: tokenID, value: value),
-                                ),
-                                selectedTokens: state.selectedIDs,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(15, 20, 15, 18),
+                            child: ActionBar(
+                              searchBar: AuSearchBar(
+                                onChanged: (text) {
+                                  setState(() {
+                                    _searchText = text;
+                                  });
+                                },
                               ),
+                              onCancel: () async {
+                                setState(() {
+                                  _searchText = '';
+                                  _showSearchBar = false;
+                                });
+                                await _scrollToTop();
+                              },
                             ),
-                          )
+                          ),
+                          addOnlyDivider(),
                         ],
                       ),
-                    )),
+                    Expanded(
+                      child: NftCollectionGrid(
+                        state: nftState.state,
+                        tokens: nftState.tokens.items,
+                        loadingIndicatorBuilder: loadingView,
+                        customGalleryViewBuilder: (context, tokens) =>
+                            _assetsWidget(
+                          context,
+                          reoderPlaylist(
+                            tokens: setupPlayList(tokens: tokens),
+                            selectedTokenIds: _initSelectedTokenIds,
+                          ),
+                          onChanged: (tokenID, value) => bloc.add(
+                            UpdateItemPlaylist(
+                              tokenID: tokenID,
+                              value: value,
+                            ),
+                          ),
+                          selectedTokens: state.selectedIDs,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -273,10 +257,10 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
   Widget _assetsWidget(
     BuildContext context,
     List<CompactedAssetToken> tokens, {
-    Function(String tokenID, bool value)? onChanged,
+    FutureOr<void> Function(String tokenID, bool value)? onChanged,
     List<String>? selectedTokens,
   }) {
-    int cellPerRow =
+    final cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
     final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
@@ -305,14 +289,6 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
 }
 
 class ThubnailPlaylistItem extends StatefulWidget {
-  final bool showSelect;
-  final bool isSelected;
-  final CompactedAssetToken token;
-  final Function(bool?)? onChanged;
-  final int cachedImageSize;
-  final bool usingThumbnailID;
-  final bool showTriggerOrder;
-
   const ThubnailPlaylistItem({
     required this.token,
     required this.cachedImageSize,
@@ -323,6 +299,14 @@ class ThubnailPlaylistItem extends StatefulWidget {
     this.showTriggerOrder = false,
     this.usingThumbnailID = true,
   });
+
+  final bool showSelect;
+  final bool isSelected;
+  final CompactedAssetToken token;
+  final FutureOr<void> Function(bool?)? onChanged;
+  final int cachedImageSize;
+  final bool usingThumbnailID;
+  final bool showTriggerOrder;
 
   @override
   State<ThubnailPlaylistItem> createState() => _ThubnailPlaylistItemState();
@@ -435,13 +419,14 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
 Widget loadingView(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-      child: Column(
-    children: [
-      CircularProgressIndicator(
-        backgroundColor: Colors.white60,
-        color: theme.colorScheme.secondary,
-        strokeWidth: 2,
-      ),
-    ],
-  ));
+    child: Column(
+      children: [
+        CircularProgressIndicator(
+          backgroundColor: Colors.white60,
+          color: theme.colorScheme.secondary,
+          strokeWidth: 2,
+        ),
+      ],
+    ),
+  );
 }

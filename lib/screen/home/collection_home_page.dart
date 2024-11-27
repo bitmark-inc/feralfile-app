@@ -16,10 +16,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -30,7 +29,6 @@ import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
-import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
@@ -60,7 +58,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
-  final _deepLinkService = injector<DeeplinkService>();
+  final _addressService = injector<AddressService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
   final _identityBloc = injector<IdentityBloc>();
@@ -70,7 +68,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+    _fgbgSubscription =
+        FGBGEvents.instance.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
   }
 
@@ -117,55 +116,34 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     //check minted postcard and navigator to artwork detail
-    final config = injector.get<ConfigurationService>();
-    if (tokens.any((element) =>
-        listTokenMints.contains(element.id) && element.pending != true)) {
-      final tokenMints = tokens
-          .where(
-            (element) =>
-                listTokenMints.contains(element.id) && element.pending != true,
-          )
-          .map((e) => e.identity)
-          .toList();
-      if (config.isAutoShowPostcard()) {
-        log.info('Auto show minted postcard');
-        final payload = PostcardDetailPagePayload(tokenMints.first);
-        unawaited(Navigator.of(context).pushNamed(
-          AppRouter.claimedPostcardDetailsPage,
-          arguments: payload,
-        ));
-      }
-
-      unawaited(config.setListPostcardMint(
-        tokenMints.map((e) => e.id).toList(),
-        isRemoved: true,
-      ));
-    }
 
     // Check if there is any Tezos token in the list
-    List<String> allAccountNumbers = await injector<AccountService>()
-        .getAllAddresses(logHiddenAddress: true);
+    final List<String> allAccountNumbers = _addressService.getAllAddresses();
     final hashedAddresses = allAccountNumbers.fold(
-        0, (int previousValue, element) => previousValue + element.hashCode);
+      0,
+      (int previousValue, element) => previousValue + element.hashCode,
+    );
 
     if (_configurationService.sentTezosArtworkMetricValue() !=
             hashedAddresses &&
-        tokens.any((asset) =>
-            asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
+        tokens.any(
+          (asset) => asset.blockchain == Blockchain.TEZOS.name.toLowerCase(),
+        )) {
       unawaited(
-          _configurationService.setSentTezosArtworkMetric(hashedAddresses));
+        _configurationService.setSentTezosArtworkMetric(hashedAddresses),
+      );
     }
   }
 
   List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
-    tokens = tokens.filterAssetToken();
+    final filtedTokens = tokens.filterAssetToken();
     final nextKey = nftBloc.state.nextKey;
     if (nextKey != null &&
         !nextKey.isLoaded &&
-        tokens.length < COLLECTION_INITIAL_MIN_SIZE) {
+        filtedTokens.length < COLLECTION_INITIAL_MIN_SIZE) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
-    return tokens;
+    return filtedTokens;
   }
 
   String _getDisplayKey() =>
@@ -186,8 +164,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
         tokens: _updateTokens(state.tokens.items),
         loadingIndicatorBuilder: _loadingView,
         emptyGalleryViewBuilder: _emptyGallery,
-        customGalleryViewBuilder: (context, tokens) =>
-            _assetsWidget(context, tokens),
+        customGalleryViewBuilder: _assetsWidget,
       ),
       listener: (context, state) async {
         log.info('[NftCollectionBloc] State update ${state.tokens.length}');
@@ -224,11 +201,19 @@ class CollectionHomePageState extends State<CollectionHomePage>
               }
               final duration = speedValues.values.first.inMilliseconds;
               final listPlayArtwork = listTokenIds
-                  .map((e) => PlayArtworkV2(
-                      token: CastAssetToken(id: e), duration: duration))
+                  .map(
+                    (e) => PlayArtworkV2(
+                      token: CastAssetToken(id: e),
+                      duration: duration,
+                    ),
+                  )
                   .toList();
-              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-                  device, listPlayArtwork));
+              _canvasDeviceBloc.add(
+                CanvasDeviceChangeControlDeviceEvent(
+                  device,
+                  listPlayArtwork,
+                ),
+              );
             },
           ),
         ),
@@ -241,14 +226,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   Widget _loadingView(BuildContext context) => Center(
-          child: Column(
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).padding.top + 40,
-          ),
-          loadingIndicator(valueColor: AppColor.white),
-        ],
-      ));
+        child: Column(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).padding.top + 40,
+            ),
+            loadingIndicator(valueColor: AppColor.white),
+          ],
+        ),
+      );
 
   Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
@@ -258,26 +244,14 @@ class CollectionHomePageState extends State<CollectionHomePage>
         SizedBox(
           height: MediaQuery.of(context).padding.top + 40,
         ),
-        if (_showPostcardBanner)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: GetStartedBanner(
-              onClose: () async {
-                await _hidePostcardBanner();
-              },
-              title: 'try_making_your_own_postcard'.tr(),
-              onGetStarted: _onMakePostcard,
-            ),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Text(
-              'collection_empty_now'.tr(),
-              //"Your collection is empty for now.",
-              style: theme.textTheme.ppMori400White14,
-            ),
+        Padding(
+          padding: const EdgeInsets.only(left: 15),
+          child: Text(
+            'collection_empty_now'.tr(),
+            //"Your collection is empty for now.",
+            style: theme.textTheme.ppMori400White14,
           ),
+        ),
       ],
     );
   }
@@ -290,10 +264,10 @@ class CollectionHomePageState extends State<CollectionHomePage>
     if (tokens.length <= maxCollectionListSize) {
       _getArtistIdentity(tokens);
     }
-    const int cellPerRowPhone = 3;
-    const int cellPerRowTablet = 6;
-    const double cellSpacing = 3;
-    int cellPerRow =
+    const cellPerRowPhone = 3;
+    const cellPerRowTablet = 6;
+    const cellSpacing = 3;
+    final cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
@@ -336,33 +310,28 @@ class CollectionHomePageState extends State<CollectionHomePage>
           ),
         ),
         SliverList(
-            delegate: SliverChildBuilderDelegate(
-                (_, index) => BlocBuilder<IdentityBloc, IdentityState>(
-                    bloc: _identityBloc,
-                    builder: (context, identityState) {
-                      final artistIdentities = identityState.identityMap;
-                      return Column(
-                        children: [
-                          _assetDetailBuilder(context, tokens, index,
-                              accountIdentities, artistIdentities),
-                          const SizedBox(height: 50),
-                        ],
-                      );
-                    }),
-                childCount: tokens.length)),
-        if (_showPostcardBanner)
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: GetStartedBanner(
-                onClose: () async {
-                  await _hidePostcardBanner();
-                },
-                title: 'try_making_your_own_postcard'.tr(),
-                onGetStarted: _onMakePostcard,
-              ),
+          delegate: SliverChildBuilderDelegate(
+            (_, index) => BlocBuilder<IdentityBloc, IdentityState>(
+              bloc: _identityBloc,
+              builder: (context, identityState) {
+                final artistIdentities = identityState.identityMap;
+                return Column(
+                  children: [
+                    _assetDetailBuilder(
+                      context,
+                      tokens,
+                      index,
+                      accountIdentities,
+                      artistIdentities,
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+                );
+              },
             ),
+            childCount: tokens.length,
           ),
+        ),
       ] else
         SliverGrid(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -403,8 +372,14 @@ class CollectionHomePageState extends State<CollectionHomePage>
       children: [
         AspectRatio(
           aspectRatio: collectionListArtworkAspectRatio,
-          child: _assetBuilder(context, tokens, index, accountIdentities,
-              variant: variant, ratio: collectionListArtworkAspectRatio),
+          child: _assetBuilder(
+            context,
+            tokens,
+            index,
+            accountIdentities,
+            variant: variant,
+            ratio: collectionListArtworkAspectRatio,
+          ),
         ),
         if (title != null && title.isNotEmpty) ...[
           const SizedBox(height: 20),
@@ -430,23 +405,21 @@ class CollectionHomePageState extends State<CollectionHomePage>
                 ],
               ],
             ),
-          )
+          ),
         ],
       ],
     );
   }
 
-  Widget _assetBuilder(BuildContext context, List<CompactedAssetToken> tokens,
-      int index, List<ArtworkIdentity> accountIdentities,
-      {String variant = 'thumbnail', double ratio = 1}) {
+  Widget _assetBuilder(
+    BuildContext context,
+    List<CompactedAssetToken> tokens,
+    int index,
+    List<ArtworkIdentity> accountIdentities, {
+    String variant = 'thumbnail',
+    double ratio = 1,
+  }) {
     final asset = tokens[index];
-
-    if (asset.pending == true && asset.isPostcard) {
-      return MintTokenWidget(
-        thumbnail: asset.galleryThumbnailURL,
-        tokenId: asset.tokenId,
-      );
-    }
 
     return GestureDetector(
       child: asset.pending == true && !asset.hasMetadata
@@ -472,24 +445,27 @@ class CollectionHomePageState extends State<CollectionHomePage>
             .where((e) => e.pending != true || e.hasMetadata)
             .toList()
             .indexOf(asset);
-        final payload = asset.isPostcard
-            ? PostcardDetailPagePayload(accountIdentities[index])
-            : ArtworkDetailPayload(accountIdentities[index]);
+        final payload = ArtworkDetailPayload(accountIdentities[index]);
 
-        final pageName = asset.isPostcard
-            ? AppRouter.claimedPostcardDetailsPage
-            : AppRouter.artworkDetailsPage;
-        unawaited(Navigator.of(context)
-            .pushNamed(pageName, ////need change to pageName
-                arguments: payload));
+        const pageName = AppRouter.artworkDetailsPage;
+        unawaited(
+          Navigator.of(context).pushNamed(
+            pageName, ////need change to pageName
+            arguments: payload,
+          ),
+        );
       },
     );
   }
 
   void scrollToTop() {
-    unawaited(_controller.animateTo(0,
+    unawaited(
+      _controller.animateTo(
+        0,
         duration: const Duration(milliseconds: 500),
-        curve: Curves.fastOutSlowIn));
+        curve: Curves.fastOutSlowIn,
+      ),
+    );
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -502,19 +478,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   Future<void> _handleForeground() async {
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-  }
-
-  Future<void> _hidePostcardBanner() async {
-    setState(() {
-      _showPostcardBanner = false;
-    });
-    await _configurationService.setShowPostcardBanner(false);
-  }
-
-  Future<void> _onMakePostcard() async {
-    const id = POSTCARD_ONLINE_REQUEST_ID;
-    await _deepLinkService.openClaimEmptyPostcard(id);
-    await _hidePostcardBanner();
   }
 
   @override

@@ -27,8 +27,10 @@ TextStyle makeLinkStyle(TextStyle style) {
   );
 }
 
-MarkdownStyleSheet markDownLightStyle(BuildContext context,
-        {bool isDetailPage = false}) =>
+MarkdownStyleSheet markDownLightStyle(
+  BuildContext context, {
+  bool isDetailPage = false,
+}) =>
     isDetailPage
         ? markDownDetailPageStyle(context, AppColor.primaryBlack)
         : markDownStyle(context, AppColor.primaryBlack);
@@ -133,7 +135,9 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
     em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.white),
     strong: theme.textTheme.ppMori400White14,
     del: const TextStyle(
-        decoration: TextDecoration.lineThrough, color: Colors.white),
+      decoration: TextDecoration.lineThrough,
+      color: Colors.white,
+    ),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
@@ -182,7 +186,7 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
       shadows: [
         const Shadow(
           offset: Offset(0, -1),
-        )
+        ),
       ],
       decorationStyle: TextDecorationStyle.solid,
       decorationColor: Colors.black,
@@ -205,7 +209,9 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
     em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
     strong: baseStyle.copyWith(color: AppColor.auQuickSilver),
     del: const TextStyle(
-        decoration: TextDecoration.lineThrough, color: Colors.white),
+      decoration: TextDecoration.lineThrough,
+      color: Colors.white,
+    ),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
@@ -270,7 +276,9 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
     em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
     strong: theme.textTheme.ppMori700Black14,
     del: const TextStyle(
-        decoration: TextDecoration.lineThrough, color: Colors.black),
+      decoration: TextDecoration.lineThrough,
+      color: Colors.black,
+    ),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.primary),
@@ -309,7 +317,9 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
 }
 
 MarkdownStyleSheet markDownDetailPageStyle(
-    BuildContext context, Color textColor) {
+  BuildContext context,
+  Color textColor,
+) {
   final theme = Theme.of(context);
   final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
@@ -411,7 +421,9 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
     em: textStyleGrey,
     strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
     del: const TextStyle(
-        decoration: TextDecoration.lineThrough, color: textColor),
+      decoration: TextDecoration.lineThrough,
+      color: textColor,
+    ),
     blockquote: textStyleBody,
     img: textStyleBody,
     checkbox: textStyleBody.copyWith(color: theme.colorScheme.secondary),
@@ -475,11 +487,17 @@ MarkdownStyleSheet markDownStyleTipCard(BuildContext context) {
     h6: theme.textTheme.ppMori700Black16,
     h6Padding: EdgeInsets.zero,
     em: const TextStyle(
-        fontStyle: FontStyle.italic, color: AppColor.primaryBlack),
+      fontStyle: FontStyle.italic,
+      color: AppColor.primaryBlack,
+    ),
     strong: const TextStyle(
-        fontWeight: FontWeight.bold, color: AppColor.primaryBlack),
+      fontWeight: FontWeight.bold,
+      color: AppColor.primaryBlack,
+    ),
     del: const TextStyle(
-        decoration: TextDecoration.lineThrough, color: AppColor.primaryBlack),
+      decoration: TextDecoration.lineThrough,
+      color: AppColor.primaryBlack,
+    ),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
@@ -519,7 +537,7 @@ MarkdownStyleSheet markDownStyleTipCard(BuildContext context) {
 
 class CustomBoxDecoration extends ShapeDecoration {
   CustomBoxDecoration({
-    color,
+    required Color color,
   }) : super(
           shape: const Border(),
           gradient: LinearGradient(
@@ -613,10 +631,11 @@ Widget dotIcon({required Color color, double size = 10}) => Container(
       ),
     );
 
-Widget iconWithRedDot(
-        {required Widget icon,
-        EdgeInsetsGeometry? padding,
-        bool withReddot = true}) =>
+Widget iconWithRedDot({
+  required Widget icon,
+  EdgeInsetsGeometry? padding,
+  bool withReddot = true,
+}) =>
     withReddot
         ? Stack(
             alignment: Alignment.topRight,
@@ -683,7 +702,7 @@ Map<String, String>? auHtmlStyle(dom.Element element) {
   if (element.localName == 'a') {
     const linkColor = AppColor.feralFileHighlight;
     // convert linkColor to hex string
-    String hexColor =
+    final hexColor =
         "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";
     return {
       'color': hexColor,

@@ -24,13 +24,13 @@ abstract class SettingsDataService {
 }
 
 class SettingsDataServiceImpl implements SettingsDataService {
-  final ConfigurationService _configurationService;
-  final CloudManager _cloudObject;
-
   SettingsDataServiceImpl(
     this._configurationService,
     this._cloudObject,
   );
+
+  final ConfigurationService _configurationService;
+  final CloudManager _cloudObject;
 
   // legacy settings, they were store in device settings
   static const _keyPlaylists = 'playlists';

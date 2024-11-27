@@ -11,14 +11,11 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -65,14 +62,14 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
         case UpdateTokensEvent:
         case GetTokensBeforeByOwnerEvent:
           nftBloc.add(event);
-          break;
         default:
       }
     });
     unawaited(
-        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
+      _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
+        nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+      }),
+    );
 
     unawaited(injector<IAPService>().setup());
   }
@@ -96,57 +93,34 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
   }
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
-    //check minted postcard and navigator to artwork detail
-    final config = injector.get<ConfigurationService>();
-    final listTokenMints = config.getListPostcardMint();
-    if (tokens.any((element) =>
-        listTokenMints.contains(element.id) && element.pending != true)) {
-      final tokenMints = tokens
-          .where(
-            (element) =>
-                listTokenMints.contains(element.id) && element.pending != true,
-          )
-          .map((e) => e.identity)
-          .toList();
-      if (config.isAutoShowPostcard()) {
-        log.info('Auto show minted postcard');
-        final payload = PostcardDetailPagePayload(tokenMints.first);
-        unawaited(Navigator.of(context).pushNamed(
-          AppRouter.claimedPostcardDetailsPage,
-          arguments: payload,
-        ));
-      }
-
-      unawaited(config.setListPostcardMint(
-        tokenMints.map((e) => e.id).toList(),
-        isRemoved: true,
-      ));
-    }
-
     // Check if there is any Tezos token in the list
-    List<String> allAccountNumbers = await injector<AccountService>()
-        .getAllAddresses(logHiddenAddress: true);
+    final List<String> allAccountNumbers =
+        injector<AddressService>().getAllAddresses();
     final hashedAddresses = allAccountNumbers.fold(
-        0, (int previousValue, element) => previousValue + element.hashCode);
+      0,
+      (int previousValue, element) => previousValue + element.hashCode,
+    );
 
     if (_configurationService.sentTezosArtworkMetricValue() !=
             hashedAddresses &&
-        tokens.any((asset) =>
-            asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
+        tokens.any(
+          (asset) => asset.blockchain == Blockchain.TEZOS.name.toLowerCase(),
+        )) {
       unawaited(
-          _configurationService.setSentTezosArtworkMetric(hashedAddresses));
+        _configurationService.setSentTezosArtworkMetric(hashedAddresses),
+      );
     }
   }
 
   List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
-    tokens = tokens.filterAssetToken();
+    final newTokens = tokens.filterAssetToken();
     final nextKey = nftBloc.state.nextKey;
     if (nextKey != null &&
         !nextKey.isLoaded &&
-        tokens.length < COLLECTION_INITIAL_MIN_SIZE) {
+        newTokens.length < COLLECTION_INITIAL_MIN_SIZE) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
-    return tokens;
+    return newTokens;
   }
 
   @override
@@ -182,9 +156,13 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
   }
 
   void scrollToTop() {
-    unawaited(_controller.animateTo(0,
+    unawaited(
+      _controller.animateTo(
+        0,
         duration: const Duration(milliseconds: 500),
-        curve: Curves.fastOutSlowIn));
+        curve: Curves.fastOutSlowIn,
+      ),
+    );
   }
 
   @override

@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/user_api.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
@@ -26,6 +26,10 @@ abstract class PasskeyService {
 
   Future<void> registerFinalize();
 
+  Future<void> setUserId(String userId);
+
+  String? getUserId();
+
   ValueNotifier<bool> get isShowingLoginDialog;
 
   static String authenticationType = 'public-key';
@@ -39,15 +43,17 @@ class PasskeyServiceImpl implements PasskeyService {
 
   final UserApi _userApi;
   final UserAccountChannel _userAccountChannel;
-  final AddressService _addressService;
   final AuthService _authService;
 
   PasskeyServiceImpl(
     this._userApi,
     this._userAccountChannel,
-    this._addressService,
     this._authService,
   );
+
+  final HiveStoreObjectService<String> _userIdStore =
+      HiveStoreObjectServiceImpl<String>();
+  static const String _userIdKey = 'userId';
 
   final ValueNotifier<bool> _isShowingLoginDialog = ValueNotifier(false);
 
@@ -113,7 +119,7 @@ class PasskeyServiceImpl implements PasskeyService {
   Future<AuthenticateRequestType> _logInSeverInitiate() async {
     // userId is the address that sign the message when register,
     // which is the primary address
-    final userId = await _addressService.getPrimaryAddress();
+    final userId = getUserId();
     if (userId == null) {
       throw Exception('User ID is not set');
     }
@@ -190,16 +196,23 @@ class PasskeyServiceImpl implements PasskeyService {
     if (_registerResponse == null || _passkeyUserId == null) {
       throw Exception('Initialize registration has not finished');
     }
-    final addressAuthentication =
-        await _addressService.getAddressAuthenticationMap();
     final response = await _userApi.registerFinalize({
-      'addressAuthentication': addressAuthentication,
       'passkeyUserId': _passkeyUserId,
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
     await _userAccountChannel.setDidRegisterPasskey(true);
     _authService.setAuthToken(response);
+  }
+
+  @override
+  Future<void> setUserId(String userId) async {
+    await _userIdStore.save(userId, _userIdKey);
+  }
+
+  @override
+  String? getUserId() {
+    return _userIdStore.get(_userIdKey);
   }
 }
 

@@ -10,13 +10,12 @@ import 'dart:async';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -26,9 +25,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletPage extends StatefulWidget {
-  final WalletPagePayload? payload;
-
   const WalletPage({super.key, this.payload});
+
+  final WalletPagePayload? payload;
 
   @override
   State<WalletPage> createState() => _WalletPageState();
@@ -74,69 +73,57 @@ class _WalletPageState extends State<WalletPage>
         .copyWith(color: Colors.transparent);
     final options = [
       OptionItem(
-        title: 'create_a_new_wallet'.tr(),
-        icon: SvgPicture.asset(
-          'assets/images/joinFile.svg',
-          height: 24,
-        ),
-        onTap: () {
-          unawaited(Navigator.of(context).pushNamed(AppRouter.addressAliasPage,
-              arguments: AddressAliasPayload(WalletType.MultiChain)));
-        },
-      ),
-      OptionItem(
-        title: 'add_an_existing_wallet'.tr(),
-        icon: SvgPicture.asset(
-          'assets/images/icon_save.svg',
-          height: 24,
-        ),
-        onTap: () {
-          unawaited(Navigator.of(context).popAndPushNamed(
-            AppRouter.importSeedsPage,
-          ));
-        },
-      ),
-      OptionItem(
         title: 'view_existing_address'.tr().toLowerCase().capitalize(),
         icon: SvgPicture.asset(
           'assets/images/unhide.svg',
           height: 24,
         ),
         onTap: () {
-          unawaited(Navigator.of(context).popAndPushNamed(
+          unawaited(
+            Navigator.of(context).popAndPushNamed(
               AppRouter.viewExistingAddressPage,
-              arguments: ViewExistingAddressPayload(false)));
+              arguments: ViewExistingAddressPayload(false),
+            ),
+          );
         },
       ),
       OptionItem(
-          title: 'debug_artwork',
-          titleStyle: transparentTextTheme,
-          onTap: () async {
-            final debug = await isAppCenterBuild();
-            if (debug && mounted) {
-              unawaited(Navigator.of(context)
-                  .popAndPushNamed(AppRouter.accessMethodPage));
-            }
-          }),
+        title: 'debug_artwork',
+        titleStyle: transparentTextTheme,
+        onTap: () async {
+          final debug = await isAppCenterBuild();
+          if (debug && mounted) {
+            unawaited(
+              Navigator.of(context).popAndPushNamed(AppRouter.accessMethodPage),
+            );
+          }
+        },
+      ),
     ];
     unawaited(UIHelper.showDrawerAction(context, options: options));
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: getBackAppBar(context, title: 'wallet'.tr(), onBack: () {
-          Navigator.of(context).pop();
-        },
-            icon: Semantics(
-              label: 'address_menu',
-              child: SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                width: 22,
-                colorFilter: const ColorFilter.mode(
-                    AppColor.primaryBlack, BlendMode.srcIn),
+        appBar: getBackAppBar(
+          context,
+          title: 'wallet'.tr(),
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+          icon: Semantics(
+            label: 'address_menu',
+            child: SvgPicture.asset(
+              'assets/images/more_circle.svg',
+              width: 22,
+              colorFilter: const ColorFilter.mode(
+                AppColor.primaryBlack,
+                BlendMode.srcIn,
               ),
             ),
-            action: _showAddWalletOption),
+          ),
+          action: _showAddWalletOption,
+        ),
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
@@ -151,7 +138,7 @@ class _WalletPageState extends State<WalletPage>
 }
 
 class WalletPagePayload {
-  final bool openAddAddress;
-
   const WalletPagePayload({required this.openAddAddress});
+
+  final bool openAddAddress;
 }

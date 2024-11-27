@@ -109,8 +109,6 @@ class _DataManagementPageState extends State<DataManagementPage> {
         create: (_) => ForgetExistBloc(
           injector(),
           injector(),
-          injector(),
-          injector(),
           injector<NftCollectionBloc>().database,
           injector(),
           injector(),

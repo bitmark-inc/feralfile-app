@@ -11,7 +11,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -73,7 +72,8 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.initState();
     log.info('OnboardingPage initState');
     // on foreground listener
-    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+    _fgbgSubscription =
+        FGBGEvents.instance.stream.listen(_handleForeBackground);
   }
 
   void _handleForeBackground(FGBGType event) {

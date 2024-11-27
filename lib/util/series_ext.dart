@@ -35,7 +35,7 @@ extension FFSeriesExt on FFSeries {
   String get galleryURL => (metadata?['galleryURL'] ?? '') as String;
 
   int? get latestRevealedArtworkIndex =>
-      metadata?['latestRevealedArtworkIndex'];
+      int.tryParse(metadata?['latestRevealedArtworkIndex']);
 
   String get displayKey => exhibition?.displayKey ?? exhibitionID;
 

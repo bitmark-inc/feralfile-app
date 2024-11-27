@@ -66,9 +66,6 @@ Dio baseDio(BaseOptions options) {
       if (error.statusCode == 404) {
         return false;
       }
-      if (error.isPostcardClaimEmptyLimited || error.isClaimPassLimit) {
-        return false;
-      }
       return true;
     },
     ignoreRetryEvaluatorExceptions: true,

@@ -7,23 +7,21 @@ import 'package:autonomy_flutter/model/additional_data/navigate_additional_data.
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
     as view_collection_handler;
 import 'package:autonomy_flutter/model/additional_data/view_exhibition.dart';
-import 'package:autonomy_flutter/model/additional_data/view_new_message.dart';
-import 'package:autonomy_flutter/model/additional_data/view_postcard.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:flutter/cupertino.dart';
 
 class AdditionalData {
-  final NotificationType notificationType;
-  final String? announcementContentId;
-  final String? linkText;
-
   AdditionalData({
     required this.notificationType,
     this.announcementContentId,
     this.linkText,
   });
+
+  final NotificationType notificationType;
+  final String? announcementContentId;
+  final String? linkText;
 
   bool get isTappable => false;
 
@@ -62,31 +60,7 @@ class AdditionalData {
             announcementContentId: notificationContentId,
             linkText: linkText,
           );
-        case NotificationType.newMessage:
-          final groupId = json['group_id'];
-          if (groupId == null) {
-            log.warning('AdditionalData: groupId is null');
-            return defaultAdditionalData;
-          }
-          return ViewNewMessage(
-            groupId: groupId as String,
-            notificationType: notificationType,
-            announcementContentId: notificationContentId,
-            linkText: linkText,
-          );
-        case NotificationType.newPostcardTrip:
-        case NotificationType.postcardShareExpired:
-          final indexID = json['indexID'];
-          if (indexID == null) {
-            log.warning('AdditionalData: indexID is null');
-            return defaultAdditionalData;
-          }
-          return ViewPostcard(
-            indexID: indexID as String,
-            notificationType: notificationType,
-            announcementContentId: notificationContentId,
-            linkText: linkText,
-          );
+
         case NotificationType.jgCrystallineWorkHasArrived:
           final jgExhibitionId = JohnGerrardHelper.exhibitionID;
           return ViewExhibitionData(
@@ -133,7 +107,7 @@ class AdditionalData {
           );
         case NotificationType.dailyArtworkReminders:
           final subType = json['notification_sub_type'] as String;
-          final dailyType = DailyNotificationType.fromString(subType ?? '');
+          final dailyType = DailyNotificationType.fromString(subType);
           if (dailyType == null) {
             log.warning('AdditionalData: dailyType is null');
             return defaultAdditionalData;

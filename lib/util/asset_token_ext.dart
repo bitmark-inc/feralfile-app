@@ -1,31 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/model/prompt.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/attributes.dart';
@@ -33,7 +19,6 @@ import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -41,13 +26,13 @@ extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
     'MAIN': {
       'ethereum': 'https://etherscan.io/token/{contract}?a={tokenId}',
-      'tezos': 'https://tzkt.io/{contract}/tokens/{tokenId}/transfers'
+      'tezos': 'https://tzkt.io/{contract}/tokens/{tokenId}/transfers',
     },
     'TEST': {
       'ethereum': 'https://goerli.etherscan.io/token/{contract}?a={tokenId}',
       'tezos':
-          'https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers'
-    }
+          'https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers',
+    },
   };
 
   bool get isJohnGerrardArtwork {
@@ -135,30 +120,6 @@ extension AssetTokenExtension on AssetToken {
     return '$editionStr$maxEditionStr';
   }
 
-  Future<Pair<WalletStorage, int>?> getOwnerWallet(
-      {bool checkContract = true}) async {
-    if ((checkContract && contractAddress == null) || tokenId == null) {
-      return null;
-    }
-    if (!(blockchain == 'ethereum' &&
-            (contractType == 'erc721' || contractType == 'erc1155')) &&
-        !(blockchain == 'tezos' && contractType == 'fa2')) {
-      return null;
-    }
-
-    //check asset is able to send
-
-    Pair<WalletStorage, int>? result;
-    final walletAddress =
-        injector<CloudManager>().addressObject.findByAddress(owner);
-    if (walletAddress != null) {
-      result = Pair<WalletStorage, int>(
-          WalletStorage(walletAddress.uuid), walletAddress.index);
-    }
-
-    return result;
-  }
-
   String _intToHex(String intValue) {
     try {
       final hex = BigInt.parse(intValue, radix: 10).toRadixString(16);
@@ -177,7 +138,7 @@ extension AssetTokenExtension on AssetToken {
       return '';
     }
 
-    String hex = bigint.toRadixString(16);
+    var hex = bigint.toRadixString(16);
     if (hex.length.isOdd) {
       hex = '0$hex';
     }
@@ -200,16 +161,6 @@ extension AssetTokenExtension on AssetToken {
     } else {
       asset?.previewURL = '$POSTCARD_IPFS_PREFIX_PROD/$cid/';
     }
-  }
-
-  Future<bool> isViewOnly() async {
-    final cloudObject = injector<CloudManager>();
-    final walletAddress = cloudObject.addressObject.findByAddress(owner);
-    final viewOnlyConnections =
-        cloudObject.connectionObject.getLinkedAccounts();
-    final connection = viewOnlyConnections.firstWhereOrNull(
-        (viewOnlyConnection) => viewOnlyConnection.key == owner);
-    return walletAddress == null && connection != null;
   }
 
   String? getBlockchainUrl() {
@@ -279,11 +230,13 @@ extension AssetTokenExtension on AssetToken {
 
       default:
         if (mimeType?.isNotEmpty ?? false) {
-          unawaited(Sentry.captureMessage(
-            'Unsupport mimeType: $mimeType',
-            level: SentryLevel.warning,
-            params: [id],
-          ));
+          unawaited(
+            Sentry.captureMessage(
+              'Unsupport mimeType: $mimeType',
+              level: SentryLevel.warning,
+              params: [id],
+            ),
+          );
         }
         return mimeType ?? RenderingType.webview;
     }
@@ -299,30 +252,18 @@ extension AssetTokenExtension on AssetToken {
         return null;
       }
       return _refineToCloudflareURL(
-          galleryThumbnailURL!, thumbnailID!, 'thumbnail');
+        galleryThumbnailURL!,
+        thumbnailID!,
+        'thumbnail',
+      );
     }
 
     return replaceIPFS(galleryThumbnailURL!);
   }
 
   int? get getCurrentBalance {
-    if (balance == null) {
-      return null;
-    }
-    final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
-    final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-
-    final totalSentQuantity = sentTokens
-        .where((element) =>
-            element.tokenID == id &&
-            element.address == owner &&
-            element.timestamp.isAfter(expiredTime))
-        .fold<int>(0,
-            (previousValue, element) => previousValue + element.sentQuantity);
-    return balance! - totalSentQuantity;
+    return balance;
   }
-
-  bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
   String? get contractAddress {
     final splitted = id.split('-');
@@ -408,7 +349,7 @@ extension AssetTokenExtension on AssetToken {
 
   bool get isMoMAMemento => [
         ...momaMementoContractAddresses,
-        Environment.autonomyAirDropContractAddress
+        Environment.autonomyAirDropContractAddress,
       ].contains(contractAddress);
 
   bool get isFeralfile => source == 'feralfile';
@@ -418,27 +359,6 @@ extension AssetTokenExtension on AssetToken {
 
   bool get shouldShowFeralfileRight =>
       isFeralfile && !isWedgwoodActivationToken;
-
-  Pair<String, String>? get irlTapLink {
-    final remoteConfig = injector<RemoteConfigService>();
-    final yokoOnoContractAddresses = remoteConfig.getConfig<List<dynamic>>(
-        ConfigGroup.feralfileArtworkAction,
-        ConfigKey.soundPieceContractAddresses, []);
-    final yokoOnoPrivateTokenIds = remoteConfig.getConfig<List<dynamic>>(
-        ConfigGroup.feralfileArtworkAction,
-        ConfigKey.yokoOnoPrivateTokenIds, []);
-    if (yokoOnoContractAddresses.contains(contractAddress) &&
-        yokoOnoPrivateTokenIds.contains(tokenId)) {
-      final index = edition + 1;
-      return Pair(
-        'tape_sound'.tr(),
-        '${Environment.feralFileAPIURL}/'
-        'artwork/yoko-ono-sound-piece/$index/record?owner=$owner',
-      );
-    }
-
-    return null;
-  }
 
   Future<bool> hasLocalAddress() async {
     final owner = this.owner;
@@ -466,8 +386,6 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
         ? '$title (${mintedAt!.year})'
         : title;
   }
-
-  bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
   String? get contractAddress {
     final splitted = id.split('-');
@@ -536,18 +454,22 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
       default:
         if (mimeType?.isNotEmpty ?? false) {
-          unawaited(Sentry.captureMessage(
-            'Unsupport mimeType: $mimeType',
-            level: SentryLevel.warning,
-            params: [id],
-          ));
+          unawaited(
+            Sentry.captureMessage(
+              'Unsupport mimeType: $mimeType',
+              level: SentryLevel.warning,
+              params: [id],
+            ),
+          );
         }
         return mimeType ?? RenderingType.webview;
     }
   }
 
-  String? getGalleryThumbnailUrl(
-      {bool usingThumbnailID = true, String variant = 'thumbnail'}) {
+  String? getGalleryThumbnailUrl({
+    bool usingThumbnailID = true,
+    String variant = 'thumbnail',
+  }) {
     if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
       return null;
     }
@@ -557,7 +479,10 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
         return replaceIPFS(galleryThumbnailURL!); // return null;
       }
       return _refineToCloudflareURL(
-          galleryThumbnailURL!, thumbnailID!, variant);
+        galleryThumbnailURL!,
+        thumbnailID!,
+        variant,
+      );
     }
 
     return replaceIPFS(galleryThumbnailURL!);
@@ -565,9 +490,10 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 }
 
 String replaceIPFSPreviewURL(String url) {
-  url =
+  final newUrl =
       url.replacePrefix(IPFS_PREFIX, '${Environment.autonomyIpfsPrefix}/ipfs/');
-  return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
+  return newUrl.replacePrefix(
+      DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
 String replaceIPFS(String url) {
@@ -639,194 +565,10 @@ extension AssetExt on Asset {
       );
 }
 
-extension PostcardExtension on AssetToken {
-  int get stampIndex {
-    int index = -1;
-    final listArtists = getArtists;
-    if (listArtists.isEmpty) {
-      index = -1;
-    }
-    final owner = this.owner;
-    index = listArtists.indexWhere((element) => owner == element.id);
-    return index;
-  }
-
-  int get stampIndexWithStamping {
-    int index = stampIndex;
-    if (index == -1) {
-      index = numberOwners;
-    }
-    return index;
-  }
-
-  int get numberOwners => maxEdition ?? 0;
-
-  ProcessingStampPostcard? get processingStampPostcard {
-    final processingStamp =
-        injector<ConfigurationService>().getProcessingStampPostcard();
-    return processingStamp.firstWhereOrNull((final element) {
-      final bool = element.indexId == tokenId &&
-          element.address == owner &&
-          element.counter == numberOwners &&
-          isLastOwner;
-      return bool;
-    });
-  }
-
-  StampingPostcard? get stampingPostcardConfig {
-    final stampingPostcard =
-        injector<ConfigurationService>().getStampingPostcard();
-    return stampingPostcard.firstWhereOrNull((final element) {
-      final bool =
-          element.indexId == id && element.address == owner && isLastOwner;
-      return bool;
-    });
-  }
-
-  bool get isProcessingStamp => processingStampPostcard != null;
-
-  bool get isStamping {
-    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
-    return stampingPostcard.any((element) {
-      final bool =
-          element.indexId == id && element.address == owner && isLastOwner;
-      return bool;
-    });
-  }
-
-  bool get isStamped => numberOwners == getArtists.length;
-
-  bool get isFinalClaimed => numberOwners == MAX_STAMP_IN_POSTCARD - 1;
-
-  bool get isFinal => numberOwners == MAX_STAMP_IN_POSTCARD;
-
-  bool get isCompleted => isFinal && isStamped;
-
-  bool get isSending {
-    final sharedPostcards =
-        injector<ConfigurationService>().getSharedPostcard();
-    return sharedPostcards.any((element) =>
-        !element.isExpired && element.owner == owner && element.tokenID == id);
-  }
-
-  bool get isLastOwner {
-    final index = stampIndex;
-    return index == -1 || index == numberOwners - 1;
-  }
-
-  StampingPostcard? get stampingPostcard {
-    if (asset?.artworkMetadata == null) {
-      return null;
-    }
-    final tokenId = this.tokenId ?? '';
-    final address = owner;
-    final counter = numberOwners;
-    final contractAddress = Environment.postcardContractAddress;
-    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
-    final metadataPath =
-        '${contractAddress}_${tokenId}_${counter}_metadata.json';
-    return StampingPostcard(
-      indexId: id,
-      address: address,
-      imagePath: imagePath,
-      metadataPath: metadataPath,
-      counter: counter,
-    );
-  }
-
-  PostcardMetadata get postcardMetadata =>
-      PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
-
-  String get twitterCaption => '#MoMAPostcard';
-
-  bool get isAlreadyShowYouDidIt {
-    final listAlreadyShow =
-        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
-    return listAlreadyShow
-        .where((element) => element.id == id && element.owner == owner)
-        .isNotEmpty;
-  }
-
-  Future<ShareResult?> sharePostcard({
-    Function? onSuccess,
-    Function? onDismissed,
-    Function(Object)? onFailed,
-    Rect? sharePositionOrigin,
-  }) async {
-    try {
-      final postcardService = injector<PostcardService>();
-      final configurationService = injector<ConfigurationService>();
-      final shareTime = DateTime.now();
-      final sharePostcardResponse = await postcardService.sharePostcard(this);
-      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
-        final shareMessage = 'postcard_share_message'.tr(namedArgs: {
-          'deeplink': sharePostcardResponse.deeplink!,
-        });
-        final result = await Share.share(shareMessage,
-            sharePositionOrigin: sharePositionOrigin);
-        if (result.status == ShareResultStatus.success) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          await configurationService
-              .updateSharedPostcard([SharedPostcard(id, owner, shareTime)]);
-
-          onSuccess?.call();
-        } else {
-          onDismissed?.call();
-        }
-      }
-    } catch (e) {
-      onFailed?.call(e);
-    }
-    return null;
-  }
-
-  AssetToken setAssetPrompt(Prompt prompt) {
-    final metadata = postcardMetadata..prompt = prompt;
-
-    asset?.artworkMetadata = jsonEncode(metadata.toJson());
-    if (prompt.cid != null) {
-      updatePostcardCID(prompt.cid!);
-    }
-    return this;
-  }
-
-  double get totalDistance {
-    final listTravelInfo = postcardMetadata.listTravelInfoWithoutLocationName;
-    final totalDistance = listTravelInfo.totalDistance;
-    return totalDistance;
-  }
-
-  bool get didSendNext {
-    final artists = getArtists;
-    final artistOwner =
-        artists.firstWhereOrNull((element) => element.id == owner);
-    if (artistOwner == null) {
-      return false;
-    }
-    return artistOwner != artists.last;
-  }
-
-  bool get isShareExpired {
-    final sharedPostcards =
-        injector<ConfigurationService>().getSharedPostcard();
-    return sharedPostcards.any((element) =>
-        element.owner == owner && element.tokenID == id && element.isExpired);
-  }
-
-  bool get enabledMerch {
-    final remoteConfig = injector<RemoteConfigService>();
-    final isEnable = isCompleted ||
-        !remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.mustCompleted);
-    return isEnable;
-  }
-
-  bool get isTransferable =>
-      !tranferNotAllowContractAddresses.contains(contractAddress);
-}
-
 extension CompactedAssetTokenExt on List<CompactedAssetToken> {
   List<PlayListModel> getPlaylistByFilter(
-      String Function(CompactedAssetToken) filter) {
+    String Function(CompactedAssetToken) filter,
+  ) {
     final groups = groupBy<CompactedAssetToken, String>(
       this,
       filter,
@@ -834,10 +576,11 @@ extension CompactedAssetTokenExt on List<CompactedAssetToken> {
     List<PlayListModel> playlists = [];
     groups.forEach((key, value) {
       PlayListModel playListModel = PlayListModel(
-          name: key,
-          tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
-          thumbnailURL: value.first.thumbnailURL,
-          id: const Uuid().v4());
+        name: key,
+        tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
+        thumbnailURL: value.first.thumbnailURL,
+        id: const Uuid().v4(),
+      );
       playlists.add(playListModel);
     });
     return playlists;

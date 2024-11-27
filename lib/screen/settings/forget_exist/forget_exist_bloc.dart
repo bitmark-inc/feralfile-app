@@ -13,7 +13,9 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_statnnouncement_store.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
@@ -47,7 +49,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
 
-      unawaited(_addressService.clearPrimaryAddress());
+      // TODO: remove userId
+      // unawaited(_addressService.clearPrimaryAddress());
       unawaited(deregisterPushNotification());
 
       await injector<MetricClientService>().reset();

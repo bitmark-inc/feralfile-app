@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';

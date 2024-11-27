@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 
@@ -23,14 +24,15 @@ class ViewExistingAddressState {
   final bool isAddConnectionLoading;
 
   // constructor
-  ViewExistingAddressState(
-      {this.address = '',
-      this.isValid = false,
-      this.isError = false,
-      this.domain,
-      this.type,
-      this.exception,
-      this.isAddConnectionLoading = false});
+  ViewExistingAddressState({
+    this.address = '',
+    this.isValid = false,
+    this.isError = false,
+    this.domain,
+    this.type,
+    this.exception,
+    this.isAddConnectionLoading = false,
+  });
 
   // copyWith
   ViewExistingAddressState copyWith({
@@ -56,11 +58,10 @@ class ViewExistingAddressState {
 }
 
 class ViewExistingAddressSuccessState extends ViewExistingAddressState {
-  Connection connection;
-
   ViewExistingAddressSuccessState(
-      ViewExistingAddressState state, this.connection)
-      : super(
+    ViewExistingAddressState state,
+    this.walletAddress,
+  ) : super(
           address: state.address,
           isValid: state.isValid,
           isError: state.isError,
@@ -68,4 +69,6 @@ class ViewExistingAddressSuccessState extends ViewExistingAddressState {
           type: state.type,
           exception: state.exception,
         );
+
+  WalletAddress walletAddress;
 }

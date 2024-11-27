@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -14,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreferencePage extends StatefulWidget {
-  const PreferencePage({Key? key}) : super(key: key);
+  const PreferencePage({super.key});
 
   @override
   State<PreferencePage> createState() => _PreferencePageState();
@@ -34,7 +35,7 @@ class _PreferencePageState extends State<PreferencePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "preferences".tr(),
+        title: 'preferences'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },

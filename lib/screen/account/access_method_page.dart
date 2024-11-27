@@ -7,17 +7,13 @@
 
 // ignore_for_file: unused_field
 
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -53,29 +49,19 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
                 const SizedBox(height: 16),
                 AuTextField(title: 'url', controller: _controller),
                 const SizedBox(height: 16),
-                PrimaryButton(
-                  text: 'open irl url',
-                  onTap: () {
-                    final url = _controller.text.trim();
-                    if (url.isNotEmpty) {
-                      unawaited(Navigator.of(context).pushNamed(
-                          AppRouter.irlWebView,
-                          arguments: IRLWebScreenPayload(url)));
-                    }
-                  },
-                )
               ],
             ),
           ),
         ),
       );
 
-  Widget _addWalletItem(
-      {required BuildContext context,
-      required String title,
-      required dynamic Function()? onTap,
-      String? content,
-      bool forward = true}) {
+  Widget _addWalletItem({
+    required BuildContext context,
+    required String title,
+    required dynamic Function()? onTap,
+    String? content,
+    bool forward = true,
+  }) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
@@ -117,11 +103,12 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
         Padding(
           padding: padding,
           child: _addWalletItem(
-              context: context,
-              title: 'test_artwork'.tr(),
-              onTap: () async => Navigator.of(context).pushNamed(
-                    AppRouter.testArtwork,
-                  )),
+            context: context,
+            title: 'test_artwork'.tr(),
+            onTap: () async => Navigator.of(context).pushNamed(
+              AppRouter.testArtwork,
+            ),
+          ),
         ),
         addDivider(height: 48),
         Padding(
@@ -129,8 +116,10 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('show_token_debug_log'.tr(),
-                  style: theme.textTheme.headlineMedium),
+              Text(
+                'show_token_debug_log'.tr(),
+                style: theme.textTheme.headlineMedium,
+              ),
               AuToggle(
                 value: injector<ConfigurationService>().showTokenDebugInfo(),
                 onToggle: (isEnabled) async {
@@ -140,7 +129,7 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
                     _redrawObject = Object();
                   });
                 },
-              )
+              ),
             ],
           ),
         ),

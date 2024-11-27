@@ -8,12 +8,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -36,9 +34,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class LinkedWalletDetailPage extends StatefulWidget {
-  final LinkedWalletDetailsPayload payload;
-
   const LinkedWalletDetailPage({required this.payload, super.key});
+
+  final LinkedWalletDetailsPayload payload;
 
   @override
   State<LinkedWalletDetailPage> createState() => _LinkedWalletDetailPageState();
@@ -53,19 +51,21 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   bool _isRename = false;
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
-  late Connection _connection;
+  late WalletAddress _walletAddress;
   late String _address;
   final _browser = FeralFileBrowser();
 
   final usdcFormatter = USDCAmountFormatter();
 
+  final _addressService = injector<AddressService>();
+
   @override
   void initState() {
     super.initState();
-    _connection = widget.payload.connection;
-    _address = _connection.accountNumber;
-    _renameController.text = _connection.name;
-    _isHideGalleryEnabled = _connection.isHidden;
+    _walletAddress = widget.payload.address;
+    _address = _walletAddress.address;
+    _renameController.text = _walletAddress.name;
+    _isHideGalleryEnabled = _walletAddress.isHidden;
 
     _callBloc();
     controller = ScrollController();
@@ -91,23 +91,19 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   }
 
   void _callBloc() {
-    final cryptoType = widget.payload.type;
+    final cryptoType = widget.payload.address.cryptoType;
 
     switch (cryptoType) {
       case CryptoType.ETH:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, _address));
-        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, _address));
-      case CryptoType.USDC:
-        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
       default:
-        // do nothing
-        break;
+      // do nothing
     }
   }
 
@@ -125,7 +121,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final cryptoType = widget.payload.type;
+    final cryptoType = widget.payload.address.cryptoType;
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
     return Scaffold(
@@ -133,7 +129,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           ? getTitleEditAppBar(
               context,
               titleIcon: LogoCrypto(
-                cryptoType: widget.payload.type,
+                cryptoType: widget.payload.address.cryptoType,
                 size: 24,
               ),
               icon: SvgPicture.asset(
@@ -146,10 +142,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               focusNode: _renameFocusNode,
               onSubmit: (String value) {
                 if (value.trim().isNotEmpty) {
-                  _connection = _connection.copyWith(name: value);
-                  unawaited(injector<CloudManager>()
-                      .connectionObject
-                      .writeConnection(_connection));
+                  _walletAddress = _walletAddress.copyWith(name: value);
+                  _addressService.insertAddress(_walletAddress);
                   setState(() {
                     _isRename = false;
                   });
@@ -158,9 +152,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             )
           : getBackAppBar(
               context,
-              title: _connection.name.maskIfNeeded(),
+              title: _walletAddress.name.maskIfNeeded(),
               titleIcon: LogoCrypto(
-                cryptoType: widget.payload.type,
+                cryptoType: widget.payload.address.cryptoType,
                 size: 24,
               ),
               icon: SvgPicture.asset(
@@ -222,35 +216,12 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                         else
                                           SizedBox(
                                               height: hideConnection ? 48 : 16),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            linkedBox(context, fontSize: 14)
-                                          ],
-                                        ),
                                         const SizedBox(height: 10),
                                         Padding(
                                           padding: padding,
                                           child: _addressSection(context),
                                         ),
                                         const SizedBox(height: 24),
-                                        if (widget.payload.type ==
-                                            CryptoType.ETH) ...[
-                                          BlocBuilder<USDCBloc, USDCState>(
-                                              builder: (context, state) {
-                                            final usdcBalance =
-                                                state.usdcBalances[_address];
-                                            final balance = usdcBalance == null
-                                                ? '-- USDC'
-                                                : '''${usdcFormatter.format(usdcBalance)} USDC''';
-                                            return Padding(
-                                              padding: padding,
-                                              child: _usdcBalance(
-                                                  context, balance),
-                                            );
-                                          })
-                                        ],
                                         addDivider(),
                                         Padding(
                                           padding: padding,
@@ -286,47 +257,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     });
   }
 
-  Widget _usdcBalance(BuildContext context, String balance) {
-    final theme = Theme.of(context);
-    final balanceStyle = theme.textTheme.ppMori400White14
-        .copyWith(color: AppColor.auQuickSilver);
-    return TappableForwardRow(
-        padding: EdgeInsets.zero,
-        leftWidget: Container(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              SvgPicture.asset(
-                'assets/images/usdc.svg',
-                width: 24,
-                height: 24,
-              ),
-              const SizedBox(width: 15),
-              Text(
-                'USDC',
-                style: theme.textTheme.ppMori700Black14,
-              ),
-              const SizedBox(width: 10),
-              _erc20Tag(context)
-            ],
-          ),
-        ),
-        rightWidget: Text(
-          balance,
-          style: balanceStyle,
-        ),
-        onTap: () {
-          final payload = LinkedWalletDetailsPayload(
-            connection: _connection,
-            type: CryptoType.USDC,
-            personaName: widget.payload.personaName,
-          );
-          unawaited(Navigator.of(context).pushNamed(
-              AppRouter.linkedWalletDetailsPage,
-              arguments: payload));
-        });
-  }
-
   Widget _erc20Tag(BuildContext context) {
     final theme = Theme.of(context);
     return ElevatedButton(
@@ -349,13 +279,15 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   Widget _balanceSection(
       BuildContext context, String balance, String balanceInUSD) {
     final theme = Theme.of(context);
-    if (widget.payload.type == CryptoType.ETH ||
-        widget.payload.type == CryptoType.XTZ) {
+    final cryptoType = widget.payload.address.cryptoType;
+    if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.XTZ) {
       return SizedBox(
         child: Column(
           children: [
             Text(
-              balance.isNotEmpty ? balance : '-- ${widget.payload.type.name}',
+              balance.isNotEmpty
+                  ? balance
+                  : '-- ${widget.payload.address.cryptoType.name}',
               style: hideConnection
                   ? theme.textTheme.ppMori400Black14.copyWith(fontSize: 24)
                   : theme.textTheme.ppMori400Black36,
@@ -368,25 +300,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             )
           ],
         ),
-      );
-    }
-
-    if (widget.payload.type == CryptoType.USDC) {
-      return BlocBuilder<USDCBloc, USDCState>(
-        builder: (context, state) {
-          final usdcBalance = state.usdcBalances[_address];
-          final balance = usdcBalance == null
-              ? '-- USDC'
-              : '${usdcFormatter.format(usdcBalance)} USDC';
-          return SizedBox(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(balance, style: theme.textTheme.ppMori400Black36),
-              ],
-            ),
-          );
-        },
       );
     }
     return Container();
@@ -475,7 +388,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           style: theme.textTheme.ppMori400Black14,
         ),
         onTap: () async {
-          await _browser.openUrl(addressURL(_address, widget.payload.type));
+          await _browser
+              .openUrl(addressURL(_address, widget.payload.address.cryptoType));
         },
       ),
     ]);
@@ -493,8 +407,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             'assets/images/unhide.svg',
           ),
           onTap: () {
-            unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
-                _address, !_isHideGalleryEnabled));
+            unawaited(_addressService.setHiddenStatus(
+                addresses: [_address], isHidden: !_isHideGalleryEnabled));
             setState(() {
               _isHideGalleryEnabled = !_isHideGalleryEnabled;
             });
@@ -509,8 +423,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             color: AppColor.white,
           ),
           onTap: () {
-            unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
-                _address, !_isHideGalleryEnabled));
+            unawaited(_addressService.setHiddenStatus(
+                addresses: [_address], isHidden: !_isHideGalleryEnabled));
             setState(() {
               _isHideGalleryEnabled = !_isHideGalleryEnabled;
             });
@@ -530,13 +444,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
 }
 
 class LinkedWalletDetailsPayload {
-  final Connection connection;
-  final CryptoType type;
-  final String personaName;
-
   LinkedWalletDetailsPayload({
-    required this.connection,
-    required this.type,
-    required this.personaName,
+    required this.address,
   });
+
+  final WalletAddress address;
 }

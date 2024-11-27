@@ -28,10 +28,7 @@ const RATING_MESSAGE_START = '### Customer support rating\n';
 const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
 const STAR_RATING = '###STAR#RATING#';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/33';
-const IRL_DEEPLINK_PREFIXES = [
-  'https://autonomy.io/apps/irl/',
-  'https://app.feralfile.com/apps/irl/'
-];
+
 const AUTONOMY_CLIENT_GITHUB_LINK =
     'https://github.com/bitmark-inc/autonomy-client';
 const DEEP_LINKS = [

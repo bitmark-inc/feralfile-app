@@ -10,22 +10,16 @@ import 'package:nft_collection/models/asset_token.dart';
 
 abstract class HomeEvent {}
 
-class HomeConnectTZEvent extends HomeEvent {
-  final String uri;
-
-  HomeConnectTZEvent(this.uri);
-}
-
 class CheckReviewAppEvent extends HomeEvent {}
 
 class HomeState {
-  List<AssetToken>? tokens;
-  ActionState fetchTokenState;
-
   HomeState({
     this.tokens,
     this.fetchTokenState = ActionState.notRequested,
   });
+
+  List<AssetToken>? tokens;
+  ActionState fetchTokenState;
 
   HomeState copyWith({
     List<AssetToken>? tokens,

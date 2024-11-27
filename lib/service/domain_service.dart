@@ -45,13 +45,16 @@ class DomainServiceImpl implements DomainService {
       if (result == null || result.isEmpty) {
         return null;
       }
-      final address = result.first['address'];
+      final address = result.first['address'] as String?;
       log.info('Address for $domain: $address');
       return address;
     } catch (e) {
       log.info('Error getting address for $domain: $e');
-      unawaited(Sentry.captureException(
-          '[DomainService] Error getting address for $domain: $e'));
+      unawaited(
+        Sentry.captureException(
+          '[DomainService] Error getting address for $domain: $e',
+        ),
+      );
       return null;
     }
   }
@@ -72,8 +75,11 @@ class DomainServiceImpl implements DomainService {
       final tezosAddress = await _getAddress(domain, 'tezos');
       return tezosAddress;
     } catch (e) {
-      unawaited(Sentry.captureException(
-          'Error getting tezos address for $domain: $e'));
+      unawaited(
+        Sentry.captureException(
+          'Error getting tezos address for $domain: $e',
+        ),
+      );
       return null;
     }
   }
@@ -84,7 +90,8 @@ class DomainServiceImpl implements DomainService {
     if (ethAddress != null) {
       return ethAddress;
     }
-    return await getTezosAddress(domain);
+    final tezosAddress = await getTezosAddress(domain);
+    return tezosAddress;
   }
 }
 

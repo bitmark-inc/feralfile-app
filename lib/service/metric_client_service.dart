@@ -4,9 +4,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:sentry/sentry.dart';
@@ -26,12 +26,10 @@ class MetricClientService {
   Future<void> identity() async {
     log.info('[MetricClientService] identity');
     try {
-      final primaryAddress =
-          await injector<AddressService>().getPrimaryAddress();
-      if (primaryAddress == null) {
-        log.info('Metric Identity: Primary address is null');
-        unawaited(
-            Sentry.captureMessage('Metric Identity: Primary address is null'));
+      final userId = injector<PasskeyService>().getUserId();
+      if (userId == null) {
+        log.info('Metric Identity: userId is null');
+        unawaited(Sentry.captureMessage('Metric Identity: userId is null'));
         return;
       }
       await mergeUser(_identifier);

@@ -1,13 +1,13 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
-import 'dart:math' as math;
-
+import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,8 +51,8 @@ class VersionCheck {
 
   /// check version from iOS/Android/Mac store and
   /// provide update dialog if update is available.
-  Future checkVersion(BuildContext context) async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  Future<void> checkVersion(BuildContext context) async {
+    final packageInfo = await PackageInfo.fromPlatform();
 
     packageName ??= packageInfo.packageName;
     packageVersion ??= packageInfo.version;
@@ -87,14 +87,14 @@ class VersionCheck {
   }
 
   /// check if update is available
-  get hasUpdate {
+  bool get hasUpdate {
     if (packageVersion == null) return false;
     if (storeVersion == null) return false;
     return _shouldUpdate(packageVersion, storeVersion);
   }
 
   /// launch store for update
-  Future launchStore() async {
+  Future<void> launchStore() async {
     final url = Uri.parse(storeUrl!);
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
@@ -193,9 +193,9 @@ bool _shouldUpdate(String? packageVersion, String? storeVersion) {
   final arr1 = packageVersion!.split('.');
   final arr2 = storeVersion!.split('.');
 
-  for (int i = 0; i < math.min(arr1.length, arr2.length); i++) {
-    int? v1 = int.tryParse(arr1[i]);
-    int? v2 = int.tryParse(arr2[i]);
+  for (var i = 0; i < math.min(arr1.length, arr2.length); i++) {
+    var v1 = int.tryParse(arr1[i]);
+    var v2 = int.tryParse(arr2[i]);
 
     if (v1 == null || v2 == null) {
       if (arr2[i].compareTo(arr1[i]) > 0) {

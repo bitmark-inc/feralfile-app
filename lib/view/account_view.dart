@@ -9,10 +9,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ether_amount_ext.dart';
 import 'package:autonomy_flutter/util/int_ext.dart';
@@ -23,19 +22,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 
-Widget accountItem(BuildContext context, Account account,
-    {bool isPrimary = false,
-    Function()? onPersonaTap,
-    Function()? onConnectionTap}) {
-  if ((account.walletAddress == null) && account.connections?.first == null) {
-    return const SizedBox();
-  }
+Widget accountItem(
+  BuildContext context,
+  WalletAddress address, {
+  FutureOr<void> Function()? onTap,
+}) {
   final theme = Theme.of(context);
   // ignore: discarded_futures
-  final balance = getAddressBalance(account.key, account.cryptoType);
-  final isViewAccount = account.walletAddress == null;
+  final balance = getAddressBalance(address.key, address.cryptoType);
   return GestureDetector(
-    onTap: isViewAccount ? onConnectionTap : onPersonaTap,
+    onTap: onTap,
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: const BoxDecoration(color: Colors.transparent),
@@ -44,44 +40,29 @@ Widget accountItem(BuildContext context, Account account,
           Row(
             children: [
               Expanded(
-                child: Row(children: [
-                  LogoCrypto(cryptoType: account.cryptoType, size: 24),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      account.name,
-                      style: theme.textTheme.ppMori700Black16,
-                      overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    LogoCrypto(cryptoType: address.cryptoType, size: 24),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        address.name,
+                        style: theme.textTheme.ppMori700Black16,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
               ),
-              if (account.isHidden) ...[
+              if (address.isHidden) ...[
                 const SizedBox(width: 10),
                 SvgPicture.asset(
                   'assets/images/hide.svg',
                   colorFilter: ColorFilter.mode(
-                      theme.colorScheme.surface, BlendMode.srcIn),
-                ),
-              ],
-              if (isViewAccount) ...[
-                const SizedBox(width: 10),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      border: Border.all(color: AppColor.auGrey),
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                    child: Text('view_only'.tr(),
-                        style: theme.textTheme.ppMori400Grey14),
+                    theme.colorScheme.surface,
+                    BlendMode.srcIn,
                   ),
-                )
-              ],
-              if (isPrimary) ...[
-                const SizedBox(width: 20),
-                primaryLabel(context),
+                ),
               ],
               const SizedBox(width: 20),
               SvgPicture.asset('assets/images/iconForward.svg'),
@@ -107,7 +88,7 @@ Widget accountItem(BuildContext context, Account account,
             children: [
               Expanded(
                 child: Text(
-                  account.accountNumber,
+                  address.address,
                   style: theme.textTheme.ppMori400Black14,
                   key: const Key('fullAccount_address'),
                 ),
@@ -121,7 +102,9 @@ Widget accountItem(BuildContext context, Account account,
 }
 
 Future<Pair<String, String>?> getAddressBalance(
-    String address, CryptoType cryptoType) async {
+  String address,
+  CryptoType cryptoType,
+) async {
   final tokenDao = injector<TokenDao>();
   final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
   final nftBalance =
@@ -137,59 +120,4 @@ Future<Pair<String, String>?> getAddressBalance(
     case CryptoType.UNKNOWN:
       return Pair('', '');
   }
-}
-
-Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
-  final theme = Theme.of(context);
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-    decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50),
-        border: Border.all(
-          color: theme.colorScheme.surface,
-        )),
-    child: Text(
-      'view_only'.tr(),
-      style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
-    ),
-  );
-}
-
-Widget viewOnlyLabel(BuildContext context) {
-  final theme = Theme.of(context);
-  return DecoratedBox(
-    decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: AppColor.auGrey),
-        borderRadius: BorderRadius.circular(20)),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-      child: Text('view_only'.tr(), style: theme.textTheme.ppMori400Grey14),
-    ),
-  );
-}
-
-Widget primaryLabel(BuildContext context) {
-  final theme = Theme.of(context);
-  final primaryStyle = theme.textTheme.ppMori400White14.copyWith(
-    color: AppColor.auGrey,
-  );
-  return DecoratedBox(
-      decoration: BoxDecoration(
-          color: AppColor.primaryBlack,
-          border: Border.all(),
-          borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-        child: Row(
-          children: [
-            SvgPicture.asset('assets/images/pinned.svg'),
-            const SizedBox(width: 10),
-            Text(
-              'primary'.tr(),
-              style: primaryStyle,
-            )
-          ],
-        ),
-      ));
 }

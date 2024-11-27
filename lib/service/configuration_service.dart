@@ -9,8 +9,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/model/sent_artwork.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/util/list_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -89,8 +88,6 @@ abstract class ConfigurationService {
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false});
 
-  List<SentArtwork> getRecentlySentToken();
-
   Future<void> setReadReleaseNotesInVersion(String version);
 
   String? getReadReleaseNotesVersion();
@@ -138,7 +135,7 @@ abstract class ConfigurationService {
 
   Future<void> setVersionInfo(String version);
 
-  List<String> getHiddenOrSentTokenIDs();
+  List<String> getHiddenTokenIDs();
 
   bool getShowAddAddressBanner();
 
@@ -343,15 +340,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<SentArtwork> getRecentlySentToken() {
-    final sentTokensString =
-        _preferences.getStringList(KEY_RECENTLY_SENT_TOKEN) ?? [];
-    return sentTokensString
-        .map((e) => SentArtwork.fromJson(jsonDecode(e)))
-        .toList();
-  }
-
-  @override
   Future<void> setReadReleaseNotesInVersion(String version) async {
     await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
   }
@@ -491,16 +479,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<String> getHiddenOrSentTokenIDs() {
+  List<String> getHiddenTokenIDs() {
     final hiddenTokens = getTempStorageHiddenTokenIDs();
-    final recentlySent = getRecentlySentToken();
-    log
-      ..info('[ConfigurationService] Hidden tokens: $hiddenTokens')
-      ..info('[ConfigurationService] Recently sent: $recentlySent');
-    hiddenTokens.addAll(recentlySent
-        .where((element) => element.isSentAll && !element.isExpired())
-        .map((e) => e.tokenID)
-        .toList());
+    log.info('[ConfigurationService] Hidden tokens: $hiddenTokens');
     return hiddenTokens;
   }
 
@@ -558,7 +539,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return null;
     }
     final mapJson = jsonDecode(map) as Map<String, dynamic>;
-    return mapJson[announcementContentId];
+    return mapJson[announcementContentId] as String?;
   }
 
   @override

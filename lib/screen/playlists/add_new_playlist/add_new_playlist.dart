@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -27,9 +25,9 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
-  final PlayListModel? playListModel;
-
   const AddNewPlaylistScreen({super.key, this.playListModel});
+
+  final PlayListModel? playListModel;
 
   @override
   State<AddNewPlaylistScreen> createState() => _AddNewPlaylistScreenState();
@@ -92,8 +90,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   }
 
   Future<void> _scrollToTop() async {
-    await _controller.animateTo(0,
-        duration: const Duration(milliseconds: 500), curve: Curves.ease);
+    await _controller.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.ease,
+    );
   }
 
   void _loadMore() {
@@ -104,26 +105,15 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
-  List<String> getManualTokenIds() {
-    final cloudObject = injector<CloudManager>();
-    final tokenIndexerIDs = cloudObject.connectionObject
-        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
-        .map((e) => e.key)
-        .toList();
-    return tokenIndexerIDs;
-  }
-
   Future<List<String>> getAddresses() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddresses();
+    return injector<AddressService>()
+        .getAllAddresses()
+        .map((e) => e.address)
+        .toList();
   }
 
   void refreshTokens() {
-    final indexerIds = getManualTokenIds();
-
-    nftBloc.add(RefreshNftCollectionByOwners(
-      debugTokens: indexerIds,
-    ));
+    nftBloc.add(RefreshNftCollectionByOwners());
   }
 
   @override
@@ -189,8 +179,10 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                 : () {
                     final nftState = nftBloc.state;
                     final selectedCount = nftState.tokens.items
-                        .where((element) =>
-                            state.selectedIDs?.contains(element.id) ?? false)
+                        .where(
+                          (element) =>
+                              state.selectedIDs?.contains(element.id) ?? false,
+                        )
                         .length;
                     if (selectedCount <= 0) {
                       return;
@@ -215,69 +207,76 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.dark,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
-                bloc: nftBloc,
-                builder: (context, nftState) => SafeArea(
-                      top: false,
-                      bottom: false,
-                      child: Stack(
+              bloc: nftBloc,
+              builder: (context, nftState) => SafeArea(
+                top: false,
+                bottom: false,
+                child: Stack(
+                  children: [
+                    Form(
+                      key: _formKey,
+                      child: Column(
                         children: [
-                          Form(
-                            key: _formKey,
-                            child: Column(
-                              children: [
-                                if (_isShowSearchBar)
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        15, 20, 15, 18),
-                                    child: ActionBar(
-                                      searchBar: AuSearchBar(
-                                        onChanged: (value) {},
-                                        onSearch: (value) {
-                                          setState(() {
-                                            _searchText = value;
-                                          });
-                                        },
-                                        onClear: (value) {
-                                          setState(() {
-                                            _searchText = '';
-                                          });
-                                        },
-                                      ),
-                                      onCancel: () async {
-                                        setState(() {
-                                          _searchText = '';
-                                          _isShowSearchBar = false;
-                                        });
-                                        await _scrollToTop();
-                                      },
-                                    ),
-                                  ),
-                                addOnlyDivider(),
-                                Expanded(
-                                  child: NftCollectionGrid(
-                                    state: nftState.state,
-                                    tokens: nftState.tokens
-                                        .unique((token) => token.id)
-                                        .items,
-                                    loadingIndicatorBuilder: loadingView,
-                                    customGalleryViewBuilder:
-                                        (context, tokens) => _assetsWidget(
-                                      context,
-                                      setupPlayList(tokens: tokens),
-                                      onChanged: (tokenID, value) => bloc.add(
-                                        UpdateItemPlaylist(
-                                            tokenID: tokenID, value: value),
-                                      ),
-                                      selectedTokens: state.selectedIDs,
-                                    ),
+                          if (_isShowSearchBar)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                15,
+                                20,
+                                15,
+                                18,
+                              ),
+                              child: ActionBar(
+                                searchBar: AuSearchBar(
+                                  onChanged: (value) {},
+                                  onSearch: (value) {
+                                    setState(() {
+                                      _searchText = value;
+                                    });
+                                  },
+                                  onClear: (value) {
+                                    setState(() {
+                                      _searchText = '';
+                                    });
+                                  },
+                                ),
+                                onCancel: () async {
+                                  setState(() {
+                                    _searchText = '';
+                                    _isShowSearchBar = false;
+                                  });
+                                  await _scrollToTop();
+                                },
+                              ),
+                            ),
+                          addOnlyDivider(),
+                          Expanded(
+                            child: NftCollectionGrid(
+                              state: nftState.state,
+                              tokens: nftState.tokens
+                                  .unique((token) => token.id)
+                                  .items,
+                              loadingIndicatorBuilder: loadingView,
+                              customGalleryViewBuilder: (context, tokens) =>
+                                  _assetsWidget(
+                                context,
+                                setupPlayList(tokens: tokens),
+                                onChanged: (tokenID, value) => bloc.add(
+                                  UpdateItemPlaylist(
+                                    tokenID: tokenID,
+                                    value: value,
                                   ),
                                 ),
-                              ],
+                                selectedTokens: state.selectedIDs,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    )),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -290,7 +289,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     Function(String tokenID, bool value)? onChanged,
     List<String>? selectedTokens,
   }) {
-    int cellPerRow =
+    final cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
     final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
@@ -326,14 +325,6 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
 }
 
 class ThumbnailPlaylistItem extends StatefulWidget {
-  final bool showSelect;
-  final bool isSelected;
-  final CompactedAssetToken token;
-  final Function(bool?)? onChanged;
-  final int cachedImageSize;
-  final bool usingThumbnailID;
-  final bool showTriggerOrder;
-
   const ThumbnailPlaylistItem({
     required this.token,
     required this.cachedImageSize,
@@ -344,6 +335,14 @@ class ThumbnailPlaylistItem extends StatefulWidget {
     this.showTriggerOrder = false,
     this.usingThumbnailID = true,
   });
+
+  final bool showSelect;
+  final bool isSelected;
+  final CompactedAssetToken token;
+  final Function(bool?)? onChanged;
+  final int cachedImageSize;
+  final bool usingThumbnailID;
+  final bool showTriggerOrder;
 
   @override
   State<ThumbnailPlaylistItem> createState() => _ThumbnailPlaylistItemState();
@@ -380,9 +379,7 @@ class _ThumbnailPlaylistItemState extends State<ThumbnailPlaylistItem> {
       onTap: () => onChanged(isSelected),
       child: Stack(
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: double.infinity,
+          SizedBox.expand(
             child: tokenGalleryThumbnailWidget(
               context,
               widget.token,
@@ -456,13 +453,14 @@ class _ThumbnailPlaylistItemState extends State<ThumbnailPlaylistItem> {
 Widget loadingView(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-      child: Column(
-    children: [
-      CircularProgressIndicator(
-        backgroundColor: Colors.white60,
-        color: theme.colorScheme.secondary,
-        strokeWidth: 2,
-      ),
-    ],
-  ));
+    child: Column(
+      children: [
+        CircularProgressIndicator(
+          backgroundColor: Colors.white60,
+          color: theme.colorScheme.secondary,
+          strokeWidth: 2,
+        ),
+      ],
+    ),
+  );
 }

@@ -43,7 +43,7 @@ class PredefinedCollectionBloc
           mediums: mediums,
         );
       }
-      final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
+      final hiddenTokenIDs = _configurationService.getHiddenTokenIDs();
       assetTokens.removeWhere((element) =>
           hiddenTokenIDs.contains(element.id) || (element.balance ?? 0) <= 0);
       final isFilterByTokenTitle =

@@ -36,6 +36,7 @@ dependencies:
       url: https://github.com/autonomy-system/flutter_downloader
       ref: 965d4acdfd73deeee64ed69ac2cf36b6017f749b
   flutter_fgbg: ^0.6.0
+  flutter_image_compress: ^2.0.4
   flutter_markdown: ^0.7.4+1
   flutter_slidable: ^3.0.1
   flutter_svg: ^2.0.7
@@ -57,11 +58,15 @@ dependencies:
   mime: ^2.0.0
   onesignal_flutter: ^5.2.6
   open_settings: ^2.0.2
+  open_settings_plus: ^0.3.3
   overlay_support: ^2.0.0
   package_info_plus: ^8.0.3
   page_transition: ^2.0.5
   path_provider: ^2.1.1
   permission_handler: ^11.3.1
+  qr_code_scanner:
+  qr_flutter: ^4.0.0
+
   mobile_scanner: ^6.0.2
   retrofit: null
   roundcheckbox: ^2.0.4+1
@@ -73,8 +78,14 @@ dependencies:
   synchronized: ^3.0.0+2
   social_share: ^2.3.1
   system_date_time_format:
+  tezart:
+    git:
+      url: https://github.com/autonomy-system/tezart.git
+      ref: 341a6de46324d38f420334f148342c2e1655b3c0
+  app_links: ^6.3.2
   url_launcher: ^6.2.2
   uuid:
+  web3dart: ^2.5.1
   json_annotation: ^4.9.0
   feralfile_app_theme:
     git:
