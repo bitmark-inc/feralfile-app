@@ -26,13 +26,15 @@ abstract class PasskeyService {
 
   Future<void> registerFinalize();
 
-  Future<void> setUserId(String userId);
+  Future<void> setUserId(String? userId);
 
   String? getUserId();
 
   ValueNotifier<bool> get isShowingLoginDialog;
 
   static String authenticationType = 'public-key';
+
+  bool didRegisterPasskey();
 }
 
 class PasskeyServiceImpl implements PasskeyService {
@@ -51,13 +53,13 @@ class PasskeyServiceImpl implements PasskeyService {
     this._authService,
   );
 
-  final HiveStoreObjectService<String> _userIdStore =
-      HiveStoreObjectServiceImpl<String>();
+  final HiveStoreObjectService<String?> _userIdStore =
+      HiveStoreObjectServiceImpl<String?>();
   static const String _userIdKey = 'userId';
 
   final ValueNotifier<bool> _isShowingLoginDialog = ValueNotifier(false);
 
-  static const _defaultMediation = MediationType.Optional;
+  static const _defaultMediation = MediationType.Conditional;
 
   static const _preferImmediatelyAvailableCredentials = false;
 
@@ -201,18 +203,29 @@ class PasskeyServiceImpl implements PasskeyService {
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
-    await _userAccountChannel.setDidRegisterPasskey(true);
     _authService.setAuthToken(response);
   }
 
   @override
-  Future<void> setUserId(String userId) async {
-    await _userIdStore.save(userId, _userIdKey);
+  Future<void> setUserId(String? userId) async {
+    try {
+      await _userIdStore.save(userId, _userIdKey);
+    } catch (e) {
+      log.info('[PasskeyService] Failed to set user ID: $e');
+      unawaited(Sentry.captureException(
+          '[PasskeyService] Failed to set user ID: $e'));
+    }
   }
 
   @override
   String? getUserId() {
     return _userIdStore.get(_userIdKey);
+  }
+
+  @override
+  bool didRegisterPasskey() {
+    final userId = getUserId();
+    return userId != null;
   }
 }
 

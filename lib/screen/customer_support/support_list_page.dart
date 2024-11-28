@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
@@ -349,7 +348,8 @@ class _SupportListPageState extends State<SupportListPage>
     }
     final attachment = message.attachments.last;
     final attachmentTitle =
-        ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
+        ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1]
+            as String;
     if (attachment.contentType.contains('image')) {
       return 'image_sent'
           .tr(args: [attachmentTitle]); //'Image sent: $attachmentTitle';

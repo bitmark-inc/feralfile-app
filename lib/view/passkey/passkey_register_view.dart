@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
@@ -21,7 +20,6 @@ class PasskeyRegisterView extends StatefulWidget {
 
 class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
   final _passkeyService = injector.get<PasskeyService>();
-  final _accountService = injector.get<AddressService>();
 
   bool _isError = false;
   bool _registering = false;
@@ -43,7 +41,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           const SizedBox(height: 20),
           _getAction(context),
           const SizedBox(height: 20),
-          _havingTrouble(context)
+          _havingTrouble(context),
         ],
       );
 
@@ -125,9 +123,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     });
     try {
       await _passkeyService.registerInitiate();
-      await _accountService.migrateAccount(() async {
-        await _passkeyService.registerFinalize();
-      });
+      await _passkeyService.registerFinalize();
       setState(() {
         _didSuccess = true;
       });

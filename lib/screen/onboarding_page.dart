@@ -147,8 +147,12 @@ class _OnboardingPageState extends State<OnboardingPage>
       await registerPushNotifications();
     } catch (e, s) {
       log.info('registerPushNotifications error: $e');
-      unawaited(Sentry.captureException('registerPushNotifications error: $e',
-          stackTrace: s));
+      unawaited(
+        Sentry.captureException(
+          'registerPushNotifications error: $e',
+          stackTrace: s,
+        ),
+      );
     }
   }
 
@@ -160,17 +164,19 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _goToTargetScreen(BuildContext context) async {
     log.info('[_goToTargetScreen] start');
-    unawaited(Navigator.of(context)
-        .pushReplacementNamed(AppRouter.homePageNoTransition));
+    unawaited(
+      Navigator.of(context)
+          .pushReplacementNamed(AppRouter.homePageNoTransition),
+    );
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }
 
   Future<void> _fetchRuntimeCache() async {
     log.info('[_fetchRuntimeCache] start');
-    bool isSuccess = false;
+    var isSuccess = false;
     try {
       isSuccess = await _loginProcess();
-    } catch (e, s) {
+    } catch (e) {
       log.info('Failed to login process: $e');
     }
     _isLoginSuccess = isSuccess;
@@ -206,17 +212,21 @@ class _OnboardingPageState extends State<OnboardingPage>
       if (!doesOSSupport) {
         log.info('OS does not support passkey');
         _passkeyService.isShowingLoginDialog.value = true;
-        unawaited(_showBackupRecoveryPhraseDialog().then((_) {
-          _passkeyService.isShowingLoginDialog.value = false;
-        }));
+        unawaited(
+          _showBackupRecoveryPhraseDialog().then((_) {
+            _passkeyService.isShowingLoginDialog.value = false;
+          }),
+        );
         return false;
       }
       if (!canAuthenticate) {
         log.info('OS supports passkey but cannot authenticate');
         _passkeyService.isShowingLoginDialog.value = true;
-        unawaited(_showAuthenticationUpdateRequired().then((_) {
-          _passkeyService.isShowingLoginDialog.value = false;
-        }));
+        unawaited(
+          _showAuthenticationUpdateRequired().then((_) {
+            _passkeyService.isShowingLoginDialog.value = false;
+          }),
+        );
         return false;
       }
       return false;
@@ -257,18 +267,16 @@ class _OnboardingPageState extends State<OnboardingPage>
     log.info('Login and migrate');
     _isLoginSuccess = null;
     try {
-      await injector<AccountService>().migrateAccount(() async {
-        try {
-          log.info('[_loginAndMigrate] create JWT token');
-          final localResponse = await _passkeyService.logInInitiate();
-          await _passkeyService.logInFinalize(localResponse);
-          log.info('[_loginAndMigrate] create JWT token done');
-        } catch (e, s) {
-          log.info('Failed to create login JWT: $e');
-          unawaited(Sentry.captureException(e, stackTrace: s));
-          rethrow;
-        }
-      });
+      try {
+        log.info('[_loginAndMigrate] create JWT token');
+        final localResponse = await _passkeyService.logInInitiate();
+        await _passkeyService.logInFinalize(localResponse);
+        log.info('[_loginAndMigrate] create JWT token done');
+      } catch (e, s) {
+        log.info('Failed to create login JWT: $e');
+        unawaited(Sentry.captureException(e, stackTrace: s));
+        rethrow;
+      }
       _isLoginSuccess = true;
     } catch (e, s) {
       _isLoginSuccess = false;

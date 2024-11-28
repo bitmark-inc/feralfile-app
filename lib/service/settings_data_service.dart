@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class SettingsDataService {
-  Future restoreSettingsData();
+  Future<void> restoreSettingsData();
 
   Future<void> backupDeviceSettings();
 
@@ -34,8 +34,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
   // legacy settings, they were store in device settings
   static const _keyPlaylists = 'playlists';
-  static const _keyHiddenLinkedAccountsFromGallery =
-      'hiddenLinkedAccountsFromGallery';
 
   // device settings
   static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
@@ -46,7 +44,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     _keyDevicePasscodeEnabled,
     _keyNotificationEnabled,
     _keyPlaylists,
-    _keyHiddenLinkedAccountsFromGallery,
   ];
 
   // user settings
@@ -57,7 +54,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   ];
 
   @override
-  Future restoreSettingsData() async {
+  Future<void> restoreSettingsData() async {
     if (PreferencesBloc.isOnChanging) {
       log.info('[SettingsDataService] skip restore: on changing preference');
       return;
@@ -68,11 +65,15 @@ class SettingsDataServiceImpl implements SettingsDataService {
       _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
       _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
     ]);
-    final Map<String, dynamic> data = {}
-      ..addAll(_cloudObject.deviceSettingsDB.allInstance
-          .map((key, value) => MapEntry(key, jsonDecode(value))))
-      ..addAll(_cloudObject.userSettingsDB.allInstance
-          .map((key, value) => MapEntry(key, jsonDecode(value))));
+    final data = <String, dynamic>{}
+      ..addAll(
+        _cloudObject.deviceSettingsDB.allInstance
+            .map((key, value) => MapEntry(key, jsonDecode(value))),
+      )
+      ..addAll(
+        _cloudObject.userSettingsDB.allInstance
+            .map((key, value) => MapEntry(key, jsonDecode(value))),
+      );
 
     log.info('[SettingsDataService] restore $data');
 
@@ -84,18 +85,20 @@ class SettingsDataServiceImpl implements SettingsDataService {
         .setAnalyticEnabled(data[_keyIsAnalyticsEnabled] as bool? ?? true);
 
     await _configurationService.setDevicePasscodeEnabled(
-        data[_keyDevicePasscodeEnabled] as bool? ?? false);
+      data[_keyDevicePasscodeEnabled] as bool? ?? false,
+    );
 
     await _configurationService
         .setNotificationEnabled(data[_keyNotificationEnabled] as bool? ?? true);
 
     await _configurationService.updateTempStorageHiddenTokenIDs(
-        (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toList() ??
-            [],
-        true,
-        override: true);
+      (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      true,
+      override: true,
+    );
 
     final legacyPlaylists = (data[_keyPlaylists] as List<dynamic>?)
         ?.map((e) => PlayListModel.fromJson(e as Map<String, dynamic>))
@@ -106,35 +109,12 @@ class SettingsDataServiceImpl implements SettingsDataService {
           .setPlaylists(legacyPlaylists);
       await _cloudObject.deviceSettingsDB.delete([_keyPlaylists]);
     }
-
-    final legacyHiddenLinkedAccountsFromGallery =
-        (data[_keyHiddenLinkedAccountsFromGallery] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList();
-    if (legacyHiddenLinkedAccountsFromGallery != null &&
-        legacyHiddenLinkedAccountsFromGallery.isNotEmpty) {
-      final linkedAccounts =
-          injector<CloudManager>().addressObject.getLinkedAccounts();
-      for (var address in legacyHiddenLinkedAccountsFromGallery) {
-        final account = linkedAccounts
-            .firstWhereOrNull((element) => element.accountNumber == address);
-        if (account != null) {
-          hiddenLinkAccounts.add(account.copyWith(isHidden: true));
-        }
-      }
-      await injector<CloudManager>()
-          .connectionObject
-          .writeConnections(hiddenLinkAccounts);
-      await injector<CloudManager>()
-          .deviceSettingsDB
-          .delete([_keyHiddenLinkedAccountsFromGallery]);
-    }
   }
 
   @override
   Future<void> backupDeviceSettings() async {
     final currentSettings = _cloudObject.deviceSettingsDB.allInstance;
-    final List<Map<String, String>> newSettings = [];
+    final newSettings = <Map<String, String>>[];
 
     final isAnalyticsEnabled =
         jsonEncode(_configurationService.isAnalyticsEnabled());
@@ -181,7 +161,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   @override
   Future<void> backupUserSettings() async {
     final currentSettings = _cloudObject.userSettingsDB.allInstance;
-    final List<Map<String, String>> newSettings = [];
+    final newSettings = <Map<String, String>>[];
 
     final hiddenMainnetTokenIDs =
         jsonEncode(_configurationService.getTempStorageHiddenTokenIDs());

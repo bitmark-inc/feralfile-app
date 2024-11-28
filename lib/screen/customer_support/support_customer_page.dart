@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -60,7 +59,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   Widget build(BuildContext context) {
-    final orderIds = injector<ConfigurationService>().getMerchandiseOrderIds();
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -79,7 +77,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             const SizedBox(height: 30),
             addOnlyDivider(),
             _resourcesWidget(),
-            _transactionHistoryTap(context, orderIds),
           ],
         ),
       ),
@@ -88,23 +85,25 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   Widget _reportItemsWidget() => Column(
         children: [
-          ...ReportIssueType.getSuggestList.map((item) => Column(
-                children: [
-                  AuSecondaryButton(
-                    text: ReportIssueType.toTitle(item),
-                    onPressed: () async {
-                      await Navigator.of(context).pushNamed(
-                        AppRouter.supportThreadPage,
-                        arguments: NewIssuePayload(reportIssueType: item),
-                      );
-                    },
-                    backgroundColor: Colors.white,
-                    borderColor: AppColor.primaryBlack,
-                    textColor: AppColor.primaryBlack,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ))
+          ...ReportIssueType.getSuggestList.map(
+            (item) => Column(
+              children: [
+                AuSecondaryButton(
+                  text: ReportIssueType.toTitle(item),
+                  onPressed: () async {
+                    await Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments: NewIssuePayload(reportIssueType: item),
+                    );
+                  },
+                  backgroundColor: Colors.white,
+                  borderColor: AppColor.primaryBlack,
+                  textColor: AppColor.primaryBlack,
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
         ],
       );
 
@@ -112,66 +111,50 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
     final theme = Theme.of(context);
 
     return ValueListenableBuilder<List<int>?>(
-        valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
-        builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-            Widget? child) {
-          if (numberOfIssuesInfo == null) {
-            return const Center(child: CupertinoActivityIndicator());
-          }
-          if (numberOfIssuesInfo[0] == 0) {
-            return const SizedBox();
-          }
+      valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
+      builder: (
+        BuildContext context,
+        List<int>? numberOfIssuesInfo,
+        Widget? child,
+      ) {
+        if (numberOfIssuesInfo == null) {
+          return const Center(child: CupertinoActivityIndicator());
+        }
+        if (numberOfIssuesInfo[0] == 0) {
+          return const SizedBox();
+        }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TappableForwardRow(
-                leftWidget: Row(
-                  children: [
-                    Text('support_history'.tr(),
-                        style: theme.textTheme.ppMori400Black14),
-                    if (numberOfIssuesInfo[1] > 0) ...[
-                      const SizedBox(
-                        width: 7,
-                      ),
-                      redDotIcon(),
-                    ]
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TappableForwardRow(
+              leftWidget: Row(
+                children: [
+                  Text(
+                    'support_history'.tr(),
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+                  if (numberOfIssuesInfo[1] > 0) ...[
+                    const SizedBox(
+                      width: 7,
+                    ),
+                    redDotIcon(),
                   ],
-                ),
-                rightWidget: numberOfIssuesInfo[1] > 0
-                    ? BadgeView(number: numberOfIssuesInfo[1])
-                    : null,
-                onTap: () async {
-                  await Navigator.of(context)
-                      .pushNamed(AppRouter.supportListPage);
-                },
-                padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
+                ],
               ),
-              addOnlyDivider(),
-            ],
-          );
-        });
-  }
-
-  Widget _transactionHistoryTap(BuildContext context, List<String> orderIds) {
-    final theme = Theme.of(context);
-    if (orderIds.isEmpty) {
-      return const SizedBox();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TappableForwardRow(
-          leftWidget: Text('transaction_history'.tr(),
-              style: theme.textTheme.ppMori400Black14),
-          rightWidget: BadgeView(number: orderIds.length),
-          onTap: () async {
-            await Navigator.of(context).pushNamed(AppRouter.merchOrdersPage);
-          },
-          padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
-        ),
-        addOnlyDivider(),
-      ],
+              rightWidget: numberOfIssuesInfo[1] > 0
+                  ? BadgeView(number: numberOfIssuesInfo[1])
+                  : null,
+              onTap: () async {
+                await Navigator.of(context)
+                    .pushNamed(AppRouter.supportListPage);
+              },
+              padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
+            ),
+            addOnlyDivider(),
+          ],
+        );
+      },
     );
   }
 }

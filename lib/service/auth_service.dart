@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -56,7 +57,7 @@ class AuthService {
       });
     }
     final newJwt = await _userApi.refreshJWT(payload);
-    setAuthToken(newJwt, receiptData: receiptData);
+    await setAuthToken(newJwt, receiptData: receiptData);
     return newJwt;
   }
 
@@ -75,8 +76,10 @@ class AuthService {
     injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
-  void setAuthToken(JWT? jwt, {String? receiptData}) {
+  Future<void> setAuthToken(JWT? jwt, {String? receiptData}) async {
     _jwt = jwt;
+    await injector<PasskeyService>().setUserId(jwt?.jwtToken);
+
     _refreshSubscriptionStatus(jwt, receiptData: receiptData);
   }
 

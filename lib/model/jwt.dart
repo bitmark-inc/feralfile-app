@@ -112,6 +112,12 @@ class JWT {
         source: source);
   }
 
+  String get userId {
+    final claim = parseJwt(jwtToken);
+    // TODO: change `sub` to correct key
+    return claim['sub'] as String;
+  }
+
   @override
   String toString() => jwtToken;
 }

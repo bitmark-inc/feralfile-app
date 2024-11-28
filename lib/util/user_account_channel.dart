@@ -13,15 +13,6 @@ class UserAccountChannel {
             ? const MethodChannel('migration_util')
             : const MethodChannel('backup');
 
-  Future<void> setPrimaryAddress(AddressInfo info) async {
-    try {
-      await _channel
-          .invokeMethod('setPrimaryAddress', {'data': info.toString()});
-    } catch (e) {
-      log.info('setPrimaryAddress error: $e');
-    }
-  }
-
   Future<AddressInfo?> getPrimaryAddress() async {
     try {
       final String data = await _channel.invokeMethod('getPrimaryAddress', {});
@@ -35,8 +26,9 @@ class UserAccountChannel {
 
   Future<bool> clearPrimaryAddress() async {
     try {
-      final result = await _channel.invokeMethod('clearPrimaryAddress', {});
-      return result;
+      final result =
+          await _channel.invokeMethod<bool>('clearPrimaryAddress', {});
+      return result ?? false;
     } catch (e) {
       log.info('clearPrimaryAddress error', e);
       return false;
@@ -44,15 +36,9 @@ class UserAccountChannel {
   }
 
   Future<bool> didRegisterPasskey() async {
-    final didRegister = await _channel.invokeMethod('didRegisterPasskey', {});
-    return didRegister;
-  }
-
-  Future<bool> setDidRegisterPasskey(bool value) async {
-    final didRegister = await _channel.invokeMethod('setDidRegisterPasskey', {
-      'data': value,
-    });
-    return didRegister;
+    final didRegister =
+        await _channel.invokeMethod<bool>('didRegisterPasskey', {});
+    return didRegister ?? false;
   }
 }
 
