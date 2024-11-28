@@ -237,9 +237,13 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final id = uuid.substring(0, 36);
     errorMessages.remove(id);
     if (isDelete) {
-      var msg = await _draftCustomerSupportBox.getAsync(id);
+      final query = _draftCustomerSupportBox
+          .query(DraftCustomerSupport_.uuid.equals(id))
+          .build();
+      final msg = (await query.findAsync()).firstOrNull;
+      query.close();
       if (msg != null) {
-        await _draftCustomerSupportBox.removeAsync(msg.issueID);
+        await _draftCustomerSupportBox.removeAsync(msg.id);
         if (msg.draftData.attachments != null &&
             msg.draftData.attachments!.isNotEmpty) {
           var draftData = msg.draftData;
@@ -307,7 +311,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         if (!draftMsgsRaw.any((element) =>
             (element.issueID == draftMsg.issueID) &&
             (element.uuid != draftMsg.uuid))) {
-          await _draftCustomerSupportBox.removeAsync(draftMsg);
+          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
         } else {
           sendMessageFail(draftMsg.uuid);
         }
@@ -319,7 +323,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
 
     // Parse data
-    final data = DraftCustomerSupportData.fromJson(jsonDecode(draftMsg.data));
+    final data = DraftCustomerSupportData.fromJson(
+        jsonDecode(draftMsg.data) as Map<String, dynamic>);
     List<SendAttachment>? sendAttachments;
 
     try {
@@ -339,7 +344,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       unawaited(Sentry.captureException(exception));
 
       // just delete draft because we can not do anything more
-      await _draftCustomerSupportBox.removeAsync(draftMsg);
+      await _draftCustomerSupportBox.removeAsync(draftMsg.id);
       unawaited(removeErrorMessage(draftMsg.uuid));
       _isProcessingDraftMessages = false;
       log.info(
@@ -368,15 +373,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
                 data.announcementContentId!, result.issueID);
           }
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
-          await _draftCustomerSupportBox.removeAsync(draftMsg);
-          await _draftCustomerSupportBox.putAsync(result);
+          await _draftCustomerSupportBox.putAsync(draftMsg);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
 
         default:
           final result =
               await commentIssue(draftMsg.issueID, data.text, sendAttachments);
-          await _draftCustomerSupportBox.removeAsync(draftMsg);
+          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
           break;

@@ -40,7 +40,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class DeeplinkService {
-  Future setup();
+  Future<void> setup();
 
   void handleDeeplink(String? link, {Duration delay, Function? onFinished});
 
@@ -63,7 +63,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   );
 
   @override
-  Future setup() async {
+  Future<void> setup() async {
     log.info('[DeeplinkService] setup');
     await FlutterBranchSdk.init(enableLogging: true);
     FlutterBranchSdk.listSession().listen((data) async {
@@ -72,7 +72,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
       if (data['+clicked_branch_link'] == true &&
           _deepLinkHandlingMap[data['~referring_link']] == null) {
-        _deepLinkHandlingMap[data['~referring_link']] = true;
+        _deepLinkHandlingMap[data['~referring_link'] as String] = true;
 
         await handleBranchDeeplinkData(data);
       }
@@ -197,7 +197,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       try {
         final response =
             await _branchApi.getParams(Environment.branchKey, link);
-        await handleBranchDeeplinkData(response['data'], onFinish: onFinish);
+        await handleBranchDeeplinkData(
+            response['data'] as Map<dynamic, dynamic>,
+            onFinish: onFinish);
       } catch (e, s) {
         unawaited(Sentry.captureException('Branch deeplink error: $e',
             stackTrace: s));
@@ -218,7 +220,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }) async {
     final navigatePath = data['navigation_route'];
     if (navigatePath != null) {
-      await _navigationService.navigatePath(navigatePath);
+      await _navigationService.navigatePath(navigatePath as String);
     }
     log.info('[DeeplinkService] handleBranchDeeplinkData $data');
     log.info('source: ${data['source']}');
@@ -228,7 +230,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         {
           final reportId = data['reportId'];
           if (reportId != null) {
-            await _handleFeralFileDisplayReport(reportId);
+            await _handleFeralFileDisplayReport(reportId as String);
           } else {
             final deviceRawPayload = data['device'] as Map<dynamic, dynamic>;
             final Map<String, dynamic> payload = {};
@@ -241,20 +243,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
       case 'gift_membership':
-        final giftCode = data['gift_code'];
+        final giftCode = data['gift_code'] as String;
         await GiftHandler.handleGiftMembership(giftCode);
 
       case 'referral_code':
         final referralCode = data['referralCode'];
         log.info('[DeeplinkService] referralCode: $referralCode');
-        await handleReferralCode(referralCode);
+        await handleReferralCode(referralCode as String);
 
       case 'playlist_activation':
         try {
           log.info('[DeeplinkService] playlist_activation');
           unawaited(
               injector<ConfigurationService>().setDidShowLiveWithArt(true));
-          final expiredAt = int.tryParse(data['expired_at']);
+          final expiredAt = int.tryParse(data['expired_at'] as String);
           log.info('[DeeplinkService] expiredAt: $expiredAt');
           if (expiredAt != null) {
             final expiredAtDate =
@@ -276,9 +278,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
           final thumbnailURL = data['activation_thumbnail'];
           final activation = PlaylistActivation(
             playListModel: playlist,
-            name: activationName,
-            source: activationSource,
-            thumbnailURL: thumbnailURL,
+            name: activationName as String,
+            source: activationSource as String,
+            thumbnailURL: thumbnailURL as String,
           );
           log.info('[DeeplinkService] playlist_activation $activation');
           await _navigationService.navigateTo(

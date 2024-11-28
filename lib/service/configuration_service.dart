@@ -81,11 +81,12 @@ abstract class ConfigurationService {
 
   DateTime? getLastTimeAskForSubscription();
 
-  Future setLastTimeAskForSubscription(DateTime date);
+  Future<void> setLastTimeAskForSubscription(DateTime date);
 
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
-  Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
+  Future<void> updateTempStorageHiddenTokenIDs(
+      List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false});
 
   Future<void> setReadReleaseNotesInVersion(String version);
@@ -110,11 +111,11 @@ abstract class ConfigurationService {
 
   bool showTokenDebugInfo();
 
-  Future setShowTokenDebugInfo(bool show);
+  Future<void> setShowTokenDebugInfo(bool show);
 
-  Future setDoneOnboardingTime(DateTime time);
+  Future<void> setDoneOnboardingTime(DateTime time);
 
-  Future setSubscriptionTime(DateTime time);
+  Future<void> setSubscriptionTime(DateTime time);
 
   // Do at once
 
@@ -122,7 +123,7 @@ abstract class ConfigurationService {
   /// the app checked for Tezos artworks
   int? sentTezosArtworkMetricValue();
 
-  Future setSentTezosArtworkMetric(int hashedAddresses);
+  Future<void> setSentTezosArtworkMetric(int hashedAddresses);
 
   // Reload
   Future<void> reload();
@@ -268,7 +269,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (data == null) {
       return null;
     } else {
-      final json = jsonDecode(data);
+      final json = jsonDecode(data) as Map<String, dynamic>;
       return JWT.fromJson(json);
     }
   }
@@ -321,7 +322,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getStringList(KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS) ?? [];
 
   @override
-  Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
+  Future<void> updateTempStorageHiddenTokenIDs(
+      List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false}) async {
     const key = KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS;
 
@@ -355,7 +357,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future setLastTimeAskForSubscription(DateTime date) async {
+  Future<void> setLastTimeAskForSubscription(DateTime date) async {
     await _preferences.setInt(
       KEY_LAST_TIME_ASK_SUBSCRIPTION,
       date.millisecondsSinceEpoch,
@@ -391,7 +393,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
 
   @override
-  Future setShowTokenDebugInfo(bool show) async {
+  Future<void> setShowTokenDebugInfo(bool show) async {
     await _preferences.setBool(KEY_SHOW_TOKEN_DEBUG_INFO, show);
   }
 
@@ -403,7 +405,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getInt(KEY_SENT_TEZOS_ARTWORK_METRIC);
 
   @override
-  Future setSentTezosArtworkMetric(int hashedAddresses) =>
+  Future<void> setSentTezosArtworkMetric(int hashedAddresses) async =>
       _preferences.setInt(KEY_SENT_TEZOS_ARTWORK_METRIC, hashedAddresses);
 
   @override
@@ -451,13 +453,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
   ValueNotifier<bool> showingNotification = ValueNotifier(false);
 
   @override
-  Future setDoneOnboardingTime(DateTime time) async {
+  Future<void> setDoneOnboardingTime(DateTime time) async {
     await _preferences.setString(
         KEY_DONE_ON_BOARDING_TIME, time.toIso8601String());
   }
 
   @override
-  Future setSubscriptionTime(DateTime time) async {
+  Future<void> setSubscriptionTime(DateTime time) async {
     await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
 

@@ -50,8 +50,8 @@ class DraftCustomerSupport {
 }
 
 extension Supporter on DraftCustomerSupport {
-  DraftCustomerSupportData get draftData =>
-      DraftCustomerSupportData.fromJson(jsonDecode(data));
+  DraftCustomerSupportData get draftData => DraftCustomerSupportData.fromJson(
+      jsonDecode(data) as Map<String, dynamic>);
 }
 
 @JsonSerializable()
