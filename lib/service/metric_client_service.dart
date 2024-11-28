@@ -75,10 +75,11 @@ class MetricClientService {
       await injector<IAPApi>().sendEvent(
         metrics,
         _identifier,
-        injector<DeviceInfoService>().deviceName,
-        injector<DeviceInfoService>().deviceVendor,
-        injector<DeviceInfoService>().deviceModel,
-        injector<DeviceInfoService>().deviceOSName,
+        // TODO: add device info
+        // injector<DeviceInfoService>().deviceName,
+        // injector<DeviceInfoService>().deviceVendor,
+        // injector<DeviceInfoService>().deviceModel,
+        // injector<DeviceInfoService>().deviceOSName,
       );
       log.info('Metric add event success: ${event.name}');
     } catch (e) {

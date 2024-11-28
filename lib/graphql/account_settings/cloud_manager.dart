@@ -1,17 +1,16 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudManager {
-  late final String _requester;
   late final String _deviceId;
   late final String _flavor;
 
@@ -31,12 +30,11 @@ class CloudManager {
 
   Future<void> _getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String? deviceId = await injector<AccountService>().getBackupDeviceID();
-    _deviceId = deviceId ?? '_';
+    String? deviceId = await getDeviceID();
+    _deviceId = deviceId;
     _flavor = packageInfo.packageName.contains('inhouse')
         ? 'mobile_inhouse'
         : 'mobile_prd';
-    _requester = '${deviceId}_${packageInfo.packageName}';
   }
 
   Future<void> _init() async {

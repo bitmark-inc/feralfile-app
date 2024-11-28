@@ -27,13 +27,6 @@ Dio customerSupportDio(BaseOptions options) {
   return dio;
 }
 
-Dio postcardDio(BaseOptions options) {
-  final dio = baseDio(options);
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AutonomyAuthInterceptor());
-  return dio;
-}
-
 Dio tvCastDio(BaseOptions options) {
   final dio = Dio(options);
   dio.interceptors.add(LoggingInterceptor());

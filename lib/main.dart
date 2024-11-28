@@ -13,7 +13,6 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
@@ -28,6 +27,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:floor/floor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -49,13 +49,14 @@ Future<void> callbackDispatcher() async {
   Workmanager().executeTask((task, inputData) async {
     try {
       if (task == dailyWidgetTaskUniqueName || task == dailyWidgetTaskName) {
-        await getSecretEnv();
         await dotenv.load();
         await setupHomeWidgetInjector();
         await injector<HomeWidgetService>().updateDailyTokensToHomeWidget();
       }
     } catch (e) {
-      print('callbackDispatcher error: $e');
+      if (kDebugMode) {
+        print('callbackDispatcher error: $e');
+      }
       throw Exception(e);
     }
 

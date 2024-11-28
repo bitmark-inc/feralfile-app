@@ -20,8 +20,7 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/model/canvas_device_info/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
@@ -283,7 +282,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton(
     () => VersionService(injector(), injector(), injector()),
   );
-
   injector.registerLazySingleton<CustomerSupportService>(
     () => CustomerSupportServiceImpl(
       CustomerSupportApi(

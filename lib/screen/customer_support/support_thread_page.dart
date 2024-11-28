@@ -11,10 +11,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -514,7 +514,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       if (message.metadata?['rating'] == null) {
         return false;
       }
-      if (message.metadata?['rating'] > 0) {
+      if ((int.tryParse(message.metadata?['rating']?.toString() ?? '') ?? 0) >
+          0) {
         return true;
       }
     }
@@ -760,8 +761,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   bool _isRating(types.Message message) {
-    final rating = message.metadata?['rating'];
-    if (rating != null && rating != '' && rating > 0 && rating < 6) {
+    final rating = int.tryParse(message.metadata?['rating']);
+    if (rating != null && rating > 0 && rating < 6) {
       return true;
     }
     return false;
