@@ -56,10 +56,46 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:3545671819156561601",
+      "lastPropertyId": "5:8142450773936588127",
+      "name": "Identity",
+      "properties": [
+        {
+          "id": "1:3766269381233881871",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5605060947817876347",
+          "name": "accountNumber",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "1:8706340799772803385"
+        },
+        {
+          "id": "3:5469044788118803694",
+          "name": "blockchain",
+          "type": 9
+        },
+        {
+          "id": "4:5908046236401052457",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:8142450773936588127",
+          "name": "queriedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:3699075574402622260",
-  "lastIndexId": "0:0",
+  "lastEntityId": "2:3545671819156561601",
+  "lastIndexId": "1:8706340799772803385",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

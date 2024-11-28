@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'model/draft_customer_support.dart';
+import 'model/identity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -72,6 +73,41 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(2, 3545671819156561601),
+      name: 'Identity',
+      lastPropertyId: const obx_int.IdUid(5, 8142450773936588127),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 3766269381233881871),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 5605060947817876347),
+            name: 'accountNumber',
+            type: 9,
+            flags: 2080,
+            indexId: const obx_int.IdUid(1, 8706340799772803385)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 5469044788118803694),
+            name: 'blockchain',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 5908046236401052457),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 8142450773936588127),
+            name: 'queriedAt',
+            type: 10,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -110,8 +146,8 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(1, 3699075574402622260),
-      lastIndexId: const obx_int.IdUid(0, 0),
+      lastEntityId: const obx_int.IdUid(2, 3545671819156561601),
+      lastIndexId: const obx_int.IdUid(1, 8706340799772803385),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
@@ -184,6 +220,45 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
+        }),
+    Identity: obx_int.EntityDefinition<Identity>(
+        model: _entities[1],
+        toOneRelations: (Identity object) => [],
+        toManyRelations: (Identity object) => {},
+        getId: (Identity object) => object.id,
+        setId: (Identity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Identity object, fb.Builder fbb) {
+          final accountNumberOffset = fbb.writeString(object.accountNumber);
+          final blockchainOffset = fbb.writeString(object.blockchain);
+          final nameOffset = fbb.writeString(object.name);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, accountNumberOffset);
+          fbb.addOffset(2, blockchainOffset);
+          fbb.addOffset(3, nameOffset);
+          fbb.addInt64(4, object.queriedAt.millisecondsSinceEpoch);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final accountNumberParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, '');
+          final blockchainParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 10, '');
+          final object = Identity(
+              accountNumberParam, blockchainParam, nameParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..queriedAt = DateTime.fromMillisecondsSinceEpoch(
+                const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
+
+          return object;
         })
   };
 
@@ -227,4 +302,27 @@ class DraftCustomerSupport_ {
   /// See [DraftCustomerSupport.rating].
   static final rating = obx.QueryIntegerProperty<DraftCustomerSupport>(
       _entities[0].properties[8]);
+}
+
+/// [Identity] entity fields to define ObjectBox queries.
+class Identity_ {
+  /// See [Identity.id].
+  static final id =
+      obx.QueryIntegerProperty<Identity>(_entities[1].properties[0]);
+
+  /// See [Identity.accountNumber].
+  static final accountNumber =
+      obx.QueryStringProperty<Identity>(_entities[1].properties[1]);
+
+  /// See [Identity.blockchain].
+  static final blockchain =
+      obx.QueryStringProperty<Identity>(_entities[1].properties[2]);
+
+  /// See [Identity.name].
+  static final name =
+      obx.QueryStringProperty<Identity>(_entities[1].properties[3]);
+
+  /// See [Identity.queriedAt].
+  static final queriedAt =
+      obx.QueryDateProperty<Identity>(_entities[1].properties[4]);
 }
