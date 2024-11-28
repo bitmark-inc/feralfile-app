@@ -468,65 +468,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
         }
 
-      case 'InstantPurchase':
-        final url = data['callback_url'];
-        final expiredAt = data['expired_at'];
-        if (expiredAt != null) {
-          final expiredAtDate =
-              DateTime.fromMillisecondsSinceEpoch(int.tryParse(expiredAt) ?? 0);
-          if (expiredAtDate.isBefore(DateTime.now())) {
-            unawaited(_navigationService.showQRExpired());
-            break;
-          }
-        }
-        final instantToken = data['instant_purchase_token'];
-        final purchaseToken = data['purchase_token'];
-        if (url != null &&
-            data['chain'] != null &&
-            instantToken != null &&
-            purchaseToken != null) {
-          final chain = data['chain'].toString().toLowerCase();
-          late String? primaryAddress;
-          final addressService = injector<AddressService>();
-          try {
-            final primaryAddressInfo =
-                await addressService.getPrimaryAddressInfo();
-            if (primaryAddressInfo != null &&
-                primaryAddressInfo.chain == chain) {
-              log.info(
-                  '[DeeplinkService] InstancePurchase: primary address found');
-              primaryAddress =
-                  await addressService.getAddress(info: primaryAddressInfo);
-            } else {
-              log.info('[DeeplinkService] '
-                  'InstancePurchase: use address with most tokens');
-              final addressWallets = await addressService.getAllAddress();
-              addressWallets.removeWhere(
-                  (element) => element.cryptoType.toLowerCase() != chain);
-              if (addressWallets.isEmpty) {
-                primaryAddress = null;
-              } else {
-                primaryAddress = addressWallets.first.address;
-              }
-            }
-          } catch (e) {
-            log.info('[DeeplinkService] get primary address error $e');
-            primaryAddress = null;
-          }
-          _navigationService.popUntilHome();
-          if (primaryAddress == null) {
-            await _navigationService.addressNotFoundError();
-          } else {
-            final link =
-                '$url&ba=$primaryAddress&ipt=$instantToken&pt=$purchaseToken';
-            log.info('InstantPurchase: $link');
-            await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
-                isPlainUI: true,
-                statusBarColor: AppColor.white,
-                isDarkStatusBar: false));
-          }
-        }
-
       case 'membership_subscription':
         final String url = data['callbackURL']!;
         final primaryAddress =

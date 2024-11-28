@@ -260,15 +260,6 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> showQRExpired() => (super.noSuchMethod(
-        Invocation.method(
-          #showQRExpired,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
   _i4.Future<void> addressNotFoundError() => (super.noSuchMethod(
         Invocation.method(
           #addressNotFoundError,

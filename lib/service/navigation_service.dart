@@ -327,15 +327,6 @@ class NavigationService {
     }
   }
 
-  Future<void> showQRExpired() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-          context, 'qr_code_expired'.tr(), 'qr_code_expired_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
-    }
-  }
-
   Future<void> addressNotFoundError() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {

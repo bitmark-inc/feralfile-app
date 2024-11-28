@@ -9,10 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -21,9 +18,8 @@ import 'package:sentry/sentry.dart';
 
 class AddressService {
   final UserAccountChannel _primaryAddressChannel;
-  final CloudManager _cloudObject;
 
-  AddressService(this._primaryAddressChannel, this._cloudObject);
+  AddressService(this._primaryAddressChannel);
 
   Future<AddressInfo?> getPrimaryAddressInfo() async =>
       await _primaryAddressChannel.getPrimaryAddress();
@@ -126,32 +122,5 @@ class AddressService {
       'signature': signature,
       'type': 'ethereum',
     };
-  }
-
-  Future<List<WalletAddress>> getAllAddress() async {
-    final addresses = _cloudObject.addressObject.getAllAddresses();
-    return addresses;
-  }
-
-  List<WalletAddress> getAllEthereumAddress() {
-    final addresses = _cloudObject.addressObject
-        .getAddressesByType(CryptoType.ETH.source)
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return addresses;
-  }
-
-  AddressInfo pickAddressAsPrimary() {
-    log.info('[AddressService] Picking address as primary');
-    final ethAddresses = getAllEthereumAddress();
-    if (ethAddresses.isEmpty) {
-      log.info('[AddressService] No address found');
-      throw UnsupportedError('No address found');
-    }
-    final selectedAddress = ethAddresses.first;
-    log.info('[AddressService] Selected address: $selectedAddress');
-    return AddressInfo(
-        uuid: selectedAddress.uuid,
-        index: selectedAddress.index,
-        chain: selectedAddress.cryptoType.toLowerCase());
   }
 }
