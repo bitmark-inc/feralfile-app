@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
@@ -121,6 +122,7 @@ Future<void> runFeralFileApp() async {
   await FlutterDownloader.initialize();
   await Hive.initFlutter();
   _registerHiveAdapter();
+  ObjectBox.create();
 
   FlutterDownloader.registerCallback(downloadCallback);
   try {

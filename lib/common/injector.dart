@@ -7,6 +7,7 @@
 
 // ignore_for_file: cascade_invocations
 
+import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -20,7 +21,8 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/canvas_device_info/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
@@ -284,6 +286,7 @@ Future<void> setupInjector() async {
   );
   injector.registerLazySingleton<CustomerSupportService>(
     () => CustomerSupportServiceImpl(
+      ObjectBox.draftCustomerSupport,
       CustomerSupportApi(
         customerSupportDio(
           dioOptions.copyWith(
@@ -388,7 +391,7 @@ Future<void> setupInjector() async {
     () => PredefinedCollectionBloc(),
   );
   injector.registerFactory<IdentityBloc>(
-    () => IdentityBloc(injector(), injector()),
+    () => IdentityBloc(ObjectBox.identityBox, injector()),
   );
 
   injector.registerLazySingleton<CanvasDeviceBloc>(
