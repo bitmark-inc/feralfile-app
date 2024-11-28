@@ -526,6 +526,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 ?.toIdentityOrMask(identityState.identityMap) ??
             assetToken.artistID ??
             '';
+        const padding = 15.0;
         return NotificationListener<UserScrollNotification>(
           onNotification: (notification) {
             if (notification.direction == ScrollDirection.forward &&
@@ -552,7 +553,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   state.currentExhibition != null) ...[
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: padding),
                     child: _mediumDescription(context, state.currentDailyToken!,
                         state.currentExhibition!),
                   ),
@@ -564,7 +565,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               // artwork desc
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: padding),
                   child: HtmlWidget(
                     customStylesBuilder: auHtmlStyle,
                     assetToken.description ?? '',
@@ -585,7 +586,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               if (state.currentDailyToken?.dailyNote?.isNotEmpty ?? false) ...[
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(padding),
                     child: ImportantNoteView(
                       title: 'daily_note'.tr(),
                       titleStyle: theme.textTheme.ppMori400White14,
@@ -609,7 +610,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
                             .openFeralFileArtistPage(state.currentArtist!.id));
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: padding),
                         child:
                             _shortArtistProfile(context, state.currentArtist!),
                       )),
@@ -634,7 +636,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                               index: 0)));
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      padding: const EdgeInsets.symmetric(horizontal: padding),
                       child: _exhibitionInfo(context, state.currentExhibition!),
                     ),
                   ),
@@ -651,7 +653,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: padding),
                   child: artworkDetailsMetadataSection(
                     context,
                     assetToken,
@@ -661,7 +663,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: padding),
                   child: artworkDetailsRightSection(
                     context,
                     assetToken,
