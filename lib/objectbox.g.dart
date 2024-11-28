@@ -75,34 +75,34 @@ final _entities = <obx_int.ModelEntity>[
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(2, 3545671819156561601),
-      name: 'Identity',
-      lastPropertyId: const obx_int.IdUid(5, 8142450773936588127),
+      id: const obx_int.IdUid(3, 1005553247711674799),
+      name: 'IndexerIdentity',
+      lastPropertyId: const obx_int.IdUid(5, 3392403387181069637),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3766269381233881871),
+            id: const obx_int.IdUid(1, 3307529772053226121),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 5605060947817876347),
+            id: const obx_int.IdUid(2, 5534290915890030959),
             name: 'accountNumber',
             type: 9,
             flags: 2080,
-            indexId: const obx_int.IdUid(1, 8706340799772803385)),
+            indexId: const obx_int.IdUid(2, 5025194395419363601)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 5469044788118803694),
+            id: const obx_int.IdUid(3, 2799396780689758937),
             name: 'blockchain',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 5908046236401052457),
+            id: const obx_int.IdUid(4, 5481394537630207359),
             name: 'name',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 8142450773936588127),
+            id: const obx_int.IdUid(5, 3392403387181069637),
             name: 'queriedAt',
             type: 10,
             flags: 0)
@@ -146,13 +146,19 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(2, 3545671819156561601),
-      lastIndexId: const obx_int.IdUid(1, 8706340799772803385),
+      lastEntityId: const obx_int.IdUid(3, 1005553247711674799),
+      lastIndexId: const obx_int.IdUid(2, 5025194395419363601),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
-      retiredEntityUids: const [],
+      retiredEntityUids: const [3545671819156561601],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredPropertyUids: const [
+        3766269381233881871,
+        5605060947817876347,
+        5469044788118803694,
+        5908046236401052457,
+        8142450773936588127
+      ],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -221,15 +227,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
 
           return object;
         }),
-    Identity: obx_int.EntityDefinition<Identity>(
+    IndexerIdentity: obx_int.EntityDefinition<IndexerIdentity>(
         model: _entities[1],
-        toOneRelations: (Identity object) => [],
-        toManyRelations: (Identity object) => {},
-        getId: (Identity object) => object.id,
-        setId: (Identity object, int id) {
+        toOneRelations: (IndexerIdentity object) => [],
+        toManyRelations: (IndexerIdentity object) => {},
+        getId: (IndexerIdentity object) => object.id,
+        setId: (IndexerIdentity object, int id) {
           object.id = id;
         },
-        objectToFB: (Identity object, fb.Builder fbb) {
+        objectToFB: (IndexerIdentity object, fb.Builder fbb) {
           final accountNumberOffset = fbb.writeString(object.accountNumber);
           final blockchainOffset = fbb.writeString(object.blockchain);
           final nameOffset = fbb.writeString(object.name);
@@ -252,7 +258,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGet(buffer, rootOffset, 8, '');
           final nameParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 10, '');
-          final object = Identity(
+          final object = IndexerIdentity(
               accountNumberParam, blockchainParam, nameParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
             ..queriedAt = DateTime.fromMillisecondsSinceEpoch(
@@ -304,25 +310,25 @@ class DraftCustomerSupport_ {
       _entities[0].properties[8]);
 }
 
-/// [Identity] entity fields to define ObjectBox queries.
-class Identity_ {
-  /// See [Identity.id].
+/// [IndexerIdentity] entity fields to define ObjectBox queries.
+class IndexerIdentity_ {
+  /// See [IndexerIdentity.id].
   static final id =
-      obx.QueryIntegerProperty<Identity>(_entities[1].properties[0]);
+      obx.QueryIntegerProperty<IndexerIdentity>(_entities[1].properties[0]);
 
-  /// See [Identity.accountNumber].
+  /// See [IndexerIdentity.accountNumber].
   static final accountNumber =
-      obx.QueryStringProperty<Identity>(_entities[1].properties[1]);
+      obx.QueryStringProperty<IndexerIdentity>(_entities[1].properties[1]);
 
-  /// See [Identity.blockchain].
+  /// See [IndexerIdentity.blockchain].
   static final blockchain =
-      obx.QueryStringProperty<Identity>(_entities[1].properties[2]);
+      obx.QueryStringProperty<IndexerIdentity>(_entities[1].properties[2]);
 
-  /// See [Identity.name].
+  /// See [IndexerIdentity.name].
   static final name =
-      obx.QueryStringProperty<Identity>(_entities[1].properties[3]);
+      obx.QueryStringProperty<IndexerIdentity>(_entities[1].properties[3]);
 
-  /// See [Identity.queriedAt].
+  /// See [IndexerIdentity.queriedAt].
   static final queriedAt =
-      obx.QueryDateProperty<Identity>(_entities[1].properties[4]);
+      obx.QueryDateProperty<IndexerIdentity>(_entities[1].properties[4]);
 }

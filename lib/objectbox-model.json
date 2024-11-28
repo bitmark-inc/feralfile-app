@@ -58,35 +58,35 @@
       "relations": []
     },
     {
-      "id": "2:3545671819156561601",
-      "lastPropertyId": "5:8142450773936588127",
-      "name": "Identity",
+      "id": "3:1005553247711674799",
+      "lastPropertyId": "5:3392403387181069637",
+      "name": "IndexerIdentity",
       "properties": [
         {
-          "id": "1:3766269381233881871",
+          "id": "1:3307529772053226121",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:5605060947817876347",
+          "id": "2:5534290915890030959",
           "name": "accountNumber",
           "type": 9,
           "flags": 2080,
-          "indexId": "1:8706340799772803385"
+          "indexId": "2:5025194395419363601"
         },
         {
-          "id": "3:5469044788118803694",
+          "id": "3:2799396780689758937",
           "name": "blockchain",
           "type": 9
         },
         {
-          "id": "4:5908046236401052457",
+          "id": "4:5481394537630207359",
           "name": "name",
           "type": 9
         },
         {
-          "id": "5:8142450773936588127",
+          "id": "5:3392403387181069637",
           "name": "queriedAt",
           "type": 10
         }
@@ -94,15 +94,23 @@
       "relations": []
     }
   ],
-  "lastEntityId": "2:3545671819156561601",
-  "lastIndexId": "1:8706340799772803385",
+  "lastEntityId": "3:1005553247711674799",
+  "lastIndexId": "2:5025194395419363601",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
+  "retiredEntityUids": [
+    3545671819156561601
+  ],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    3766269381233881871,
+    5605060947817876347,
+    5469044788118803694,
+    5908046236401052457,
+    8142450773936588127
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

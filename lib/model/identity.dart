@@ -1,8 +1,8 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class Identity {
-  Identity(this.accountNumber, this.blockchain, this.name);
+class IndexerIdentity {
+  IndexerIdentity(this.accountNumber, this.blockchain, this.name);
   @Id()
   int id = 0;
 

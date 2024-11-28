@@ -8,18 +8,21 @@ const objectboxDBFile = 'com.bitmark.feralfile.db';
 
 class ObjectBox {
   /// The Store of this app.
-  late final Store store;
+  static late Store store;
 
-  // Add lazy box getters
-  late final Box<Identity> _identityBox = Box<Identity>(store);
-  Box<Identity> get identityBox => _identityBox;
+  // Add static box getters
+  static late Box<IndexerIdentity> _identityBox;
+  static Box<IndexerIdentity> get identityBox => _identityBox;
 
-  late final Box<DraftCustomerSupport> _draftCustomerSupportBox =
-      Box<DraftCustomerSupport>(store);
-  Box<DraftCustomerSupport> get draftCustomerSupport =>
+  static late Box<DraftCustomerSupport> _draftCustomerSupportBox;
+  static Box<DraftCustomerSupport> get draftCustomerSupport =>
       _draftCustomerSupportBox;
 
-  ObjectBox._create(this.store) {}
+  ObjectBox._create(Store storeInstance) {
+    store = storeInstance;
+    _identityBox = Box<IndexerIdentity>(store);
+    _draftCustomerSupportBox = Box<DraftCustomerSupport>(store);
+  }
 
   static Future<ObjectBox> create() async {
     final docsDir = await getApplicationDocumentsDirectory();

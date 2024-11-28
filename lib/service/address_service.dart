@@ -54,7 +54,7 @@ class AddressService {
     var checkSumAddress = address.address;
     final cryptoType = address.cryptoType;
     if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.USDC) {
-      checkSumAddress = address.getETHEip55Address();
+      checkSumAddress = await address.getETHEip55Address();
     }
     final walletAddress = _cloudObject.addressObject.getAllAddresses();
     if (walletAddress.any((element) => element.address == checkSumAddress)) {

@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/objectbox.g.dart';
 part 'identity_state.dart';
 
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
-  final Box<Identity> _identityBox;
+  final Box<IndexerIdentity> _identityBox;
   final IndexerService _indexerService;
 
   static const localIdentityCacheDuration = Duration(days: 1);
@@ -35,7 +35,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
           }
 
           final identity = _identityBox
-              .query(Identity_.accountNumber.equals(address))
+              .query(IndexerIdentity_.accountNumber.equals(address))
               .build()
               .findFirst();
           if (identity != null) {
@@ -51,7 +51,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
               resultFromDB[address] = identity.name;
             } else {
               // Remove those item from the database
-              await _identityBox.removeAsync(identity);
+              await _identityBox.removeAsync(identity.id);
               // Re-query from the API
               unknownIdentities.add(address);
             }
@@ -73,8 +73,10 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
           try {
             final request = QueryIdentityRequest(account: address);
             final identity = await _indexerService.getIdentity(request);
+            final indexerIdentity = IndexerIdentity(
+                identity.accountNumber, identity.blockchain, identity.name);
             resultFromAPI[address] = identity.name;
-            await _identityBox.putAsync(identity);
+            await _identityBox.putAsync(indexerIdentity);
           } catch (_) {
             // Ignore bad API responses
             return;
@@ -99,7 +101,9 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
         try {
           final request = QueryIdentityRequest(account: address);
           final identity = await _indexerService.getIdentity(request);
-          await _identityBox.putAsync(identity);
+          final indexerIdentity = IndexerIdentity(
+              identity.accountNumber, identity.blockchain, identity.name);
+          await _identityBox.putAsync(indexerIdentity);
         } catch (_) {
           // Ignore bad API responses
           return;

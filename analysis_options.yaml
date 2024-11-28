@@ -3,8 +3,3 @@ linter:
   rules:
     public_member_api_docs: false
     avoid_dynamic_calls: false
-
-analyzer:
-  errors:
-    argument_type_not_assignable: ignore
-    invalid_assignment: ignore
