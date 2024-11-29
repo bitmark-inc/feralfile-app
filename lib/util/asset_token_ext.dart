@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -344,7 +345,10 @@ extension AssetTokenExtension on AssetToken {
     if (lst.length <= 1) {
       return [];
     }
-    return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
+    return lst
+        .map((e) => Artist.fromJson((e as Map).typeCast<String, dynamic>()))
+        .toList()
+        .sublist(1);
   }
 
   bool get isMoMAMemento => [
@@ -493,13 +497,18 @@ String replaceIPFSPreviewURL(String url) {
   final newUrl =
       url.replacePrefix(IPFS_PREFIX, '${Environment.autonomyIpfsPrefix}/ipfs/');
   return newUrl.replacePrefix(
-      DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
+    DEFAULT_IPFS_PREFIX,
+    Environment.autonomyIpfsPrefix,
+  );
 }
 
 String replaceIPFS(String url) {
-  url =
+  final newUrl =
       url.replacePrefix(IPFS_PREFIX, '${Environment.autonomyIpfsPrefix}/ipfs/');
-  return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
+  return newUrl.replacePrefix(
+    DEFAULT_IPFS_PREFIX,
+    Environment.autonomyIpfsPrefix,
+  );
 }
 
 String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
@@ -573,9 +582,9 @@ extension CompactedAssetTokenExt on List<CompactedAssetToken> {
       this,
       filter,
     );
-    List<PlayListModel> playlists = [];
+    final playlists = <PlayListModel>[];
     groups.forEach((key, value) {
-      PlayListModel playListModel = PlayListModel(
+      final playListModel = PlayListModel(
         name: key,
         tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
         thumbnailURL: value.first.thumbnailURL,

@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:passkeys/authenticator.dart';
@@ -38,20 +37,18 @@ abstract class PasskeyService {
 }
 
 class PasskeyServiceImpl implements PasskeyService {
+  PasskeyServiceImpl(
+    this._userApi,
+    this._authService,
+  );
+
   final _passkeyAuthenticator = PasskeyAuthenticator();
 
   RegisterResponseType? _registerResponse;
   String? _passkeyUserId;
 
   final UserApi _userApi;
-  final UserAccountChannel _userAccountChannel;
   final AuthService _authService;
-
-  PasskeyServiceImpl(
-    this._userApi,
-    this._userAccountChannel,
-    this._authService,
-  );
 
   final HiveStoreObjectService<String?> _userIdStore =
       HiveStoreObjectServiceImpl<String?>();

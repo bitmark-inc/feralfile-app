@@ -52,7 +52,8 @@ class PlayListServiceImp implements PlaylistService {
 
   Future<List<String>> _getHiddenTokenIds() async {
     final hiddenTokens = _configurationService.getHiddenTokenIDs();
-    final hiddenAddresses = _addressService.getAllAddresses(isHidden: true);
+    final hiddenAddresses =
+        _addressService.getAllWalletAddresses(isHidden: true);
     final tokens = await _tokenDao
         .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
 

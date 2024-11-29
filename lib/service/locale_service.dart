@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
@@ -13,7 +14,7 @@ class LocaleService {
     if (Platform.isIOS) {
       final res = await _channel.invokeMethod('getMeasurementSystem');
       if (res['data'] != null) {
-        localeMeasurement = res['data'];
+        localeMeasurement = res['data'] as String;
       } else {
         localeMeasurement = _getCountryCode(locale);
       }

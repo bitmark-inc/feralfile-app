@@ -40,9 +40,9 @@ class JohnGerrardHelper {
     return listSeriesIds ?? [];
   }
 
-  static List<dynamic> get assetIDs {
+  static List<String> get assetIDs {
     final listAssetIds =
-        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
+        injector<RemoteConfigService>().getConfig<List<String>?>(
       ConfigGroup.johnGerrard,
       ConfigKey.assetIds,
       [],
@@ -63,7 +63,11 @@ class JohnGerrardHelper {
       [],
     );
     return listCustomNote
-            ?.map((e) => CustomExhibitionNote.fromJson(e))
+            ?.map(
+              (e) => CustomExhibitionNote.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList() ??
         [];
   }

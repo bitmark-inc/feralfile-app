@@ -118,7 +118,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
     //check minted postcard and navigator to artwork detail
 
     // Check if there is any Tezos token in the list
-    final List<String> allAccountNumbers = _addressService.getAllAddresses();
+    final List<String> allAccountNumbers =
+        _addressService.getAllWalletAddresses().map((e) => e.address).toList();
     final hashedAddresses = allAccountNumbers.fold(
       0,
       (int previousValue, element) => previousValue + element.hashCode,
@@ -266,7 +267,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     }
     const cellPerRowPhone = 3;
     const cellPerRowTablet = 6;
-    const cellSpacing = 3;
+    const cellSpacing = 3.0;
     final cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
     if (_cachedImageSize == 0) {

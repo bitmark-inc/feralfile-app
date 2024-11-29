@@ -130,7 +130,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final drafts = await _draftCustomerSupportBox.getAllAsync();
 
     for (var draft in drafts) {
-      if (draft.type != CSMessageType.CreateIssue.rawValue) {
+      if (draft.type != CSMessageType.createIssue.rawValue) {
         continue;
       }
 
@@ -164,7 +164,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       try {
         final latestDraft = drafts.firstWhere((element) =>
             element.issueID == issue.issueID &&
-            element.type != CSMessageType.CreateIssue.rawValue);
+            element.type != CSMessageType.createIssue.rawValue);
 
         issue.draft = latestDraft;
       } catch (_) {
@@ -255,7 +255,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             await _draftCustomerSupportBox.putAsync(msg);
             errorMessages.add(id);
           }
-          if (msg.type == CSMessageType.PostLogs.rawValue &&
+          if (msg.type == CSMessageType.postLogs.rawValue &&
               fileToRemove != null) {
             File file = File(fileToRemove.path);
             unawaited(file.delete());
@@ -387,7 +387,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       }
 
       // Delete logs attachment so it doesn't waste device's storage
-      if (draftMsg.type == CSMessageType.PostLogs.rawValue &&
+      if (draftMsg.type == CSMessageType.postLogs.rawValue &&
           data.attachments != null) {
         log.info('[CS-Service][start] processMessages delete temp logs file');
         await Future.wait(data.attachments!.map((element) async {

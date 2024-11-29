@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
@@ -48,30 +49,33 @@ class LoggingInterceptor extends Interceptor {
   }
 
   @override
-  Future onResponse(
-      Response response, ResponseInterceptorHandler handler) async {
+  Future<void> onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) async {
     handler.next(response);
     await writeAPILog(response);
   }
 
-  Future writeAPILog(Response response) async {
+  Future<void> writeAPILog(Response<dynamic> response) async {
     final apiPath =
         response.requestOptions.baseUrl + response.requestOptions.path;
-    final skipLog = _skipLogPaths.any((element) => apiPath.contains(element));
+    final skipLog = _skipLogPaths.any(apiPath.contains);
     if (skipLog) {
       return;
     }
-    bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
+    final shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
     if (shortCurlLog) {
       final request = response.requestOptions;
       apiLog.fine(
-          'API Request: ${request.method} ${request.uri} ${request.data}');
+        'API Request: ${request.method} ${request.uri} ${request.data}',
+      );
     } else {
       final curl = cURLRepresentation(response.requestOptions);
       apiLog.fine('API Request: $curl');
     }
 
-    bool shortAPIResponseLog =
+    final shortAPIResponseLog =
         await IsolatedUtil().shouldShortAPIResponseLog(apiPath);
     if (shortAPIResponseLog) {
       apiLog.info('API Response Status: ${response.statusCode}');
@@ -82,7 +86,7 @@ class LoggingInterceptor extends Interceptor {
   }
 
   String cURLRepresentation(RequestOptions options) {
-    List<String> components = [r'$ curl -i'];
+    final components = <String>[r'$ curl -i'];
     if (options.method.toUpperCase() == 'GET') {
       components.add('-X ${options.method}');
     }
@@ -109,38 +113,45 @@ class LoggingInterceptor extends Interceptor {
 
 class SentryInterceptor extends InterceptorsWrapper {
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    Map<String, dynamic> data = {
+  void onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
+    final data = <String, dynamic>{
       'url': response.requestOptions.uri.toString(),
       'method': response.requestOptions.method,
       'status_code': response.statusCode,
     };
-    unawaited(Sentry.addBreadcrumb(
-      Breadcrumb(
-        type: 'http',
-        category: 'http',
-        data: data,
+    unawaited(
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          type: 'http',
+          category: 'http',
+          data: data,
+        ),
       ),
-    ));
+    );
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    unawaited(Sentry.addBreadcrumb(
-      Breadcrumb(
-        type: 'http',
-        category: 'http',
-        level: SentryLevel.error,
-        data: {
-          'url': err.requestOptions.uri.toString(),
-          'method': err.requestOptions.method,
-          'status_code': err.response?.statusCode ?? 'NA',
-          'reason': err.type.name,
-        },
-        message: err.message,
+    unawaited(
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          type: 'http',
+          category: 'http',
+          level: SentryLevel.error,
+          data: {
+            'url': err.requestOptions.uri.toString(),
+            'method': err.requestOptions.method,
+            'status_code': err.response?.statusCode ?? 'NA',
+            'reason': err.type.name,
+          },
+          message: err.message,
+        ),
       ),
-    ));
+    );
     super.onError(err, handler);
   }
 }
@@ -150,7 +161,9 @@ class AutonomyAuthInterceptor extends Interceptor {
 
   @override
   Future<void> onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final jwt = await injector<AuthService>().getAuthToken();
     if (jwt == null) {
       unawaited(Sentry.captureMessage('JWT is null'));
@@ -171,7 +184,9 @@ class CustomerSupportInterceptor extends Interceptor {
 
   @override
   Future<void> onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final isIgnoreHeaderApi = options.path == CustomerSupportApi.issuesPath;
 
     if (isIgnoreHeaderApi) {
@@ -180,7 +195,7 @@ class CustomerSupportInterceptor extends Interceptor {
       final pathElements = options.path.split('/');
       final anonymousIssueIds =
           injector<ConfigurationService>().getAnonymousIssueIds();
-      if (pathElements.any((element) => anonymousIssueIds.contains(element))) {
+      if (pathElements.any(anonymousIssueIds.contains)) {
         // get issue details, add header
         options.headers[CustomerSupportApi.apiKeyHeader] =
             Environment.supportApiKey;
@@ -235,15 +250,26 @@ class FeralfileAuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    DioException exp = err;
+    var exp = err;
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
+      exp = err.copyWith(
+        error: FeralfileError.fromJson(
+          (errorBody['error'] as Map).typeCast<String, dynamic>(),
+        ),
+      );
     } catch (e) {
       log.info(
-          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
-      unawaited(showErrorDialogFromException(ErrorBindingException(
-          message: 'ff_error_binding_message'.tr(), originalException: err)));
+        '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}',
+      );
+      unawaited(
+        showErrorDialogFromException(
+          ErrorBindingException(
+            message: 'ff_error_binding_message'.tr(),
+            originalException: err,
+          ),
+        ),
+      );
     } finally {
       handler.next(exp);
     }
@@ -251,24 +277,28 @@ class FeralfileAuthInterceptor extends Interceptor {
 }
 
 class HmacAuthInterceptor extends Interceptor {
-  final String secretKey;
-
   HmacAuthInterceptor(this.secretKey);
+
+  final String secretKey;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (options.headers['X-Api-Signature'] == null) {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      String body = '';
+      var body = '';
       if (options.data is FormData || options.method.toUpperCase() == 'GET') {
         body = '';
       } else {
-        body = bytesToHex(sha256
-            .convert(options.data != null
-                ? utf8.encode(json.encode(options.data))
-                : [])
-            .bytes);
+        body = bytesToHex(
+          sha256
+              .convert(
+                options.data != null
+                    ? utf8.encode(json.encode(options.data))
+                    : [],
+              )
+              .bytes,
+        );
       }
       final canonicalString = List<String>.of([
         options.path.split('?').first,
@@ -303,9 +333,9 @@ class ConnectingExceptionInterceptor extends Interceptor {
 }
 
 class TVKeyInterceptor extends Interceptor {
-  final String tvKey;
-
   TVKeyInterceptor(this.tvKey);
+
+  final String tvKey;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -315,14 +345,24 @@ class TVKeyInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    DioException exp = err;
+    var exp = err;
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
+      exp = err.copyWith(
+        error: FeralfileError.fromJson(
+          (errorBody['error'] as Map).typeCast<String, dynamic>(),
+        ),
+      );
     } catch (e) {
       log.info('[TVKeyInterceptor] Can not parse . ${err.response?.data}');
-      unawaited(showErrorDialogFromException(ErrorBindingException(
-          message: 'tv_error_binding_message'.tr(), originalException: err)));
+      unawaited(
+        showErrorDialogFromException(
+          ErrorBindingException(
+            message: 'tv_error_binding_message'.tr(),
+            originalException: err,
+          ),
+        ),
+      );
     } finally {
       handler.next(exp);
     }

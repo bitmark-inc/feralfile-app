@@ -162,16 +162,6 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
-  Future<bool> moveToArtwork(CanvasDevice device,
-      {required String artworkId, String? startTime}) async {
-    final stub = _getStub(device);
-    final artwork =
-        PlayArtworkV2(token: CastAssetToken(id: artworkId), duration: 0);
-    final request = MoveToArtworkRequest(artwork: artwork);
-    final reply = await stub.moveToArtwork(request);
-    return reply.ok;
-  }
-
   Future<bool> previousArtwork(CanvasDevice device, {String? startTime}) async {
     final stub = _getStub(device);
     final request = PreviousArtworkRequest(

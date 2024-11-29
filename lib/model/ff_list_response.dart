@@ -1,7 +1,4 @@
 class FeralFileListResponse<T> {
-  final List<T> result;
-  final Paging? paging;
-
   FeralFileListResponse({required this.result, required this.paging});
 
   factory FeralFileListResponse.fromJson(
@@ -12,8 +9,12 @@ class FeralFileListResponse<T> {
         result: (json['result'] as List<dynamic>)
             .map((e) => fromJson(e as Map<String, dynamic>))
             .toList(),
-        paging: json['paging'] == null ? null : Paging.fromJson(json['paging']),
+        paging: json['paging'] == null
+            ? null
+            : Paging.fromJson(Map<String, dynamic>.from(json['paging'] as Map)),
       );
+  final List<T> result;
+  final Paging? paging;
 
   Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJson) => {
         'result': result.map((e) => toJson(e)).toList(),
@@ -31,10 +32,6 @@ class FeralFileListResponse<T> {
 }
 
 class Paging {
-  final int offset;
-  final int limit;
-  final int total;
-
   Paging({
     required this.offset,
     required this.limit,
@@ -42,10 +39,13 @@ class Paging {
   });
 
   factory Paging.fromJson(Map<String, dynamic> json) => Paging(
-        offset: json['offset'],
-        limit: json['limit'],
-        total: json['total'],
+        offset: json['offset'] as int,
+        limit: json['limit'] as int,
+        total: json['total'] as int,
       );
+  final int offset;
+  final int limit;
+  final int total;
 
   Map<String, dynamic> toJson() => {
         'offset': offset,

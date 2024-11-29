@@ -20,12 +20,6 @@ import 'package:sentry/sentry.dart';
 String _cacheKey = 'AUCache';
 
 class Info {
-  final String url;
-  final String fileExt;
-  final String taskId;
-  final String localFile;
-  final Completer<FileServiceResponse> task;
-
   Info(
     this.url,
     this.fileExt,
@@ -33,31 +27,37 @@ class Info {
     this.localFile,
     this.task,
   );
+
+  final String url;
+  final String fileExt;
+  final String taskId;
+  final String localFile;
+  final Completer<FileServiceResponse> task;
 }
 
 class AUImageCacheManage extends CacheManager with ImageCacheManager {
-  static final AUImageCacheManage _instance = AUImageCacheManage._();
-
   factory AUImageCacheManage() => _instance;
 
   AUImageCacheManage._()
       : super(
-          Config(_cacheKey,
-              fileService: AuFileService(),
-              stalePeriod: const Duration(days: 30),
-              maxNrOfCacheObjects: 10000),
+          Config(
+            _cacheKey,
+            fileService: AuFileService(),
+            stalePeriod: const Duration(days: 30),
+            maxNrOfCacheObjects: 10000,
+          ),
         );
+  static final AUImageCacheManage _instance = AUImageCacheManage._();
 }
 
 class AuFileServiceResponse extends FileServiceResponse {
-  final File _localFile;
-  final String fileExt;
-  final DateTime _validTill = DateTime.now().add(const Duration(days: 30));
-
   AuFileServiceResponse({
     required String filePath,
     required this.fileExt,
   }) : _localFile = File(filePath);
+  final File _localFile;
+  final String fileExt;
+  final DateTime _validTill = DateTime.now().add(const Duration(days: 30));
 
   @override
   // ignore: discarded_futures
@@ -80,6 +80,10 @@ class AuFileServiceResponse extends FileServiceResponse {
 }
 
 class AuFileService extends FileService {
+  factory AuFileService() => _instance;
+
+  AuFileService._();
+
   static final AuFileService _instance = AuFileService._();
 
   final Map<String, Info> _taskId2Info = {};
@@ -87,46 +91,52 @@ class AuFileService extends FileService {
   final ReceivePort _port = ReceivePort();
   late String _saveDir;
 
-  factory AuFileService() => _instance;
-
-  AuFileService._();
-
   Future<dynamic> setup() async {
-    String tempDir = (await getTemporaryDirectory()).path;
+    final tempDir = (await getTemporaryDirectory()).path;
     _saveDir = '$tempDir/$_cacheKey/';
     await Directory(_saveDir).create(recursive: true);
     FlutterImageCompress.validator.ignoreCheckExtName = true;
     IsolateNameServer.registerPortWithName(
-        _port.sendPort, 'downloader_send_port');
+      _port.sendPort,
+      'downloader_send_port',
+    );
     _port.listen((data) async {
       if (data is List && data.length >= 3) {
-        String id = data[0];
-        DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1] as int);
-        int progress = data[2];
+        final id = data[0] as String;
+        final status = DownloadTaskStatus.fromInt(data[1] as int);
+        final progress = data[2] as int;
         await _downloadCallback(id, status, progress);
       } else {
         log.info('Invalid data from downloader_send_port: $data');
-        unawaited(Sentry.captureMessage(
-            'Invalid data from downloader_send_port: $data'));
+        unawaited(
+          Sentry.captureMessage(
+            'Invalid data from downloader_send_port: $data',
+          ),
+        );
       }
     });
   }
 
-  Future _downloadCallback(
-      String id, DownloadTaskStatus status, int progress) async {
+  Future<void> _downloadCallback(
+    String id,
+    DownloadTaskStatus status,
+    int progress,
+  ) async {
     final info = _taskId2Info[id];
     if (info != null) {
       if (status == DownloadTaskStatus.complete) {
-        File localFile = File(_saveDir + info.localFile);
+        final localFile = File(_saveDir + info.localFile);
         final fileSize = await localFile.length();
         if (fileSize <= 0) {
           log.info('File is empty ${info.url}');
           info.task.completeError(Exception('File is empty ${info.url}'));
         } else if (info.url.startsWith(Environment.cloudFlareImageUrlPrefix)) {
-          info.task.complete(AuFileServiceResponse(
-            filePath: _saveDir + info.localFile,
-            fileExt: info.fileExt,
-          ));
+          info.task.complete(
+            AuFileServiceResponse(
+              filePath: _saveDir + info.localFile,
+              fileExt: info.fileExt,
+            ),
+          );
         } else {
           try {
             final originalFile = _saveDir + info.localFile;
@@ -136,26 +146,36 @@ class AuFileService extends FileService {
               compressedFile,
               quality: 90,
             );
-            if (await File(compressedFile).exists()) {
+            final isFileExists = await File(compressedFile).exists();
+            if (isFileExists) {
               await File(originalFile).delete();
-              info.task.complete(AuFileServiceResponse(
-                filePath: compressedFile,
-                fileExt: 'jpeg',
-              ));
+              info.task.complete(
+                AuFileServiceResponse(
+                  filePath: compressedFile,
+                  fileExt: 'jpeg',
+                ),
+              );
             } else {
-              info.task.complete(AuFileServiceResponse(
-                filePath: originalFile,
-                fileExt: info.fileExt,
-              ));
+              info.task.complete(
+                AuFileServiceResponse(
+                  filePath: originalFile,
+                  fileExt: info.fileExt,
+                ),
+              );
             }
           } catch (e) {
             log.info('Compress image failed ${info.url} Error: $e');
-            unawaited(Sentry.captureException(
-                'Compress image failed ${info.url} Error'));
-            info.task.complete(AuFileServiceResponse(
-              filePath: _saveDir + info.localFile,
-              fileExt: info.fileExt,
-            ));
+            unawaited(
+              Sentry.captureException(
+                'Compress image failed ${info.url} Error',
+              ),
+            );
+            info.task.complete(
+              AuFileServiceResponse(
+                filePath: _saveDir + info.localFile,
+                fileExt: info.fileExt,
+              ),
+            );
           }
         }
         _taskId2Info.remove(id);
@@ -174,8 +194,10 @@ class AuFileService extends FileService {
   }
 
   @override
-  Future<FileServiceResponse> get(String url,
-      {Map<String, String>? headers}) async {
+  Future<FileServiceResponse> get(
+    String url, {
+    Map<String, String>? headers,
+  }) async {
     var info =
         _taskId2Info.values.firstWhereOrNull((element) => element.url == url);
     if (info == null) {
@@ -205,9 +227,11 @@ class AuFileService extends FileService {
       );
       if (taskId == null) {
         unawaited(
-            Sentry.captureMessage('Failed to create download task for $url'));
+          Sentry.captureMessage('Failed to create download task for $url'),
+        );
         return Future.error(
-            Exception('Failed to create download task for $url'));
+          Exception('Failed to create download task for $url'),
+        );
       }
       info = Info(url, fileInfo.extension, taskId, fileName, Completer());
       _taskId2Info[taskId] = info;

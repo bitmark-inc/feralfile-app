@@ -37,7 +37,14 @@ class AddressService {
     }
   }
 
-  List<WalletAddress> getAllAddresses({CryptoType? chain, bool? isHidden}) {
+  List<String> getAllAddresses({CryptoType? chain, bool? isHidden}) {
+    return getAllWalletAddresses(chain: chain, isHidden: isHidden)
+        .map((e) => e.address)
+        .toList();
+  }
+
+  List<WalletAddress> getAllWalletAddresses(
+      {CryptoType? chain, bool? isHidden}) {
     final addresses = _cloudObject.addressObject.getAllAddresses();
     if (chain != null) {
       addresses.removeWhere((element) => element.cryptoType == chain);

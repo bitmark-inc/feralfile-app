@@ -8,38 +8,39 @@
 import 'dart:math';
 
 class CurrencyExchange {
-  final String currency;
-  final CurrencyExchangeRate rates;
-
   CurrencyExchange({required this.currency, required this.rates});
 
   factory CurrencyExchange.fromJson(Map<String, dynamic> json) =>
       CurrencyExchange(
-        currency: json["currency"],
-        rates: CurrencyExchangeRate.fromJson(json["rates"]),
+        currency: json['currency'] as String,
+        rates: CurrencyExchangeRate.fromJson(
+          Map<String, dynamic>.from(json['rates'] as Map),
+        ),
       );
 
+  final String currency;
+  final CurrencyExchangeRate rates;
+
   Map<String, dynamic> toJson() => {
-        "currency": currency,
-        "rates": rates.toJson(),
+        'currency': currency,
+        'rates': rates.toJson(),
       };
 }
 
 class CurrencyExchangeRate {
-  final String eth;
-  final String xtz;
-
   const CurrencyExchangeRate({required this.eth, required this.xtz});
 
   factory CurrencyExchangeRate.fromJson(Map<String, dynamic> json) =>
       CurrencyExchangeRate(
-        eth: json["ETH"],
-        xtz: json["XTZ"],
+        eth: json['ETH'] as String,
+        xtz: json['XTZ'] as String,
       );
+  final String eth;
+  final String xtz;
 
   Map<String, dynamic> toJson() => {
-        "ETH": eth,
-        "XTZ": xtz,
+        'ETH': eth,
+        'XTZ': xtz,
       };
 
   String ethToUsd(BigInt amount) {

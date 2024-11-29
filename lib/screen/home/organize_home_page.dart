@@ -94,8 +94,7 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     // Check if there is any Tezos token in the list
-    final List<String> allAccountNumbers =
-        injector<AddressService>().getAllAddresses();
+    final allAccountNumbers = injector<AddressService>().getAllAddresses();
     final hashedAddresses = allAccountNumbers.fold(
       0,
       (int previousValue, element) => previousValue + element.hashCode,

@@ -13,8 +13,10 @@ import 'package:dio/dio.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
-  Future<CheckDeviceStatusReply> status(CheckDeviceStatusRequest request,
-      {bool shouldShowError = true});
+  Future<CheckDeviceStatusReply> status(
+    CheckDeviceStatusRequest request, {
+    bool shouldShowError = true,
+  });
 
   Future<ConnectReplyV2> connect(ConnectRequestV2 request);
 
@@ -28,12 +30,11 @@ abstract class TvCastService {
 
   Future<NextArtworkReply> nextArtwork(NextArtworkRequest request);
 
-  Future<MoveToArtworkReply> moveToArtwork(MoveToArtworkRequest request);
-
   Future<PreviousArtworkReply> previousArtwork(PreviousArtworkRequest request);
 
   Future<AppendArtworkToCastingListReply> appendListArtwork(
-      AppendArtworkToCastingListRequest request);
+    AppendArtworkToCastingListRequest request,
+  );
 
   Future<UpdateDurationReply> updateDuration(UpdateDurationRequest request);
 
@@ -55,39 +56,50 @@ abstract class TvCastService {
 }
 
 class TvCastServiceImpl implements TvCastService {
+  TvCastServiceImpl(this._api, this._device);
+
   final TvCastApi _api;
   final CanvasDevice _device;
-
-  TvCastServiceImpl(this._api, this._device);
 
   void _handleError(Object error) {
     final context = injector<NavigationService>().context;
     unawaited(Sentry.captureException(error));
     if (error is DioException) {
       if (error.error is FeralfileError) {
-        unawaited(UIHelper.showTVConnectError(
-            context, error.error! as FeralfileError));
+        unawaited(
+          UIHelper.showTVConnectError(
+            context,
+            error.error! as FeralfileError,
+          ),
+        );
       } else if (error.isBranchError) {
         final feralfileError = error.branchError;
         unawaited(UIHelper.showTVConnectError(context, feralfileError));
       }
     } else {
-      unawaited(UIHelper.showTVConnectError(
+      unawaited(
+        UIHelper.showTVConnectError(
           context,
           FeralfileError(
-              StatusCode.badRequest.value, 'Unknown error: $error')));
+            StatusCode.badRequest.value,
+            'Unknown error: $error',
+          ),
+        ),
+      );
     }
   }
 
-  Future<dynamic> _cast(Map<String, dynamic> body,
-      {bool shouldShowError = true}) async {
+  Future<Map<String, dynamic>> _cast(
+    Map<String, dynamic> body, {
+    bool shouldShowError = true,
+  }) async {
     try {
       final result = await _api.request(
         locationId: _device.locationId,
         topicId: _device.topicId,
         body: body,
       );
-      return result['message'];
+      return (result['message'] as Map).cast<String, dynamic>();
     } catch (e) {
       unawaited(Sentry.captureException(e));
       if (shouldShowError) {
@@ -101,8 +113,10 @@ class TvCastServiceImpl implements TvCastService {
       RequestBody(request).toJson();
 
   @override
-  Future<CheckDeviceStatusReply> status(CheckDeviceStatusRequest request,
-      {bool shouldShowError = true}) async {
+  Future<CheckDeviceStatusReply> status(
+    CheckDeviceStatusRequest request, {
+    bool shouldShowError = true,
+  }) async {
     final result =
         await _cast(_getBody(request), shouldShowError: shouldShowError);
     return CheckDeviceStatusReply.fromJson(result);
@@ -122,7 +136,8 @@ class TvCastServiceImpl implements TvCastService {
 
   @override
   Future<CastListArtworkReply> castListArtwork(
-      CastListArtworkRequest request) async {
+    CastListArtworkRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return CastListArtworkReply.fromJson(result);
   }
@@ -146,28 +161,25 @@ class TvCastServiceImpl implements TvCastService {
   }
 
   @override
-  Future<MoveToArtworkReply> moveToArtwork(MoveToArtworkRequest request) async {
-    final result = await _cast(_getBody(request));
-    return MoveToArtworkReply.fromJson(result);
-  }
-
-  @override
   Future<PreviousArtworkReply> previousArtwork(
-      PreviousArtworkRequest request) async {
+    PreviousArtworkRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return PreviousArtworkReply.fromJson(result);
   }
 
   @override
   Future<AppendArtworkToCastingListReply> appendListArtwork(
-      AppendArtworkToCastingListRequest request) async {
+    AppendArtworkToCastingListRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return AppendArtworkToCastingListReply.fromJson(result);
   }
 
   @override
   Future<UpdateDurationReply> updateDuration(
-      UpdateDurationRequest request) async {
+    UpdateDurationRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return UpdateDurationReply.fromJson(result);
   }
@@ -186,7 +198,8 @@ class TvCastServiceImpl implements TvCastService {
 
   @override
   Future<CastExhibitionReply> castExhibition(
-      CastExhibitionRequest request) async {
+    CastExhibitionRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return CastExhibitionReply.fromJson(result);
   }
@@ -216,14 +229,16 @@ class TvCastServiceImpl implements TvCastService {
 
   @override
   Future<GetCursorOffsetReply> getCursorOffset(
-      GetCursorOffsetRequest request) async {
+    GetCursorOffsetRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return GetCursorOffsetReply.fromJson(result);
   }
 
   @override
   Future<SetCursorOffsetReply> setCursorOffset(
-      SetCursorOffsetRequest request) async {
+    SetCursorOffsetRequest request,
+  ) async {
     final result = await _cast(_getBody(request));
     return SetCursorOffsetReply.fromJson(result);
   }

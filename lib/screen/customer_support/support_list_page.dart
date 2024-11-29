@@ -317,7 +317,7 @@ class _SupportListPageState extends State<SupportListPage>
       List<ReceiveAttachment> attachments = [];
       if (draftData.attachments != null) {
         final contentType =
-            draft.type == CSMessageType.PostPhotos.rawValue ? 'image' : 'logs';
+            draft.type == CSMessageType.postPhotos.rawValue ? 'image' : 'logs';
         attachments = draftData.attachments!
             .map((e) => ReceiveAttachment(
                   title: e.fileName,

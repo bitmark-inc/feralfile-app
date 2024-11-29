@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/au_bloc.dart';
@@ -12,24 +13,22 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_sta
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:http/http.dart' as http;
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart' as http;
 
 class ArtworkPreviewDetailBloc
     extends AuBloc<ArtworkPreviewDetailEvent, ArtworkPreviewDetailState> {
-  final AssetTokenDao _assetTokenDao;
-  final EthereumService _ethereumService;
-  final IndexerService _indexerService;
-  final AssetDao _assetDao;
-
-  ArtworkPreviewDetailBloc(this._assetTokenDao, this._ethereumService,
-      this._indexerService, this._assetDao)
-      : super(ArtworkPreviewDetailLoadingState()) {
+  ArtworkPreviewDetailBloc(
+    this._assetTokenDao,
+    this._ethereumService,
+    this._indexerService,
+    this._assetDao,
+  ) : super(ArtworkPreviewDetailLoadingState()) {
     on<ArtworkPreviewDetailGetAssetTokenEvent>((event, emit) async {
       AssetToken? assetToken;
 
@@ -43,7 +42,9 @@ class ArtworkPreviewDetailBloc
         }
       } else {
         assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
-            event.identity.id, event.identity.owner);
+          event.identity.id,
+          event.identity.owner,
+        );
       }
       String? overriddenHtml;
       if (assetToken != null && assetToken.isFeralfileFrame == true) {
@@ -59,17 +60,22 @@ class ArtworkPreviewDetailBloc
             final res = await http
                 .head(uri)
                 .timeout(const Duration(milliseconds: 10000));
-            assetToken.asset!.mimeType = res.headers["content-type"];
-            _assetDao.updateAsset(assetToken.asset!);
+            assetToken.asset!.mimeType = res.headers['content-type'];
+            unawaited(_assetDao.updateAsset(assetToken.asset!));
           } catch (error) {
             log.info(
-                "ArtworkPreviewDetailGetAssetTokenEvent: preview url error",
-                error);
+              'ArtworkPreviewDetailGetAssetTokenEvent: preview url error',
+              error,
+            );
           }
         }
       }
-      emit(ArtworkPreviewDetailLoadedState(
-          assetToken: assetToken, overriddenHtml: overriddenHtml));
+      emit(
+        ArtworkPreviewDetailLoadedState(
+          assetToken: assetToken,
+          overriddenHtml: overriddenHtml,
+        ),
+      );
     });
 
     on<ArtworkFeedPreviewDetailGetAssetTokenEvent>((event, emit) async {
@@ -80,32 +86,40 @@ class ArtworkPreviewDetailBloc
         overriddenHtml = await _fetchFeralFileFramePreview(asset);
       }
 
-      emit(ArtworkPreviewDetailLoadedState(
-        assetToken: asset,
-        overriddenHtml: overriddenHtml,
-      ));
+      emit(
+        ArtworkPreviewDetailLoadedState(
+          assetToken: asset,
+          overriddenHtml: overriddenHtml,
+        ),
+      );
     });
   }
 
+  final AssetTokenDao _assetTokenDao;
+  final EthereumService _ethereumService;
+  final IndexerService _indexerService;
+  final AssetDao _assetDao;
+
   Future<String?> _fetchFeralFileFramePreview(AssetToken token) async {
-    if (token.contractAddress == null) return "";
+    if (token.contractAddress == null) return '';
 
     try {
       final contract = EthereumAddress.fromHex(token.contractAddress!);
-      final data = hexToBytes("c87b56dd${token.tokenIdHex()}");
+      final data = hexToBytes('c87b56dd${token.tokenIdHex()}');
 
       final metadata =
           await _ethereumService.getFeralFileTokenMetadata(contract, data);
 
       final tokenMetadata = json.decode(_decodeBase64WithPrefix(metadata));
-      return _decodeBase64WithPrefix(tokenMetadata["animation_url"]);
+      return _decodeBase64WithPrefix(tokenMetadata['animation_url'] as String);
     } catch (e) {
       log.warning(
-          "[ArtworkPreviewDetailBloc] _fetchFeralFileFramePreview failed - $e");
+        '[ArtworkPreviewDetailBloc] _fetchFeralFileFramePreview failed - $e',
+      );
       return null;
     }
   }
 
   String _decodeBase64WithPrefix(String message) =>
-      utf8.decode(base64.decode(message.split("base64,").last));
+      utf8.decode(base64.decode(message.split('base64,').last));
 }

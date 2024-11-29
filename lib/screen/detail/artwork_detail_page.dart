@@ -63,9 +63,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 part 'artwork_detail_page.g.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
-  final ArtworkDetailPayload payload;
-
   const ArtworkDetailPage({required this.payload, super.key});
+
+  final ArtworkDetailPayload payload;
 
   @override
   State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
@@ -183,7 +183,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       'digitalartwallet',
       'NFT',
     ];
-    List<String> tags = defaultTags;
+    var tags = defaultTags;
     if (asset.isMoMAMemento) {
       tags = [
         'refikunsupervised',
@@ -197,7 +197,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final theme = Theme.of(context);
     final tags = getTags(asset);
     final tagsText = tags.map((e) => '#$e').join(' ');
-    Widget content = Column(
+    final Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -335,7 +335,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   minHeight: 44,
                                 ),
                                 icon: Padding(
-                                  padding: const EdgeInsets.all(0),
+                                  padding: EdgeInsets.zero,
                                   child: SvgPicture.asset(
                                     'assets/images/ff_back_dark.svg',
                                     width: 28,
@@ -417,7 +417,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           child: Container(
                             color: Colors.transparent,
                             child: _infoHeader(
-                                context, asset, artistName, canvasState),
+                              context,
+                              asset,
+                              artistName,
+                              canvasState,
+                            ),
                           ),
                         ),
                       ),
@@ -651,9 +655,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         builder: (context, identityState) =>
             BlocBuilder<AccountsBloc, AccountsState>(
           builder: (context, accountsState) {
-            final addresses = accountsState.addresses;
+            final addresses = accountsState.addresses?.map((e) => e.address);
             if (addresses?.isNotEmpty == true) {
-              _accountNumberHash = HashSet.of(addresses);
+              _accountNumberHash = HashSet.of(addresses!);
             }
 
             return artworkDetailsProvenanceSectionNotEmpty(
@@ -670,7 +674,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       .getTempStorageHiddenTokenIDs()
       .contains(token.id);
 
-  Future _showArtworkOptionsDialog(
+  Future<void> _showArtworkOptionsDialog(
     BuildContext context,
     AssetToken asset,
     CanvasDeviceState canvasDeviceState,
@@ -827,14 +831,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 }
 
 class ArtworkDetailPayload {
-  final Key? key;
-  final ArtworkIdentity identity;
-  final PlayListModel? playlist;
-  final String? twitterCaption;
-  final bool useIndexer; // set true when navigate from discover/gallery page
-  // if local token, it can be hidden and refresh metadata
-  final bool shouldUseLocalCache;
-
   ArtworkDetailPayload(
     this.identity, {
     this.twitterCaption,
@@ -843,6 +839,14 @@ class ArtworkDetailPayload {
     this.shouldUseLocalCache = true,
     this.key,
   });
+
+  final Key? key;
+  final ArtworkIdentity identity;
+  final PlayListModel? playlist;
+  final String? twitterCaption;
+  final bool useIndexer; // set true when navigate from discover/gallery page
+  // if local token, it can be hidden and refresh metadata
+  final bool shouldUseLocalCache;
 
   ArtworkDetailPayload copyWith({
     ArtworkIdentity? identity,
@@ -862,13 +866,12 @@ class ArtworkDetailPayload {
 
 @JsonSerializable()
 class ArtworkIdentity {
-  final String id;
-  final String owner;
-
   ArtworkIdentity(this.id, this.owner);
 
   factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
       _$ArtworkIdentityFromJson(json);
+  final String id;
+  final String owner;
 
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 

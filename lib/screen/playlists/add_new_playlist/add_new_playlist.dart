@@ -107,7 +107,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
 
   Future<List<String>> getAddresses() async {
     return injector<AddressService>()
-        .getAllAddresses()
+        .getAllWalletAddresses()
         .map((e) => e.address)
         .toList();
   }

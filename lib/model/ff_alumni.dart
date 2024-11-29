@@ -1,21 +1,4 @@
 class AlumniAccount {
-  final String id;
-  final String? alias;
-  final String? slug;
-  final String? fullName;
-  final bool? isArtist;
-  final bool? isCurator;
-  final String? bio;
-  final String? email;
-  final String? avatarURI;
-  final String? location;
-  final String? website;
-  final String? company;
-  final SocialNetwork? socialNetworks;
-  final AlumniAccountAddresses? addresses;
-  final List<String>? associatedAddresses;
-  final List<AlumniAccount>? collaborationAlumniAccounts;
-
   AlumniAccount({
     required this.id,
     this.alias,
@@ -36,31 +19,52 @@ class AlumniAccount {
   });
 
   factory AlumniAccount.fromJson(Map<String, dynamic> json) => AlumniAccount(
-      id: json['ID'] as String,
-      alias: json['alias'] as String?,
-      slug: json['slug'] as String?,
-      fullName: json['fullName'] as String?,
-      isArtist: json['isArtist'] as bool?,
-      isCurator: json['isCurator'] as bool?,
-      bio: json['bio'] as String?,
-      email: json['email'] as String?,
-      avatarURI: json['avatarURI'] as String?,
-      location: json['location'] as String?,
-      website: json['website'] as String?,
-      company: json['company'] as String?,
-      socialNetworks: json['socialNetworks'] != null
-          ? SocialNetwork.fromJson(json['socialNetworks'])
-          : null,
-      addresses: json['addresses'] != null
-          ? AlumniAccountAddresses.fromJson(json['addresses'])
-          : null,
-      associatedAddresses: (json['associatedAddresses'] as List?)
-          ?.map((e) => e as String)
-          .toList(),
-      collaborationAlumniAccounts:
-          (json['collaborationAlumniAccounts'] as List?)
-              ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
-              .toList());
+        id: json['ID'] as String,
+        alias: json['alias'] as String?,
+        slug: json['slug'] as String?,
+        fullName: json['fullName'] as String?,
+        isArtist: json['isArtist'] as bool?,
+        isCurator: json['isCurator'] as bool?,
+        bio: json['bio'] as String?,
+        email: json['email'] as String?,
+        avatarURI: json['avatarURI'] as String?,
+        location: json['location'] as String?,
+        website: json['website'] as String?,
+        company: json['company'] as String?,
+        socialNetworks: json['socialNetworks'] != null
+            ? SocialNetwork.fromJson(
+                Map<String, dynamic>.from(json['socialNetworks'] as Map),
+              )
+            : null,
+        addresses: json['addresses'] != null
+            ? AlumniAccountAddresses.fromJson(
+                Map<String, dynamic>.from(json['addresses'] as Map),
+              )
+            : null,
+        associatedAddresses: (json['associatedAddresses'] as List?)
+            ?.map((e) => e as String)
+            .toList(),
+        collaborationAlumniAccounts:
+            (json['collaborationAlumniAccounts'] as List?)
+                ?.map((e) => AlumniAccount.fromJson(e as Map<String, dynamic>))
+                .toList(),
+      );
+  final String id;
+  final String? alias;
+  final String? slug;
+  final String? fullName;
+  final bool? isArtist;
+  final bool? isCurator;
+  final String? bio;
+  final String? email;
+  final String? avatarURI;
+  final String? location;
+  final String? website;
+  final String? company;
+  final SocialNetwork? socialNetworks;
+  final AlumniAccountAddresses? addresses;
+  final List<String>? associatedAddresses;
+  final List<AlumniAccount>? collaborationAlumniAccounts;
 
   Map<String, dynamic> toJson() => {
         'ID': id,
@@ -84,9 +88,6 @@ class AlumniAccount {
 }
 
 class SocialNetwork {
-  final String? instagramID;
-  final String? twitterID;
-
   SocialNetwork({
     this.instagramID,
     this.twitterID,
@@ -96,6 +97,8 @@ class SocialNetwork {
         instagramID: json['instagramID'] as String?,
         twitterID: json['twitterID'] as String?,
       );
+  final String? instagramID;
+  final String? twitterID;
 
   Map<String, dynamic> toJson() => {
         'instagramID': instagramID,
@@ -104,10 +107,6 @@ class SocialNetwork {
 }
 
 class AlumniAccountAddresses {
-  final String? ethereum;
-  final String? tezos;
-  final String? bitmark;
-
   AlumniAccountAddresses({
     this.ethereum,
     this.tezos,
@@ -120,6 +119,9 @@ class AlumniAccountAddresses {
         tezos: json['tezos'] as String?,
         bitmark: json['bitmark'] as String?,
       );
+  final String? ethereum;
+  final String? tezos;
+  final String? bitmark;
 
   Map<String, dynamic> toJson() => {
         'ethereum': ethereum,

@@ -76,9 +76,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     _dailyWorkBloc = injector<DailyWorkBloc>();
     _dailyWorkBloc.add(GetDailyAssetTokenEvent());
     _pageController = PageController();
-    _pageController!.addListener(() {
-      _pageControllerListener();
-    });
+    _pageController!.addListener(_pageControllerListener);
     _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
   }
@@ -120,9 +118,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
     }
     log.info('start trackingInterest in Daily');
     _trackingDailyLiked = true;
-    _trackingDailyLikedTimer = Timer(_stayDurationLikingThreshold, () {
-      _setUserLiked();
-    });
+    _trackingDailyLikedTimer =
+        Timer(_stayDurationLikingThreshold, _setUserLiked);
   }
 
   void _stopTrackingLiked() {
@@ -140,8 +137,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
     if (_currentDailyToken == null) {
       return;
     }
-    unawaited(injector<UserInteractivityService>()
-        .likeDailyWork(_currentDailyToken!));
+    unawaited(
+      injector<UserInteractivityService>().likeDailyWork(_currentDailyToken!),
+    );
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {
@@ -162,9 +160,12 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   DateTime get _nextDailyDateTime {
     const defaultScheduleTime = 6;
-    final configScheduleTime = injector<RemoteConfigService>()
-        .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
-            defaultScheduleTime.toString());
+    final configScheduleTime =
+        injector<RemoteConfigService>().getConfig<String>(
+      ConfigGroup.daily,
+      ConfigKey.scheduleTime,
+      defaultScheduleTime.toString(),
+    );
     final now =
         DateTime.now().subtract(Duration(hours: int.parse(configScheduleTime)));
     final startNextDay = DateTime(now.year, now.month, now.day + 1).add(
@@ -195,8 +196,13 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   void scrollToTop() {
-    unawaited(_pageController?.animateToPage(0,
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut));
+    unawaited(
+      _pageController?.animateToPage(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Duration? get _calcTotalDuration => const Duration(hours: 24);
@@ -260,10 +266,14 @@ class DailyWorkPageState extends State<DailyWorkPage>
               previous.assetTokens.firstOrNull?.id) {
             if (current.assetTokens.isNotEmpty) {
               // send metric event
-              unawaited(injector<MetricClientService>()
-                  .addEvent(MetricEventName.dailyView, data: {
-                MetricParameter.tokenId: current.assetTokens.first.id,
-              }));
+              unawaited(
+                injector<MetricClientService>().addEvent(
+                  MetricEventName.dailyView,
+                  data: {
+                    MetricParameter.tokenId: current.assetTokens.first.id,
+                  },
+                ),
+              );
               trackInterest();
             }
           }
@@ -274,32 +284,38 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _header(BuildContext context) => Row(
         children: [
           Expanded(
-            child: Text('daily_work'.tr(),
-                style: Theme.of(context)
-                    .textTheme
-                    .ppMori700Black36
-                    .copyWith(color: AppColor.white),
-                textAlign: TextAlign.left),
+            child: Text(
+              'daily_work'.tr(),
+              style: Theme.of(context)
+                  .textTheme
+                  .ppMori700Black36
+                  .copyWith(color: AppColor.white),
+              textAlign: TextAlign.left,
+            ),
           ),
           FFCastButton(
             key: _displayButtonKey,
             displayKey: CastDailyWorkRequest.displayKey,
             onDeviceSelected: (device) {
               context.read<CanvasDeviceBloc>().add(
-                  CanvasDeviceCastDailyWorkEvent(
-                      device, CastDailyWorkRequest()));
+                    CanvasDeviceCastDailyWorkEvent(
+                      device,
+                      CastDailyWorkRequest(),
+                    ),
+                  );
             },
-            onTap: () {
-              _setUserLiked();
-            },
+            onTap: _setUserLiked,
             text: 'display'.tr(),
             shouldCheckSubscription: false,
           ),
         ],
       );
 
-  Widget _progressBar(BuildContext context, Duration remainingDuration,
-      Duration totalDuration) {
+  Widget _progressBar(
+    BuildContext context,
+    Duration remainingDuration,
+    Duration totalDuration,
+  ) {
     final progress = 1 - remainingDuration.inSeconds / totalDuration.inSeconds;
     return Row(
       children: [
@@ -320,19 +336,25 @@ class DailyWorkPageState extends State<DailyWorkPage>
   String _nextDailyDurationText(Duration remainingDuration) {
     final hours = remainingDuration.inHours;
     if (hours > 0) {
-      return 'next_daily'.tr(namedArgs: {
-        'duration': '${hours}hr',
-      });
+      return 'next_daily'.tr(
+        namedArgs: {
+          'duration': '${hours}hr',
+        },
+      );
     } else {
       final minutes = remainingDuration.inMinutes;
       if (minutes <= 1) {
-        return 'next_daily'.tr(namedArgs: {
-          'duration': 'in a minute',
-        });
+        return 'next_daily'.tr(
+          namedArgs: {
+            'duration': 'in a minute',
+          },
+        );
       } else {
-        return 'next_daily'.tr(namedArgs: {
-          'duration': '$minutes mins',
-        });
+        return 'next_daily'.tr(
+          namedArgs: {
+            'duration': '$minutes mins',
+          },
+        );
       }
     }
   }
@@ -342,12 +364,20 @@ class DailyWorkPageState extends State<DailyWorkPage>
         child: GestureDetector(
           onTap: () {
             _currentIndex == 0
-                ? unawaited(_pageController?.animateToPage(1,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut))
-                : unawaited(_pageController?.animateToPage(0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut));
+                ? unawaited(
+                    _pageController?.animateToPage(
+                      1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    ),
+                  )
+                : unawaited(
+                    _pageController?.animateToPage(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    ),
+                  );
           },
           child: Container(
             padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8),
@@ -426,7 +456,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     Container(
                       padding: const EdgeInsets.all(16),
                       child: _tokenInfo(context, assetToken, artwork),
-                    )
+                    ),
                   ],
                 );
               },
@@ -437,7 +467,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
       );
 
   Widget _tokenInfo(
-      BuildContext context, AssetToken assetToken, Artwork? artwork) {
+    BuildContext context,
+    AssetToken assetToken,
+    Artwork? artwork,
+  ) {
     final identityState = context.watch<IdentityBloc>().state;
     final artistName =
         assetToken.artistName?.toIdentityOrMask(identityState.identityMap) ??
@@ -454,8 +487,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
             title: titleWithEditionName,
             subTitle: artistName,
             onSubTitleTap: assetToken.artistID != null && assetToken.isFeralfile
-                ? () => unawaited(injector<NavigationService>()
-                    .openFeralFileArtistPage(assetToken.artistID!))
+                ? () => unawaited(
+                      injector<NavigationService>()
+                          .openFeralFileArtistPage(assetToken.artistID!),
+                    )
                 : null,
           ),
         ),
@@ -484,9 +519,13 @@ class DailyWorkPageState extends State<DailyWorkPage>
           onNotification: (notification) {
             if (notification.direction == ScrollDirection.forward &&
                 _scrollController!.offset < 10) {
-              unawaited(_pageController?.animateToPage(0,
+              unawaited(
+                _pageController?.animateToPage(
+                  0,
                   duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut));
+                  curve: Curves.easeInOut,
+                ),
+              );
             }
             if (_scrollController!.offset > _scrollLikingThreshold) {
               _setUserLiked();
@@ -507,8 +546,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _mediumDescription(context, state.currentDailyToken!,
-                        state.currentExhibition!),
+                    child: _mediumDescription(
+                      context,
+                      state.currentDailyToken!,
+                      state.currentExhibition!,
+                    ),
                   ),
                 ),
                 const SliverToBoxAdapter(
@@ -524,8 +566,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     assetToken.description ?? '',
                     textStyle: theme.textTheme.ppMori400White14,
                     onTapUrl: (url) async {
-                      await launchUrl(Uri.parse(url),
-                          mode: LaunchMode.externalApplication);
+                      await launchUrl(
+                        Uri.parse(url),
+                        mode: LaunchMode.externalApplication,
+                      );
                       return true;
                     },
                   ),
@@ -558,21 +602,25 @@ class DailyWorkPageState extends State<DailyWorkPage>
               if (state.currentArtist != null) ...[
                 SliverToBoxAdapter(
                   child: GestureDetector(
-                      onTap: () {
-                        unawaited(injector<NavigationService>()
-                            .openFeralFileArtistPage(state.currentArtist!.id));
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child:
-                            _shortArtistProfile(context, state.currentArtist!),
-                      )),
+                    onTap: () {
+                      unawaited(
+                        injector<NavigationService>()
+                            .openFeralFileArtistPage(state.currentArtist!.id),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _shortArtistProfile(context, state.currentArtist!),
+                    ),
+                  ),
                 ),
                 SliverToBoxAdapter(
-                    child: addDivider(
-                        height: 40,
-                        color: AppColor.auQuickSilver,
-                        thickness: 0.5)),
+                  child: addDivider(
+                    height: 40,
+                    color: AppColor.auQuickSilver,
+                    thickness: 0.5,
+                  ),
+                ),
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 32),
                 ),
@@ -581,11 +629,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 SliverToBoxAdapter(
                   child: GestureDetector(
                     onTap: () {
-                      unawaited(Navigator.of(context).pushNamed(
+                      unawaited(
+                        Navigator.of(context).pushNamed(
                           AppRouter.exhibitionDetailPage,
                           arguments: ExhibitionDetailPayload(
-                              exhibitions: [state.currentExhibition!],
-                              index: 0)));
+                            exhibitions: [state.currentExhibition!],
+                            index: 0,
+                          ),
+                        ),
+                      );
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -594,10 +646,12 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   ),
                 ),
                 SliverToBoxAdapter(
-                    child: addDivider(
-                        height: 40,
-                        color: AppColor.auQuickSilver,
-                        thickness: 0.5)),
+                  child: addDivider(
+                    height: 40,
+                    color: AppColor.auQuickSilver,
+                    thickness: 0.5,
+                  ),
+                ),
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 32),
                 ),
@@ -636,31 +690,39 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
-  Widget _mediumDescription(BuildContext context, DailyToken currentDailyToken,
-      Exhibition exhibition) {
+  Widget _mediumDescription(
+    BuildContext context,
+    DailyToken currentDailyToken,
+    Exhibition exhibition,
+  ) {
     final theme = Theme.of(context);
     final seriesId = currentDailyToken.artwork?.seriesID;
     if (seriesId == null) {
       return const SizedBox();
     }
 
-    final mediumDesc = exhibition.series
-        ?.firstWhereOrNull((series) => series.id == seriesId)
-        ?.metadata?['mediumDescription'] as List?;
+    final mediumDesc = List<String>.from(
+      exhibition.series
+              ?.firstWhereOrNull((series) => series.id == seriesId)
+              ?.metadata?['mediumDescription'] as List? ??
+          [],
+    );
 
-    if (mediumDesc == null) {
+    if (mediumDesc.isEmpty) {
       return const SizedBox();
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: mediumDesc
-          .map((desc) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  desc,
-                  style: theme.textTheme.ppMori400White14,
-                ),
-              ))
+          .map(
+            (desc) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                desc,
+                style: theme.textTheme.ppMori400White14,
+              ),
+            ),
+          )
           .toList(),
     );
   }
@@ -709,8 +771,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
           customStylesBuilder: auHtmlStyle,
           textStyle: theme.textTheme.ppMori400White14,
           onTapUrl: (url) async {
-            await launchUrl(Uri.parse(url),
-                mode: LaunchMode.externalApplication);
+            await launchUrl(
+              Uri.parse(url),
+              mode: LaunchMode.externalApplication,
+            );
             return true;
           },
         ),

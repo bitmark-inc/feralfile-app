@@ -11,10 +11,6 @@ part 'ff_account.g.dart';
 
 @JsonSerializable()
 class FFContract {
-  final String name;
-  final String blockchainType;
-  final String address;
-
   FFContract(
     this.name,
     this.blockchainType,
@@ -23,15 +19,15 @@ class FFContract {
 
   factory FFContract.fromJson(Map<String, dynamic> json) =>
       _$FFContractFromJson(json);
+  final String name;
+  final String blockchainType;
+  final String address;
 
   Map<String, dynamic> toJson() => _$FFContractToJson(this);
 }
 
 @JsonSerializable()
 class FeralfileError {
-  final int code;
-  final String message;
-
   FeralfileError(
     this.code,
     this.message,
@@ -39,6 +35,8 @@ class FeralfileError {
 
   factory FeralfileError.fromJson(Map<String, dynamic> json) =>
       _$FeralfileErrorFromJson(json);
+  final int code;
+  final String message;
 
   Map<String, dynamic> toJson() => _$FeralfileErrorToJson(this);
 
@@ -48,18 +46,31 @@ class FeralfileError {
 
 @JsonSerializable()
 class ResaleResponse {
-  final FeralFileResaleInfo result;
-
   ResaleResponse(this.result);
 
   factory ResaleResponse.fromJson(Map<String, dynamic> json) =>
       _$ResaleResponseFromJson(json);
+  final FeralFileResaleInfo result;
 
   Map<String, dynamic> toJson() => _$ResaleResponseToJson(this);
 }
 
 @JsonSerializable()
 class FeralFileResaleInfo {
+  FeralFileResaleInfo(
+    this.exhibitionID,
+    this.saleType,
+    this.platform,
+    this.artist,
+    this.seller,
+    this.curator,
+    this.partner,
+    this.createdAt,
+    this.updatedAt,
+  );
+
+  factory FeralFileResaleInfo.fromJson(Map<String, dynamic> json) =>
+      _$FeralFileResaleInfoFromJson(json);
   final String exhibitionID;
   final String saleType;
   final double platform;
@@ -70,31 +81,16 @@ class FeralFileResaleInfo {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  FeralFileResaleInfo(
-      this.exhibitionID,
-      this.saleType,
-      this.platform,
-      this.artist,
-      this.seller,
-      this.curator,
-      this.partner,
-      this.createdAt,
-      this.updatedAt);
-
-  factory FeralFileResaleInfo.fromJson(Map<String, dynamic> json) =>
-      _$FeralFileResaleInfoFromJson(json);
-
   Map<String, dynamic> toJson() => _$FeralFileResaleInfoToJson(this);
 }
 
 class FileAssetMetadata {
-  final String urlOverwrite;
-
   FileAssetMetadata({required this.urlOverwrite});
 
   // from Json method
   factory FileAssetMetadata.fromJson(Map<String, dynamic> json) =>
-      FileAssetMetadata(urlOverwrite: json['urlOverwrite']);
+      FileAssetMetadata(urlOverwrite: json['urlOverwrite'] as String);
+  final String urlOverwrite;
 
   // to Json method
   Map<String, dynamic> toJson() => {
@@ -103,14 +99,6 @@ class FileAssetMetadata {
 }
 
 class FileInfo {
-  final String? filename;
-  final String uri;
-  final String status;
-  final String? version;
-  final FileAssetMetadata? metadata;
-  final String? createdAt;
-  final String? updatedAt;
-
   FileInfo({
     required this.uri,
     required this.status,
@@ -123,20 +111,28 @@ class FileInfo {
 
   // from Json method
   factory FileInfo.fromJson(Map<String, dynamic> json) => FileInfo(
-        filename: json['filename'],
-        uri: json['uri'],
-        status: json['status'],
-        version: json['version'],
+        filename: json['filename'] as String?,
+        uri: json['uri'] as String,
+        status: json['status'] as String,
+        version: json['version'] as String?,
         metadata: json['metadata'] == null ||
                 (json['metadata'] as Map<String, dynamic>).isEmpty ||
                 (json['metadata'] as Map<String, dynamic>)['urlOverwrite'] ==
                     null
             ? null
             : FileAssetMetadata.fromJson(
-                json['metadata'] as Map<String, dynamic>),
-        createdAt: json['createdAt'],
-        updatedAt: json['updatedAt'],
+                json['metadata'] as Map<String, dynamic>,
+              ),
+        createdAt: json['createdAt'] as String?,
+        updatedAt: json['updatedAt'] as String?,
       );
+  final String? filename;
+  final String uri;
+  final String status;
+  final String? version;
+  final FileAssetMetadata? metadata;
+  final String? createdAt;
+  final String? updatedAt;
 
   // to Json method
   Map<String, dynamic> toJson() => {

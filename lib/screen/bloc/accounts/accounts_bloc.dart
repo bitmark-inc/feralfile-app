@@ -49,11 +49,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<FetchAllAddressesEvent>((event, emit) async {
-      final addresses = _addressService
-          .getAllAddresses()
-          .map((e) => e.address)
-          .toList()
-        ..removeWhere((e) => e == '');
+      final addresses = _addressService.getAllWalletAddresses()
+        ..removeWhere((e) => e.address.isEmpty);
 
       final newState = state.copyWith(
         addresses: addresses,

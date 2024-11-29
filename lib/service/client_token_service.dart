@@ -19,7 +19,7 @@ class ClientTokenService {
   NftCollectionBloc get nftBloc => _nftBloc;
 
   List<String> getAddresses() {
-    final addresses = _addressService.getAllAddresses();
+    final addresses = _addressService.getAllWalletAddresses();
     return addresses.map((e) => e.address).toList();
   }
 
@@ -29,7 +29,8 @@ class ClientTokenService {
   }) async {
     if (syncAddresses && !_nftBloc.prefs.getDidSyncAddress()) {
       final addresses = getAddresses();
-      final hiddenAddresses = _addressService.getAllAddresses(isHidden: true);
+      final hiddenAddresses =
+          _addressService.getAllWalletAddresses(isHidden: true);
 
       await _nftBloc.addressService.addAddresses(addresses);
       await _nftBloc.addressService.setIsHiddenAddresses(
@@ -43,7 +44,7 @@ class ClientTokenService {
 
     if (checkPendingToken) {
       final activeAddresses = _addressService
-          .getAllAddresses(isHidden: true)
+          .getAllWalletAddresses(isHidden: true)
           .map((e) => e.address)
           .toList();
 

@@ -50,28 +50,28 @@ abstract class SupportThreadPayload {
 }
 
 class NewIssuePayload extends SupportThreadPayload {
-  final String reportIssueType;
-  final String? artworkReportID;
-  @override
-  final String? defaultMessage;
-
   NewIssuePayload({
     required this.reportIssueType,
     this.artworkReportID,
     this.defaultMessage,
   });
 
+  final String reportIssueType;
+  final String? artworkReportID;
+  @override
+  final String? defaultMessage;
+
   @override
   String get introMessage => ReportIssueType.introMessage(reportIssueType);
 }
 
 class NewIssueFromAnnouncementPayload extends SupportThreadPayload {
-  final Announcement announcement;
-
   NewIssueFromAnnouncementPayload({
     required this.announcement,
     this.defaultMessage,
   });
+
+  final Announcement announcement;
 
   @override
   final String? defaultMessage;
@@ -82,13 +82,6 @@ class NewIssueFromAnnouncementPayload extends SupportThreadPayload {
 }
 
 class DetailIssuePayload extends SupportThreadPayload {
-  final String reportIssueType;
-  final String issueID;
-  final String status;
-  final bool isRated;
-  @override
-  final String? defaultMessage;
-
   DetailIssuePayload({
     required this.reportIssueType,
     required this.issueID,
@@ -96,6 +89,13 @@ class DetailIssuePayload extends SupportThreadPayload {
     this.status = '',
     this.isRated = false,
   });
+
+  final String reportIssueType;
+  final String issueID;
+  final String status;
+  final bool isRated;
+  @override
+  final String? defaultMessage;
 
   @override
   String get introMessage {
@@ -109,16 +109,16 @@ class DetailIssuePayload extends SupportThreadPayload {
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
-  final String sentryID;
-  final String metadata;
-  @override
-  final String? defaultMessage;
-
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
     this.defaultMessage,
   });
+
+  final String sentryID;
+  final String metadata;
+  @override
+  final String? defaultMessage;
 
   @override
   String get introMessage =>
@@ -126,12 +126,12 @@ class ExceptionErrorPayload extends SupportThreadPayload {
 }
 
 class SupportThreadPage extends StatefulWidget {
-  final SupportThreadPayload payload;
-
   const SupportThreadPage({
     required this.payload,
     super.key,
   });
+
+  final SupportThreadPayload payload;
 
   @override
   State<SupportThreadPage> createState() => _SupportThreadPageState();
@@ -212,13 +212,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             if (!mounted) {
               return;
             }
-            _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
-              if (attachCrashLog) {
-                unawaited(_addDebugLog());
-              } else {
-                UIHelper.hideInfoDialog(context);
-              }
-            });
+            _askForAttachCrashLog(
+              context,
+              onConfirm: (attachCrashLog) {
+                if (attachCrashLog) {
+                  unawaited(_addDebugLog());
+                } else {
+                  UIHelper.hideInfoDialog(context);
+                }
+              },
+            );
           });
         }
       case NewIssueFromAnnouncementPayload:
@@ -239,13 +242,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           if (!mounted) {
             return;
           }
-          _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
-            if (attachCrashLog) {
-              unawaited(_addDebugLog());
-            } else {
-              UIHelper.hideInfoDialog(context);
-            }
-          });
+          _askForAttachCrashLog(
+            context,
+            onConfirm: (attachCrashLog) {
+              if (attachCrashLog) {
+                unawaited(_addDebugLog());
+              } else {
+                UIHelper.hideInfoDialog(context);
+              }
+            },
+          );
         });
     }
 
@@ -268,8 +274,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (widget.payload is NewIssueFromAnnouncementPayload) {
       final announcement =
           (widget.payload as NewIssueFromAnnouncementPayload).announcement;
-      unawaited(injector<AnnouncementService>()
-          .markAsRead(announcement.announcementContentId));
+      unawaited(
+        injector<AnnouncementService>()
+            .markAsRead(announcement.announcementContentId),
+      );
     }
   }
 
@@ -291,10 +299,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final jwt = await injector<AuthService>().getAuthToken();
     if (jwt != null) {
       final data = parseJwt(jwt.jwtToken);
-      if (data['sub'] != _userId) {
+      final sub = data['sub'] as String;
+      if (sub != _userId) {
         if (mounted) {
           setState(() {
-            _userId = data['sub'];
+            _userId = sub;
           });
         }
       }
@@ -330,34 +339,38 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     super.dispose();
   }
 
-  void _askForAttachCrashLog(BuildContext context,
-      {required void Function(bool attachCrashLog) onConfirm}) {
+  void _askForAttachCrashLog(
+    BuildContext context, {
+    required void Function(bool attachCrashLog) onConfirm,
+  }) {
     final theme = Theme.of(context);
-    unawaited(UIHelper.showDialog(
-      context,
-      'attach_crash_log'.tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'ask_attach_crash'.tr(),
-            style: theme.primaryTextTheme.ppMori400White14,
-          ),
-          const SizedBox(height: 40),
-          PrimaryButton(
-            text: 'attach_crash_logH'.tr(),
-            onTap: () => onConfirm(true),
-          ),
-          const SizedBox(height: 10),
-          OutlineButton(
-            text: 'conti_no_crash_log'.tr(),
-            onTap: () => onConfirm(false),
-          ),
-          const SizedBox(height: 40),
-        ],
+    unawaited(
+      UIHelper.showDialog(
+        context,
+        'attach_crash_log'.tr(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ask_attach_crash'.tr(),
+              style: theme.primaryTextTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 40),
+            PrimaryButton(
+              text: 'attach_crash_logH'.tr(),
+              onTap: () => onConfirm(true),
+            ),
+            const SizedBox(height: 10),
+            OutlineButton(
+              text: 'conti_no_crash_log'.tr(),
+              onTap: () => onConfirm(false),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
+        isDismissible: true,
       ),
-      isDismissible: true,
-    ));
+    );
   }
 
   @override
@@ -380,8 +393,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         }
       }
 
-      messages.removeWhere((element) =>
-          messages.indexOf(element) != 0 && _isRatingMessage(element));
+      messages.removeWhere(
+        (element) =>
+            messages.indexOf(element) != 0 && _isRatingMessage(element),
+      );
 
       if (_status == 'closed' || _status == 'clickToReopen') {
         final ratingIndex =
@@ -399,52 +414,58 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
 
     return Scaffold(
-        appBar: getBackAppBar(
-          context,
-          title: ReportIssueType.toTitle(_reportIssueType),
-          onBack: () => Navigator.of(context).pop(),
-        ),
-        body: Container(
-            margin: EdgeInsets.zero,
-            child: Chat(
-              l10n: ChatL10nEn(
-                inputPlaceholder: 'write_message'.tr(),
-              ),
-              customDateHeaderText: getChatDateTimeRepresentation,
-              bubbleBuilder: _bubbleBuilder,
-              theme: _chatTheme,
-              customMessageBuilder: _customMessageBuilder,
-              emptyState: const CupertinoActivityIndicator(),
-              messages: messages.map((e) {
-                if (e is types.TextMessage &&
-                    e.text.startsWith(RATING_MESSAGE_START)) {
-                  return e.copyWith(
-                      text: e.text.substring(RATING_MESSAGE_START.length));
-                }
-                return e;
-              }).toList(),
-              onSendPressed: _handleSendPressed,
-              user: _user,
-              customBottomWidget: _status == 'closed'
-                  ? _isRated
-                      ? const SizedBox()
-                      : MyRatingBar(
-                          submit: (String messageType,
-                                  DraftCustomerSupportData data,
-                                  {bool isRating = false}) =>
-                              // ignore: discarded_futures
-                              _submit(messageType, data, isRating: isRating))
-                  : Column(
-                      children: [
-                        if (_isFileAttached) debugLogView(),
-                        Input(
-                          onSendPressed: _handleSendPressed,
-                          onAttachmentPressed: _handleAttachmentPressed,
-                          options: _inputOption(),
-                        ),
-                      ],
+      appBar: getBackAppBar(
+        context,
+        title: ReportIssueType.toTitle(_reportIssueType),
+        onBack: () => Navigator.of(context).pop(),
+      ),
+      body: Container(
+        margin: EdgeInsets.zero,
+        child: Chat(
+          l10n: ChatL10nEn(
+            inputPlaceholder: 'write_message'.tr(),
+          ),
+          customDateHeaderText: getChatDateTimeRepresentation,
+          bubbleBuilder: _bubbleBuilder,
+          theme: _chatTheme,
+          customMessageBuilder: _customMessageBuilder,
+          emptyState: const CupertinoActivityIndicator(),
+          messages: messages.map((e) {
+            if (e is types.TextMessage &&
+                e.text.startsWith(RATING_MESSAGE_START)) {
+              return e.copyWith(
+                text: e.text.substring(RATING_MESSAGE_START.length),
+              );
+            }
+            return e;
+          }).toList(),
+          onSendPressed: _handleSendPressed,
+          user: _user,
+          customBottomWidget: _status == 'closed'
+              ? _isRated
+                  ? const SizedBox()
+                  : MyRatingBar(
+                      submit: (
+                        String messageType,
+                        DraftCustomerSupportData data, {
+                        bool isRating = false,
+                      }) =>
+                          // ignore: discarded_futures
+                          _submit(messageType, data, isRating: isRating),
+                    )
+              : Column(
+                  children: [
+                    if (_isFileAttached) debugLogView(),
+                    Input(
+                      onSendPressed: _handleSendPressed,
+                      onAttachmentPressed: _handleAttachmentPressed,
+                      options: _inputOption(),
                     ),
-            )));
+                  ],
+                ),
+        ),
+      ),
+    );
   }
 
   InputOptions _inputOption() => InputOptions(
@@ -543,8 +564,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Widget _bubbleBuilder(
     Widget child, {
-    required message,
-    required nextMessageInGroup,
+    required types.Message message,
+    required bool nextMessageInGroup,
   }) {
     final theme = Theme.of(context);
     var color = _user.id != message.author.id
@@ -556,11 +577,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
     bool isError = false;
     String uuid = '';
-    if (message is types.Message) {
-      if (message.status == types.Status.error) {
-        isError = true;
-        uuid = message.id;
-      }
+    if (message.status == types.Status.error) {
+      isError = true;
+      uuid = message.id;
     }
     Color orangeRust = const Color(0xffA1200A);
 
@@ -614,8 +633,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        await _customerSupportService.removeErrorMessage(uuid,
-                            isDelete: true);
+                        await _customerSupportService.removeErrorMessage(
+                          uuid,
+                          isDelete: true,
+                        );
                         await _loadDrafts();
                         if (_draftMessages.isEmpty && _messages.isEmpty) {
                           if (!mounted) {
@@ -655,74 +676,81 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           );
   }
 
-  Widget _customMessageBuilder(types.CustomMessage message,
-      {required int messageWidth}) {
+  Widget _customMessageBuilder(
+    types.CustomMessage message, {
+    required int messageWidth,
+  }) {
     final theme = Theme.of(context);
     switch (message.metadata?['status']) {
       case 'resolved':
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           color: AppColor.feralFileHighlight,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              'issue_resolved_'.tr(),
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black16,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'our_team_thank'.tr(),
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori400Black14
-                  : theme.textTheme.ppMori400Black16,
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                if (_status == 'closed') {
-                  setState(() {
-                    _status = 'clickToReopen';
-                  });
-                }
-              },
-              style: theme.textButtonNoPadding,
-              child: Text(
-                'still_problem'.tr(),
-                //"Still experiencing the same problem?",
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'issue_resolved_'.tr(),
+                textAlign: TextAlign.start,
                 style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.linkStyle14
-                        .copyWith(fontFamily: AppTheme.ppMori)
-                    : theme.textTheme.linkStyle16
-                        .copyWith(fontFamily: AppTheme.ppMori),
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black16,
               ),
-            ),
-          ]),
+              const SizedBox(height: 10),
+              Text(
+                'our_team_thank'.tr(),
+                textAlign: TextAlign.start,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.ppMori400Black14
+                    : theme.textTheme.ppMori400Black16,
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  if (_status == 'closed') {
+                    setState(() {
+                      _status = 'clickToReopen';
+                    });
+                  }
+                },
+                style: theme.textButtonNoPadding,
+                child: Text(
+                  'still_problem'.tr(),
+                  //"Still experiencing the same problem?",
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.linkStyle14
+                          .copyWith(fontFamily: AppTheme.ppMori)
+                      : theme.textTheme.linkStyle16
+                          .copyWith(fontFamily: AppTheme.ppMori),
+                ),
+              ),
+            ],
+          ),
         );
       case 'rating':
+        final rating = int.tryParse(message.metadata?['rating'] as String) ?? 0;
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           color: AppColor.primaryBlack,
-          child: _ratingBar(message.metadata?['rating']),
+          child: _ratingBar(rating),
         );
       case 'careToShare':
       case 'rateIssue':
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           color: AppColor.feralFileHighlight,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              message.metadata?['content'],
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black16,
-            ),
-          ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message.metadata?['content'] as String,
+                textAlign: TextAlign.start,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black16,
+              ),
+            ],
+          ),
         );
       default:
         return const SizedBox();
@@ -738,7 +766,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _userId = issueDetails.issue.userId;
     }
     final parsedMessages = (await Future.wait(
-            issueDetails.messages.map((e) => _convertChatMessage(e, null))))
+      issueDetails.messages.map((e) => _convertChatMessage(e, null)),
+    ))
         .expand((i) => i)
         .toList();
 
@@ -761,14 +790,14 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   bool _isRating(types.Message message) {
-    final rating = int.tryParse(message.metadata?['rating']);
+    final rating = int.tryParse(message.metadata?['rating'] as String);
     if (rating != null && rating > 0 && rating < 6) {
       return true;
     }
     return false;
   }
 
-  Future _loadDrafts() async {
+  Future<void> _loadDrafts() async {
     if (_issueID == null) {
       return;
     }
@@ -806,12 +835,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     });
   }
 
-  Future _submit(String messageType, DraftCustomerSupportData data,
-      {bool isRating = false}) async {
+  Future<void> _submit(
+    String messageType,
+    DraftCustomerSupportData data, {
+    bool isRating = false,
+  }) async {
     log_util.log.info('[CS-Thread][start] _submit $messageType - $data');
     List<String> mutedMessages = [];
     if (_issueID == null) {
-      messageType = CSMessageType.CreateIssue.rawValue;
+      messageType = CSMessageType.createIssue.rawValue;
       _issueID = 'TEMP-${const Uuid().v4()}';
 
       final payload = widget.payload;
@@ -820,7 +852,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           final sentryID = (payload as ExceptionErrorPayload).sentryID;
           if (sentryID.isNotEmpty) {
             mutedMessages.add(
-                '[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)');
+              '[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)',
+            );
           }
 
           if (payload.metadata.isNotEmpty) {
@@ -842,7 +875,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       mutedMessages.add(MUTE_RATING_MESSAGE);
     }
 
-    if (messageType == CSMessageType.PostMessage.rawValue &&
+    if (messageType == CSMessageType.postMessage.rawValue &&
         _isRated &&
         _status == 'closed') {
       data.text = '$RATING_MESSAGE_START${data.text}';
@@ -894,13 +927,13 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       await _addAppLogs(message);
     } else {
       await _submit(
-        CSMessageType.PostMessage.rawValue,
+        CSMessageType.postMessage.rawValue,
         DraftCustomerSupportData(text: message.text),
       );
     }
   }
 
-  Future _addAppLogs(types.PartialText message) async {
+  Future<void> _addAppLogs(types.PartialText message) async {
     if (_debugLog == null) {
       return;
     }
@@ -911,7 +944,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         await _customerSupportService.storeFile(filename, combinedBytes);
 
     await _submit(
-      CSMessageType.PostLogs.rawValue,
+      CSMessageType.postLogs.rawValue,
       DraftCustomerSupportData(
         text: message.text,
         attachments: [LocalAttachment(fileName: filename, path: localPath)],
@@ -926,60 +959,66 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (_isFileAttached) {
       return;
     }
-    unawaited(UIHelper.showDialog(
-      context,
-      'attach_file'.tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          PrimaryButton(
-            onTap: () {
-              _handleImageSelection();
-              Navigator.of(context).pop();
-            },
-            text: 'photo'.tr(),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          PrimaryButton(
-            onTap: () async {
-              await _addDebugLog();
-            },
-            text: 'debug_log'.tr(),
-          ),
-          const SizedBox(height: 10),
-          OutlineButton(
-            onTap: () => Navigator.of(context).pop(),
-            text: 'cancel_dialog'.tr(),
-          ),
-          const SizedBox(height: 15),
-        ],
+    unawaited(
+      UIHelper.showDialog(
+        context,
+        'attach_file'.tr(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PrimaryButton(
+              onTap: () {
+                _handleImageSelection();
+                Navigator.of(context).pop();
+              },
+              text: 'photo'.tr(),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            PrimaryButton(
+              onTap: () async {
+                await _addDebugLog();
+              },
+              text: 'debug_log'.tr(),
+            ),
+            const SizedBox(height: 10),
+            OutlineButton(
+              onTap: () => Navigator.of(context).pop(),
+              text: 'cancel_dialog'.tr(),
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+        isDismissible: true,
       ),
-      isDismissible: true,
-    ));
+    );
   }
 
   Future<void> _handleImageSelection() async {
     log_util.log.info('[_handleImageSelection] begin');
     final result = await ImagePicker().pickMultiImage();
 
-    final attachments = await Future.wait(result.map((element) async {
-      final bytes = await element.readAsBytes();
-      final fileName = '${bytes.length}_${element.name}';
-      final localPath =
-          await _customerSupportService.storeFile(fileName, bytes);
-      return LocalAttachment(path: localPath, fileName: fileName);
-    }));
+    final attachments = await Future.wait(
+      result.map((element) async {
+        final bytes = await element.readAsBytes();
+        final fileName = '${bytes.length}_${element.name}';
+        final localPath =
+            await _customerSupportService.storeFile(fileName, bytes);
+        return LocalAttachment(path: localPath, fileName: fileName);
+      }),
+    );
 
     await _submit(
-      CSMessageType.PostPhotos.rawValue,
+      CSMessageType.postPhotos.rawValue,
       DraftCustomerSupportData(attachments: attachments),
     );
   }
 
   Future<List<types.Message>> _convertChatMessage(
-      message, String? tempID) async {
+    dynamic message,
+    String? tempID,
+  ) async {
     String id;
     types.User author;
     types.Status status;
@@ -1009,7 +1048,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           : types.Status.sending;
       createdAt = message.createdAt;
       text = message.draftData.text;
-      metadata = json.decode(message.data);
+      metadata = Map<String, dynamic>.from(json.decode(message.data) as Map);
       rating = message.draftData.rating;
       if (rating > 0) {
         metadata['rating'] = rating;
@@ -1022,15 +1061,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     List<types.Message> result = [];
 
     if (text is String && text.isNotEmpty && text != EMPTY_ISSUE_MESSAGE) {
-      result.add(types.TextMessage(
-        id: id,
-        author: author,
-        createdAt: createdAt.millisecondsSinceEpoch,
-        text: text,
-        status: status,
-        showStatus: true,
-        metadata: metadata,
-      ));
+      result.add(
+        types.TextMessage(
+          id: id,
+          author: author,
+          createdAt: createdAt.millisecondsSinceEpoch,
+          text: text,
+          status: status,
+          showStatus: true,
+          metadata: metadata,
+        ),
+      );
     }
 
     final storedDirectory = await _customerSupportService.getStoredDirectory();
@@ -1046,42 +1087,48 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
       //
     } else if (message is DraftCustomerSupport) {
-      for (var attachment in message.draftData.attachments ?? []) {
+      for (final attachment
+          in message.draftData.attachments ?? <LocalAttachment>[]) {
         titles.add(attachment.fileName);
         uris.add(attachment.path);
-        contentTypes.add(message.type == CSMessageType.PostPhotos.rawValue
-            ? 'image'
-            : 'logs');
+        contentTypes.add(
+          message.type == CSMessageType.postPhotos.rawValue ? 'image' : 'logs',
+        );
       }
     }
 
     for (var i = 0; i < titles.length; i += 1) {
       if (contentTypes[i].contains('image')) {
-        result.add(types.ImageMessage(
-          id: '$id${titles[i]}',
-          author: author,
-          createdAt: createdAt.millisecondsSinceEpoch,
-          status: status,
-          showStatus: true,
-          name: titles[i],
-          size: 0,
-          uri: uris[i],
-        ));
+        result.add(
+          types.ImageMessage(
+            id: '$id${titles[i]}',
+            author: author,
+            createdAt: createdAt.millisecondsSinceEpoch,
+            status: status,
+            showStatus: true,
+            name: titles[i],
+            size: 0,
+            uri: uris[i],
+          ),
+        );
       } else {
         final sizeAndRealTitle =
             ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
+        final title = sizeAndRealTitle[1] as String;
+        final size = int.tryParse(sizeAndRealTitle[0] as String) ?? 0;
         result.insert(
-            0,
-            types.FileMessage(
-              id: '$id${sizeAndRealTitle[1]}',
-              author: author,
-              createdAt: createdAt.millisecondsSinceEpoch,
-              status: status,
-              showStatus: true,
-              name: sizeAndRealTitle[1],
-              size: sizeAndRealTitle[0] ?? 0,
-              uri: uris[i],
-            ));
+          0,
+          types.FileMessage(
+            id: '$id${sizeAndRealTitle[1]}',
+            author: author,
+            createdAt: createdAt.millisecondsSinceEpoch,
+            status: status,
+            showStatus: true,
+            name: title,
+            size: size,
+            uri: uris[i],
+          ),
+        );
       }
     }
 
@@ -1116,10 +1163,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       attachmentButtonIcon: SvgPicture.asset(
         'assets/images/joinFile.svg',
         colorFilter: ColorFilter.mode(
-            _isFileAttached
-                ? AppColor.disabledColor
-                : theme.colorScheme.secondary,
-            BlendMode.srcIn),
+          _isFileAttached
+              ? AppColor.disabledColor
+              : theme.colorScheme.secondary,
+          BlendMode.srcIn,
+        ),
       ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(
@@ -1169,8 +1217,10 @@ class MyRatingBar extends StatefulWidget {
   const MyRatingBar({required this.submit, super.key});
 
   final Future<dynamic> Function(
-          String messageType, DraftCustomerSupportData data, {bool isRating})
-      submit;
+    String messageType,
+    DraftCustomerSupportData data, {
+    bool isRating,
+  }) submit;
 
   @override
   State<MyRatingBar> createState() => _MyRatingBarState();
@@ -1201,7 +1251,7 @@ class _MyRatingBarState extends State<MyRatingBar> {
             ),
             const SizedBox(width: 40),
             IconButton(onPressed: _sendButtonOnPress, icon: sendButtonRating),
-            const SizedBox(width: 10)
+            const SizedBox(width: 10),
           ],
         ),
       );
@@ -1219,9 +1269,11 @@ class _MyRatingBarState extends State<MyRatingBar> {
     if (ratingInt < 1) {
       return;
     }
-    await widget.submit(CSMessageType.PostMessage.rawValue,
-        DraftCustomerSupportData(text: customerRating, rating: ratingInt),
-        isRating: true);
+    await widget.submit(
+      CSMessageType.postMessage.rawValue,
+      DraftCustomerSupportData(text: customerRating, rating: ratingInt),
+      isRating: true,
+    );
   }
 
   String _convertRatingToText(int rating) {

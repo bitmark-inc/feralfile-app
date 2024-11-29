@@ -19,12 +19,12 @@ Future<FileInfo> getFileInfo(String url) async {
     final resp = await http
         .head(Uri.parse(url))
         .timeout(const Duration(milliseconds: 10000));
-    final mimeType = resp.headers["content-type"] ?? "";
-    final ext = extensionFromMime(mimeType);
-    final size = int.tryParse(resp.headers["content-length"] ?? "") ?? 0;
+    final mimeType = resp.headers['content-type'] ?? '';
+    final ext = extensionFromMime(mimeType) ?? '';
+    final size = int.tryParse(resp.headers['content-length'] ?? '') ?? 0;
     return FileInfo(mimeType, ext, size);
   } catch (e) {
     log.info("Can't get file info $url. $e");
-    return FileInfo("", "", 0);
+    return FileInfo('', '', 0);
   }
 }

@@ -140,7 +140,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
     );
   }
 
-  void _onTextChanged(value) {
+  void _onTextChanged(String value) {
     _timer?.cancel();
     final text = value.trim();
     _timer = Timer(const Duration(milliseconds: 500), () {

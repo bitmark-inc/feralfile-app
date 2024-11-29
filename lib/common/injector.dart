@@ -67,7 +67,6 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -137,10 +136,9 @@ Future<void> setupHomeWidgetInjector() async {
 Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  injector.registerLazySingleton(() => NavigationService());
+  injector.registerLazySingleton(NavigationService.new);
 
-  injector
-      .registerLazySingleton<NetworkIssueManager>(() => NetworkIssueManager());
+  injector.registerLazySingleton<NetworkIssueManager>(NetworkIssueManager.new);
 
   final dioOptions = BaseOptions(
     followRedirects: true,
@@ -174,25 +172,21 @@ Future<void> setupInjector() async {
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(MetricsInterceptor());
 
-  injector.registerLazySingleton<NetworkService>(() => NetworkService());
+  injector.registerLazySingleton<NetworkService>(NetworkService.new);
   // Services
 
   injector.registerSingleton<ConfigurationService>(
     ConfigurationServiceImpl(sharedPreferences),
   );
-  injector.registerLazySingleton(() => http.Client());
-  injector
-      .registerLazySingleton<MetricClientService>(() => MetricClientService());
-  injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
-
-  injector
-      .registerLazySingleton<UserAccountChannel>(() => UserAccountChannel());
+  injector.registerLazySingleton(http.Client.new);
+  injector.registerLazySingleton<MetricClientService>(MetricClientService.new);
+  injector.registerLazySingleton<CacheManager>(AUImageCacheManage.new);
 
   injector.registerLazySingleton<AddressService>(
     () => AddressService(injector(), injector()),
   );
 
-  injector.registerLazySingleton<KeychainService>(() => KeychainService());
+  injector.registerLazySingleton<KeychainService>(KeychainService.new);
 
   injector.registerLazySingleton(
     () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL),
@@ -233,7 +227,6 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<PasskeyService>(
     () => PasskeyServiceImpl(
-      injector(),
       injector(),
       injector(),
     ),
@@ -300,7 +293,7 @@ Future<void> setupInjector() async {
     ),
   );
 
-  injector.registerLazySingleton<DomainService>(() => DomainServiceImpl());
+  injector.registerLazySingleton<DomainService>(DomainServiceImpl.new);
 
   injector.registerLazySingleton<DomainAddressService>(
     () => DomainAddressServiceImpl(injector()),
@@ -343,10 +336,10 @@ Future<void> setupInjector() async {
       injector(),
     ),
   );
-  injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
+  injector.registerLazySingleton<DeviceInfoService>(DeviceInfoService.new);
 
   injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
-    () => HiveStoreObjectServiceImpl(),
+    HiveStoreObjectServiceImpl.new,
   );
   await injector<HiveStoreObjectService<CanvasDevice>>()
       .init('local.canvas_device');
@@ -384,11 +377,11 @@ Future<void> setupInjector() async {
   );
   injector
       .registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc(injector()));
-  injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
+  injector.registerFactory<EditPlaylistBloc>(EditPlaylistBloc.new);
 
-  injector.registerFactory<CollectionProBloc>(() => CollectionProBloc());
+  injector.registerFactory<CollectionProBloc>(CollectionProBloc.new);
   injector.registerFactory<PredefinedCollectionBloc>(
-    () => PredefinedCollectionBloc(),
+    PredefinedCollectionBloc.new,
   );
   injector.registerFactory<IdentityBloc>(
     () => IdentityBloc(ObjectBox.identityBox, injector()),
@@ -404,7 +397,7 @@ Future<void> setupInjector() async {
     () => DailyWorkBloc(injector(), injector()),
   );
 
-  injector.registerLazySingleton<AnnouncementStore>(() => AnnouncementStore());
+  injector.registerLazySingleton<AnnouncementStore>(AnnouncementStore.new);
   await injector<AnnouncementStore>().init('');
 
   injector.registerLazySingleton<AnnouncementService>(
@@ -419,9 +412,9 @@ Future<void> setupInjector() async {
     () => AccountSettingsClient(Environment.accountSettingUrl),
   );
 
-  injector.registerLazySingleton<CloudManager>(() => CloudManager());
+  injector.registerLazySingleton<CloudManager>(CloudManager.new);
 
-  injector.registerLazySingleton<ListPlaylistBloc>(() => ListPlaylistBloc());
+  injector.registerLazySingleton<ListPlaylistBloc>(ListPlaylistBloc.new);
 
-  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
+  injector.registerLazySingleton<HomeWidgetService>(HomeWidgetService.new);
 }

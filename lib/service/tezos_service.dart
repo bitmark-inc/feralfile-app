@@ -25,10 +25,10 @@ abstract class TezosService {
 }
 
 class TezosServiceImpl extends TezosService {
+  TezosServiceImpl(this._networkIssueManager);
+
   TezartClient get _tezartClient => _getClient();
   final NetworkIssueManager _networkIssueManager;
-
-  TezosServiceImpl(this._networkIssueManager);
 
   String _nodeUrl = '';
 
@@ -43,9 +43,13 @@ class TezosServiceImpl extends TezosService {
   }
 
   void _changeNode() {
-    final publicTezosNodes = injector<RemoteConfigService>()
-        .getConfig(ConfigGroup.dAppUrls, ConfigKey.tezosNodes, []).toList()
-      ..remove(_nodeUrl);
+    final publicTezosNodes =
+        injector<RemoteConfigService>().getConfig<List<String>>(
+      ConfigGroup.dAppUrls,
+      ConfigKey.tezosNodes,
+      <String>[],
+    ).toList()
+          ..remove(_nodeUrl);
     if (publicTezosNodes.isEmpty) {
       return;
     }
@@ -56,14 +60,19 @@ class TezosServiceImpl extends TezosService {
   Future<int> getBalance(String address, {bool doRetry = false}) {
     log.info('TezosService.getBalance: $address');
     return _retryOnError<int>(
-        (client) async => client.getBalance(address: address),
-        doRetry: doRetry);
+      (client) async => client.getBalance(address: address),
+      doRetry: doRetry,
+    );
   }
 
-  Future<T> _retryOnError<T>(Future<T> Function(TezartClient) func,
-          {bool doRetry = true}) =>
-      _networkIssueManager.retryOnConnectIssueTx(() => _retryOnNodeError(func),
-          maxRetries: doRetry ? 3 : 0);
+  Future<T> _retryOnError<T>(
+    Future<T> Function(TezartClient) func, {
+    bool doRetry = true,
+  }) =>
+      _networkIssueManager.retryOnConnectIssueTx(
+        () => _retryOnNodeError(func),
+        maxRetries: doRetry ? 3 : 0,
+      );
 
   Future<T> _retryOnNodeError<T>(Future<T> Function(TezartClient) func) async {
     try {
@@ -73,7 +82,7 @@ class TezosServiceImpl extends TezosService {
         rethrow;
       }
       _changeNode();
-      return await func(_tezartClient);
+      return func(_tezartClient);
     }
   }
 }

@@ -11,13 +11,11 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 
 class NetworkService {
   static const String _defaultListenerId = 'defaultListenerId';
   final Connectivity _connectivity = Connectivity();
-  final Map<String, StreamSubscription<ConnectivityResult>> _listener = {};
-  ConnectivityResult _connectivityResult = ConnectivityResult.none;
+  List<ConnectivityResult> _connectivityResult = [ConnectivityResult.none];
   final ValueNotifier<bool> isWifiNotifier = ValueNotifier(false);
   Timer? _timer;
 
@@ -31,28 +29,15 @@ class NetworkService {
 
       _timer?.cancel();
       _timer = Timer(const Duration(seconds: 1), () {
-        isWifiNotifier.value = result == ConnectivityResult.wifi;
+        isWifiNotifier.value = isWifi;
       });
     }, id: _defaultListenerId);
   }
 
-  String addListener(Function(ConnectivityResult result) fn, {String? id}) {
-    final listenerId = id ?? const Uuid().v4();
-    log.info('[NetworkService] add listener $listenerId');
-    final connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(fn);
-    _listener[listenerId] = connectivitySubscription;
-    return listenerId;
+  void addListener(void Function(List<ConnectivityResult> result) fn,
+      {String? id}) {
+    _connectivity.onConnectivityChanged.listen(fn);
   }
 
-  Future<void> removeListener(String id) async {
-    final connectivitySubscription = _listener[id];
-    if (connectivitySubscription != null) {
-      log.info('[NetworkService] remove listener $id');
-      await connectivitySubscription.cancel();
-      _listener.remove(id);
-    }
-  }
-
-  bool get isWifi => _connectivityResult == ConnectivityResult.wifi;
+  bool get isWifi => _connectivityResult.contains(ConnectivityResult.wifi);
 }

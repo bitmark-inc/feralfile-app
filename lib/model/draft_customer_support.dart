@@ -7,16 +7,16 @@
 
 import 'dart:convert';
 
-import 'package:objectbox/objectbox.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:objectbox/objectbox.dart';
 
 part 'draft_customer_support.g.dart';
 
 enum CSMessageType {
-  CreateIssue,
-  PostMessage,
-  PostPhotos,
-  PostLogs,
+  createIssue,
+  postMessage,
+  postPhotos,
+  postLogs,
 }
 
 extension RawValue on CSMessageType {
@@ -25,6 +25,17 @@ extension RawValue on CSMessageType {
 
 @Entity()
 class DraftCustomerSupport {
+  DraftCustomerSupport({
+    required this.uuid,
+    required this.issueID,
+    required this.type,
+    required this.data,
+    required this.createdAt,
+    required this.reportIssueType,
+    this.mutedMessages = '',
+    this.rating = 0,
+  });
+
   @Id()
   int id = 0;
   String uuid;
@@ -36,33 +47,16 @@ class DraftCustomerSupport {
   String reportIssueType;
   String mutedMessages;
   int rating;
-
-  DraftCustomerSupport({
-    required this.uuid,
-    required this.issueID,
-    required this.type,
-    required this.data,
-    required this.createdAt,
-    required this.reportIssueType,
-    this.mutedMessages = '',
-    this.rating = 0,
-  });
 }
 
 extension Supporter on DraftCustomerSupport {
   DraftCustomerSupportData get draftData => DraftCustomerSupportData.fromJson(
-      jsonDecode(data) as Map<String, dynamic>);
+        jsonDecode(data) as Map<String, dynamic>,
+      );
 }
 
 @JsonSerializable()
 class DraftCustomerSupportData {
-  String? text;
-  List<LocalAttachment>? attachments;
-  String? title;
-  int rating;
-  String? artworkReportID;
-  String? announcementContentId;
-
   DraftCustomerSupportData({
     this.text,
     this.attachments,
@@ -74,15 +68,18 @@ class DraftCustomerSupportData {
 
   factory DraftCustomerSupportData.fromJson(Map<String, dynamic> json) =>
       _$DraftCustomerSupportDataFromJson(json);
+  String? text;
+  List<LocalAttachment>? attachments;
+  String? title;
+  int rating;
+  String? artworkReportID;
+  String? announcementContentId;
 
   Map<String, dynamic> toJson() => _$DraftCustomerSupportDataToJson(this);
 }
 
 @JsonSerializable()
 class LocalAttachment {
-  String path;
-  String fileName;
-
   LocalAttachment({
     required this.path,
     required this.fileName,
@@ -90,6 +87,8 @@ class LocalAttachment {
 
   factory LocalAttachment.fromJson(Map<String, dynamic> json) =>
       _$LocalAttachmentFromJson(json);
+  String path;
+  String fileName;
 
   Map<String, dynamic> toJson() => _$LocalAttachmentToJson(this);
 }
