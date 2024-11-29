@@ -237,7 +237,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   style: termsConditionsStyle,
                   children: <TextSpan>[
                     TextSpan(
-                      text: 'by_continuing'.tr(),
+                      text: '${'by_continuing'.tr()} ',
                     ),
                     TextSpan(
                         text: 'terms_and_conditions'.tr(),

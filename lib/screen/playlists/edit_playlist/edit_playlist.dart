@@ -449,7 +449,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 children: [
                   TextSpan(
                     style: theme.textTheme.ppMori400White16,
-                    text: 'you_are_about_to_remove'.tr(),
+                    text: '${'you_are_about_to_remove'.tr()} ',
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori700White16,
@@ -460,7 +460,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori400White16,
-                    text: 'from_the_playlist'.tr(),
+                    text: ' ${'from_the_playlist'.tr()} ',
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori700White16,

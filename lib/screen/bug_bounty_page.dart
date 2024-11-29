@@ -64,7 +64,7 @@ class BugBountyPage extends StatelessWidget {
                       style: theme.textTheme.ppMori400Black16,
                       children: <TextSpan>[
                         TextSpan(
-                          text: 'only_accept_new_bug'.tr(),
+                          text: '${'only_accept_new_bug'.tr()} ',
                         ),
                         TextSpan(
                           recognizer: TapGestureRecognizer()
@@ -80,7 +80,7 @@ class BugBountyPage extends StatelessWidget {
                               : theme.textTheme.linkStyle16,
                         ),
                         TextSpan(
-                          text: 'not_reward_yet'.tr(),
+                          text: ' ${'not_reward_yet'.tr()}',
                         ),
                       ])),
               const SizedBox(height: 32),

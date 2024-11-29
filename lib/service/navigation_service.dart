@@ -217,7 +217,7 @@ class NavigationService {
               style: theme.textTheme.ppMori400White14,
               children: <TextSpan>[
                 TextSpan(
-                  text: 'if_issue_persist'.tr(),
+                  text: '${'if_issue_persist'.tr()} ',
                 ),
                 TextSpan(
                   text: 'feralfile@support.com'.tr(),
@@ -233,7 +233,7 @@ class NavigationService {
                     },
                 ),
                 TextSpan(
-                  text: 'for_assistance'.tr(),
+                  text: ' ${'for_assistance'.tr()}',
                 ),
               ],
             ))
@@ -955,7 +955,7 @@ class NavigationService {
               style: theme.textTheme.ppMori400White14,
               children: [
                 TextSpan(
-                  text: 'go_to_setting_tv'.tr(),
+                  text: '${'go_to_setting_tv'.tr()} ',
                 ),
                 TextSpan(
                   recognizer: TapGestureRecognizer()

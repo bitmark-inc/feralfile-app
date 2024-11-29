@@ -941,8 +941,8 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
               value: artwork.series!.artistAlumni!.displayAlias,
               onTap: () async {
                 if (artwork.series!.artistAlumni!.slug != null) {
-                  await injector<NavigationService>()
-                      .openFeralFileArtistPage(artwork.series!.artistAlumni!.slug!);
+                  await injector<NavigationService>().openFeralFileArtistPage(
+                      artwork.series!.artistAlumni!.slug!);
                 }
               },
             ),
@@ -1513,7 +1513,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                 return Column(
                   children: [
                     ProvenanceItem(
-                      title: (identityTitle ?? '') + youTitle,
+                      title: '${identityTitle ?? ''} $youTitle',
                       value: localTimeString(el.timestamp),
                       // subTitle: el.blockchain.toUpperCase(),
                       tapLink: el.txURL,

@@ -946,7 +946,7 @@ class UIHelper {
                 text: TextSpan(children: [
                   TextSpan(
                     style: theme.textTheme.ppMori400White14,
-                    text: 'art_no_appear'.tr(),
+                    text: '${'art_no_appear'.tr()} ',
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori700White14,
@@ -954,7 +954,7 @@ class UIHelper {
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori400White14,
-                    text: 'section_setting'.tr(),
+                    text: ' ${'section_setting'.tr()}',
                   ),
                 ]),
               )

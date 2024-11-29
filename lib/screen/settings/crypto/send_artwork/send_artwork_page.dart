@@ -222,7 +222,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                       const SizedBox(height: 8),
                                       if (_quantity < 1)
                                         Text(
-                                          'minimum_1'.tr(),
+                                          '${'minimum_1'.tr()} ',
                                           style: theme
                                               .textTheme.ppMori400Black12
                                               .copyWith(color: AppColor.red),
