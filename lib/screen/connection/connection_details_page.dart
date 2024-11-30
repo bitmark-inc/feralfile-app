@@ -176,13 +176,13 @@ class ConnectionDetailsPage extends StatelessWidget {
                   style: theme.primaryTextTheme.ppMori400White14,
                   children: <TextSpan>[
                     TextSpan(
-                      text: 'sure_revoke'.tr(),
+                      text: '${'sure_revoke'.tr()} ',
                     ),
                     TextSpan(
                         text: 'autonomyL'.tr(),
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     TextSpan(
-                      text: 'from_all_rights_on'.tr(),
+                      text: ' ${'from_all_rights_on'.tr()} ',
                     ),
                     TextSpan(
                         text: connection.appName,

@@ -10,7 +10,9 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -121,7 +123,15 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<DeviceInfoService>().init();
       await injector<MetricClientService>().initService();
 
-      unawaited(injector<RemoteConfigService>().loadConfigs());
+      unawaited(
+        injector<RemoteConfigService>().loadConfigs().then((_) {
+          log.info('Remote config loaded');
+        }, onError: (e) {
+          log.info('Failed to load remote config: $e');
+        }).whenComplete(() {
+          injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+        }),
+      );
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
 
       await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
@@ -261,7 +271,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     try {
       await injector<AccountService>().migrateAccount(() async {
         try {
-          final jwt =
+          JWT? jwt =
               await injector<AuthService>().getAuthToken(shouldRefresh: false);
           final refreshToken = jwt?.refreshToken;
           final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
@@ -278,14 +288,15 @@ class _OnboardingPageState extends State<OnboardingPage>
               log.info('JWT is valid, no need to refresh');
             } else {
               log.info('JWT is invalid, refresh JWT token');
-              await injector<AuthService>().getAuthToken();
+              jwt = await injector<AuthService>().getAuthToken();
             }
             log.info('[_loginAndMigrate] JWT now is valid');
-            return;
+          } else {
+            log.info(
+                'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
+            jwt = await _passkeyService.requestJwt();
           }
-          log.info(
-              'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
-          await _passkeyService.requestJwt();
+          await injector<AuthService>().setAuthToken(jwt);
           log.info('[_loginAndMigrate] create JWT token done');
         } catch (e, s) {
           log.info('Failed to create login JWT: $e');

@@ -6,15 +6,15 @@ import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:flutter/material.dart';
 
 class ExploreBar extends StatefulWidget {
-  final Widget Function(
+  final void Function(
     String?,
     Map<FilterType, FilterValue> filters,
     SortBy sortBy,
-  ) childBuilder;
+  ) onUpdate;
   final FeralfileHomeTab tab;
 
   const ExploreBar(
-      {required this.childBuilder,
+      {required this.onUpdate,
       super.key,
       this.tab = FeralfileHomeTab.artworks});
 
@@ -23,35 +23,68 @@ class ExploreBar extends StatefulWidget {
 }
 
 class _ExploreBarState extends State<ExploreBar> {
-  String? _searchText;
   final TextEditingController _controller = TextEditingController();
-  final Map<FilterType, FilterValue> _filters = {};
-  late SortBy _sortBy;
+  late final ValueNotifier<Map<FilterType, FilterValue>> _filters;
+  late final ValueNotifier<SortBy> _sortBy;
+  late final ValueNotifier<String?> _searchText;
 
   @override
   void initState() {
     super.initState();
-    _sortBy =
-        widget.tab.getDefaultSortBy(isSearching: _controller.text.isNotEmpty);
+    _searchText = ValueNotifier(null);
+    _filters = ValueNotifier({});
+    _sortBy = ValueNotifier(
+        widget.tab.getDefaultSortBy(isSearching: _controller.text.isNotEmpty));
+    _addListeners();
+  }
+
+  void _update() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      widget.onUpdate(_searchText.value, _filters.value, _sortBy.value);
+    });
+  }
+
+  void _addListeners() {
+    _searchText.addListener(() {
+      _update();
+    });
+    _filters.addListener(() {
+      _update();
+    });
+    _sortBy.addListener(() {
+      _update();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
+    _searchText.dispose();
+    _filters.dispose();
+    _sortBy.dispose();
   }
 
-  Widget _buildChild() => widget.childBuilder(_searchText, _filters, _sortBy);
-
   void _onSearch(String? value) {
-    setState(() {
-      _searchText = value;
-    });
+    _searchText.value = value;
+  }
+
+  @override
+  void didUpdateWidget(covariant ExploreBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tab != oldWidget.tab) {
+      _sortBy.value =
+          widget.tab.getDefaultSortBy(isSearching: _controller.text.isNotEmpty);
+      _filters.value = {};
+      _searchText.value = null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final canCancel = _searchText != null && _searchText!.isNotEmpty;
+    final canCancel =
+        _searchText.value != null && _searchText.value!.isNotEmpty;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -86,37 +119,30 @@ class _ExploreBarState extends State<ExploreBar> {
                 filters: widget.tab.getFilterBy(),
                 onFilterSelected: (type, value) {
                   log.info('Filter selected: $type, $value');
-                  setState(() {
-                    _filters[type] = value;
-                  });
+                  _filters.value = {..._filters.value, type: value};
                 },
                 onFilterCleared: (type) {
                   log.info('Filter cleared: $type');
-                  setState(() {
-                    _filters.remove(type);
-                  });
+                  _filters.value = {..._filters.value}..remove(type);
                 },
               ),
               const Spacer(),
               SortBar(
                 sortBys: widget.tab.getSortBy(
-                    isSearching:
-                        _searchText != null && _searchText!.isNotEmpty),
+                    isSearching: _searchText.value != null &&
+                        _searchText.value!.isNotEmpty),
                 defaultSortBy: widget.tab.getDefaultSortBy(
-                    isSearching:
-                        _searchText != null && _searchText!.isNotEmpty),
+                    isSearching: _searchText.value != null &&
+                        _searchText.value!.isNotEmpty),
                 onSortSelected: (sortBy) {
                   log.info('Sort selected: $sortBy');
-                  setState(() {
-                    _sortBy = sortBy;
-                  });
+                  _sortBy.value = sortBy;
                 },
               )
             ],
           ),
         ),
         const SizedBox(height: 18),
-        Expanded(child: _buildChild())
       ],
     );
   }

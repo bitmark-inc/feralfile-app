@@ -194,7 +194,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                             MediaQuery.textScalerOf(context),
                                         text: TextSpan(children: [
                                           TextSpan(
-                                              text: 'max'.tr(),
+                                              text: '${'max'.tr()} ',
                                               style: theme
                                                   .textTheme.ppMori400Grey14),
                                           TextSpan(
