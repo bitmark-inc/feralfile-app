@@ -170,7 +170,7 @@ class ListExhibitionView extends StatefulWidget {
 }
 
 class _ListExhibitionViewState extends State<ListExhibitionView> {
-  static const _padding = 12.0;
+  static const _padding = 15.0;
   late ScrollController _scrollController;
 
   @override
@@ -210,7 +210,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
           ),
         ] else if (widget.exhibitions!.isEmpty) ...[
           SliverToBoxAdapter(
-            child: Expanded(child: widget.emptyWidget),
+            child: widget.emptyWidget,
           ),
         ] else ...[
           SliverPadding(
