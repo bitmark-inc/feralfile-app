@@ -752,23 +752,25 @@ class DailyWorkPageState extends State<DailyWorkPage>
           horizontalMargin: 16,
         ),
         const SizedBox(height: 48),
-        HtmlWidget(
-          exhibition.noteBrief,
-          customStylesBuilder: auHtmlStyle,
-          textStyle: theme.textTheme.ppMori400White14,
-          onTapUrl: (url) async {
-            await launchUrl(Uri.parse(url),
-                mode: LaunchMode.externalApplication);
-            return true;
-          },
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'read_more'.tr(),
-          style: theme.textTheme.ppMori400White14.copyWith(
-            decoration: TextDecoration.underline,
+        if (exhibition.noteBrief?.isNotEmpty == true) ...[
+          HtmlWidget(
+            exhibition.noteBrief!,
+            customStylesBuilder: auHtmlStyle,
+            textStyle: theme.textTheme.ppMori400White14,
+            onTapUrl: (url) async {
+              await launchUrl(Uri.parse(url),
+                  mode: LaunchMode.externalApplication);
+              return true;
+            },
           ),
-        ),
+          const SizedBox(height: 16),
+          Text(
+            'read_more'.tr(),
+            style: theme.textTheme.ppMori400White14.copyWith(
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
       ],
     );
   }

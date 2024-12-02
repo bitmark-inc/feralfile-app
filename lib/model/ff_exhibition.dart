@@ -14,9 +14,9 @@ class Exhibition {
   final DateTime exhibitionStartAt;
   final int? previewDuration;
 
-  final String noteTitle;
-  final String noteBrief;
-  final String note;
+  final String? noteTitle;
+  final String? noteBrief;
+  final String? note;
 
   final String coverURI;
   final String? coverDisplay;
@@ -60,9 +60,9 @@ class Exhibition {
         slug: json['slug'] as String,
         exhibitionStartAt: DateTime.parse(json['exhibitionStartAt'] as String),
         previewDuration: json['previewDuration'] as int?,
-        noteTitle: json['noteTitle'] as String,
-        noteBrief: json['noteBrief'] as String,
-        note: json['note'] as String,
+        noteTitle: json['noteTitle'] as String?,
+        noteBrief: json['noteBrief'] as String?,
+        note: json['note'] as String?,
         coverURI: json['coverURI'] as String,
         coverDisplay: json['coverDisplay'] as String?,
         curatorsAlumni: (json['curatorsAlumni'] as List<dynamic>?)

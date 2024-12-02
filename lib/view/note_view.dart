@@ -36,40 +36,44 @@ class ExhibitionNoteView extends StatelessWidget {
               style: theme.textTheme.ppMori400White12,
             ),
             const SizedBox(height: 30),
-            Text(
-              exhibition.noteTitle,
-              style: theme.textTheme.ppMori700White14,
-            ),
-            const SizedBox(height: 20),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 400),
-              child: HtmlWidget(
-                customStylesBuilder: auHtmlStyle,
-                exhibition.noteBrief,
-                textStyle: theme.textTheme.ppMori400White14,
-                onTapUrl: (url) async {
-                  await launchUrl(Uri.parse(url),
-                      mode: LaunchMode.externalApplication);
-                  return true;
-                },
+            if (exhibition.noteTitle?.isNotEmpty == true) ...[
+              Text(
+                exhibition.noteTitle!,
+                style: theme.textTheme.ppMori700White14,
               ),
-            ),
-            if (exhibition.noteBrief != exhibition.note) ...[
               const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () async {
-                  await injector<NavigationService>()
-                      .openFeralFileExhibitionNotePage(exhibition.slug);
-                },
-                child: Text(
-                  'read_more'.tr(),
-                  style: theme.textTheme.ppMori400White14.copyWith(
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColor.white,
-                  ),
+            ],
+            if (exhibition.noteBrief?.isNotEmpty == true) ...[
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: HtmlWidget(
+                  customStylesBuilder: auHtmlStyle,
+                  exhibition.noteBrief!,
+                  textStyle: theme.textTheme.ppMori400White14,
+                  onTapUrl: (url) async {
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
+                    return true;
+                  },
                 ),
               ),
-            ]
+              if (exhibition.noteBrief != exhibition.note) ...[
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () async {
+                    await injector<NavigationService>()
+                        .openFeralFileExhibitionNotePage(exhibition.slug);
+                  },
+                  child: Text(
+                    'read_more'.tr(),
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColor.white,
+                    ),
+                  ),
+                ),
+              ]
+            ],
           ],
         ),
       ),

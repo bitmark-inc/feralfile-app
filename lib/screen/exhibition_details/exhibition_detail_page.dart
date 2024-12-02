@@ -79,9 +79,13 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       return const LoadingWidget();
     }
 
+    final shouldShowNotePage = exhibition.note?.isNotEmpty == true ||
+        exhibition.allResources.isNotEmpty;
     // if exhibition is not minted, show only preview page
-    final itemCount =
-        !exhibition.isMinted ? 3 : ((exhibition.displayableSeries.length) + 3);
+    final exhibitionInfoCount = shouldShowNotePage ? 2 : 3;
+    final itemCount = !exhibition.isMinted
+        ? exhibitionInfoCount
+        : ((exhibition.displayableSeries.length) + exhibitionInfoCount);
     return Column(
       children: [
         Expanded(
@@ -113,31 +117,39 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 case 0:
                   return _getPreviewPage(exhibition);
                 case 1:
-                  return _notePage(exhibition);
-                default:
-                  final seriesIndex = index - 2;
-                  final series =
-                      exhibition.displayableSeries.sorted[seriesIndex];
-                  final artwork = series.artwork;
-                  if (artwork == null) {
-                    return const SizedBox();
+                  if (shouldShowNotePage) {
+                    return _notePage(exhibition);
+                  } else {
+                    final seriesIndex = index - (exhibitionInfoCount - 1);
+                    return _getSeriesPreviewPage(seriesIndex, exhibition);
                   }
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 40),
-                    child: FeralFileArtworkPreview(
-                      key: Key('feral_file_artwork_preview_${artwork.id}'),
-                      payload: FeralFileArtworkPreviewPayload(
-                        artwork: artwork.copyWith(
-                            series: series.copyWith(exhibition: exhibition)),
-                      ),
-                    ),
-                  );
+                default:
+                  final seriesIndex = index - (exhibitionInfoCount - 1);
+                  return _getSeriesPreviewPage(seriesIndex, exhibition);
               }
             },
           ),
         ),
         if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
       ],
+    );
+  }
+
+  Widget _getSeriesPreviewPage(int seriesIndex, Exhibition exhibition) {
+    final series = exhibition.displayableSeries.sorted[seriesIndex];
+    final artwork = series.artwork;
+    if (artwork == null) {
+      return const SizedBox();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 40),
+      child: FeralFileArtworkPreview(
+        key: Key('feral_file_artwork_preview_${artwork.id}'),
+        payload: FeralFileArtworkPreviewPayload(
+          artwork:
+              artwork.copyWith(series: series.copyWith(exhibition: exhibition)),
+        ),
+      ),
     );
   }
 
