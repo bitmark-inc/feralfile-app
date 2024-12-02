@@ -8,6 +8,29 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class Exhibition {
+  final String id;
+  final String title;
+  final String slug;
+  final DateTime exhibitionStartAt;
+  final int? previewDuration;
+
+  final String? noteTitle;
+  final String? noteBrief;
+  final String? note;
+
+  final String coverURI;
+  final String? coverDisplay;
+  final String mintBlockchain;
+  final AlumniAccount? curatorAlumni;
+  final List<AlumniAccount>? curatorsAlumni;
+  final List<AlumniAccount>? artistsAlumni;
+  final List<FFSeries>? series;
+  final List<FFContract>? contracts;
+  final AlumniAccount? partnerAlumni;
+  final String type;
+  final List<Post>? posts;
+  final int status;
+
   Exhibition({
     required this.id,
     required this.title,
@@ -37,9 +60,9 @@ class Exhibition {
         slug: json['slug'] as String,
         exhibitionStartAt: DateTime.parse(json['exhibitionStartAt'] as String),
         previewDuration: json['previewDuration'] as int?,
-        noteTitle: json['noteTitle'] as String,
-        noteBrief: json['noteBrief'] as String,
-        note: json['note'] as String,
+        noteTitle: json['noteTitle'] as String?,
+        noteBrief: json['noteBrief'] as String?,
+        note: json['note'] as String?,
         coverURI: json['coverURI'] as String,
         coverDisplay: json['coverDisplay'] as String?,
         curatorsAlumni: (json['curatorsAlumni'] as List<dynamic>?)
@@ -69,28 +92,6 @@ class Exhibition {
             .toList(),
         status: json['status'] as int,
       );
-  final String id;
-  final String title;
-  final String slug;
-  final DateTime exhibitionStartAt;
-  final int? previewDuration;
-
-  final String noteTitle;
-  final String noteBrief;
-  final String note;
-
-  final String coverURI;
-  final String? coverDisplay;
-  final String mintBlockchain;
-  final AlumniAccount? curatorAlumni;
-  final List<AlumniAccount>? curatorsAlumni;
-  final List<AlumniAccount>? artistsAlumni;
-  final List<FFSeries>? series;
-  final List<FFContract>? contracts;
-  final AlumniAccount? partnerAlumni;
-  final String type;
-  final List<Post>? posts;
-  final int status;
 
   Map<String, dynamic> toJson() => {
         'id': id,
