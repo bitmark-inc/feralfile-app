@@ -140,6 +140,9 @@ extension ExhibitionExt on Exhibition {
     }
     return resources;
   }
+
+  bool get shouldShowCuratorNotePage =>
+      note?.isNotEmpty == true || allResources.isNotEmpty;
 }
 
 extension ListExhibitionDetailExt on List<ExhibitionDetail> {
