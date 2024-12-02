@@ -22,7 +22,7 @@ dependencies:
   connectivity_plus:
   crypto: ^3.0.5
   device_info_plus: ^11.1.1
-  dio: ^5.3.2
+  dio: ^5.7.0
   dio_smart_retry: ^6.0.0
   easy_debounce: ^2.0.2+1
   fast_base58: ^0.2.1
@@ -154,3 +154,55 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+# To add assets to your application, add an assets section, like this:
+  assets:
+    - .env
+    - assets/erc20-abi.json
+    - assets/erc721-abi.json
+    - assets/erc1155-abi.json
+    - assets/images/
+    - assets/translations/
+    - assets/videos/
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: PPMori
+      fonts:
+        - asset: assets/fonts/PPMori/PPMori-Regular.ttf
+        - asset: assets/fonts/PPMori/PPMori-Bold.ttf
+        - asset: assets/fonts/PPMori/PPMori-SemiBold.ttf
+
+    - family: AuIcon
+      fonts:
+        - asset: assets/fonts/AuIcon.ttf
+
+    - family: FFIcon
+      fonts:
+        - asset: assets/fonts/FFIcon.ttf
+
+    - family: MoMASans
+      fonts:
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold-Italic.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular-Italic.otf
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  upload_sources: true
+  project: autonomy-client-flutter
+  org: bitmark-inc
+  wait_for_processing: false
+  log_level: info
+  commits: auto
+  ignore_missing: true

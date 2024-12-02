@@ -72,7 +72,6 @@ Dio baseDio(BaseOptions options) {
 
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(ConnectingExceptionInterceptor());
-  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio
     ..options = dioOptions
 
