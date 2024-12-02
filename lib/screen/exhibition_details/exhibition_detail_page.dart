@@ -79,8 +79,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       return const LoadingWidget();
     }
 
-    final shouldShowNotePage = exhibition.note?.isNotEmpty == true ||
-        exhibition.allResources.isNotEmpty;
+    final shouldShowNotePage = exhibition.shouldShowCuratorNotePage;
     // if exhibition is not minted, show only preview page
     final exhibitionInfoCount = shouldShowNotePage ? 2 : 3;
     final itemCount = !exhibition.isMinted
@@ -166,8 +165,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       if (request.catalog == ExhibitionCatalog.artwork)
         MetricParameter.tokenId: request.catalogId,
     };
-    injector<MetricClientService>()
-        .addEvent(MetricEventName.exhibitionView, data: data);
+    unawaited(injector<MetricClientService>()
+        .addEvent(MetricEventName.exhibitionView, data: data));
   }
 
   void _stream(Exhibition exhibition) {
@@ -277,22 +276,30 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       Exhibition exhibition) {
     ExhibitionCatalog? catalog;
     String? catalogId;
+    final shouldShowNotePage = exhibition.shouldShowCuratorNotePage;
+    final exhibitionInfoCount = shouldShowNotePage ? 2 : 3;
     switch (_currentIndex) {
       case 0:
         catalog = ExhibitionCatalog.home;
       case 1:
-        if (_carouselIndex == 0) {
-          catalog = ExhibitionCatalog.curatorNote;
+        if (shouldShowNotePage) {
+          if (_carouselIndex == 0) {
+            catalog = ExhibitionCatalog.curatorNote;
+          } else {
+            catalog = ExhibitionCatalog.resource;
+            catalogId = exhibition.allResources[_carouselIndex - 1].id;
+          }
         } else {
-          catalog = ExhibitionCatalog.resource;
-          catalogId = exhibition.allResources[_carouselIndex - 1].id;
+          catalog = ExhibitionCatalog.artwork;
+          final seriesIndex = _currentIndex - (exhibitionInfoCount - 1);
+          catalogId =
+              exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
         }
       default:
         catalog = ExhibitionCatalog.artwork;
-        final seriesIndex = _currentIndex - 2;
-        final currentArtwork =
+        final seriesIndex = _currentIndex - (exhibitionInfoCount - 1);
+        catalogId =
             exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
-        catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);
   }
