@@ -125,7 +125,7 @@ platform :ios do
 
 		build_app(
 			scheme: "inhouse",
-			export_method: "ad-hoc",
+			export_method: "enterprise",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
