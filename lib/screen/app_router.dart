@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -149,7 +150,7 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final accountsBloc = AccountsBloc(injector(), injector());
 
-    final identityBloc = IdentityBloc(injector(), injector());
+    final identityBloc = IdentityBloc(ObjectBox.identityBox, injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
     final subscriptionBloc = injector<SubscriptionBloc>();
