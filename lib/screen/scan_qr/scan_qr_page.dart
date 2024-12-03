@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -29,7 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 // ignore_for_file: constant_identifier_names
 
@@ -46,19 +47,19 @@ enum QRScanTab {
 }
 
 class ScanQRPagePayload {
+  final ScannerItem scannerItem;
+  final Function? onHandleFinished;
+
   const ScanQRPagePayload({
     required this.scannerItem,
     this.onHandleFinished,
   });
-
-  final ScannerItem scannerItem;
-  final Function? onHandleFinished;
 }
 
 class ScanQRPage extends StatefulWidget {
-  const ScanQRPage({required this.payload, super.key});
-
   final ScanQRPagePayload payload;
+
+  const ScanQRPage({required this.payload, super.key});
 
   @override
   State<ScanQRPage> createState() => ScanQRPageState();
@@ -133,13 +134,12 @@ class ScanQRPageState extends State<ScanQRPage>
             action: Row(
               children: [
                 IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: closeIcon(
-                    color: AppColor.white,
-                  ),
-                ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: closeIcon(
+                      color: AppColor.white,
+                    )),
               ],
             ),
           ),
@@ -160,29 +160,23 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void didPushNext() {
     super.didPushNext();
-    unawaited(
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: SystemUiOverlay.values,
-      ),
-    );
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values));
     unawaited(pauseCamera());
   }
 
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
-    unawaited(
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: SystemUiOverlay.values,
-      ),
-    );
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values));
     super.dispose();
   }
 }
 
 enum ScannerItem {
+  WALLET_CONNECT,
+  BEACON_CONNECT,
   ETH_ADDRESS,
   XTZ_ADDRESS,
   GLOBAL,
@@ -190,11 +184,16 @@ enum ScannerItem {
 
   List<ScannerInstruction> get instructions {
     switch (this) {
+      case WALLET_CONNECT:
+      case BEACON_CONNECT:
+        return [ScannerInstruction.web3Connect];
       case ETH_ADDRESS:
       case XTZ_ADDRESS:
         return [];
       case GLOBAL:
         return [
+          ScannerInstruction.web3Connect,
+          ScannerInstruction.signTransaction,
           ScannerInstruction.displayFF,
         ];
       case CANVAS:
@@ -206,75 +205,90 @@ enum ScannerItem {
 }
 
 class ScannerInstruction {
+  final String name;
+  final String detail;
+  final Widget? icon;
+
   const ScannerInstruction({
     required this.name,
     required this.detail,
     this.icon,
   });
 
-  final String name;
-  final String detail;
-  final Widget? icon;
+  static ScannerInstruction web3Connect = ScannerInstruction(
+    name: 'apps'.tr(),
+    detail: 'such_as_openSea'.tr(),
+  );
+
+  static ScannerInstruction signTransaction = ScannerInstruction(
+    name: 'sign_transaction'.tr(),
+    detail: 'after_connecting'.tr(),
+  );
 
   static ScannerInstruction displayFF = ScannerInstruction(
     name: 'display_with_ff'.tr(),
     detail: 'on_tv_or_desktop'.tr(),
     icon: IconButton(
-      onPressed: () {
-        final context =
-            injector<NavigationService>().navigatorKey.currentContext!;
-        UIHelper.showDialog(
-          context,
-          'display_art'.tr(),
-          Column(
-            children: [
-              DisplayInstructionView(
-                onScanQRTap: () {
-                  Navigator.pop(context);
-                },
+        onPressed: () {
+          final context =
+              injector<NavigationService>().navigatorKey.currentContext!;
+          UIHelper.showDialog(
+              context,
+              'display_art'.tr(),
+              Column(
+                children: [
+                  DisplayInstructionView(
+                    onScanQRTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
-              const SizedBox(height: 10),
-            ],
-          ),
-          isDismissible: true,
-          withCloseIcon: true,
-        );
-      },
-      constraints: const BoxConstraints(
-        maxWidth: 44,
-        maxHeight: 44,
-        minWidth: 44,
-        minHeight: 44,
-      ),
-      icon: SvgPicture.asset('assets/images/info_white.svg'),
-    ),
+              isDismissible: true,
+              withCloseIcon: true);
+        },
+        constraints: const BoxConstraints(
+          maxWidth: 44,
+          maxHeight: 44,
+          minWidth: 44,
+          minHeight: 44,
+        ),
+        icon: SvgPicture.asset('assets/images/info_white.svg')),
   );
 }
 
 class QRScanView extends StatefulWidget {
-  const QRScanView({
-    required this.scannerItem,
-    super.key,
-    this.onHandleFinished,
-  });
-
   final ScannerItem scannerItem;
   final Function? onHandleFinished;
+
+  const QRScanView(
+      {required this.scannerItem, super.key, this.onHandleFinished});
 
   @override
   State<QRScanView> createState() => QRScanViewState();
 }
 
 class QRScanViewState extends State<QRScanView>
-    with RouteAware, AutomaticKeepAliveClientMixin<QRScanView> {
+    with
+        RouteAware,
+        WidgetsBindingObserver,
+        AutomaticKeepAliveClientMixin<QRScanView> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? _controller;
+  final MobileScannerController _controller = MobileScannerController(
+    autoStart: false,
+    torchEnabled: true,
+    useNewCameraSelector: true,
+  );
   bool isScanDataError = false;
   bool _isLoading = false;
   bool? _cameraPermission;
   String? currentCode;
   final metricClient = injector<MetricClientService>();
   Timer? _timer;
+
+  Barcode? _barcode;
+  StreamSubscription<Object?>? _subscription;
 
   static const _qrSize = 260.0;
   static const double _topPadding = 144;
@@ -286,6 +300,12 @@ class QRScanViewState extends State<QRScanView>
     super.initState();
     _shouldPop = true;
     unawaited(_checkPermission());
+
+    WidgetsBinding.instance.addObserver(this);
+
+    _subscription = _controller.barcodes.listen(_handleBarcode);
+
+    unawaited(_controller.start());
   }
 
   @override
@@ -305,27 +325,47 @@ class QRScanViewState extends State<QRScanView>
   @override
   void didPushNext() {
     super.didPushNext();
-    unawaited(
-      Future.delayed(const Duration(milliseconds: 300)).then((_) {
-        pauseCamera();
-      }),
-    );
+    unawaited(Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      pauseCamera();
+    }));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_controller.value.hasCameraPermission) {
+      return;
+    }
+
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        return;
+      case AppLifecycleState.resumed:
+        _subscription = _controller.barcodes.listen(_handleBarcode);
+
+        unawaited(_controller.start());
+      case AppLifecycleState.inactive:
+        unawaited(_subscription?.cancel());
+        _subscription = null;
+        unawaited(_controller.stop());
+    }
   }
 
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
     _timer?.cancel();
-    _controller?.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   Future<void> resumeCamera() async {
-    await _controller?.resumeCamera();
+    await _controller.start();
   }
 
   Future<void> pauseCamera() async {
-    await _controller?.pauseCamera();
+    await _controller.stop();
   }
 
   Future _checkPermission() async {
@@ -345,7 +385,9 @@ class QRScanViewState extends State<QRScanView>
         });
         if (Platform.isAndroid) {
           _timer?.cancel();
-          _timer = Timer(const Duration(seconds: 1), resumeCamera);
+          _timer = Timer(const Duration(seconds: 1), () {
+            resumeCamera();
+          });
         }
       }
     }
@@ -365,7 +407,7 @@ class QRScanViewState extends State<QRScanView>
             padding:
                 const EdgeInsets.fromLTRB(0, _qrSize + _topPadding + 30, 0, 15),
             child: _instructionView(context),
-          ),
+          )
         ],
         if (_isLoading) ...[
           Center(
@@ -381,34 +423,16 @@ class QRScanViewState extends State<QRScanView>
 
   Widget _qrView(BuildContext context) {
     final theme = Theme.of(context);
-    var cutOutBottomOffset =
+    double cutOutBottomOffset =
         MediaQuery.of(context).size.height / 2 - (_qrSize / 2 + _topPadding);
     if (cutOutBottomOffset < 0) {
       cutOutBottomOffset = 0;
     }
     return Stack(
       children: [
-        QRView(
+        MobileScanner(
           key: qrKey,
-          overlay: QrScannerOverlayShape(
-            borderLength: _qrSize / 2,
-            borderColor:
-                isScanDataError ? Colors.red : theme.colorScheme.secondary,
-            overlayColor: const Color.fromRGBO(196, 196, 196, 0.6),
-            cutOutSize: _qrSize,
-            borderWidth: 2,
-            cutOutBottomOffset: cutOutBottomOffset,
-            borderRadius: 40,
-          ),
-          onQRViewCreated: _onQRViewCreated,
-          onPermissionSet: (ctrl, p) {
-            setState(() {
-              _cameraPermission = ctrl.hasPermissions;
-            });
-          },
-        ),
-        if (isScanDataError)
-          Positioned(
+          errorBuilder: (context, error, stack) => Positioned(
             left: (MediaQuery.of(context).size.width - _qrSize) / 2,
             top: _topPadding,
             child: SizedBox(
@@ -423,6 +447,7 @@ class QRScanViewState extends State<QRScanView>
               ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -452,7 +477,7 @@ class QRScanViewState extends State<QRScanView>
                       await openAppSettings();
                     },
                   ),
-                ),
+                )
               ],
             ),
           ),
@@ -462,27 +487,24 @@ class QRScanViewState extends State<QRScanView>
   Widget _instructionViewNoPermission(BuildContext context) {
     final theme = Theme.of(context);
     return SplittedBanner(
-      headerWidget: Row(
-        children: [
-          SvgPicture.asset(
-            'assets/images/iconController.svg',
-            colorFilter: const ColorFilter.mode(
-              AppColor.white,
-              BlendMode.srcIn,
-            ),
-          ),
-          const SizedBox(width: 20),
-          Text(
-            'allow_camera_permission'.tr(),
-            style: theme.textTheme.ppMori400White14,
-          ),
-        ],
-      ),
-      bodyWidget: Text(
-        'allow_camera_permission_desc'.tr(),
-        style: theme.textTheme.ppMori400White14,
-      ),
-    );
+        headerWidget: Row(
+          children: [
+            SvgPicture.asset('assets/images/iconController.svg',
+                colorFilter: const ColorFilter.mode(
+                  AppColor.white,
+                  BlendMode.srcIn,
+                )),
+            const SizedBox(width: 20),
+            Text(
+              'allow_camera_permission'.tr(),
+              style: theme.textTheme.ppMori400White14,
+            )
+          ],
+        ),
+        bodyWidget: Text(
+          'allow_camera_permission_desc'.tr(),
+          style: theme.textTheme.ppMori400White14,
+        ));
   }
 
   Widget _instructionView(BuildContext context) {
@@ -490,15 +512,13 @@ class QRScanViewState extends State<QRScanView>
       return const SizedBox();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 44),
-      child: SingleChildScrollView(
-        child: SplittedBanner(
-          headerWidget: _instructionHeader(context),
-          bodyWidget:
-              _instructionBody(context, widget.scannerItem.instructions),
-        ),
-      ),
-    );
+        padding: const EdgeInsets.symmetric(horizontal: 44),
+        child: SingleChildScrollView(
+          child: SplittedBanner(
+              headerWidget: _instructionHeader(context),
+              bodyWidget:
+                  _instructionBody(context, widget.scannerItem.instructions)),
+        ));
   }
 
   Widget _instructionHeader(BuildContext context) {
@@ -533,9 +553,7 @@ class QRScanViewState extends State<QRScanView>
   }
 
   Widget _instructionBody(
-    BuildContext context,
-    List<ScannerInstruction> instructions,
-  ) {
+      BuildContext context, List<ScannerInstruction> instructions) {
     final theme = Theme.of(context);
     return Column(
       children: instructions
@@ -556,7 +574,7 @@ class QRScanViewState extends State<QRScanView>
                         Text(
                           instruction.detail,
                           style: theme.textTheme.ppMori400Grey14,
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -569,22 +587,21 @@ class QRScanViewState extends State<QRScanView>
     );
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    // Dispose of the previous controller if it exists
-    _controller?.dispose();
-
-    _controller = controller;
-    controller.scannedDataStream.listen((scanData) async {
+  Future<void> _handleBarcode(BarcodeCapture scanData) async {
+    if (mounted) {
       if (_isLoading) {
         return;
       }
-      if (scanData.code == currentCode && isScanDataError) {
+      if (scanData.barcodes.isEmpty) {
         return;
       }
-      currentCode = scanData.code;
-      final code = scanData.code;
+      if (scanData.barcodes.first.rawValue == currentCode && isScanDataError) {
+        return;
+      }
+      currentCode = scanData.barcodes.first.rawValue;
+      String code = scanData.barcodes.first.rawValue!;
 
-      if (DEEP_LINKS.any(code.startsWith)) {
+      if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
         setState(() {
           _isLoading = true;
         });
@@ -617,6 +634,19 @@ class QRScanViewState extends State<QRScanView>
           // dont need to do anything here,
           // it has been processed in the branch deeplink
           /// handled with deeplink
+          case ScannerItem.WALLET_CONNECT:
+            if (code.startsWith('wc:')) {
+              await _handleAutonomyConnect(code);
+            } else {
+              _handleError(code);
+            }
+
+          case ScannerItem.BEACON_CONNECT:
+            if (code.startsWith('tezos://')) {
+              await _handleBeaconConnect(code);
+            } else {
+              _handleError(code);
+            }
 
           case ScannerItem.ETH_ADDRESS:
           case ScannerItem.XTZ_ADDRESS:
@@ -632,6 +662,13 @@ class QRScanViewState extends State<QRScanView>
             }
             await Future.delayed(const Duration(milliseconds: 300));
           case ScannerItem.GLOBAL:
+            if (code.startsWith('wc:')) {
+              await _handleAutonomyConnect(code);
+            } else if (code.startsWith('tezos:')) {
+              await _handleBeaconConnect(code);
+            } else {
+              _handleError(code);
+            }
         }
         if (mounted) {
           await resumeCamera();
@@ -643,7 +680,55 @@ class QRScanViewState extends State<QRScanView>
           widget.onHandleFinished?.call();
         }
       }
+    }
+  }
+
+  void _handleError(String data) {
+    setState(() {
+      isScanDataError = true;
     });
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() {
+          isScanDataError = false;
+        });
+      }
+    });
+
+    log
+      ..info('[Scanner][start] scan ${widget.scannerItem}')
+      ..info('[Scanner][incorrectScanItem] item: '
+          '${data.substring(0, data.length ~/ 2)}');
+  }
+
+  Future<void> _handleAutonomyConnect(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
+    await pauseCamera();
+    if (!mounted) {
+      return;
+    }
+    if (_shouldPop) {
+      Navigator.pop(context);
+    }
+    await Future.delayed(const Duration(seconds: 1));
+  }
+
+  Future<void> _handleBeaconConnect(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
+    await pauseCamera();
+    if (!mounted) {
+      return;
+    }
+    if (_shouldPop) {
+      Navigator.pop(context);
+    }
+    await Future.delayed(const Duration(seconds: 1));
+
+    await Future.wait([injector<NavigationService>().showContactingDialog()]);
   }
 
   @override
