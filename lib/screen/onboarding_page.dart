@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -19,6 +21,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -119,7 +122,15 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<PasskeyService>().init();
       await injector<MetricClientService>().initService();
 
-      unawaited(injector<RemoteConfigService>().loadConfigs());
+      unawaited(
+        injector<RemoteConfigService>().loadConfigs().then((_) {
+          log.info('Remote config loaded');
+        }, onError: (e) {
+          log.info('Failed to load remote config: $e');
+        }).whenComplete(() {
+          injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
+        }),
+      );
       final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
 
       await injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
@@ -234,7 +245,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       return false;
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
-      final userId = _passkeyService.getUserId();
+      final userId = null; //_passkeyService.getUserId();
       log.info('Passkey userId: $userId');
       final didLoginSuccess =
           userId != null ? await _loginWithPasskey() : await _registerPasskey();
@@ -269,9 +280,32 @@ class _OnboardingPageState extends State<OnboardingPage>
     _isLoginSuccess = null;
     try {
       try {
-        log.info('[_loginAndMigrate] create JWT token');
-        final localResponse = await _passkeyService.logInInitiate();
-        await _passkeyService.logInFinalize(localResponse);
+        var jwt =
+            await injector<AuthService>().getAuthToken(shouldRefresh: false);
+        final refreshToken = jwt?.refreshToken;
+        final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
+              DateTime.now().subtract(REFRESH_JWT_DURATION_BEFORE_EXPIRE),
+            ) ??
+            true;
+        if (refreshToken != null &&
+            refreshToken.isNotEmpty &&
+            !isRefreshTokenExpired) {
+          // jwt is valid, no need to login again
+          log.info('JWT refresh token is valid, '
+              'no need to request passkey again again');
+          if (jwt?.isValid() == true) {
+            log.info('JWT is valid, no need to refresh');
+          } else {
+            log.info('JWT is invalid, refresh JWT token');
+            jwt = await injector<AuthService>().getAuthToken();
+          }
+          log.info('[_loginAndMigrate] JWT now is valid');
+        } else {
+          log.info(
+              'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
+          jwt = await _passkeyService.requestJwt();
+        }
+        await injector<AuthService>().setAuthToken(jwt);
         log.info('[_loginAndMigrate] create JWT token done');
       } catch (e, s) {
         log.info('Failed to create login JWT: $e');

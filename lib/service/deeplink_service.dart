@@ -36,7 +36,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class DeeplinkService {
@@ -354,9 +353,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (!isSuccessful) {
           await _navigationService.showCannotConnectTv();
         } else {
-          showInfoNotification(
-            const Key('connected_to_canvas'),
-            'connected_to_display'.tr(),
+          showSimpleNotificationToast(
+            key: const Key('connected_to_canvas'),
+            content: '${'connected_to_display'.tr()} ',
             addOnTextSpan: [
               TextSpan(
                 text: device.name,
@@ -366,18 +365,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
                     .copyWith(color: AppColor.feralFileLightBlue),
               )
             ],
-            frontWidget: SvgPicture.asset(
-              'assets/images/checkbox_icon.svg',
-              width: 24,
-            ),
           );
         }
         return;
       }
       if (isSuccessful) {
-        showInfoNotification(
-          const Key('connected_to_canvas'),
-          'connected_to_display'.tr(),
+        showSimpleNotificationToast(
+          key: const Key('connected_to_canvas'),
+          content: '${'connected_to_display'.tr()} ',
           addOnTextSpan: [
             TextSpan(
               text: device.name,
@@ -387,10 +382,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
                   .copyWith(color: AppColor.feralFileLightBlue),
             )
           ],
-          frontWidget: SvgPicture.asset(
-            'assets/images/checkbox_icon.svg',
-            width: 24,
-          ),
         );
       } else {
         await _navigationService.showCannotConnectTv();

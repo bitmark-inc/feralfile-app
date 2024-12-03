@@ -50,7 +50,7 @@ class ForgetExistView extends StatelessWidget {
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             TextSpan(
-                              text: 'accounts_delete'.tr(),
+                              text: ' ${'accounts_delete'.tr()}',
                             ),
                           ],
                         ),

@@ -5,6 +5,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/explore_search_bar.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -18,27 +20,20 @@ import 'package:flutter/material.dart';
 import 'package:nft_collection/models/user_collection.dart';
 
 class ExploreSeriesView extends StatefulWidget {
-  final String? searchText;
-  final Map<FilterType, FilterValue> filters;
-  final SortBy sortBy;
   final int pageSize;
+  final Widget? header;
 
-  const ExploreSeriesView(
-      {required this.sortBy,
-      this.searchText,
-      this.pageSize = 20,
-      super.key,
-      this.filters = const {}});
+  const ExploreSeriesView({
+    this.pageSize = 20,
+    super.key,
+    this.header,
+  });
 
   @override
   State<ExploreSeriesView> createState() => ExploreSeriesViewState();
 
   bool isEqual(Object other) =>
-      other is ExploreSeriesView &&
-      other.searchText == searchText &&
-      other.filters == filters &&
-      other.sortBy == sortBy &&
-      other.pageSize == pageSize;
+      other is ExploreSeriesView && other.pageSize == pageSize;
 }
 
 class ExploreSeriesViewState extends State<ExploreSeriesView> {
@@ -47,6 +42,10 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
   late Paging _paging;
   late ScrollController _scrollController;
   bool _isLoading = false;
+
+  late String? _searchText;
+  late Map<FilterType, FilterValue> _filters;
+  late SortBy _sortBy;
 
   void scrollToTop() {
     unawaited(_scrollController.animateTo(
@@ -68,6 +67,9 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
       }
     });
     _paging = Paging(offset: 0, limit: widget.pageSize, total: 0);
+    _searchText = null;
+    _filters = {};
+    _sortBy = FeralfileHomeTab.artworks.getDefaultSortBy();
     unawaited(
         _fetchSeries(context, offset: _paging.offset, pageSize: _paging.limit));
   }
@@ -75,7 +77,11 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
   @override
   void didUpdateWidget(covariant ExploreSeriesView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    unawaited(_fetchSeries(context));
+    if (!widget.isEqual(oldWidget)) {
+      _series = null;
+      _paging = Paging(offset: 0, limit: widget.pageSize, total: 0);
+      unawaited(_fetchSeries(context));
+    }
     scrollToTop();
   }
 
@@ -85,38 +91,31 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
     super.dispose();
   }
 
-  Widget _loadingView(BuildContext context) => const Padding(
-        padding: EdgeInsets.only(bottom: 100),
-        child: LoadingWidget(),
-      );
-
-  Widget _emptyView(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child:
-          Text('no_series_found'.tr(), style: theme.textTheme.ppMori400White14),
-    );
-  }
-
-  Widget _seriesView(BuildContext context, List<FFSeries> series,
-          List<UserCollection> userCollection) =>
+  Widget _seriesView(BuildContext context, List<FFSeries>? series,
+          List<UserCollection>? userCollection) =>
       SeriesView(
-        series: series,
-        userCollections: userCollection,
-        scrollController: _scrollController,
-        padding: const EdgeInsets.only(bottom: 100),
+          series: series,
+          userCollections: userCollection,
+          scrollController: _scrollController,
+          padding: const EdgeInsets.only(bottom: 100),
+          exploreBar: _getExploreBar(context),
+          header: widget.header);
+
+  Widget _getExploreBar(BuildContext context) => ExploreBar(
+        key: const ValueKey(FeralfileHomeTab.artworks),
+        onUpdate: (searchText, filters, sortBy) {
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            _searchText = searchText;
+            _filters = filters;
+            _sortBy = sortBy;
+            unawaited(_fetchSeries(context));
+          });
+        },
       );
 
   @override
-  Widget build(BuildContext context) {
-    if (_series == null) {
-      return _loadingView(context);
-    } else if (_series!.isEmpty) {
-      return _emptyView(context);
-    } else {
-      return _seriesView(context, _series!, _userCollection ?? []);
-    }
-  }
+  Widget build(BuildContext context) =>
+      _seriesView(context, _series, _userCollection);
 
   Future<List<FFSeries>> _fetchSeries(BuildContext context,
       {int offset = 0, int pageSize = 20}) async {
@@ -124,14 +123,14 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
       return [];
     }
     _isLoading = true;
-    log.info('[Artwork View] fetch series with keyword: ${widget.searchText}');
+    log.info('[Artwork View] fetch series with keyword: $_searchText');
     final res = await injector<FeralFileService>().exploreArtworks(
-        sortBy: widget.sortBy.queryParam,
-        sortOrder: widget.sortBy.sortOrder.queryParam,
-        keyword: widget.searchText ?? '',
+        sortBy: _sortBy.queryParam,
+        sortOrder: _sortBy.sortOrder.queryParam,
+        keyword: _searchText ?? '',
         offset: offset,
         limit: pageSize,
-        filters: widget.filters);
+        filters: _filters);
     final series = res.result;
     final paging = res.paging!;
     setState(() {
@@ -154,15 +153,14 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
       _isLoading = false;
       return;
     }
-    log.info(
-        '[Artwork View] load more series with keyword: ${widget.searchText}');
+    log.info('[Artwork View] load more series with keyword: $_searchText');
     final res = await injector<FeralFileService>().exploreArtworks(
-        keyword: widget.searchText ?? '',
+        keyword: _searchText ?? '',
         offset: offset,
         limit: pageSize,
-        sortBy: widget.sortBy.queryParam,
-        sortOrder: widget.sortBy.sortOrder.queryParam,
-        filters: widget.filters);
+        sortBy: _sortBy.queryParam,
+        sortOrder: _sortBy.sortOrder.queryParam,
+        filters: _filters);
     final series = res.result;
     final paging = res.paging!;
     setState(() {
@@ -175,13 +173,15 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
 }
 
 class SeriesView extends StatefulWidget {
-  final List<FFSeries> series;
-  final List<UserCollection> userCollections;
+  final List<FFSeries>? series;
+  final List<UserCollection>? userCollections;
   final AlumniAccount? artist;
   final ScrollController? scrollController;
   final bool isScrollable;
   final EdgeInsets padding;
   final int? limit;
+  final Widget? header;
+  final Widget? exploreBar;
 
   const SeriesView({
     required this.series,
@@ -192,6 +192,8 @@ class SeriesView extends StatefulWidget {
     this.isScrollable = true,
     this.padding = EdgeInsets.zero,
     this.limit,
+    this.header,
+    this.exploreBar,
   });
 
   @override
@@ -207,12 +209,29 @@ class _SeriesViewState extends State<SeriesView> {
     _scrollController = widget.scrollController ?? ScrollController();
   }
 
-  List<ArtistCollection> getAllSeriesAndCollections() {
+  List<ArtistCollection>? getAllSeriesAndCollections() {
     final allSeries = widget.series;
     final allCollections = widget.userCollections;
-    final List<ArtistCollection> result =
-        mergeCollectionAndSeries(allCollections, allSeries);
-    return result;
+    if (allSeries == null && allCollections == null) {
+      return null;
+    }
+
+    return (allSeries == null || allCollections == null)
+        ? allCollections ?? allSeries
+        : mergeCollectionAndSeries(allCollections, allSeries);
+  }
+
+  Widget _loadingView(BuildContext context) => const Padding(
+        padding: EdgeInsets.only(top: 150),
+        child: LoadingWidget(),
+      );
+
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child:
+          Text('no_series_found'.tr(), style: theme.textTheme.ppMori400White14),
+    );
   }
 
   @override
@@ -225,43 +244,64 @@ class _SeriesViewState extends State<SeriesView> {
           ? const AlwaysScrollableScrollPhysics()
           : const NeverScrollableScrollPhysics(),
       slivers: [
-        SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 188 / 307,
+        if (widget.header != null || widget.exploreBar != null) ...[
+          SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.of(context).padding.top + 32),
           ),
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final item = listSeriesAndCollections[index];
-            final border = Border(
-              top: const BorderSide(
-                color: AppColor.auGreyBackground,
-              ),
-              right: BorderSide(
-                color:
-                    // if index is even, show border on the right
-                    index.isEven
-                        ? AppColor.auGreyBackground
-                        : Colors.transparent,
-              ),
-              // if last row, add border on the bottom
-              bottom: index >= listSeriesAndCollections.length - 2
-                  ? const BorderSide(
-                      color: AppColor.auGreyBackground,
-                    )
-                  : BorderSide.none,
-            );
-            if (item is FFSeries) {
-              return _seriesItem(context, item, border);
-            } else if (item is UserCollection) {
-              return _userCollectionItem(context, item, border);
-            } else {
-              throw Exception('Unknown item type');
-            }
-          },
-              childCount: widget.limit == null
-                  ? listSeriesAndCollections.length
-                  : min(widget.limit!, listSeriesAndCollections.length)),
-        ),
+          SliverToBoxAdapter(
+            child: widget.header ?? const SizedBox.shrink(),
+          ),
+          SliverToBoxAdapter(
+            child: widget.exploreBar ?? const SizedBox.shrink(),
+          ),
+        ],
+        if (listSeriesAndCollections == null) ...[
+          SliverToBoxAdapter(
+            child: _loadingView(context),
+          ),
+        ] else if (listSeriesAndCollections.isEmpty) ...[
+          SliverToBoxAdapter(
+            child: _emptyView(context),
+          ),
+        ] else ...[
+          SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 188 / 307,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final item = listSeriesAndCollections[index];
+              final border = Border(
+                top: const BorderSide(
+                  color: AppColor.auGreyBackground,
+                ),
+                right: BorderSide(
+                  color:
+                      // if index is even, show border on the right
+                      index.isEven
+                          ? AppColor.auGreyBackground
+                          : Colors.transparent,
+                ),
+                // if last row, add border on the bottom
+                bottom: index >= listSeriesAndCollections.length - 2
+                    ? const BorderSide(
+                        color: AppColor.auGreyBackground,
+                      )
+                    : BorderSide.none,
+              );
+              if (item is FFSeries) {
+                return _seriesItem(context, item, border);
+              } else if (item is UserCollection) {
+                return _userCollectionItem(context, item, border);
+              } else {
+                throw Exception('Unknown item type');
+              }
+            },
+                childCount: widget.limit == null
+                    ? listSeriesAndCollections.length
+                    : min(widget.limit!, listSeriesAndCollections.length)),
+          ),
+        ],
         SliverPadding(
           padding: widget.padding,
           sliver: const SliverToBoxAdapter(),

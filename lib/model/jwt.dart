@@ -49,21 +49,30 @@ enum MembershipType {
 }
 
 class JWT {
-  int? expireIn;
-  String jwtToken;
-  String refreshToken;
-
-  JWT({required this.jwtToken, this.expireIn, this.refreshToken = ''});
+  JWT({
+    required this.jwtToken,
+    this.expireIn,
+    this.refreshToken = '',
+    this.refreshExpireAt,
+  });
 
   JWT.fromJson(Map<String, dynamic> json)
       : expireIn = double.tryParse(json['expire_in'].toString())?.toInt(),
         jwtToken = json['jwt_token'] as String,
-        refreshToken = json['refresh_token'] as String? ?? '';
+        refreshToken = json['refresh_token'] as String? ?? '',
+        refreshExpireAt =
+            DateTime.tryParse(json['refresh_expire_at'] as String? ?? '') ??
+                DateTime.now();
+  int? expireIn;
+  String jwtToken;
+  String refreshToken;
+  DateTime? refreshExpireAt;
 
   Map<String, dynamic> toJson() => {
         'expire_in': expireIn,
         'jwt_token': jwtToken,
         'refresh_token': refreshToken,
+        'refresh_expire_at': refreshExpireAt?.toIso8601String(),
       };
 
   bool _isValid() {
@@ -106,20 +115,27 @@ class JWT {
         MembershipSource.fromString((claim['source'] ?? '') as String);
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     return SubscriptionStatus(
-        membership: membershipType,
-        isTrial: isTrial,
-        expireDate: expDate,
-        source: source);
+      membership: membershipType,
+      isTrial: isTrial,
+      expireDate: expDate,
+      source: source,
+    );
   }
 
   String get userId {
     final claim = parseJwt(jwtToken);
-    // TODO: change `sub` to correct key
     return claim['sub'] as String;
   }
 
   @override
   String toString() => jwtToken;
+
+  JWT copyWith({required String jwtToken, int? expireIn}) => JWT(
+        jwtToken: jwtToken,
+        expireIn: expireIn,
+        refreshToken: refreshToken,
+        refreshExpireAt: refreshExpireAt,
+      );
 }
 
 enum MembershipSource {
@@ -159,16 +175,17 @@ enum MembershipSource {
 }
 
 class SubscriptionStatus {
+  SubscriptionStatus({
+    required this.membership,
+    required this.isTrial,
+    required this.source,
+    this.expireDate,
+  });
+
   final MembershipType membership;
   final bool isTrial;
   final MembershipSource? source;
   final DateTime? expireDate;
-
-  SubscriptionStatus(
-      {required this.membership,
-      required this.isTrial,
-      required this.source,
-      this.expireDate});
 
   bool isExpired() => expireDate?.isBefore(DateTime.now()) ?? true;
 
@@ -208,12 +225,11 @@ class SubscriptionStatus {
 }
 
 class OnesignalIdentityHash {
-  String hash;
-
   OnesignalIdentityHash({required this.hash});
 
   OnesignalIdentityHash.fromJson(Map<String, dynamic> json)
       : hash = json['hash'] as String;
+  String hash;
 
   Map<String, dynamic> toJson() => {
         'hash': hash,

@@ -136,15 +136,19 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 'assets/images/more_circle.svg',
                 width: 22,
                 colorFilter: const ColorFilter.mode(
-                    AppColor.disabledColor, BlendMode.srcIn),
+                  AppColor.disabledColor,
+                  BlendMode.srcIn,
+                ),
               ),
               controller: _renameController,
               focusNode: _renameFocusNode,
               onSubmit: (String value) {
                 if (value.trim().isNotEmpty) {
                   _walletAddress = _walletAddress.copyWith(name: value);
-                  _addressService.insertAddress(_walletAddress,
-                      checkAddressDuplicated: false);
+                  _addressService.insertAddress(
+                    _walletAddress,
+                    checkAddressDuplicated: false,
+                  );
                   setState(() {
                     _isRename = false;
                   });
@@ -162,7 +166,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 'assets/images/more_circle.svg',
                 width: 22,
                 colorFilter: const ColorFilter.mode(
-                    AppColor.primaryBlack, BlendMode.srcIn),
+                  AppColor.primaryBlack,
+                  BlendMode.srcIn,
+                ),
               ),
               action: _showOptionDialog,
               onBack: () {
@@ -172,66 +178,71 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
       body: Stack(
         children: [
           BlocConsumer<WalletDetailBloc, WalletDetailState>(
-              listener: (context, state) async {},
-              builder: (context, state) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+            listener: (context, state) async {},
+            builder: (context, state) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (hideConnection)
+                  const SizedBox(height: 16)
+                else
+                  addTitleSpace(),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 3000),
+                  height: hideConnection ? 60 : null,
+                  child: _balanceSection(
+                    context,
+                    state.balance,
+                    state.balanceInUSD,
+                  ),
+                ),
+                Visibility(
+                  visible: hideConnection,
+                  child: Column(
                     children: [
-                      if (hideConnection)
-                        const SizedBox(height: 16)
-                      else
-                        addTitleSpace(),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 3000),
-                        height: hideConnection ? 60 : null,
-                        child: _balanceSection(
-                            context, state.balance, state.balanceInUSD),
+                      const SizedBox(
+                        height: 12,
                       ),
-                      Visibility(
-                          visible: hideConnection,
-                          child: Column(
-                            children: [
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              addOnlyDivider(),
-                            ],
-                          )),
-                      Expanded(
-                        child: CustomScrollView(
-                          controller: controller,
-                          slivers: [
-                            SliverToBoxAdapter(
+                      addOnlyDivider(),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CustomScrollView(
+                    controller: controller,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 3000),
                               child: Column(
                                 children: [
-                                  AnimatedContainer(
-                                    duration:
-                                        const Duration(milliseconds: 3000),
-                                    child: Column(
-                                      children: [
-                                        if (cryptoType == CryptoType.USDC)
-                                          Padding(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                0, 26, 0, 12),
-                                            child: _erc20Tag(context),
-                                          )
-                                        else
-                                          SizedBox(
-                                              height: hideConnection ? 48 : 16),
-                                        const SizedBox(height: 10),
-                                        Padding(
-                                          padding: padding,
-                                          child: _addressSection(context),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        addDivider(),
-                                        Padding(
-                                          padding: padding,
-                                          child: _txSection(context),
-                                        ),
-                                        addDivider(),
-                                      ],
+                                  if (cryptoType == CryptoType.USDC)
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        0,
+                                        26,
+                                        0,
+                                        12,
+                                      ),
+                                      child: _erc20Tag(context),
+                                    )
+                                  else
+                                    SizedBox(
+                                      height: hideConnection ? 48 : 16,
                                     ),
+                                  const SizedBox(height: 10),
+                                  Padding(
+                                    padding: padding,
+                                    child: _addressSection(context),
                                   ),
+                                  const SizedBox(height: 24),
+                                  addDivider(),
+                                  Padding(
+                                    padding: padding,
+                                    child: _txSection(context),
+                                  ),
+                                  addDivider(),
                                 ],
                               ),
                             ),
@@ -239,7 +250,11 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                         ),
                       ),
                     ],
-                  )),
+                  ),
+                ),
+              ],
+            ),
+          ),
           if (_isRename)
             Container(
               color: const Color.fromRGBO(0, 0, 0, 0.5),
@@ -262,23 +277,27 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     final theme = Theme.of(context);
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          side: const BorderSide(
-            color: AppColor.auQuickSilver,
-          ),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 15)),
+        backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        side: const BorderSide(
+          color: AppColor.auQuickSilver,
+        ),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+      ),
       onPressed: () {},
       child: Text('ERC-20', style: theme.textTheme.ppMori400Grey14),
     );
   }
 
   Widget _balanceSection(
-      BuildContext context, String balance, String balanceInUSD) {
+    BuildContext context,
+    String balance,
+    String balanceInUSD,
+  ) {
     final theme = Theme.of(context);
     final cryptoType = widget.payload.address.cryptoType;
     if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.XTZ) {
@@ -298,7 +317,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               style: hideConnection
                   ? theme.textTheme.ppMori400Grey14
                   : theme.textTheme.ppMori400Grey16,
-            )
+            ),
           ],
         ),
       );
@@ -331,48 +350,54 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           ),
           Expanded(
             child: StatefulBuilder(
-                builder: (context, setState) => Container(
-                    alignment: Alignment.bottomRight,
-                    child: SizedBox(
-                      //width: double.infinity,
-                      height: 28,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isCopied
-                              ? AppColor.feralFileHighlight
-                              : AppColor.auLightGrey,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          side: BorderSide(
-                            color: isCopied
-                                ? Colors.transparent
-                                : AppColor.greyMedium,
-                          ),
-                          alignment: Alignment.center,
-                        ),
-                        onPressed: () {
-                          if (isCopied) {
-                            return;
-                          }
-                          showInfoNotification(const Key('address'),
-                              'address_copied_to_clipboard'.tr());
-                          unawaited(
-                              Clipboard.setData(ClipboardData(text: _address)));
-                          setState(() {
-                            isCopied = true;
-                          });
-                        },
-                        child: isCopied
-                            ? Text(
-                                'copied'.tr(),
-                                style: theme.textTheme.ppMori400Black14,
-                              )
-                            : Text('copy'.tr(),
-                                style: theme.textTheme.ppMori400Grey14),
+              builder: (context, setState) => Container(
+                alignment: Alignment.bottomRight,
+                child: SizedBox(
+                  //width: double.infinity,
+                  height: 28,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isCopied
+                          ? AppColor.feralFileHighlight
+                          : AppColor.auLightGrey,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32),
                       ),
-                    ))),
+                      side: BorderSide(
+                        color:
+                            isCopied ? Colors.transparent : AppColor.greyMedium,
+                      ),
+                      alignment: Alignment.center,
+                    ),
+                    onPressed: () {
+                      if (isCopied) {
+                        return;
+                      }
+                      showSimpleNotificationToast(
+                        key: const Key('address'),
+                        content: 'address_copied_to_clipboard'.tr(),
+                      );
+                      unawaited(
+                        Clipboard.setData(ClipboardData(text: _address)),
+                      );
+                      setState(() {
+                        isCopied = true;
+                      });
+                    },
+                    child: isCopied
+                        ? Text(
+                            'copied'.tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          )
+                        : Text(
+                            'copy'.tr(),
+                            style: theme.textTheme.ppMori400Grey14,
+                          ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -381,66 +406,83 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
 
   Widget _txSection(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      TappableForwardRow(
-        padding: EdgeInsets.zero,
-        leftWidget: Text(
-          'show_history'.tr(),
-          style: theme.textTheme.ppMori400Black14,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TappableForwardRow(
+          padding: EdgeInsets.zero,
+          leftWidget: Text(
+            'show_history'.tr(),
+            style: theme.textTheme.ppMori400Black14,
+          ),
+          onTap: () async {
+            await _browser.openUrl(
+              addressURL(_address, widget.payload.address.cryptoType),
+            );
+          },
         ),
-        onTap: () async {
-          await _browser
-              .openUrl(addressURL(_address, widget.payload.address.cryptoType));
-        },
-      ),
-    ]);
+      ],
+    );
   }
 
   void _showOptionDialog() {
     if (!mounted) {
       return;
     }
-    unawaited(UIHelper.showDrawerAction(context, options: [
-      if (_isHideGalleryEnabled)
-        OptionItem(
-          title: 'unhide_from_collection_view'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/unhide.svg',
+    unawaited(
+      UIHelper.showDrawerAction(
+        context,
+        options: [
+          if (_isHideGalleryEnabled)
+            OptionItem(
+              title: 'unhide_from_collection_view'.tr(),
+              icon: SvgPicture.asset(
+                'assets/images/unhide.svg',
+              ),
+              onTap: () {
+                unawaited(
+                  _addressService.setHiddenStatus(
+                    addresses: [_address],
+                    isHidden: !_isHideGalleryEnabled,
+                  ),
+                );
+                setState(() {
+                  _isHideGalleryEnabled = !_isHideGalleryEnabled;
+                });
+                Navigator.of(context).pop();
+              },
+            )
+          else
+            OptionItem(
+              title: 'hide_from_collection_view'.tr(),
+              icon: const Icon(
+                AuIcon.hidden_artwork,
+                color: AppColor.white,
+              ),
+              onTap: () {
+                unawaited(
+                  _addressService.setHiddenStatus(
+                    addresses: [_address],
+                    isHidden: !_isHideGalleryEnabled,
+                  ),
+                );
+                setState(() {
+                  _isHideGalleryEnabled = !_isHideGalleryEnabled;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          OptionItem(
+            title: 'rename'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/rename_icon.svg',
+            ),
+            onTap: _onRenameTap,
           ),
-          onTap: () {
-            unawaited(_addressService.setHiddenStatus(
-                addresses: [_address], isHidden: !_isHideGalleryEnabled));
-            setState(() {
-              _isHideGalleryEnabled = !_isHideGalleryEnabled;
-            });
-            Navigator.of(context).pop();
-          },
-        )
-      else
-        OptionItem(
-          title: 'hide_from_collection_view'.tr(),
-          icon: const Icon(
-            AuIcon.hidden_artwork,
-            color: AppColor.white,
-          ),
-          onTap: () {
-            unawaited(_addressService.setHiddenStatus(
-                addresses: [_address], isHidden: !_isHideGalleryEnabled));
-            setState(() {
-              _isHideGalleryEnabled = !_isHideGalleryEnabled;
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-      OptionItem(
-        title: 'rename'.tr(),
-        icon: SvgPicture.asset(
-          'assets/images/rename_icon.svg',
-        ),
-        onTap: _onRenameTap,
+          OptionItem(),
+        ],
       ),
-      OptionItem(),
-    ]));
+    );
   }
 }
 

@@ -65,7 +65,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                     Row(
                       children: [
                         Text(
-                          'autonomy_is_'.tr(),
+                          '${'autonomy_is_'.tr()} ',
                           style: theme.textTheme.ppMori400Black16,
                         ),
                         GestureDetector(

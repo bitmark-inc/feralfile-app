@@ -22,7 +22,7 @@ abstract class PasskeyService {
 
   Future<AuthenticateResponseType> logInInitiate();
 
-  Future<void> logInFinalize(AuthenticateResponseType authenticateResponse);
+  Future<JWT> logInFinalize(AuthenticateResponseType authenticateResponse);
 
   Future<void> registerInitiate();
 
@@ -30,13 +30,13 @@ abstract class PasskeyService {
 
   Future<void> setUserId(String? userId);
 
+  Future<JWT> requestJwt();
+
   String? getUserId();
 
   ValueNotifier<bool> get isShowingLoginDialog;
 
   static String authenticationType = 'public-key';
-
-  bool didRegisterPasskey();
 }
 
 class PasskeyServiceImpl implements PasskeyService {
@@ -154,7 +154,7 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<void> logInFinalize(
+  Future<JWT> logInFinalize(
     AuthenticateResponseType authenticateResponse,
   ) async {
     try {
@@ -164,6 +164,7 @@ class PasskeyServiceImpl implements PasskeyService {
       log.info('Login finalize done, set auth token');
       await _authService.setAuthToken(response);
       log.info('Login finalize done');
+      return response;
     } catch (e, s) {
       log.info('Failed to login finalize: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
@@ -233,14 +234,18 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  String? getUserId() {
-    return _passkeyServiceStore.get(_userIdKey);
+  Future<JWT> requestJwt() async {
+    log.info('[PasskeyService] Request JWT');
+    final localResponse = await logInInitiate();
+    log.info('[PasskeyService] Log in initiated');
+    final jwt = await logInFinalize(localResponse);
+    log.info('[PasskeyService] Log in finalized');
+    log.info('[PasskeyService] return JWT done');
+    return jwt;
   }
 
-  @override
-  bool didRegisterPasskey() {
-    final userId = getUserId();
-    return userId != null;
+  String? getUserId() {
+    return _passkeyServiceStore.get(_userIdKey);
   }
 }
 

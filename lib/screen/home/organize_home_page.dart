@@ -142,15 +142,12 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
       },
     );
 
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-        appBar: getDarkEmptyAppBar(Colors.transparent),
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        backgroundColor: AppColor.primaryBlack,
-        body: contentWidget,
-      ),
+    return Scaffold(
+      appBar: getDarkEmptyAppBar(Colors.transparent),
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      backgroundColor: AppColor.primaryBlack,
+      body: contentWidget,
     );
   }
 

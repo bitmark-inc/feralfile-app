@@ -7,16 +7,12 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 
-class NavigateAdditionalData extends AdditionalData {
-  final String navigationRoute;
-  final int? homeIndex;
-
-  NavigateAdditionalData({
-    required this.navigationRoute,
+class ChatNotificationData extends AdditionalData {
+  ChatNotificationData({
     required super.notificationType,
     super.announcementContentId,
     super.cta,
-    this.homeIndex,
+    super.title,
   });
 
   @override
@@ -24,20 +20,21 @@ class NavigateAdditionalData extends AdditionalData {
 
   @override
   Future<void> handleTap(BuildContext context) async {
-    log.info('NavigationPath: handle tap: $navigationRoute');
-    if (navigationRoute == AppRouter.supportCustomerPage &&
-        announcementContentId != null) {
+    log.info('ChatNotificationData: handle tap');
+    if (announcementContentId != null) {
       final announcement = injector<AnnouncementService>()
           .getAnnouncement(announcementContentId);
       if (announcement != null) {
         await injector<NavigationService>().navigateTo(
           AppRouter.supportThreadPage,
-          arguments:
-              NewIssueFromAnnouncementPayload(announcement: announcement),
+          arguments: NewIssueFromAnnouncementPayload(
+            announcement: announcement,
+            title: title,
+          ),
         );
+      } else {
+        log.info('[ChatNotificationData] Announcement is not existed');
       }
-      return;
     }
-    await injector<NavigationService>().navigatePath(navigationRoute);
   }
 }
