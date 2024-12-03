@@ -117,8 +117,9 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
                               final newConnection = widget.address
                                   .copyWith(name: _nameController.text);
 
-                              await injector<AddressService>()
-                                  .insertAddresses([newConnection]);
+                              await injector<AddressService>().insertAddress(
+                                  newConnection,
+                                  checkAddressDuplicated: false);
                               _doneNaming();
                             },
                     ),

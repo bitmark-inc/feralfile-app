@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
@@ -113,9 +114,10 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     );
   }
 
-  Future<void> _register() async {
+  Future<JWT?> _register() async {
+    JWT? jwt;
     if (_registering) {
-      return;
+      return null;
     }
     setState(() {
       _registering = true;
@@ -123,7 +125,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     });
     try {
       await _passkeyService.registerInitiate();
-      await _passkeyService.registerFinalize();
+      jwt = await _passkeyService.registerFinalize();
       setState(() {
         _didSuccess = true;
       });
@@ -138,6 +140,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         _registering = false;
       });
     }
+    return jwt;
   }
 
   Widget _havingTrouble(BuildContext context) {

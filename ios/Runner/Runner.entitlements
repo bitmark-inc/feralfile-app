@@ -7,10 +7,7 @@
 		<string>webcredentials:accounts.dev.feralfile.com</string>
 		<string>feralfile-app.test-app.link</string>
 		<string>applinks:feralfile-app-alternate.app.link</string>
-		<string>webcredentials:example.com</string>
 		<string>feralfile-app-alternate.test-app.link</string>
-		<string>webcredentials:example.com</string>
-		<string>webcredentials:example.com</string>
 	</array>
 </dict>
 </plist>

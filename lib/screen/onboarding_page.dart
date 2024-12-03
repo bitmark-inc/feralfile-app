@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -115,6 +116,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       Environment.checkAllKeys();
       await DeviceInfo.instance.init();
       await injector<DeviceInfoService>().init();
+      await injector<PasskeyService>().init();
       await injector<MetricClientService>().initService();
 
       unawaited(injector<RemoteConfigService>().loadConfigs());
@@ -183,6 +185,8 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureMessage('Login process failed'));
       return;
     }
+    // download user data
+    await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');

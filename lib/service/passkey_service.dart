@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/user_api.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -13,6 +14,8 @@ import 'package:passkeys/types.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class PasskeyService {
+  Future<void> init();
+
   Future<bool> doesOSSupport();
 
   Future<bool> canAuthenticate();
@@ -23,7 +26,7 @@ abstract class PasskeyService {
 
   Future<void> registerInitiate();
 
-  Future<void> registerFinalize();
+  Future<JWT> registerFinalize();
 
   Future<void> setUserId(String? userId);
 
@@ -50,18 +53,25 @@ class PasskeyServiceImpl implements PasskeyService {
   final UserApi _userApi;
   final AuthService _authService;
 
-  final HiveStoreObjectService<String?> _userIdStore =
-      HiveStoreObjectServiceImpl<String?>();
+  final HiveStoreObjectService<String?> _passkeyServiceStore =
+      HiveStoreObjectServiceImpl<String?>()..init(_passkeyStoreKey);
+
   static const String _userIdKey = 'userId';
+  static const String _passkeyStoreKey = 'passkeyStoreKey';
 
   final ValueNotifier<bool> _isShowingLoginDialog = ValueNotifier(false);
 
-  static const _defaultMediation = MediationType.Conditional;
+  static const _defaultMediation = MediationType.Optional;
 
   static const _preferImmediatelyAvailableCredentials = false;
 
   @override
   ValueNotifier<bool> get isShowingLoginDialog => _isShowingLoginDialog;
+
+  @override
+  Future<void> init() async {
+    await _passkeyServiceStore.init(_passkeyStoreKey);
+  }
 
   @override
   Future<bool> doesOSSupport() async {
@@ -83,7 +93,8 @@ class PasskeyServiceImpl implements PasskeyService {
       Platform.isAndroid ? await _passkeyAuthenticator.canAuthenticate() : true;
 
   // passkey available always return true for iOS
-  // if no verification method is available, the user will be prompted to set up passcode or faceID
+  // if no verification method is available,
+  // the user will be prompted to set up passcode or faceID
 
   @override
   Future<AuthenticateResponseType> logInInitiate() async {
@@ -91,7 +102,8 @@ class PasskeyServiceImpl implements PasskeyService {
       log.info('Login initiate');
       final loginRequest = await _logInSeverInitiate();
       log.info('Login initiate done, login request: $loginRequest');
-      return await _authenticate(loginRequest);
+      final res = await _authenticate(loginRequest);
+      return res;
     } catch (e, s) {
       log.info('Failed to login initiate: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
@@ -100,7 +112,8 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   Future<AuthenticateResponseType> _authenticate(
-      AuthenticateRequestType loginRequest) async {
+    AuthenticateRequestType loginRequest,
+  ) async {
     log.info('Authenticate, show login dialog');
     try {
       _isShowingLoginDialog.value = true;
@@ -142,13 +155,14 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<void> logInFinalize(
-      AuthenticateResponseType authenticateResponse) async {
+    AuthenticateResponseType authenticateResponse,
+  ) async {
     try {
       log.info('Login finalize');
       final response =
           await _userApi.logInFinalize(authenticateResponse.toFFJson());
       log.info('Login finalize done, set auth token');
-      _authService.setAuthToken(response);
+      await _authService.setAuthToken(response);
       log.info('Login finalize done');
     } catch (e, s) {
       log.info('Failed to login finalize: $e');
@@ -191,7 +205,7 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<void> registerFinalize() async {
+  Future<JWT> registerFinalize() async {
     if (_registerResponse == null || _passkeyUserId == null) {
       throw Exception('Initialize registration has not finished');
     }
@@ -200,23 +214,27 @@ class PasskeyServiceImpl implements PasskeyService {
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
-    _authService.setAuthToken(response);
+    await _authService.setAuthToken(response);
+    return response;
   }
 
   @override
   Future<void> setUserId(String? userId) async {
     try {
-      await _userIdStore.save(userId, _userIdKey);
+      await _passkeyServiceStore.save(userId, _userIdKey);
     } catch (e) {
       log.info('[PasskeyService] Failed to set user ID: $e');
-      unawaited(Sentry.captureException(
-          '[PasskeyService] Failed to set user ID: $e'));
+      unawaited(
+        Sentry.captureException(
+          '[PasskeyService] Failed to set user ID: $e',
+        ),
+      );
     }
   }
 
   @override
   String? getUserId() {
-    return _userIdStore.get(_userIdKey);
+    return _passkeyServiceStore.get(_userIdKey);
   }
 
   @override

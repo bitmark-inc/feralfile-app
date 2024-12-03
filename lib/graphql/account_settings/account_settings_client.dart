@@ -85,7 +85,7 @@ class AccountSettingsClient {
     log
       ..info('AccountSettingsClient: write $data')
       ..info('AccountSettingsClient: write result ${resultData?['write']}');
-    return (resultData?['write']?['ok'] ?? false) as Future<bool>;
+    return (resultData?['write']?['ok'] ?? false) as bool;
   }
 
   Future<bool> delete({

@@ -49,7 +49,6 @@ class Environment {
       'AUTONOMY_IPFS_PREFIX',
       'PENDING_TOKEN_EXPIRE_MS',
       // 'APP_TESTNET_CONFIG', ignore this key
-      'AU_CLAIM_API_URL',
       // 'IRL_WHITELIST_URL', // this key is not set
       'CLOUD_FLARE_IMAGE_URL_PREFIX',
       'TZKT_MAINNET_URL',
@@ -159,8 +158,6 @@ class Environment {
 
   static bool get appTestnetConfig =>
       _readKey('APP_TESTNET_CONFIG', '').toUpperCase() == 'TRUE';
-
-  static String get auClaimAPIURL => _readKey('AU_CLAIM_API_URL', '');
 
   static List<String> get irlWhitelistUrls =>
       _readKey('IRL_WHITELIST_URL', '').split(',');

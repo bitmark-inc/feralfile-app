@@ -143,7 +143,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               onSubmit: (String value) {
                 if (value.trim().isNotEmpty) {
                   _walletAddress = _walletAddress.copyWith(name: value);
-                  _addressService.insertAddress(_walletAddress);
+                  _addressService.insertAddress(_walletAddress,
+                      checkAddressDuplicated: false);
                   setState(() {
                     _isRename = false;
                   });

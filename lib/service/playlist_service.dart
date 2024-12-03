@@ -116,7 +116,7 @@ class PlayListServiceImp implements PlaylistService {
   @override
   Future<List<PlayListModel>> defaultPlaylists() async {
     final defaultPlaylists = <PlayListModel>[];
-    final activeAddress = _addressService.getAllAddresses(isHidden: true);
+    final activeAddress = _addressService.getAllAddresses(isHidden: false);
     final allTokenIds = await _tokenDao.findTokenIDsOwnersOwn(activeAddress);
     final hiddenTokenIds = _configurationService.getHiddenTokenIDs();
     allTokenIds.removeWhere(hiddenTokenIds.contains);

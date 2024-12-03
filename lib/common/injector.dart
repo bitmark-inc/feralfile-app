@@ -61,6 +61,7 @@ import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -80,6 +81,7 @@ import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web3dart/web3dart.dart';
 
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
@@ -299,6 +301,9 @@ Future<void> setupInjector() async {
     () => DomainAddressServiceImpl(injector()),
   );
 
+  injector.registerLazySingleton(
+      () => Web3Client(Environment.web3RpcURL, injector()));
+
   injector.registerLazySingleton<ClientTokenService>(
     () => ClientTokenService(
       injector(),
@@ -320,6 +325,9 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<IndexerService>(
     () => IndexerService(indexerClient, injector()),
   );
+
+  injector
+      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
 
   injector.registerLazySingleton<EthereumService>(
     () => EthereumServiceImpl(

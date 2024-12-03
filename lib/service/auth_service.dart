@@ -78,7 +78,7 @@ class AuthService {
 
   Future<void> setAuthToken(JWT? jwt, {String? receiptData}) async {
     _jwt = jwt;
-    await injector<PasskeyService>().setUserId(jwt?.jwtToken);
+    await injector<PasskeyService>().setUserId(jwt?.userId);
 
     _refreshSubscriptionStatus(jwt, receiptData: receiptData);
   }
