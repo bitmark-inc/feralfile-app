@@ -139,7 +139,7 @@ class _PlaylistActivationPageState extends State<PlaylistActivationPage> {
             text: TextSpan(
               style: theme.textTheme.ppMori400White14,
               children: [
-                TextSpan(text: 'you_receive_gift_playlist'.tr()),
+                TextSpan(text: '${'you_receive_gift_playlist'.tr()} '),
                 TextSpan(
                   text: '${activation.source}.',
                   style: const TextStyle(fontWeight: FontWeight.bold),

@@ -114,7 +114,7 @@ class ExhibitionCard extends StatelessWidget {
                             style: subTitleStyle.copyWith(
                                 decorationColor: AppColor.disabledColor),
                             children: [
-                              TextSpan(text: 'works_by'.tr()),
+                              TextSpan(text: '${'works_by'.tr()} '),
                               ...exhibitionParticipantSpans(
                                   [exhibition.artistsAlumni![0]]),
                             ],
@@ -128,7 +128,7 @@ class ExhibitionCard extends StatelessWidget {
                             style: subTitleStyle.copyWith(
                                 decorationColor: AppColor.disabledColor),
                             children: [
-                              TextSpan(text: 'curated_by'.tr()),
+                              TextSpan(text: '${'curated_by'.tr()} '),
                               ...exhibitionParticipantSpans(listCurators),
                             ],
                           ),

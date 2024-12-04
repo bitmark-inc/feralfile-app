@@ -829,7 +829,7 @@ class UIHelper {
                 children: [
                   TextSpan(
                     style: theme.textTheme.ppMori400White14,
-                    text: 'art_no_appear'.tr(),
+                    text: '${'art_no_appear'.tr()} ',
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori700White14,
@@ -837,7 +837,7 @@ class UIHelper {
                   ),
                   TextSpan(
                     style: theme.textTheme.ppMori400White14,
-                    text: 'section_setting'.tr(),
+                    text: ' ${'section_setting'.tr()}',
                   ),
                 ],
               ),
@@ -1488,10 +1488,10 @@ class UIHelper {
     if (!currentContext.mounted) {
       return;
     }
-    showInAppNotifications(
-      currentContext,
-      'upgraded_notification_body'.tr(),
-      'subscription_upgraded',
+    showSimpleNotificationToast(
+      key: const Key('subscription_upgraded'),
+      content: 'upgraded_notification_body'.tr(),
+      vibrateFeedbackType: FeedbackType.warning,
     );
   }
 

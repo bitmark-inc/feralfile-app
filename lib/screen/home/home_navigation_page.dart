@@ -38,7 +38,7 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/notification_type.dart';
+import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
@@ -292,31 +292,30 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     _triggerShowAnnouncement();
 
-    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      log.info('Receive notification: ${event.notification.additionalData}');
-      if (event.notification.additionalData == null) {
-        return;
-      }
-      event.preventDefault();
-      final additionalData =
-          AdditionalData.fromJson(event.notification.additionalData!);
-      final id = additionalData.announcementContentId ??
-          event.notification.notificationId;
-      final body = event.notification.body;
+    // OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    //   log.info('Receive notification: ${event.notification.additionalData}');
+    //   if (event.notification.additionalData == null) {
+    //     return;
+    //   }
+    //   event.preventDefault();
+    //   final additionalData =
+    //       AdditionalData.fromJson(event.notification.additionalData!);
+    //   final id = additionalData.announcementContentId ??
+    //       event.notification.notificationId;
 
-      Future.delayed(const Duration(milliseconds: 500), () async {
-        if (!mounted) {
-          return;
-        }
-        await NotificationHandler.instance.shouldShowNotifications(
-          context,
-          additionalData,
-          id,
-          body ?? '',
-          _pageController,
-        );
-      });
-    });
+    //   Future.delayed(const Duration(milliseconds: 500), () async {
+    //     if (!mounted) {
+    //       return;
+    //     }
+    //     await NotificationHandler.instance.shouldShowInAppNotification(
+    //       context,
+    //       additionalData,
+    //       id,
+    //       _pageController,
+    //     );
+    //   });
+    // });
+
     OneSignal.Notifications.addClickListener((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');
@@ -331,7 +330,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       }
       unawaited(
         NotificationHandler.instance
-            .handleNotificationClicked(context, additionalData, id, body ?? ''),
+            .handlePushNotificationClicked(context, additionalData),
       );
     });
     WidgetsBinding.instance.addObserver(this);

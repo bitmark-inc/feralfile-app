@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
@@ -26,10 +27,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -43,7 +42,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
-import 'package:overlay_support/src/overlay_state_finder.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -165,31 +163,30 @@ class NavigationService {
             ),
             const SizedBox(height: 24),
             RichText(
-              text: TextSpan(
-                style: theme.textTheme.ppMori400White14,
-                children: <TextSpan>[
-                  TextSpan(
-                    text: 'if_issue_persist'.tr(),
+                text: TextSpan(
+              style: theme.textTheme.ppMori400White14,
+              children: <TextSpan>[
+                TextSpan(
+                  text: '${'if_issue_persist'.tr()} ',
+                ),
+                TextSpan(
+                  text: 'feralfile@support.com'.tr(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
                   ),
-                  TextSpan(
-                    text: 'feralfile@support.com'.tr(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        log.info('send email to feralfile@support.com');
-                        const href = 'mailto:support@feralfile.com';
-                        launchUrlString(href);
-                      },
-                  ),
-                  TextSpan(
-                    text: 'for_assistance'.tr(),
-                  ),
-                ],
-              ),
-            ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      log.info('send email to feralfile@support.com');
+                      const href = 'mailto:support@feralfile.com';
+                      launchUrlString(href);
+                    },
+                ),
+                TextSpan(
+                  text: ' ${'for_assistance'.tr()}',
+                ),
+              ],
+            ))
           ],
         ),
         isDismissible: true,
@@ -221,45 +218,6 @@ class NavigationService {
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition,
     );
-  }
-
-  Future<void> showContactingDialog() async {
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      bool dialogShowed = false;
-      showInfoNotificationWithLink(
-        contactingKey,
-        'establishing_contact'.tr(),
-        frontWidget: loadingIndicator(valueColor: AppColor.white),
-        bottomRightWidget: GestureDetector(
-          onTap: () {
-            dialogShowed = true;
-            waitTooLongDialog();
-          },
-          child: Text(
-            'taking_too_long'.tr(),
-            style: Theme.of(navigatorKey.currentContext!)
-                .textTheme
-                .ppMori400White12
-                .copyWith(
-                  color: AppColor.auQuickSilver,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppColor.auQuickSilver,
-                ),
-          ),
-        ),
-        duration: const Duration(seconds: 15),
-      );
-      final OverlaySupportState? overlaySupport = findOverlayState();
-      Future.delayed(const Duration(seconds: 4), () {
-        if (!dialogShowed &&
-            overlaySupport != null &&
-            overlaySupport.getEntry(key: contactingKey) != null) {
-          dialogShowed = true;
-          waitTooLongDialog();
-        }
-      });
-    }
   }
 
   Future<void> waitTooLongDialog() async {
@@ -812,7 +770,7 @@ class NavigationService {
               style: theme.textTheme.ppMori400White14,
               children: [
                 TextSpan(
-                  text: 'go_to_setting_tv'.tr(),
+                  text: '${'go_to_setting_tv'.tr()} ',
                 ),
                 TextSpan(
                   recognizer: TapGestureRecognizer()
@@ -1087,8 +1045,7 @@ class NavigationService {
                       navigateTo(
                         AppRouter.supportThreadPage,
                         arguments: NewIssuePayload(
-                          reportIssueType: ReportIssueType.Bug,
-                        ),
+                            reportIssueType: ReportIssueType.Bug),
                       );
                     },
                   ),
@@ -1101,6 +1058,37 @@ class NavigationService {
       backgroundColor: AppColor.auGreyBackground,
       withExitButton: false,
       verticalPadding: 0,
+    );
+  }
+
+  Future<JWT?> showRefreshJwtFailedDialog(
+      {required Future<JWT> Function() onRetry}) async {
+    log.info('showRefreshJwtFailedDialog');
+    final res = await UIHelper.showCustomDialog(
+      context: context,
+      child: PopScope(
+        canPop: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('session_expired'.tr(),
+                style: Theme.of(context).textTheme.ppMori700White24),
+            const SizedBox(height: 20),
+            Text('session_expired_desc'.tr(),
+                style: Theme.of(context).textTheme.ppMori400White14),
+            const SizedBox(height: 20),
+            PrimaryButton(
+              text: 'sign_in'.tr(),
+              onTap: () async {
+                final jwt = await onRetry();
+                if (context.mounted) {
+                  Navigator.pop(context, jwt);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

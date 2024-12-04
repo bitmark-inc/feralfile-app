@@ -68,6 +68,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
         await _saveAnnouncement(localAnnouncement);
+
         if (_queue.isNotEmpty &&
             !_queue.any((element) =>
                 element.announcementContentId ==
@@ -113,16 +114,19 @@ class AnnouncementServiceImpl implements AnnouncementService {
 
   /// unread and in-app enabled announcements
   List<AnnouncementLocal> _getAnnouncementsToShow() {
-    _queue.removeWhere((element) => element.read || !element.inAppEnabled);
+    _queue.removeWhere((element) => !_shouldDisplayAnnouncement(element));
     if (_queue.isEmpty) {
       final allAnnouncements = getLocalAnnouncements();
       _queue.addAll(allAnnouncements
-          .where((element) => !element.read && element.inAppEnabled)
+          .where((element) => _shouldDisplayAnnouncement(element))
           .toList());
     }
     _updateBadger(_queue.length);
     return _queue;
   }
+
+  bool _shouldDisplayAnnouncement(AnnouncementLocal announcement) =>
+      !announcement.read && announcement.inAppEnabled;
 
   @override
   AnnouncementLocal? getAnnouncement(String? announcementContentId) {
@@ -155,9 +159,10 @@ class AnnouncementServiceImpl implements AnnouncementService {
         }
         return;
       }
-      await showNotifications(
+      await showInAppNotifications(
         context,
         announcement.announcementContentId,
+        additionalData,
         body: announcement.content,
         handler: additionalData.isTappable
             ? () async {
@@ -169,7 +174,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
             await showOldestAnnouncement();
           }
         },
-        additionalData: additionalData,
       );
     }
   }

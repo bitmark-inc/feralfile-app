@@ -69,9 +69,11 @@ class NewIssueFromAnnouncementPayload extends SupportThreadPayload {
   NewIssueFromAnnouncementPayload({
     required this.announcement,
     this.defaultMessage,
+    this.title,
   });
 
   final Announcement announcement;
+  final String? title;
 
   @override
   final String? defaultMessage;

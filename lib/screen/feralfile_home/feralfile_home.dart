@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
-import 'package:autonomy_flutter/screen/feralfile_home/explore_search_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/featured_work_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart';
@@ -30,8 +29,7 @@ enum FeralfileHomeTab {
   featured,
   artworks,
   artists,
-  curators,
-  rAndD;
+  curators;
 
   List<SortBy> getSortBy({bool isSearching = false}) {
     switch (this) {
@@ -161,60 +159,20 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         _artistViewKey.currentState?.scrollToTop();
       case FeralfileHomeTab.curators:
         _curatorViewKey.currentState?.scrollToTop();
-      case FeralfileHomeTab.rAndD:
-        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final icon = Icon(
-      AuIcon.chevron_Sm,
-      size: 18,
-      color: Theme.of(context).colorScheme.secondary,
-    );
+
     return Scaffold(
       appBar: getDarkEmptyAppBar(Colors.transparent),
       extendBody: true,
       extendBodyBehindAppBar: true,
       backgroundColor: AppColor.primaryBlack,
-      body: Column(
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).padding.top + 32,
-          ),
-          // Header
-          BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
-            builder: (context, state) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: ItemExpandedWidget(
-                key: _itemExpandedKey,
-                items: _getItemList(state),
-                selectedIndex: _selectedIndex,
-                iconOnExpanded: RotatedBox(
-                  quarterTurns: 3,
-                  child: icon,
-                ),
-                iconOnUnExpanded: RotatedBox(
-                  quarterTurns: 1,
-                  child: icon,
-                ),
-                actions: [
-                  if (_selectedIndex == FeralfileHomeTab.featured.index &&
-                      state.featuredArtworks != null &&
-                      state.featuredArtworks!.isNotEmpty)
-                    _castButton(context, state.featuredArtworks ?? []),
-                ],
-              ),
-            ),
-          ),
-          // body
-          const SizedBox(height: 16),
-          BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
-            builder: (context, state) => _bodyWidget(state),
-          )
-        ],
+      body: BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
+        builder: (context, state) => _bodyWidget(state),
       ),
     );
   }
@@ -291,7 +249,11 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     switch (tab) {
       case FeralfileHomeTab.featured:
         return KeepAliveWidget(
-            child: _featuredWidget(context, state.featuredArtworks ?? []));
+          child: _featuredWidget(
+            context,
+            state.featuredArtworks ?? [],
+          ),
+        );
       case FeralfileHomeTab.artworks:
         return _artworksWidget(context);
       case FeralfileHomeTab.exhibitions:
@@ -300,9 +262,39 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         return _artistsWidget(context);
       case FeralfileHomeTab.curators:
         return _curatorsWidget(context);
-      case FeralfileHomeTab.rAndD:
-        return _rAndDWidget(context);
     }
+  }
+
+  Widget _getHeader(BuildContext context) {
+    final icon = Icon(
+      AuIcon.chevron_Sm,
+      size: 18,
+      color: Theme.of(context).colorScheme.secondary,
+    );
+    return BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
+      builder: (context, state) => Padding(
+        padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+        child: ItemExpandedWidget(
+          key: _itemExpandedKey,
+          items: _getItemList(state),
+          selectedIndex: _selectedIndex,
+          iconOnExpanded: RotatedBox(
+            quarterTurns: 3,
+            child: icon,
+          ),
+          iconOnUnExpanded: RotatedBox(
+            quarterTurns: 1,
+            child: icon,
+          ),
+          actions: [
+            if (_selectedIndex == FeralfileHomeTab.featured.index &&
+                state.featuredArtworks != null &&
+                state.featuredArtworks!.isNotEmpty)
+              _castButton(context, state.featuredArtworks ?? []),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _featuredWidget(BuildContext context, List<Artwork> featuredArtworks) {
@@ -314,74 +306,33 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           create: (context) => IdentityBloc(injector(), injector()),
         ),
       ],
-      child: Expanded(
-        child: FeaturedWorkView(
-          key: _featuredWorkKey,
-          tokenIDs: tokenIDs,
-        ),
+      child: FeaturedWorkView(
+        key: _featuredWorkKey,
+        tokenIDs: tokenIDs,
+        header: _getHeader(context),
       ),
     );
   }
 
-  Widget _artworksWidget(BuildContext context) => Expanded(
-        child: ExploreBar(
-          key: const ValueKey(FeralfileHomeTab.artworks),
-          childBuilder: (searchText, filters, sortBy) => ExploreSeriesView(
-            key: _artworkViewKey,
-            searchText: searchText,
-            filters: filters,
-            sortBy: sortBy,
-          ),
-        ),
+  Widget _artworksWidget(BuildContext context) => ExploreSeriesView(
+        key: _artworkViewKey,
+        header: _getHeader(context),
       );
 
-  Widget _exhibitionsWidget(BuildContext context) => Expanded(
-        child: ExploreBar(
-          key: const ValueKey(FeralfileHomeTab.exhibitions),
-          childBuilder: (searchText, filters, sortBy) => ExploreExhibition(
-            key: _exhibitionViewKey,
-            searchText: searchText,
-            filters: filters,
-            sortBy: sortBy,
-          ),
-          tab: FeralfileHomeTab.exhibitions,
-        ),
+  Widget _exhibitionsWidget(BuildContext context) => ExploreExhibition(
+        key: _exhibitionViewKey,
+        header: _getHeader(context),
       );
 
-  Widget _artistsWidget(BuildContext context) => Expanded(
-          child: ExploreBar(
-        key: const ValueKey(FeralfileHomeTab.artists),
-        childBuilder: (searchText, filters, sortBy) => ExploreArtistView(
-          key: _artistViewKey,
-          searchText: searchText,
-          filters: filters,
-          sortBy: sortBy,
-        ),
-        tab: FeralfileHomeTab.artists,
-      ));
+  Widget _artistsWidget(BuildContext context) => ExploreArtistView(
+        key: _artistViewKey,
+        header: _getHeader(context),
+      );
 
-  Widget _curatorsWidget(BuildContext context) => Expanded(
-          child: ExploreBar(
-        key: const ValueKey(FeralfileHomeTab.curators),
-        childBuilder: (searchText, filters, sortBy) => ExploreCuratorView(
-          key: _curatorViewKey,
-          searchText: searchText,
-          filters: filters,
-          sortBy: sortBy,
-        ),
-        tab: FeralfileHomeTab.curators,
-      ));
-
-  Widget _rAndDWidget(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: Text('rnd_coming_soon'.tr(),
-            style: theme.textTheme.ppMori700White24),
-      ),
-    );
-  }
+  Widget _curatorsWidget(BuildContext context) => ExploreCuratorView(
+        key: _curatorViewKey,
+        header: _getHeader(context),
+      );
 
   @override
   bool get wantKeepAlive => true;

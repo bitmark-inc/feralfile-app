@@ -334,11 +334,11 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                         children: [
                           if (cancelAt != null) ...[
                             TextSpan(
-                              text: 'canceled_policy_stripe'.tr(),
+                              text: '${'canceled_policy_stripe'.tr()} ',
                             )
                           ] else ...[
                             TextSpan(
-                              text: 'renew_policy_stripe'.tr(),
+                              text: '${'renew_policy_stripe'.tr()} ',
                             ),
                           ],
                           const TextSpan(

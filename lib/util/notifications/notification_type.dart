@@ -10,10 +10,13 @@ enum NotificationType {
   supportMessage,
   dailyArtworkReminders,
   galleryNewNft,
+  newPostcardTrip,
+  postcardShareExpired,
   customerSupportNewMessage,
   customerSupportCloseIssue,
   artworkCreated,
   artworkReceived,
+  newMessage,
   jgCrystallineWorkHasArrived,
   jgCrystallineWorkGenerated,
   exhibitionViewingOpening,
@@ -35,6 +38,10 @@ enum NotificationType {
         return 'daily_artwork_reminders';
       case NotificationType.galleryNewNft:
         return 'gallery_new_nft';
+      case NotificationType.newPostcardTrip:
+        return 'new_postcard_trip';
+      case NotificationType.postcardShareExpired:
+        return 'postcard_share_expired';
       case NotificationType.customerSupportNewMessage:
         return 'customer_support_new_message';
       case NotificationType.customerSupportCloseIssue:
@@ -43,6 +50,8 @@ enum NotificationType {
         return 'artwork_created';
       case NotificationType.artworkReceived:
         return 'artwork_received';
+      case NotificationType.newMessage:
+        return 'new_message';
       case NotificationType.jgCrystallineWorkHasArrived:
         return 'jg_artwork_solar_day_arrived';
       case NotificationType.jgCrystallineWorkGenerated:
@@ -71,6 +80,10 @@ enum NotificationType {
         return NotificationType.dailyArtworkReminders;
       case 'gallery_new_nft':
         return NotificationType.galleryNewNft;
+      case 'new_postcard_trip':
+        return NotificationType.newPostcardTrip;
+      case 'postcard_share_expired':
+        return NotificationType.postcardShareExpired;
       case 'customer_support_new_message':
         return NotificationType.customerSupportNewMessage;
       case 'customer_support_close_issue':
@@ -79,6 +92,8 @@ enum NotificationType {
         return NotificationType.artworkCreated;
       case 'artwork_received':
         return NotificationType.artworkReceived;
+      case 'new_message':
+        return NotificationType.newMessage;
       case 'jg_artwork_solar_day_arrived':
         return NotificationType.jgCrystallineWorkHasArrived;
       case 'jg_artwork_generated':
