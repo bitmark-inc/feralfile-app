@@ -42,12 +42,12 @@ class JohnGerrardHelper {
 
   static List<String> get assetIDs {
     final listAssetIds =
-        injector<RemoteConfigService>().getConfig<List<String>?>(
+        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
       ConfigGroup.johnGerrard,
       ConfigKey.assetIds,
       [],
     );
-    return listAssetIds ?? [];
+    return List<String>.from(listAssetIds ?? []);
   }
 
   static String getIndexID(String tokenId) {
