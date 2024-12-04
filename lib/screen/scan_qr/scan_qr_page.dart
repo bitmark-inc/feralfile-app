@@ -29,8 +29,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // ignore_for_file: constant_identifier_names
 
@@ -175,8 +175,6 @@ class ScanQRPageState extends State<ScanQRPage>
 }
 
 enum ScannerItem {
-  WALLET_CONNECT,
-  BEACON_CONNECT,
   ETH_ADDRESS,
   XTZ_ADDRESS,
   GLOBAL,
@@ -184,16 +182,11 @@ enum ScannerItem {
 
   List<ScannerInstruction> get instructions {
     switch (this) {
-      case WALLET_CONNECT:
-      case BEACON_CONNECT:
-        return [ScannerInstruction.web3Connect];
       case ETH_ADDRESS:
       case XTZ_ADDRESS:
         return [];
       case GLOBAL:
         return [
-          ScannerInstruction.web3Connect,
-          ScannerInstruction.signTransaction,
           ScannerInstruction.displayFF,
         ];
       case CANVAS:
@@ -634,19 +627,6 @@ class QRScanViewState extends State<QRScanView>
           // dont need to do anything here,
           // it has been processed in the branch deeplink
           /// handled with deeplink
-          case ScannerItem.WALLET_CONNECT:
-            if (code.startsWith('wc:')) {
-              await _handleAutonomyConnect(code);
-            } else {
-              _handleError(code);
-            }
-
-          case ScannerItem.BEACON_CONNECT:
-            if (code.startsWith('tezos://')) {
-              await _handleBeaconConnect(code);
-            } else {
-              _handleError(code);
-            }
 
           case ScannerItem.ETH_ADDRESS:
           case ScannerItem.XTZ_ADDRESS:
@@ -662,11 +642,7 @@ class QRScanViewState extends State<QRScanView>
             }
             await Future.delayed(const Duration(milliseconds: 300));
           case ScannerItem.GLOBAL:
-            if (code.startsWith('wc:')) {
-              await _handleAutonomyConnect(code);
-            } else if (code.startsWith('tezos:')) {
-              await _handleBeaconConnect(code);
-            } else {
+            {
               _handleError(code);
             }
         }
@@ -699,36 +675,6 @@ class QRScanViewState extends State<QRScanView>
       ..info('[Scanner][start] scan ${widget.scannerItem}')
       ..info('[Scanner][incorrectScanItem] item: '
           '${data.substring(0, data.length ~/ 2)}');
-  }
-
-  Future<void> _handleAutonomyConnect(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    await pauseCamera();
-    if (!mounted) {
-      return;
-    }
-    if (_shouldPop) {
-      Navigator.pop(context);
-    }
-    await Future.delayed(const Duration(seconds: 1));
-  }
-
-  Future<void> _handleBeaconConnect(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    await pauseCamera();
-    if (!mounted) {
-      return;
-    }
-    if (_shouldPop) {
-      Navigator.pop(context);
-    }
-    await Future.delayed(const Duration(seconds: 1));
-
-    await Future.wait([injector<NavigationService>().showContactingDialog()]);
   }
 
   @override
