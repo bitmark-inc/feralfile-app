@@ -57,6 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   Timer? _timer;
 
   final _passkeyService = injector.get<PasskeyService>();
+  final _authService = injector.get<AuthService>();
   bool? _isLoginSuccess;
   late StreamSubscription<FGBGType> _fgbgSubscription;
 
@@ -119,15 +120,18 @@ class _OnboardingPageState extends State<OnboardingPage>
       Environment.checkAllKeys();
       await DeviceInfo.instance.init();
       await injector<DeviceInfoService>().init();
-      await injector<PasskeyService>().init();
+      await injector<AuthService>().init();
       await injector<MetricClientService>().initService();
 
       unawaited(
-        injector<RemoteConfigService>().loadConfigs().then((_) {
-          log.info('Remote config loaded');
-        }, onError: (e) {
-          log.info('Failed to load remote config: $e');
-        }).whenComplete(() {
+        injector<RemoteConfigService>().loadConfigs().then(
+          (_) {
+            log.info('Remote config loaded');
+          },
+          onError: (Object e) {
+            log.info('Failed to load remote config: $e');
+          },
+        ).whenComplete(() {
           injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
         }),
       );
@@ -245,7 +249,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       return false;
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
-      final userId = null; //_passkeyService.getUserId();
+      final userId = _authService.getUserId();
       log.info('Passkey userId: $userId');
       final didLoginSuccess =
           userId != null ? await _loginWithPasskey() : await _registerPasskey();
@@ -302,7 +306,8 @@ class _OnboardingPageState extends State<OnboardingPage>
           log.info('[_loginAndMigrate] JWT now is valid');
         } else {
           log.info(
-              'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
+            'JWT is invalid, login again, current jwt: ${jwt?.toJson()}',
+          );
           jwt = await _passkeyService.requestJwt();
         }
         await injector<AuthService>().setAuthToken(jwt);

@@ -4,9 +4,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:sentry/sentry.dart';
@@ -26,7 +26,7 @@ class MetricClientService {
   Future<void> identity() async {
     log.info('[MetricClientService] identity');
     try {
-      final userId = injector<PasskeyService>().getUserId();
+      final userId = injector<AuthService>().getUserId();
       if (userId == null) {
         log.info('Metric Identity: userId is null');
         unawaited(Sentry.captureMessage('Metric Identity: userId is null'));

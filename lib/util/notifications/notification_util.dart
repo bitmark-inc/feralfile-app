@@ -10,7 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -29,7 +29,7 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   }
 
   try {
-    final userId = await injector<PasskeyService>().getUserId();
+    final userId = await injector<AuthService>().getUserId();
     await OneSignal.login(userId!);
     await OneSignal.User.pushSubscription.optIn();
     return true;

@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
@@ -61,7 +60,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       }
 
       await _nftCollectionDatabase.removeAll();
-      await injector<PasskeyService>().setUserId(null);
       await _configurationService.removeAll();
       await injector<CacheManager>().emptyCache();
       await DefaultCacheManager().emptyCache();

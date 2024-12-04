@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -14,8 +14,6 @@ import 'package:passkeys/types.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class PasskeyService {
-  Future<void> init();
-
   Future<bool> doesOSSupport();
 
   Future<bool> canAuthenticate();
@@ -28,11 +26,7 @@ abstract class PasskeyService {
 
   Future<JWT> registerFinalize();
 
-  Future<void> setUserId(String? userId);
-
   Future<JWT> requestJwt();
-
-  String? getUserId();
 
   ValueNotifier<bool> get isShowingLoginDialog;
 
@@ -53,12 +47,6 @@ class PasskeyServiceImpl implements PasskeyService {
   final UserApi _userApi;
   final AuthService _authService;
 
-  final HiveStoreObjectService<String?> _passkeyServiceStore =
-      HiveStoreObjectServiceImpl<String?>()..init(_passkeyStoreKey);
-
-  static const String _userIdKey = 'userId';
-  static const String _passkeyStoreKey = 'passkeyStoreKey';
-
   final ValueNotifier<bool> _isShowingLoginDialog = ValueNotifier(false);
 
   static const _defaultMediation = MediationType.Optional;
@@ -67,11 +55,6 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   ValueNotifier<bool> get isShowingLoginDialog => _isShowingLoginDialog;
-
-  @override
-  Future<void> init() async {
-    await _passkeyServiceStore.init(_passkeyStoreKey);
-  }
 
   @override
   Future<bool> doesOSSupport() async {
@@ -131,7 +114,7 @@ class PasskeyServiceImpl implements PasskeyService {
   Future<AuthenticateRequestType> _logInSeverInitiate() async {
     // userId is the address that sign the message when register,
     // which is the primary address
-    final userId = getUserId();
+    final userId = injector<AuthService>().getUserId();
     if (userId == null) {
       throw Exception('User ID is not set');
     }
@@ -220,32 +203,15 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<void> setUserId(String? userId) async {
-    try {
-      await _passkeyServiceStore.save(userId, _userIdKey);
-    } catch (e) {
-      log.info('[PasskeyService] Failed to set user ID: $e');
-      unawaited(
-        Sentry.captureException(
-          '[PasskeyService] Failed to set user ID: $e',
-        ),
-      );
-    }
-  }
-
-  @override
   Future<JWT> requestJwt() async {
     log.info('[PasskeyService] Request JWT');
     final localResponse = await logInInitiate();
     log.info('[PasskeyService] Log in initiated');
     final jwt = await logInFinalize(localResponse);
-    log.info('[PasskeyService] Log in finalized');
-    log.info('[PasskeyService] return JWT done');
+    log
+      ..info('[PasskeyService] Log in finalized')
+      ..info('[PasskeyService] return JWT done');
     return jwt;
-  }
-
-  String? getUserId() {
-    return _passkeyServiceStore.get(_userIdKey);
   }
 }
 

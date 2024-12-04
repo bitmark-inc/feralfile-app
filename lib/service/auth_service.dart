@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/exception.dart';
@@ -28,13 +30,41 @@ class AuthService {
   final IAPApi _authApi;
   final UserApi _userApi;
   final ConfigurationService _configurationService;
-  JWT? _jwt;
 
   AuthService(
     this._authApi,
     this._userApi,
     this._configurationService,
   );
+
+  final HiveStoreObjectService<String?> _authServiceStore =
+      HiveStoreObjectServiceImpl<String?>()..init(_authServiceStoreKey);
+
+  static const String _jwtKey = 'jwt';
+  static const String _authServiceStoreKey = 'authServiceStoreKey';
+
+  Future<void> init() async {
+    await _authServiceStore.init(_authServiceStoreKey);
+  }
+
+  JWT? get _jwt {
+    final jwtString = _authServiceStore.get(_jwtKey);
+    if (jwtString == null || jwtString.isEmpty) {
+      return null;
+    }
+    final jwtJson = Map<String, dynamic>.from(json.decode(jwtString) as Map);
+    return JWT.fromJson(jwtJson);
+  }
+
+  // setter for jwt
+  Future<void> _setJwt(JWT? jwt) async {
+    await _authServiceStore.save(
+        jwt == null ? null : json.encode(jwt.toJson()), _jwtKey);
+  }
+
+  String? getUserId() {
+    return _jwt?.userId;
+  }
 
   Future<void> reset() async {
     await setAuthToken(null);
@@ -106,8 +136,7 @@ class AuthService {
   }
 
   Future<void> setAuthToken(JWT? jwt, {String? receiptData}) async {
-    _jwt = jwt;
-    await injector<PasskeyService>().setUserId(jwt?.userId);
+    await _setJwt(jwt);
 
     _refreshSubscriptionStatus(jwt, receiptData: receiptData);
   }
