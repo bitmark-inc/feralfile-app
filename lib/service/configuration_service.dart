@@ -162,7 +162,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'last_pull_announcement_time';
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
       'has_merchandise_support';
-  static const String KEY_POSTCARD_CHAT_CONFIG = 'postcard_chat_config';
   static const String KEY_DID_MIGRATE_ADDRESS = 'did_migrate_address';
   static const String KEY_HIDDEN_FEEDS = 'hidden_feeds';
   static const String KEY_IAP_RECEIPT = 'key_iap_receipt';
@@ -180,7 +179,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String ACCOUNT_HMAC_SECRET = 'account_hmac_secret';
-  static const String KEY_SHARED_POSTCARD = 'shared_postcard';
 
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
       'announcement_last_pull_time';
@@ -204,26 +202,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_SUBSCRIPTION_TIME = 'subscription_time';
 
-  static const String KEY_STAMPING_POSTCARD = 'stamping_postcard';
-
-  static const String KEY_AUTO_SHOW_POSTCARD = 'auto_show_postcard';
-
-  static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
-      'already_show_you_did_it_postcard';
-
   static const String KEY_CURRENT_GROUP_CHAT_ID = 'current_group_chat_id';
-
-  static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
-      'already_show_postcard_updates';
 
   static const String KEY_MIXPANEL_PROPS = 'mixpanel_props';
 
   static const String KEY_PACKAGE_INFO = 'package_info';
-
-  static const String KEY_PROCESSING_STAMP_POSTCARD =
-      'processing_stamp_postcard';
-
-  static const String KEY_SHOW_POSTCARD_BANNER = 'show_postcard_banner';
 
   static const String KEY_SHOW_ADD_ADDRESS_BANNER = 'show_add_address_banner';
 
@@ -234,8 +217,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
       'sent_tezos_artwork_metric';
-
-  static const String POSTCARD_MINT = 'postcard_mint';
 
   final SharedPreferences _preferences;
 

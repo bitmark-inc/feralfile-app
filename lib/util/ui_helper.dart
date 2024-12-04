@@ -19,23 +19,17 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_login_view.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_register_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/slide_router.dart';
 import 'package:card_swiper/card_swiper.dart';
-import 'package:confetti/confetti.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -154,180 +148,6 @@ class UIHelper {
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<dynamic> showPostCardDialog(
-    BuildContext context,
-    String title,
-    Widget content, {
-    bool isDismissible = false,
-    bool isRoundCorner = true,
-    int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
-    EdgeInsets? padding,
-  }) async {
-    log.info('[UIHelper] showPostcardInfoDialog: $title');
-    currentDialogTitle = title;
-    final theme = Theme.of(context);
-
-    if (autoDismissAfter > 0) {
-      Future.delayed(
-        Duration(seconds: autoDismissAfter),
-        () => hideInfoDialog(context),
-      );
-    }
-
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
-
-    return await showModalBottomSheet<dynamic>(
-      context: context,
-      isDismissible: isDismissible,
-      backgroundColor: Colors.transparent,
-      enableDrag: false,
-      constraints: BoxConstraints(
-        maxWidth: ResponsiveLayout.isMobile
-            ? double.infinity
-            : Constants.maxWidthModalTablet,
-      ),
-      isScrollControlled: true,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
-        color: Colors.transparent,
-        child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: isRoundCorner
-                  ? const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )
-                  : null,
-            ),
-            padding: padding ??
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Text(
-                      title,
-                      style: theme.primaryTextTheme.moMASans700Black18,
-                    ),
-                  ),
-                  addDivider(height: 40, color: AppColor.chatPrimaryColor),
-                  content,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<void> showPostcardDialogWithConfetti(
-    BuildContext context,
-    List<Widget> contents, {
-    bool isDismissible = true,
-    int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
-  }) async {
-    log.info('[UIHelper] showPostcardDialogWithConfetti');
-    currentDialogTitle = 'showPostcardDialogWithConfetti';
-
-    const backgroundColor = AppColor.white;
-    const defaultSeparator = Divider(
-      height: 1,
-      thickness: 1,
-      color: Color.fromRGBO(227, 227, 227, 1),
-    );
-    final confettiController =
-        ConfettiController(duration: const Duration(seconds: 15));
-    Future.delayed(const Duration(milliseconds: 300), confettiController.play);
-    if (autoDismissAfter > 0) {
-      Future.delayed(
-        Duration(seconds: autoDismissAfter),
-        () => hideInfoDialog(context),
-      );
-    }
-
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
-
-    await Navigator.push(
-      context,
-      SlidableRoute(
-        color: AppColor.primaryBlack.withOpacity(0.4),
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        hideInfoDialog(context);
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: DecoratedBox(
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                        color: backgroundColor,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 15,
-                          right: 15,
-                          bottom: 50,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (BuildContext context, int index) {
-                                final item = contents[index];
-
-                                return Column(
-                                  children: [
-                                    item,
-                                    defaultSeparator,
-                                  ],
-                                );
-                              },
-                              itemCount: contents.length,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              AllConfettiWidget(controller: confettiController),
-            ],
           ),
         ),
       ),
@@ -1378,12 +1198,6 @@ class UIHelper {
   }) async {
     Future.delayed(autoDismissAfter, () => hideInfoDialog(context));
     await showDialog();
-  }
-
-  static Future showAlreadyDelivered(BuildContext context) async {
-    final title = 'already_delivered'.tr();
-    final description = 'it_seems_that'.tr();
-    return showErrorDialog(context, title, description, 'close'.tr());
   }
 
   static Future<void> showInvalidURI(BuildContext context) async {

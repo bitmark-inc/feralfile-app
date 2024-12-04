@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -169,79 +168,6 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
         top: BorderSide(
           width: 0.5,
           color: theme.disableColor,
-        ),
-      ),
-    ),
-  );
-}
-
-MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
-  final theme = Theme.of(context);
-  final baseStyle = theme.textTheme.moMASans400Black12;
-  final bodyText2 = theme.textTheme.ppMori400Black14;
-  return MarkdownStyleSheet(
-    a: baseStyle.copyWith(
-      color: Colors.transparent,
-      decoration: TextDecoration.underline,
-      shadows: [
-        const Shadow(
-          offset: Offset(0, -1),
-        ),
-      ],
-      decorationStyle: TextDecorationStyle.solid,
-      decorationColor: Colors.black,
-    ),
-    p: baseStyle,
-    pPadding: const EdgeInsets.symmetric(horizontal: 15),
-    code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: baseStyle.copyWith(fontSize: 16),
-    h1Padding: EdgeInsets.zero,
-    h2: baseStyle.copyWith(fontSize: 16),
-    h2Padding: EdgeInsets.zero,
-    h3: baseStyle.copyWith(fontSize: 16),
-    h3Padding: EdgeInsets.zero,
-    h4: baseStyle.copyWith(fontSize: 16),
-    h4Padding: EdgeInsets.zero,
-    h5: baseStyle.copyWith(fontSize: 16),
-    h5Padding: EdgeInsets.zero,
-    h6: baseStyle.copyWith(fontSize: 16),
-    h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
-    strong: baseStyle.copyWith(color: AppColor.auQuickSilver),
-    del: const TextStyle(
-      decoration: TextDecoration.lineThrough,
-      color: Colors.white,
-    ),
-    blockquote: bodyText2,
-    img: bodyText2,
-    checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 16,
-    listIndent: 24,
-    listBullet: bodyText2.copyWith(color: Colors.black),
-    listBulletPadding: const EdgeInsets.only(right: 4),
-    tableHead: const TextStyle(fontWeight: FontWeight.w600),
-    tableBody: bodyText2,
-    tableHeadAlign: TextAlign.center,
-    tableBorder: TableBorder.all(
-      color: theme.dividerColor,
-    ),
-    tableColumnWidth: const FlexColumnWidth(),
-    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-    tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.all(8),
-    blockquoteDecoration: BoxDecoration(
-      color: Colors.blue.shade100,
-      borderRadius: BorderRadius.circular(2),
-    ),
-    codeblockPadding: const EdgeInsets.all(8),
-    codeblockDecoration: BoxDecoration(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2),
-    ),
-    horizontalRuleDecoration: const BoxDecoration(
-      border: Border(
-        top: BorderSide(
-          color: Color.fromRGBO(236, 236, 236, 1),
         ),
       ),
     ),

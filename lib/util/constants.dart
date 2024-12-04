@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 // ignore_for_file: constant_identifier_names
@@ -52,9 +51,6 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
 ];
 
 const cloudFlarePrefix = 'https://imagedelivery.net/';
-
-const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
-const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
 
 const TEIA_ART_CONTRACT_ADDRESSES = ['KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton'];
 const OPENSEA_ASSET_PREFIX = 'https://opensea.io/assets/';
@@ -136,9 +132,6 @@ const double cellSpacing = 3;
 
 const TV_APP_STORE_URL =
     'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv';
-
-const MOMA_TERMS_CONDITIONS_URL =
-    'https://github.com/bitmark-inc/autonomy-apps/blob/main/docs/postcard_terms.md';
 
 const AUTONOMY_DOCUMENT_PREFIX = 'https://github.com/bitmark-inc';
 
@@ -425,7 +418,6 @@ class LinkType {
   static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';
-  static const postcardPayToMint = 'Postcard Pay To Mint';
   static const undefined = 'Undefined';
 }
 
@@ -442,12 +434,3 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = '_closeWebview';
 }
-
-const chatPrivateBannerId = 'chat_private_banner_id';
-final chatPrivateBannerMessage = SystemMessage(
-  id: chatPrivateBannerId,
-  author: const User(id: chatPrivateBannerId),
-  createdAt: 0,
-  text: 'chat_is_private'.tr(),
-  status: Status.delivered,
-);

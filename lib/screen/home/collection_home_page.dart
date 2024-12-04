@@ -115,8 +115,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
-    //check minted postcard and navigator to artwork detail
-
     // Check if there is any Tezos token in the list
     final List<String> allAccountNumbers =
         _addressService.getAllWalletAddresses().map((e) => e.address).toList();

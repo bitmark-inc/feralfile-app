@@ -24,8 +24,6 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'enable': true,
       'allow_view_only': true,
       'must_complete': true,
-      'postcard_tokenId_regex':
-          r'^tez-KT1Rg1hhAPD8HSKaNKV6zuu7y8Zuk4QXaq2V-(1699413090857|1699951798888|1692601505415)$'
     },
     'pay_to_mint': {'enable': true, 'allow_view_only': true},
     'view_detail': {
@@ -39,8 +37,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'rights': true,
       'chat': true
     },
-    'feature': {'download_stamp': true, 'download_postcard': true},
-    'postcard_action': {'wait_confirmed_to_send': false},
+    'feature': {'download_stamp': true},
     'feralfile_artwork_action': {
       'allow_download_artwork_contracts': [
         'KT19VkuK7tw22m4P36xRpPiMT4qzEw8YAN8A',
@@ -195,7 +192,6 @@ enum ConfigGroup {
   payToMint,
   viewDetail,
   feature,
-  postcardAction,
   feralfileArtworkAction,
   inAppWebView,
   dAppUrls,
@@ -218,8 +214,6 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'view_detail';
       case ConfigGroup.feature:
         return 'feature';
-      case ConfigGroup.postcardAction:
-        return 'postcard_action';
       case ConfigGroup.feralfileArtworkAction:
         return 'feralfile_artwork_action';
       case ConfigGroup.inAppWebView:
@@ -244,7 +238,6 @@ enum ConfigKey {
   enable,
   allowViewOnly,
   mustCompleted,
-  postcardTokenIdRegex,
   actionButton,
   leaderBoard,
   aboutMoma,
@@ -254,7 +247,6 @@ enum ConfigKey {
   provenance,
   rights,
   downloadStamp,
-  downloadPostcard,
   chat,
   waitConfirmedToSend,
   allowDownloadArtworkContracts,
@@ -288,8 +280,6 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_view_only';
       case ConfigKey.mustCompleted:
         return 'must_complete';
-      case ConfigKey.postcardTokenIdRegex:
-        return 'postcard_tokenId_regex';
       case ConfigKey.actionButton:
         return 'action_button';
       case ConfigKey.leaderBoard:
@@ -308,8 +298,6 @@ extension ConfigKeyExtension on ConfigKey {
         return 'rights';
       case ConfigKey.downloadStamp:
         return 'download_stamp';
-      case ConfigKey.downloadPostcard:
-        return 'download_postcard';
       case ConfigKey.chat:
         return 'chat';
       case ConfigKey.waitConfirmedToSend:

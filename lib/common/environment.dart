@@ -165,9 +165,6 @@ class Environment {
   static String get cloudFlareImageUrlPrefix =>
       _readKey('CLOUD_FLARE_IMAGE_URL_PREFIX', '');
 
-  static String get postcardContractAddress =>
-      _readKey('POSTCARD_CONTRACT_ADDRESS', '');
-
   static String get merchandiseBaseUrl =>
       _readKey('AUTONOMY_MERCHANDISE_BASE_URL', '');
 
@@ -175,8 +172,6 @@ class Environment {
       _readKey('AUTONOMY_MERCHANDISE_API_URL', '');
 
   static String get payToMintBaseUrl => _readKey('PAY_TO_MINT_BASE_URL', '');
-
-  static String get postcardChatServerUrl => _readKey('CHAT_SERVER_URL', '');
 
   static String get tzktMainnetURL => _readKey('TZKT_MAINNET_URL', '');
 
