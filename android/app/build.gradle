@@ -1,7 +1,26 @@
+buildscript {
+    repositories {
+        // ...
+        maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
+        google()  // Google's Maven repository
+    }
+    ext.kotlin_version = '1.9.0'
+    dependencies {
+        // ...
+        // OneSignal-Gradle-Plugin
+        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.10, 0.99.99]'
+        classpath 'com.google.gms:google-services:4.3.14'
+    }
+}
+
 plugins {
     id "com.android.application"
     id "kotlin-android"
+    id "kotlinx-serialization"
+    id "com.google.gms.google-services"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'kotlin-kapt'
+    id 'kotlin-parcelize'
 }
 
 def localProperties = new Properties()
@@ -12,97 +31,162 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+def environment = System.getenv()
+
+def flutterVersionCode = environment["FLUTTER_VERSION_CODE"]
+
+if (flutterVersionCode == null) {
+    flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+}
+
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
 }
 
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
+def flutterVersionName = environment["FLUTTER_VERSION_NAME"]
+
+if (flutterVersionName == null) {
+    flutterVersionName = localProperties.getProperty('flutter.versionName')
+}
+
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file('key.properties')
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+def branchKey = localProperties["branch.key"] ?: environment["BRANCH_KEY"]
+if (branchKey == null) {
+    throw new GradleException("Branch key not found.")
 }
 
+def branchKeyTest = localProperties["branch.keyTest"] ?: environment["BRANCH_KEY_TEST"]
+if (branchKeyTest == null) {
+    throw new GradleException("Branch test key not found.")
+}
+
+def branchTestMode = localProperties["branch.testMode"] ?: environment["BRANCH_IS_TEST"] ?: false
+
+def signature_hash = localProperties["signature.hash"] ?: environment["SIGNATURE_HASH"]
+
+def signature_hash_inhouse = localProperties["signature.hashInhouse"] ?: environment["SIGNATURE_HASH_INHOUSE"]
+
 android {
-    namespace "com.bitmark.autonomywallet"
-    compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
-    }
+    compileSdkVersion 34
+    flavorDimensions 'env'
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.bitmark.autonomywallet"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        resConfigs 'en', 'US'
     }
 
     signingConfigs {
-        if (System.getenv("ANDROID_KEYSTORE_PATH")) {
-            release {
-                storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
-                keyAlias System.getenv("ANDROID_KEYSTORE_ALIAS")
-                keyPassword System.getenv("ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+        release {
+            def releaseProperties = new Properties()
+            def releasePropertiesFile = rootProject.file('release.properties')
+            if (releasePropertiesFile.exists()) {
+                releasePropertiesFile.withReader('UTF-8') { reader ->
+                    releaseProperties.load(reader)
+                }
             }
-        } else {
-            release {
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-                storePassword keystoreProperties['storePassword']
-            }
+
+            keyAlias releaseProperties['key.alias']
+            keyPassword releaseProperties['key.alias.password']
+            storePassword releaseProperties['key.store.password']
+            storeFile rootProject.file('release.keystore')
+            // Update this with the path to your keystore
         }
     }
 
-    flavorDimensions "default"
-    productFlavors { 
-        production {
-            dimension "default"
-            applicationIdSuffix ""
-            manifestPlaceholders = [appName: "Feralfile App"]
-        }
-        staging {
-            dimension "default"
-            applicationIdSuffix ".stg"
-            manifestPlaceholders = [appName: "[STG] Feralfile App"]
-        }
-        development {
-            dimension "default"
-            applicationIdSuffix ".dev"
-            manifestPlaceholders = [appName: "[DEV] Feralfile App"]
-        }
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId "com.bitmark.autonomy_client"
+        minSdkVersion 29
+        targetSdkVersion 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+
+        manifestPlaceholders = [
+                branchKey     : branchKey,
+                branchKeyTest : branchKeyTest,
+                branchTestMode: branchTestMode
+        ]
+    }
+
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.2"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (rootProject.file('release.keystore').exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            shrinkResources true
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
         }
-        debug {
-            signingConfig signingConfigs.debug
+    }
+
+    productFlavors {
+        dev {
+            dimension "env"
+            applicationIdSuffix ".inhouse"
+            resValue "string", "app_name", "Feral File (Dev)"
+            manifestPlaceholders = [
+                    appIcon     : "@mipmap/ic_launcher_dev",
+                    appIconRound: "@mipmap/ic_launcher_dev_round"
+            ]
+            buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "false"
+            buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash_inhouse + '\"'
         }
+
+        production {
+            dimension "env"
+            resValue "string", "app_name", "Feral File"
+            manifestPlaceholders = [
+                    appIcon     : "@mipmap/ic_launcher",
+                    appIconRound: "@mipmap/ic_launcher_round"
+            ]
+            buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "true"
+            // SIGNATURE_HASH with value from local.properties
+
+            buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash + '\"'
+        }
+    }
+    packagingOptions {
+        jniLibs {
+            excludes += ['META-INF/*']
+            pickFirsts += ['**/*.so']
+        }
+        resources {
+            excludes += ['META-INF/*', '**/lib/libsodiumjni.dylib']
+        }
+    }
+
+    namespace 'com.bitmark.autonomy_flutter'
+    lint {
+        checkReleaseBuilds false
+    }
+    buildFeatures {
+        viewBinding true
     }
 }
 
@@ -111,5 +195,52 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.20"
+    implementation 'com.google.firebase:protolite-well-known-types:18.0.0'
+    def lifecycle_version = "2.6.0-alpha03"
+    def beacon_version = "c2434dcc73"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation 'com.google.android.gms:play-services-auth-blockstore:16.2.0'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation('com.github.bitmark-inc:libauk-kotlin:ad2d4519bd') {
+        exclude group: 'com.google.protobuf'
+        exclude module: 'jetified-protobuf-java'
+    }
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation("androidx.lifecycle:lifecycle-process:$lifecycle_version")
+    implementation("com.google.code.gson:gson:2.9.1")
+    implementation("com.android.installreferrer:installreferrer:2.2")
+    implementation("com.google.android.gms:play-services-ads-identifier:18.0.1")
+    implementation(platform("com.walletconnect:android-bom:1.12.0"))
+    implementation("com.walletconnect:android-core:1.17.0")
+    implementation("com.walletconnect:sign:2.15.0")
+    implementation("com.scottyab:rootbeer-lib:0.1.0")
+
+    implementation("com.github.autonomy-system:beacon-android-sdk:$beacon_version") {
+        exclude group: 'com.goterl'
+        exclude module: 'lazysodium-android'
+        exclude group: 'net.java.dev.jna'
+        exclude module: 'jna'
+        exclude group: 'com.google.protobuf'
+        exclude module: 'jetified-protobuf-java'
+    }
+
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+//    kapt 'com.github.bumptech.glide:compiler:4.12.0'
+    implementation 'androidx.glance:glance-appwidget:LATEST-VERSION'
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'androidx.work') {
+            details.useVersion '2.8.1'
+        }
+    }
 }

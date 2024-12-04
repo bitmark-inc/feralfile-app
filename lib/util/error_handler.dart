@@ -27,7 +27,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tezart/tezart.dart';
 
@@ -100,9 +99,9 @@ ErrorEvent translateError(Object exception) {
     if (dioErrorEvent != null) {
       return dioErrorEvent;
     }
-  } else if (exception is CameraException) {
-    return ErrorEvent(null, 'enable_camera'.tr(), 'qr_scan_require'.tr(),
-        ErrorItemState.camera);
+    // } else if (exception is CameraException) {
+    //   return ErrorEvent(null, 'enable_camera'.tr(), 'qr_scan_require'.tr(),
+    //       ErrorItemState.camera);
   } else if (exception is PlatformException) {
     switch (exception.code) {
       case 'invalidDeeplink':
