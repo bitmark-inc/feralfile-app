@@ -13,9 +13,17 @@ class ChannelService {
     return iosWalletChannel;
   }
 
-  Future<dynamic> exportMnemonicForAllPersonaUUIDs() async {
+  Future<Map<String, List<String>>> exportMnemonicForAllPersonaUUIDs() async {
     final channel = _getWalletChannel();
     final r = await channel.invokeMethod('exportMnemonicForAllPersonaUUIDs');
-    return r;
+    final seedMap = Map<String, dynamic>.from(r as Map).map(
+      (key, value) => MapEntry(key, List<String>.from(value as List)),
+    );
+    return seedMap;
+  }
+
+  Future<void> cleanMnemonicForAllPersonaUUIDs() async {
+    final channel = _getWalletChannel();
+    await channel.invokeMethod('cleanMnemonicForAllPersonaUUIDs');
   }
 }
