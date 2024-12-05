@@ -8,11 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		311A34F7898F4222918AC04D /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC4511D74C969E513EB211D8 /* Pods_Runner.framework */; };
 		312F145516427F1A4582CB54 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A797A66DE40EFF1F7CF4147 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		58B2C4F12CFDBC0900FD14C5 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58B2C4F02CFDBBF300FD14C5 /* libsqlite3.tbd */; };
+		58B371652D014747005A2188 /* SystemChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B371642D014747005A2188 /* SystemChannelHandler.swift */; };
+		58B371662D014747005A2188 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B371612D014747005A2188 /* Keychain.swift */; };
+		58B371672D014747005A2188 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B371602D014747005A2188 /* Constant.swift */; };
+		58B371682D014747005A2188 /* Seed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B371622D014747005A2188 /* Seed.swift */; };
+		58B3716C2D0150D9005A2188 /* Mnemonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B3716A2D0150D9005A2188 /* Mnemonic.swift */; };
+		58B3716D2D0150D9005A2188 /* WordList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B3716B2D0150D9005A2188 /* WordList.swift */; };
+		58B3716F2D0153EB005A2188 /* URKit in Frameworks */ = {isa = PBXBuildFile; productRef = 58B3716E2D0153EB005A2188 /* URKit */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7F7693252D02A05C0085C68C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693242D02A05C0085C68C /* WidgetKit.framework */; };
 		7F7693272D02A05C0085C68C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693262D02A05C0085C68C /* SwiftUI.framework */; };
@@ -24,6 +30,7 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		D7E06ED089DD033803E83AAA /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC4511D74C969E513EB211D8 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +91,12 @@
 		3FE978493BF46AE4D925F1BB /* Pods-Runner.release-production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-production.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-production.xcconfig"; sourceTree = "<group>"; };
 		589279912CFFF88E00AB2134 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		58B2C4F02CFDBBF300FD14C5 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		58B371602D014747005A2188 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
+		58B371612D014747005A2188 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		58B371622D014747005A2188 /* Seed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seed.swift; sourceTree = "<group>"; };
+		58B371642D014747005A2188 /* SystemChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemChannelHandler.swift; sourceTree = "<group>"; };
+		58B3716A2D0150D9005A2188 /* Mnemonic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mnemonic.swift; sourceTree = "<group>"; };
+		58B3716B2D0150D9005A2188 /* WordList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordList.swift; sourceTree = "<group>"; };
 		63225193030D5CB7FE6DAD45 /* Pods-RunnerTests.profile-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile-development.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile-development.xcconfig"; sourceTree = "<group>"; };
 		6AC1725E1120EFFC8F58222D /* Pods-RunnerTests.release-production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release-production.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release-production.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -143,9 +156,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7FEC11992D00631600FA7563 /* URKit in Frameworks */,
+				58B3716F2D0153EB005A2188 /* URKit in Frameworks */,
 				58B2C4F12CFDBC0900FD14C5 /* libsqlite3.tbd in Frameworks */,
-				311A34F7898F4222918AC04D /* Pods_Runner.framework in Frameworks */,
+				D7E06ED089DD033803E83AAA /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,6 +179,16 @@
 				331C807B294A618700263BE5 /* RunnerTests.swift */,
 			);
 			path = RunnerTests;
+			sourceTree = "<group>";
+		};
+		58B371632D014747005A2188 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				58B3716A2D0150D9005A2188 /* Mnemonic.swift */,
+				58B3716B2D0150D9005A2188 /* WordList.swift */,
+				58B371622D014747005A2188 /* Seed.swift */,
+			);
+			path = model;
 			sourceTree = "<group>";
 		};
 		84A508EBE35873B63D6554AF /* Frameworks */ = {
@@ -218,10 +241,10 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				7FEC118E2D00485900FA7563 /* model */,
-				7FEC118C2D00477000FA7563 /* Keychain.swift */,
-				7FEC118A2D0045D600FA7563 /* Constant.swift */,
-				7FEC11882D00454000FA7563 /* SystemChannelHandler 2.swift */,
+				58B371602D014747005A2188 /* Constant.swift */,
+				58B371612D014747005A2188 /* Keychain.swift */,
+				58B371632D014747005A2188 /* model */,
+				58B371642D014747005A2188 /* SystemChannelHandler.swift */,
 				589279912CFFF88E00AB2134 /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -366,7 +389,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				7FEC11972D00622A00FA7563 /* XCRemoteSwiftPackageReference "URKit" */,
+				58B371692D014CEC005A2188 /* XCRemoteSwiftPackageReference "URKit" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -466,7 +489,7 @@
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
@@ -474,9 +497,9 @@
 			name = "Run Script";
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
 		};
 		B6F5A593638686EE4924B19A /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -540,10 +563,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
-				7FEC11892D00454000FA7563 /* SystemChannelHandler 2.swift in Sources */,
+				58B3716C2D0150D9005A2188 /* Mnemonic.swift in Sources */,
+				58B3716D2D0150D9005A2188 /* WordList.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
-				7FEC118B2D0045D600FA7563 /* Constant.swift in Sources */,
-				7FEC118D2D00477000FA7563 /* Keychain.swift in Sources */,
+				58B371652D014747005A2188 /* SystemChannelHandler.swift in Sources */,
+				58B371662D014747005A2188 /* Keychain.swift in Sources */,
+				58B371672D014747005A2188 /* Constant.swift in Sources */,
+				58B371682D014747005A2188 /* Seed.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2287,20 +2313,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7FEC11972D00622A00FA7563 /* XCRemoteSwiftPackageReference "URKit" */ = {
+		58B371692D014CEC005A2188 /* XCRemoteSwiftPackageReference "URKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/BlockchainCommons/URKit.git";
+			repositoryURL = "https://github.com/BlockchainCommons/URKit";
 			requirement = {
-				kind = exactVersion;
-				version = 7.5.0;
+				kind = upToNextMajorVersion;
+				minimumVersion = 15.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		7FEC11982D00631600FA7563 /* URKit */ = {
+		58B3716E2D0153EB005A2188 /* URKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7FEC11972D00622A00FA7563 /* XCRemoteSwiftPackageReference "URKit" */;
+			package = 58B371692D014CEC005A2188 /* XCRemoteSwiftPackageReference "URKit" */;
 			productName = URKit;
 		};
 /* End XCSwiftPackageProductDependency section */
