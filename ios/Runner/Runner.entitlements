@@ -4,10 +4,16 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
+		<string>webcredentials:feralfile.com</string>
+		<string>webcredentials:accounts.feralfile.com</string>
 		<string>webcredentials:accounts.dev.feralfile.com</string>
-		<string>feralfile-app.test-app.link</string>
-		<string>applinks:feralfile-app-alternate.app.link</string>
-		<string>feralfile-app-alternate.test-app.link</string>
+	</array>
+	<key>com.apple.security.application-groups</key>
+	<array/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.bitmark.autonomywallet.keychain</string>
+		<string>$(AppIdentifierPrefix)com.bitmark.autonomy-wallet.inhouse.keychain</string>
 	</array>
 </dict>
 </plist>
