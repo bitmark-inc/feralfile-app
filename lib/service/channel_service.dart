@@ -1,0 +1,21 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
+
+class ChannelService {
+  final iosWalletChannel = MethodChannel('com.feralfile.wallet');
+  final androidWalletChannel = MethodChannel('com.feralfile.wallet');
+
+  MethodChannel _getWalletChannel() {
+    if (Platform.isAndroid) {
+      return androidWalletChannel;
+    }
+    return iosWalletChannel;
+  }
+
+  Future<dynamic> exportMnemonicForAllPersonaUUIDs() async {
+    final channel = _getWalletChannel();
+    final r = await channel.invokeMethod('exportMnemonicForAllPersonaUUIDs');
+    return r;
+  }
+}
