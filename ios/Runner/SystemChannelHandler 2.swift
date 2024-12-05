@@ -99,7 +99,7 @@ class SystemChannelHandler: NSObject {
         }
         
             guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
-                return []
+                return [:]
             }
             
             for item in array {
@@ -115,14 +115,14 @@ class SystemChannelHandler: NSObject {
                        let dataString = String(data: data, encoding: .utf8),
                        let seed = try? Seed(urString: dataString) {
                         var mnemonicWords = [seed.passphrase ?? ""]
-                        mnemonicWords.append(contentsOf: Keys.mnemonic(seed.data))
+//                        mnemonicWords.append(contentsOf: Keys.mnemonic(seed.data))
                         mnemonicMap[personaUUIDString] = mnemonicWords
                     }
                 }
             }
         
         
-        return mnenmonicMap
+        return mnemonicMap
     }
         
     private func buildKeyAttr(prefix: String?, key: String) -> String {
@@ -136,9 +136,9 @@ class SystemChannelHandler: NSObject {
 
 
 class Key {
-    static func mnemonic(_ entropy: Data) -> BIP39Mnemonic? {
-        let bip39entropy = BIP39Mnemonic.Entropy(entropy)
-
-        return try? BIP39Mnemonic(entropy: bip39entropy)
-    }
+//    static func mnemonic(_ entropy: Data) -> BIP39Mnemonic? {
+//        let bip39entropy = BIP39Mnemonic.Entropy(entropy)
+//
+//        return try? BIP39Mnemonic(entropy: bip39entropy)
+//    }
 }
