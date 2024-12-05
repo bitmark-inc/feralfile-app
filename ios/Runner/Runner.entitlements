@@ -9,5 +9,10 @@
 		<string>applinks:feralfile-app-alternate.app.link</string>
 		<string>feralfile-app-alternate.test-app.link</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.bitmark.autonomy-wallet.inhouse.keychain</string>
+		<string>$(AppIdentifierPrefix)com.bitmark.autonomywallet.keychain</string>
+	</array>
 </dict>
 </plist>
