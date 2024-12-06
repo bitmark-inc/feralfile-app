@@ -21,99 +21,34 @@ public class Seed: Codable {
         self.passphrase = passphrase
     }
     
-    func cbor(nameLimit: Int? = nil, noteLimit: Int? = nil) -> CBOR {
-        var a: [OrderedMap.Entry] = [
-            .init(key: 1, value: CBOR.data(data))
-        ]
-        
-        if let creationDate = creationDate {
-            a.append(.init(key: 2, value: CBOR.date(creationDate)))
-        }
-        
-        if !name.isEmpty {
-            a.append(.init(key: 3, value: CBOR.utf8String(name)))
-        }
-        
-        if let passphrase = passphrase, !passphrase.isEmpty {
-            a.append(.init(key: 4, value: CBOR.utf8String(passphrase)))
-        }
-        
-        return CBOR.orderedMap(OrderedMap(a))
-    }
-    
-    public var ur: UR {
-        try! UR(type: "crypto-seed", cbor: cbor())
-    }
-    
-    public var urString: String {
-        UREncoder.encode(ur)
-    }
-    
     convenience init(urString: String) throws {
-        let ur = try URDecoder.decode(urString)
-        try self.init(ur: ur)
-    }
-    
-    convenience init(ur: UR) throws {
-        guard ur.type == "crypto-seed" else {
-            throw LibAukError.other(reason: "Unexpected UR type.")
+        guard let ur = try? UR(urString: urString) else {
+            throw LibAukError.other(reason: "ur:crypto-seed: Invalid UR data.")
         }
-        try self.init(cborData: ur.cbor)
-    }
-
-    convenience init(cborData: Data) throws {
-        guard let cbor = try? CBOR(cborData) else {
-            throw LibAukError.other(reason: "ur:crypto-seed: Invalid CBOR.")
+        
+        guard let cbor = try? CBOR(ur.cbor) else {
+            throw LibAukError.other(reason: "ur:crypto-seed: Invalid CBOR data.")
         }
-        try self.init(cbor: cbor)
-    }
-    
-    convenience init(cbor: CBOR) throws {
-        guard case let CBOR.orderedMap(orderedMap) = cbor else {
+        
+        guard case .map(let map) = cbor else {
             throw LibAukError.other(reason: "ur:crypto-seed: CBOR doesn't contain a map.")
         }
-
-        let iterator = orderedMap.makeIterator()
+        
+        // Loop through the map to find the first bytes data
         var seedData: Data?
-        var creationDate: Date? = nil
-        var name: String = ""
-        var passphrase: String = ""
-
-        while let element = iterator.next() {
-            let (indexElement, valueElement) = element
-
-            guard case let CBOR.unsignedInt(index) = indexElement else {
-                throw LibAukError.other(reason: "ur:crypto-seed: CBOR contains invalid keys.")
-            }
-
-            switch index {
-            case 1:
-                guard case let CBOR.data(data) = valueElement else {
-                    throw LibAukError.other(reason: "ur:crypto-seed: CBOR doesn't contain data field.")
-                }
+        for (_, value) in map {
+            if case .bytes(let data) = value {
                 seedData = data
-            case 2:
-                guard case let CBOR.date(d) = valueElement else {
-                    throw LibAukError.other(reason: "ur:crypto-seed: CreationDate field doesn't contain a date.")
-                }
-                creationDate = d
-            case 3:
-                guard case let CBOR.utf8String(s) = valueElement else {
-                    throw LibAukError.other(reason: "ur:crypto-seed: Name field doesn't contain a string.")
-                }
-                name = s
-            case 4:
-                guard case let CBOR.utf8String(s) = valueElement else {
-                    throw LibAukError.other(reason: "ur:crypto-seed: Passphrase field doesn't contain a string.")
-                }
-                passphrase = s
-            default:
-                throw LibAukError.other(reason: "ur:crypto-seed: CBOR contains invalid keys.")
+                break
             }
         }
         
+        // Verify we found valid seed data
+        guard let finalSeedData = seedData else {
+            throw LibAukError.other(reason: "ur:crypto-seed: Missing or invalid seed data.")
+        }
         
-        self.init(data: seedData!, name: name, creationDate: creationDate, passphrase: passphrase)
+        self.init(data: finalSeedData, name: "")
     }
 }
 
