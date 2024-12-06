@@ -7,6 +7,7 @@
 		<string>webcredentials:feralfile.com</string>
 		<string>webcredentials:accounts.feralfile.com</string>
 		<string>webcredentials:accounts.dev.feralfile.com</string>
+		<string>webcredentials:accounts.dev.bitmark.com</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
