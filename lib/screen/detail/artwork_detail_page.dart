@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -55,7 +54,6 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:shake/shake.dart';
-import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -78,7 +76,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         SingleTickerProviderStateMixin,
         WidgetsBindingObserver {
   ScrollController? _scrollController;
-  late bool withSharing;
   ValueNotifier<double> downloadProgress = ValueNotifier(0);
 
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -117,7 +114,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    withSharing = widget.payload.twitterCaption != null;
   }
 
   @override
@@ -148,35 +144,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     super.didChangeDependencies();
   }
 
-  Future<void> _manualShare(
-    String caption,
-    String url,
-    List<String> hashTags,
-  ) async {
-    final encodeCaption = Uri.encodeQueryComponent(caption);
-    final hashTagsString = hashTags.join(',');
-    final twitterUrl = '${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption'
-        '&hashtags=$hashTagsString';
-    final twitterUri = Uri.parse(twitterUrl);
-    await launchUrl(twitterUri, mode: LaunchMode.externalApplication);
-  }
-
-  void _shareTwitter(AssetToken token) {
-    final prefix = Environment.tokenWebviewPrefix;
-    final url = '$prefix/token/${token.id}';
-    final caption = widget.payload.twitterCaption ?? '';
-    final hashTags = getTags(token);
-    unawaited(
-      SocialShare.checkInstalledAppsForShare().then((data) {
-        if (data?[SocialApp.twitter] == true) {
-          SocialShare.shareTwitter(caption, url: url, hashtags: hashTags);
-        } else {
-          _manualShare(caption, url, hashTags);
-        }
-      }),
-    );
-  }
-
   List<String> getTags(AssetToken asset) {
     final defaultTags = [
       'feralfile',
@@ -191,39 +158,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ];
     }
     return tags;
-  }
-
-  Future<void> _socialShare(BuildContext context, AssetToken asset) {
-    final theme = Theme.of(context);
-    final tags = getTags(asset);
-    final tagsText = tags.map((e) => '#$e').join(' ');
-    final Widget content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'congratulations_new_NFT'.tr(),
-          style: theme.textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 12),
-        Text(tagsText, style: theme.textTheme.ppMori400Grey14),
-        const SizedBox(height: 24),
-        PrimaryButton(
-          text: 'share_on_'.tr(),
-          onTap: () {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
-          },
-        ),
-        const SizedBox(height: 8),
-        OutlineButton(
-          text: 'close'.tr(),
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
-    return UIHelper.showDialog(context, 'share_the_new'.tr(), content);
   }
 
   @override
@@ -291,12 +225,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         setState(() {
           currentAsset = state.assetToken;
         });
-        if (withSharing && state.assetToken != null) {
-          unawaited(_socialShare(context, state.assetToken!));
-          setState(() {
-            withSharing = false;
-          });
-        }
         context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
       },
       builder: (context, state) {
@@ -833,7 +761,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 class ArtworkDetailPayload {
   ArtworkDetailPayload(
     this.identity, {
-    this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
     this.shouldUseLocalCache = true,
@@ -843,7 +770,6 @@ class ArtworkDetailPayload {
   final Key? key;
   final ArtworkIdentity identity;
   final PlayListModel? playlist;
-  final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
   // if local token, it can be hidden and refresh metadata
   final bool shouldUseLocalCache;
@@ -851,13 +777,11 @@ class ArtworkDetailPayload {
   ArtworkDetailPayload copyWith({
     ArtworkIdentity? identity,
     PlayListModel? playlist,
-    String? twitterCaption,
     bool? useIndexer,
     bool? shouldUseLocalCache,
   }) =>
       ArtworkDetailPayload(
         identity ?? this.identity,
-        twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
         shouldUseLocalCache: shouldUseLocalCache ?? this.shouldUseLocalCache,
