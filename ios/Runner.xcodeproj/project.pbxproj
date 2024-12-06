@@ -131,6 +131,8 @@
 		7F7693412D02A05F0085C68C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppIntent.swift,
+				Daily_WidgetControl.swift,
 				Info.plist,
 			);
 			target = 7F7693222D02A05C0085C68C /* Daily WidgetExtension */;
@@ -191,6 +193,14 @@
 			path = model;
 			sourceTree = "<group>";
 		};
+		7F7694702D02B7300085C68C /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				7FEC118E2D00485900FA7563 /* model */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		84A508EBE35873B63D6554AF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -225,6 +235,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				C747A6C9F5EE294CA45235B6 /* Pods */,
 				84A508EBE35873B63D6554AF /* Frameworks */,
+				7F7694702D02B7300085C68C /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1574,7 +1585,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1660,7 +1671,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1746,7 +1757,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1826,7 +1837,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1905,7 +1916,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1984,7 +1995,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2063,7 +2074,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2142,7 +2153,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2221,7 +2232,7 @@
 				INFOPLIST_FILE = "Daily Widget/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
