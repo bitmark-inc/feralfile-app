@@ -79,11 +79,6 @@ jobs:
           cd ios/
           pod install
 
-      # Encrypt secrets before use
-      - name: Encrypt Secrets
-        run: |
-          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
-
       - uses: mathieu-bour/setup-sentry-cli@main
 
       # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
