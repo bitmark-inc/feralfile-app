@@ -537,8 +537,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       if (message.metadata?['rating'] == null) {
         return false;
       }
-      if ((int.tryParse(message.metadata?['rating']?.toString() ?? '') ?? 0) >
-          0) {
+      if ((message.metadata?['rating'] as int? ?? 0) > 0) {
         return true;
       }
     }
@@ -730,7 +729,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           ),
         );
       case 'rating':
-        final rating = int.tryParse(message.metadata?['rating'] as String) ?? 0;
+        final rating = message.metadata?['rating'] as int? ?? 0;
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           color: AppColor.primaryBlack,
@@ -792,7 +791,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   bool _isRating(types.Message message) {
-    final rating = int.tryParse(message.metadata?['rating'] as String);
+    final rating = message.metadata?['rating'] as int?;
     if (rating != null && rating > 0 && rating < 6) {
       return true;
     }
@@ -1117,7 +1116,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         final sizeAndRealTitle =
             ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
         final title = sizeAndRealTitle[1] as String;
-        final size = int.tryParse(sizeAndRealTitle[0] as String) ?? 0;
+        final size = int.tryParse(sizeAndRealTitle[0].toString()) ?? 0;
         result.insert(
           0,
           types.FileMessage(
