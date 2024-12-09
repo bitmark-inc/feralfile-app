@@ -14,12 +14,17 @@ class ChannelService {
   }
 
   Future<Map<String, List<String>>> exportMnemonicForAllPersonaUUIDs() async {
-    final channel = _getWalletChannel();
-    final r = await channel.invokeMethod('exportMnemonicForAllPersonaUUIDs');
-    final seedMap = Map<String, dynamic>.from(r as Map).map(
-      (key, value) => MapEntry(key, List<String>.from(value as List)),
-    );
-    return seedMap;
+    try {
+      final channel = _getWalletChannel();
+      final r = await channel.invokeMethod('exportMnemonicForAllPersonaUUIDs');
+      final seedMap = Map<String, dynamic>.from(r as Map).map(
+        (key, value) => MapEntry(key, List<String>.from(value as List)),
+      );
+      return seedMap;
+    } catch (e) {
+      print(e);
+      return {};
+    }
   }
 
   Future<void> cleanMnemonicForAllPersonaUUIDs() async {

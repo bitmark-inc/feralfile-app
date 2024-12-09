@@ -4,10 +4,12 @@
  * that can be found in the LICENSE file.
  */
 
-package com.bitmark.autonomy_flutter
+package com.bitmark.autonomywallet
 
 import android.os.Build
 import android.util.Log
+import com.bitmark.autonomy_flutter.FileLogger
+import com.bitmark.autonomy_flutter.jsonKT
 import com.google.android.gms.auth.blockstore.BlockstoreClient
 import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
 import com.google.android.gms.auth.blockstore.RetrieveBytesRequest
@@ -15,6 +17,7 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -85,7 +88,7 @@ data class BackupData(
     val accounts: List<BackupAccount>
 )
 
-@Serializable
+@kotlinx.serialization.Serializable
 data class BackupAccount(
     @SerialName("uuid")
     val uuid: String,

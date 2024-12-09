@@ -245,7 +245,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
     unawaited(injector<VersionService>().checkForUpdate());
 
-    final r = ChannelService().exportMnemonicForAllPersonaUUIDs();
+    ChannelService().exportMnemonicForAllPersonaUUIDs().then((value) {
+      log.info('Exported mnemonic for all persona UUIDs: $value');
+    });
 
     unawaited(
       _clientTokenService.refreshTokens(syncAddresses: true).then(
