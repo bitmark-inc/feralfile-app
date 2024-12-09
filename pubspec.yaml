@@ -138,7 +138,6 @@ dependencies:
   go_router: ^14.6.0
   objectbox_flutter_libs: any
 
-
 dev_dependencies:
   bloc_test: ^9.1.7
   build_runner: ^2.4.13
@@ -147,6 +146,7 @@ dev_dependencies:
   mocktail: ^1.0.4
   objectbox_generator: any
   very_good_analysis: ^6.0.0
+  sentry_dart_plugin: ^2.1.0
 
 flutter:
   uses-material-design: true
