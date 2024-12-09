@@ -11,17 +11,27 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
-import android.view.View.ACCESSIBILITY_DATA_SENSITIVE_YES
 import android.view.WindowManager.LayoutParams
 import androidx.biometric.BiometricManager
+import com.bitmark.autonomywallet.FileStorageHelper
+import com.bitmark.libauk.model.Seed
+import com.bitmark.libauk.util.fromJson
+import com.bitmark.libauk.util.newGsonInstance
+import com.google.android.gms.auth.blockstore.Blockstore
+import com.google.android.gms.auth.blockstore.BlockstoreClient
+import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
+import com.google.android.gms.auth.blockstore.RetrieveBytesRequest
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.flutter.embedding.android.FlutterFragmentActivity
-import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
@@ -30,9 +40,10 @@ class MainActivity : FlutterFragmentActivity() {
         var isAuthenticate: Boolean = false
         private const val CHANNEL = "migration_util"
         private val secureScreenChannel = "secure_screen_channel"
+        private val systemChanel = "com.feralfile.wallet"
         private var lastAuthTime: Long = 0
         private val authenticationTimeout = TimeUnit.MINUTES.toMillis(3)
-        private var isThisFirstOnResume = true
+        private lateinit var client: BlockstoreClient
     }
 
     var flutterSharedPreferences: SharedPreferences? = null
@@ -72,6 +83,7 @@ class MainActivity : FlutterFragmentActivity() {
 
         // DONT REMOVE, we will bring back this code when we need to verify the signature
 //        checkSecurity()
+        client = Blockstore.getClient(applicationContext)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
@@ -84,7 +96,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
-        backupDartPlugin.createChannels(flutterEngine, applicationContext)
+//        backupDartPlugin.createChannels(flutterEngine, applicationContext)
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -101,6 +113,14 @@ class MainActivity : FlutterFragmentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             window.setHideOverlayWindows(true)
+        }
+
+        val fileStorageHelper = FileStorageHelper(this)
+        val systemChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, systemChanel)
+        systemChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "exportMnemonicForAllPersonaUUIDs" -> exportMnemonicForAllPersonaUUIDs(call, result)
+            }
         }
     }
 
@@ -222,42 +242,42 @@ class MainActivity : FlutterFragmentActivity() {
         )
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
 
-        backupDartPlugin.getJWT { jsonString ->
-            if (jsonString.isNullOrEmpty()) {
-                Log.e("getJWT", "JWT retrieval failed or returned null")
-                return@getJWT
-            }
-            // decode jsonString
-            val type = object : TypeToken<Map<String, Any>>() {}.type
-            val map: Map<String, Any> = Gson().fromJson(jsonString, type)
-            val refreshTokenExpiredAtString = map["refresh_expire_at"] as? String ?: run {
-                Log.e("getJWT", "Missing 'refresh_expire_at' in JWT")
-                return@getJWT
-            }
-
-            val refreshTokenExpiredAt = try {
-                java.time.Instant.parse(refreshTokenExpiredAtString)
-            } catch (e: DateTimeParseException) {
-                Log.e("getJWT", "Invalid date format: $refreshTokenExpiredAtString")
-                return@getJWT
-            }
-            val isExpired = refreshTokenExpiredAt.isBefore(java.time.Instant.now())
-            if (isExpired) {
-                updateAuthenticationTime()
-                return@getJWT
-            }
-            if (isEnabled && !isAuthenticate && needsReAuthentication()) {
-                val biometricManager = BiometricManager.from(this)
-                val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-                if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                    == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
-                ) {
-                    val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
-                    updateAuthenticationTime()
-                    startActivity(intent)
-                }
-            }
-        }
+//        backupDartPlugin.getJWT { jsonString ->
+//            if (jsonString.isNullOrEmpty()) {
+//                Log.e("getJWT", "JWT retrieval failed or returned null")
+//                return@getJWT
+//            }
+//            // decode jsonString
+//            val type = object : TypeToken<Map<String, Any>>() {}.type
+//            val map: Map<String, Any> = Gson().fromJson(jsonString, type)
+//            val refreshTokenExpiredAtString = map["refresh_expire_at"] as? String ?: run {
+//                Log.e("getJWT", "Missing 'refresh_expire_at' in JWT")
+//                return@getJWT
+//            }
+//
+//            val refreshTokenExpiredAt = try {
+//                java.time.Instant.parse(refreshTokenExpiredAtString)
+//            } catch (e: DateTimeParseException) {
+//                Log.e("getJWT", "Invalid date format: $refreshTokenExpiredAtString")
+//                return@getJWT
+//            }
+//            val isExpired = refreshTokenExpiredAt.isBefore(java.time.Instant.now())
+//            if (isExpired) {
+//                updateAuthenticationTime()
+//                return@getJWT
+//            }
+//            if (isEnabled && !isAuthenticate && needsReAuthentication()) {
+//                val biometricManager = BiometricManager.from(this)
+//                val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+//                if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+//                    == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
+//                ) {
+//                    val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
+//                    updateAuthenticationTime()
+//                    startActivity(intent)
+//                }
+//            }
+//        }
     }
 
     private fun updateAuthenticationTime() {
@@ -296,4 +316,32 @@ class MainActivity : FlutterFragmentActivity() {
 //        }
 //        return false
 //    }
+
+    private fun exportMnemonicForAllPersonaUUIDs(call: MethodCall, result: MethodChannel.Result) {
+        val retrieveBytesRequestBuilder = RetrieveBytesRequest.Builder()
+            .setRetrieveAll(true)
+        
+        client.retrieveBytes(retrieveBytesRequestBuilder.build())
+            .addOnSuccessListener { bytes ->
+                try {
+                    val dataMap = bytes.blockstoreDataMap
+                    val defaultBytesData = dataMap[DEFAULT_BYTES_DATA_KEY]
+                    val data = jsonKT.decodeFromString(
+                        BackupData.serializer(),
+                        defaultBytesData?.bytes?.toString(Charsets.UTF_8) ?: ""
+                    )
+
+                    val mnemonics = data.accounts.map { it.mnemonic }
+                    result.success(mnemonics)
+                    
+                } catch (e: Exception) {
+                    // No accounts found
+                    result.success(emptyList<String>())
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("MainActivity", e.message ?: "Blockstore retrieval error")
+                result.error("exportMnemonicForAllPersonaUUIDs error", e.message, e)
+            }
+    }
 }

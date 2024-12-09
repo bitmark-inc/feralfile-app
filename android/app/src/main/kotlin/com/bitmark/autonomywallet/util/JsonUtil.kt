@@ -1,5 +1,6 @@
 package com.bitmark.autonomy_flutter.util
 
+import com.google.gson.Gson
 import kotlinx.serialization.json.*
 
 fun Collection<*>.toJsonElement(): JsonElement = JsonArray(mapNotNull { it.toJsonElement() })
