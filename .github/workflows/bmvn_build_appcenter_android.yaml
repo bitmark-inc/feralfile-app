@@ -86,12 +86,12 @@ jobs:
       - run: flutter pub get
 
       - run: flutter build apk --flavor development
-      - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
+      - run: mv build/app/outputs/flutter-apk/app-development-release.apk build/app/outputs/flutter-apk/app-development-release-${{ env.NAME_SUFFIX }}.apk
       - name: Distribute apk to App Center
         uses: akiojin/appcenter-distribute-github-action@v1
         with:
           token: ${{ secrets.APPCENTER_API_TOKEN }}
-          path: build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
+          path: build/app/outputs/flutter-apk/app-development-release-${{ env.NAME_SUFFIX }}.apk
           app: ${{ env.APPCENTER_APP_ID }}
           silent: false
           group: "Collaborators,Bitmark Internal Testers"
