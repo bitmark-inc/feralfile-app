@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "App 1-20@2x 1.png",
+      "filename" : "App 1-20@2x.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
@@ -73,7 +73,7 @@
       "size" : "20x20"
     },
     {
-      "filename" : "App 1-20@2x.png",
+      "filename" : "App 1-20@2x 1.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "20x20"
@@ -85,7 +85,7 @@
       "size" : "29x29"
     },
     {
-      "filename" : "App 1-29@2x 2.png",
+      "filename" : "App 1-29@2x 1.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "29x29"
@@ -227,7 +227,7 @@
       "subtype" : "42mm"
     },
     {
-      "filename" : "App 1-29@2x 1.png",
+      "filename" : "App 1-29@2x 2.png",
       "idiom" : "watch",
       "role" : "companionSettings",
       "scale" : "2x",
@@ -264,6 +264,7 @@
       "subtype" : "40mm"
     },
     {
+      "filename" : "App 1-46@2x.png",
       "idiom" : "watch",
       "role" : "appLauncher",
       "scale" : "2x",

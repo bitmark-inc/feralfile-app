@@ -113,67 +113,7 @@
       "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-16.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "16x16"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-32.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "16x16"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-32 1.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "32x32"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-64.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "32x32"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-128.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "128x128"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-256 2.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "128x128"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-256.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "256x256"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-512 1.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "256x256"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-512.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "512x512"
-    },
-    {
-      "filename" : "app_logo_inhouse-1024-1024.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "512x512"
-    },
+    }
   ],
   "info" : {
     "author" : "xcode",
