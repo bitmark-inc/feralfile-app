@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.widget.RemoteViews
+import com.bitmark.autonomywallet.MainActivity
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope

@@ -115,10 +115,9 @@ class PasskeyServiceImpl implements PasskeyService {
     // userId is the address that sign the message when register,
     // which is the primary address
     final userId = injector<AuthService>().getUserId();
-    if (userId == null) {
-      throw Exception('User ID is not set');
-    }
-    final response = await _userApi.logInInitialize(userId);
+    final response = userId != null
+        ? await _userApi.logInInitializeWithUserId(userId)
+        : await _userApi.logInInitialize();
     final pubKey = response.publicKey;
 
     if (pubKey.rpId == null) {

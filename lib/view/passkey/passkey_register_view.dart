@@ -12,6 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+enum PasskeyRegisterViewType {
+  register,
+  login,
+}
+
 class PasskeyRegisterView extends StatefulWidget {
   const PasskeyRegisterView({super.key});
 
@@ -24,7 +29,9 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
 
   bool _isError = false;
   bool _registering = false;
+  PasskeyRegisterViewType? _type;
   bool _didSuccess = false;
+  JWT? _jwt;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -100,17 +107,68 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       return PrimaryButton(
         text: 'continue'.tr(),
         color: AppColor.feralFileLightBlue,
-        onTap: () {
-          Navigator.of(context).pop(true);
+        onTap: () async {
+          Navigator.of(context).pop(_jwt);
         },
       );
     }
-    return PrimaryAsyncButton(
-      key: const Key('register_button'),
-      color: AppColor.feralFileLightBlue,
-      onTap: _register,
-      text: _isError ? 'try_again'.tr() : 'get_started'.tr(),
-      processingText: 'creating_passkey'.tr(),
+
+    if (_isError) {
+      return Column(
+        children: [
+          PrimaryAsyncButton(
+            key: const Key('try_again_button'),
+            color: AppColor.feralFileLightBlue,
+            onTap: () {
+              if (_type == PasskeyRegisterViewType.register) {
+                return _register();
+              } else {
+                return _login();
+              }
+            },
+            text: 'try_again'.tr(),
+            processingText: 'processing'.tr(),
+          ),
+          const SizedBox(height: 10),
+          PrimaryButton(
+            text: 'back'.tr(),
+            color: AppColor.feralFileLightBlue,
+            onTap: () {
+              setState(() {
+                _type = null;
+                _isError = false;
+              });
+            },
+          ),
+        ],
+      );
+    }
+    return Column(
+      children: [
+        PrimaryAsyncButton(
+          key: const Key('register_button'),
+          color: AppColor.feralFileLightBlue,
+          onTap: () async {
+            _type = PasskeyRegisterViewType.register;
+            final jwt = await _register();
+            return jwt;
+          },
+          text: 'get_started'.tr(),
+          processingText: 'creating_passkey'.tr(),
+        ),
+        const SizedBox(height: 10),
+        PrimaryAsyncButton(
+          key: const Key('login_button'),
+          color: AppColor.feralFileLightBlue,
+          onTap: () async {
+            _type = PasskeyRegisterViewType.login;
+            final jwt = await _login();
+            return jwt;
+          },
+          text: 'login'.tr(),
+          processingText: 'login'.tr(),
+        ),
+      ],
     );
   }
 
@@ -121,16 +179,44 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     }
     setState(() {
       _registering = true;
-      _isError = false;
     });
     try {
       await _passkeyService.registerInitiate();
       jwt = await _passkeyService.registerFinalize();
       setState(() {
         _didSuccess = true;
+        _jwt = jwt;
       });
     } catch (e, stackTrace) {
       log.info('Failed to register passkey: $e');
+      unawaited(Sentry.captureException(e, stackTrace: stackTrace));
+      setState(() {
+        _isError = true;
+      });
+    } finally {
+      setState(() {
+        _registering = false;
+      });
+    }
+    return jwt;
+  }
+
+  Future<JWT?> _login() async {
+    JWT? jwt;
+    if (_registering) {
+      return null;
+    }
+    setState(() {
+      _registering = true;
+    });
+    try {
+      final jwt = await _passkeyService.requestJwt();
+      setState(() {
+        _didSuccess = true;
+        _jwt = jwt;
+      });
+    } catch (e, stackTrace) {
+      log.info('Failed to login passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
       setState(() {
         _isError = true;

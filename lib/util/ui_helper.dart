@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -937,22 +938,26 @@ class UIHelper {
     );
   }
 
-  static Future<dynamic> showPasskeyRegisterDialog(
+  static Future<JWT?> showPasskeyRegisterDialog(
     BuildContext context,
-  ) async =>
-      await showRawCenterSheet(
-        context,
-        content: const PasskeyRegisterView(),
-      );
+  ) async {
+    final jwt = await showRawCenterSheet(
+      context,
+      content: const PasskeyRegisterView(),
+    );
+    return jwt as JWT?;
+  }
 
-  static Future<dynamic> showPasskeyLoginDialog(
+  static Future<JWT?> showPasskeyLoginDialog(
     BuildContext context,
-    Future<dynamic> Function() onRetry,
-  ) async =>
-      await showRawCenterSheet(
-        context,
-        content: PasskeyLoginRetryView(onRetry: onRetry),
-      );
+    Future<JWT?> Function() onRetry,
+  ) async {
+    final jwt = await showRawCenterSheet(
+      context,
+      content: PasskeyLoginRetryView(onRetry: onRetry),
+    ) as JWT?;
+    return jwt;
+  }
 
   static Future<dynamic> showRawCenterSheet(
     BuildContext context, {
@@ -1524,6 +1529,49 @@ class UIHelper {
         ],
       ),
     );
+  }
+
+  static Future<JWT?> showRegisterOrLoginDialog(BuildContext context,
+      {required FutureOr<JWT?> Function() onRegister,
+      required FutureOr<JWT?> Function() onLogin}) async {
+    final jwt = await showCenterDialog(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'register_or_login'.tr(),
+            style: Theme.of(context).textTheme.ppMori700White24,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'register_or_login_desc'.tr(),
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 20),
+          PrimaryButton(
+            onTap: () async {
+              final jwt = await onRegister();
+              if (context.mounted) {
+                Navigator.of(context).pop(jwt);
+              }
+            },
+            text: 'register'.tr(),
+          ),
+          const SizedBox(height: 10),
+          PrimaryButton(
+            onTap: () async {
+              final jwt = await onLogin();
+              if (context.mounted) {
+                Navigator.of(context).pop(jwt);
+              }
+            },
+            text: 'login'.tr(),
+          ),
+        ],
+      ),
+    );
+    return jwt as JWT?;
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -8,7 +9,7 @@ class Announcement extends ChatThread {
   final DateTime startedAt;
   final DateTime endedAt;
   final String? imageURL;
-  final String? notificationType;
+  final NotificationSettingType? notificationType;
   final String? deliveryTimeOfDay;
   final bool inAppEnabled;
 
@@ -34,7 +35,9 @@ class Announcement extends ChatThread {
         endedAt: DateTime.tryParse(json['endedAt'] as String) ??
             DateTime.now().add(const Duration(days: 365)),
         imageURL: json['imageURL'] as String?,
-        notificationType: json['notificationType'] as String?,
+        notificationType: NotificationSettingType.fromString(
+          json['notificationType'] as String? ?? '',
+        ),
         deliveryTimeOfDay: json['deliveryTimeOfDay'] as String?,
         inAppEnabled: json['inAppEnabled'] as bool,
       );

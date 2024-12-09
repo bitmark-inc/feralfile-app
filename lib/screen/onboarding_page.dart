@@ -11,6 +11,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -251,26 +252,26 @@ class _OnboardingPageState extends State<OnboardingPage>
       log.info('Passkey is supported. Authenticate with passkey');
       final userId = _authService.getUserId();
       log.info('Passkey userId: $userId');
-      final didLoginSuccess =
+      final jwt =
           userId != null ? await _loginWithPasskey() : await _registerPasskey();
-      if (didLoginSuccess != true) {
+      if (jwt == null) {
         throw Exception('Failed to login with passkey');
       }
       return true;
     }
   }
 
-  Future<dynamic> _loginWithPasskey() async {
+  Future<JWT?> _loginWithPasskey() async {
     try {
       log.info('Login with passkey');
-      await _loginAndMigrate();
+      final jwt = await _loginAndMigrate();
       log.info('Login with passkey done');
-      return true;
+      return jwt;
     } catch (e, s) {
       log.info('Failed to login with passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
       if (!mounted) {
-        return false;
+        return null;
       }
       final result =
           await UIHelper.showPasskeyLoginDialog(context, _loginAndMigrate);
@@ -279,13 +280,13 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
   }
 
-  Future<void> _loginAndMigrate() async {
+  Future<JWT?> _loginAndMigrate() async {
     log.info('Login and migrate');
     _isLoginSuccess = null;
+    JWT? jwt;
     try {
       try {
-        var jwt =
-            await injector<AuthService>().getAuthToken(shouldRefresh: false);
+        jwt = await injector<AuthService>().getAuthToken(shouldRefresh: false);
         final refreshToken = jwt?.refreshToken;
         final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
               DateTime.now().subtract(REFRESH_JWT_DURATION_BEFORE_EXPIRE),
@@ -325,9 +326,10 @@ class _OnboardingPageState extends State<OnboardingPage>
       rethrow;
     }
     log.info('Login and migrate done');
+    return jwt;
   }
 
-  Future<dynamic> _registerPasskey() async {
+  Future<JWT?> _registerPasskey() async {
     log.info('Register passkey');
     _passkeyService.isShowingLoginDialog.value = true;
     final result = await UIHelper.showPasskeyRegisterDialog(context);

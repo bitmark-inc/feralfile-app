@@ -19,6 +19,7 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+
 class MainActivity : FlutterFragmentActivity() {
     companion object {
         private val systemChanel = "com.feralfile.wallet"
@@ -42,7 +43,6 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
     }
-
 
     private fun exportMnemonicForAllPersonaUUIDs(result: MethodChannel.Result) {
         val retrieveBytesRequestBuilder = RetrieveBytesRequest.Builder()

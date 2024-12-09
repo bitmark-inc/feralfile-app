@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
+import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -126,7 +127,9 @@ class AnnouncementServiceImpl implements AnnouncementService {
   }
 
   bool _shouldDisplayAnnouncement(AnnouncementLocal announcement) =>
-      !announcement.read && announcement.inAppEnabled;
+      !announcement.read &&
+      announcement.inAppEnabled &&
+      announcement.notificationType == NotificationSettingType.announcement;
 
   @override
   AnnouncementLocal? getAnnouncement(String? announcementContentId) {
