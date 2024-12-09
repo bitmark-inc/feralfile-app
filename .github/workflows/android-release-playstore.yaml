@@ -13,7 +13,7 @@ on:
         required: false
 jobs:
   build:
-    runs-on: [self-hosted, internal-chplay]
+    runs-on: [ self-hosted, internal-chplay ]
     steps:
       - uses: actions/checkout@v4
 
@@ -48,21 +48,10 @@ jobs:
           echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
-      - name: Create env secret file
-        run: |
-          touch .env.secret
-          echo -e "${{ secrets.PRODUCTION_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
-          cat .env.secret
-
       - name: Submodules update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
-
-      # Encrypt secrets before use
-      - name: Encrypt Secrets
-        run: |
-          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
 
       - name: Clone the Key Vault
         run: |
@@ -70,7 +59,7 @@ jobs:
           cp mobile-signing-key-vault/android/bitmark-autonomy/release.keystore android/release.keystore
           cp mobile-signing-key-vault/android/bitmark-autonomy/release.properties android/release.properties
 
-      - run: flutter build appbundle --flavor prd --release
+      - run: flutter build appbundle --flavor production --release
 
       - name: Release notes
         run: |

@@ -72,12 +72,6 @@ jobs:
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
-      - name: Create env secret file
-        run: |
-          touch .env.secret
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
-          cat .env.secret
-
       - name: Flutter doctor
         run: flutter doctor
       - name: Submoudles update
@@ -101,11 +95,6 @@ jobs:
           flutter pub get
           cd ios/
           pod install
-
-      # Encrypt secrets before use
-      - name: Encrypt Secrets
-        run: |
-          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
 
       - uses: mathieu-bour/setup-sentry-cli@main
 

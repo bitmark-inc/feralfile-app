@@ -80,23 +80,12 @@ jobs:
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
-      - name: Create env secret file
-        run: |
-          touch .env.secret
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
-          cat .env.secret
-
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
 
-      # Encrypt secrets before use
-      - name: Encrypt Secrets
-        run: |
-          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
-
-      - run: flutter build apk --flavor inhouse
+      - run: flutter build apk --flavor development
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
       - name: Distribute apk to App Center
         uses: akiojin/appcenter-distribute-github-action@v1

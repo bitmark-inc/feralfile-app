@@ -55,12 +55,6 @@ jobs:
           echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
-      - name: Create env secret file
-        run: |
-          touch .env.secret
-          echo -e "${{ secrets.PRODUCTION_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
-          cat .env.secret
-
       - name: Flutter doctor
         run: flutter doctor
       - name: Submoudles update

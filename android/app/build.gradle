@@ -147,7 +147,7 @@ android {
     }
 
     productFlavors {
-        dev {
+        development {
             dimension "env"
             applicationIdSuffix ".inhouse"
             resValue "string", "app_name", "Feral File (Dev)"
