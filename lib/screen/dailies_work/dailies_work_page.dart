@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -477,9 +478,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
             assetToken.artistID ??
             '';
     final title = assetToken.displayTitle ?? '';
-    final titleWithEditionName = assetToken.editionName != null
-        ? '$title ${assetToken.editionName}'
-        : title;
+    final titleWithEditionName =
+        (artwork?.series?.settings?.artworkModel == ArtworkModel.multiUnique)
+            ? '$title ${assetToken.editionName}'
+            : title;
     return Row(
       children: [
         Expanded(
