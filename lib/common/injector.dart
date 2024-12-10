@@ -174,6 +174,14 @@ Future<void> setupInjector() async {
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(MetricsInterceptor());
 
+  final authenticatedDioWithTimeout5sec = baseDio(dioOptions.copyWith(
+    connectTimeout: const Duration(seconds: 5),
+    receiveTimeout: const Duration(seconds: 5),
+  ));
+
+  authenticatedDioWithTimeout5sec.interceptors.add(AutonomyAuthInterceptor());
+  authenticatedDioWithTimeout5sec.interceptors.add(MetricsInterceptor());
+
   injector.registerLazySingleton<NetworkService>(NetworkService.new);
   // Services
 
@@ -195,7 +203,8 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton(
-    () => IAPApi(dio, baseUrl: Environment.autonomyAuthURL),
+    () => IAPApi(authenticatedDioWithTimeout5sec,
+        baseUrl: Environment.autonomyAuthURL),
     instanceName: iapApiTimeout5secInstanceName,
   );
 
