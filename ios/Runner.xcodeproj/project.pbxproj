@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -132,7 +132,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		7F7693412D02A05F0085C68C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		7F7693412D02A05F0085C68C /* Exceptions for "Daily Widget" folder in "Daily WidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AppIntent.swift,
@@ -141,7 +141,7 @@
 			);
 			target = 7F7693222D02A05C0085C68C /* Daily WidgetExtension */;
 		};
-		7F843EF62D069DBE006E71F3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		7F843EF62D069DBE006E71F3 /* Exceptions for "notification" folder in "Runner Notification" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -151,9 +151,27 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		7F7693282D02A05C0085C68C /* Daily Widget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7F7693412D02A05F0085C68C /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Daily Widget"; sourceTree = "<group>"; };
-		7F843EE62D069DBE006E71F3 /* notification */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7F843EF62D069DBE006E71F3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = notification; sourceTree = "<group>"; };
-		7FEC118E2D00485900FA7563 /* model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = model; sourceTree = "<group>"; };
+		7F7693282D02A05C0085C68C /* Daily Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7F7693412D02A05F0085C68C /* Exceptions for "Daily Widget" folder in "Daily WidgetExtension" target */,
+			);
+			path = "Daily Widget";
+			sourceTree = "<group>";
+		};
+		7F843EE62D069DBE006E71F3 /* notification */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7F843EF62D069DBE006E71F3 /* Exceptions for "notification" folder in "Runner Notification" target */,
+			);
+			path = notification;
+			sourceTree = "<group>";
+		};
+		7FEC118E2D00485900FA7563 /* model */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = model;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -439,7 +457,6 @@
 				};
 			};
 			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
-			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -450,6 +467,7 @@
 			packageReferences = (
 				58B371692D014CEC005A2188 /* XCRemoteSwiftPackageReference "URKit" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
