@@ -72,7 +72,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
           packageName: com.bitmark.autonomy_client
-          releaseFiles: build/app/outputs/bundle/prdRelease/app-production-release.aab
+          releaseFiles: build/app/outputs/bundle/productionRelease/app-production-release.aab
           track: internal
           mappingFile: build/app/outputs/mapping/prdRelease/mapping.txt
           whatsNewDirectory: ./whatsnew
