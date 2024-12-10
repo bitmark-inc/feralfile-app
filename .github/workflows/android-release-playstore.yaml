@@ -74,6 +74,6 @@ jobs:
           packageName: com.bitmark.autonomy_client
           releaseFiles: build/app/outputs/bundle/productionRelease/app-production-release.aab
           track: internal
-          mappingFile: build/app/outputs/bundle/productionRelease/mapping.txt
+          mappingFile: build/app/outputs/mapping/productionRelease/mapping.txt
           whatsNewDirectory: ./whatsnew
           changesNotSentForReview: true
