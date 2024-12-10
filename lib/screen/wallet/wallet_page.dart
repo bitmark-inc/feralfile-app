@@ -73,7 +73,7 @@ class _WalletPageState extends State<WalletPage>
         .copyWith(color: Colors.transparent);
     final options = [
       OptionItem(
-        title: 'view_existing_address'.tr().toLowerCase().capitalize(),
+        title: 'add_display_address'.tr().toLowerCase().capitalize(),
         icon: SvgPicture.asset(
           'assets/images/unhide.svg',
           height: 24,

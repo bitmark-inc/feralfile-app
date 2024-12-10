@@ -65,7 +65,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          title: 'view_existing_address'.tr(),
+          title: 'add_display_address'.tr(),
           onBack: () async {
             await _deleteConnection(context);
             if (!context.mounted) {

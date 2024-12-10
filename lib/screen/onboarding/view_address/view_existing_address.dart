@@ -43,7 +43,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: 'view_existing_address'.tr(),
+        title: 'add_display_address'.tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: BlocConsumer<ViewExistingAddressBloc, ViewExistingAddressState>(
