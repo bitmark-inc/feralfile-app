@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +30,7 @@ class PasskeyRegisterView extends StatefulWidget {
 class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
   final _passkeyService = injector.get<PasskeyService>();
 
-  bool _isError = false;
+  Object? _error;
   bool _registering = false;
   PasskeyRegisterViewType? _type;
   bool _didSuccess = false;
@@ -56,7 +59,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
   Widget _getTitle(BuildContext context) => Text(
         _didSuccess
             ? 'passkey_created'.tr()
-            : _isError
+            : _error != null
                 ? 'authentication_failed'.tr()
                 : 'introducing_passkey'.tr(),
         style: Theme.of(context).textTheme.ppMori700Black16,
@@ -75,13 +78,23 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         ],
       );
     }
-    if (_isError) {
+    if (_error != null) {
       return Column(
         children: [
-          Text(
-            'passkey_error_desc'.tr(),
-            style: style,
-          ),
+          if (_error is DioException &&
+              ((_error! as DioException).statusCode ==
+                  StatusCode.notFound.value) &&
+              (_error! as DioException).ffErrorCode == 998) ...[
+            Text(
+              'passkey_not_found'.tr(),
+              style: style,
+            ),
+          ] else ...[
+            Text(
+              'passkey_error_desc'.tr(),
+              style: style,
+            ),
+          ],
         ],
       );
     }
@@ -113,7 +126,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       );
     }
 
-    if (_isError) {
+    if (_error != null) {
       return Column(
         children: [
           PrimaryAsyncButton(
@@ -128,17 +141,6 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
             },
             text: 'try_again'.tr(),
             processingText: 'processing'.tr(),
-          ),
-          const SizedBox(height: 10),
-          PrimaryButton(
-            text: 'back'.tr(),
-            color: AppColor.feralFileLightBlue,
-            onTap: () {
-              setState(() {
-                _type = null;
-                _isError = false;
-              });
-            },
           ),
         ],
       );
@@ -165,8 +167,8 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
             final jwt = await _login();
             return jwt;
           },
-          text: 'login'.tr(),
-          processingText: 'login'.tr(),
+          text: 'login_with_passkey'.tr(),
+          processingText: 'login_with_passkey'.tr(),
         ),
       ],
     );
@@ -191,7 +193,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       log.info('Failed to register passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
       setState(() {
-        _isError = true;
+        _error = e;
       });
     } finally {
       setState(() {
@@ -219,7 +221,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       log.info('Failed to login passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
       setState(() {
-        _isError = true;
+        _error = e;
       });
     } finally {
       setState(() {
@@ -230,7 +232,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
   }
 
   Widget _havingTrouble(BuildContext context) {
-    if (_didSuccess || (!_isError && !_registering)) {
+    if (_didSuccess || (_error == null && !_registering)) {
       return const SizedBox();
     }
     return const HavingTroubleView();

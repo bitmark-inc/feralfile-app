@@ -45,9 +45,13 @@ class _DataManagementPageState extends State<DataManagementPage> {
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return Scaffold(
-      appBar: getBackAppBar(context, title: 'data_management'.tr(), onBack: () {
-        Navigator.of(context).pop();
-      }),
+      appBar: getBackAppBar(
+        context,
+        title: 'data_management'.tr(),
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -59,37 +63,60 @@ class _DataManagementPageState extends State<DataManagementPage> {
                     Padding(
                       padding: padding,
                       child: TappableForwardRowWithContent(
-                          leftWidget: Text(
-                            'rebuild_metadata'.tr(),
-                            style: ResponsiveLayout.isMobile
-                                ? theme.textTheme.ppMori400Black16
-                                : theme.textTheme.ppMori400Black16,
-                          ),
-                          bottomWidget: Text(
-                            'clear_cache'.tr(),
-                            style: ResponsiveLayout.isMobile
-                                ? theme.textTheme.ppMori400Black14
-                                : theme.textTheme.ppMori400Black16,
-                          ),
-                          onTap: () => _showRebuildGalleryDialog()),
+                        leftWidget: Text(
+                          'recovery_phrase'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400Black16
+                              : theme.textTheme.ppMori400Black16,
+                        ),
+                        bottomWidget: Text(
+                          'get_recovery_phrase_desc'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400Black14
+                              : theme.textTheme.ppMori400Black16,
+                        ),
+                        onTap: () {
+                          _showRecoveryPhrase(context);
+                        },
+                      ),
                     ),
                     addDivider(height: 16),
                     Padding(
                       padding: padding,
                       child: TappableForwardRowWithContent(
-                          leftWidget: Text(
-                            'forget_exist'.tr(),
-                            style: ResponsiveLayout.isMobile
-                                ? theme.textTheme.ppMori400Black16
-                                : theme.textTheme.ppMori400Black16,
-                          ),
-                          bottomWidget: Text(
-                            'erase_all'.tr(),
-                            style: ResponsiveLayout.isMobile
-                                ? theme.textTheme.ppMori400Black14
-                                : theme.textTheme.ppMori400Black16,
-                          ),
-                          onTap: () => _showForgetIExistDialog()),
+                        leftWidget: Text(
+                          'rebuild_metadata'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400Black16
+                              : theme.textTheme.ppMori400Black16,
+                        ),
+                        bottomWidget: Text(
+                          'clear_cache'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400Black14
+                              : theme.textTheme.ppMori400Black16,
+                        ),
+                        onTap: _showRebuildGalleryDialog,
+                      ),
+                    ),
+                    addDivider(height: 16),
+                    Padding(
+                      padding: padding,
+                      child: TappableForwardRowWithContent(
+                        leftWidget: Text(
+                          'forget_exist'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400Black16
+                              : theme.textTheme.ppMori400Black16,
+                        ),
+                        bottomWidget: Text(
+                          'erase_all'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400Black14
+                              : theme.textTheme.ppMori400Black16,
+                        ),
+                        onTap: _showForgetIExistDialog,
+                      ),
                     ),
                   ],
                 ),
@@ -102,45 +129,56 @@ class _DataManagementPageState extends State<DataManagementPage> {
   }
 
   void _showForgetIExistDialog() {
-    unawaited(UIHelper.showDialog(
-      context,
-      'forget_exist'.tr(),
-      BlocProvider(
-        create: (_) => ForgetExistBloc(
-          injector(),
-          injector(),
-          injector<NftCollectionBloc>().database,
-          injector(),
-          injector(),
+    unawaited(
+      UIHelper.showDialog(
+        context,
+        'forget_exist'.tr(),
+        BlocProvider(
+          create: (_) => ForgetExistBloc(
+            injector(),
+            injector(),
+            injector<NftCollectionBloc>().database,
+            injector(),
+            injector(),
+          ),
+          child: const ForgetExistView(),
         ),
-        child: const ForgetExistView(),
       ),
-    ));
+    );
   }
 
   void _showRebuildGalleryDialog() {
-    unawaited(showErrorDialog(
-      context,
-      'rebuild_metadata'.tr(),
-      'this_action_clear'.tr(),
-      //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
-      'rebuild'.tr(),
-      () async {
-        await injector<TokensService>().purgeCachedGallery();
-        await injector<CacheManager>().emptyCache();
-        await DefaultCacheManager().emptyCache();
-        await injector<ClientTokenService>().refreshTokens(syncAddresses: true);
-        NftCollectionBloc.eventController
-            .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-        if (!mounted) {
-          return;
-        }
-        context.read<IdentityBloc>().add(RemoveAllEvent());
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-      },
-      'cancel'.tr(),
-    ));
+    unawaited(
+      showErrorDialog(
+        context,
+        'rebuild_metadata'.tr(),
+        'this_action_clear'.tr(),
+        //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
+        'rebuild'.tr(),
+        () async {
+          await injector<TokensService>().purgeCachedGallery();
+          await injector<CacheManager>().emptyCache();
+          await DefaultCacheManager().emptyCache();
+          await injector<ClientTokenService>()
+              .refreshTokens(syncAddresses: true);
+          NftCollectionBloc.eventController
+              .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+          if (!mounted) {
+            return;
+          }
+          context.read<IdentityBloc>().add(RemoveAllEvent());
+          Navigator.of(context).popUntil(
+            (route) =>
+                route.settings.name == AppRouter.homePage ||
+                route.settings.name == AppRouter.homePageNoTransition,
+          );
+        },
+        'cancel'.tr(),
+      ),
+    );
+  }
+
+  void _showRecoveryPhrase(BuildContext context) {
+    Navigator.of(context).pushNamed(AppRouter.recoveryPhrasePage);
   }
 }

@@ -26,7 +26,6 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/channel_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -244,10 +243,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       }
     });
     unawaited(injector<VersionService>().checkForUpdate());
-
-    ChannelService().exportMnemonicForAllPersonaUUIDs().then((value) {
-      log.info('Exported mnemonic for all persona UUIDs: $value');
-    });
 
     unawaited(
       _clientTokenService.refreshTokens(syncAddresses: true).then(

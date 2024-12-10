@@ -66,6 +66,7 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
+import 'package:autonomy_flutter/screen/settings/data_management/recovery_phrase/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -287,6 +288,12 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => const TestArtworkScreen(),
+        );
+
+      case AppRouter.recoveryPhrasePage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const RecoveryPhrasePage(),
         );
 
       case AppRouter.nameLinkedAccountPage:

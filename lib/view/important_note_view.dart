@@ -47,7 +47,7 @@ class ImportantNoteView extends StatelessWidget {
           const SizedBox(height: 15),
           HtmlWidget(
             note,
-            textStyle: theme.textTheme.ppMori400White14,
+            textStyle: noteStyle ?? theme.textTheme.ppMori400White14,
             customStylesBuilder: auHtmlStyle,
             onTapUrl: (url) async {
               await launchUrl(Uri.parse(url),
