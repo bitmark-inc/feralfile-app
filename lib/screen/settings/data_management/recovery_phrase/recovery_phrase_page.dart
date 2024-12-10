@@ -53,54 +53,6 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
 
   Future<void> _loadRecoveryPhrase() async {
     final map = await ChannelService().exportMnemonicForAllPersonaUUIDs();
-    final Map<String, List<String>> example = {
-      'passphrase': [
-        "passphrase",
-        'word1',
-        'word2',
-        'word3',
-        'word4',
-        'word5',
-        'word6',
-        'word7',
-        'word8',
-        'word9',
-        'word10',
-        'word11',
-        'word12'
-      ],
-      'passphrase2': [
-        'passphrase',
-        'word1',
-        'word2',
-        'word3',
-        'word4',
-        'word5',
-        'word6',
-        'word7',
-        'word8',
-        'word9',
-        'word10',
-        'word11',
-        'word12'
-      ],
-      'passphrase3': [
-        '',
-        'word1',
-        'word2',
-        'word3',
-        'word4',
-        'word5',
-        'word6',
-        'word7',
-        'word8',
-        'word9',
-        'word10',
-        'word11',
-        'word12'
-      ],
-    };
-    map.addAll(example);
     setState(() {
       _mapSeed.addAll(map);
     });

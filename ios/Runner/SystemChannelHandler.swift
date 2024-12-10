@@ -76,7 +76,7 @@ class SystemChannelHandler: NSObject {
                    let dataString = String(data: data, encoding: .utf8),
                    let seed = try? Seed(urString: dataString),
                    let mnemonicWords = try? Mnemonic.toMnemonic([UInt8](seed.data)){
-                    mnemonicMap[personaUUIDString] = mnemonicWords
+                    mnemonicMap[personaUUIDString] = [seed.passphrase ?? ""] + mnemonicWords
                 }
             }
         }
