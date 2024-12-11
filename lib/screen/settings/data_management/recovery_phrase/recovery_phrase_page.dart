@@ -174,7 +174,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
             ),
             child: ImportantNoteView(
               note: 'get_recovery_phrase_desc'.tr(),
-              backgroundColor: AppColor.feralFileLightBlue,
+              backgroundColor: AppColor.feralFileHighlight,
               noteStyle: Theme.of(context).textTheme.ppMori400Black14,
             ),
           );

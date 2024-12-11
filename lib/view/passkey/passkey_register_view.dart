@@ -213,10 +213,9 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     });
     try {
       final jwt = await _passkeyService.requestJwt();
-      setState(() {
-        _didSuccess = true;
-        _jwt = jwt;
-      });
+      if (context.mounted) {
+        Navigator.of(context).pop(jwt);
+      }
     } catch (e, stackTrace) {
       log.info('Failed to login passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));

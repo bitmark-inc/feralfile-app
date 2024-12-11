@@ -100,6 +100,7 @@ class PasskeyServiceImpl implements PasskeyService {
     log.info('Authenticate, show login dialog');
     try {
       _isShowingLoginDialog.value = true;
+      await _passkeyAuthenticator.cancelCurrentAuthenticatorOperation();
       final response = await _passkeyAuthenticator.authenticate(loginRequest);
       _isShowingLoginDialog.value = false;
       log.info('Authenticate done, return response: $response');

@@ -46,7 +46,7 @@ class DomainServiceImpl implements DomainService {
         return null;
       }
       final address = result.first['address'] as String?;
-      log.info('Address for $domain: $address');
+      log.info('Address for $domain in $chain: $address');
       return address;
     } catch (e) {
       log.info('Error getting address for $domain: $e');

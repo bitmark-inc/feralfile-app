@@ -357,7 +357,7 @@ class CollectionProState extends State<CollectionPro>
         ),
         const SizedBox(height: 15),
         if (_showGetStartedBanner)
-          GetStartedBanner(
+          FeralfileBanner(
             onClose: () async {
               await _hideGetStartedBanner();
             },

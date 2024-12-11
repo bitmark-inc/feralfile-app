@@ -5,8 +5,10 @@ import 'package:autonomy_flutter/model/wallet_address.dart';
 
 class WalletAddressCloudObject {
   final AccountSettingsDB _accountSettingsDB;
+  final AccountSettingsDB _connectionAccountSettingsDB;
 
-  WalletAddressCloudObject(this._accountSettingsDB);
+  WalletAddressCloudObject(
+      this._accountSettingsDB, this._connectionAccountSettingsDB);
 
   AccountSettingsDB get db => _accountSettingsDB;
 
@@ -34,9 +36,11 @@ class WalletAddressCloudObject {
     return addresses;
   }
 
-  Future<void> insertAddresses(List<WalletAddress> addresses) async {
-    await _accountSettingsDB
-        .write(addresses.map((address) => address.toKeyValue).toList());
+  Future<void> insertAddresses(List<WalletAddress> addresses,
+      {OnConflict onConflict = OnConflict.override}) async {
+    await _accountSettingsDB.write(
+        addresses.map((address) => address.toKeyValue).toList(),
+        onConflict: onConflict);
   }
 
   Future<void> setAddressIsHidden(String address, bool isHidden) async {
@@ -51,5 +55,19 @@ class WalletAddressCloudObject {
     await _accountSettingsDB.write(addresses.map((e) => e.toKeyValue).toList());
   }
 
-  AccountSettingsDB get accountSettingsDB => _accountSettingsDB;
+  Future<void> download() async {
+    await _accountSettingsDB.download();
+    await _connectionAccountSettingsDB.download();
+    _connectionAccountSettingsDB.values.forEach(
+      (element) {
+        final json = Map<String, dynamic>.from(jsonDecode(element) as Map);
+        final connectionType = json['connectionType'] as String;
+        if (connectionType == 'manuallyAddress') {
+          json['address'] = json['accountNumber'];
+          final address = WalletAddress.fromJson(json);
+          insertAddresses([address], onConflict: OnConflict.skip);
+        }
+      },
+    );
+  }
 }

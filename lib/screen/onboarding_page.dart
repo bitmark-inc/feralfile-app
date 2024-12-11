@@ -252,8 +252,10 @@ class _OnboardingPageState extends State<OnboardingPage>
       log.info('Passkey is supported. Authenticate with passkey');
       final userId = _authService.getUserId();
       log.info('Passkey userId: $userId');
+      _passkeyService.isShowingLoginDialog.value = true;
       final jwt =
           userId != null ? await _loginWithPasskey() : await _registerPasskey();
+      _passkeyService.isShowingLoginDialog.value = false;
       if (jwt == null) {
         throw Exception('Failed to login with passkey');
       }

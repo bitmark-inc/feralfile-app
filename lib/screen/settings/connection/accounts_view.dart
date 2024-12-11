@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -69,7 +70,30 @@ class _AccountsViewState extends State<AccountsView> {
             return const Center(child: CupertinoActivityIndicator());
           }
           if (walletAddresses.isEmpty) {
-            return const SizedBox();
+            return Padding(
+                padding: const EdgeInsets.all(15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'address_empty'.tr(),
+                      style: Theme.of(context).textTheme.ppMori400Black14,
+                    ),
+                    const SizedBox(height: 36),
+                    PrimaryButton(
+                      text: 'add_display_address'.tr(),
+                      onTap: () async {
+                        unawaited(
+                          Navigator.of(context).popAndPushNamed(
+                            AppRouter.viewExistingAddressPage,
+                            arguments: ViewExistingAddressPayload(false),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ));
           }
 
           if (!widget.isInSettingsPage) {

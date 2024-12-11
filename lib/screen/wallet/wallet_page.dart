@@ -13,10 +13,12 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
+import 'package:autonomy_flutter/service/channel_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -129,12 +131,76 @@ class _WalletPageState extends State<WalletPage>
             padding: EdgeInsets.only(
               bottom: ResponsiveLayout.pageEdgeInsetsWithSubmitButton.bottom,
             ),
-            child: const AccountsView(
-              isInSettingsPage: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: _getRecoveryPhraseWarning(context),
+                ),
+                const SizedBox(height: 20),
+                const AccountsView(
+                  isInSettingsPage: true,
+                ),
+              ],
             ),
           ),
         ),
       );
+
+  Widget _getRecoveryPhraseWarning(BuildContext context) {
+    return FutureBuilder<Map<String, List<String>>>(
+      future: ChannelService().exportMnemonicForAllPersonaUUIDs(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox();
+        }
+
+        if (snapshot.hasError) {
+          return const SizedBox();
+        }
+
+        final mnemonicMap = snapshot.data!;
+
+        if (mnemonicMap.isEmpty) {
+          return const SizedBox();
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColor.feralFileHighlight,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('warning'.tr(),
+                  style: Theme.of(context).textTheme.ppMori700Black16),
+              const SizedBox(height: 20),
+              Text(
+                'get_recovery_phrase_desc'.tr(),
+                style: Theme.of(context).textTheme.ppMori400Black14,
+              ),
+              const SizedBox(height: 20),
+              PrimaryButton(
+                text: 'get_recovery_phrase'.tr(),
+                color: AppColor.feralFileLightBlue,
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    AppRouter.recoveryPhrasePage,
+                  );
+                },
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class WalletPagePayload {

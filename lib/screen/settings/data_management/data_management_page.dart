@@ -64,27 +64,6 @@ class _DataManagementPageState extends State<DataManagementPage> {
                       padding: padding,
                       child: TappableForwardRowWithContent(
                         leftWidget: Text(
-                          'recovery_phrase'.tr(),
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.ppMori400Black16
-                              : theme.textTheme.ppMori400Black16,
-                        ),
-                        bottomWidget: Text(
-                          'get_recovery_phrase_desc'.tr(),
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.ppMori400Black14
-                              : theme.textTheme.ppMori400Black16,
-                        ),
-                        onTap: () {
-                          _showRecoveryPhrase(context);
-                        },
-                      ),
-                    ),
-                    addDivider(height: 16),
-                    Padding(
-                      padding: padding,
-                      child: TappableForwardRowWithContent(
-                        leftWidget: Text(
                           'rebuild_metadata'.tr(),
                           style: ResponsiveLayout.isMobile
                               ? theme.textTheme.ppMori400Black16
@@ -176,9 +155,5 @@ class _DataManagementPageState extends State<DataManagementPage> {
         'cancel'.tr(),
       ),
     );
-  }
-
-  void _showRecoveryPhrase(BuildContext context) {
-    Navigator.of(context).pushNamed(AppRouter.recoveryPhrasePage);
   }
 }

@@ -43,7 +43,12 @@ class CloudManager {
     /// Wallet Address
     final addressAccountSettingsDB = AccountSettingsDBImpl(injector(),
         [_flavor, _commonKeyPrefix, _db, _walletAddressKeyPrefix].join('.'));
-    _walletAddressObject = WalletAddressCloudObject(addressAccountSettingsDB);
+
+    /// Connection
+    final connectionAccountSettingsDB = AccountSettingsDBImpl(
+        injector(), [_flavor, _deviceId, _db, _connectionKeyPrefix].join('.'));
+    _walletAddressObject = WalletAddressCloudObject(
+        addressAccountSettingsDB, connectionAccountSettingsDB);
 
     /// device settings
     _deviceSettingsDB = AccountSettingsDBImpl(injector(),
@@ -70,6 +75,7 @@ class CloudManager {
 
   // this for saving wallet address table
   static const _walletAddressKeyPrefix = 'wallet_address_tb';
+  static const _connectionKeyPrefix = 'connection_tb';
 
   // this for saving settings data
   static const _settingsDataKeyPrefix = 'settings_data_tb';

@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
+enum OnConflict { override, skip }
+
 abstract class AccountSettingsDB {
   Future<void> download({List<String>? keys});
 
@@ -8,7 +10,8 @@ abstract class AccountSettingsDB {
 
   List<Map<String, String>> query(List<String> keys);
 
-  Future<void> write(List<Map<String, String>> settings);
+  Future<void> write(List<Map<String, String>> settings,
+      {OnConflict onConflict = OnConflict.override});
 
   Future<bool> delete(List<String> keys);
 
@@ -79,9 +82,14 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       .toList();
 
   @override
-  Future<void> write(List<Map<String, String>> settings) async {
+  Future<void> write(List<Map<String, String>> settings,
+      {OnConflict onConflict = OnConflict.override}) async {
     settings.removeWhere(
         (element) => element['key'] == null || element['value'] == null);
+    if (onConflict == OnConflict.skip) {
+      settings.removeWhere(
+          (element) => _caches.containsKey(_removePrefix(element['key']!)));
+    }
     final settingsFullKeys = settings
         .map((e) => {'key': getFullKey(e['key']!), 'value': e['value']!})
         .toList();
