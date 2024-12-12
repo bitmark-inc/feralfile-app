@@ -428,7 +428,6 @@ class QRScanViewState extends State<QRScanView>
         MobileScanner(
           controller: _controller,
           key: qrKey,
-          fit: BoxFit.contain,
           errorBuilder: (context, error, stack) => Positioned(
             left: (MediaQuery.of(context).size.width - _qrSize) / 2,
             top: _topPadding,
