@@ -5,10 +5,8 @@ import 'package:autonomy_flutter/model/wallet_address.dart';
 
 class WalletAddressCloudObject {
   final AccountSettingsDB _accountSettingsDB;
-  final AccountSettingsDB _connectionAccountSettingsDB;
 
-  WalletAddressCloudObject(
-      this._accountSettingsDB, this._connectionAccountSettingsDB);
+  WalletAddressCloudObject(this._accountSettingsDB);
 
   AccountSettingsDB get db => _accountSettingsDB;
 
@@ -57,17 +55,5 @@ class WalletAddressCloudObject {
 
   Future<void> download() async {
     await _accountSettingsDB.download();
-    await _connectionAccountSettingsDB.download();
-    _connectionAccountSettingsDB.values.forEach(
-      (element) {
-        final json = Map<String, dynamic>.from(jsonDecode(element) as Map);
-        final connectionType = json['connectionType'] as String;
-        if (connectionType == 'manuallyAddress') {
-          json['address'] = json['accountNumber'];
-          final address = WalletAddress.fromJson(json);
-          insertAddresses([address], onConflict: OnConflict.skip);
-        }
-      },
-    );
   }
 }
