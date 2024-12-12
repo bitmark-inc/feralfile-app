@@ -103,7 +103,7 @@ class HomeWidgetService {
       final medium = token.medium;
       final isFeralFileToken = token.isFeralfile;
       final thumbnail = isFeralFileToken
-          ? dailyToken.artwork!.thumbnailURL
+          ? dailyToken.artwork!.widgetThumbnailURL
           : token.galleryThumbnailURL;
 
       String? base64ImageData;

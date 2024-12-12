@@ -175,6 +175,13 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 
 // Artwork Ext
 extension ArtworkExt on Artwork {
+  String get widgetThumbnailURL {
+    final uri = (thumbnailDisplay?.isNotEmpty ?? false)
+        ? thumbnailDisplay!
+        : thumbnailURI;
+    return getFFUrl(uri, variant: CloudFlareVariant.m.value);
+  }
+
   String get thumbnailURL {
     final uri = (thumbnailDisplay?.isNotEmpty == true)
         ? thumbnailDisplay!
