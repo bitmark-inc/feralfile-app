@@ -44,11 +44,11 @@ class TezosServiceImpl extends TezosService {
 
   void _changeNode() {
     final publicTezosNodes =
-        injector<RemoteConfigService>().getConfig<List<String>>(
+        injector<RemoteConfigService>().getConfig<List<dynamic>>(
       ConfigGroup.dAppUrls,
       ConfigKey.tezosNodes,
       <String>[],
-    ).toList()
+    ).cast<String>()
           ..remove(_nodeUrl);
     if (publicTezosNodes.isEmpty) {
       return;

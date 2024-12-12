@@ -51,11 +51,15 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     log.info('AccountSettingsDBImpl download');
     late List<Map<String, String>> values;
     if (keys != null) {
-      values =
-          await _client.query(vars: {'keys': keys.map(getFullKey).toList()});
+      final fullKeys = keys.map(getFullKey).toList();
+      log.info('AccountSettingsDBImpl download keys: ${fullKeys.toString()}');
+      values = await _client.query(vars: {'keys': fullKeys});
     } else {
+      log.info('AccountSettingsDBImpl download search: $_prefix.');
       values = await _client.query(vars: {'search': '$_prefix.'});
     }
+    log.info('AccountSettingsDBImpl download values: $values');
+
     for (var value in values) {
       if (value['key'] == null || value['value'] == null) {
         continue;

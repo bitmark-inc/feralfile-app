@@ -141,8 +141,10 @@ class _WalletPageState extends State<WalletPage>
                   child: _getRecoveryPhraseWarning(context),
                 ),
                 const SizedBox(height: 20),
-                const AccountsView(
-                  isInSettingsPage: true,
+                Expanded(
+                  child: const AccountsView(
+                    isInSettingsPage: true,
+                  ),
                 ),
               ],
             ),

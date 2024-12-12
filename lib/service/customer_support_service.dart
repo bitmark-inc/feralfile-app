@@ -295,7 +295,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     retryTime++;
 
     // Edge Case when database has not updated the new issueID for new comments
-    if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains('TEMP')) {
+    if (draftMsg.type != CSMessageType.createIssue.rawValue &&
+        draftMsg.issueID.contains('TEMP')) {
       final newIssueID = tempIssueIDMap[draftMsg.issueID];
       if (newIssueID != null) {
         final query = _draftCustomerSupportBox
@@ -355,7 +356,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     try {
       switch (draftMsg.type) {
-        case 'CreateIssue':
+        case 'createIssue':
           final result = await createIssue(
             draftMsg.reportIssueType,
             data.text,
