@@ -128,7 +128,8 @@ class ScanQRPageState extends State<ScanQRPage>
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).viewPadding.top, left: 20),
           child: HeaderView(
             title: 'scan'.tr(),
             action: Row(
@@ -270,7 +271,7 @@ class QRScanViewState extends State<QRScanView>
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   final MobileScannerController _controller = MobileScannerController(
     autoStart: false,
-    torchEnabled: true,
+    torchEnabled: false,
     useNewCameraSelector: true,
   );
   bool isScanDataError = false;
@@ -349,6 +350,7 @@ class QRScanViewState extends State<QRScanView>
   void dispose() {
     routeObserver.unsubscribe(this);
     _timer?.cancel();
+
     _controller.dispose();
     super.dispose();
   }
@@ -424,7 +426,9 @@ class QRScanViewState extends State<QRScanView>
     return Stack(
       children: [
         MobileScanner(
+          controller: _controller,
           key: qrKey,
+          fit: BoxFit.contain,
           errorBuilder: (context, error, stack) => Positioned(
             left: (MediaQuery.of(context).size.width - _qrSize) / 2,
             top: _topPadding,
@@ -505,7 +509,7 @@ class QRScanViewState extends State<QRScanView>
       return const SizedBox();
     }
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
           child: SplittedBanner(
               headerWidget: _instructionHeader(context),

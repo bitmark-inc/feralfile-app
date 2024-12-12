@@ -70,30 +70,7 @@ class _AccountsViewState extends State<AccountsView> {
             return const Center(child: CupertinoActivityIndicator());
           }
           if (walletAddresses.isEmpty) {
-            return Padding(
-                padding: const EdgeInsets.all(15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'address_empty'.tr(),
-                      style: Theme.of(context).textTheme.ppMori400Black14,
-                    ),
-                    const SizedBox(height: 36),
-                    PrimaryButton(
-                      text: 'add_display_address'.tr(),
-                      onTap: () async {
-                        unawaited(
-                          Navigator.of(context).popAndPushNamed(
-                            AppRouter.viewExistingAddressPage,
-                            arguments: ViewExistingAddressPayload(false),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ));
+            return _emptyAddressListWidget();
           }
 
           if (!widget.isInSettingsPage) {
@@ -287,6 +264,38 @@ class _AccountsViewState extends State<AccountsView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _emptyAddressListWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'address_empty'.tr(),
+                style: Theme.of(context).textTheme.ppMori400Black14,
+              ),
+              const SizedBox(height: 36),
+              PrimaryButton(
+                text: 'add_display_address'.tr(),
+                onTap: () async {
+                  unawaited(
+                    Navigator.of(context).popAndPushNamed(
+                      AppRouter.viewExistingAddressPage,
+                      arguments: ViewExistingAddressPayload(false),
+                    ),
+                  );
+                },
+              ),
+            ],
+          )),
     );
   }
 
