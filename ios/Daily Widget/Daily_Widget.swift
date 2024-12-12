@@ -53,11 +53,13 @@ struct Provider: TimelineProvider {
                     let artistName = jsonObject["artistName"] as? String ?? nil
                     let base64MediumIcon = jsonObject["base64MediumIcon"] as? String ?? nil
                     let base64ImageData = jsonObject["base64ImageData"] as? String ?? nil
+                    let base64SmallImageData = jsonObject["base64SmallImageData"] as? String ?? nil
                     
                     return DailyInfo(
                         title: title,
                         artistName: artistName,
                         base64ImageData: base64ImageData,
+                        base64SmallImageData: base64SmallImageData,
                         base64MediumIcon: base64MediumIcon
                     )
                 }
@@ -70,6 +72,7 @@ struct Provider: TimelineProvider {
             title: nil,
             artistName: nil,
             base64ImageData: nil,
+            base64SmallImageData: nil,
             base64MediumIcon: nil
         )
     }
@@ -79,6 +82,7 @@ struct DailyInfo {
     let title: String?
     let artistName: String?
     let base64ImageData: String?
+    let base64SmallImageData: String?
     let base64MediumIcon: String?
 }
 
@@ -115,7 +119,8 @@ struct Daily_WidgetEntryView : View {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 ZStack {
-                    if let artworkThumbnail = imageFromBase64(entry.dailyInfo?.base64ImageData ?? "") {
+                    if let artworkThumbnail = imageFromBase64(
+                        (family == .systemSmall ? entry.dailyInfo?.base64SmallImageData : entry.dailyInfo?.base64ImageData) ?? "") {
                         Image(uiImage: artworkThumbnail)
                             .resizable()
                             .scaledToFill()

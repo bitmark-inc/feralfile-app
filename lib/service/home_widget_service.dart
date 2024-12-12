@@ -7,7 +7,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -15,14 +15,14 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
+  HomeWidgetService() {
+    unawaited(init());
+  }
+
   final String iOSAppGroupId = 'group.com.bitmark.autonomywallet.storage';
   final String appId = 'com.bitmark.autonomy_flutter';
   final String androidWidgetName = 'FeralfileDaily';
   final String iosWidgetName = 'Daily_Widget';
-
-  HomeWidgetService() {
-    unawaited(init());
-  }
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
@@ -102,23 +102,26 @@ class HomeWidgetService {
       final title = token.displayTitle;
       final medium = token.medium;
       final isFeralFileToken = token.isFeralfile;
-      final thumbnail = isFeralFileToken
-          ? dailyToken.artwork!.widgetThumbnailURL
+      final thumbnailUrl = isFeralFileToken
+          ? dailyToken.artwork!.thumbnailURL
+          : token.galleryThumbnailURL;
+      final smallThumbnailUrl = isFeralFileToken
+          ? dailyToken.artwork!.smallThumbnailURL
           : token.galleryThumbnailURL;
 
       String? base64ImageData;
-      if (thumbnail != null) {
-        final res = await http.get(Uri.parse(thumbnail));
+      if (thumbnailUrl != null) {
+        base64ImageData = await getBase64ImageData(thumbnailUrl);
+      }
 
-        if (res.statusCode == 200) {
-          Uint8List imageBytes = res.bodyBytes;
-          base64ImageData = base64Encode(imageBytes);
-        }
+      String? base64SmallImageData;
+      if (smallThumbnailUrl != null) {
+        base64SmallImageData = await getBase64ImageData(smallThumbnailUrl);
       }
 
       String? base64MediumIcon;
       if (['video', 'software'].contains(medium)) {
-        final ByteData data =
+        final data =
             await rootBundle.load('assets/images/widget_medium_icon.png');
         final List<int> bytes = data.buffer.asUint8List();
         base64MediumIcon = base64Encode(bytes);
@@ -132,6 +135,7 @@ class HomeWidgetService {
           'title': title,
           'base64MediumIcon': base64MediumIcon ?? '',
           'base64ImageData': base64ImageData ?? '',
+          'base64SmallImageData': base64SmallImageData ?? '',
         })
       };
 
@@ -140,5 +144,16 @@ class HomeWidgetService {
       log.info('Error in _formatDailyTokenData: $e');
       return null;
     }
+  }
+
+  Future<String?> getBase64ImageData(String imageUrl) async {
+    final res = await http.get(Uri.parse(imageUrl));
+
+    if (res.statusCode == 200) {
+      final imageBytes = res.bodyBytes;
+      return base64Encode(imageBytes);
+    }
+
+    return null;
   }
 }

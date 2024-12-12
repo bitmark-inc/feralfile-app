@@ -175,7 +175,7 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 
 // Artwork Ext
 extension ArtworkExt on Artwork {
-  String get widgetThumbnailURL {
+  String get smallThumbnailURL {
     final uri = (thumbnailDisplay?.isNotEmpty ?? false)
         ? thumbnailDisplay!
         : thumbnailURI;
