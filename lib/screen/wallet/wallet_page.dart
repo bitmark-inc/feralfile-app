@@ -135,12 +135,10 @@ class _WalletPageState extends State<WalletPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.all(15),
                   child: _getRecoveryPhraseWarning(context),
                 ),
-                const SizedBox(height: 20),
                 Expanded(
                   child: const AccountsView(
                     isInSettingsPage: true,
@@ -180,6 +178,7 @@ class _WalletPageState extends State<WalletPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 20),
               Text('warning'.tr(),
                   style: Theme.of(context).textTheme.ppMori700Black16),
               const SizedBox(height: 20),
@@ -196,7 +195,8 @@ class _WalletPageState extends State<WalletPage>
                     AppRouter.recoveryPhrasePage,
                   );
                 },
-              )
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         );

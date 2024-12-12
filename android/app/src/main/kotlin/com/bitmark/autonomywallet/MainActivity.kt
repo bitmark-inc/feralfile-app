@@ -7,9 +7,11 @@
 package com.bitmark.autonomywallet
 
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import com.bitmark.autonomy_flutter.FileLogger
 import com.bitmark.autonomy_flutter.jsonKT
+import com.google.android.gms.auth.blockstore.Blockstore
 import com.google.android.gms.auth.blockstore.BlockstoreClient
 import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
 import com.google.android.gms.auth.blockstore.RetrieveBytesRequest
@@ -42,6 +44,11 @@ class MainActivity : FlutterFragmentActivity() {
                 "exportMnemonicForAllPersonaUUIDs" -> exportMnemonicForAllPersonaUUIDs(result)
             }
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        client = Blockstore.getClient(this)
     }
 
     private fun exportMnemonicForAllPersonaUUIDs(result: MethodChannel.Result) {
