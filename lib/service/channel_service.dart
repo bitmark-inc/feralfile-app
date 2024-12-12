@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry/sentry.dart';
 
 class ChannelService {
   final iosWalletChannel = MethodChannel('com.feralfile.wallet');
@@ -20,9 +23,12 @@ class ChannelService {
       final seedMap = Map<String, dynamic>.from(r as Map).map(
         (key, value) => MapEntry(key, List<String>.from(value as List)),
       );
+      log.info('exportMnemonicForAllPersonaUUIDs: ${seedMap.keys.toString()}');
       return seedMap;
     } catch (e) {
-      print(e);
+      log.info('exportMnemonicForAllPersonaUUIDs error: $e');
+      unawaited(Sentry.captureException(
+          'exportMnemonicForAllPersonaUUIDs error: $e'));
       return {};
     }
   }
