@@ -15,7 +15,7 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let dailyInfo = fetchDailyInfo();
+        let dailyInfo = getStoredDailyInfo();
         let entry = SimpleEntry(
               date: Date(),
               dailyInfo: dailyInfo
@@ -31,7 +31,7 @@ struct Provider: TimelineProvider {
             }
     }
     
-    func fetchDailyInfo() -> DailyInfo {
+    func getStoredDailyInfo() -> DailyInfo {
         guard
             let widgetData = UserDefaults(suiteName: widgetGroupId),
             let dailyDataString = widgetData.string(forKey: "dailyData"),
