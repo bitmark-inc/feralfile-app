@@ -103,6 +103,7 @@ abstract class FeralFileApi {
     @Query('offset') int? offset = 0,
     @Query('limit') int? limit = 1,
     @Query('includeSuccessfulSwap') bool? includeSuccessfulSwap = true,
+    @Query('startDate') String? startDate,
   });
 
   // get list daily token by date with local time
@@ -225,8 +226,8 @@ class FeralFileResponse<T> {
   factory FeralFileResponse.fromJson(Map<String, dynamic> json,
           {T Function(Map<String, dynamic>)? fromJson}) =>
       FeralFileResponse(
-        result: fromJson != null 
-            ? fromJson(json['result'] as Map<String, dynamic>) 
+        result: fromJson != null
+            ? fromJson(json['result'] as Map<String, dynamic>)
             : json['result'] as T,
       );
 

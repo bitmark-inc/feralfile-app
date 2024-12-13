@@ -50,8 +50,13 @@ class HomeWidgetService {
 
   Future<void> updateDailyTokensToHomeWidget() async {
     try {
-      final listDailies =
-          await injector<FeralFileService>().getUpcomingDailyTokens();
+      final localDate = DateTime.now().toLocal();
+      // Start of current local day, in UTC time (YYYY-MM-DD 00:00:000z)
+      final startDateInUtc =
+          DateTime.utc(localDate.year, localDate.month, localDate.day);
+      log.info('startDateInUtc: ${startDateInUtc.toIso8601String()}');
+      final listDailies = await injector<FeralFileService>()
+          .getUpcomingDailyTokens(startDate: startDateInUtc.toIso8601String());
 
       // Filter out dailies that have the same date
       final filteredDailies = listDailies
