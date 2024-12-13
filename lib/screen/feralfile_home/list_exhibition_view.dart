@@ -138,9 +138,11 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     );
     final exhibitionsWithSource =
         await _addSourceExhibitionIfNeeded(exhibitions);
-    setState(() {
-      _exhibitions = exhibitionsWithSource;
-    });
+    if (mounted) {
+      setState(() {
+        _exhibitions = exhibitionsWithSource;
+      });
+    }
     return exhibitionsWithSource;
   }
 }

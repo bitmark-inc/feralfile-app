@@ -398,10 +398,11 @@ class QRScanViewState extends State<QRScanView>
           _noPermissionView(context)
         else ...[
           _qrView(context),
-          Padding(
-            padding:
-                const EdgeInsets.fromLTRB(0, _qrSize + _topPadding + 30, 0, 15),
-            child: _instructionView(context),
+          Positioned.fill(
+            bottom: 60,
+            child: Align(
+                alignment: Alignment.bottomCenter,
+                child: _instructionView(context)),
           )
         ],
         if (_isLoading) ...[
