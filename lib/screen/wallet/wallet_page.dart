@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/channel_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -22,6 +24,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -39,6 +42,8 @@ class _WalletPageState extends State<WalletPage>
     with RouteAware, WidgetsBindingObserver {
   final exportMnemonicFuture =
       ChannelService().exportMnemonicForAllPersonaUUIDs();
+  final ScrollController _scrollController = ScrollController();
+  bool _showRecoveryPhraseWarning = true;
 
   @override
   void initState() {
@@ -48,6 +53,18 @@ class _WalletPageState extends State<WalletPage>
     WidgetsBinding.instance.addPostFrameCallback((context) {
       if (widget.payload?.openAddAddress == true) {
         _showAddWalletOption();
+      }
+    });
+
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 10) {
+        setState(() {
+          _showRecoveryPhraseWarning = false;
+        });
+      } else if (_scrollController.offset < 2) {
+        setState(() {
+          _showRecoveryPhraseWarning = true;
+        });
       }
     });
   }
@@ -66,6 +83,7 @@ class _WalletPageState extends State<WalletPage>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     super.dispose();
@@ -138,13 +156,12 @@ class _WalletPageState extends State<WalletPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: _getRecoveryPhraseWarning(context),
-                ),
+                if (_showRecoveryPhraseWarning)
+                  _getRecoveryPhraseWarning(context),
                 Expanded(
-                  child: const AccountsView(
+                  child: AccountsView(
                     isInSettingsPage: true,
+                    scrollController: _scrollController,
                   ),
                 ),
               ],
@@ -171,37 +188,63 @@ class _WalletPageState extends State<WalletPage>
           return const SizedBox();
         }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColor.feralFileHighlight,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 20),
-              Text('warning'.tr(),
-                  style: Theme.of(context).textTheme.ppMori700Black16),
-              const SizedBox(height: 20),
-              Text(
-                'get_recovery_phrase_desc'.tr(),
-                style: Theme.of(context).textTheme.ppMori400Black14,
+        return Column(
+          children: [
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.feralFileHighlight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.all(15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'important_update'.tr(),
+                      style: Theme.of(context).textTheme.ppMori700Black16,
+                    ),
+                    const SizedBox(height: 20),
+                    RichText(
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.ppMori400Black14,
+                        children: [
+                          TextSpan(
+                            text: '${'get_recovery_phrase_desc'.tr()} ',
+                          ),
+                          TextSpan(
+                            text: 'read_more'.tr(),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                injector<VersionService>().showReleaseNotes();
+                              },
+                            style: const TextStyle(
+                              color: AppColor.primaryBlack,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    PrimaryButton(
+                      text: 'get_recovery_phrase'.tr(),
+                      color: AppColor.feralFileLightBlue,
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          AppRouter.recoveryPhrasePage,
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              PrimaryButton(
-                text: 'get_recovery_phrase'.tr(),
-                color: AppColor.feralFileLightBlue,
-                onTap: () {
-                  Navigator.of(context).pushNamed(
-                    AppRouter.recoveryPhrasePage,
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+          ],
         );
       },
     );

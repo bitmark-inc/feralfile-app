@@ -31,9 +31,11 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountsView extends StatefulWidget {
-  const AccountsView({required this.isInSettingsPage, super.key});
+  const AccountsView(
+      {required this.isInSettingsPage, super.key, this.scrollController});
 
   final bool isInSettingsPage;
+  final ScrollController? scrollController;
 
   @override
   State<AccountsView> createState() => _AccountsViewState();
@@ -77,7 +79,9 @@ class _AccountsViewState extends State<AccountsView> {
             return _noEditAddressesListWidget(walletAddresses);
           }
 
-          return ReorderableListView(
+          return ReorderableListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            scrollController: widget.scrollController,
             onReorder: (int oldIndex, int newIndex) {
               _accountsBloc.add(
                 ChangeAccountOrderEvent(
@@ -86,9 +90,17 @@ class _AccountsViewState extends State<AccountsView> {
                 ),
               );
             },
-            children: walletAddresses
-                .map((address) => _addressCard(context, address))
-                .toList(),
+            itemCount: walletAddresses.length + 1,
+            itemBuilder: (context, index) {
+              if (index == walletAddresses.length) {
+                return SizedBox(
+                  height: 200,
+                  key: ValueKey('end'),
+                );
+              }
+              final address = walletAddresses[index];
+              return _addressCard(context, address);
+            },
           );
         },
       );

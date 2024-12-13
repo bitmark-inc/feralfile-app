@@ -8,13 +8,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/service/channel_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/secure_screen_channel.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -168,15 +169,8 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
-            padding:
-                ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton.add(
-              const EdgeInsets.only(top: 48),
-            ),
-            child: ImportantNoteView(
-              note: 'get_recovery_phrase_desc'.tr(),
-              backgroundColor: AppColor.feralFileHighlight,
-              noteStyle: Theme.of(context).textTheme.ppMori400Black14,
-            ),
+            padding: const EdgeInsets.only(top: 20),
+            child: _importantNoteView(context),
           );
         }
         final entry = seedList[index - 1];
@@ -185,6 +179,49 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
         final words = value.sublist(1);
         return _seedItem(context, words: words, passphrase: passphrase);
       },
+    );
+  }
+
+  Widget _importantNoteView(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColor.feralFileHighlight,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('important_update'.tr(),
+                style: Theme.of(context).textTheme.ppMori700Black16),
+            const SizedBox(height: 20),
+            RichText(
+              text: TextSpan(
+                style: Theme.of(context).textTheme.ppMori400Black14,
+                children: [
+                  TextSpan(
+                    text: '${'get_recovery_phrase_desc'.tr()} ',
+                  ),
+                  TextSpan(
+                    text: 'read_more'.tr(),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        injector<VersionService>().showReleaseNotes();
+                      },
+                    style: const TextStyle(
+                      color: AppColor.primaryBlack,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
