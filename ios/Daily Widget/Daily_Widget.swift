@@ -15,7 +15,7 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let dailyInfo = getStoredDailyInfo();
+        let dailyInfo = fetchDailyInfo();
         let entry = SimpleEntry(
               date: Date(),
               dailyInfo: dailyInfo
@@ -30,50 +30,37 @@ struct Provider: TimelineProvider {
               completion(timeline)
             }
     }
+    
+    func fetchDailyInfo() -> DailyInfo {
+        guard
+            let widgetData = UserDefaults(suiteName: widgetGroupId),
+            let dailyDataString = widgetData.string(forKey: "dailyData"),
+            let dailyData = dailyDataString.data(using: .utf8),
+            let dailyObject = try? JSONSerialization.jsonObject(with: dailyData, options: []) as? [String: Any]
+        else {
+            return DailyInfo.empty
+        }
 
-
-    func getStoredDailyInfo() -> DailyInfo {
-        let widgetData = UserDefaults.init(suiteName: widgetGroupId)
-        
-        let currentDate = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale.current
         formatter.timeZone = TimeZone.current
+        let currentDateKey = formatter.string(from: Date())
 
-        let currentDateKey = formatter.string(from: currentDate) // Format the date to string
-
-        // Retrieve JSON string for the current date
-        if let jsonString = widgetData?.string(forKey: currentDateKey) {
-            do {
-                if let jsonData = jsonString.data(using: .utf8),
-                   let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                    
-                    let title = jsonObject["title"] as? String ?? nil
-                    let artistName = jsonObject["artistName"] as? String ?? nil
-                    let base64MediumIcon = jsonObject["base64MediumIcon"] as? String ?? nil
-                    let base64ImageData = jsonObject["base64ImageData"] as? String ?? nil
-                    let base64SmallImageData = jsonObject["base64SmallImageData"] as? String ?? nil
-                    
-                    return DailyInfo(
-                        title: title,
-                        artistName: artistName,
-                        base64ImageData: base64ImageData,
-                        base64SmallImageData: base64SmallImageData,
-                        base64MediumIcon: base64MediumIcon
-                    )
-                }
-            } catch {
-                print("Error parsing JSON: \(error)")
-            }
+        guard
+            let todayDailyString = dailyObject[currentDateKey] as? String,
+            let todayDailyData = todayDailyString.data(using: .utf8),
+            let todayDailyObject = try? JSONSerialization.jsonObject(with: todayDailyData, options: []) as? [String: Any]
+        else {
+            return DailyInfo.empty
         }
-        
+
         return DailyInfo(
-            title: nil,
-            artistName: nil,
-            base64ImageData: nil,
-            base64SmallImageData: nil,
-            base64MediumIcon: nil
+            title: todayDailyObject["title"] as? String,
+            artistName: todayDailyObject["artistName"] as? String,
+            base64ImageData: todayDailyObject["base64ImageData"] as? String,
+            base64SmallImageData: todayDailyObject["base64SmallImageData"] as? String,
+            displayMediumIcon: (todayDailyObject["displayMediumIcon"] as? Bool) ?? false
         )
     }
 }
@@ -83,7 +70,9 @@ struct DailyInfo {
     let artistName: String?
     let base64ImageData: String?
     let base64SmallImageData: String?
-    let base64MediumIcon: String?
+    let displayMediumIcon: Bool
+    
+    static let empty = DailyInfo(title: nil, artistName: nil, base64ImageData: nil, base64SmallImageData: nil, displayMediumIcon: false)
 }
 
 struct SimpleEntry: TimelineEntry {
@@ -96,6 +85,14 @@ struct Daily_WidgetEntryView : View {
     @State var infoViewHeight : CGFloat = 0
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
+    
+    private var backgroundColor: Color {
+        colorScheme == .dark ? Color("#1C1C1E") : .white
+    }
+
+    private var textColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
     
     private var heightReader: some View {
         GeometryReader { reader in
@@ -118,73 +115,66 @@ struct Daily_WidgetEntryView : View {
         
         GeometryReader { geo in
             VStack(spacing: 0) {
-                ZStack {
-                    if let artworkThumbnail = imageFromBase64(
-                        (family == .systemSmall ? entry.dailyInfo?.base64SmallImageData : entry.dailyInfo?.base64ImageData) ?? "") {
-                        Image(uiImage: artworkThumbnail)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth: geo.size.width, maxHeight: geo.size.height - infoViewHeight)
-                            .clipped()
-                    } else {
-                        colorScheme == .dark ? Color("#1C1C1E").edgesIgnoringSafeArea(.all) : Color.white.edgesIgnoringSafeArea(.all)
-                    }
-
-                    
-                    if let mediumIcon = imageFromBase64(entry.dailyInfo?.base64MediumIcon ?? "") {
-                        Image(uiImage: mediumIcon)
-                            .resizable()
-                            .frame(width: 60, height: 58, alignment: .center)
-                    }
-                }
-                .frame(
-                    maxWidth: geo.size.width,
-                    maxHeight: geo.size.height - infoViewHeight
-                )
-                
-                HStack(spacing: family == .systemSmall ? 10 : 20) {
-                    VStack(alignment: .leading, spacing: -2) {
-                        if let artistName = entry.dailyInfo?.artistName {
-                            Text("\(artistName),")
-                                .foregroundColor(colorScheme == .dark ? .white : .black)
-                                .font(.footnote)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        } else {
-                            Text("Daily artwork")
-                                .foregroundColor(colorScheme == .dark ? .white : .black)
-                                .font(.footnote.bold())
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
-                        
-                        if let artworkTitle = entry.dailyInfo?.title {
-                            Text(artworkTitle)
-                                .foregroundColor(colorScheme == .dark ? .white : .black)
-                                .font(.footnote.bold().italic())
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        } else {
-                            Text("Daily artwork is not available")
-                                .foregroundColor(colorScheme == .dark ? .white : .black)
-                                .font(.footnote)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .layoutPriority(1)
-                    
-                    Image(colorScheme == .dark ? "FFDarkIcon" : "FFLightIcon").frame(width: 30, height: 20)
-
-                }
-                .padding(.all, 15)
-                .frame(maxWidth: .infinity)
-                .background(colorScheme == .dark ? Color("#1C1C1E") : Color.white)
-                .background { heightReader }
+                imageSection(geo.size)
+                infoSection
             }
             .frame(maxWidth: geo.size.width, maxHeight: .infinity)
-        }.widgetURL(URL(string: "home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget"))
+        }
+        .widgetURL(URL(string: "home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget"))
+    }
+    
+    @ViewBuilder
+    private func imageSection(_ size: CGSize) -> some View {
+        ZStack {
+            if let artworkThumbnail = imageFromBase64(
+                (family == .systemSmall ? entry.dailyInfo?.base64SmallImageData : entry.dailyInfo?.base64ImageData) ?? ""
+            ) {
+                Image(uiImage: artworkThumbnail)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: size.width, maxHeight: size.height - infoViewHeight)
+                    .clipped()
+            } else {
+                backgroundColor.edgesIgnoringSafeArea(.all)
+            }
+            
+            if (entry.dailyInfo != nil && entry.dailyInfo!.displayMediumIcon) {
+                Image("MediumIcon")
+                    .resizable()
+                    .frame(width: 60, height: 58, alignment: .center)
+            }
+        }
+        .frame(
+            maxWidth: size.width,
+            maxHeight: size.height - infoViewHeight
+        )
+    }
+    
+    private var infoSection: some View {
+        HStack(spacing: family == .systemSmall ? 10 : 20) {
+            VStack(alignment: .leading, spacing: -2) {
+                Text(entry.dailyInfo?.artistName ?? "Daily artwork")
+                    .font(.footnote)
+                    .foregroundColor(textColor)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+
+                Text(entry.dailyInfo?.title ?? "Daily artwork is not available")
+                    .font(.footnote.bold().italic())
+                    .foregroundColor(textColor)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
+
+            Image(colorScheme == .dark ? "FFDarkIcon" : "FFLightIcon")
+                .frame(width: 30, height: 20)
+        }
+        .padding(.all, 15)
+        .frame(maxWidth: .infinity)
+        .background(backgroundColor)
+        .background { heightReader }
     }
 }
 

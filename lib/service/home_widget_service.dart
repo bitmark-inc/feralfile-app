@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -31,10 +30,7 @@ class HomeWidgetService {
   Future<void> updateWidget(
       {required Map<String, String> data, bool shouldUpdate = true}) async {
     try {
-      await Future.wait(
-        data.entries
-            .map((entry) => HomeWidget.saveWidgetData(entry.key, entry.value)),
-      );
+      await HomeWidget.saveWidgetData('dailyData', jsonEncode(data));
     } catch (e) {
       log.info('Error in saveWidgetData: $e');
     }
@@ -54,7 +50,6 @@ class HomeWidgetService {
       // Start of current local day, in UTC time (YYYY-MM-DD 00:00:000z)
       final startDateInUtc =
           DateTime.utc(localDate.year, localDate.month, localDate.day);
-      log.info('startDateInUtc: ${startDateInUtc.toIso8601String()}');
       final listDailies = await injector<FeralFileService>()
           .getUpcomingDailyTokens(startDate: startDateInUtc.toIso8601String());
 
@@ -124,21 +119,13 @@ class HomeWidgetService {
         base64SmallImageData = await getBase64ImageData(smallThumbnailUrl);
       }
 
-      String? base64MediumIcon;
-      if (['video', 'software'].contains(medium)) {
-        final data =
-            await rootBundle.load('assets/images/widget_medium_icon.png');
-        final List<int> bytes = data.buffer.asUint8List();
-        base64MediumIcon = base64Encode(bytes);
-      }
-
       final dateKey = DateFormat('yyyy-MM-dd').format(dailyToken.displayTime);
 
       final data = {
         dateKey: jsonEncode({
           'artistName': '$artistName',
           'title': title,
-          'base64MediumIcon': base64MediumIcon ?? '',
+          'displayMediumIcon': ['video', 'software'].contains(medium),
           'base64ImageData': base64ImageData ?? '',
           'base64SmallImageData': base64SmallImageData ?? '',
         })
