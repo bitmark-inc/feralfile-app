@@ -374,7 +374,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
                 data.announcementContentId!, result.issueID);
           }
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
-          await _draftCustomerSupportBox.putAsync(draftMsg);
+          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
 
