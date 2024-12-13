@@ -37,6 +37,9 @@ class WalletPage extends StatefulWidget {
 
 class _WalletPageState extends State<WalletPage>
     with RouteAware, WidgetsBindingObserver {
+  final exportMnemonicFuture =
+      ChannelService().exportMnemonicForAllPersonaUUIDs();
+
   @override
   void initState() {
     super.initState();
@@ -152,7 +155,7 @@ class _WalletPageState extends State<WalletPage>
 
   Widget _getRecoveryPhraseWarning(BuildContext context) {
     return FutureBuilder<Map<String, List<String>>>(
-      future: ChannelService().exportMnemonicForAllPersonaUUIDs(),
+      future: exportMnemonicFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const SizedBox();
