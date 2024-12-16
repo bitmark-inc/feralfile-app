@@ -119,7 +119,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                   if (shouldShowNotePage) {
                     return _notePage(exhibition);
                   } else {
-                    final seriesIndex = index - (exhibitionInfoCount - 1);
+                    final seriesIndex = 0; //index - (exhibitionInfoCount - 1);
                     return _getSeriesPreviewPage(seriesIndex, exhibition);
                   }
                 default:
@@ -129,7 +129,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             },
           ),
         ),
-        if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
+        if (_currentIndex == 0 || (_currentIndex == 1 && shouldShowNotePage))
+          _nextButton()
       ],
     );
   }
@@ -291,7 +292,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           }
         } else {
           catalog = ExhibitionCatalog.artwork;
-          final seriesIndex = _currentIndex - (exhibitionInfoCount - 1);
+          final seriesIndex = 0; //_currentIndex - (exhibitionInfoCount - 1);
           catalogId =
               exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
         }
