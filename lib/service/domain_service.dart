@@ -1,16 +1,13 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:sentry/sentry.dart';
 
 abstract class DomainService {
-  Future<String?> getAddress(String domain);
-
-  Future<String?> getEthAddress(String domain);
-
-  Future<String?> getTezosAddress(String domain);
+  Future<String?> getAddress(String domain, {CryptoType? cryptoType});
 }
 
 class DomainServiceImpl implements DomainService {
@@ -19,7 +16,7 @@ class DomainServiceImpl implements DomainService {
   static const String _addressQuery = '''
     query {
       lookup(inputs: [
-        { chain: "<chain>", name: "<var>", skipCache: true },
+        { chain: "<chain>", name: "<var>", skipCache: false },
       ]) {
         chain
         name
@@ -36,12 +33,16 @@ class DomainServiceImpl implements DomainService {
   Future<String?> _getAddress(String domain, String chain) async {
     try {
       log.info('Getting address for $domain');
+      final startTime = DateTime.now();
       final result = await _ensClient.query(
         doc: _addressQuery
             .replaceFirst('<var>', domain)
             .replaceFirst('<chain>', chain),
         subKey: _subKey,
       ) as List?;
+      final endTime = DateTime.now();
+      log.info(
+          '[Getting address for $domain] Result: $result in ${endTime.difference(startTime).inMilliseconds}ms');
       if (result == null || result.isEmpty) {
         return null;
       }
@@ -59,8 +60,7 @@ class DomainServiceImpl implements DomainService {
     }
   }
 
-  @override
-  Future<String?> getEthAddress(String domain) async {
+  Future<String?> _getEthAddress(String domain) async {
     try {
       final ethAddress = await _getAddress(domain, 'ethereum');
       return ethAddress;
@@ -69,8 +69,7 @@ class DomainServiceImpl implements DomainService {
     }
   }
 
-  @override
-  Future<String?> getTezosAddress(String domain) async {
+  Future<String?> _getTezosAddress(String domain) async {
     try {
       final tezosAddress = await _getAddress(domain, 'tezos');
       return tezosAddress;
@@ -85,12 +84,19 @@ class DomainServiceImpl implements DomainService {
   }
 
   @override
-  Future<String?> getAddress(String domain) async {
-    final ethAddress = await getEthAddress(domain);
+  Future<String?> getAddress(String domain, {CryptoType? cryptoType}) async {
+    if (cryptoType == CryptoType.ETH) {
+      return _getEthAddress(domain);
+    }
+    if (cryptoType == CryptoType.XTZ) {
+      return _getTezosAddress(domain);
+    }
+
+    final ethAddress = await _getEthAddress(domain);
     if (ethAddress != null) {
       return ethAddress;
     }
-    final tezosAddress = await getTezosAddress(domain);
+    final tezosAddress = await _getTezosAddress(domain);
     return tezosAddress;
   }
 }
@@ -124,12 +130,16 @@ class GraphClient {
   }) async {
     try {
       log.info('Querying: $doc');
+      final startTime = DateTime.now();
       final options = QueryOptions(
         document: gql(doc),
         variables: vars,
       );
 
       final result = await client.query(options);
+      final endTime = DateTime.now();
+      log.info(
+          '[Querying: $doc] Result: $result in ${endTime.difference(startTime).inMilliseconds}ms');
       if (subKey != null) {
         return result.data?[subKey];
       }
