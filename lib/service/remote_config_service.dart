@@ -101,7 +101,12 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
         'merge_series_id': '0a954c31-d336-4e37-af0f-ec336c064879'
       },
       'dont_fake_artwork_series_ids': ['0a954c31-d336-4e37-af0f-ec336c064879'],
-      'on_going_exhibition_ids': ['46a0f68b-a657-4364-92a0-32a88b65fbd9']
+      'on_going_exhibition_ids': ['46a0f68b-a657-4364-92a0-32a88b65fbd9'],
+      'foreword': {
+        '796f9fd9-d405-451c-a584-d9f21222c6dd': [
+          '<p>It’s unsurprising that evolution, the most potent and pervasive generative process we know, challenges our habits of thought. Richard Dawkins figured evolution as a <em>Blind Watchmaker</em>, embodying it in a fumbling pair of cosmic hands, even as he argued against intention or design. “Theory of mind” — our capacity to attribute and model the agency and motivations of others — seems to trip us up here. It’s hard to think about evolution without asking, <em>what does it want?</em></p>'
+        ],
+      }
     },
     'dApp_urls': {
       'deny_dApp_list': [],
@@ -135,6 +140,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'daily': {'scheduleTime': '6'},
     'video_settings': {
       'client_bandwidth_hint': null,
+    },
+    'local_cache_config': {
+      'exhibition_last_updated': '2022-02-22T00:00:00Z',
+      'featured_works_last_updated': '2022-02-22T00:00:00Z',
     }
   };
 
@@ -182,7 +191,16 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
               .keys
               .contains(key.getString);
       if (!hasKey) {
-        return defaultValue;
+        final hasDefaultKey =
+            (_defaults[group.getString] as Map<String, dynamic>)
+                .keys
+                .contains(key.getString);
+        if (!hasDefaultKey) {
+          log.warning('RemoteConfigService: getConfig: $group, $key not found');
+          return defaultValue;
+        }
+        final res = _defaults[group.getString]![key.getString] as T;
+        return res;
       }
       final res = _configs![group.getString]?[key.getString] as T;
       return res;
@@ -204,6 +222,7 @@ enum ConfigGroup {
   membership,
   daily,
   videoSettings,
+  localCacheConfig,
 }
 
 // ConfigGroup getString extension
@@ -236,6 +255,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'daily';
       case ConfigGroup.videoSettings:
         return 'video_settings';
+      case ConfigGroup.localCacheConfig:
+        return 'local_cache_config';
     }
   }
 }
@@ -276,6 +297,9 @@ enum ConfigKey {
   lifetime,
   scheduleTime,
   clientBandwidthHint,
+  exhibitionLastUpdated,
+  featuredWorksLastUpdated,
+  foreWord,
 }
 
 // ConfigKey getString extension
@@ -352,6 +376,12 @@ extension ConfigKeyExtension on ConfigKey {
         return 'scheduleTime';
       case ConfigKey.clientBandwidthHint:
         return 'client_bandwidth_hint';
+      case ConfigKey.exhibitionLastUpdated:
+        return 'exhibition_last_updated';
+      case ConfigKey.featuredWorksLastUpdated:
+        return 'featured_works_last_updated';
+      case ConfigKey.foreWord:
+        return 'foreword';
     }
   }
 }

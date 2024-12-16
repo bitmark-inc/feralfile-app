@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -232,13 +233,34 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     return resources;
   }
 
+  List<Widget> _foreWord(Exhibition exhibition) {
+    final foreWords = <Widget>[];
+    for (final foreWord in exhibition.foreWord) {
+      final id =
+          'forework_${exhibition.id}_${exhibition.foreWord.indexOf(foreWord)}';
+      foreWords.add(ExhibitionCustomNote(
+        info: CustomExhibitionNote(
+            id: id,
+            title: 'Foreword',
+            content: foreWord,
+            canReadMore: true,
+            readMoreUrl:
+                FeralFileHelper.getExhibitionForewordUrl(exhibition.slug)),
+      ));
+    }
+    return foreWords;
+  }
+
   Widget _notePage(Exhibition exhibition) => LayoutBuilder(
         builder: (context, constraints) => Center(
           child: CarouselSlider(
             items: [
-              ExhibitionNoteView(
-                exhibition: exhibition,
-              ),
+              ..._foreWord(exhibition),
+              if (exhibition.shouldShowCuratorNote) ...[
+                ExhibitionNoteView(
+                  exhibition: exhibition,
+                ),
+              ],
               ..._resource(exhibition),
             ],
             options: CarouselOptions(
@@ -284,11 +306,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         catalog = ExhibitionCatalog.home;
       case 1:
         if (shouldShowNotePage) {
-          if (_carouselIndex == 0) {
+          final foreword = exhibition.foreWord;
+          if (_carouselIndex < foreword.length) {
+            catalog = ExhibitionCatalog.curatorNote;
+          } else if (_carouselIndex == foreword.length) {
             catalog = ExhibitionCatalog.curatorNote;
           } else {
             catalog = ExhibitionCatalog.resource;
-            catalogId = exhibition.allResources[_carouselIndex - 1].id;
+            catalogId = exhibition
+                .allResources[_carouselIndex - (foreword.length + 1)].id;
           }
         } else {
           catalog = ExhibitionCatalog.artwork;

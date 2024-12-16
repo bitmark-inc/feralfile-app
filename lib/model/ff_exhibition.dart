@@ -294,6 +294,7 @@ class CustomExhibitionNote extends Resource {
     required this.title,
     required this.content,
     this.canReadMore,
+    this.readMoreUrl,
   });
 
   factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) =>
@@ -302,10 +303,12 @@ class CustomExhibitionNote extends Resource {
         title: json['title'] as String,
         content: json['content'] as String,
         canReadMore: json['canReadMore'] as bool? ?? false,
+        readMoreUrl: json['readMoreUrl'] as String?,
       );
   final String title;
   final String content;
   final bool? canReadMore;
+  final String? readMoreUrl;
 }
 
 enum MediaType {
