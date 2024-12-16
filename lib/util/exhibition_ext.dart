@@ -132,6 +132,17 @@ extension ExhibitionExt on Exhibition {
     return customNote;
   }
 
+  List<String> get foreWord {
+    final config =
+        injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
+      ConfigGroup.exhibition,
+      ConfigKey.foreWord,
+      {},
+    );
+    final forewords = List<String>.from(config[id] as List? ?? []);
+    return forewords;
+  }
+
   // get all resource, include posts and custom notes
   List<Resource> get allResources {
     final resources = <Resource>[...customExhibitionNote];
@@ -140,6 +151,11 @@ extension ExhibitionExt on Exhibition {
     }
     return resources;
   }
+
+  bool get shouldShowCuratorNote => noteBrief?.isNotEmpty == true;
+
+  bool get shouldShowCuratorNotePage =>
+      shouldShowCuratorNote || allResources.isNotEmpty || foreWord.isNotEmpty;
 }
 
 extension ListExhibitionDetailExt on List<ExhibitionDetail> {
