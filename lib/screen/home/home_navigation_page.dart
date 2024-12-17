@@ -151,6 +151,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         context,
         options: [
           OptionItem(
+            title: 'Wi-Fi',
+            icon: const Icon(
+              AuIcon.discover,
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.wifiConfigPage);
+            },
+          ),
+          OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
               AuIcon.scan,
