@@ -242,10 +242,10 @@ class ReportIssueType {
   static String introMessage(String item) {
     switch (item) {
       case Exception:
-        return 'Thanks for taking the time to help improve Feral File. We’ve received your automatic crash report and are looking into it. How else can we help?';
+        return 'exception_thread_intro'.tr();
       case Bug:
       default:
-        return 'Thanks for reaching out to the Feral File! How can we assist you with feedback, a bug, or a feature request?';
+        return 'bug_thread_intro'.tr();
     }
   }
 }
