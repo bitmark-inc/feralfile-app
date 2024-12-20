@@ -20,14 +20,14 @@
 		58B3716D2D0150D9005A2188 /* WordList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B3716B2D0150D9005A2188 /* WordList.swift */; };
 		58B3716F2D0153EB005A2188 /* URKit in Frameworks */ = {isa = PBXBuildFile; productRef = 58B3716E2D0153EB005A2188 /* URKit */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		7F1B97602D15827200D9B5D0 /* CLibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */; };
+		7F1B97612D15827200D9B5D0 /* CLibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7F1B97622D15827200D9B5D0 /* LibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; };
+		7F1B97632D15827200D9B5D0 /* LibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7F7693252D02A05C0085C68C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693242D02A05C0085C68C /* WidgetKit.framework */; };
 		7F7693272D02A05C0085C68C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693262D02A05C0085C68C /* SwiftUI.framework */; };
 		7F7693362D02A05F0085C68C /* Daily WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F7693232D02A05C0085C68C /* Daily WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7F843EEC2D069DBE006E71F3 /* Runner Notification.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F843EE52D069DBE006E71F3 /* Runner Notification.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		7FA9C2942D1571A800001D90 /* CLibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA9C2922D1571A800001D90 /* CLibWally.xcframework */; };
-		7FA9C2952D1571A800001D90 /* CLibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA9C2922D1571A800001D90 /* CLibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		7FA9C2962D1571A800001D90 /* LibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA9C2932D1571A800001D90 /* LibWally.xcframework */; };
-		7FA9C2972D1571A800001D90 /* LibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA9C2932D1571A800001D90 /* LibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -59,6 +59,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7F1B97642D15827200D9B5D0 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7F1B97612D15827200D9B5D0 /* CLibWally.xcframework in Embed Frameworks */,
+				7F1B97632D15827200D9B5D0 /* LibWally.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7F7693372D02A05F0085C68C /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -69,18 +81,6 @@
 				7F843EEC2D069DBE006E71F3 /* Runner Notification.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				7FA9C2952D1571A800001D90 /* CLibWally.xcframework in Embed Frameworks */,
-				7FA9C2972D1571A800001D90 /* LibWally.xcframework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -114,14 +114,14 @@
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7957B0E0355A2E06ABCD4CA7 /* Pods-RunnerTests.profile-production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile-production.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile-production.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CLibWally.xcframework; path = Frameworks/CLibWally.xcframework; sourceTree = "<group>"; };
+		7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LibWally.xcframework; path = Frameworks/LibWally.xcframework; sourceTree = "<group>"; };
 		7F7693232D02A05C0085C68C /* Daily WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Daily WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F7693242D02A05C0085C68C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		7F7693262D02A05C0085C68C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		7F7693432D02A10A0085C68C /* Daily WidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Daily WidgetExtension.entitlements"; sourceTree = "<group>"; };
 		7F843EE52D069DBE006E71F3 /* Runner Notification.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Runner Notification.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F843EF82D069E89006E71F3 /* Runner Notification.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Runner Notification.entitlements"; sourceTree = "<group>"; };
-		7FA9C2922D1571A800001D90 /* CLibWally.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CLibWally.xcframework; path = ../../Downloads/CLibWally.xcframework; sourceTree = "<group>"; };
-		7FA9C2932D1571A800001D90 /* LibWally.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LibWally.xcframework; path = ../../Downloads/LibWally.xcframework; sourceTree = "<group>"; };
 		8B818DEA04AEBE1B926AF7A4 /* Pods-Runner.debug-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-development.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-development.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -206,8 +206,8 @@
 				58B3716F2D0153EB005A2188 /* URKit in Frameworks */,
 				58B2C4F12CFDBC0900FD14C5 /* libsqlite3.tbd in Frameworks */,
 				D7E06ED089DD033803E83AAA /* Pods_Runner.framework in Frameworks */,
-				7FA9C2942D1571A800001D90 /* CLibWally.xcframework in Frameworks */,
-				7FA9C2962D1571A800001D90 /* LibWally.xcframework in Frameworks */,
+				7F1B97602D15827200D9B5D0 /* CLibWally.xcframework in Frameworks */,
+				7F1B97622D15827200D9B5D0 /* LibWally.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,8 +251,8 @@
 		84A508EBE35873B63D6554AF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7FA9C2922D1571A800001D90 /* CLibWally.xcframework */,
-				7FA9C2932D1571A800001D90 /* LibWally.xcframework */,
+				7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */,
+				7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */,
 				58B2C4F02CFDBBF300FD14C5 /* libsqlite3.tbd */,
 				FC4511D74C969E513EB211D8 /* Pods_Runner.framework */,
 				0A797A66DE40EFF1F7CF4147 /* Pods_RunnerTests.framework */,
@@ -422,10 +422,10 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				7F7693372D02A05F0085C68C /* Embed Foundation Extensions */,
 				97C146EC1CF9000F007C117D /* Resources */,
-				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				B6F5A593638686EE4924B19A /* [CP] Embed Pods Frameworks */,
 				2C4BBCE9801FAF75A79F0E8F /* [CP] Copy Pods Resources */,
+				7F1B97642D15827200D9B5D0 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
