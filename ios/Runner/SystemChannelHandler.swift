@@ -8,6 +8,7 @@
 import Foundation
 import Flutter
 import Combine
+import LibWally
 
 class SystemChannelHandler: NSObject {
     
@@ -92,3 +93,12 @@ class SystemChannelHandler: NSObject {
         }
     }
 }
+
+class Keys {
+    static func mnemonic(_ entropy: Data) -> BIP39Mnemonic? {
+        let bip39entropy = BIP39Mnemonic.Entropy(entropy)
+
+        return try? BIP39Mnemonic(entropy: bip39entropy)
+    }
+}
+
