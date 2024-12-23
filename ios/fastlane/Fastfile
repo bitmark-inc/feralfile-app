@@ -75,7 +75,7 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "Release-inhouse",
+			configuration: "Release-development",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 
@@ -139,7 +139,7 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "Release-inhouse",
+			configuration: "Release-development",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 
@@ -237,7 +237,7 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "Release-prd",
+			configuration: "Release-production",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 
