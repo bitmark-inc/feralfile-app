@@ -23,7 +23,6 @@
 		7F1B982E2D19515000D9B5D0 /* LibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; };
 		7F1B982F2D19515000D9B5D0 /* LibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7F1B98522D19579600D9B5D0 /* CLibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */; };
-		7F1B98542D195AB400D9B5D0 /* CLibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7F7693252D02A05C0085C68C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693242D02A05C0085C68C /* WidgetKit.framework */; };
 		7F7693272D02A05C0085C68C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693262D02A05C0085C68C /* SwiftUI.framework */; };
 		7F7693362D02A05F0085C68C /* Daily WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F7693232D02A05C0085C68C /* Daily WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -65,7 +64,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				7F1B98542D195AB400D9B5D0 /* CLibWally.xcframework in Embed Frameworks */,
 				7F1B982F2D19515000D9B5D0 /* LibWally.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
