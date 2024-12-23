@@ -20,8 +20,8 @@
 		58B3716D2D0150D9005A2188 /* WordList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B3716B2D0150D9005A2188 /* WordList.swift */; };
 		58B3716F2D0153EB005A2188 /* URKit in Frameworks */ = {isa = PBXBuildFile; productRef = 58B3716E2D0153EB005A2188 /* URKit */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		7F1B97602D15827200D9B5D0 /* CLibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975E2D15827200D9B5D0 /* CLibWally.xcframework */; };
-		7F1B97622D15827200D9B5D0 /* LibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; };
+		7F1B982E2D19515000D9B5D0 /* LibWally.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; };
+		7F1B982F2D19515000D9B5D0 /* LibWally.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7F1B975F2D15827200D9B5D0 /* LibWally.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7F7693252D02A05C0085C68C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693242D02A05C0085C68C /* WidgetKit.framework */; };
 		7F7693272D02A05C0085C68C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F7693262D02A05C0085C68C /* SwiftUI.framework */; };
 		7F7693362D02A05F0085C68C /* Daily WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F7693232D02A05C0085C68C /* Daily WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -57,6 +57,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7F1B980F2D1946A300D9B5D0 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7F1B982F2D19515000D9B5D0 /* LibWally.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7F7693372D02A05F0085C68C /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -192,8 +203,7 @@
 				58B3716F2D0153EB005A2188 /* URKit in Frameworks */,
 				58B2C4F12CFDBC0900FD14C5 /* libsqlite3.tbd in Frameworks */,
 				D7E06ED089DD033803E83AAA /* Pods_Runner.framework in Frameworks */,
-				7F1B97602D15827200D9B5D0 /* CLibWally.xcframework in Frameworks */,
-				7F1B97622D15827200D9B5D0 /* LibWally.xcframework in Frameworks */,
+				7F1B982E2D19515000D9B5D0 /* LibWally.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -408,6 +418,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				7F7693372D02A05F0085C68C /* Embed Foundation Extensions */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				7F1B980F2D1946A300D9B5D0 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				B6F5A593638686EE4924B19A /* [CP] Embed Pods Frameworks */,
 				2C4BBCE9801FAF75A79F0E8F /* [CP] Copy Pods Resources */,
