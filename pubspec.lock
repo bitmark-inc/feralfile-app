@@ -668,6 +668,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.1.6"
+  flutter_blue_plus:
+    dependency: "direct main"
+    description:
+      name: flutter_blue_plus
+      sha256: d2ac9fac56c4b3b08eb68752380e2d45e64c61db629b70e61bb36c95cb65d431
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.34.5"
   flutter_branch_sdk:
     dependency: "direct main"
     description:

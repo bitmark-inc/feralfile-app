@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io' show Platform;
 
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class WifiConfigPage extends StatefulWidget {
   const WifiConfigPage({super.key});
@@ -14,164 +18,389 @@ class WifiConfigPage extends StatefulWidget {
 }
 
 class _WifiConfigPageState extends State<WifiConfigPage> {
-  bool _scanning = false;
-  BluetoothDevice? _targetDevice;
-  BluetoothConnection? _connection;
-  String _status = "Idle";
-  String _receivedData = "";
+  final flutterBlue = FlutterBluePlus;
+  BluetoothDevice? targetDevice;
+  BluetoothCharacteristic? targetCharacteristic;
+  bool scanning = false;
+  String status = 'Idle';
+  String receivedData = '';
 
-  // Replace these with your stored credentials
+  final String advertisingUuid =
+      'f7826da6-4fa2-4e98-8024-bc5b71e0893e'; // For scanning
+  final String serviceUuid =
+      'f7826da6-4fa2-4e98-8024-bc5b71e0893e'; // For connection
+  final String charUuid =
+      '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Target characteristic
+
+  // Wi-Fi credentials to send:
   String ssid = "Your_SSID";
   String password = "Your_Password";
+
+  StreamSubscription? _scanSubscription;
+
+  // Add these new state variables
+  List<ScanResult> scanResults = [];
+  final TextEditingController ssidController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  // Add timer related variables
+  int _scanTimeRemaining = 60;
+  Timer? _scanTimer;
 
   @override
   void initState() {
     super.initState();
-    // If needed, ensure Bluetooth is enabled
-    _ensureBluetoothIsEnabled();
+    _checkBluetoothStatus();
   }
 
-  Future<void> _ensureBluetoothIsEnabled() async {
-    final isEnabled = await FlutterBluetoothSerial.instance.isEnabled;
-    if (isEnabled == false) {
-      await FlutterBluetoothSerial.instance.requestEnable();
+  Future<void> _checkBluetoothStatus() async {
+    // Check if Bluetooth is supported
+    if (await FlutterBluePlus.isSupported == false) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Bluetooth not supported by this device')),
+        );
+      }
+      return;
     }
-  }
 
-  Future<void> _startScan() async {
-    setState(() {
-      _status = "Scanning for devices...";
-      _scanning = true;
-    });
-
-    final permissions = await Permission.bluetooth.request();
-
-    List<BluetoothDiscoveryResult> results = [];
-
-    StreamSubscription<BluetoothDiscoveryResult>? scanSubscription;
-    scanSubscription =
-        FlutterBluetoothSerial.instance.startDiscovery().listen((result) {
-      // Store discovered devices in a local list
-      results.add(result);
-
-      // Check if this is the target device
-      if (result.device.name == "FeralFile-WiFi") {
-        scanSubscription?.cancel();
+    // Listen to Bluetooth state changes
+    FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
+      if (mounted) {
         setState(() {
-          _scanning = false;
-          _targetDevice = result.device;
-          _status = "Found target device: ${result.device.name}";
+          if (state == BluetoothAdapterState.on) {
+            // Bluetooth is on - you can start scanning or other operations
+            startScan();
+          } else {
+            // Show error/warning to user
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content:
+                      Text('Please enable Bluetooth. Current state: $state')),
+            );
+          }
         });
       }
     });
 
-    // Wait until the scanning completes (or is canceled)
-    await Future.delayed(const Duration(seconds: 10));
-    if (_scanning) {
-      // If still scanning after 10 seconds and no device found
-      scanSubscription?.cancel();
-      setState(() {
-        _scanning = false;
-        _status = "Device not found";
-      });
+    // Auto-enable Bluetooth on Android
+    if (Platform.isAndroid) {
+      try {
+        await FlutterBluePlus.turnOn();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to enable Bluetooth')),
+          );
+        }
+      }
     }
   }
 
-  Future<void> _connectToDevice() async {
-    if (_targetDevice == null) return;
-
+  void startScan() {
     setState(() {
-      _status = "Connecting to ${_targetDevice!.name}...";
+      scanning = true;
+      scanResults.clear();
+      _scanTimeRemaining = 60;
     });
 
-    try {
-      final connection =
-          await BluetoothConnection.toAddress(_targetDevice!.address);
+    // Set up countdown timer
+    _scanTimer?.cancel();
+    _scanTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _connection = connection;
-        _status = "Connected to ${_targetDevice!.name}";
+        if (_scanTimeRemaining > 0) {
+          _scanTimeRemaining--;
+        } else {
+          timer.cancel();
+          scanning = false;
+        }
       });
+    });
 
-      // Listen for data from the Pi
-      _connection!.input?.listen((Uint8List data) {
-        final receivedText = utf8.decode(data);
+    _scanSubscription = FlutterBluePlus.onScanResults.listen(
+      (results) {
+        for (ScanResult r in results) {
+          log.info(
+              'Found device: ${r.device.name}, ID: ${r.device.id.id}, Services: ${r.advertisementData.serviceUuids}');
+        }
+
+        // Filter results to only include devices advertising our service UUID
+        final filteredResults = results.where((result) {
+          return result.advertisementData.serviceUuids
+              .map((uuid) => uuid.toString().toLowerCase())
+              .contains(advertisingUuid.toLowerCase());
+        }).toList();
+
         setState(() {
-          _receivedData += receivedText;
+          scanResults = filteredResults;
         });
-      }).onDone(() {
+      },
+      onError: (error) {
+        log.warning('Scan error: $error');
         setState(() {
-          _status = "Disconnected";
+          scanning = false;
+          status = 'Scan error: $error';
         });
-      });
-    } catch (e) {
-      setState(() {
-        _status = "Connection failed: $e";
-      });
-    }
+      },
+    );
+
+    FlutterBluePlus.startScan(
+      timeout: const Duration(seconds: 60), // Updated to 60 seconds
+      androidUsesFineLocation: true,
+    );
   }
 
-  Future<void> _sendWifiCredentials() async {
-    if (_connection == null || !_connection!.isConnected) {
+  Future<void> connectToDevice() async {
+    if (targetDevice == null) return;
+
+    setState(() {
+      status = 'Connecting to ${targetDevice!.name}...';
+    });
+
+    await targetDevice!.connect(autoConnect: false);
+
+    // After connection, show the WiFi credentials dialog
+    if (mounted) {
+      _showWifiCredentialsDialog();
+    }
+
+    // Discover services
+    final List<BluetoothService> services =
+        await targetDevice!.discoverServices();
+    for (var service in services) {
+      log.info(
+          'Discovered service UUID: ${service.uuid.toString().toLowerCase()}');
+      if (service.uuid.toString().toLowerCase() == serviceUuid) {
+        for (var characteristic in service.characteristics) {
+          log.info(
+            'Found characteristic UUID: ${characteristic.uuid.toString().toLowerCase()}',
+          );
+          if (characteristic.uuid.toString().toLowerCase() == charUuid) {
+            targetCharacteristic = characteristic;
+            setState(() {
+              status = 'Found target characteristic';
+            });
+
+            // Set up notifications
+            if (characteristic.properties.notify) {
+              await characteristic.setNotifyValue(true);
+              characteristic.value.listen((value) {
+                final receivedText = utf8.decode(value);
+                setState(() {
+                  receivedData = receivedText;
+                  status = 'Received response from device';
+                });
+              });
+            }
+
+            return; // Found what we need
+          }
+        }
+      }
+    }
+
+    setState(() {
+      status = 'Target characteristic not found';
+    });
+  }
+
+  void _showWifiCredentialsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Enter Wi-Fi Credentials',
+            style: Theme.of(context).textTheme.ppMori400Black16,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please enter the Wi-Fi credentials that you want the Feral File device to connect to.',
+                style: Theme.of(context).textTheme.ppMori400Grey14,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: ssidController,
+                style: Theme.of(context).textTheme.ppMori400Black14,
+                decoration: InputDecoration(
+                  labelText: 'Wi-Fi Name (SSID)',
+                  labelStyle: Theme.of(context).textTheme.ppMori400Grey14,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passwordController,
+                style: Theme.of(context).textTheme.ppMori400Black14,
+                decoration: InputDecoration(
+                  labelText: 'Wi-Fi Password',
+                  labelStyle: Theme.of(context).textTheme.ppMori400Grey14,
+                  border: const OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: Theme.of(context).textTheme.ppMori400Grey14,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                ssid = ssidController.text;
+                password = passwordController.text;
+                Navigator.of(context).pop();
+                sendWifiCredentials();
+              },
+              child: Text(
+                'Connect',
+                style: Theme.of(context).textTheme.ppMori400Black14,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> sendWifiCredentials() async {
+    if (targetCharacteristic == null) {
       setState(() {
-        _status = "Not connected to any device.";
+        status = 'Target characteristic not set';
       });
       return;
     }
 
-    // Prepare JSON
-    final credentialsJson = jsonEncode({"ssid": ssid, "password": password});
-
     setState(() {
-      _status = "Sending Wi-Fi credentials...";
+      status = 'Sending Wi-Fi credentials...';
     });
 
-    // Send data
-    _connection!.output.add(utf8.encode(credentialsJson));
-    await _connection!.output.allSent;
+    final credentialsJson = jsonEncode({'ssid': ssid, 'password': password});
+
+    // Write the data to the characteristic
+    await targetCharacteristic!
+        .write(utf8.encode(credentialsJson), withoutResponse: false);
 
     setState(() {
-      _status = "Credentials sent. Waiting for response...";
+      status = 'Credentials sent, waiting for response (if any)';
     });
+
+    // If the Pi sends a notification, it will be received in the listener above.
   }
 
   @override
   void dispose() {
-    _connection?.dispose();
+    ssidController.dispose();
+    passwordController.dispose();
+    _scanTimer?.cancel();
+    _scanSubscription?.cancel();
+    // Updated disconnect method
+    if (targetDevice != null) {
+      targetDevice!.disconnect().then((_) {
+        // Handle disconnect completion if needed
+      }).catchError((error) {
+        // Handle any errors
+      });
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configure Wi-Fi via Bluetooth'),
+      appBar: getBackAppBar(
+        context,
+        title: 'Configure Wi-Fi',
+        onBack: () => Navigator.of(context).pop(),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text("Status: $_status"),
+            addTitleSpace(),
+            Expanded(
+              child: Padding(
+                padding: ResponsiveLayout.pageEdgeInsets,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Status: $status',
+                      style: theme.textTheme.ppMori400Black14,
+                    ),
+                    const SizedBox(height: 20),
+                    OutlinedButton(
+                      onPressed: scanning ? null : startScan,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColor.primaryBlack),
+                        backgroundColor: AppColor.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text(
+                        scanning
+                            ? 'Scanning... ${_scanTimeRemaining}s'
+                            : 'Start Scan',
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (scanResults.isNotEmpty)
+                      Expanded(
+                        child: ListView.separated(
+                          itemCount: scanResults.length,
+                          separatorBuilder: (context, index) => const Divider(
+                            color: AppColor.auLightGrey,
+                            height: 1,
+                          ),
+                          itemBuilder: (context, index) {
+                            final result = scanResults[index];
+                            return ListTile(
+                              title: Text(
+                                result.device.name.isNotEmpty
+                                    ? result.device.name
+                                    : "Unknown Device",
+                                style: theme.textTheme.ppMori400Black16,
+                              ),
+                              subtitle: Text(
+                                result.device.id.id,
+                                style: theme.textTheme.ppMori400Grey14,
+                              ),
+                              onTap: () async {
+                                setState(() {
+                                  targetDevice = result.device;
+                                  status = 'Selected: ${result.device.name}';
+                                });
+                                await connectToDevice();
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _scanning ? null : _startScan,
-              child: const Text("Start Scan"),
+            Padding(
+              padding: ResponsiveLayout.pageEdgeInsets,
+              child: Text(
+                'Received Data: $receivedData',
+                style: theme.textTheme.ppMori400Grey14,
+              ),
             ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _targetDevice == null || _connection != null
-                  ? null
-                  : _connectToDevice,
-              child: const Text("Connect to Device"),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _connection == null || !_connection!.isConnected
-                  ? null
-                  : _sendWifiCredentials,
-              child: const Text("Send Wi-Fi Credentials"),
-            ),
-            const SizedBox(height: 20),
-            Text("Received Data: $_receivedData"),
           ],
         ),
       ),
