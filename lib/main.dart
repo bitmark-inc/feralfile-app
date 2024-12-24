@@ -194,7 +194,7 @@ Future<void> _setupApp() async {
   runApp(
     SDTFScope(
       child: EasyLocalization(
-        supportedLocales: const [Locale('en', 'US'), Locale('ja')],
+        supportedLocales: const [Locale('en', 'US')],
         path: 'assets/translations',
         fallbackLocale: const Locale('en', 'US'),
         useFallbackTranslations: true,
