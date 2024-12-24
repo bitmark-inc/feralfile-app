@@ -37,6 +37,16 @@ target 'Runner' do
   end
 end
 
+def one_signal_notification_service_extension
+  use_frameworks!
+  pod 'OneSignalXCFramework', '>= 3.4.3', '< 6.0'
+end
+
+target 'Runner Notification' do
+  one_signal_notification_service_extension
+end
+
+
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
