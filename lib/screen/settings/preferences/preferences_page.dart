@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -30,27 +31,29 @@ class _PreferencePageState extends State<PreferencePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: getBackAppBar(
-          context,
-          title: 'preferences'.tr(),
-          onBack: () {
-            Navigator.of(context).pop();
-          },
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        title: 'preferences'.tr(),
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            addTitleSpace(),
+            Column(
+              children: [
+                PreferenceView(
+                  key: _preferenceKey,
+                ),
+              ],
+            ),
+          ],
         ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              addTitleSpace(),
-              Column(
-                children: [
-                  PreferenceView(
-                    key: _preferenceKey,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
+      ),
+    );
+  }
 }

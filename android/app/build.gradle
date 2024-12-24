@@ -3,12 +3,13 @@ buildscript {
         // ...
         maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
         google()  // Google's Maven repository
+        gradlePluginPortal()
     }
     ext.kotlin_version = '1.9.0'
     dependencies {
         // ...
         // OneSignal-Gradle-Plugin
-        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.10, 0.99.99]'
+        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.14.0, 0.99.99]'
         classpath 'com.google.gms:google-services:4.3.14'
     }
 }
@@ -20,7 +21,7 @@ plugins {
     id "com.google.gms.google-services"
     id "dev.flutter.flutter-gradle-plugin"
     id 'kotlin-kapt'
-
+    id 'kotlin-parcelize'
 }
 
 def localProperties = new Properties()
@@ -121,6 +122,15 @@ android {
         kotlinCompilerExtensionVersion = "1.5.2"
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
     buildTypes {
         release {
             if (rootProject.file('release.keystore').exists()) {
@@ -137,7 +147,7 @@ android {
     }
 
     productFlavors {
-        inhouse {
+        development {
             dimension "env"
             applicationIdSuffix ".inhouse"
             resValue "string", "app_name", "Feral File (Dev)"
@@ -149,7 +159,7 @@ android {
             buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash_inhouse + '\"'
         }
 
-        prd {
+        production {
             dimension "env"
             resValue "string", "app_name", "Feral File"
             manifestPlaceholders = [

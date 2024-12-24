@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -19,19 +19,17 @@ class MetricClientService {
   String _defaultIdentifier() => injector<DeviceInfoService>().deviceId;
 
   Future<void> initService({String? identifier}) async {
+    log.info('[MetricClientService] initService');
     _identifier = identifier ?? _defaultIdentifier();
-    log.info('[MetricClientService] initService $_identifier');
   }
 
   Future<void> identity() async {
     log.info('[MetricClientService] identity');
     try {
-      final primaryAddress =
-          await injector<AddressService>().getPrimaryAddress();
-      if (primaryAddress == null) {
-        log.info('Metric Identity: Primary address is null');
-        unawaited(
-            Sentry.captureMessage('Metric Identity: Primary address is null'));
+      final userId = injector<AuthService>().getUserId();
+      if (userId == null) {
+        log.info('Metric Identity: userId is null');
+        unawaited(Sentry.captureMessage('Metric Identity: userId is null'));
         return;
       }
       await mergeUser(_identifier);
@@ -77,10 +75,11 @@ class MetricClientService {
       await injector<IAPApi>().sendEvent(
         metrics,
         _identifier,
-        injector<DeviceInfoService>().deviceName,
-        injector<DeviceInfoService>().deviceVendor,
-        injector<DeviceInfoService>().deviceModel,
-        injector<DeviceInfoService>().deviceOSName,
+        // TODO: add device info
+        // injector<DeviceInfoService>().deviceName,
+        // injector<DeviceInfoService>().deviceVendor,
+        // injector<DeviceInfoService>().deviceModel,
+        // injector<DeviceInfoService>().deviceOSName,
       );
       log.info('Metric add event success: ${event.name}');
     } catch (e) {

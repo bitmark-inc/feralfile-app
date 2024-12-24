@@ -2,7 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/services/tokens_service.dart';
@@ -12,9 +12,11 @@ abstract class PlaylistService {
 
   Future<PlayListModel?> getPlaylistById(String id);
 
-  Future<void> setPlayList(List<PlayListModel> playlists,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort});
+  Future<void> setPlayList(
+    List<PlayListModel> playlists, {
+    bool override = false,
+    ConflictAction onConflict = ConflictAction.abort,
+  });
 
   Future<List<PlayListModel>> defaultPlaylists();
 
@@ -24,14 +26,19 @@ abstract class PlaylistService {
 }
 
 class PlayListServiceImp implements PlaylistService {
+  PlayListServiceImp(
+    this._configurationService,
+    this._tokenDao,
+    this._addressService,
+    this._assetTokenDao,
+    this._cloudManager,
+  );
+
   final ConfigurationService _configurationService;
   final TokenDao _tokenDao;
-  final AccountService _accountService;
   final AssetTokenDao _assetTokenDao;
   final CloudManager _cloudManager;
-
-  PlayListServiceImp(this._configurationService, this._tokenDao,
-      this._accountService, this._assetTokenDao, this._cloudManager);
+  final AddressService _addressService;
 
   late final PlaylistCloudObject _playlistCloudObject =
       _cloudManager.playlistCloudObject;
@@ -44,8 +51,9 @@ class PlayListServiceImp implements PlaylistService {
   }
 
   Future<List<String>> _getHiddenTokenIds() async {
-    final hiddenTokens = _configurationService.getHiddenOrSentTokenIDs();
-    final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
+    final hiddenTokens = _configurationService.getHiddenTokenIDs();
+    final hiddenAddresses =
+        _addressService.getAllWalletAddresses(isHidden: true);
     final tokens = await _tokenDao
         .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
 
@@ -72,9 +80,8 @@ class PlayListServiceImp implements PlaylistService {
 
     final hiddenTokens = await _getHiddenTokenIds();
 
-    for (var playlist in playlists) {
-      playlist.tokenIDs
-          .removeWhere((tokenID) => hiddenTokens.contains(tokenID));
+    for (final playlist in playlists) {
+      playlist.tokenIDs.removeWhere(hiddenTokens.contains);
     }
     playlists.removeWhere((element) => element.tokenIDs.isEmpty);
     return playlists;
@@ -99,7 +106,8 @@ class PlayListServiceImp implements PlaylistService {
           await _playlistCloudObject.setPlaylists(playlists);
         case ConflictAction.abort:
           playlists.removeWhere(
-              (element) => currentPlaylists.any((e) => e.id == element.id));
+            (element) => currentPlaylists.any((e) => e.id == element.id),
+          );
           await _playlistCloudObject.setPlaylists(playlists);
       }
     }
@@ -107,21 +115,21 @@ class PlayListServiceImp implements PlaylistService {
 
   @override
   Future<List<PlayListModel>> defaultPlaylists() async {
-    List<PlayListModel> defaultPlaylists = [];
-    final activeAddress = await _accountService.getShowedAddresses();
-    List<String> allTokenIds =
-        await _tokenDao.findTokenIDsOwnersOwn(activeAddress);
-    final hiddenTokenIds = _configurationService.getHiddenOrSentTokenIDs();
-    allTokenIds.removeWhere((element) => hiddenTokenIds.contains(element));
+    final defaultPlaylists = <PlayListModel>[];
+    final activeAddress = _addressService.getAllAddresses(isHidden: false);
+    final allTokenIds = await _tokenDao.findTokenIDsOwnersOwn(activeAddress);
+    final hiddenTokenIds = _configurationService.getHiddenTokenIDs();
+    allTokenIds.removeWhere(hiddenTokenIds.contains);
     if (allTokenIds.isNotEmpty) {
       final token = await _assetTokenDao
           .findAllAssetTokensByTokenIDs([allTokenIds.first]);
 
       final allNftsPlaylist = PlayListModel(
-          id: DefaultPlaylistModel.allNfts.id,
-          name: DefaultPlaylistModel.allNfts.name,
-          tokenIDs: allTokenIds,
-          thumbnailURL: token.first.thumbnailURL);
+        id: DefaultPlaylistModel.allNfts.id,
+        name: DefaultPlaylistModel.allNfts.name,
+        tokenIDs: allTokenIds,
+        thumbnailURL: token.first.thumbnailURL,
+      );
       defaultPlaylists.add(allNftsPlaylist);
     }
     return defaultPlaylists;
@@ -136,15 +144,17 @@ class PlayListServiceImp implements PlaylistService {
         .toSet()
         .toList();
     await tokenService.fetchManualTokens(indexerIds);
-    final playlistWithThumbnail = await Future.wait(playlists.map((e) async {
-      final token =
-          await _assetTokenDao.findAllAssetTokensByTokenIDs([e.tokenIDs.first]);
-      return e.copyWith(thumbnailURL: token.first.thumbnailURL);
-    }).toList());
+    final playlistWithThumbnail = await Future.wait(
+      playlists.map((e) async {
+        final token = await _assetTokenDao
+            .findAllAssetTokensByTokenIDs([e.tokenIDs.first]);
+        return e.copyWith(thumbnailURL: token.first.thumbnailURL);
+      }).toList(),
+    );
     await setPlayList(playlistWithThumbnail);
   }
 
   @override
-  Future<bool> deletePlaylist(PlayListModel playlist) async =>
-      await _playlistCloudObject.deletePlaylists([playlist]);
+  Future<bool> deletePlaylist(PlayListModel playlist) =>
+      _playlistCloudObject.deletePlaylists([playlist]);
 }

@@ -381,12 +381,14 @@ class _FeralFileApi implements FeralFileApi {
     int? offset = 0,
     int? limit = 1,
     bool? includeSuccessfulSwap = true,
+    String? startDate,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'offset': offset,
       r'limit': limit,
       r'includeSuccessfulSwap': includeSuccessfulSwap,
+      r'startDate': startDate,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -580,7 +582,8 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = ExploreStatisticsData.fromJson(_result.data!['result']);
+    final value = ExploreStatisticsData.fromJson(
+        _result.data!['result'] as Map<String, dynamic>);
     return value;
   }
 

@@ -12,35 +12,32 @@ import 'package:nft_collection/models/provenance.dart';
 abstract class ArtworkDetailEvent {}
 
 class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
+  ArtworkDetailGetInfoEvent(this.identity, {this.useIndexer = false});
+
   final ArtworkIdentity identity;
   final bool useIndexer;
-
-  ArtworkDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
 class ArtworkDetailState {
-  AssetToken? assetToken;
-  List<Provenance> provenances;
-  Map<String, int> owners;
-  bool isViewOnly;
-
   ArtworkDetailState({
     required this.provenances,
     this.assetToken,
     this.owners = const {},
-    this.isViewOnly = true,
   });
 
+  AssetToken? assetToken;
+  List<Provenance> provenances;
+  Map<String, int> owners;
+
   //copyWith
-  ArtworkDetailState copyWith(
-          {AssetToken? assetToken,
-          List<Provenance>? provenances,
-          Map<String, int>? owners,
-          bool? isViewOnly}) =>
+  ArtworkDetailState copyWith({
+    AssetToken? assetToken,
+    List<Provenance>? provenances,
+    Map<String, int>? owners,
+  }) =>
       ArtworkDetailState(
         assetToken: assetToken ?? this.assetToken,
         provenances: provenances ?? this.provenances,
         owners: owners ?? this.owners,
-        isViewOnly: isViewOnly ?? this.isViewOnly,
       );
 }

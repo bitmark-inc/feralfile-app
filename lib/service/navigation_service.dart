@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -22,27 +21,16 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
-import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/shared.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
-import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -52,11 +40,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
-import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:open_settings_plus/open_settings_plus.dart';
-import 'package:overlay_support/src/overlay_state_finder.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -69,7 +54,6 @@ class NavigationService {
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason
   // ModalRoute(navigatorKey.currentContext) returns nil
-  bool _isWCConnectInShow = false;
   final _browser = FeralFileBrowser();
 
   PageController? get pageController => _pageController;
@@ -84,14 +68,6 @@ class NavigationService {
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info('NavigationService.navigateTo: $routeName');
-
-    if ((routeName == AppRouter.tbConnectPage ||
-            routeName == AppRouter.wc2ConnectPage) &&
-        _isWCConnectInShow) {
-      log.info('[NavigationService] skip because WCConnectPage is in showing');
-      return null;
-    }
-
     if (navigatorKey.currentState?.mounted != true ||
         navigatorKey.currentContext == null) {
       return null;
@@ -103,16 +79,6 @@ class NavigationService {
 
   Future<dynamic>? popAndPushNamed(String routeName, {Object? arguments}) {
     log.info('NavigationService.popAndPushNamed: $routeName');
-
-    if ((routeName == AppRouter.wc2ConnectPage ||
-            routeName == AppRouter.tbConnectPage) &&
-        _isWCConnectInShow) {
-      log.info(
-          // ignore: lines_longer_than_80_chars
-          '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
-      return null;
-    }
-
     if (navigatorKey.currentState?.mounted != true ||
         navigatorKey.currentContext == null) {
       return null;
@@ -122,28 +88,12 @@ class NavigationService {
         ?.popAndPushNamed(routeName, arguments: arguments);
   }
 
-  Future<void> selectPromptsThenStamp(
-      BuildContext context, AssetToken asset, String? shareCode) async {
-    final prompt = asset.postcardMetadata.prompt;
-
-    await popAndPushNamed(
-        prompt == null ? AppRouter.promptPage : AppRouter.designStamp,
-        arguments: DesignStampPayload(asset, true, shareCode));
-  }
-
   Future<dynamic>? navigateUntil(
     String routeName,
     RoutePredicate predicate, {
     Object? arguments,
   }) {
     log.info('NavigationService.navigateTo: $routeName');
-
-    if ((routeName == AppRouter.tbConnectPage ||
-            routeName == AppRouter.wc2ConnectPage) &&
-        _isWCConnectInShow) {
-      log.info('[NavigationService] skip because WCConnectPage is in showing');
-      return null;
-    }
 
     if (navigatorKey.currentState?.mounted != true ||
         navigatorKey.currentContext == null) {
@@ -158,8 +108,8 @@ class NavigationService {
 
   void showErrorDialog(
     ErrorEvent event, {
-    Function()? defaultAction,
-    Function()? cancelAction,
+    FutureOr<void> Function()? defaultAction,
+    FutureOr<void> Function()? cancelAction,
   }) {
     log.info('NavigationService.showErrorDialog');
 
@@ -254,60 +204,20 @@ class NavigationService {
   }
 
   void popUntilHome() {
-    navigatorKey.currentState?.popUntil((route) =>
-        route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition);
+    navigatorKey.currentState?.popUntil(
+      (route) =>
+          route.settings.name == AppRouter.homePage ||
+          route.settings.name == AppRouter.homePageNoTransition,
+    );
   }
 
   void popUntilHomeOrSettings() {
-    navigatorKey.currentState?.popUntil((route) =>
-        route.settings.name == AppRouter.settingsPage ||
-        route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition);
-  }
-
-  void setIsWCConnectInShow(bool appeared) {
-    _isWCConnectInShow = appeared;
-  }
-
-  Future<void> showContactingDialog() async {
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      bool dialogShowed = false;
-
-      showSimpleNotificationToast(
-        key: contactingKey,
-        content: 'establishing_contact'.tr(),
-        leading: loadingIndicator(valueColor: AppColor.white),
-        duration: const Duration(seconds: 15),
-        rightBottomWidget: GestureDetector(
-          onTap: () {
-            dialogShowed = true;
-            waitTooLongDialog();
-          },
-          child: Text(
-            'taking_too_long'.tr(),
-            style: Theme.of(navigatorKey.currentContext!)
-                .textTheme
-                .ppMori400White12
-                .copyWith(
-                  color: AppColor.auQuickSilver,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppColor.auQuickSilver,
-                ),
-          ),
-        ),
-      );
-      final OverlaySupportState? overlaySupport = findOverlayState();
-      Future.delayed(const Duration(seconds: 4), () {
-        if (!dialogShowed &&
-            overlaySupport != null &&
-            overlaySupport.getEntry(key: contactingKey) != null) {
-          dialogShowed = true;
-          waitTooLongDialog();
-        }
-      });
-    }
+    navigatorKey.currentState?.popUntil(
+      (route) =>
+          route.settings.name == AppRouter.settingsPage ||
+          route.settings.name == AppRouter.homePage ||
+          route.settings.name == AppRouter.homePageNoTransition,
+    );
   }
 
   Future<void> waitTooLongDialog() async {
@@ -327,30 +237,16 @@ class NavigationService {
     }
   }
 
-  Future<void> showQRExpired() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-          context, 'qr_code_expired'.tr(), 'qr_code_expired_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
-    }
-  }
-
-  Future<void> addressNotFoundError() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-          context, 'error'.tr(), 'can_not_find_address'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
-    }
-  }
-
   Future<void> showCannotConnectTv() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'can_not_connect_to_tv'.tr(),
-          'can_not_connect_to_tv_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+      await UIHelper.showInfoDialog(
+        context,
+        'can_not_connect_to_tv'.tr(),
+        'can_not_connect_to_tv_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
@@ -358,116 +254,90 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
-          context, 'unknown_link'.tr(), 'unknown_link_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+        context,
+        'unknown_link'.tr(),
+        'unknown_link_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
   Future<void> showCannotResolveBranchLink() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'can_not_resolve_branch_link'.tr(),
-          'can_not_resolve_branch_link_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+      await UIHelper.showInfoDialog(
+        context,
+        'can_not_resolve_branch_link'.tr(),
+        'can_not_resolve_branch_link_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
   Future<void> showMembershipGiftCodeEmpty() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'can_not_get_gift_code'.tr(),
-          'can_not_get_gift_code_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+      await UIHelper.showInfoDialog(
+        context,
+        'can_not_get_gift_code'.tr(),
+        'can_not_get_gift_code_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
   Future<void> showFailToRedeemMembership() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
-          'fail_to_redeem_membership_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+      await UIHelper.showInfoDialog(
+        context,
+        'fail_to_redeem_membership'.tr(),
+        'fail_to_redeem_membership_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
   Future<void> showRedeemMembershipCodeUsed() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
-          'redeem_code_used_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+      await UIHelper.showInfoDialog(
+        context,
+        'fail_to_redeem_membership'.tr(),
+        'redeem_code_used_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
   Future<void> showPremiumUserCanNotClaim() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
-          'premium_user_can_not_claim'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+      await UIHelper.showInfoDialog(
+        context,
+        'fail_to_redeem_membership'.tr(),
+        'premium_user_can_not_claim'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
   Future<void> showRedeemMembershipSuccess() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(context, 'redeem_membership_success'.tr(),
-          'redeem_membership_success_desc'.tr(),
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
-    }
-  }
-
-  Future<void> showDeclinedGeolocalization() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showDeclinedGeolocalization(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showSeeMoreArtNow(
-      SubscriptionDetails subscriptionDetails) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      final price = subscriptionDetails.price;
-      final renewDate = subscriptionDetails.renewDate;
-      await UIHelper.showDialog(
+      await UIHelper.showInfoDialog(
         context,
-        'see_more_art_now'.tr(),
-        withCloseIcon: true,
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'see_more_art_now_desc'.tr(),
-              style: Theme.of(context).textTheme.ppMori400White14,
-            ),
-            const SizedBox(height: 20),
-            MembershipCard(
-              type: MembershipCardType.premium,
-              price: price,
-              isProcessing: false,
-              isEnable: false,
-              onTap: (_) {},
-              isCompleted: true,
-              renewDate: renewDate,
-            ),
-          ],
-        ),
+        'redeem_membership_success'.tr(),
+        'redeem_membership_success_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
         isDismissible: true,
       );
-    }
-  }
-
-  Future<void> openPostcardReceivedPage(
-      {required AssetToken asset, required String shareCode}) async {
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await navigatorKey.currentState?.pushNamed(
-        AppRouter.receivePostcardPage,
-        arguments: ReceivePostcardPageArgs(asset: asset, shareCode: shareCode),
-      );
-    } else {
-      await Future.value(0);
     }
   }
 
@@ -493,73 +363,12 @@ class NavigationService {
     final artworkDetailPayload =
         ArtworkDetailPayload(ArtworkIdentity(indexID, owner));
     if (context.mounted) {
-      unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-          arguments: artworkDetailPayload));
-    }
-  }
-
-  Future<dynamic> goToIRLWebview(IRLWebScreenPayload payload) async {
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      return await navigateTo(AppRouter.irlWebView, arguments: payload);
-    } else {
-      return {'result': false};
-    }
-  }
-
-  Future<void> showAlreadyDeliveredPostcard() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAlreadyDelivered(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showPostcardShareLinkExpired() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showPostcardShareLinkExpired(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showPostcardShareLinkInvalid() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showPostcardShareLinkInvalid(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showLocationExplain() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showLocationExplain(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showPostcardRunOut() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showPostcardRunOut(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showPostcardQRCodeExpired() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showPostcardQRExpired(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showPostcardClaimLimited() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showPostcardClaimLimited(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showPostcardNotInMiami() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showPostcardNotInMiami(navigatorKey.currentContext!);
+      unawaited(
+        Navigator.of(context).pushNamed(
+          AppRouter.artworkDetailsPage,
+          arguments: artworkDetailPayload,
+        ),
+      );
     }
   }
 
@@ -668,8 +477,9 @@ class NavigationService {
     await Future.delayed(const Duration(milliseconds: 300), () async {
       if (homeNavigationTab != null) {
         unawaited(
-            (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-                ?.onItemTapped(homeNavigationTab.index));
+          (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+              ?.onItemTapped(homeNavigationTab.index),
+        );
 
         await Future.delayed(const Duration(milliseconds: 300), () {
           if (exploreTab != null) {
@@ -707,8 +517,12 @@ class NavigationService {
         navigatorKey.currentState?.mounted == true) {
       log.info('showEnvKeyIsMissing: $keys');
       await UIHelper.showInfoDialog(
-          context, 'error'.tr(), 'Error while reading ${keys.join(', ')}',
-          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+        context,
+        'error'.tr(),
+        'Error while reading ${keys.join(', ')}',
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
     }
   }
 
@@ -723,8 +537,9 @@ class NavigationService {
     );
   }
 
-  Future<void> showALreadyClaimPlaylist(
-      {required PlayListModel playlist}) async {
+  Future<void> showALreadyClaimPlaylist({
+    required PlayListModel playlist,
+  }) async {
     if (navigatorKey.currentState?.mounted != true ||
         navigatorKey.currentContext == null) {
       return;
@@ -880,7 +695,7 @@ class NavigationService {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Text(
-                    textScaler: const TextScaler.linear(1),
+                    textScaler: TextScaler.noScaling,
                     'https://display.feralfile.com',
                     style: theme.textTheme.ppMori700White14,
                   ),
@@ -971,7 +786,7 @@ class NavigationService {
                 ),
                 TextSpan(
                   text: " ${'on_your_TV'.tr()}.",
-                )
+                ),
               ],
             ),
           ),
@@ -1016,15 +831,17 @@ class NavigationService {
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 22, bottom: 22),
-                  child: SvgPicture.asset('assets/images/left-arrow.svg',
-                      width: 22,
-                      height: 22,
-                      colorFilter: const ColorFilter.mode(
-                        AppColor.white,
-                        BlendMode.srcIn,
-                      )),
+                  child: SvgPicture.asset(
+                    'assets/images/left-arrow.svg',
+                    width: 22,
+                    height: 22,
+                    colorFilter: const ColorFilter.mode(
+                      AppColor.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 36),
@@ -1040,15 +857,18 @@ class NavigationService {
       ),
     );
     Navigator.pop(context);
-    unawaited(injector<NavigationService>().showFlexibleDialog(
-      child,
-      isDismissible: true,
-    ));
+    unawaited(
+      injector<NavigationService>().showFlexibleDialog(
+        child,
+        isDismissible: true,
+      ),
+    );
   }
 
-  Future<void> showStreamAction(String displayKey,
-      Function(CanvasDevice device)? onDeviceSelected) async {
-    keyboardManagerKey.currentState?.hideKeyboard();
+  Future<void> showStreamAction(
+    String displayKey,
+    FutureOr<void> Function(CanvasDevice device)? onDeviceSelected,
+  ) async {
     await injector<NavigationService>().showFlexibleDialog(
       BlocProvider.value(
         value: injector<CanvasDeviceBloc>(),
@@ -1068,109 +888,15 @@ class NavigationService {
   }
 
   Future<void> showBackupRecoveryPhraseDialog() async {
-    final primaryAddressInfo =
-        await injector<AddressService>().getPrimaryAddressInfo();
+    final primaryAddressInfo = null; // TODO: implement getPrimaryAddressInfo
+    // await injector<AddressService>().getPrimaryAddressInfo();
     final uuid = primaryAddressInfo?.uuid;
-    final walletStorage = uuid == null ? null : WalletStorage(uuid);
+    final walletStorage = null;
+    // TODO: implement WalletStorage
+    // uuid == null ? null : WalletStorage(uuid);
     if (context.mounted) {
-      await UIHelper.showCenterSheet(context,
-          content: PopScope(
-            canPop: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'upgrade_required'.tr(),
-                    style: Theme.of(context).textTheme.ppMori700White24,
-                  ),
-                  const SizedBox(height: 50),
-                  Text(
-                    'your_device_not_support_passkey_desc'.tr(),
-                    style: Theme.of(context).textTheme.ppMori400White14,
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('1. ',
-                            style:
-                                Theme.of(context).textTheme.ppMori400White14),
-                        Expanded(
-                          child: Text(
-                            'step_1_backup_recovery'.tr(),
-                            style: Theme.of(context).textTheme.ppMori400White14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('2. ',
-                            style:
-                                Theme.of(context).textTheme.ppMori400White14),
-                        Expanded(
-                          child: Text(
-                            'step_2_move_to_another_wallet'.tr(),
-                            style: Theme.of(context).textTheme.ppMori400White14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    children: [
-                      PrimaryButton(
-                        text: 'backup_recovery_phrase'.tr(),
-                        onTap: walletStorage == null
-                            ? null
-                            : () {
-                                navigateTo(AppRouter.recoveryPhrasePage,
-                                    arguments: RecoveryPhrasePayload(
-                                        wallet: walletStorage));
-                              },
-                      ),
-                      const SizedBox(height: 20),
-                      GestureDetector(
-                        child: Text('need_help'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .ppMori400White14
-                                .copyWith(
-                                  color: AppColor.auQuickSilver,
-                                  decoration: TextDecoration.underline,
-                                )),
-                        onTap: () {
-                          navigateTo(
-                            AppRouter.supportThreadPage,
-                            arguments: NewIssuePayload(
-                                reportIssueType: ReportIssueType.Bug),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          backgroundColor: AppColor.auGreyBackground,
-          withExitButton: false,
-          verticalPadding: 0);
-    }
-  }
-
-  Future<void> showAuthenticationUpdateRequired() async {
-    await UIHelper.showCenterSheet(context,
+      await UIHelper.showCenterSheet(
+        context,
         content: PopScope(
           canPop: false,
           child: Padding(
@@ -1179,40 +905,86 @@ class NavigationService {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'authentication_update_required'.tr(),
+                  'upgrade_required'.tr(),
                   style: Theme.of(context).textTheme.ppMori700White24,
                 ),
                 const SizedBox(height: 50),
                 Text(
-                  Platform.isAndroid
-                      ? 'authentication_update_required_desc_android'.tr()
-                      : 'authentication_update_required_desc_ios'.tr(),
+                  'your_device_not_support_passkey_desc'.tr(),
                   style: Theme.of(context).textTheme.ppMori400White14,
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '1. ',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      Expanded(
+                        child: Text(
+                          'step_1_backup_recovery'.tr(),
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '2. ',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      Expanded(
+                        child: Text(
+                          'step_2_move_to_another_wallet'.tr(),
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Column(
                   children: [
                     PrimaryButton(
-                      text: 'go_to_settings'.tr(),
-                      onTap: () {
-                        openAuthenticationSettings();
-                      },
+                      text: 'backup_recovery_phrase'.tr(),
+                      onTap: walletStorage == null
+                          ? null
+                          : () {
+                              navigateTo(
+                                AppRouter.recoveryPhrasePage,
+                                // TODO: uncomment this when the recovery phrase is ready
+                                // arguments: RecoveryPhrasePayload(
+                                //     wallet: walletStorage),
+                              );
+                            },
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      child: Text('need_help'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .ppMori400White14
-                              .copyWith(
-                                color: AppColor.auQuickSilver,
-                                decoration: TextDecoration.underline,
-                              )),
+                      child: Text(
+                        'need_help'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .ppMori400White14
+                            .copyWith(
+                              color: AppColor.auQuickSilver,
+                              decoration: TextDecoration.underline,
+                            ),
+                      ),
                       onTap: () {
                         navigateTo(
                           AppRouter.supportThreadPage,
                           arguments: NewIssuePayload(
-                              reportIssueType: ReportIssueType.Bug),
+                            reportIssueType: ReportIssueType.Bug,
+                          ),
                         );
                       },
                     ),
@@ -1224,7 +996,69 @@ class NavigationService {
         ),
         backgroundColor: AppColor.auGreyBackground,
         withExitButton: false,
-        verticalPadding: 0);
+        verticalPadding: 0,
+      );
+    }
+  }
+
+  Future<void> showAuthenticationUpdateRequired() async {
+    await UIHelper.showCenterSheet(
+      context,
+      content: PopScope(
+        canPop: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'authentication_update_required'.tr(),
+                style: Theme.of(context).textTheme.ppMori700White24,
+              ),
+              const SizedBox(height: 50),
+              Text(
+                Platform.isAndroid
+                    ? 'authentication_update_required_desc_android'.tr()
+                    : 'authentication_update_required_desc_ios'.tr(),
+                style: Theme.of(context).textTheme.ppMori400White14,
+              ),
+              const SizedBox(height: 20),
+              Column(
+                children: [
+                  PrimaryButton(
+                    text: 'go_to_settings'.tr(),
+                    onTap: () {
+                      openAuthenticationSettings();
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    child: Text(
+                      'need_help'.tr(),
+                      style:
+                          Theme.of(context).textTheme.ppMori400White14.copyWith(
+                                color: AppColor.auQuickSilver,
+                                decoration: TextDecoration.underline,
+                              ),
+                    ),
+                    onTap: () {
+                      navigateTo(
+                        AppRouter.supportThreadPage,
+                        arguments: NewIssuePayload(
+                            reportIssueType: ReportIssueType.Bug),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: AppColor.auGreyBackground,
+      withExitButton: false,
+      verticalPadding: 0,
+    );
   }
 
   Future<JWT?> showRefreshJwtFailedDialog(
@@ -1256,6 +1090,5 @@ class NavigationService {
         ),
       ),
     );
-    return res;
   }
 }

@@ -74,8 +74,8 @@ extension ExhibitionExt on Exhibition {
         .where((element) => !currentSpecifiedSeries.contains(element))
         .toList();
 
-    Map<String, List<FFSeries>> map = {};
-    for (var s in series) {
+    final map = <String, List<FFSeries>>{};
+    for (final s in series) {
       final saleModel = s.settings?.artworkModel?.value;
       if (map.containsKey(saleModel)) {
         map[saleModel]!.add(s);
@@ -83,21 +83,22 @@ extension ExhibitionExt on Exhibition {
         map[saleModel ?? ''] = [s];
       }
     }
-    final keys = map.keys.toList().sorted((a, b) =>
-        (ArtworkModel.fromString(b)?.index ?? 0) -
-        (ArtworkModel.fromString(a)?.index ?? 0));
-    String text = '';
-    for (var key in keys) {
+    final keys = map.keys.toList().sorted(
+          (a, b) =>
+              (ArtworkModel.fromString(b)?.index ?? 0) -
+              (ArtworkModel.fromString(a)?.index ?? 0),
+        );
+    var text = '';
+    for (final key in keys) {
       final length = map[key]!.length;
       final model = ArtworkModel.fromString(key);
       final modelTitle = length == 1 ? model?.title : model?.pluralTitle;
       text += '$length $modelTitle$sep';
     }
 
-    final Map<String, List<String>> currentSpecifiedSeriesArtworkModelTitleMap =
-        {};
-    for (var s in currentSpecifiedSeries) {
-      final saleModel = specifiedSeriesArtworkModelTitle[s.id] ?? '';
+    final currentSpecifiedSeriesArtworkModelTitleMap = <String, List<String>>{};
+    for (final s in currentSpecifiedSeries) {
+      final saleModel = specifiedSeriesArtworkModelTitle[s.id] as String? ?? '';
       if (currentSpecifiedSeriesArtworkModelTitleMap.containsKey(saleModel)) {
         currentSpecifiedSeriesArtworkModelTitleMap[saleModel]!.add(s.title);
       } else {
@@ -131,6 +132,17 @@ extension ExhibitionExt on Exhibition {
     return customNote;
   }
 
+  List<String> get foreWord {
+    final config =
+        injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
+      ConfigGroup.exhibition,
+      ConfigKey.foreWord,
+      {},
+    );
+    final forewords = List<String>.from(config[id] as List? ?? []);
+    return forewords;
+  }
+
   // get all resource, include posts and custom notes
   List<Resource> get allResources {
     final resources = <Resource>[...customExhibitionNote];
@@ -139,6 +151,11 @@ extension ExhibitionExt on Exhibition {
     }
     return resources;
   }
+
+  bool get shouldShowCuratorNote => noteBrief?.isNotEmpty == true;
+
+  bool get shouldShowCuratorNotePage =>
+      shouldShowCuratorNote || allResources.isNotEmpty || foreWord.isNotEmpty;
 }
 
 extension ListExhibitionDetailExt on List<ExhibitionDetail> {
@@ -160,7 +177,8 @@ extension ExhibitionDetailExt on ExhibitionDetail {
     } else {
       final chain = exhibition.mintBlockchain == 'ethereum' ? 'eth' : 'tez';
       final contract = exhibition.contracts?.firstWhereOrNull(
-          (e) => e.blockchainType == exhibition.mintBlockchain);
+        (e) => e.blockchainType == exhibition.mintBlockchain,
+      );
       final contractAddress = contract?.address;
       if (contractAddress == null) {
         return null;
@@ -173,6 +191,13 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 
 // Artwork Ext
 extension ArtworkExt on Artwork {
+  String get smallThumbnailURL {
+    final uri = (thumbnailDisplay?.isNotEmpty ?? false)
+        ? thumbnailDisplay!
+        : thumbnailURI;
+    return getFFUrl(uri, variant: CloudFlareVariant.m.value);
+  }
+
   String get thumbnailURL {
     final uri = (thumbnailDisplay?.isNotEmpty == true)
         ? thumbnailDisplay!
@@ -260,17 +285,19 @@ extension ArtworkExt on Artwork {
   }
 
   String? get indexerTokenId {
-    var chain = series!.exhibition!.mintBlockchain.toLowerCase();
+    final chain = series!.exhibition!.mintBlockchain.toLowerCase();
     // normal case: tezos or ethereum chain
     if (['tezos', 'ethereum'].contains(chain)) {
       final contract = series!.exhibition!.contracts!.firstWhereOrNull(
         (e) => e.blockchainType == chain,
       );
       if (contract == null) {
-        unawaited(Sentry.captureMessage(
-          'ArtworkExt: get indexerTokenId failed,'
-          ' contract is null for chain: $chain, artworkID: $id',
-        ));
+        unawaited(
+          Sentry.captureMessage(
+            'ArtworkExt: get indexerTokenId failed,'
+            ' contract is null for chain: $chain, artworkID: $id',
+          ),
+        );
         return null;
       }
       final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
@@ -292,10 +319,12 @@ extension ArtworkExt on Artwork {
         return '$chanPrefix-$contractAddress-$id';
       }
     } else {
-      unawaited(Sentry.captureMessage(
-        'ArtworkExt: get indexerTokenId failed, '
-        'unknown chain: $chain, artworkID: $id',
-      ));
+      unawaited(
+        Sentry.captureMessage(
+          'ArtworkExt: get indexerTokenId failed, '
+          'unknown chain: $chain, artworkID: $id',
+        ),
+      );
     }
     return null;
   }

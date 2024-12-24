@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:passkeys/authenticator.dart';
@@ -35,22 +34,18 @@ abstract class PasskeyService {
 }
 
 class PasskeyServiceImpl implements PasskeyService {
+  PasskeyServiceImpl(
+    this._userApi,
+    this._authService,
+  );
+
   final _passkeyAuthenticator = PasskeyAuthenticator();
 
   RegisterResponseType? _registerResponse;
   String? _passkeyUserId;
 
   final UserApi _userApi;
-  final UserAccountChannel _userAccountChannel;
-  final AddressService _addressService;
   final AuthService _authService;
-
-  PasskeyServiceImpl(
-    this._userApi,
-    this._userAccountChannel,
-    this._addressService,
-    this._authService,
-  );
 
   final ValueNotifier<bool> _isShowingLoginDialog = ValueNotifier(false);
 
@@ -81,7 +76,8 @@ class PasskeyServiceImpl implements PasskeyService {
       Platform.isAndroid ? await _passkeyAuthenticator.canAuthenticate() : true;
 
   // passkey available always return true for iOS
-  // if no verification method is available, the user will be prompted to set up passcode or faceID
+  // if no verification method is available,
+  // the user will be prompted to set up passcode or faceID
 
   @override
   Future<AuthenticateResponseType> logInInitiate() async {
@@ -89,7 +85,8 @@ class PasskeyServiceImpl implements PasskeyService {
       log.info('Login initiate');
       final loginRequest = await _logInSeverInitiate();
       log.info('Login initiate done, login request: $loginRequest');
-      return await _authenticate(loginRequest);
+      final res = await _authenticate(loginRequest);
+      return res;
     } catch (e, s) {
       log.info('Failed to login initiate: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
@@ -98,10 +95,12 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   Future<AuthenticateResponseType> _authenticate(
-      AuthenticateRequestType loginRequest) async {
+    AuthenticateRequestType loginRequest,
+  ) async {
     log.info('Authenticate, show login dialog');
     try {
       _isShowingLoginDialog.value = true;
+      await _passkeyAuthenticator.cancelCurrentAuthenticatorOperation();
       final response = await _passkeyAuthenticator.authenticate(loginRequest);
       _isShowingLoginDialog.value = false;
       log.info('Authenticate done, return response: $response');
@@ -116,11 +115,10 @@ class PasskeyServiceImpl implements PasskeyService {
   Future<AuthenticateRequestType> _logInSeverInitiate() async {
     // userId is the address that sign the message when register,
     // which is the primary address
-    final userId = await _addressService.getPrimaryAddress();
-    if (userId == null) {
-      throw Exception('User ID is not set');
-    }
-    final response = await _userApi.logInInitialize(userId);
+    final userId = injector<AuthService>().getUserId();
+    final response = userId != null
+        ? await _userApi.logInInitializeWithUserId(userId)
+        : await _userApi.logInInitialize();
     final pubKey = response.publicKey;
 
     if (pubKey.rpId == null) {
@@ -140,14 +138,16 @@ class PasskeyServiceImpl implements PasskeyService {
 
   @override
   Future<JWT> logInFinalize(
-      AuthenticateResponseType authenticateResponse) async {
+    AuthenticateResponseType authenticateResponse,
+  ) async {
     try {
       log.info('Login finalize');
-      final jwt = await _userApi.logInFinalize(authenticateResponse.toFFJson());
+      final response =
+          await _userApi.logInFinalize(authenticateResponse.toFFJson());
       log.info('Login finalize done, set auth token');
-      await _authService.setAuthToken(jwt);
+      await _authService.setAuthToken(response);
       log.info('Login finalize done');
-      return jwt;
+      return response;
     } catch (e, s) {
       log.info('Failed to login finalize: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
@@ -193,17 +193,13 @@ class PasskeyServiceImpl implements PasskeyService {
     if (_registerResponse == null || _passkeyUserId == null) {
       throw Exception('Initialize registration has not finished');
     }
-    final addressAuthentication =
-        await _addressService.getAddressAuthenticationMap();
-    final jwt = await _userApi.registerFinalize({
-      'addressAuthentication': addressAuthentication,
+    final response = await _userApi.registerFinalize({
       'passkeyUserId': _passkeyUserId,
       'credentialCreationResponse':
           _registerResponse!.toCredentialCreationResponseJson(),
     });
-    await _userAccountChannel.setDidRegisterPasskey(true);
-    await _authService.setAuthToken(jwt);
-    return jwt;
+    await _authService.setAuthToken(response);
+    return response;
   }
 
   @override
@@ -212,8 +208,9 @@ class PasskeyServiceImpl implements PasskeyService {
     final localResponse = await logInInitiate();
     log.info('[PasskeyService] Log in initiated');
     final jwt = await logInFinalize(localResponse);
-    log.info('[PasskeyService] Log in finalized');
-    log.info('[PasskeyService] return JWT done');
+    log
+      ..info('[PasskeyService] Log in finalized')
+      ..info('[PasskeyService] return JWT done');
     return jwt;
   }
 }

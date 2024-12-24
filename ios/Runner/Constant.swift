@@ -35,8 +35,11 @@ struct Constant {
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? "Unknown"
         return bundleIdentifier.contains("inhouse")
     }
-    static let primaryAddressKey: String = "primary_address_key"
-    static let jwtKey: String = "jwt_key"
-    static let userIdKey: String = "user_id_key"
-    static let didRegisterPasskeys = "did_register_passkeys"
+    
+
+    struct KeychainKey {
+        static func personaPrefix(at uuid: UUID) -> String {
+            "persona.\(uuid.uuidString)"
+        }
+    }
 }

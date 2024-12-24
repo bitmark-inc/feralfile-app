@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
+enum OnConflict { override, skip }
+
 abstract class AccountSettingsDB {
   Future<void> download({List<String>? keys});
 
@@ -8,7 +10,8 @@ abstract class AccountSettingsDB {
 
   List<Map<String, String>> query(List<String> keys);
 
-  Future<void> write(List<Map<String, String>> settings);
+  Future<void> write(List<Map<String, String>> settings,
+      {OnConflict onConflict = OnConflict.override});
 
   Future<bool> delete(List<String> keys);
 
@@ -48,11 +51,15 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     log.info('AccountSettingsDBImpl download');
     late List<Map<String, String>> values;
     if (keys != null) {
-      values =
-          await _client.query(vars: {'keys': keys.map(getFullKey).toList()});
+      final fullKeys = keys.map(getFullKey).toList();
+      log.info('AccountSettingsDBImpl download keys: ${fullKeys.toString()}');
+      values = await _client.query(vars: {'keys': fullKeys});
     } else {
+      log.info('AccountSettingsDBImpl download search: $_prefix.');
       values = await _client.query(vars: {'search': '$_prefix.'});
     }
+    log.info('AccountSettingsDBImpl download values: $values');
+
     for (var value in values) {
       if (value['key'] == null || value['value'] == null) {
         continue;
@@ -79,9 +86,14 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       .toList();
 
   @override
-  Future<void> write(List<Map<String, String>> settings) async {
+  Future<void> write(List<Map<String, String>> settings,
+      {OnConflict onConflict = OnConflict.override}) async {
     settings.removeWhere(
         (element) => element['key'] == null || element['value'] == null);
+    if (onConflict == OnConflict.skip) {
+      settings.removeWhere(
+          (element) => _caches.containsKey(_removePrefix(element['key']!)));
+    }
     final settingsFullKeys = settings
         .map((e) => {'key': getFullKey(e['key']!), 'value': e['value']!})
         .toList();

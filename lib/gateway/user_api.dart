@@ -24,7 +24,11 @@ abstract class UserApi {
   Future<JWT> registerFinalize(@Body() Map<String, dynamic> body);
 
   @POST('/apis/users/{id}/passkeys/login/initialize')
-  Future<CredentialRequestOption> logInInitialize(@Path('id') String id);
+  Future<CredentialRequestOption> logInInitializeWithUserId(
+      @Path('id') String id);
+
+  @POST('/apis/users/passkeys/login/initialize')
+  Future<CredentialRequestOption> logInInitialize();
 
   @POST('/apis/users/passkeys/login/finalize')
   Future<JWT> logInFinalize(@Body() Map<String, dynamic> body);

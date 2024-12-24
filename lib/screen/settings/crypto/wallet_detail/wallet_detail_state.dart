@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 abstract class WalletDetailEvent {}

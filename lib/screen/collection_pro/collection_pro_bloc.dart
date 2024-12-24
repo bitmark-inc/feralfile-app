@@ -18,7 +18,7 @@ class CollectionProBloc
 
   CollectionProBloc() : super(CollectionLoadedState()) {
     on<LoadCollectionEvent>((event, emit) async {
-      final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
+      final hiddenTokenIDs = _configurationService.getHiddenTokenIDs();
       final hiddenAddresses =
           await injector<AddressService>().getHiddenAddresses();
       final hiddenTokens =
@@ -121,7 +121,7 @@ class CollectionProBloc
   Future<List<CompactedAssetToken>> _getAllTokenFilterByTitleOrArtist(
       {String filterStr = ''}) async {
     List<CompactedAssetToken> works = [];
-    final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
+    final hiddenTokenIDs = _configurationService.getHiddenTokenIDs();
     if (filterStr.isNotEmpty) {
       final assetTokens =
           await _assetTokenDao.findAllAssetTokensByFilter(filter: filterStr);

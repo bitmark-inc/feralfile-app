@@ -26,7 +26,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:overlay_support/overlay_support.dart';
-
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -275,6 +274,7 @@ class _PopUpOverlayNotification extends StatelessWidget {
     required this.additionalData,
     this.openedHandler,
   }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -406,7 +406,7 @@ Future<void> showPopupOverlayNotification(
       ),
       withExitButton: false,
       verticalPadding: 0,
-      radius: 10,
+      // radius: 10,
       backgroundColor: AppColor.auGreyBackground,
     );
   }

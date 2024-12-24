@@ -25,10 +25,7 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/notifications/notification_settings_state.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -37,14 +34,11 @@ import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
-import 'package:autonomy_flutter/util/notifications/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
@@ -60,22 +54,23 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class HomeNavigationPagePayload {
+  const HomeNavigationPagePayload({
+    bool? fromOnboarding,
+    HomeNavigatorTab? startedTab,
+  })  : fromOnboarding = fromOnboarding ?? false,
+        startedTab = startedTab ?? HomeNavigatorTab.daily;
+
   final bool fromOnboarding;
   final HomeNavigatorTab startedTab;
-
-  const HomeNavigationPagePayload(
-      {bool? fromOnboarding, HomeNavigatorTab? startedTab})
-      : fromOnboarding = fromOnboarding ?? false,
-        startedTab = startedTab ?? HomeNavigatorTab.daily;
 }
 
 class HomeNavigationPage extends StatefulWidget {
-  final HomeNavigationPagePayload payload;
-
   const HomeNavigationPage({
     super.key,
     this.payload = const HomeNavigationPagePayload(),
   });
+
+  final HomeNavigationPagePayload payload;
 
   @override
   State<HomeNavigationPage> createState() => HomeNavigationPageState();
@@ -98,7 +93,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
   final _subscriptionBloc = injector<SubscriptionBloc>();
-  final _notificationSettingsBloc = injector<NotificationSettingsBloc>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -112,7 +106,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
+  void _notifyMoveOutDaily() {
+    dailyWorkKey.currentState?.didPushed();
+  }
+
   Future<void> onItemTapped(int index) async {
+    if (index != HomeNavigatorTab.daily.index) {
+      _notifyMoveOutDaily();
+    }
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
@@ -130,10 +131,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
           dailyWorkKey.currentState?.resumeDailyWork();
-          dailyWorkKey.currentState?.resumeTrackingUserInterest();
+          dailyWorkKey.currentState?.trackInterest();
         } else {
           dailyWorkKey.currentState?.pauseDailyWork();
-          dailyWorkKey.currentState?.cancelTrackingUserInterest();
         }
       }
       setState(() {
@@ -156,9 +156,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.scan,
             ),
             onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.scanQRPage,
-                  arguments:
-                      const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
+              Navigator.of(context).pushNamed(
+                AppRouter.scanQRPage,
+                arguments:
+                    const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
+              );
             },
           ),
           OptionItem(
@@ -180,24 +182,28 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
-              title: 'help'.tr(),
-              icon: ValueListenableBuilder<List<int>?>(
-                valueListenable:
-                    injector<CustomerSupportService>().numberOfIssuesInfo,
-                builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                        Widget? child) =>
-                    iconWithRedDot(
-                  icon: const Icon(
-                    AuIcon.help,
-                  ),
-                  padding: const EdgeInsets.only(right: 2, top: 2),
-                  withReddot:
-                      numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+            title: 'help'.tr(),
+            icon: ValueListenableBuilder<List<int>?>(
+              valueListenable:
+                  injector<CustomerSupportService>().numberOfIssuesInfo,
+              builder: (
+                BuildContext context,
+                List<int>? numberOfIssuesInfo,
+                Widget? child,
+              ) =>
+                  iconWithRedDot(
+                icon: const Icon(
+                  AuIcon.help,
                 ),
+                padding: const EdgeInsets.only(right: 2, top: 2),
+                withReddot:
+                    numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
               ),
-              onTap: () {
-                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
-              }),
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
+            },
+          ),
         ],
       );
       if (mounted) {
@@ -237,11 +243,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       }
     });
     unawaited(injector<VersionService>().checkForUpdate());
-    unawaited(_clientTokenService.refreshTokens(syncAddresses: true).then(
-      (_) {
-        nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-      },
-    ));
+
+    unawaited(
+      _clientTokenService.refreshTokens(syncAddresses: true).then(
+        (_) {
+          nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+        },
+      ),
+    );
     context.read<HomeBloc>().add(CheckReviewAppEvent());
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       unawaited(_clientTokenService.refreshTokens());
@@ -249,28 +258,29 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     _pages = <Widget>[
       MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: injector<DailyWorkBloc>()),
-            BlocProvider.value(value: injector<CanvasDeviceBloc>()),
-            BlocProvider.value(
-                value: _notificationSettingsBloc
-                  ..add(GetNotificationSettingsEvent()))
-          ],
-          child: DailyWorkPage(
-            key: dailyWorkKey,
-          )),
+        providers: [
+          BlocProvider(
+            create: (_) => injector<DailyWorkBloc>(),
+          ),
+          BlocProvider.value(value: injector<CanvasDeviceBloc>()),
+        ],
+        child: DailyWorkPage(
+          key: dailyWorkKey,
+        ),
+      ),
       MultiBlocProvider(
-          providers: [
-            BlocProvider.value(
-              value: FeralfileHomeBloc(injector()),
-            ),
-            BlocProvider.value(
-              value: _subscriptionBloc..add(GetSubscriptionEvent()),
-            ),
-          ],
-          child: FeralfileHomePage(
-            key: feralFileHomeKey,
-          )),
+        providers: [
+          BlocProvider.value(
+            value: FeralfileHomeBloc(injector()),
+          ),
+          BlocProvider.value(
+            value: _subscriptionBloc..add(GetSubscriptionEvent()),
+          ),
+        ],
+        child: FeralfileHomePage(
+          key: feralFileHomeKey,
+        ),
+      ),
       MultiBlocProvider(
         providers: [
           BlocProvider.value(value: _subscriptionBloc),
@@ -278,64 +288,37 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         child: OrganizeHomePage(
           key: _organizeHomeKey,
         ),
-      )
+      ),
     ];
 
     _triggerShowAnnouncement();
-
-    // OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    //   log.info('Receive notification: ${event.notification.additionalData}');
-    //   if (event.notification.additionalData == null) {
-    //     return;
-    //   }
-    //   event.preventDefault();
-    //   final additionalData =
-    //       AdditionalData.fromJson(event.notification.additionalData!);
-    //   final id = additionalData.announcementContentId ??
-    //       event.notification.notificationId;
-
-    //   Future.delayed(const Duration(milliseconds: 500), () async {
-    //     if (!mounted) {
-    //       return;
-    //     }
-    //     await NotificationHandler.instance.shouldShowInAppNotification(
-    //       context,
-    //       additionalData,
-    //       id,
-    //       _pageController,
-    //     );
-    //   });
-    // });
 
     OneSignal.Notifications.addClickListener((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');
       final additionalData =
           AdditionalData.fromJson(openedResult.notification.additionalData!);
-      if (additionalData.notificationType != NotificationType.announcement) {
-        await _announcementService.fetchAnnouncements();
-      }
-
+      final id = additionalData.announcementContentId ??
+          openedResult.notification.notificationId;
+      final body = openedResult.notification.body;
+      await _announcementService.fetchAnnouncements();
       if (!mounted) {
         return;
       }
-
-      unawaited(NotificationHandler.instance
-          .handlePushNotificationClicked(context, additionalData));
+      unawaited(
+        NotificationHandler.instance
+            .handlePushNotificationClicked(context, additionalData),
+      );
     });
-
-    if (!widget.payload.fromOnboarding) {
-      unawaited(injector<TezosBeaconService>().cleanup());
-      unawaited(injector<Wc2Service>().cleanup());
-    }
     WidgetsBinding.instance.addObserver(this);
-    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+    _fgbgSubscription =
+        FGBGEvents.instance.stream.listen(_handleForeBackground);
 
     /// precache playlist
     injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
   }
 
-  Future refreshNotification() async {
+  Future<void> refreshNotification() async {
     await injector<CustomerSupportService>().getChatThreads();
     await injector<CustomerSupportService>().processMessages();
   }
@@ -346,14 +329,13 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
+    if (connectivityResult.contains(ConnectivityResult.mobile) ||
+        connectivityResult.contains(ConnectivityResult.wifi)) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
         if (!mounted) {
           return;
         }
-        nftBloc
-            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
+        nftBloc.add(RequestIndexEvent(_clientTokenService.getAddresses()));
       });
     }
     // refresh playlist token here
@@ -361,7 +343,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         .add(ListPlaylistLoadPlaylist(refreshDefaultPlaylist: true));
     if (_selectedIndex == HomeNavigatorTab.daily.index) {
       dailyWorkKey.currentState?.resumeDailyWork();
-      dailyWorkKey.currentState?.resumeTrackingUserInterest();
     }
   }
 
@@ -381,56 +362,58 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           top: false,
           bottom: false,
           child: BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
-              bloc: nftBloc,
-              listenWhen: (previous, current) =>
-                  _pageController == null ||
-                  previous.tokens.isEmpty && current.tokens.isNotEmpty ||
-                  previous.tokens.isNotEmpty && current.tokens.isEmpty,
-              listener: (context, state) {
-                if (state.tokens.isEmpty) {
-                  setState(() {
-                    _initialTab = widget.payload.startedTab;
-                  });
-                } else {}
-              },
-              buildWhen: (previous, current) {
-                final shouldRebuild = _pageController == null;
-                if (shouldRebuild) {
-                  _selectedIndex = _initialTab.index;
-                  _pageController?.dispose();
-                  _pageController = _getPageController(_selectedIndex);
+            bloc: nftBloc,
+            listenWhen: (previous, current) =>
+                _pageController == null ||
+                previous.tokens.isEmpty && current.tokens.isNotEmpty ||
+                previous.tokens.isNotEmpty && current.tokens.isEmpty,
+            listener: (context, state) {
+              if (state.tokens.isEmpty) {
+                setState(() {
+                  _initialTab = widget.payload.startedTab;
+                });
+              } else {}
+            },
+            buildWhen: (previous, current) {
+              final shouldRebuild = _pageController == null;
+              if (shouldRebuild) {
+                _selectedIndex = _initialTab.index;
+                _pageController?.dispose();
+                _pageController = _getPageController(_selectedIndex);
+              }
+              return shouldRebuild;
+            },
+            builder: (context, state) {
+              if (state.tokens.isEmpty) {
+                if ([NftLoadingState.notRequested, NftLoadingState.loading]
+                    .contains(state.state)) {
+                  return Center(
+                    child: loadingIndicator(valueColor: AppColor.white),
+                  );
                 }
-                return shouldRebuild;
-              },
-              builder: (context, state) {
-                if (state.tokens.isEmpty) {
-                  if ([NftLoadingState.notRequested, NftLoadingState.loading]
-                      .contains(state.state)) {
-                    return Center(
-                        child: loadingIndicator(valueColor: AppColor.white));
-                  }
-                }
-                return Stack(
-                  children: [
-                    PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: _pages,
-                    ),
-                    KeyboardVisibilityBuilder(
-                      builder: (context, isKeyboardVisible) => isKeyboardVisible
-                          ? const SizedBox()
-                          : Positioned.fill(
-                              bottom: 40,
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: _buildBottomNavigationBar(context),
-                              ),
+              }
+              return Stack(
+                children: [
+                  PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: _pages,
+                  ),
+                  KeyboardVisibilityBuilder(
+                    builder: (context, isKeyboardVisible) => isKeyboardVisible
+                        ? const SizedBox()
+                        : Positioned.fill(
+                            bottom: 40,
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: _buildBottomNavigationBar(context),
                             ),
-                    ),
-                  ],
-                );
-              }),
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       );
 
@@ -486,8 +469,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unselectedIcon: ValueListenableBuilder<List<int>?>(
           valueListenable:
               injector<CustomerSupportService>().numberOfIssuesInfo,
-          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                  Widget? child) =>
+          builder: (
+            BuildContext context,
+            List<int>? numberOfIssuesInfo,
+            Widget? child,
+          ) =>
               iconWithRedDot(
             icon: SvgPicture.asset(
               'assets/images/icon_drawer.svg',
@@ -526,7 +512,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_checkForReferralCode());
-    dailyWorkKey.currentState?.cancelTrackingUserInterest();
   }
 
   Future<void> _checkForReferralCode() async {
@@ -537,11 +522,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _triggerShowAnnouncement() {
-    unawaited(_announcementService.fetchAnnouncements().then(
-      (_) async {
-        await _announcementService.showOldestAnnouncement();
-      },
-    ));
+    unawaited(
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        _announcementService.fetchAnnouncements().then(
+          (_) async {
+            await _announcementService.showOldestAnnouncement();
+          },
+        );
+      }),
+    );
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -549,7 +538,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       case FGBGType.foreground:
         unawaited(_handleForeground());
         memoryValues.isForeground = true;
-        unawaited(injector<ChatService>().reconnect());
       case FGBGType.background:
         memoryValues.isForeground = false;
         _handleBackground();
@@ -567,7 +555,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await _remoteConfig.loadConfigs(forceRefresh: true);
 
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
-    dailyWorkKey.currentState?.resumeTrackingUserInterest();
     _triggerShowAnnouncement();
   }
 

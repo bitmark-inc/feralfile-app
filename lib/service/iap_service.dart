@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:collection/collection.dart';
@@ -104,6 +105,10 @@ abstract class IAPService {
 }
 
 class IAPServiceImpl implements IAPService {
+  IAPServiceImpl(this._configurationService, this._authService) {
+    unawaited(setup());
+  }
+
   final ConfigurationService _configurationService;
   final AuthService _authService;
 
@@ -122,10 +127,6 @@ class IAPServiceImpl implements IAPService {
   @override
   Map<String, DateTime> cancelAt = {};
 
-  IAPServiceImpl(this._configurationService, this._authService) {
-    unawaited(setup());
-  }
-
   String? _receiptData;
   bool _isSetup = false;
 
@@ -142,27 +143,28 @@ class IAPServiceImpl implements IAPService {
 
     final jwt = _configurationService.getIAPJWT();
     if (jwt != null && jwt.isValid(withSubscription: true)) {}
-    final Stream<List<PurchaseDetails>> purchaseUpdated =
-        _inAppPurchase.purchaseStream;
-    _subscription = purchaseUpdated.listen((purchaseDetailsList) {
-      _listenToPurchaseUpdated(purchaseDetailsList);
-    }, onDone: () {
-      log.info('[IAPService] finish fetching iap tiers');
-      _subscription.cancel();
-    }, onError: (error) {
-      log.severe(error);
-    });
+    final purchaseUpdated = _inAppPurchase.purchaseStream;
+    _subscription = purchaseUpdated.listen(
+      _listenToPurchaseUpdated,
+      onDone: () {
+        log.info('[IAPService] finish fetching iap tiers');
+        _subscription.cancel();
+      },
+      onError: (Object error) {
+        log.severe(error);
+      },
+    );
 
     await _cleanupPendingTransactions();
 
     final productDetails = await fetchAllProducts();
 
-    products.value = {for (var e in productDetails) e.id: e};
+    products.value = {for (final e in productDetails) e.id: e};
   }
 
   Future<void> setPaymentQueueDelegate() async {
     if (Platform.isIOS) {
-      var iosPlatformAddition = _inAppPurchase
+      final iosPlatformAddition = _inAppPurchase
           .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
       await iosPlatformAddition.setDelegate(PaymentQueueDelegate());
     }
@@ -177,7 +179,7 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<List<ProductDetails>> _fetchProducts(List<String> productIds) async {
-    ProductDetailsResponse productDetailResponse =
+    final productDetailResponse =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
     if (productDetailResponse.error != null) {
       unawaited(Sentry.captureException(productDetailResponse.error));
@@ -272,7 +274,8 @@ class IAPServiceImpl implements IAPService {
       if (purchaseDetails.status == PurchaseStatus.error) {
         purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
         log.warning(
-            "[IAPService] error: ${purchaseDetails.error?.message ?? ""}");
+          "[IAPService] error: ${purchaseDetails.error?.message ?? ""}",
+        );
       } else if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
         final receiptData =
@@ -303,8 +306,10 @@ class IAPServiceImpl implements IAPService {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
               if (purchaseDetails.status == PurchaseStatus.purchased) {
-                unawaited(injector<ConfigurationService>()
-                    .setSubscriptionTime(DateTime.now()));
+                unawaited(
+                  injector<ConfigurationService>()
+                      .setSubscriptionTime(DateTime.now()),
+                );
               }
               _purchases.add(purchaseDetails);
             }
@@ -345,14 +350,14 @@ class IAPServiceImpl implements IAPService {
         (includeInhouse && await isAppCenterBuild());
   }
 
-  Future _cleanupPendingTransactions() async {
+  Future<void> _cleanupPendingTransactions() async {
     if (Platform.isIOS) {
-      var transactions = await SKPaymentQueueWrapper().transactions();
+      final transactions = await SKPaymentQueueWrapper().transactions();
       log.info('[IAPService] cleaning up pending transactions: '
           '${transactions.length}');
 
       if (transactions.isNotEmpty) {
-        for (var transaction in transactions) {
+        for (final transaction in transactions) {
           log.info('[IAPService] cleaning up transaction: $transaction');
           unawaited(SKPaymentQueueWrapper().finishTransaction(transaction));
         }
@@ -381,8 +386,11 @@ class IAPServiceImpl implements IAPService {
       return res['url'] as String;
     } catch (error) {
       log.warning('Error when getting stripe portal url: $error');
-      unawaited(Sentry.captureException(
-          'Error when getting stripe portal url: $error'));
+      unawaited(
+        Sentry.captureException(
+          'Error when getting stripe portal url: $error',
+        ),
+      );
       return '';
     }
   }
@@ -392,12 +400,17 @@ class IAPServiceImpl implements IAPService {
     try {
       final res = await injector<IAPApi>().getCustomActiveSubscription()
           as Map<String, dynamic>;
-      final subscription = CustomSubscription.fromJson(res['result']);
+      final subscription = CustomSubscription.fromJson(
+        (res['result'] as Map).typeCast<String, dynamic>(),
+      );
       return subscription;
     } catch (error) {
       log.warning('Error when getting custom active subscription: $error');
-      unawaited(Sentry.captureException(
-          'Error when getting custom active subscription: $error'));
+      unawaited(
+        Sentry.captureException(
+          'Error when getting custom active subscription: $error',
+        ),
+      );
       return CustomSubscription(
         rawPrice: 0,
         currency: '',
@@ -420,8 +433,10 @@ class IAPServiceImpl implements IAPService {
 
 class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
   @override
-  bool shouldContinueTransaction(SKPaymentTransactionWrapper transaction,
-          SKStorefrontWrapper storefront) =>
+  bool shouldContinueTransaction(
+    SKPaymentTransactionWrapper transaction,
+    SKStorefrontWrapper storefront,
+  ) =>
       true;
 
   @override
@@ -429,17 +444,27 @@ class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
 }
 
 class CustomSubscription {
-  final int rawPrice;
-  final String currency;
-  final String billingPeriod;
-  final DateTime? cancelAt;
-
   CustomSubscription({
     required this.rawPrice,
     required this.currency,
     required this.billingPeriod,
     this.cancelAt,
   });
+
+  // from json
+  factory CustomSubscription.fromJson(Map<String, dynamic> json) =>
+      CustomSubscription(
+        rawPrice: int.tryParse(json['price'] as String) ?? 0,
+        currency: json['currency'] as String,
+        billingPeriod: json['billingPeriod'] as String,
+        cancelAt: json['cancelAt'] != null
+            ? DateTime.tryParse(json['cancelAt'] as String)
+            : null,
+      );
+  final int rawPrice;
+  final String currency;
+  final String billingPeriod;
+  final DateTime? cancelAt;
 
   String get price {
     if (currency.toLowerCase() == 'usd') {
@@ -456,22 +481,14 @@ class CustomSubscription {
       case 'year':
         return SKSubscriptionPeriodUnit.year;
       default:
-        unawaited(Sentry.captureMessage(
-            '[CustomSubscription] Unsupported period: $billingPeriod'));
+        unawaited(
+          Sentry.captureMessage(
+            '[CustomSubscription] Unsupported period: $billingPeriod',
+          ),
+        );
         return SKSubscriptionPeriodUnit.year;
     }
   }
-
-  // from json
-  factory CustomSubscription.fromJson(Map<String, dynamic> json) =>
-      CustomSubscription(
-        rawPrice: int.tryParse(json['price']) ?? 0,
-        currency: json['currency'] as String,
-        billingPeriod: json['billingPeriod'] as String,
-        cancelAt: json['cancelAt'] != null
-            ? DateTime.tryParse(json['cancelAt'] as String)
-            : null,
-      );
 
   // to json
   Map<String, dynamic> toJson() => <String, dynamic>{

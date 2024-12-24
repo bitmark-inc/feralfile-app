@@ -2,7 +2,7 @@
 //  Daily_WidgetBundle.swift
 //  Daily Widget
 //
-//  Created by Anh Nguyen on 10/31/24.
+//  Created by Nguyen Phuoc Sang on 6/12/24.
 //
 
 import WidgetKit

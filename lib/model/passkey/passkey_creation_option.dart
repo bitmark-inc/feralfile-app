@@ -13,9 +13,9 @@ class CredentialCreationOptionResponse {
   factory CredentialCreationOptionResponse.fromJson(
           Map<String, dynamic> json) =>
       CredentialCreationOptionResponse(
-        credentialCreationOption:
-            CredentialCreationOption.fromJson(json['credentialCreation']),
-        passkeyUserID: json['passkeyUserID'],
+        credentialCreationOption: CredentialCreationOption.fromJson(
+            json['credentialCreation'] as Map<String, dynamic>),
+        passkeyUserID: json['passkeyUserID'] as String,
       );
 }
 
@@ -28,7 +28,8 @@ class CredentialCreationOption {
 
   factory CredentialCreationOption.fromJson(Map<String, dynamic> json) =>
       CredentialCreationOption(
-        publicKey: PublicKey.fromJson(json['publicKey']),
+        publicKey:
+            PublicKey.fromJson(json['publicKey'] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
@@ -61,24 +62,26 @@ class PublicKey {
   });
 
   factory PublicKey.fromJson(Map<String, dynamic> json) => PublicKey(
-        rp: RelyingPartyType.fromJson(json['rp']),
-        user: UserType.fromJson(json['user']),
-        challenge: json['challenge'],
+        rp: RelyingPartyType.fromJson(json['rp'] as Map<String, dynamic>),
+        user: UserType.fromJson(json['user'] as Map<String, dynamic>),
+        challenge: json['challenge'] as String,
         pubKeyCredParams: (json['pubKeyCredParams'] as List)
-            .map((param) => PubKeyCredParamType.fromJson(param))
+            .map((param) =>
+                PubKeyCredParamType.fromJson(param as Map<String, dynamic>))
             .toList(),
-        timeout: json['timeout'],
+        timeout: json['timeout'] as int?,
         excludeCredentials: json['excludeCredentials'] != null
             ? (json['excludeCredentials'] as List)
-                .map((cred) => getCredentialTypeFromJsonFF(cred))
+                .map((cred) =>
+                    getCredentialTypeFromJsonFF(cred as Map<String, dynamic>))
                 .toList()
             : null,
         authenticatorSelection: json['authenticatorSelection'] != null
             ? AuthenticatorSelectionType.fromJson(
-                json['authenticatorSelection'])
+                json['authenticatorSelection'] as Map<String, dynamic>)
             : null,
-        attestation: json['attestation'],
-        extensions: json['extensions'],
+        attestation: json['attestation'] as String?,
+        extensions: json['extensions'] as Map<String, dynamic>?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -110,9 +113,9 @@ class AuthenticatorSelectionEntity {
 
   factory AuthenticatorSelectionEntity.fromJson(Map<String, dynamic> json) =>
       AuthenticatorSelectionEntity(
-        authenticatorAttachment: json['authenticatorAttachment'],
-        requireResidentKey: json['requireResidentKey'],
-        userVerification: json['userVerification'],
+        authenticatorAttachment: json['authenticatorAttachment'] as String?,
+        requireResidentKey: json['requireResidentKey'] as bool?,
+        userVerification: json['userVerification'] as String?,
       );
 
   Map<String, dynamic> toJson() => {

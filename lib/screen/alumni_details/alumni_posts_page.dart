@@ -48,7 +48,7 @@ class _AlumniPostsPageState extends State<AlumniPostsPage> {
   @override
   void initState() {
     super.initState();
-    unawaited(_fetchExhibitions());
+    unawaited(_fetchExhibitions().then((_) {}));
   }
 
   @override

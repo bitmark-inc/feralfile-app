@@ -11,12 +11,11 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
-import 'package:autonomy_flutter/model/announcement/notification_setting_type.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
+import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -76,7 +75,7 @@ abstract class CustomerSupportService {
 class CustomerSupportServiceImpl extends CustomerSupportService {
 // 1 day.
 
-  final DraftCustomerSupportDao _draftCustomerSupportDao;
+  final Box<DraftCustomerSupport> _draftCustomerSupportBox;
   final CustomerSupportApi _customerSupportApi;
   final ConfigurationService _configurationService;
 
@@ -95,7 +94,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Map<String, String> tempIssueIDMap = {};
 
   CustomerSupportServiceImpl(
-    this._draftCustomerSupportDao,
+    this._draftCustomerSupportBox,
     this._customerSupportApi,
     this._configurationService,
   );
@@ -103,9 +102,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   bool _isProcessingDraftMessages = false;
 
   /// will add this after backend support
-  static const _supportChatNotificationTypes = [
-    NotificationSettingType.supportMessages
-  ];
+  static const _supportChatNotificationTypes = [];
 
   Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
@@ -130,10 +127,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       log.info('[CS-Service] getIssues error: $e');
       unawaited(Sentry.captureException(e));
     }
-    final drafts = await _draftCustomerSupportDao.getAllDrafts();
+    final drafts = await _draftCustomerSupportBox.getAllAsync();
 
     for (var draft in drafts) {
-      if (draft.type != CSMessageType.CreateIssue.rawValue) {
+      if (draft.type != CSMessageType.createIssue.rawValue) {
         continue;
       }
 
@@ -167,7 +164,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       try {
         final latestDraft = drafts.firstWhere((element) =>
             element.issueID == issue.issueID &&
-            element.type != CSMessageType.CreateIssue.rawValue);
+            element.type != CSMessageType.createIssue.rawValue);
 
         issue.draft = latestDraft;
       } catch (_) {
@@ -229,8 +226,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       await _customerSupportApi.getDetails(issueID);
 
   @override
-  Future draftMessage(DraftCustomerSupport draft) async {
-    await _draftCustomerSupportDao.insertDraft(draft);
+  Future<dynamic> draftMessage(DraftCustomerSupport draft) async {
+    await _draftCustomerSupportBox.putAsync(draft);
     unawaited(processMessages());
   }
 
@@ -240,9 +237,13 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final id = uuid.substring(0, 36);
     errorMessages.remove(id);
     if (isDelete) {
-      var msg = await _draftCustomerSupportDao.getDraft(id);
+      final query = _draftCustomerSupportBox
+          .query(DraftCustomerSupport_.uuid.equals(id))
+          .build();
+      final msg = (await query.findAsync()).firstOrNull;
+      query.close();
       if (msg != null) {
-        await _draftCustomerSupportDao.deleteDraft(msg);
+        await _draftCustomerSupportBox.removeAsync(msg.id);
         if (msg.draftData.attachments != null &&
             msg.draftData.attachments!.isNotEmpty) {
           var draftData = msg.draftData;
@@ -251,10 +252,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
               .firstWhereOrNull((element) => element.fileName.contains(name));
           if (draftData.attachments!.remove(fileToRemove)) {
             msg.data = jsonEncode(draftData);
-            await _draftCustomerSupportDao.insertDraft(msg);
+            await _draftCustomerSupportBox.putAsync(msg);
             errorMessages.add(id);
           }
-          if (msg.type == CSMessageType.PostLogs.rawValue &&
+          if (msg.type == CSMessageType.postLogs.rawValue &&
               fileToRemove != null) {
             File file = File(fileToRemove.path);
             unawaited(file.delete());
@@ -273,14 +274,13 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future processMessages() async {
+  Future<void> processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
     if (_isProcessingDraftMessages) {
       return;
     }
-    final fetchLimit = errorMessages.length + 1;
     log.info('[CS-Service][start] processMessages');
-    final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
+    final draftMsgsRaw = await _draftCustomerSupportBox.getAllAsync();
     if (draftMsgsRaw.isEmpty) {
       return;
     }
@@ -295,16 +295,24 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     retryTime++;
 
     // Edge Case when database has not updated the new issueID for new comments
-    if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains('TEMP')) {
+    if (draftMsg.type != CSMessageType.createIssue.rawValue &&
+        draftMsg.issueID.contains('TEMP')) {
       final newIssueID = tempIssueIDMap[draftMsg.issueID];
       if (newIssueID != null) {
-        await _draftCustomerSupportDao.updateIssueID(
-            draftMsg.issueID, newIssueID);
+        final query = _draftCustomerSupportBox
+            .query(DraftCustomerSupport_.issueID.equals(draftMsg.issueID))
+            .build();
+        final draftsToUpdate = await query.findAsync();
+        for (var draft in draftsToUpdate) {
+          draft.issueID = newIssueID;
+          await _draftCustomerSupportBox.putAsync(draft);
+        }
+        query.close();
       } else {
         if (!draftMsgsRaw.any((element) =>
             (element.issueID == draftMsg.issueID) &&
             (element.uuid != draftMsg.uuid))) {
-          await _draftCustomerSupportDao.deleteDraft(draftMsg);
+          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
         } else {
           sendMessageFail(draftMsg.uuid);
         }
@@ -316,7 +324,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
 
     // Parse data
-    final data = DraftCustomerSupportData.fromJson(jsonDecode(draftMsg.data));
+    final data = DraftCustomerSupportData.fromJson(
+        jsonDecode(draftMsg.data) as Map<String, dynamic>);
     List<SendAttachment>? sendAttachments;
 
     try {
@@ -336,7 +345,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       unawaited(Sentry.captureException(exception));
 
       // just delete draft because we can not do anything more
-      await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      await _draftCustomerSupportBox.removeAsync(draftMsg.id);
       unawaited(removeErrorMessage(draftMsg.uuid));
       _isProcessingDraftMessages = false;
       log.info(
@@ -347,7 +356,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     try {
       switch (draftMsg.type) {
-        case 'CreateIssue':
+        case 'createIssue':
           final result = await createIssue(
             draftMsg.reportIssueType,
             data.text,
@@ -365,23 +374,21 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
                 data.announcementContentId!, result.issueID);
           }
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
-          await _draftCustomerSupportDao.deleteDraft(draftMsg);
-          await _draftCustomerSupportDao.updateIssueID(
-              draftMsg.issueID, result.issueID);
+          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
 
         default:
           final result =
               await commentIssue(draftMsg.issueID, data.text, sendAttachments);
-          await _draftCustomerSupportDao.deleteDraft(draftMsg);
+          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
           break;
       }
 
       // Delete logs attachment so it doesn't waste device's storage
-      if (draftMsg.type == CSMessageType.PostLogs.rawValue &&
+      if (draftMsg.type == CSMessageType.postLogs.rawValue &&
           data.attachments != null) {
         log.info('[CS-Service][start] processMessages delete temp logs file');
         await Future.wait(data.attachments!.map((element) async {
@@ -401,8 +408,15 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<List<DraftCustomerSupport>> getDrafts(String issueID) async =>
-      _draftCustomerSupportDao.getDrafts(issueID);
+  Future<List<DraftCustomerSupport>> getDrafts(String issueID) async {
+    final query = _draftCustomerSupportBox
+        .query(DraftCustomerSupport_.issueID.equals(issueID))
+        .order(DraftCustomerSupport_.createdAt)
+        .build();
+    final results = await query.findAsync();
+    query.close();
+    return results;
+  }
 
   Future<PostedMessageResponse> createIssue(
     String reportIssueType,
@@ -502,10 +516,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future reopen(String issueID) async =>
+  Future<void> reopen(String issueID) async =>
       _customerSupportApi.reOpenIssue(issueID);
 
   @override
-  Future rateIssue(String issueID, int rating) async =>
+  Future<void> rateIssue(String issueID, int rating) async =>
       _customerSupportApi.rateIssue(issueID, rating);
 }

@@ -11,29 +11,43 @@ class JohnGerrardHelper {
   static int get johnGerrardLatestRevealIndex => _johnGerrardLatestRevealIndex;
 
   static String? get contractAddress {
-    final config = injector<RemoteConfigService>()
-        .getConfig(ConfigGroup.exhibition, ConfigKey.johnGerrard, {});
-    return config['contract_address'];
+    final config =
+        injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
+      ConfigGroup.exhibition,
+      ConfigKey.johnGerrard,
+      {},
+    );
+    return config['contract_address'] as String?;
   }
 
   static String? get exhibitionID {
-    final config = injector<RemoteConfigService>()
-        .getConfig(ConfigGroup.exhibition, ConfigKey.johnGerrard, {});
-    return config['exhibition_id'];
+    final config =
+        injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
+      ConfigGroup.exhibition,
+      ConfigKey.johnGerrard,
+      {},
+    );
+    return config['exhibition_id'] as String?;
   }
 
   static List<dynamic> get seriesIDs {
-    final listSeriesIds = injector<RemoteConfigService>()
-        .getConfig<List<dynamic>?>(
-            ConfigGroup.johnGerrard, ConfigKey.seriesIds, []);
+    final listSeriesIds =
+        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
+      ConfigGroup.johnGerrard,
+      ConfigKey.seriesIds,
+      [],
+    );
     return listSeriesIds ?? [];
   }
 
-  static List<dynamic> get assetIDs {
-    final listAssetIds = injector<RemoteConfigService>()
-        .getConfig<List<dynamic>?>(
-            ConfigGroup.johnGerrard, ConfigKey.assetIds, []);
-    return listAssetIds ?? [];
+  static List<String> get assetIDs {
+    final listAssetIds =
+        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
+      ConfigGroup.johnGerrard,
+      ConfigKey.assetIds,
+      [],
+    );
+    return List<String>.from(listAssetIds ?? []);
   }
 
   static String getIndexID(String tokenId) {
@@ -42,11 +56,18 @@ class JohnGerrardHelper {
   }
 
   static List<CustomExhibitionNote> get customNote {
-    final listCustomNote = injector<RemoteConfigService>()
-        .getConfig<List<dynamic>?>(
-            ConfigGroup.johnGerrard, ConfigKey.customNote, []);
+    final listCustomNote =
+        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
+      ConfigGroup.johnGerrard,
+      ConfigKey.customNote,
+      [],
+    );
     return listCustomNote
-            ?.map((e) => CustomExhibitionNote.fromJson(e))
+            ?.map(
+              (e) => CustomExhibitionNote.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList() ??
         [];
   }

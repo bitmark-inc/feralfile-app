@@ -6,15 +6,12 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 
 class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
@@ -51,17 +48,6 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
         balance: balanceS,
         balanceInUSD: balanceInUSD,
       ));
-    });
-
-    on<WalletDetailPrimaryAddressEvent>((event, emit) async {
-      final primaryAddressInfo =
-          await injector<AddressService>().getPrimaryAddressInfo();
-
-      final newState = state.copyWith(
-        isPrimary: event.walletAddress.isMatchAddressInfo(primaryAddressInfo),
-      );
-
-      emit(newState);
     });
   }
 }

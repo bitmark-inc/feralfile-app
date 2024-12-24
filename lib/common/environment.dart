@@ -8,15 +8,17 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/encrypt_env/secrets.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry/sentry.dart';
 
 class Environment {
-  static String _readKey(String key, String defaultValue,
-      {bool isSecret = false}) {
-    final res = (isSecret ? cachedSecretEnv : dotenv.env)[key];
+  static String _readKey(
+    String key,
+    String defaultValue, {
+    bool isSecret = false,
+  }) {
+    final res = dotenv.env[key];
     if (res == null || res.isEmpty) {
       unawaited(Sentry.captureMessage('Environment variable $key is not set'));
       return defaultValue;
@@ -47,17 +49,10 @@ class Environment {
       'AUTONOMY_IPFS_PREFIX',
       'PENDING_TOKEN_EXPIRE_MS',
       // 'APP_TESTNET_CONFIG', ignore this key
-      'AU_CLAIM_API_URL',
       // 'IRL_WHITELIST_URL', // this key is not set
       'CLOUD_FLARE_IMAGE_URL_PREFIX',
-      'POSTCARD_CONTRACT_ADDRESS',
-      'AUTONOMY_MERCHANDISE_BASE_URL',
-      'AUTONOMY_MERCHANDISE_API_URL',
-      'PAY_TO_MINT_BASE_URL',
-      'CHAT_SERVER_URL',
       'TZKT_MAINNET_URL',
       'TZKT_TESTNET_URL',
-      'AUTONOMY_AIRDROP_CONTRACT_ADDRESS',
       'ACCOUNT_SETTING_URL',
     ];
     const secretKeys = [
@@ -74,19 +69,22 @@ class Environment {
       'SUPPORT_API_KEY',
     ];
     final missingKeys = <String>[];
-    for (var key in keys) {
+    for (final key in keys) {
       if (_readKey(key, '') == '') {
         missingKeys.add(key);
       }
     }
-    for (var key in secretKeys) {
+    for (final key in secretKeys) {
       if (_readKey(key, '', isSecret: true) == '') {
         missingKeys.add(key);
       }
     }
     if (missingKeys.isNotEmpty) {
-      unawaited(Sentry.captureMessage(
-          'Environment variables are not set: ${missingKeys.join(', ')}'));
+      unawaited(
+        Sentry.captureMessage(
+          'Environment variables are not set: ${missingKeys.join(', ')}',
+        ),
+      );
       unawaited(injector<NavigationService>().showEnvKeyIsMissing(missingKeys));
     }
   }
@@ -160,8 +158,6 @@ class Environment {
 
   static bool get appTestnetConfig =>
       _readKey('APP_TESTNET_CONFIG', '').toUpperCase() == 'TRUE';
-
-  static String get auClaimAPIURL => _readKey('AU_CLAIM_API_URL', '');
 
   static List<String> get irlWhitelistUrls =>
       _readKey('IRL_WHITELIST_URL', '').split(',');

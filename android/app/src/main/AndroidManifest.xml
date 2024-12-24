@@ -56,11 +56,7 @@
             android:value="${branchTestMode}" />
 
         <activity
-            android:name=".AuthenticatorActivity"
-            android:exported="false"
-            android:theme="@style/NormalTheme" />
-        <activity
-            android:name=".MainActivity"
+            android:name="com.bitmark.autonomywallet.MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"

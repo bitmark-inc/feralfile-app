@@ -60,7 +60,7 @@ platform :ios do
 		)
 
 		build_app(
-			scheme: "inhouse",
+			scheme: "development",
 			export_method: "ad-hoc",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
@@ -75,7 +75,7 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "Release-inhouse",
+			configuration: "Release-development",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 
@@ -124,7 +124,7 @@ platform :ios do
 		)
 
 		build_app(
-			scheme: "inhouse",
+			scheme: "development",
 			export_method: "ad-hoc",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
@@ -139,7 +139,7 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "Release-inhouse",
+			configuration: "Release-development",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 
@@ -222,7 +222,7 @@ platform :ios do
 		)
 
 		build_app(
-			scheme: "prd",
+			scheme: "production",
 			export_method: "app-store",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
@@ -237,7 +237,7 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "Release-prd",
+			configuration: "Release-production",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 

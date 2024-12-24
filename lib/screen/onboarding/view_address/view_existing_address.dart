@@ -5,7 +5,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -21,9 +21,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ViewExistingAddress extends StatefulWidget {
-  final ViewExistingAddressPayload payload;
-
   const ViewExistingAddress({required this.payload, super.key});
+
+  final ViewExistingAddressPayload payload;
 
   @override
   State<ViewExistingAddress> createState() => _ViewExistingAddressState();
@@ -34,31 +34,42 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
   Timer? _timer;
   final ViewExistingAddressBloc _bloc = ViewExistingAddressBloc(
     injector<DomainAddressService>(),
-    injector<AccountService>(),
+    injector<AddressService>(),
   );
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(context,
-          title: 'view_existing_address'.tr(),
-          onBack: () => Navigator.of(context).pop()),
+      appBar: getBackAppBar(
+        context,
+        title: 'add_display_address'.tr(),
+        onBack: () => Navigator.of(context).pop(),
+      ),
       body: BlocConsumer<ViewExistingAddressBloc, ViewExistingAddressState>(
         bloc: _bloc,
         listener: (context, state) async {
           if (state is ViewExistingAddressSuccessState) {
             await Navigator.of(context).pushNamed(
-                AppRouter.nameLinkedAccountPage,
-                arguments: state.connection);
+              AppRouter.nameLinkedAccountPage,
+              arguments: state.walletAddress,
+            );
           } else if (state.isError && state.exception != null) {
-            await UIHelper.showInfoDialog(context, state.exception!.message, '',
-                isDismissible: true, closeButton: 'close'.tr(), onClose: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.settings.name == AppRouter.homePageNoTransition ||
-                  route.settings.name == AppRouter.homePage ||
-                  route.settings.name == AppRouter.walletPage);
-            });
+            await UIHelper.showInfoDialog(
+              context,
+              state.exception!.message,
+              '',
+              isDismissible: true,
+              closeButton: 'close'.tr(),
+              onClose: () {
+                Navigator.of(context).popUntil(
+                  (route) =>
+                      route.settings.name == AppRouter.homePageNoTransition ||
+                      route.settings.name == AppRouter.homePage ||
+                      route.settings.name == AppRouter.walletPage,
+                );
+              },
+            );
           }
         },
         builder: (context, state) => Padding(
@@ -71,8 +82,10 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       addTitleSpace(),
-                      Text('enter_a_wallet_address'.tr(),
-                          style: theme.textTheme.ppMori400Black14),
+                      Text(
+                        'enter_a_wallet_address'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
                       const SizedBox(height: 10),
                       AuTextField(
                         title: '',
@@ -127,7 +140,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
     );
   }
 
-  void _onTextChanged(value) {
+  void _onTextChanged(String value) {
     _timer?.cancel();
     final text = value.trim();
     _timer = Timer(const Duration(milliseconds: 500), () {
@@ -138,7 +151,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
 
 // payload class
 class ViewExistingAddressPayload {
-  final bool isOnboarding;
-
   ViewExistingAddressPayload(this.isOnboarding);
+
+  final bool isOnboarding;
 }

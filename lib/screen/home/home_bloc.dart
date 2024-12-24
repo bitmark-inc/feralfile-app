@@ -9,22 +9,12 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 class HomeBloc extends AuBloc<HomeEvent, HomeState> {
-  final TezosBeaconService _tezosBeaconService;
-
-  HomeBloc(
-    this._tezosBeaconService,
-  ) : super(HomeState()) {
-    on<HomeConnectTZEvent>((event, emit) async {
-      log.info('[HomeConnectTZEvent] addPeer ${event.uri}');
-      await _tezosBeaconService.addPeer(event.uri);
-    });
-
+  HomeBloc() : super(HomeState()) {
     on<CheckReviewAppEvent>((event, emit) async {
       try {
         final config = injector<ConfigurationService>();
@@ -46,12 +36,13 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
         }
 
         if (countOpenApp < Constants.minCountToReview) {
-          config.setLastRemindReviewDate(DateTime.now().toIso8601String());
-          config.setCountOpenApp(0);
+          await config
+              .setLastRemindReviewDate(DateTime.now().toIso8601String());
+          await config.setCountOpenApp(0);
           return;
         }
 
-        final InAppReview inAppReview = InAppReview.instance;
+        final inAppReview = InAppReview.instance;
         final isAvailable = await inAppReview.isAvailable();
 
         if (!isAvailable) {
@@ -60,8 +51,9 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
         await Future.delayed(const Duration(seconds: 15), () {
           inAppReview.requestReview();
-          config.setLastRemindReviewDate(DateTime.now().toIso8601String());
-          config.setCountOpenApp(0);
+          config
+            ..setLastRemindReviewDate(DateTime.now().toIso8601String())
+            ..setCountOpenApp(0);
         });
       } catch (e) {
         log.info('[Home bloc] $e');

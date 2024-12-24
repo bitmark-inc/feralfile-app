@@ -29,9 +29,9 @@ class AnnouncementLocal extends Announcement {
         additionalData: additionalData,
         startedAt: startedAt,
         endedAt: endedAt,
-        inAppEnabled: additionalData['~inAppEnabled'] ?? true,
+        inAppEnabled: additionalData['~inAppEnabled'] as bool? ?? true,
         notificationType: NotificationSettingType.fromString(
-          additionalData['~notificationType'] ?? '',
+          additionalData['~notificationType'] as String? ?? '',
         ),
         read: read,
       );

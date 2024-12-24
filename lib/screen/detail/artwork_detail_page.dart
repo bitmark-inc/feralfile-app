@@ -9,35 +9,30 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -59,7 +54,6 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:shake/shake.dart';
-import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -67,9 +61,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 part 'artwork_detail_page.g.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
-  final ArtworkDetailPayload payload;
-
   const ArtworkDetailPage({required this.payload, super.key});
+
+  final ArtworkDetailPayload payload;
 
   @override
   State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
@@ -82,7 +76,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         SingleTickerProviderStateMixin,
         WidgetsBindingObserver {
   ScrollController? _scrollController;
-  late bool withSharing;
   ValueNotifier<double> downloadProgress = ValueNotifier(0);
 
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -113,11 +106,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _infoShrink();
     _bloc = context.read<ArtworkDetailBloc>();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    _bloc.add(ArtworkDetailGetInfoEvent(widget.payload.identity,
-        useIndexer: widget.payload.useIndexer));
+    _bloc.add(
+      ArtworkDetailGetInfoEvent(
+        widget.payload.identity,
+        useIndexer: widget.payload.useIndexer,
+      ),
+    );
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    withSharing = widget.payload.twitterCaption != null;
   }
 
   @override
@@ -136,8 +132,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final data = {
       MetricParameter.tokenId: widget.payload.identity.id,
     };
-    unawaited(injector<MetricClientService>()
-        .addEvent(MetricEventName.playlistView, data: data));
+    unawaited(
+      injector<MetricClientService>()
+          .addEvent(MetricEventName.playlistView, data: data),
+    );
   }
 
   @override
@@ -146,37 +144,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     super.didChangeDependencies();
   }
 
-  Future<void> _manualShare(
-      String caption, String url, List<String> hashTags) async {
-    final encodeCaption = Uri.encodeQueryComponent(caption);
-    final hashTagsString = hashTags.join(',');
-    final twitterUrl = '${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption'
-        '&hashtags=$hashTagsString';
-    final twitterUri = Uri.parse(twitterUrl);
-    await launchUrl(twitterUri, mode: LaunchMode.externalApplication);
-  }
-
-  void _shareTwitter(AssetToken token) {
-    final prefix = Environment.tokenWebviewPrefix;
-    final url = '$prefix/token/${token.id}';
-    final caption = widget.payload.twitterCaption ?? '';
-    final hashTags = getTags(token);
-    unawaited(SocialShare.checkInstalledAppsForShare().then((data) {
-      if (data?[SocialApp.twitter]) {
-        SocialShare.shareTwitter(caption, url: url, hashtags: hashTags);
-      } else {
-        _manualShare(caption, url, hashTags);
-      }
-    }));
-  }
-
   List<String> getTags(AssetToken asset) {
     final defaultTags = [
       'feralfile',
       'digitalartwallet',
       'NFT',
     ];
-    List<String> tags = defaultTags;
+    var tags = defaultTags;
     if (asset.isMoMAMemento) {
       tags = [
         'refikunsupervised',
@@ -184,39 +158,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ];
     }
     return tags;
-  }
-
-  Future<void> _socialShare(BuildContext context, AssetToken asset) {
-    final theme = Theme.of(context);
-    final tags = getTags(asset);
-    final tagsText = tags.map((e) => '#$e').join(' ');
-    Widget content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'congratulations_new_NFT'.tr(),
-          style: theme.textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 12),
-        Text(tagsText, style: theme.textTheme.ppMori400Grey14),
-        const SizedBox(height: 24),
-        PrimaryButton(
-          text: 'share_on_'.tr(),
-          onTap: () {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
-          },
-        ),
-        const SizedBox(height: 8),
-        OutlineButton(
-          text: 'close'.tr(),
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
-    return UIHelper.showDialog(context, 'share_the_new'.tr(), content);
   }
 
   @override
@@ -230,10 +171,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _detector?.stopListening();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
-    unawaited(SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
-    ));
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      ),
+    );
     super.dispose();
   }
 
@@ -282,12 +225,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         setState(() {
           currentAsset = state.assetToken;
         });
-        if (withSharing && state.assetToken != null) {
-          unawaited(_socialShare(context, state.assetToken!));
-          setState(() {
-            withSharing = false;
-          });
-        }
         context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
       },
       builder: (context, state) {
@@ -326,7 +263,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   minHeight: 44,
                                 ),
                                 icon: Padding(
-                                  padding: const EdgeInsets.all(0),
+                                  padding: EdgeInsets.zero,
                                   child: SvgPicture.asset(
                                     'assets/images/ff_back_dark.svg',
                                     width: 28,
@@ -407,8 +344,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           },
                           child: Container(
                             color: Colors.transparent,
-                            child: _infoHeader(context, asset, artistName,
-                                state.isViewOnly, canvasState),
+                            child: _infoHeader(
+                              context,
+                              asset,
+                              artistName,
+                              canvasState,
+                            ),
                           ),
                         ),
                       ),
@@ -468,8 +409,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _webViewController = webViewController;
   }
 
-  Widget _infoHeader(BuildContext context, AssetToken asset, String? artistName,
-      bool isViewOnly, CanvasDeviceState canvasState) {
+  Widget _infoHeader(
+    BuildContext context,
+    AssetToken asset,
+    String? artistName,
+    CanvasDeviceState canvasState,
+  ) {
     var subTitle = '';
     if (artistName != null && artistName.isNotEmpty) {
       subTitle = artistName;
@@ -483,8 +428,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               title: asset.displayTitle ?? '',
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null && asset.isFeralfile
-                  ? () => unawaited(injector<NavigationService>()
-                      .openFeralFileArtistPage(asset.artistID!))
+                  ? () => unawaited(
+                        injector<NavigationService>()
+                            .openFeralFileArtistPage(asset.artistID!),
+                      )
                   : null,
             ),
           ),
@@ -495,7 +442,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               padding: const EdgeInsets.only(left: 5),
               child: IconButton(
                 onPressed: () async => _showArtworkOptionsDialog(
-                    context, asset, isViewOnly, canvasState),
+                  context,
+                  asset,
+                  canvasState,
+                ),
                 constraints: const BoxConstraints(
                   maxWidth: 44,
                   maxHeight: 44,
@@ -515,21 +465,26 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  Widget _infoContent(BuildContext context, IdentityState identityState,
-      ArtworkDetailState state, String? artistName) {
+  Widget _infoContent(
+    BuildContext context,
+    IdentityState identityState,
+    ArtworkDetailState state,
+    String? artistName,
+  ) {
     final theme = Theme.of(context);
     final asset = state.assetToken!;
     final editionSubTitle = getEditionSubTitle(asset);
     return Stack(
       children: [
         Visibility(
-            visible: _isOpenedWithWebview(asset),
-            child: WebviewControllerTextField(
-              webViewController: _webViewController,
-              focusNode: _focusNode,
-              textController: _textController,
-              disableKeys: asset.disableKeys,
-            )),
+          visible: _isOpenedWithWebview(asset),
+          child: WebviewControllerTextField(
+            webViewController: _webViewController,
+            focusNode: _focusNode,
+            textController: _textController,
+            disableKeys: asset.disableKeys,
+          ),
+        ),
         SingleChildScrollView(
           controller: _scrollController,
           physics: const BouncingScrollPhysics(),
@@ -547,9 +502,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       color: Colors.transparent,
                       text: 'web3_glossary'.tr(),
                       onTap: () {
-                        unawaited(Navigator.pushNamed(
-                            context, AppRouter.previewPrimerPage,
-                            arguments: asset));
+                        unawaited(
+                          Navigator.pushNamed(
+                            context,
+                            AppRouter.previewPrimerPage,
+                            arguments: asset,
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -580,8 +539,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           asset.description ?? '',
                           textStyle: theme.textTheme.ppMori400White14,
                           onTapUrl: (url) async {
-                            await launchUrl(Uri.parse(url),
-                                mode: LaunchMode.externalApplication);
+                            await launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
                             return true;
                           },
                         ),
@@ -589,13 +550,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       const SizedBox(height: 40),
                       artworkDetailsMetadataSection(context, asset, artistName),
                       if (asset.fungible) ...[
-                        tokenOwnership(context, asset,
-                            identityState.identityMap[asset.owner] ?? ''),
+                        tokenOwnership(
+                          context,
+                          asset,
+                          identityState.identityMap[asset.owner] ?? '',
+                        ),
                       ] else ...[
                         if (state.provenances.isNotEmpty)
                           _provenanceView(context, state.provenances)
                         else
-                          const SizedBox()
+                          const SizedBox(),
                       ],
                       artworkDetailsRightSection(context, asset),
                       const SizedBox(height: 80),
@@ -618,28 +582,32 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       BlocBuilder<IdentityBloc, IdentityState>(
         builder: (context, identityState) =>
             BlocBuilder<AccountsBloc, AccountsState>(
-                builder: (context, accountsState) {
-          final event = accountsState.event;
-          if (event != null && event is FetchAllAddressesSuccessEvent) {
-            _accountNumberHash = HashSet.of(event.addresses);
-          }
+          builder: (context, accountsState) {
+            final addresses = accountsState.addresses?.map((e) => e.address);
+            if (addresses?.isNotEmpty == true) {
+              _accountNumberHash = HashSet.of(addresses!);
+            }
 
-          return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
-              _accountNumberHash, identityState.identityMap);
-        }),
+            return artworkDetailsProvenanceSectionNotEmpty(
+              context,
+              provenances,
+              _accountNumberHash,
+              identityState.identityMap,
+            );
+          },
+        ),
       );
 
   bool _isHidden(AssetToken token) => injector<ConfigurationService>()
       .getTempStorageHiddenTokenIDs()
       .contains(token.id);
 
-  Future _showArtworkOptionsDialog(BuildContext context, AssetToken asset,
-      bool isViewOnly, CanvasDeviceState canvasDeviceState) async {
-    final owner = await asset.getOwnerWallet();
-    final ownerWallet = owner?.first;
-    final addressIndex = owner?.second;
-    final irlUrl = asset.irlTapLink;
-    final showKeyboard = _isOpenedWithWebview(asset) && !asset.isPostcard;
+  Future<void> _showArtworkOptionsDialog(
+    BuildContext context,
+    AssetToken asset,
+    CanvasDeviceState canvasDeviceState,
+  ) async {
+    final showKeyboard = _isOpenedWithWebview(asset);
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
     final isCasting = castingDevice != null;
@@ -650,163 +618,109 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final isHidden = _isHidden(asset);
     _focusNode.unfocus();
 
-    unawaited(UIHelper.showDrawerAction(
-      context,
-      options: [
-        OptionItem(
+    unawaited(
+      UIHelper.showDrawerAction(
+        context,
+        options: [
+          OptionItem(
             title: 'full_screen'.tr(),
             icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
             onTap: () {
               Navigator.of(context).pop();
               _setFullScreen();
-            }),
-        if (showKeyboard && !isCasting)
-          OptionItem(
-            title: 'interact'.tr(),
-            icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
-            onTap: () {
-              Navigator.of(context).pop();
-              final castingDevice = canvasDeviceState
-                  .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-              if (castingDevice != null) {
-                unawaited(Navigator.of(context).pushNamed(
-                  AppRouter.keyboardControlPage,
-                  arguments: KeyboardControlPagePayload(
-                    getEditionSubTitle(asset),
-                    asset.description ?? '',
-                    [castingDevice],
-                  ),
-                ));
-              } else {
-                FocusScope.of(context).requestFocus(_focusNode);
-              }
             },
           ),
-        if (!isViewOnly && irlUrl != null)
-          OptionItem(
-            title: irlUrl.first,
-            icon: const Icon(
-              AuIcon.microphone,
-              color: AppColor.white,
-            ),
-            onTap: () async {
-              await Navigator.popAndPushNamed(
-                context,
-                AppRouter.irlWebView,
-                arguments: IRLWebScreenPayload(irlUrl.second),
-              );
-            },
-          ),
-        if (asset.secondaryMarketURL.isNotEmpty)
-          OptionItem(
-            title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
-            icon: SvgPicture.asset(
-              'assets/images/external_link_white.svg',
-              width: 18,
-              height: 18,
-            ),
-            onTap: () async {
-              final browser = FeralFileBrowser();
-              await browser.openUrl(asset.secondaryMarketURL);
-            },
-          ),
-        if (widget.payload.shouldUseLocalCache && hasLocalAddress)
-          OptionItem(
-            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-            icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
-            onTap: () async {
-              await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              unawaited(injector<SettingsDataService>().backupUserSettings());
-
-              if (!context.mounted) {
-                return;
-              }
-              NftCollectionBloc.eventController.add(ReloadEvent());
-              Navigator.of(context).pop();
-              unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                  onOK: () {
-                Navigator.of(context).popUntil((route) =>
-                    route.settings.name == AppRouter.homePage ||
-                    route.settings.name == AppRouter.homePageNoTransition);
-              }));
-            },
-          ),
-        if (ownerWallet != null && asset.isTransferable) ...[
-          OptionItem(
-            title: 'send_artwork'.tr(),
-            icon: SvgPicture.asset('assets/images/send_white.svg'),
-            onTap: () async {
-              final payload = await Navigator.of(context).popAndPushNamed(
-                  AppRouter.sendArtworkPage,
-                  arguments: SendArtworkPayload(
-                      asset,
-                      ownerWallet,
-                      addressIndex!,
-                      ownerWallet.getOwnedQuantity(asset))) as Map?;
-              if (payload == null) {
-                return;
-              }
-
-              final sentQuantity = payload['sentQuantity'] as int;
-              final isSentAll = payload['isSentAll'] as bool;
-              unawaited(injector<ConfigurationService>()
-                  .updateRecentlySentToken([
-                SentArtwork(asset.id, asset.owner, DateTime.now(), sentQuantity,
-                    isSentAll)
-              ]));
-              if (isHidden) {
-                await injector<ConfigurationService>()
-                    .updateTempStorageHiddenTokenIDs([asset.id], false);
-                unawaited(injector<SettingsDataService>().backupUserSettings());
-              }
-              if (!context.mounted) {
-                return;
-              }
-              setState(() {});
-              if (!payload['isTezos']) {
-                if (isSentAll) {
-                  unawaited(Navigator.of(context)
-                      .popAndPushNamed(AppRouter.homePage));
+          if (showKeyboard && !isCasting)
+            OptionItem(
+              title: 'interact'.tr(),
+              icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+              onTap: () {
+                Navigator.of(context).pop();
+                final castingDevice = canvasDeviceState
+                    .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
+                if (castingDevice != null) {
+                  unawaited(
+                    Navigator.of(context).pushNamed(
+                      AppRouter.keyboardControlPage,
+                      arguments: KeyboardControlPagePayload(
+                        getEditionSubTitle(asset),
+                        asset.description ?? '',
+                        [castingDevice],
+                      ),
+                    ),
+                  );
+                } else {
+                  FocusScope.of(context).requestFocus(_focusNode);
                 }
-                return;
-              }
-              unawaited(UIHelper.showMessageAction(
-                context,
-                'success'.tr(),
-                'send_success_des'.tr(),
-                closeButton: 'close'.tr(),
-                onClose: () => isSentAll
-                    ? Navigator.of(context).popAndPushNamed(
-                        AppRouter.homePage,
-                      )
-                    : null,
-              ));
-            },
-          ),
-        ],
-        if (!widget.payload.shouldUseLocalCache)
-          OptionItem(
-            title: 'refresh_metadata'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/refresh_metadata_white.svg',
-              width: 20,
-              height: 20,
+              },
             ),
-            onTap: () async {
-              await injector<TokensService>().fetchManualTokens([asset.id]);
-              if (!context.mounted) {
-                return;
-              }
-              Navigator.of(context).pop();
-              await Navigator.of(context).pushReplacementNamed(
+          if (asset.secondaryMarketURL.isNotEmpty)
+            OptionItem(
+              title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
+              icon: SvgPicture.asset(
+                'assets/images/external_link_white.svg',
+                width: 18,
+                height: 18,
+              ),
+              onTap: () async {
+                final browser = FeralFileBrowser();
+                await browser.openUrl(asset.secondaryMarketURL);
+              },
+            ),
+          if (widget.payload.shouldUseLocalCache && hasLocalAddress)
+            OptionItem(
+              title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+              icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
+              onTap: () async {
+                await injector<ConfigurationService>()
+                    .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+                unawaited(injector<SettingsDataService>().backupUserSettings());
+
+                if (!context.mounted) {
+                  return;
+                }
+                NftCollectionBloc.eventController.add(ReloadEvent());
+                Navigator.of(context).pop();
+                unawaited(
+                  UIHelper.showHideArtworkResultDialog(
+                    context,
+                    !isHidden,
+                    onOK: () {
+                      Navigator.of(context).popUntil(
+                        (route) =>
+                            route.settings.name == AppRouter.homePage ||
+                            route.settings.name ==
+                                AppRouter.homePageNoTransition,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          if (!widget.payload.shouldUseLocalCache)
+            OptionItem(
+              title: 'refresh_metadata'.tr(),
+              icon: SvgPicture.asset(
+                'assets/images/refresh_metadata_white.svg',
+                width: 20,
+                height: 20,
+              ),
+              onTap: () async {
+                await injector<TokensService>().fetchManualTokens([asset.id]);
+                if (!context.mounted) {
+                  return;
+                }
+                Navigator.of(context).pop();
+                await Navigator.of(context).pushReplacementNamed(
                   AppRouter.artworkDetailsPage,
-                  arguments: widget.payload.copyWith());
-            },
-          ),
-        OptionItem.emptyOptionItem,
-      ],
-    ));
+                  arguments: widget.payload.copyWith(),
+                );
+              },
+            ),
+          OptionItem.emptyOptionItem,
+        ],
+      ),
+    );
   }
 
   bool _isOpenedWithWebview(AssetToken asset) =>
@@ -845,33 +759,29 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 }
 
 class ArtworkDetailPayload {
-  final Key? key;
-  final ArtworkIdentity identity;
-  final PlayListModel? playlist;
-  final String? twitterCaption;
-  final bool useIndexer; // set true when navigate from discover/gallery page
-  // if local token, it can be hidden and refresh metadata
-  final bool shouldUseLocalCache;
-
   ArtworkDetailPayload(
     this.identity, {
-    this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
     this.shouldUseLocalCache = true,
     this.key,
   });
 
+  final Key? key;
+  final ArtworkIdentity identity;
+  final PlayListModel? playlist;
+  final bool useIndexer; // set true when navigate from discover/gallery page
+  // if local token, it can be hidden and refresh metadata
+  final bool shouldUseLocalCache;
+
   ArtworkDetailPayload copyWith({
     ArtworkIdentity? identity,
     PlayListModel? playlist,
-    String? twitterCaption,
     bool? useIndexer,
     bool? shouldUseLocalCache,
   }) =>
       ArtworkDetailPayload(
         identity ?? this.identity,
-        twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
         shouldUseLocalCache: shouldUseLocalCache ?? this.shouldUseLocalCache,
@@ -880,13 +790,12 @@ class ArtworkDetailPayload {
 
 @JsonSerializable()
 class ArtworkIdentity {
-  final String id;
-  final String owner;
-
   ArtworkIdentity(this.id, this.owner);
 
   factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
       _$ArtworkIdentityFromJson(json);
+  final String id;
+  final String owner;
 
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 

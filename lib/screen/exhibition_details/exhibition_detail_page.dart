@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -79,9 +80,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       return const LoadingWidget();
     }
 
+    final shouldShowNotePage = exhibition.shouldShowCuratorNotePage;
     // if exhibition is not minted, show only preview page
-    final itemCount =
-        !exhibition.isMinted ? 3 : ((exhibition.displayableSeries.length) + 3);
+    final exhibitionInfoCount = shouldShowNotePage ? 3 : 2;
+    final itemCount = !exhibition.isMinted
+        ? exhibitionInfoCount
+        : ((exhibition.displayableSeries.length) + exhibitionInfoCount);
     return Column(
       children: [
         Expanded(
@@ -113,31 +117,40 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 case 0:
                   return _getPreviewPage(exhibition);
                 case 1:
-                  return _notePage(exhibition);
-                default:
-                  final seriesIndex = index - 2;
-                  final series =
-                      exhibition.displayableSeries.sorted[seriesIndex];
-                  final artwork = series.artwork;
-                  if (artwork == null) {
-                    return const SizedBox();
+                  if (shouldShowNotePage) {
+                    return _notePage(exhibition);
+                  } else {
+                    final seriesIndex = 0; //index - (exhibitionInfoCount - 1);
+                    return _getSeriesPreviewPage(seriesIndex, exhibition);
                   }
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 40),
-                    child: FeralFileArtworkPreview(
-                      key: Key('feral_file_artwork_preview_${artwork.id}'),
-                      payload: FeralFileArtworkPreviewPayload(
-                        artwork: artwork.copyWith(
-                            series: series.copyWith(exhibition: exhibition)),
-                      ),
-                    ),
-                  );
+                default:
+                  final seriesIndex = index - (exhibitionInfoCount - 1);
+                  return _getSeriesPreviewPage(seriesIndex, exhibition);
               }
             },
           ),
         ),
-        if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
+        if (_currentIndex == 0 || (_currentIndex == 1 && shouldShowNotePage))
+          _nextButton()
       ],
+    );
+  }
+
+  Widget _getSeriesPreviewPage(int seriesIndex, Exhibition exhibition) {
+    final series = exhibition.displayableSeries.sorted[seriesIndex];
+    final artwork = series.artwork;
+    if (artwork == null) {
+      return const SizedBox();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 40),
+      child: FeralFileArtworkPreview(
+        key: Key('feral_file_artwork_preview_${artwork.id}'),
+        payload: FeralFileArtworkPreviewPayload(
+          artwork:
+              artwork.copyWith(series: series.copyWith(exhibition: exhibition)),
+        ),
+      ),
     );
   }
 
@@ -154,8 +167,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       if (request.catalog == ExhibitionCatalog.artwork)
         MetricParameter.tokenId: request.catalogId,
     };
-    injector<MetricClientService>()
-        .addEvent(MetricEventName.exhibitionView, data: data);
+    unawaited(injector<MetricClientService>()
+        .addEvent(MetricEventName.exhibitionView, data: data));
   }
 
   void _stream(Exhibition exhibition) {
@@ -220,13 +233,34 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     return resources;
   }
 
+  List<Widget> _foreWord(Exhibition exhibition) {
+    final foreWords = <Widget>[];
+    for (final foreWord in exhibition.foreWord) {
+      final id =
+          'forework_${exhibition.id}_${exhibition.foreWord.indexOf(foreWord)}';
+      foreWords.add(ExhibitionCustomNote(
+        info: CustomExhibitionNote(
+            id: id,
+            title: 'Foreword',
+            content: foreWord,
+            canReadMore: true,
+            readMoreUrl:
+                FeralFileHelper.getExhibitionForewordUrl(exhibition.slug)),
+      ));
+    }
+    return foreWords;
+  }
+
   Widget _notePage(Exhibition exhibition) => LayoutBuilder(
         builder: (context, constraints) => Center(
           child: CarouselSlider(
             items: [
-              ExhibitionNoteView(
-                exhibition: exhibition,
-              ),
+              ..._foreWord(exhibition),
+              if (exhibition.shouldShowCuratorNote) ...[
+                ExhibitionNoteView(
+                  exhibition: exhibition,
+                ),
+              ],
               ..._resource(exhibition),
             ],
             options: CarouselOptions(
@@ -265,22 +299,34 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       Exhibition exhibition) {
     ExhibitionCatalog? catalog;
     String? catalogId;
+    final shouldShowNotePage = exhibition.shouldShowCuratorNotePage;
+    final exhibitionInfoCount = shouldShowNotePage ? 3 : 2;
     switch (_currentIndex) {
       case 0:
         catalog = ExhibitionCatalog.home;
       case 1:
-        if (_carouselIndex == 0) {
-          catalog = ExhibitionCatalog.curatorNote;
+        if (shouldShowNotePage) {
+          final foreword = exhibition.foreWord;
+          if (_carouselIndex < foreword.length) {
+            catalog = ExhibitionCatalog.curatorNote;
+          } else if (_carouselIndex == foreword.length) {
+            catalog = ExhibitionCatalog.curatorNote;
+          } else {
+            catalog = ExhibitionCatalog.resource;
+            catalogId = exhibition
+                .allResources[_carouselIndex - (foreword.length + 1)].id;
+          }
         } else {
-          catalog = ExhibitionCatalog.resource;
-          catalogId = exhibition.allResources[_carouselIndex - 1].id;
+          catalog = ExhibitionCatalog.artwork;
+          final seriesIndex = 0; //_currentIndex - (exhibitionInfoCount - 1);
+          catalogId =
+              exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
         }
       default:
         catalog = ExhibitionCatalog.artwork;
-        final seriesIndex = _currentIndex - 2;
-        final currentArtwork =
+        final seriesIndex = _currentIndex - (exhibitionInfoCount - 1);
+        catalogId =
             exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
-        catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);
   }

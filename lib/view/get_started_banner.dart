@@ -4,13 +4,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
-class GetStartedBanner extends StatelessWidget {
+class FeralfileBanner extends StatelessWidget {
   final Function? onClose;
   final Function? onGetStarted;
   final String title;
+  final String? buttonText;
 
-  const GetStartedBanner(
-      {required this.title, super.key, this.onGetStarted, this.onClose});
+  const FeralfileBanner(
+      {required this.title,
+      super.key,
+      this.onGetStarted,
+      this.onClose,
+      this.buttonText});
 
   @override
   Widget build(BuildContext context) {
@@ -35,17 +40,18 @@ class GetStartedBanner extends StatelessWidget {
                   maxLines: 2,
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  onClose?.call();
-                },
-                child: const Icon(
-                  size: 18,
-                  AuIcon.close,
-                  color: AppColor.white,
-                ),
-                //padding: EdgeInsets.zero,
-              )
+              if (onClose != null)
+                GestureDetector(
+                  onTap: () {
+                    onClose?.call();
+                  },
+                  child: const Icon(
+                    size: 18,
+                    AuIcon.close,
+                    color: AppColor.white,
+                  ),
+                  //padding: EdgeInsets.zero,
+                )
             ],
           ),
           const SizedBox(
@@ -55,7 +61,7 @@ class GetStartedBanner extends StatelessWidget {
             onTap: () {
               onGetStarted?.call();
             },
-            text: 'get_started'.tr(),
+            text: buttonText ?? 'get_started'.tr(),
           )
         ],
       ),

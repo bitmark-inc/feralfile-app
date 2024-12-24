@@ -10,11 +10,9 @@ import 'package:autonomy_flutter/model/additional_data/navigate_additional_data.
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
     as view_collection_handler;
 import 'package:autonomy_flutter/model/additional_data/view_exhibition.dart';
-import 'package:autonomy_flutter/model/additional_data/view_new_message.dart';
-import 'package:autonomy_flutter/model/additional_data/view_postcard.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/notifications/notification_type.dart';
+import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:flutter/cupertino.dart';
 
 class AdditionalData {
@@ -35,14 +33,15 @@ class AdditionalData {
   bool get isTappable => false;
 
   static AdditionalData fromJson(Map<String, dynamic> json, {String? type}) {
-    final notificationContentId = json['notification_content_id'];
+    final notificationContentId = json['notification_content_id'] as String?;
     try {
-      final notificationType =
-          NotificationType.fromString(type ?? json['notification_type']);
-      final String? title = json['title'];
+      final notificationType = NotificationType.fromString(
+          type ?? json['notification_type'] as String);
+      final String? title = json['title'] as String?;
       final cta = json['cta'] == null
           ? null
-          : CallToAction.fromJson(Map<String, dynamic>.from(json['cta']));
+          : CallToAction.fromJson(Map<String, dynamic>.from(
+              Map<String, dynamic>.from(json['cta'] as Map)));
 
       final defaultAdditionalData = AdditionalData(
         notificationType: notificationType,
@@ -62,7 +61,8 @@ class AdditionalData {
         case NotificationType.dailyArtworkReminders:
           final dailyCTATarget = json['cta'] == null
               ? null
-              : DailyCTATarget.fromString(json['cta']['navigation_route']);
+              : DailyCTATarget.fromString(
+                  json['cta']['navigation_route'] as String);
           return DailyNotificationData(
             notificationType: notificationType,
             announcementContentId: notificationContentId,
@@ -73,8 +73,8 @@ class AdditionalData {
           final listCustomCta = json['custom_data'] != null &&
                   json['custom_data']['button_cta_list'] != null
               ? (json['custom_data']['button_cta_list'] as List)
-                  .map((e) =>
-                      CallToAction.fromJson(Map<String, dynamic>.from(e)))
+                  .map((e) => CallToAction.fromJson(
+                      Map<String, dynamic>.from(e as Map)))
                   .toList()
               : null;
 
@@ -107,31 +107,6 @@ class AdditionalData {
             announcementContentId: notificationContentId,
             cta: cta,
           );
-        case NotificationType.newMessage:
-          final groupId = json['group_id'];
-          if (groupId == null) {
-            log.warning('AdditionalData: groupId is null');
-            return defaultAdditionalData;
-          }
-          return ViewNewMessage(
-            groupId: groupId,
-            notificationType: notificationType,
-            announcementContentId: notificationContentId,
-            cta: cta,
-          );
-        case NotificationType.newPostcardTrip:
-        case NotificationType.postcardShareExpired:
-          final indexID = json['indexID'];
-          if (indexID == null) {
-            log.warning('AdditionalData: indexID is null');
-            return defaultAdditionalData;
-          }
-          return ViewPostcard(
-            indexID: indexID,
-            notificationType: notificationType,
-            announcementContentId: notificationContentId,
-            cta: cta,
-          );
         case NotificationType.jgCrystallineWorkHasArrived:
           final jgExhibitionId = JohnGerrardHelper.exhibitionID;
           return ViewExhibitionData(
@@ -141,7 +116,7 @@ class AdditionalData {
             cta: cta,
           );
         case NotificationType.jgCrystallineWorkGenerated:
-          final tokenId = json['token_id'];
+          final tokenId = json['token_id'] as String?;
           if (tokenId == null) {
             log.warning('AdditionalData: tokenId is null');
             return defaultAdditionalData;
@@ -155,7 +130,7 @@ class AdditionalData {
         case NotificationType.exhibitionViewingOpening:
         case NotificationType.exhibitionSalesOpening:
         case NotificationType.exhibitionSaleClosing:
-          final exhibitionId = json['exhibition_id'];
+          final exhibitionId = json['exhibition_id'] as String?;
           if (exhibitionId == null) {
             log.warning('AdditionalData: exhibitionId is null');
             return defaultAdditionalData;
@@ -167,8 +142,8 @@ class AdditionalData {
             cta: cta,
           );
         case NotificationType.navigate:
-          final navigationRoute = json['navigation_route'];
-          final homeIndex = json['home_index'];
+          final navigationRoute = json['navigation_route'] as String;
+          final homeIndex = json['home_index'] as int;
           return NavigateAdditionalData(
             navigationRoute: navigationRoute,
             notificationType: notificationType,

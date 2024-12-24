@@ -4,8 +4,8 @@ import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:eth_sig_util/util/utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:web3dart/crypto.dart';
 
 class HttpHelper {
   static Map<String, String> _getHmac(
@@ -16,11 +16,13 @@ class HttpHelper {
   ) {
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final hexBody = (method == HttpMethod.GET || body is FormData)
+    final hexBody = (method == HttpMethod.get || body is FormData)
         ? ''
-        : bytesToHex(sha256
-            .convert(body == null ? [] : utf8.encode(json.encode(body)))
-            .bytes);
+        : bytesToHex(
+            sha256
+                .convert(body == null ? [] : utf8.encode(json.encode(body)))
+                .bytes,
+          );
     final canonicalString = List<String>.of([
       path.split('?').first,
       hexBody,
@@ -44,7 +46,7 @@ class HttpHelper {
   }) async {
     final url = Uri.parse('$host$path');
     final headers = header ?? {};
-    final hmacHeader = _getHmac(HttpMethod.POST, path, body, secretKey);
+    final hmacHeader = _getHmac(HttpMethod.post, path, body, secretKey);
     headers.addAll({
       ...hmacHeader,
       'Content-Type': 'application/json',
@@ -66,7 +68,7 @@ class HttpHelper {
   }) async {
     final url = Uri.parse('$host$path');
     final headers = header ?? {};
-    final hmacHeader = _getHmac(HttpMethod.GET, path, null, secretKey);
+    final hmacHeader = _getHmac(HttpMethod.get, path, null, secretKey);
     headers.addAll({
       ...hmacHeader,
       'Content-Type': 'application/json',
@@ -80,7 +82,7 @@ class HttpHelper {
   }
 
   static Future<String> contentType(String link) async {
-    String renderingType = RenderingType.webview;
+    var renderingType = RenderingType.webview;
     final uri = Uri.tryParse(link);
     if (uri != null) {
       try {
@@ -99,6 +101,6 @@ class HttpHelper {
 }
 
 enum HttpMethod {
-  GET,
-  POST,
+  get,
+  post,
 }

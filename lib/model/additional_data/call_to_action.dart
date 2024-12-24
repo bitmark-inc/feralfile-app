@@ -6,7 +6,7 @@ class CallToAction {
 
   factory CallToAction.fromJson(Map<String, dynamic> json) => CallToAction(
         json['cta_text'] as String?,
-        CTATarget.fromString(json['navigation_route']),
+        CTATarget.fromString(json['navigation_route'] as String),
       );
 }
 

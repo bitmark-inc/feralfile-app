@@ -1,16 +1,24 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+
+enum PasskeyRegisterViewType {
+  register,
+  login,
+}
 
 class PasskeyRegisterView extends StatefulWidget {
   const PasskeyRegisterView({super.key});
@@ -21,11 +29,12 @@ class PasskeyRegisterView extends StatefulWidget {
 
 class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
   final _passkeyService = injector.get<PasskeyService>();
-  final _accountService = injector.get<AccountService>();
 
-  bool _isError = false;
+  Object? _error;
   bool _registering = false;
+  PasskeyRegisterViewType? _type;
   bool _didSuccess = false;
+  JWT? _jwt;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -43,14 +52,14 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           const SizedBox(height: 20),
           _getAction(context),
           const SizedBox(height: 20),
-          _havingTrouble(context)
+          _havingTrouble(context),
         ],
       );
 
   Widget _getTitle(BuildContext context) => Text(
         _didSuccess
             ? 'passkey_created'.tr()
-            : _isError
+            : _error != null
                 ? 'authentication_failed'.tr()
                 : 'introducing_passkey'.tr(),
         style: Theme.of(context).textTheme.ppMori700Black16,
@@ -69,13 +78,23 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
         ],
       );
     }
-    if (_isError) {
+    if (_error != null) {
       return Column(
         children: [
-          Text(
-            'passkey_error_desc'.tr(),
-            style: style,
-          ),
+          if (_error is DioException &&
+              ((_error! as DioException).statusCode ==
+                  StatusCode.notFound.value) &&
+              (_error! as DioException).ffErrorCode == 998) ...[
+            Text(
+              'passkey_not_found'.tr(),
+              style: style,
+            ),
+          ] else ...[
+            Text(
+              'passkey_error_desc'.tr(),
+              style: style,
+            ),
+          ],
         ],
       );
     }
@@ -101,51 +120,118 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
       return PrimaryButton(
         text: 'continue'.tr(),
         color: AppColor.feralFileLightBlue,
-        onTap: () {
-          Navigator.of(context).pop(true);
+        onTap: () async {
+          Navigator.of(context).pop(_jwt);
         },
       );
     }
-    return PrimaryAsyncButton(
-      key: const Key('register_button'),
-      color: AppColor.feralFileLightBlue,
-      onTap: _register,
-      text: _isError ? 'try_again'.tr() : 'get_started'.tr(),
-      processingText: 'creating_passkey'.tr(),
+
+    if (_error != null) {
+      return Column(
+        children: [
+          PrimaryAsyncButton(
+            key: const Key('try_again_button'),
+            color: AppColor.feralFileLightBlue,
+            onTap: () {
+              if (_type == PasskeyRegisterViewType.register) {
+                return _register();
+              } else {
+                return _login();
+              }
+            },
+            text: 'try_again'.tr(),
+            processingText: 'processing'.tr(),
+          ),
+        ],
+      );
+    }
+    return Column(
+      children: [
+        PrimaryAsyncButton(
+          key: const Key('register_button'),
+          color: AppColor.feralFileLightBlue,
+          onTap: () async {
+            _type = PasskeyRegisterViewType.register;
+            final jwt = await _register();
+            return jwt;
+          },
+          text: 'get_started'.tr(),
+          processingText: 'creating_passkey'.tr(),
+        ),
+        const SizedBox(height: 10),
+        PrimaryAsyncButton(
+          key: const Key('login_button'),
+          color: AppColor.feralFileLightBlue,
+          onTap: () async {
+            _type = PasskeyRegisterViewType.login;
+            final jwt = await _login();
+            return jwt;
+          },
+          text: 'login_with_passkey'.tr(),
+          processingText: 'login_with_passkey'.tr(),
+        ),
+      ],
     );
   }
 
-  Future<void> _register() async {
+  Future<JWT?> _register() async {
+    JWT? jwt;
     if (_registering) {
-      return;
+      return null;
     }
     setState(() {
       _registering = true;
-      _isError = false;
     });
     try {
       await _passkeyService.registerInitiate();
-      await _accountService.migrateAccount(() async {
-        await _passkeyService.registerFinalize();
-      });
+      jwt = await _passkeyService.registerFinalize();
       setState(() {
         _didSuccess = true;
+        _jwt = jwt;
       });
     } catch (e, stackTrace) {
       log.info('Failed to register passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: stackTrace));
       setState(() {
-        _isError = true;
+        _error = e;
       });
     } finally {
       setState(() {
         _registering = false;
       });
     }
+    return jwt;
+  }
+
+  Future<JWT?> _login() async {
+    JWT? jwt;
+    if (_registering) {
+      return null;
+    }
+    setState(() {
+      _registering = true;
+    });
+    try {
+      final jwt = await _passkeyService.requestJwt();
+      if (context.mounted) {
+        Navigator.of(context).pop(jwt);
+      }
+    } catch (e, stackTrace) {
+      log.info('Failed to login passkey: $e');
+      unawaited(Sentry.captureException(e, stackTrace: stackTrace));
+      setState(() {
+        _error = e;
+      });
+    } finally {
+      setState(() {
+        _registering = false;
+      });
+    }
+    return jwt;
   }
 
   Widget _havingTrouble(BuildContext context) {
-    if (_didSuccess || (!_isError && !_registering)) {
+    if (_didSuccess || (_error == null && !_registering)) {
       return const SizedBox();
     }
     return const HavingTroubleView();

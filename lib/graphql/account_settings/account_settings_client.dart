@@ -23,9 +23,9 @@ class AccountSettingsClient {
     required Map<String, dynamic> vars,
   }) async {
     final data = await _query(doc: _queryDoc, vars: vars);
-    final values = data?['keys']?['values'];
+    final values = data?['keys']?['values'] as List<dynamic>? ?? [];
     log.info('AccountSettingsClient: query $values');
-    final rawResult = List<Map<String, dynamic>>.from(values ?? []);
+    final rawResult = values.cast<Map<String, dynamic>>();
     return rawResult
         .where((element) => element['value'] != null)
         .map((e) => Map<String, String>.from({
@@ -85,7 +85,7 @@ class AccountSettingsClient {
     log
       ..info('AccountSettingsClient: write $data')
       ..info('AccountSettingsClient: write result ${resultData?['write']}');
-    return resultData?['write']?['ok'] ?? false;
+    return (resultData?['write']?['ok'] ?? false) as bool;
   }
 
   Future<bool> delete({
@@ -93,7 +93,7 @@ class AccountSettingsClient {
   }) async {
     final data = await _mutate(doc: _deleteDoc, vars: vars);
     log.info('AccountSettingsClient: delete $data');
-    return data?['delete']?['ok'] ?? false;
+    return (data?['delete']?['ok'] ?? false) as bool;
   }
 
   Future<String> _getToken() async {

@@ -121,9 +121,9 @@ extension TZKTTokenExtension on TZKTToken {
               ?.cast<String>()
               .firstOrNull,
           maxEdition: 1,
-          mimeType: metadata?['formats']?[0]?['mimeType'],
+          mimeType: metadata?['formats']?[0]?['mimeType'] as String?,
           source: contract?.address,
-          title: metadata?['name'] ?? '',
+          title: metadata?['name'] as String? ?? '',
         ),
         blockchain: 'tezos',
         fungible: false,
@@ -147,13 +147,6 @@ extension TZKTTokenExtension on TZKTToken {
 }
 
 class PendingTokenService {
-  final TZKTApi _tzktApi;
-  final Web3Client _web3Client;
-  final TokensService _tokenService;
-  final AssetTokenDao _assetTokenDao;
-  final TokenDao _tokenDao;
-  final AssetDao _assetDao;
-
   PendingTokenService(
     this._tzktApi,
     this._web3Client,
@@ -163,6 +156,13 @@ class PendingTokenService {
     this._assetDao,
   );
 
+  final TZKTApi _tzktApi;
+  final Web3Client _web3Client;
+  final TokensService _tokenService;
+  final AssetTokenDao _assetTokenDao;
+  final TokenDao _tokenDao;
+  final AssetDao _assetDao;
+
   Future<List<AssetToken>> checkPendingEthereumTokens(
     String owner,
     String tx,
@@ -170,8 +170,9 @@ class PendingTokenService {
     String signature,
   ) async {
     log.info(
-        '[PendingTokenService] Check pending Ethereum tokens: $owner, $tx');
-    int retryCount = 0;
+      '[PendingTokenService] Check pending Ethereum tokens: $owner, $tx',
+    );
+    var retryCount = 0;
     TransactionReceipt? receipt;
     do {
       await Future.delayed(_getRetryDelayDuration(retryCount));
@@ -193,7 +194,7 @@ class PendingTokenService {
       log.info('[PendingTokenService] Pending Tokens:'
           ' ${pendingTokens.map((e) => e.id).toList()}');
       if (pendingTokens.isNotEmpty) {
-        for (var e in pendingTokens) {
+        for (final e in pendingTokens) {
           final element = PendingTxParams(
             blockchain: e.blockchain,
             id: e.tokenId ?? '',
@@ -222,13 +223,15 @@ class PendingTokenService {
     }
   }
 
-  Future<List<AssetToken>> checkPendingTezosTokens(String owner,
-      {int? maxRetries}) async {
+  Future<List<AssetToken>> checkPendingTezosTokens(
+    String owner, {
+    int? maxRetries,
+  }) async {
     if (Environment.appTestnetConfig) {
       return [];
     }
     log.info('[PendingTokenService] Check pending Tezos tokens: $owner');
-    int retryCount = 0;
+    var retryCount = 0;
     final pendingTokens = List<AssetToken>.empty(growable: true);
     final ownedTokenIds = await getTokenIDs(owner);
 
@@ -248,14 +251,19 @@ class PendingTokenService {
         if (operation.to?.address == owner) {
           transfers.add(operation);
         } else if (operation.from?.address == owner) {
-          transfers.removeWhere((e) =>
-              e.token?.tokenId == operation.token?.tokenId &&
-              e.token?.contract?.address == operation.token?.contract?.address);
+          transfers.removeWhere(
+            (e) =>
+                e.token?.tokenId == operation.token?.tokenId &&
+                e.token?.contract?.address ==
+                    operation.token?.contract?.address,
+          );
         }
       }
       final tokens = transfers
-          .where((e) =>
-              !_tezosContractBlacklist.contains(e.token?.contract?.address))
+          .where(
+            (e) =>
+                !_tezosContractBlacklist.contains(e.token?.contract?.address),
+          )
           .map((e) => e.token?.toAssetToken(owner, DateTime.now()))
           .where((e) => e != null)
           .map((e) => e!)
@@ -267,11 +275,12 @@ class PendingTokenService {
           (await _assetTokenDao.findAllPendingAssetTokens())
               .where((e) => e.owner == owner)
               .whereNot((e) => e.isAirdrop);
-      final removedPending = currentPendingTokens.where((e) =>
-          tokens.firstWhereOrNull((element) => e.id == element.id) == null);
+      final removedPending = currentPendingTokens.where(
+        (e) => tokens.firstWhereOrNull((element) => e.id == element.id) == null,
+      );
       log.info('[PendingTokenService] Delete transferred out pending tokens: '
           '${removedPending.map((e) => e.id).toList()}');
-      for (AssetToken token in removedPending) {
+      for (final token in removedPending) {
         if (token.asset?.indexID != null) {
           await _assetDao.deleteAssetByIndexID(token.asset!.indexID!);
         }
@@ -284,7 +293,8 @@ class PendingTokenService {
       if (pendingTokens.isNotEmpty) {
         log
           ..info(
-              '[PendingTokenService] Found ${pendingTokens.length} new tokens.')
+            '[PendingTokenService] Found ${pendingTokens.length} new tokens.',
+          )
           ..info('[PendingTokenService] Pending IDs: '
               '${pendingTokens.map((e) => e.id).toList()}');
         break;

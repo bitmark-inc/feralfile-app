@@ -27,7 +27,7 @@ class ChatNotificationData extends AdditionalData {
       if (announcement != null) {
         await injector<NavigationService>().navigateTo(
           AppRouter.supportThreadPage,
-          arguments: ChatSupportPayload(
+          arguments: NewIssueFromAnnouncementPayload(
             announcement: announcement,
             title: title,
           ),

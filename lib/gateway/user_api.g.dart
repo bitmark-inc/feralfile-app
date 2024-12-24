@@ -74,7 +74,7 @@ class _UserApi implements UserApi {
   }
 
   @override
-  Future<CredentialRequestOption> logInInitialize(String id) async {
+  Future<CredentialRequestOption> logInInitializeWithUserId(String id) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -88,6 +88,33 @@ class _UserApi implements UserApi {
             .compose(
               _dio.options,
               '/apis/users/${id}/passkeys/login/initialize',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = CredentialRequestOption.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<CredentialRequestOption> logInInitialize() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<CredentialRequestOption>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/apis/users/passkeys/login/initialize',
               queryParameters: queryParameters,
               data: _data,
             )

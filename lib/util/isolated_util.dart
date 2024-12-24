@@ -13,13 +13,13 @@ import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
 
 class IsolatedUtil {
-  static final IsolatedUtil _singleton = IsolatedUtil._internal();
-
   factory IsolatedUtil() {
     return _singleton;
   }
 
   IsolatedUtil._internal();
+
+  static final IsolatedUtil _singleton = IsolatedUtil._internal();
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
@@ -31,9 +31,9 @@ class IsolatedUtil {
   final Map<String, Completer<bool>> _boolCompleters = {};
   final Map<String, Completer<dynamic>> _stringCompleters = {};
 
-  static const SHOULD_SHORT_API_RESPONSE_LOG = 'SHOULD_SHORT_API_RESPONSE_LOG';
-  static const SHOULD_SHORT_CURL_LOG = 'SHOULD_SHORT_CURL_LOG';
-  static const JSON_DECODE = 'JSON_DECODE';
+  static const shouldShortAPIResonseLog = 'SHOULD_SHORT_API_RESPONSE_LOG';
+  static const shouldShortCURLLog = 'SHOULD_SHORT_CURL_LOG';
+  static const shouldJsonDecode = 'JSON_DECODE';
 
   Future<void> start() async {
     if (_sendPort != null || _receivePort != null) return;
@@ -46,7 +46,7 @@ class IsolatedUtil {
     );
   }
 
-  Future startIsolateOrWait() async {
+  Future<void> startIsolateOrWait() async {
     if (_receivePort == null) {
       await start();
       await isolateReady;
@@ -63,7 +63,7 @@ class IsolatedUtil {
     final completer = Completer<bool>();
     _boolCompleters[uuid] = completer;
 
-    _sendPort!.send([SHOULD_SHORT_API_RESPONSE_LOG, uuid, curl]);
+    _sendPort!.send([shouldShortAPIResonseLog, uuid, curl]);
     return completer.future;
   }
 
@@ -74,7 +74,7 @@ class IsolatedUtil {
     final completer = Completer<bool>();
     _boolCompleters[uuid] = completer;
 
-    _sendPort!.send([SHOULD_SHORT_API_RESPONSE_LOG, uuid, curl]);
+    _sendPort!.send([shouldShortAPIResonseLog, uuid, curl]);
     return completer.future;
   }
 
@@ -85,19 +85,18 @@ class IsolatedUtil {
     final completer = Completer<dynamic>();
     _stringCompleters[uuid] = completer;
 
-    _sendPort!.send([JSON_DECODE, uuid, response]);
+    _sendPort!.send([shouldJsonDecode, uuid, response]);
     return completer.future;
   }
 
-  static void _isolateEntry(SendPort sendPort) async {
-    final receivePort = ReceivePort();
-    receivePort.listen(_handleMessageInIsolate);
+  static void _isolateEntry(SendPort sendPort) {
+    final receivePort = ReceivePort()..listen(_handleMessageInIsolate);
 
     sendPort.send(receivePort.sendPort);
     _isolateSendPort = sendPort;
   }
 
-  void _handleMessageInMain(dynamic message) async {
+  void _handleMessageInMain(dynamic message) {
     if (message is SendPort) {
       _sendPort = message;
       _isolateReady.complete();
@@ -117,29 +116,28 @@ class IsolatedUtil {
 
   static void _handleMessageInIsolate(dynamic message) {
     if (message is List<dynamic>) {
+      final uuid = message[1] as String;
+      final curl = message[2] as String;
       switch (message[0]) {
-        case SHOULD_SHORT_CURL_LOG:
-          _shortCurlLog(message[1], message[2]);
-          break;
-        case SHOULD_SHORT_API_RESPONSE_LOG:
-          _shortAPIResponseLog(message[1], message[2]);
-          break;
-        case JSON_DECODE:
-          _jsonDecode(message[1], message[2]);
-          break;
+        case shouldShortCURLLog:
+          _shortCurlLog(uuid, curl);
+        case shouldShortAPIResonseLog:
+          _shortAPIResponseLog(uuid, curl);
+        case shouldJsonDecode:
+          _jsonDecode(uuid, curl);
       }
     }
   }
 
   static void _shortCurlLog(String uuid, String curl) {
-    final matched = RegExp(r'.*support.*\/issues.*').hasMatch(curl);
+    final matched = RegExp(r'.*support.*/issues.*').hasMatch(curl);
     _isolateSendPort?.send(BoolResult(uuid, matched));
   }
 
   static void _shortAPIResponseLog(String uuid, String curl) {
-    List<RegExp> logFilterRegex = [
-      RegExp(r'.*\/nft.*'),
-      RegExp(r'.*support.*\/issues.*'),
+    final logFilterRegex = <RegExp>[
+      RegExp(r'.*/nft.*'),
+      RegExp(r'.*support.*/issues.*'),
     ];
 
     final matched =
@@ -165,15 +163,15 @@ class IsolatedUtil {
 abstract class IsolatedUtilResult {}
 
 class BoolResult extends IsolatedUtilResult {
+  BoolResult(this.uuid, this.result);
+
   final String uuid;
   final bool result;
-
-  BoolResult(this.uuid, this.result);
 }
 
 class StringResult extends IsolatedUtilResult {
+  StringResult(this.uuid, this.result);
+
   final String uuid;
   final dynamic result;
-
-  StringResult(this.uuid, this.result);
 }

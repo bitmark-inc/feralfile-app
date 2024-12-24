@@ -13,6 +13,9 @@ class FeralFileHelper {
   static String getExhibitionNoteUrl(String exhibitionSlug) =>
       '$_baseUrl/exhibitions/$exhibitionSlug/overview#note';
 
+  static String getExhibitionForewordUrl(String exhibitionSlug) =>
+      '$_baseUrl/exhibitions/$exhibitionSlug?tab=overview';
+
   static String getPostUrl(Post post, String exhibitionID) =>
       '$_baseUrl/journal/${post.type}/${post.slug}/?exhibitionID=$exhibitionID';
 

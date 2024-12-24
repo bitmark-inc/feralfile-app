@@ -5,14 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -26,13 +27,6 @@ Dio feralFileDio(BaseOptions options) {
 Dio customerSupportDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(CustomerSupportInterceptor());
-  return dio;
-}
-
-Dio postcardDio(BaseOptions options) {
-  final dio = baseDio(options);
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AutonomyAuthInterceptor());
   return dio;
 }
 
@@ -59,19 +53,24 @@ Dio baseDio(BaseOptions options) {
     receiveTimeout: options.receiveTimeout ?? const Duration(seconds: 10),
   );
   final dio = Dio(); // Default a dio instance
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    validateCertificate: (cert, host, port) {
+      return true;
+    },
+    createHttpClient: () {
+      return HttpClient()
+        ..badCertificateCallback = (cert, host, port) {
+          return true;
+        };
+    },
+  );
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
       log.warning('[request retry] $message');
     },
-    retryEvaluator: (error, attempt) async {
+    retryEvaluator: (error, attempt) {
       if (error.statusCode == 404) {
-        return false;
-      }
-      if (error.statusCode == 401) {
-        await injector<AuthService>().refreshJWT();
-      }
-      if (error.isPostcardClaimEmptyLimited || error.isClaimPassLimit) {
         return false;
       }
       return true;
@@ -87,7 +86,6 @@ Dio baseDio(BaseOptions options) {
 
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(ConnectingExceptionInterceptor());
-  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio
     ..options = dioOptions
 

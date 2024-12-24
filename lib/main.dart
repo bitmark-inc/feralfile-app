@@ -9,16 +9,12 @@
 // ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/encrypt_env/secrets.dart';
-import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
-import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -32,6 +28,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:floor/floor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -53,13 +50,14 @@ Future<void> callbackDispatcher() async {
   Workmanager().executeTask((task, inputData) async {
     try {
       if (task == dailyWidgetTaskUniqueName || task == dailyWidgetTaskName) {
-        await getSecretEnv();
         await dotenv.load();
         await setupHomeWidgetInjector();
         await injector<HomeWidgetService>().updateDailyTokensToHomeWidget();
       }
     } catch (e) {
-      print('callbackDispatcher error: $e');
+      if (kDebugMode) {
+        print('callbackDispatcher error: $e');
+      }
       throw Exception(e);
     }
 
@@ -68,50 +66,50 @@ Future<void> callbackDispatcher() async {
 }
 
 void main() async {
-  unawaited(runZonedGuarded(() async {
-    final json = await getSecretEnv();
-    cachedSecretEnv = jsonDecode(json);
-    await dotenv.load();
-    await SentryFlutter.init(
-      (options) {
-        options
-          ..dsn = Environment.sentryDSN
-          ..enableAutoSessionTracking = true
-          ..tracesSampleRate = 0.25
-          ..attachStacktrace = true
-          ..beforeSend = (SentryEvent event, Hint hint) {
-            // Avoid sending events with "level": "debug"
-            if (event.level == SentryLevel.debug) {
-              // Return null to drop the event
-              return null;
-            }
-            return event;
-          };
-      },
-      appRunner: () async {
-        try {
-          await runFeralFileApp();
-        } catch (e, stackTrace) {
-          await Sentry.captureException(e, stackTrace: stackTrace);
-          rethrow;
-        }
-      },
-    );
-  }, (Object error, StackTrace stackTrace) async {
-    /// Check error is Database issue
-    if (error.toString().contains('DatabaseException')) {
-      log.info('[DatabaseException] Remove local database and resume app');
+  unawaited(
+    runZonedGuarded(() async {
+      await dotenv.load();
+      await SentryFlutter.init(
+        (options) {
+          options
+            ..dsn = Environment.sentryDSN
+            ..enableAutoSessionTracking = true
+            ..tracesSampleRate = 0.25
+            ..attachStacktrace = true
+            ..beforeSend = (SentryEvent event, Hint hint) {
+              // Avoid sending events with "level": "debug"
+              if (event.level == SentryLevel.debug) {
+                // Return null to drop the event
+                return null;
+              }
+              return event;
+            };
+        },
+        appRunner: () async {
+          try {
+            await runFeralFileApp();
+          } catch (e, stackTrace) {
+            await Sentry.captureException(e, stackTrace: stackTrace);
+            rethrow;
+          }
+        },
+      );
+    }, (Object error, StackTrace stackTrace) async {
+      /// Check error is Database issue
+      if (error.toString().contains('DatabaseException')) {
+        log.info('[DatabaseException] Remove local database and resume app');
 
-      await _deleteLocalDatabase();
+        await _deleteLocalDatabase();
 
-      /// Need to setup app again
-      Future.delayed(const Duration(milliseconds: 200), () async {
-        await _setupApp();
-      });
-    } else {
-      showErrorDialogFromException(error, stackTrace: stackTrace);
-    }
-  }));
+        /// Need to setup app again
+        Future.delayed(const Duration(milliseconds: 200), () async {
+          await _setupApp();
+        });
+      } else {
+        showErrorDialogFromException(error, stackTrace: stackTrace);
+      }
+    }),
+  );
 }
 
 Future<void> runFeralFileApp() async {
@@ -124,6 +122,7 @@ Future<void> runFeralFileApp() async {
   await FlutterDownloader.initialize();
   await Hive.initFlutter();
   _registerHiveAdapter();
+  ObjectBox.create();
 
   FlutterDownloader.registerCallback(downloadCallback);
   try {
@@ -134,15 +133,20 @@ Future<void> runFeralFileApp() async {
 
   OneSignal.initialize(Environment.onesignalAppID);
   OneSignal.Debug.setLogLevel(OSLogLevel.error);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: AppColor.white,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: AppColor.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+  );
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    showErrorDialogFromException(details.exception,
-        stackTrace: details.stack, library: details.library);
+    showErrorDialogFromException(
+      details.exception,
+      stackTrace: details.stack,
+      library: details.library,
+    );
   };
 
   await _setupApp();
@@ -150,8 +154,6 @@ Future<void> runFeralFileApp() async {
 
 void _registerHiveAdapter() {
   Hive
-    ..registerAdapter(EthereumPendingTxAmountAdapter())
-    ..registerAdapter(EthereumPendingTxListAdapter())
     ..registerAdapter(CanvasDeviceAdapter())
     ..registerAdapter(AnnouncementLocalAdapter());
 }
@@ -161,7 +163,7 @@ Future<void> _setupWorkManager() async {
     await Workmanager().initialize(callbackDispatcher);
     Workmanager()
         .cancelByTag(dailyWidgetTaskTag)
-        .catchError((e) => log.info('Error in cancelTaskByTag: $e'));
+        .catchError((Object e) => log.info('Error in cancelTaskByTag: $e'));
     await _startBackgroundUpdate();
   } catch (e) {
     log.info('Error in _setupWorkManager: $e');
@@ -210,9 +212,9 @@ Future<void> _setupApp() async {
 }
 
 Future<void> _deleteLocalDatabase() async {
-  String appDatabaseMainnet =
+  final appDatabaseMainnet =
       await sqfliteDatabaseFactory.getDatabasePath('app_database_mainnet.db');
-  String appDatabaseTestnet =
+  final appDatabaseTestnet =
       await sqfliteDatabaseFactory.getDatabasePath('app_database_testnet.db');
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
@@ -241,7 +243,7 @@ class AutonomyApp extends StatelessWidget {
             navigatorObservers: [
               routeObserver,
               SentryNavigatorObserver(),
-              HeroController()
+              HeroController(),
             ],
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
@@ -255,7 +257,6 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 
 @pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
-  final SendPort? send =
-      IsolateNameServer.lookupPortByName('downloader_send_port');
+  final send = IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }

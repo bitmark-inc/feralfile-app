@@ -8,84 +8,40 @@
 import Foundation
 import Flutter
 import Combine
-import LibAuk
+import LibWally
 
 class SystemChannelHandler: NSObject {
-
+    
     static let shared = SystemChannelHandler()
     private var cancelBag = Set<AnyCancellable>()
-
-
-    func getiOSMigrationData(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let url = FileManager.default.urls(for: .documentDirectory,
-                                              in: .userDomainMask)[0].appendingPathComponent("migration-db.json")
-
-        guard let data = try? Data(contentsOf: url) else {
-            result("")
-            return
-        }
-
-        result(String(data: data, encoding: .utf8))
-
-    }
-
-    func cleariOSMigrationData(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let url = FileManager.default.urls(for: .documentDirectory,
-                                              in: .userDomainMask)[0].appendingPathComponent("migration-db.json")
-
-        try? FileManager.default.removeItem(at: url)
-        result([
-            "error": 0,
-            "msg": "cleariOSMigrationData success",
-        ])
-    }
-
-    func getWalletUUIDsFromKeychain(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let personaUUIDs = scanKeychainPersonaUUIDs()
-        result(personaUUIDs)
-    }
     
-    func removeKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as! [String: Any]
-        let account = args["account"] as? String
-        let service = args["service"] as? String
-        let secClass = args["secClass"] as! CFTypeRef
-        removeKeychainItems(account: account, service: service, secClass: secClass)
-        result(nil)
+    func exportMnemonicForAllPersonaUUIDs(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        do {
+            // Fetch all mnemonics mapped to persona UUIDs
+            let mnemonicMap = try exportMnemonicForAllPersonaUUIDs()
+            
+            // Convert the result into a format Flutter can handle (e.g., a dictionary of String keys and array of strings)
+            var resultMap: [String: Any] = [:]
+            for (uuid, mnemonicWords) in mnemonicMap {
+                resultMap[uuid] = mnemonicWords
+            }
+            
+            // Send the result back to Flutter
+            result(resultMap)
+        } catch {
+            // Handle any errors that occur and send the error message back to Flutter
+            result(FlutterError(code: "EXPORT_MNEMONIC_ERROR",
+                                message: "Failed to export mnemonics: \(error.localizedDescription)",
+                                details: nil))
+        }
     }
+
     
-    private func removeKeychainItems(account: String? = nil, service: String? = nil, secClass: CFTypeRef = kSecClassGenericPassword) {
-        var query: [String: Any] = [
-            kSecClass as String: secClass,
-            kSecReturnData as String: kCFBooleanTrue,
-            kSecReturnAttributes as String : kCFBooleanTrue,
-        ]
+    func exportMnemonicForAllPersonaUUIDs() throws -> [String: [String]] {
+        // define map: key is uuid, value is list from passphrase at index 0, the next are mnenmonic words
+        var mnemonicMap = [String: [String]]()
         
-        if let account = account {
-            query[kSecAttrAccount as String] = account
-        }
-        
-        if let service = service {
-            query[kSecAttrService as String] = service
-        }
-        
-        let status = SecItemDelete(query as CFDictionary)
-        
-        if status == errSecSuccess {
-            logger.info("Keychain item(s) removed successfully.")
-        } else if status == errSecItemNotFound {
-            logger.info("Keychain item(s) not found.")
-        } else {
-            if let error: String = SecCopyErrorMessageString(status, nil) as String? {
-                logger.error(error)
-                    }
-
-            logger.error("Error removing keychain item(s): \(status)")
-        }
-    }
-
-    func scanKeychainPersonaUUIDs() -> [String] {
-        var personaUUIDs = [String]()
+        // querry all keychain items
         let query: NSDictionary = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrSynchronizable: kCFBooleanTrue,
@@ -95,157 +51,54 @@ class SystemChannelHandler: NSObject {
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
         ]
-
+        
         var dataTypeRef: AnyObject?
-        let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
+        let status = withUnsafeMutablePointer(to: &dataTypeRef) {
             SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
         }
-
-        if lastResultCode == noErr {
-            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
-                return []
-            }
-
-            for item in array {
-                if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
-                    let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
-                        .replacingOccurrences(of: "_seed", with: "")
-
-                    guard let personaUUID = UUID(uuidString: personaUUIDString) else {
-                        continue
-                    }
-
-                    if (LibAuk.shared.storage(for: personaUUID).getETHAddress() != nil) {
-                        personaUUIDs.append(personaUUIDString)
-                    }
-
+        guard status == noErr else {
+            throw LibAukError.other(reason: "Keychain query failed with status: \(status)")
+        }
+        
+        guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
+            return [:]
+        }
+        
+        for item in array {
+            // filter seed keychain by check if have `seed` in key: personna.uuid_seed
+            if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
+                
+                // get uuid
+                let personaUUIDString = key
+                    .replacingOccurrences(of: "persona.", with: "")
+                    .replacingOccurrences(of: "_seed", with: "")
+                
+                if let data = item[kSecValueData as String] as? Data,
+                   let dataString = String(data: data, encoding: .utf8),
+                   let seed = try? Seed(urString: dataString),
+                   let mnemonicWords = try? Mnemonic.toMnemonic([UInt8](seed.data)){
+                    mnemonicMap[personaUUIDString] = [seed.passphrase ?? ""] + mnemonicWords
                 }
             }
         }
-
-        return personaUUIDs
+        
+        return mnemonicMap
     }
         
-    func getDeviceUniqueID(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        
-        guard let data = keychain.getData(Constant.deviceIDKey, isSync: true),
-              let id = String(data: data, encoding: .utf8) else {
-                  let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-                  keychain.set(deviceId.data(using: .utf8)!, forKey: Constant.deviceIDKey, isSync: true)
-
-                  result(deviceId)
-                  return
-              }
-
-        result(id)
-    }
-    
-    func setPrimaryAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-                  let data = args["data"] as? String else {
-                result(false)
-                return
-            }
-        let keychain = Keychain()
-        if keychain.set(data.data(using: .utf8)!, forKey: Constant.primaryAddressKey) {
-                result(true)
-            } else {
-                result(false)
-            }
-    }
-    
-    func getPrimaryAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        
-        guard let data = keychain.getData(Constant.primaryAddressKey, isSync: true),
-              let primaryAddress = String(data: data, encoding: .utf8) else {
-                result("")
-                return
-              }
-
-        result(primaryAddress)
-    }
-    
-    func clearPrimaryAddress(call: FlutterMethodCall) {
-        let keychain = Keychain()
-        
-        keychain.remove(key: Constant.primaryAddressKey, isSync: true)
-        return
-    }
-    
-    func setJWT(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-                  let data = args["data"] as? String else {
-                result(false)
-                return
-            }
-        let keychain = Keychain()
-        if keychain.set(data.data(using: .utf8)!, forKey: Constant.jwtKey) {
-            result(true)
+    private func buildKeyAttr(prefix: String?, key: String) -> String {
+        if let prefix = prefix {
+            return "\(prefix)_\(key)"
         } else {
-            result(false)
+            return key
         }
     }
-    
-    func getJWT(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        getJWT(result: result)
-    }
-    
-    func clearJWT(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        
-        keychain.remove(key: Constant.jwtKey, isSync: true)
-        result(true)
-    }
-    
-    func setDidRegisterPasskey(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        // Safely extract the arguments and handle cases where "data" is nil or invalid, default to false
-        let args = call.arguments as? [String: Any]
-        let data = (args?["data"] as? Bool) ?? false
-
-        let keychain = Keychain()
-        
-        // Encode Bool to Data
-        let boolData = Data([data ? 1 : 0])
-
-        // Safely store the Bool data in Keychain
-        if keychain.set(boolData, forKey: Constant.didRegisterPasskeys) {
-            result(true)
-        } else {
-            result(false)
-        }
-    }
-
-    func didRegisterPasskey(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        didRegisterPasskeyKeychain(result: result)
-    }
-    
-    func didRegisterPasskeyKeychain(result: @escaping FlutterResult) {
-        let keychain = Keychain()
-
-        // Safely retrieve data from Keychain
-        guard let data = keychain.getData(Constant.didRegisterPasskeys, isSync: true) else {
-            result(false)
-            return
-        }
-
-        // Decode the data back to a Bool
-        let didRegisterPasskeys = data.first == 1
-
-        // Return the Bool value
-        result(didRegisterPasskeys)
-    }
-    
-    func getJWT(result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        guard let data = keychain.getData(Constant.jwtKey, isSync: true),
-              let jwt = String(data: data, encoding: .utf8), !jwt.isEmpty else {
-            result("")
-            return
-        }
-        
-        result(jwt)
-    }
-    
 }
+
+class Keys {
+    static func mnemonic(_ entropy: Data) -> BIP39Mnemonic? {
+        let bip39entropy = BIP39Mnemonic.Entropy(entropy)
+
+        return try? BIP39Mnemonic(entropy: bip39entropy)
+    }
+}
+

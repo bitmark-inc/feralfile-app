@@ -13,64 +13,41 @@ part 'ff_artwork.g.dart';
 
 @JsonSerializable()
 class ArtworkResponse {
-  final Artwork result;
-
   ArtworkResponse(this.result);
 
   factory ArtworkResponse.fromJson(Map<String, dynamic> json) =>
       _$ArtworkResponseFromJson(json);
+  final Artwork result;
 
   Map<String, dynamic> toJson() => _$ArtworkResponseToJson(this);
 }
 
 @JsonSerializable()
 class Artwork {
-  final String id;
-  final String seriesID;
-  final int index;
-  final String name;
-  final String? category;
-  final String? ownerAddress;
-  final bool? virgin;
-  final bool? burned;
-  final String? blockchainStatus;
-  final bool? isExternal;
-  final String thumbnailURI;
-  final String? thumbnailDisplay;
-  final String previewURI;
-  final Map<String, String> previewDisplay;
-  final Map<String, dynamic>? metadata;
-  final DateTime? mintedAt;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final bool? isArchived;
-  final FFSeries? series;
-  final ArtworkSwap? swap;
-  final List<ArtworkAttribute>? artworkAttributes;
-
   Artwork(
-      this.id,
-      this.seriesID,
-      this.index,
-      this.name,
-      this.category,
-      this.ownerAddress,
-      this.virgin,
-      this.burned,
-      this.blockchainStatus,
-      this.isExternal,
-      this.thumbnailURI,
-      this.thumbnailDisplay,
-      this.previewURI,
-      this.previewDisplay,
-      this.metadata,
-      this.mintedAt,
-      this.createdAt,
-      this.updatedAt,
-      this.isArchived,
-      this.series,
-      this.swap,
-      this.artworkAttributes);
+    this.id,
+    this.seriesID,
+    this.index,
+    this.name,
+    this.category,
+    this.ownerAddress,
+    this.virgin,
+    this.burned,
+    this.blockchainStatus,
+    this.isExternal,
+    this.thumbnailURI,
+    this.thumbnailDisplay,
+    this.previewURI,
+    this.previewDisplay,
+    this.metadata,
+    this.mintedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.isArchived,
+    this.series,
+    this.swap,
+    this.artworkAttributes,
+  );
 
   factory Artwork.fromJson(Map<String, dynamic> json) => Artwork(
         json['id'] as String,
@@ -86,7 +63,7 @@ class Artwork {
         json['thumbnailURI'] as String,
         json['thumbnailDisplay'] as String?,
         json['previewURI'] as String,
-        (json['previewDisplay'] as Map<String, dynamic>? ?? {})
+        (json['previewDisplay'] as Map<String, dynamic>)
             .map((key, value) => MapEntry(key, value as String)),
         json['metadata'] as Map<String, dynamic>?,
         json['mintedAt'] == null || (json['mintedAt'] as String).isEmpty
@@ -109,9 +86,32 @@ class Artwork {
             ? null
             : (json['artworkAttributes'] as List<dynamic>)
                 .map(
-                    (e) => ArtworkAttribute.fromJson(e as Map<String, dynamic>))
+                  (e) => ArtworkAttribute.fromJson(e as Map<String, dynamic>),
+                )
                 .toList(),
       );
+  final String id;
+  final String seriesID;
+  final int index;
+  final String name;
+  final String? category;
+  final String? ownerAddress;
+  final bool? virgin;
+  final bool? burned;
+  final String? blockchainStatus;
+  final bool? isExternal;
+  final String thumbnailURI;
+  final String? thumbnailDisplay;
+  final String previewURI;
+  final Map<String, String> previewDisplay;
+  final Map<String, dynamic>? metadata;
+  final DateTime? mintedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final bool? isArchived;
+  final FFSeries? series;
+  final ArtworkSwap? swap;
+  final List<ArtworkAttribute>? artworkAttributes;
 
   Map<String, dynamic> toJson() => _$ArtworkToJson(this);
 
@@ -167,25 +167,6 @@ class Artwork {
 }
 
 class ArtworkSwap {
-  final String id;
-  final String artworkID;
-  final String seriesID;
-  final String? paymentID;
-  final double? fee;
-  final String currency;
-  final int artworkIndex;
-  final String ownerAddress;
-  final String status;
-  final String contractName;
-  final String contractAddress;
-  final String recipientAddress;
-  final String? ipfsCid;
-  final String? token;
-  final String blockchainType;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime expiredAt;
-
   // Constructor
   ArtworkSwap({
     required this.id,
@@ -210,25 +191,43 @@ class ArtworkSwap {
 
   // Factory method to create an ArtworkSwap instance from JSON
   factory ArtworkSwap.fromJson(Map<String, dynamic> json) => ArtworkSwap(
-        id: json['id'],
-        artworkID: json['artworkID'],
-        seriesID: json['seriesID'],
-        paymentID: json['paymentID'],
-        fee: json['fee']?.toDouble(),
-        currency: json['currency'],
-        artworkIndex: json['artworkIndex'],
-        ownerAddress: json['ownerAddress'],
-        status: json['status'],
-        contractName: json['contractName'],
-        contractAddress: json['contractAddress'],
-        recipientAddress: json['recipientAddress'],
-        ipfsCid: json['ipfsCid'],
-        token: json['token'],
-        blockchainType: json['blockchainType'],
-        createdAt: DateTime.parse(json['createdAt']),
-        updatedAt: DateTime.parse(json['updatedAt']),
-        expiredAt: DateTime.parse(json['expiredAt']),
+        id: json['id'] as String,
+        artworkID: json['artworkID'] as String,
+        seriesID: json['seriesID'] as String,
+        paymentID: json['paymentID'] as String?,
+        fee: double.tryParse(json['fee'].toString()),
+        currency: json['currency'] as String,
+        artworkIndex: json['artworkIndex'] as int,
+        ownerAddress: json['ownerAddress'] as String,
+        status: json['status'] as String,
+        contractName: json['contractName'] as String,
+        contractAddress: json['contractAddress'] as String,
+        recipientAddress: json['recipientAddress'] as String,
+        ipfsCid: json['ipfsCid'] as String?,
+        token: json['token'] as String?,
+        blockchainType: json['blockchainType'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        updatedAt: DateTime.parse(json['updatedAt'] as String),
+        expiredAt: DateTime.parse(json['expiredAt'] as String),
       );
+  final String id;
+  final String artworkID;
+  final String seriesID;
+  final String? paymentID;
+  final double? fee;
+  final String currency;
+  final int artworkIndex;
+  final String ownerAddress;
+  final String status;
+  final String contractName;
+  final String contractAddress;
+  final String recipientAddress;
+  final String? ipfsCid;
+  final String? token;
+  final String blockchainType;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime expiredAt;
 
   // Method to convert ArtworkSwap instance to JSON
   Map<String, dynamic> toJson() => {
@@ -255,14 +254,6 @@ class ArtworkSwap {
 
 @JsonSerializable()
 class ArtworkAttribute {
-  final String id;
-  final String artworkID;
-  final String seriesID;
-  final int index;
-  final double percentage;
-  final String traitType;
-  final String value;
-
   ArtworkAttribute({
     required this.id,
     required this.artworkID,
@@ -275,6 +266,13 @@ class ArtworkAttribute {
 
   factory ArtworkAttribute.fromJson(Map<String, dynamic> json) =>
       _$ArtworkAttributeFromJson(json);
+  final String id;
+  final String artworkID;
+  final String seriesID;
+  final int index;
+  final double percentage;
+  final String traitType;
+  final String value;
 }
 
 enum FeralfileMediumTypes {
@@ -338,10 +336,6 @@ enum FeralfileMediumTypes {
 
 // Support for John Gerrard show
 class BeforeMintingArtworkInfo {
-  final int index;
-  final String viewableAt;
-  final String artworkTitle;
-
   BeforeMintingArtworkInfo({
     required this.index,
     required this.viewableAt,
@@ -350,8 +344,11 @@ class BeforeMintingArtworkInfo {
 
   factory BeforeMintingArtworkInfo.fromJson(Map<String, dynamic> json) =>
       BeforeMintingArtworkInfo(
-        index: json['index'],
-        viewableAt: json['viewableAt'],
-        artworkTitle: json['artworkTitle'],
+        index: json['index'] as int,
+        viewableAt: json['viewableAt'] as String,
+        artworkTitle: json['artworkTitle'] as String,
       );
+  final int index;
+  final String viewableAt;
+  final String artworkTitle;
 }

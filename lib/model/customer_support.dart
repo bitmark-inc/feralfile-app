@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';

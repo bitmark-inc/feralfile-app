@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -17,11 +18,11 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -29,15 +30,41 @@ class AuthService {
   final IAPApi _authApi;
   final UserApi _userApi;
   final ConfigurationService _configurationService;
-  JWT? _jwt;
-  final UserAccountChannel _userAccountChannel;
 
   AuthService(
     this._authApi,
     this._userApi,
     this._configurationService,
-    this._userAccountChannel,
   );
+
+  final HiveStoreObjectService<String?> _authServiceStore =
+      HiveStoreObjectServiceImpl<String?>()..init(_authServiceStoreKey);
+
+  static const String _jwtKey = 'jwt';
+  static const String _authServiceStoreKey = 'authServiceStoreKey';
+
+  Future<void> init() async {
+    await _authServiceStore.init(_authServiceStoreKey);
+  }
+
+  JWT? get _jwt {
+    final jwtString = _authServiceStore.get(_jwtKey);
+    if (jwtString == null || jwtString.isEmpty) {
+      return null;
+    }
+    final jwtJson = Map<String, dynamic>.from(json.decode(jwtString) as Map);
+    return JWT.fromJson(jwtJson);
+  }
+
+  // setter for jwt
+  Future<void> _setJwt(JWT? jwt) async {
+    await _authServiceStore.save(
+        jwt == null ? null : json.encode(jwt.toJson()), _jwtKey);
+  }
+
+  String? getUserId() {
+    return _jwt?.userId;
+  }
 
   Future<void> reset() async {
     await setAuthToken(null);
@@ -109,23 +136,18 @@ class AuthService {
   }
 
   Future<void> setAuthToken(JWT? jwt, {String? receiptData}) async {
-    if (jwt == null) {
-      await _userAccountChannel.clearJWT();
-    } else {
-      await _userAccountChannel.setJWT(jwt);
-    }
-    _jwt = jwt;
+    await _setJwt(jwt);
+
     _refreshSubscriptionStatus(jwt, receiptData: receiptData);
   }
 
   Future<JWT?> getAuthToken({bool shouldRefresh = true}) async {
-    // if current jwt is null, try to get it from the channel
-    _jwt ??= await _userAccountChannel.getJWT();
-
+    if (_jwt == null) {
+      return null;
+    }
     if (shouldRefresh) {
-      // if jwt is invalid, try to refresh it
-      if (_jwt?.isValid() != true) {
-        _jwt = await refreshJWT();
+      if (!_jwt!.isValid()) {
+        await refreshJWT();
       }
     }
     return _jwt;

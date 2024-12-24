@@ -28,14 +28,15 @@ abstract class SourceExhibitionAPI {
 extension SourceExhibitionAPIHelper on SourceExhibitionAPI {
   Future<Exhibition> getSourceExhibitionInfo() async {
     final value = await getSourceExhibition();
-    return Exhibition.fromJson(jsonDecode(value));
+    return Exhibition.fromJson(jsonDecode(value) as Map<String, dynamic>);
   }
 
   Future<List<FFSeries>> getSourceExhibitionSeries() async {
     try {
       final value = await getSourceSeries();
       final List<FFSeries> series = (jsonDecode(value) as List<dynamic>?)
-              ?.map((element) => FFSeries.fromJson(element))
+              ?.map((element) =>
+                  FFSeries.fromJson(element as Map<String, dynamic>))
               .toList() ??
           [];
       return series.map((e) => e.copyWith(artwork: e.artworks!.first)).toList();

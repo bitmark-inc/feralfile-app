@@ -123,7 +123,6 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     final token = widget.token;
     final identityBloc = context.read<IdentityBloc>();
     final version = _configurationService.getVersionInfo();
-    final isShowArtistName = !token.isPostcard;
     return Scaffold(
         appBar: isFullScreen
             ? null
@@ -143,33 +142,32 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (isShowArtistName)
-                        BlocBuilder<IdentityBloc, IdentityState>(
-                          bloc: identityBloc
-                            ..add(GetIdentityEvent([
-                              token.artistName ?? '',
-                            ])),
-                          builder: (context, state) {
-                            final artistName = token.artistName
-                                ?.toIdentityOrMask(state.identityMap);
-                            if (artistName != null) {
-                              return Row(
-                                children: [
-                                  const SizedBox(height: 4),
-                                  Expanded(
-                                    child: Text(
-                                      'by'.tr(args: [artistName]),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.ppMori400White14,
-                                    ),
+                      BlocBuilder<IdentityBloc, IdentityState>(
+                        bloc: identityBloc
+                          ..add(GetIdentityEvent([
+                            token.artistName ?? '',
+                          ])),
+                        builder: (context, state) {
+                          final artistName = token.artistName
+                              ?.toIdentityOrMask(state.identityMap);
+                          if (artistName != null) {
+                            return Row(
+                              children: [
+                                const SizedBox(height: 4),
+                                Expanded(
+                                  child: Text(
+                                    'by'.tr(args: [artistName]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.ppMori400White14,
                                   ),
-                                ],
-                              );
-                            }
-                            return const SizedBox();
-                          },
-                        ),
+                                ),
+                              ],
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
                     ],
                   ),
                 ),

@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -385,18 +384,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             .toList()
                             .indexOf(asset);
 
-                        final payload = asset.isPostcard
-                            ? PostcardDetailPagePayload(
-                                accountIdentities[index],
-                                playlist: playlist,
-                              )
-                            : ArtworkDetailPayload(
-                                accountIdentities[index],
-                                playlist: playlist,
-                              );
-                        final pageName = asset.isPostcard
-                            ? AppRouter.claimedPostcardDetailsPage
-                            : AppRouter.artworkDetailsPage;
+                        final payload = ArtworkDetailPayload(
+                          accountIdentities[index],
+                          playlist: playlist,
+                        );
+                        const pageName = AppRouter.artworkDetailsPage;
 
                         await Navigator.of(context)
                             .pushNamed(pageName, arguments: payload);

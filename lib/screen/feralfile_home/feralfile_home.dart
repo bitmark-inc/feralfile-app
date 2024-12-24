@@ -302,8 +302,8 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
     return MultiBlocProvider(
       providers: [
-        BlocProvider<IdentityBloc>(
-          create: (context) => IdentityBloc(injector(), injector()),
+        BlocProvider<IdentityBloc>.value(
+          value: injector.get<IdentityBloc>(),
         ),
       ],
       child: FeaturedWorkView(

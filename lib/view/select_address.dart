@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -18,15 +18,16 @@ import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 
 class IRLSelectAddressView extends StatefulWidget {
+  const IRLSelectAddressView({
+    required this.addresses,
+    super.key,
+    this.selectButton,
+    this.minimumCryptoBalance,
+  });
+
   final List<WalletAddress> addresses;
   final String? selectButton;
   final int? minimumCryptoBalance;
-
-  const IRLSelectAddressView(
-      {required this.addresses,
-      super.key,
-      this.selectButton,
-      this.minimumCryptoBalance});
 
   @override
   State<IRLSelectAddressView> createState() => _IRLSelectAddressViewState();
@@ -40,13 +41,13 @@ class _IRLSelectAddressViewState extends State<IRLSelectAddressView> {
   Widget build(BuildContext context) {
     final minimumCryptoBalance = widget.minimumCryptoBalance ?? 0;
     return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 325),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                  child: Column(
+      constraints: const BoxConstraints(maxHeight: 325),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
                 children: [
                   if (_isViewing.isEmpty && minimumCryptoBalance > 0) ...[
                     loadingIndicator(valueColor: AppColor.white),
@@ -63,57 +64,64 @@ class _IRLSelectAddressViewState extends State<IRLSelectAddressView> {
                       ),
                     ),
                   ] else
-                    ...widget.addresses.map((e) => AddressView(
-                          key: Key(e.address),
-                          address: e,
-                          selectedAddress: _selectedAddress,
-                          onTap: () {
-                            if (context.mounted) {
-                              setState(() {
-                                _selectedAddress = e.address;
-                              });
-                            }
-                          },
-                          onDoneLoading: (notShowing) {
-                            if (context.mounted) {
-                              setState(() {
-                                _isViewing[e.address] = !notShowing;
-                              });
-                            }
-                          },
-                          minimumCryptoBalance: minimumCryptoBalance,
-                        ))
+                    ...widget.addresses.map(
+                      (e) => AddressView(
+                        key: Key(e.address),
+                        address: e,
+                        selectedAddress: _selectedAddress,
+                        onTap: () {
+                          if (context.mounted) {
+                            setState(() {
+                              _selectedAddress = e.address;
+                            });
+                          }
+                        },
+                        onDoneLoading: (notShowing) {
+                          if (context.mounted) {
+                            setState(() {
+                              _isViewing[e.address] = !notShowing;
+                            });
+                          }
+                        },
+                        minimumCryptoBalance: minimumCryptoBalance,
+                      ),
+                    ),
                 ],
-              )),
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Column(
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
                     children: [
                       PrimaryButton(
-                          text: widget.selectButton ?? 'connect'.tr(),
-                          enabled: _selectedAddress != null,
-                          onTap: () {
-                            Navigator.pop(context, _selectedAddress);
-                          }),
+                        text: widget.selectButton ?? 'connect'.tr(),
+                        enabled: _selectedAddress != null,
+                        onTap: () {
+                          Navigator.pop(context, _selectedAddress);
+                        },
+                      ),
                       const SizedBox(
                         height: 10,
                       ),
                       OutlineButton(
-                          text: 'cancel'.tr(),
-                          onTap: () {
-                            Navigator.pop(context);
-                          })
+                        text: 'cancel'.tr(),
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                      ),
                     ],
-                  )),
-                ],
-              ),
-            )
-          ],
-        ));
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _noAddressHasEnoughBalance() =>
@@ -132,9 +140,9 @@ class AddressView extends StatefulWidget {
 
   final WalletAddress address;
   final String? selectedAddress;
-  final Function()? onTap;
+  final FutureOr<void> Function()? onTap;
   final int minimumCryptoBalance;
-  final Function(bool notShowing)? onDoneLoading;
+  final FutureOr<void> Function(bool notShowing)? onDoneLoading;
 
   @override
   State<AddressView> createState() => _AddressViewState();
@@ -149,7 +157,7 @@ class _AddressViewState extends State<AddressView> {
   @override
   void initState() {
     super.initState();
-    _cryptoType = CryptoType.fromSource(widget.address.cryptoType);
+    _cryptoType = widget.address.cryptoType;
     unawaited(_loadBalance(context));
   }
 
@@ -219,7 +227,7 @@ class _AddressViewState extends State<AddressView> {
     final theme = Theme.of(context);
     final isSelected = widget.address.address == widget.selectedAddress;
     final color = isSelected ? AppColor.white : AppColor.disabledColor;
-    final name = widget.address.name ?? '';
+    final name = widget.address.name;
     final style = theme.textTheme.ppMori400White14.copyWith(color: color);
     return GestureDetector(
       onTap: widget.onTap,

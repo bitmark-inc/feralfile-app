@@ -10,10 +10,10 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -27,10 +27,9 @@ import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
-import 'package:autonomy_flutter/util/notifications/notification_util.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/user_account_channel.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -59,7 +58,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   Timer? _timer;
 
   final _passkeyService = injector.get<PasskeyService>();
-  final _userAccountChannel = injector.get<UserAccountChannel>();
+  final _authService = injector.get<AuthService>();
   bool? _isLoginSuccess;
   late StreamSubscription<FGBGType> _fgbgSubscription;
 
@@ -77,7 +76,8 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.initState();
     log.info('OnboardingPage initState');
     // on foreground listener
-    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+    _fgbgSubscription =
+        FGBGEvents.instance.stream.listen(_handleForeBackground);
   }
 
   void _handleForeBackground(FGBGType event) {
@@ -121,14 +121,18 @@ class _OnboardingPageState extends State<OnboardingPage>
       Environment.checkAllKeys();
       await DeviceInfo.instance.init();
       await injector<DeviceInfoService>().init();
+      await injector<AuthService>().init();
       await injector<MetricClientService>().initService();
 
       unawaited(
-        injector<RemoteConfigService>().loadConfigs().then((_) {
-          log.info('Remote config loaded');
-        }, onError: (e) {
-          log.info('Failed to load remote config: $e');
-        }).whenComplete(() {
+        injector<RemoteConfigService>().loadConfigs().then(
+          (_) {
+            log.info('Remote config loaded');
+          },
+          onError: (Object e) {
+            log.info('Failed to load remote config: $e');
+          },
+        ).whenComplete(() {
           injector<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
         }),
       );
@@ -159,8 +163,12 @@ class _OnboardingPageState extends State<OnboardingPage>
       await registerPushNotifications();
     } catch (e, s) {
       log.info('registerPushNotifications error: $e');
-      unawaited(Sentry.captureException('registerPushNotifications error: $e',
-          stackTrace: s));
+      unawaited(
+        Sentry.captureException(
+          'registerPushNotifications error: $e',
+          stackTrace: s,
+        ),
+      );
     }
   }
 
@@ -172,14 +180,16 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _goToTargetScreen(BuildContext context) async {
     log.info('[_goToTargetScreen] start');
-    unawaited(Navigator.of(context)
-        .pushReplacementNamed(AppRouter.homePageNoTransition));
+    unawaited(
+      Navigator.of(context)
+          .pushReplacementNamed(AppRouter.homePageNoTransition),
+    );
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }
 
   Future<void> _fetchRuntimeCache() async {
     log.info('[_fetchRuntimeCache] start');
-    bool isSuccess = false;
+    var isSuccess = false;
     try {
       isSuccess = await _loginProcess();
     } catch (e) {
@@ -191,6 +201,8 @@ class _OnboardingPageState extends State<OnboardingPage>
       unawaited(Sentry.captureMessage('Login process failed'));
       return;
     }
+    // download user data
+    await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(_registerPushNotifications());
     unawaited(injector<DeeplinkService>().setup());
     log.info('[_fetchRuntimeCache] end');
@@ -218,45 +230,50 @@ class _OnboardingPageState extends State<OnboardingPage>
       if (!doesOSSupport) {
         log.info('OS does not support passkey');
         _passkeyService.isShowingLoginDialog.value = true;
-        unawaited(_showBackupRecoveryPhraseDialog().then((_) {
-          _passkeyService.isShowingLoginDialog.value = false;
-        }));
+        unawaited(
+          _showBackupRecoveryPhraseDialog().then((_) {
+            _passkeyService.isShowingLoginDialog.value = false;
+          }),
+        );
         return false;
       }
       if (!canAuthenticate) {
         log.info('OS supports passkey but cannot authenticate');
         _passkeyService.isShowingLoginDialog.value = true;
-        unawaited(_showAuthenticationUpdateRequired().then((_) {
-          _passkeyService.isShowingLoginDialog.value = false;
-        }));
+        unawaited(
+          _showAuthenticationUpdateRequired().then((_) {
+            _passkeyService.isShowingLoginDialog.value = false;
+          }),
+        );
         return false;
       }
       return false;
     } else {
       log.info('Passkey is supported. Authenticate with passkey');
-      final didRegisterPasskey = await _userAccountChannel.didRegisterPasskey();
-      log.info('Passkey registered: $didRegisterPasskey');
-      final didLoginSuccess = didRegisterPasskey
-          ? await _loginWithPasskey()
-          : await _registerPasskey();
-      if (didLoginSuccess != true) {
+      final userId = _authService.getUserId();
+      log.info('Passkey userId: $userId');
+      _passkeyService.isShowingLoginDialog.value = true;
+      final jwt =
+          userId != null ? await _loginWithPasskey() : await _registerPasskey();
+      _passkeyService.isShowingLoginDialog.value = false;
+      if (jwt == null) {
         throw Exception('Failed to login with passkey');
       }
       return true;
     }
   }
 
-  Future<dynamic> _loginWithPasskey() async {
+  Future<JWT?> _loginWithPasskey() async {
     try {
       log.info('Login with passkey');
-      await _loginAndMigrate();
+      final jwt = await _loginAndMigrate();
       log.info('Login with passkey done');
-      return true;
+      return jwt;
     } catch (e, s) {
       log.info('Failed to login with passkey: $e');
       unawaited(Sentry.captureException(e, stackTrace: s));
       if (!mounted) {
-        return false;
+        return null;
       }
       final result =
           await UIHelper.showPasskeyLoginDialog(context, _loginAndMigrate);
@@ -265,45 +282,44 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
   }
 
-  Future<void> _loginAndMigrate() async {
+  Future<JWT?> _loginAndMigrate() async {
     log.info('Login and migrate');
     _isLoginSuccess = null;
+    JWT? jwt;
     try {
-      await injector<AccountService>().migrateAccount(() async {
-        try {
-          JWT? jwt =
-              await injector<AuthService>().getAuthToken(shouldRefresh: false);
-          final refreshToken = jwt?.refreshToken;
-          final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
-                DateTime.now().subtract(REFRESH_JWT_DURATION_BEFORE_EXPIRE),
-              ) ??
-              true;
-          if (refreshToken != null &&
-              refreshToken.isNotEmpty &&
-              !isRefreshTokenExpired) {
-            // jwt is valid, no need to login again
-            log.info('JWT refresh token is valid, '
-                'no need to request passkey again again');
-            if (jwt?.isValid() == true) {
-              log.info('JWT is valid, no need to refresh');
-            } else {
-              log.info('JWT is invalid, refresh JWT token');
-              jwt = await injector<AuthService>().getAuthToken();
-            }
-            log.info('[_loginAndMigrate] JWT now is valid');
+      try {
+        jwt = await injector<AuthService>().getAuthToken(shouldRefresh: false);
+        final refreshToken = jwt?.refreshToken;
+        final isRefreshTokenExpired = jwt?.refreshExpireAt?.isBefore(
+              DateTime.now().subtract(REFRESH_JWT_DURATION_BEFORE_EXPIRE),
+            ) ??
+            true;
+        if (refreshToken != null &&
+            refreshToken.isNotEmpty &&
+            !isRefreshTokenExpired) {
+          // jwt is valid, no need to login again
+          log.info('JWT refresh token is valid, '
+              'no need to request passkey again again');
+          if (jwt?.isValid() == true) {
+            log.info('JWT is valid, no need to refresh');
           } else {
-            log.info(
-                'JWT is invalid, login again, current jwt: ${jwt?.toJson()}');
-            jwt = await _passkeyService.requestJwt();
+            log.info('JWT is invalid, refresh JWT token');
+            jwt = await injector<AuthService>().getAuthToken();
           }
-          await injector<AuthService>().setAuthToken(jwt);
-          log.info('[_loginAndMigrate] create JWT token done');
-        } catch (e, s) {
-          log.info('Failed to create login JWT: $e');
-          unawaited(Sentry.captureException(e, stackTrace: s));
-          rethrow;
+          log.info('[_loginAndMigrate] JWT now is valid');
+        } else {
+          log.info(
+            'JWT is invalid, login again, current jwt: ${jwt?.toJson()}',
+          );
+          jwt = await _passkeyService.requestJwt();
         }
-      });
+        await injector<AuthService>().setAuthToken(jwt);
+        log.info('[_loginAndMigrate] create JWT token done');
+      } catch (e, s) {
+        log.info('Failed to create login JWT: $e');
+        unawaited(Sentry.captureException(e, stackTrace: s));
+        rethrow;
+      }
       _isLoginSuccess = true;
     } catch (e, s) {
       _isLoginSuccess = false;
@@ -312,9 +328,10 @@ class _OnboardingPageState extends State<OnboardingPage>
       rethrow;
     }
     log.info('Login and migrate done');
+    return jwt;
   }
 
-  Future<dynamic> _registerPasskey() async {
+  Future<JWT?> _registerPasskey() async {
     log.info('Register passkey');
     _passkeyService.isShowingLoginDialog.value = true;
     final result = await UIHelper.showPasskeyRegisterDialog(context);

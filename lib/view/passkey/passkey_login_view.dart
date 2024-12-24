@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/passkey/having_trouble_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -10,7 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class PasskeyLoginRetryView extends StatefulWidget {
-  final Future<dynamic> Function() onRetry;
+  final Future<JWT?> Function() onRetry;
 
   const PasskeyLoginRetryView({required this.onRetry, super.key});
 
@@ -74,9 +75,9 @@ class _PasskeyLoginRetryViewState extends State<PasskeyLoginRetryView> {
       _isRetrying = true;
     });
     try {
-      await widget.onRetry();
+      final res = await widget.onRetry();
       if (mounted) {
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(res);
       }
     } catch (e, stackTrace) {
       log.info('Failed to login with passkey: $e');

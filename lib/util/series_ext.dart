@@ -35,7 +35,7 @@ extension FFSeriesExt on FFSeries {
   String get galleryURL => (metadata?['galleryURL'] ?? '') as String;
 
   int? get latestRevealedArtworkIndex =>
-      metadata?['latestRevealedArtworkIndex'];
+      int.tryParse(metadata?['latestRevealedArtworkIndex']?.toString() ?? '');
 
   String get displayKey => exhibition?.displayKey ?? exhibitionID;
 
@@ -66,7 +66,7 @@ extension FFSeriesExt on FFSeries {
     if (secondaryMarkets.isEmpty) {
       return '';
     }
-    for (var secondaryLink in secondaryMarkets) {
+    for (final secondaryLink in secondaryMarkets) {
       if (secondaryLink.name == 'OpenSea') {
         final collectionSlug = secondaryLink.url.split('collection/').last;
         return collectionSlug.split('?').first;
@@ -103,23 +103,29 @@ extension FFSeriesListExt on List<FFSeries> {
   }
 
   List<ArtistCollection> mergeIndexerCollection(
-          List<UserCollection> collections) =>
+    List<UserCollection> collections,
+  ) =>
       mergeCollectionAndSeries(collections, this);
 }
 
 List<ArtistCollection> mergeCollectionAndSeries(
-    List<UserCollection> collections, List<FFSeries> series) {
-  final List<ArtistCollection> result = [...series];
-  for (var collection in collections) {
-    final exhibitionContract = [];
+  List<UserCollection> collections,
+  List<FFSeries> series,
+) {
+  final result = <ArtistCollection>[...series];
+  for (final collection in collections) {
+    final exhibitionContract = <String>[];
     for (final s in series) {
       exhibitionContract.addAll(s.listContracts());
     }
     exhibitionContract.toSet().toList();
-    final isDuplicated = series.any((s) =>
-        s.externalLinkToSlug().contains(collection.externalID) ||
-        collection.contracts.any((collectionContract) =>
-            exhibitionContract.contains(collectionContract)));
+    final isDuplicated = series.any(
+      (s) =>
+          s.externalLinkToSlug().contains(collection.externalID) ||
+          collection.contracts.any(
+            exhibitionContract.contains,
+          ),
+    );
     if (!isDuplicated) {
       result.add(collection);
     }

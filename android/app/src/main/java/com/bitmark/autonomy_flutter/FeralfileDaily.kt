@@ -1,18 +1,18 @@
 package com.bitmark.autonomy_flutter
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.widget.RemoteViews
-import android.widget.RemoteViews.RemoteResponse
+import com.bitmark.autonomywallet.MainActivity
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import timber.log.Timber
-import android.net.Uri
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -45,12 +44,6 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        // Intent to open the app
-        val openAppIntent = Intent(context, MainActivity::class.java).apply {
-            action = "com.bitmark.autonomy_flutter.OPEN_APP"
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-
         // Ensure PendingIntent is always recreated
         val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
             context,
@@ -64,7 +57,7 @@ class FeralfileDaily : AppWidgetProvider() {
 
         // If Android 12 or above, set RemoteResponse for additional interaction
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val remoteResponse = RemoteResponse.fromPendingIntent(openAppPendingIntent)
+            val remoteResponse = RemoteViews.RemoteResponse.fromPendingIntent(openAppPendingIntent)
             views.setOnCheckedChangeResponse(R.id.daily_widget, remoteResponse)
         }
 
@@ -250,6 +243,3 @@ private fun getDefaultDailyInfo(): DailyInfo {
         medium = ""
     )
 }
-
-
-

@@ -185,20 +185,10 @@ class _IAPApi implements IAPApi {
   Future<void> sendEvent(
     Map<String, dynamic> metrics,
     String deviceId,
-    String deviceName,
-    String deviceVendor,
-    String deviceModel,
-    String devicePlatform,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{
-      r'x-device-id': deviceId,
-      r'x-device-name': deviceName,
-      r'x-device-vendor': deviceVendor,
-      r'x-device-model': deviceModel,
-      r'x-device-platform': devicePlatform,
-    };
+    final _headers = <String, dynamic>{r'x-device-id': deviceId};
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(metrics);
@@ -319,58 +309,6 @@ class _IAPApi implements IAPApi {
         ))));
     final value = _result.data;
     return value;
-  }
-
-  @override
-  Future<Map<String, dynamic>> getNotificationSettings() async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, dynamic>>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/apis/v2/notifications/settings/me',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    var value = _result.data!;
-    return value;
-  }
-
-  @override
-  Future<void> updateNotificationSettings(Map<String, dynamic> body) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    await _dio.fetch<void>(_setStreamType<void>(Options(
-      method: 'PATCH',
-      headers: _headers,
-      extra: _extra,
-    )
-        .compose(
-          _dio.options,
-          '/apis/v2/notifications/settings/me',
-          queryParameters: queryParameters,
-          data: _data,
-        )
-        .copyWith(
-            baseUrl: _combineBaseUrls(
-          _dio.options.baseUrl,
-          baseUrl,
-        ))));
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

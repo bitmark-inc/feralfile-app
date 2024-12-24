@@ -9,11 +9,11 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -146,7 +146,8 @@ class _SupportListPageState extends State<SupportListPage>
                     child: _announcementRow(issue, hasDivider),
                     onTap: () => unawaited(Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
-                      arguments: ChatSupportPayload(announcement: issue),
+                      arguments:
+                          NewIssueFromAnnouncementPayload(announcement: issue),
                     )),
                   ),
                 );
@@ -316,7 +317,7 @@ class _SupportListPageState extends State<SupportListPage>
       List<ReceiveAttachment> attachments = [];
       if (draftData.attachments != null) {
         final contentType =
-            draft.type == CSMessageType.PostPhotos.rawValue ? 'image' : 'logs';
+            draft.type == CSMessageType.postPhotos.rawValue ? 'image' : 'logs';
         attachments = draftData.attachments!
             .map((e) => ReceiveAttachment(
                   title: e.fileName,
@@ -348,7 +349,8 @@ class _SupportListPageState extends State<SupportListPage>
     }
     final attachment = message.attachments.last;
     final attachmentTitle =
-        ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
+        ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1]
+            as String;
     if (attachment.contentType.contains('image')) {
       return 'image_sent'
           .tr(args: [attachmentTitle]); //'Image sent: $attachmentTitle';
