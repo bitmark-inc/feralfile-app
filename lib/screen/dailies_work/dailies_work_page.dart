@@ -17,9 +17,9 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -158,23 +158,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
     });
   }
 
-  DateTime get _nextDailyDateTime {
-    const defaultScheduleTime = 6;
-    final configScheduleTime =
-        injector<RemoteConfigService>().getConfig<String>(
-      ConfigGroup.daily,
-      ConfigKey.scheduleTime,
-      defaultScheduleTime.toString(),
-    );
-    final now =
-        DateTime.now().subtract(Duration(hours: int.parse(configScheduleTime)));
-    final startNextDay = DateTime(now.year, now.month, now.day + 1).add(
-      Duration(hours: int.parse(configScheduleTime), seconds: 3),
-      // add 3 seconds to avoid the same artwork
-    );
-    return startNextDay;
-  }
-
   void pauseDailyWork() {
     _artworkKey.currentState?.pause();
     muteDailyWork();
@@ -208,7 +191,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Duration? get _calcTotalDuration => const Duration(hours: 24);
 
   Duration get _calcRemainingDuration =>
-      _nextDailyDateTime.difference(DateTime.now());
+      DailiesHelper.nextDailyDateTime.difference(DateTime.now());
 
   void updateProgressStatus() {
     _progressTimer?.cancel();
@@ -488,24 +471,187 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
+  Widget _dailyDetailWidget(BuildContext context, DailyInfo? dailyInfo) {
+    final theme = Theme.of(context);
+    final assetToken = dailyInfo?.assetTokens.firstOrNull;
+    if (assetToken == null) {
+      return loadingIndicator();
+    }
+    final identityState = context.watch<IdentityBloc>().state;
+    final artistName =
+        assetToken.artistName?.toIdentityOrMask(identityState.identityMap) ??
+            assetToken.artistID ??
+            '';
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: MediaQuery.of(context).padding.top + 48,
+          ),
+        ),
+        if (dailyInfo?.daily != null &&
+            dailyInfo?.currentExhibition != null) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _mediumDescription(
+                context,
+                dailyInfo!.daily,
+                dailyInfo.currentExhibition!,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 32),
+          ),
+        ],
+        // artwork desc
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: HtmlWidget(
+              customStylesBuilder: auHtmlStyle,
+              assetToken.description ?? '',
+              textStyle: theme.textTheme.ppMori400White14,
+              onTapUrl: (url) async {
+                await launchUrl(
+                  Uri.parse(url),
+                  mode: LaunchMode.externalApplication,
+                );
+                return true;
+              },
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 64),
+        ),
+
+        // Daily note if not empty
+        if (dailyInfo?.daily.dailyNote?.isNotEmpty ?? false) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ImportantNoteView(
+                title: 'daily_note'.tr(),
+                titleStyle: theme.textTheme.ppMori400White14,
+                note: dailyInfo!.daily.dailyNote!,
+                noteStyle: theme.textTheme.ppMori400White14,
+                backgroundColor: AppColor.auGreyBackground,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 64),
+          ),
+        ],
+
+        // Artist Profile
+        if (dailyInfo?.currentArtist != null) ...[
+          SliverToBoxAdapter(
+            child: GestureDetector(
+              onTap: () {
+                unawaited(
+                  injector<NavigationService>().openFeralFileArtistPage(
+                    dailyInfo.currentArtist!.id,
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _shortArtistProfile(
+                  context,
+                  dailyInfo!.currentArtist!,
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: addDivider(
+              height: 40,
+              color: AppColor.auQuickSilver,
+              thickness: 0.5,
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 32),
+          ),
+        ],
+        if (dailyInfo?.currentExhibition != null) ...[
+          SliverToBoxAdapter(
+            child: GestureDetector(
+              onTap: () {
+                unawaited(
+                  Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions: [dailyInfo.currentExhibition!],
+                      index: 0,
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _exhibitionInfo(
+                  context,
+                  dailyInfo!.currentExhibition!,
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: addDivider(
+              height: 40,
+              color: AppColor.auQuickSilver,
+              thickness: 0.5,
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 32),
+          ),
+        ],
+
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: artworkDetailsMetadataSection(
+              context,
+              assetToken,
+              artistName,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: artworkDetailsRightSection(
+              context,
+              assetToken,
+            ),
+          ),
+        ),
+
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 100),
+            child: SizedBox(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _dailyDetails(
     BuildContext context,
   ) {
-    final theme = Theme.of(context);
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
       bloc: _dailyWorkBloc,
       builder: (context, state) {
         final dailyInfos = state.dailyInfos;
         final dailyInfo = dailyInfos.firstOrNull;
-        final assetToken = dailyInfo?.assetTokens.firstOrNull;
-        if (assetToken == null) {
-          return loadingIndicator();
-        }
-        final identityState = context.watch<IdentityBloc>().state;
-        final artistName = assetToken.artistName
-                ?.toIdentityOrMask(identityState.identityMap) ??
-            assetToken.artistID ??
-            '';
         return NotificationListener<UserScrollNotification>(
           onNotification: (notification) {
             if (notification.direction == ScrollDirection.forward &&
@@ -523,166 +669,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
             }
             return true;
           },
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: MediaQuery.of(context).padding.top + 48,
-                ),
-              ),
-              if (dailyInfo?.daily != null &&
-                  dailyInfo?.currentExhibition != null) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _mediumDescription(
-                      context,
-                      dailyInfo!.daily,
-                      dailyInfo.currentExhibition!,
-                    ),
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-              ],
-              // artwork desc
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: HtmlWidget(
-                    customStylesBuilder: auHtmlStyle,
-                    assetToken.description ?? '',
-                    textStyle: theme.textTheme.ppMori400White14,
-                    onTapUrl: (url) async {
-                      await launchUrl(
-                        Uri.parse(url),
-                        mode: LaunchMode.externalApplication,
-                      );
-                      return true;
-                    },
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 64),
-              ),
-
-              // Daily note if not empty
-              if (dailyInfo?.daily.dailyNote?.isNotEmpty ?? false) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ImportantNoteView(
-                      title: 'daily_note'.tr(),
-                      titleStyle: theme.textTheme.ppMori400White14,
-                      note: dailyInfo!.daily.dailyNote!,
-                      noteStyle: theme.textTheme.ppMori400White14,
-                      backgroundColor: AppColor.auGreyBackground,
-                    ),
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 64),
-                ),
-              ],
-
-              // Artist Profile
-              if (dailyInfo?.currentArtist != null) ...[
-                SliverToBoxAdapter(
-                  child: GestureDetector(
-                    onTap: () {
-                      unawaited(
-                        injector<NavigationService>().openFeralFileArtistPage(
-                          dailyInfo.currentArtist!.id,
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _shortArtistProfile(
-                        context,
-                        dailyInfo!.currentArtist!,
-                      ),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: addDivider(
-                    height: 40,
-                    color: AppColor.auQuickSilver,
-                    thickness: 0.5,
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-              ],
-              if (dailyInfo?.currentExhibition != null) ...[
-                SliverToBoxAdapter(
-                  child: GestureDetector(
-                    onTap: () {
-                      unawaited(
-                        Navigator.of(context).pushNamed(
-                          AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: [dailyInfo.currentExhibition!],
-                            index: 0,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _exhibitionInfo(
-                        context,
-                        dailyInfo!.currentExhibition!,
-                      ),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: addDivider(
-                    height: 40,
-                    color: AppColor.auQuickSilver,
-                    thickness: 0.5,
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-              ],
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: artworkDetailsMetadataSection(
-                    context,
-                    assetToken,
-                    artistName,
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: artworkDetailsRightSection(
-                    context,
-                    assetToken,
-                  ),
-                ),
-              ),
-
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 100),
-                  child: SizedBox(),
-                ),
-              ),
-            ],
-          ),
+          child: _dailyDetailWidget(context, dailyInfo),
         );
       },
     );

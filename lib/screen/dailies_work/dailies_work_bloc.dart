@@ -18,22 +18,25 @@ class DailyWorkEvent {}
 class GetDailyAssetTokenEvent extends DailyWorkEvent {}
 
 class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
-  final FeralFileService _feralfileService;
-  final IndexerService _indexerService;
-
   DailyWorkBloc(this._feralfileService, this._indexerService)
       : super(DailiesWorkState(dailyInfos: [])) {
     on<GetDailyAssetTokenEvent>((event, emit) async {
-      final dailiesToken = await _feralfileService.getCurrentDailiesToken();
-      final dailyInfos = dailiesToken == null
-          ? <DailyInfo>[]
-          : [await getDailyInfo(dailiesToken)];
+      final dailyTokens = await _feralfileService.getCurrentDailyTokens();
+      final dailyInfoList = <DailyInfo>[];
+      for (final dailyToken in dailyTokens) {
+        final dailyInfo = await getDailyInfo(dailyToken);
+        dailyInfoList.add(dailyInfo);
+      }
+      dailyInfoList
+          .sort((a, b) => a.daily.displayTime.compareTo(b.daily.displayTime));
 
-      emit(DailiesWorkState(dailyInfos: dailyInfos));
-
+      emit(DailiesWorkState(dailyInfos: dailyInfoList));
       unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     });
   }
+
+  final FeralFileService _feralfileService;
+  final IndexerService _indexerService;
 
   Future<DailyInfo> getDailyInfo(DailyToken daily) async {
     final assetTokens = <AssetToken>[];
@@ -54,18 +57,22 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
             await _feralfileService.getAlumniDetail(token.artistID!);
       }
       currentExhibition =
-          await _feralfileService.getExhibitionFromTokenID(daily!.tokenID);
+          await _feralfileService.getExhibitionFromTokenID(daily.tokenID);
     }
     return DailyInfo(daily, assetTokens, currentArtist, currentExhibition);
   }
 }
 
 class DailyInfo {
+  DailyInfo(
+    this.daily,
+    this.assetTokens,
+    this.currentArtist,
+    this.currentExhibition,
+  );
+
   DailyToken daily;
   List<AssetToken> assetTokens;
   AlumniAccount? currentArtist;
   Exhibition? currentExhibition;
-
-  DailyInfo(
-      this.daily, this.assetTokens, this.currentArtist, this.currentExhibition);
 }
