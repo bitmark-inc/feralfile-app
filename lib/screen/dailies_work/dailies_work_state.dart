@@ -1,18 +1,13 @@
-import 'package:autonomy_flutter/model/dailies.dart';
-import 'package:autonomy_flutter/model/ff_alumni.dart';
-import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 
 class DailiesWorkState {
-  final List<AssetToken> assetTokens;
-  final DailyToken? currentDailyToken;
-  final AlumniAccount? currentArtist;
-  final Exhibition? currentExhibition;
+  List<DailyInfo> dailyInfos;
 
   DailiesWorkState({
-    required this.assetTokens,
-    required this.currentDailyToken,
-    required this.currentArtist,
-    required this.currentExhibition,
+    required this.dailyInfos,
   });
+
+  DailyInfo? get currentDailyInfo {
+    return dailyInfos.firstOrNull;
+  }
 }

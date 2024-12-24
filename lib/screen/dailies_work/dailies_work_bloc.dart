@@ -22,41 +22,50 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
   final IndexerService _indexerService;
 
   DailyWorkBloc(this._feralfileService, this._indexerService)
-      : super(DailiesWorkState(
-            assetTokens: [],
-            currentDailyToken: null,
-            currentArtist: null,
-            currentExhibition: null)) {
+      : super(DailiesWorkState(dailyInfos: [])) {
     on<GetDailyAssetTokenEvent>((event, emit) async {
       final dailiesToken = await _feralfileService.getCurrentDailiesToken();
-      final assetTokens = <AssetToken>[];
-      AlumniAccount? currentArtist;
-      Exhibition? currentExhibition;
-      if (dailiesToken != null) {
-        final tokens = await _indexerService
-            .getNftTokens(QueryListTokensRequest(ids: [dailiesToken.indexId]));
-        assetTokens.addAll(tokens);
-      }
-      if (assetTokens.isEmpty) {
-        return;
-      }
-      final token = assetTokens.first;
-      if (token.isFeralfile) {
-        if (token.artistID != null) {
-          currentArtist =
-              await _feralfileService.getAlumniDetail(token.artistID!);
-        }
-        currentExhibition = await _feralfileService
-            .getExhibitionFromTokenID(dailiesToken!.tokenID);
-      }
+      final dailyInfos = dailiesToken == null
+          ? <DailyInfo>[]
+          : [await getDailyInfo(dailiesToken)];
 
-      emit(DailiesWorkState(
-          assetTokens: assetTokens,
-          currentDailyToken: dailiesToken,
-          currentArtist: currentArtist,
-          currentExhibition: currentExhibition));
+      emit(DailiesWorkState(dailyInfos: dailyInfos));
 
       unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     });
   }
+
+  Future<DailyInfo> getDailyInfo(DailyToken daily) async {
+    final assetTokens = <AssetToken>[];
+    AlumniAccount? currentArtist;
+    Exhibition? currentExhibition;
+    final tokens = await _indexerService
+        .getNftTokens(QueryListTokensRequest(ids: [daily.indexId]));
+    assetTokens.addAll(tokens);
+
+    if (assetTokens.isEmpty) {
+      return DailyInfo(daily, assetTokens, currentArtist, currentExhibition);
+    }
+
+    final token = assetTokens.first;
+    if (token.isFeralfile) {
+      if (token.artistID != null) {
+        currentArtist =
+            await _feralfileService.getAlumniDetail(token.artistID!);
+      }
+      currentExhibition =
+          await _feralfileService.getExhibitionFromTokenID(daily!.tokenID);
+    }
+    return DailyInfo(daily, assetTokens, currentArtist, currentExhibition);
+  }
+}
+
+class DailyInfo {
+  DailyToken daily;
+  List<AssetToken> assetTokens;
+  AlumniAccount? currentArtist;
+  Exhibition? currentExhibition;
+
+  DailyInfo(
+      this.daily, this.assetTokens, this.currentArtist, this.currentExhibition);
 }

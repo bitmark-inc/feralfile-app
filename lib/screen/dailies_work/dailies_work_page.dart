@@ -16,13 +16,11 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/alumni_widget.dart';
@@ -64,7 +62,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   final _displayButtonKey = GlobalKey<FFCastButtonState>();
   late final DailyWorkBloc _dailyWorkBloc;
 
-  DailyToken? get _currentDailyToken => _dailyWorkBloc.state.currentDailyToken;
+  DailyInfo? get _currentDailyInfo => _dailyWorkBloc.state.currentDailyInfo;
 
   bool _trackingDailyLiked = false;
   Timer? _trackingDailyLikedTimer;
@@ -135,11 +133,12 @@ class DailyWorkPageState extends State<DailyWorkPage>
     }
     log.info('Set User Interested in Daily');
     _stopTrackingLiked();
-    if (_currentDailyToken == null) {
+    if (_currentDailyInfo == null) {
       return;
     }
     unawaited(
-      injector<UserInteractivityService>().likeDailyWork(_currentDailyToken!),
+      injector<UserInteractivityService>()
+          .likeDailyWork(_currentDailyInfo!.daily),
     );
   }
 
@@ -262,24 +261,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
           },
         ),
         listener: (BuildContext context, DailiesWorkState state) {},
-        listenWhen: (previous, current) {
-          if (current.assetTokens.firstOrNull?.id !=
-              previous.assetTokens.firstOrNull?.id) {
-            if (current.assetTokens.isNotEmpty) {
-              // send metric event
-              unawaited(
-                injector<MetricClientService>().addEvent(
-                  MetricEventName.dailyView,
-                  data: {
-                    MetricParameter.tokenId: current.assetTokens.first.id,
-                  },
-                ),
-              );
-              trackInterest();
-            }
-          }
-          return true;
-        },
       );
 
   Widget _header(BuildContext context) => Row(
@@ -406,23 +387,29 @@ class DailyWorkPageState extends State<DailyWorkPage>
             child: BlocConsumer<DailyWorkBloc, DailiesWorkState>(
               bloc: _dailyWorkBloc,
               listener: (context, state) {
-                if (state.assetTokens.isNotEmpty) {
-                  // get identity
-                  final identitiesList = <String>[];
-                  final assetToken = state.assetTokens.first;
-                  identitiesList
-                    ..add(assetToken.artistName!)
-                    ..add(assetToken.owner);
-                  context
-                      .read<IdentityBloc>()
-                      .add(GetIdentityEvent(identitiesList));
-                  unawaited(scheduleNextDailyWork(context));
-                  updateProgressStatus();
+                final dailyInfos = state.dailyInfos;
+                if (dailyInfos.isNotEmpty) {
+                  final assetTokens = dailyInfos.first.assetTokens;
+                  if (assetTokens.isNotEmpty) {
+                    // get identity
+                    final identitiesList = <String>[];
+                    final assetToken = assetTokens.first;
+                    identitiesList
+                      ..add(assetToken.artistName!)
+                      ..add(assetToken.owner);
+                    context
+                        .read<IdentityBloc>()
+                        .add(GetIdentityEvent(identitiesList));
+                    unawaited(scheduleNextDailyWork(context));
+                    updateProgressStatus();
+                  }
                 }
               },
               builder: (context, state) {
-                final assetToken = state.assetTokens.firstOrNull;
-                final artwork = state.currentDailyToken?.artwork;
+                final dailyInfos = state.dailyInfos;
+                final assetToken =
+                    dailyInfos.firstOrNull?.assetTokens.firstOrNull;
+                final artwork = dailyInfos.firstOrNull?.daily.artwork;
                 if (assetToken == null) {
                   return const LoadingWidget();
                 }
@@ -508,7 +495,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
       bloc: _dailyWorkBloc,
       builder: (context, state) {
-        final assetToken = state.assetTokens.firstOrNull;
+        final dailyInfos = state.dailyInfos;
+        final dailyInfo = dailyInfos.firstOrNull;
+        final assetToken = dailyInfo?.assetTokens.firstOrNull;
         if (assetToken == null) {
           return loadingIndicator();
         }
@@ -543,15 +532,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   height: MediaQuery.of(context).padding.top + 48,
                 ),
               ),
-              if (state.currentDailyToken != null &&
-                  state.currentExhibition != null) ...[
+              if (dailyInfo?.daily != null &&
+                  dailyInfo?.currentExhibition != null) ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _mediumDescription(
                       context,
-                      state.currentDailyToken!,
-                      state.currentExhibition!,
+                      dailyInfo!.daily,
+                      dailyInfo.currentExhibition!,
                     ),
                   ),
                 ),
@@ -582,14 +571,14 @@ class DailyWorkPageState extends State<DailyWorkPage>
               ),
 
               // Daily note if not empty
-              if (state.currentDailyToken?.dailyNote?.isNotEmpty ?? false) ...[
+              if (dailyInfo?.daily.dailyNote?.isNotEmpty ?? false) ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: ImportantNoteView(
                       title: 'daily_note'.tr(),
                       titleStyle: theme.textTheme.ppMori400White14,
-                      note: state.currentDailyToken!.dailyNote!,
+                      note: dailyInfo!.daily.dailyNote!,
                       noteStyle: theme.textTheme.ppMori400White14,
                       backgroundColor: AppColor.auGreyBackground,
                     ),
@@ -601,18 +590,22 @@ class DailyWorkPageState extends State<DailyWorkPage>
               ],
 
               // Artist Profile
-              if (state.currentArtist != null) ...[
+              if (dailyInfo?.currentArtist != null) ...[
                 SliverToBoxAdapter(
                   child: GestureDetector(
                     onTap: () {
                       unawaited(
-                        injector<NavigationService>()
-                            .openFeralFileArtistPage(state.currentArtist!.id),
+                        injector<NavigationService>().openFeralFileArtistPage(
+                          dailyInfo.currentArtist!.id,
+                        ),
                       );
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _shortArtistProfile(context, state.currentArtist!),
+                      child: _shortArtistProfile(
+                        context,
+                        dailyInfo!.currentArtist!,
+                      ),
                     ),
                   ),
                 ),
@@ -627,7 +620,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   child: SizedBox(height: 32),
                 ),
               ],
-              if (state.currentExhibition != null) ...[
+              if (dailyInfo?.currentExhibition != null) ...[
                 SliverToBoxAdapter(
                   child: GestureDetector(
                     onTap: () {
@@ -635,7 +628,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                         Navigator.of(context).pushNamed(
                           AppRouter.exhibitionDetailPage,
                           arguments: ExhibitionDetailPayload(
-                            exhibitions: [state.currentExhibition!],
+                            exhibitions: [dailyInfo.currentExhibition!],
                             index: 0,
                           ),
                         ),
@@ -643,7 +636,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _exhibitionInfo(context, state.currentExhibition!),
+                      child: _exhibitionInfo(
+                        context,
+                        dailyInfo!.currentExhibition!,
+                      ),
                     ),
                   ),
                 ),
@@ -774,8 +770,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
             customStylesBuilder: auHtmlStyle,
             textStyle: theme.textTheme.ppMori400White14,
             onTapUrl: (url) async {
-              await launchUrl(Uri.parse(url),
-                  mode: LaunchMode.externalApplication);
+              await launchUrl(
+                Uri.parse(url),
+                mode: LaunchMode.externalApplication,
+              );
               return true;
             },
           ),
