@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
+import 'dart:typed_data';
 
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -286,17 +287,39 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
       status = 'Sending Wi-Fi credentials...';
     });
 
-    final credentialsJson = jsonEncode({'ssid': ssid, 'password': password});
+    // Convert credentials to ASCII bytes
+    final ssidBytes = ascii.encode(ssid);
+    final passwordBytes = ascii.encode(password);
+
+    // Create a BytesBuilder to construct the message
+    final builder = BytesBuilder();
+
+    // Write SSID length as varint
+    _writeVarint(builder, ssidBytes.length);
+    // Write SSID bytes
+    builder.add(ssidBytes);
+
+    // Write password length as varint
+    _writeVarint(builder, passwordBytes.length);
+    // Write password bytes
+    builder.add(passwordBytes);
 
     // Write the data to the characteristic
     await targetCharacteristic!
-        .write(utf8.encode(credentialsJson), withoutResponse: false);
+        .write(builder.takeBytes(), withoutResponse: false);
 
     setState(() {
       status = 'Credentials sent, waiting for response (if any)';
     });
+  }
 
-    // If the Pi sends a notification, it will be received in the listener above.
+  // Helper method to write varint
+  void _writeVarint(BytesBuilder builder, int value) {
+    while (value >= 0x80) {
+      builder.addByte((value & 0x7F) | 0x80);
+      value >>= 7;
+    }
+    builder.addByte(value & 0x7F);
   }
 
   @override
