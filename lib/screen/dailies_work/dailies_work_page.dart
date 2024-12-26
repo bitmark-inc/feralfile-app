@@ -55,6 +55,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Timer? _timer;
   Duration? _remainingDuration;
   Timer? _progressTimer;
+  Timer? _dailySlideTimer;
   PageController? _pageController;
   late int _currentIndex;
   ScrollController? _scrollController;
@@ -78,6 +79,16 @@ class DailyWorkPageState extends State<DailyWorkPage>
     _pageController!.addListener(_pageControllerListener);
     _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
+  }
+
+  void _scheduleChangeDailySlide() {
+    final state = _dailyWorkBloc.state;
+    final remainingDuration = state.timeUntilNextSlide;
+    _dailySlideTimer?.cancel();
+    _dailySlideTimer = Timer(remainingDuration + Duration(seconds: 3), () {
+      log.info('Update Daily Slide');
+      _dailyWorkBloc.add(UpdateDailySlideEvent());
+    });
   }
 
   @override
@@ -142,6 +153,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
+  // Update Daily By Day
   Future<void> scheduleNextDailyWork(BuildContext context) async {
     setState(() {
       _remainingDuration = _calcRemainingDuration;
@@ -229,22 +241,25 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   Widget _buildBody() => BlocConsumer<DailyWorkBloc, DailiesWorkState>(
-        bloc: _dailyWorkBloc,
-        builder: (context, state) => PageView(
-          controller: _pageController,
-          scrollDirection: Axis.vertical,
-          children: [
-            KeepAliveWidget(child: _dailyPreview()),
-            KeepAliveWidget(child: _dailyDetails(context)),
-          ],
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-        ),
-        listener: (BuildContext context, DailiesWorkState state) {},
-      );
+      bloc: _dailyWorkBloc,
+      builder: (context, state) => PageView(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            children: [
+              KeepAliveWidget(child: _dailyPreview()),
+              KeepAliveWidget(child: _dailyDetails(context)),
+            ],
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          ),
+      listener: (BuildContext context, DailiesWorkState state) {},
+      listenWhen: (previous, current) {
+        _scheduleChangeDailySlide();
+        return true;
+      });
 
   Widget _header(BuildContext context) => Row(
         children: [
@@ -370,9 +385,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
             child: BlocConsumer<DailyWorkBloc, DailiesWorkState>(
               bloc: _dailyWorkBloc,
               listener: (context, state) {
-                final dailyInfos = state.dailyInfos;
-                if (dailyInfos.isNotEmpty) {
-                  final assetTokens = dailyInfos.first.assetTokens;
+                final dailyInfo = state.currentDailyInfo;
+                if (dailyInfo != null) {
+                  final assetTokens = dailyInfo.assetTokens;
                   if (assetTokens.isNotEmpty) {
                     // get identity
                     final identitiesList = <String>[];
@@ -389,46 +404,52 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 }
               },
               builder: (context, state) {
-                final dailyInfos = state.dailyInfos;
-                final assetToken =
-                    dailyInfos.firstOrNull?.assetTokens.firstOrNull;
-                final artwork = dailyInfos.firstOrNull?.daily.artwork;
+                final dailyInfo = state.currentDailyInfo;
+                final assetToken = dailyInfo?.assetTokens.firstOrNull;
+                final artwork = dailyInfo?.daily.artwork;
                 if (assetToken == null) {
                   return const LoadingWidget();
                 }
-                return Column(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: IgnorePointer(
-                          child: ArtworkPreviewWidget(
-                            key: _artworkKey,
-                            useIndexer: true,
-                            identity: ArtworkIdentity(
-                              assetToken.id,
-                              assetToken.owner,
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 1000),
+                  reverseDuration: Duration(seconds: 1),
+                  switchInCurve: Curves.slowMiddle,
+                  switchOutCurve: Curves.easeInOut,
+                  child: Column(
+                    key: ValueKey(assetToken.id),
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: IgnorePointer(
+                            child: ArtworkPreviewWidget(
+                              // key: _artworkKey,
+                              useIndexer: true,
+                              identity: ArtworkIdentity(
+                                assetToken.id,
+                                assetToken.owner,
+                              ),
+                              shouldUpdateStatusWhenDidPopNext: false,
                             ),
-                            shouldUpdateStatusWhenDidPopNext: false,
                           ),
                         ),
                       ),
-                    ),
-                    if (_remainingDuration != null &&
-                        _calcTotalDuration != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _progressBar(
-                          context,
-                          _remainingDuration!,
-                          _calcTotalDuration!,
+                      if (_remainingDuration != null &&
+                          _calcTotalDuration != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _progressBar(
+                            context,
+                            _remainingDuration!,
+                            _calcTotalDuration!,
+                          ),
                         ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        child: _tokenInfo(context, assetToken, artwork),
                       ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      child: _tokenInfo(context, assetToken, artwork),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
@@ -650,8 +671,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
       bloc: _dailyWorkBloc,
       builder: (context, state) {
-        final dailyInfos = state.dailyInfos;
-        final dailyInfo = dailyInfos.firstOrNull;
+        final dailyInfo = state.currentDailyInfo;
         return NotificationListener<UserScrollNotification>(
           onNotification: (notification) {
             if (notification.direction == ScrollDirection.forward &&
@@ -669,7 +689,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
             }
             return true;
           },
-          child: _dailyDetailWidget(context, dailyInfo),
+          child: AnimatedSwitcher(
+              duration: Duration(microseconds: 1000),
+              child: _dailyDetailWidget(context, dailyInfo)),
         );
       },
     );

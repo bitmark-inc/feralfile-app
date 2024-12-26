@@ -834,7 +834,7 @@ class FeralFileServiceImpl extends FeralFileService {
       unawaited(Sentry.captureMessage('Failed to get current daily token'));
       return [];
     }
-    DailiesHelper.updateDailies([currentDailyTokens.first]);
+    DailiesHelper.updateDailies(currentDailyTokens);
     return currentDailyTokens;
   }
 
@@ -853,7 +853,196 @@ class FeralFileServiceImpl extends FeralFileService {
         localTime.subtract(Duration(hours: int.parse(configScheduleTime)));
     final dateFormatter = DateFormat('yyyy-MM-dd');
 
-    final resp = await _feralFileApi.getDailiesTokenByDate(
+    final fakeData = Map<String, dynamic>.from({
+      "result": [
+        {
+          "id": "09ffe6e2-851e-4056-bceb-8bf452d9edb5",
+          "blockchain": "ethereum",
+          "contractAddress": "0xBD7dB299B3B3ab8CD9327Bb16B9449B0FECa1362",
+          "tokenID":
+              "15057104134096646567610465694622545946028038286120096630952183657332875412033",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T09:36:00.548064Z",
+          "updatedAt": "2024-12-25T09:36:00.548064Z",
+          "artwork": {
+            "id":
+                "15057104134096646567610465694622545946028038286120096630952183657332875412033",
+            "seriesID": "3085188b-b9b6-4953-9816-7aadef2fa0c4",
+            "index": 1,
+            "name": "#2",
+            "category": "AE",
+            "ownerAddress": "6e70c22d-b661-4080-8cfe-35e358ff3c51",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": false,
+            "thumbnailURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-thumbnails/1-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-previews/1",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmTMbU6mByfzgZy4siAAyRy155LChUzh8vVVHv2sentB6r/15057104134096646567610465694622545946028038286120096630952183657332875412033"
+            },
+            "mintedAt": "2024-09-12T07:56:24Z",
+            "createdAt": "2024-09-12T07:56:47.384069Z",
+            "updatedAt": "2024-10-31T09:32:30Z"
+          }
+        },
+        {
+          "id": "05eaeab8-8fb1-4771-aecb-bb4622b3a374",
+          "blockchain": "ethereum",
+          "contractAddress": "0xBD7dB299B3B3ab8CD9327Bb16B9449B0FECa1362",
+          "tokenID":
+              "15057104134096646567610465694622545946028038286120096630952183657332875412034",
+          "displayTime": "2024-12-25T01:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T09:36:07.36686Z",
+          "updatedAt": "2024-12-25T09:36:07.36686Z",
+          "artwork": {
+            "id":
+                "15057104134096646567610465694622545946028038286120096630952183657332875412034",
+            "seriesID": "3085188b-b9b6-4953-9816-7aadef2fa0c4",
+            "index": 2,
+            "name": "#3",
+            "category": "NE",
+            "ownerAddress": "c9f32481-c3ec-4079-8394-15267a369127",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": false,
+            "thumbnailURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-thumbnails/2-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-previews/2",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmTMbU6mByfzgZy4siAAyRy155LChUzh8vVVHv2sentB6r/15057104134096646567610465694622545946028038286120096630952183657332875412034"
+            },
+            "mintedAt": "2024-09-12T07:56:24Z",
+            "createdAt": "2024-09-12T07:56:47.384069Z",
+            "updatedAt": "2024-10-31T09:32:30Z"
+          }
+        },
+        {
+          "id": "f4fa00ad-0284-4d83-b35a-abdaec6248d5",
+          "blockchain": "ethereum",
+          "contractAddress": "0xBD7dB299B3B3ab8CD9327Bb16B9449B0FECa1362",
+          "tokenID":
+              "15057104134096646567610465694622545946028038286120096630952183657332876412038",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T10:23:20.525705Z",
+          "updatedAt": "2024-12-25T10:23:24.526198Z",
+          "artwork": {
+            "id":
+                "15057104134096646567610465694622545946028038286120096630952183657332876412038",
+            "seriesID": "3a06cf94-7035-4ce8-989b-b1b8fac191e1",
+            "index": 6,
+            "name": "#7",
+            "category": "NE",
+            "ownerAddress": "0x61d69c096cD5d5a9061516EbEB5de80167914095",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": true,
+            "thumbnailURI":
+                "previews/3a06cf94-7035-4ce8-989b-b1b8fac191e1/1726106035/_unique-thumbnails/6-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/3a06cf94-7035-4ce8-989b-b1b8fac191e1/1726106035/_unique-previews/6",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmTMbU6mByfzgZy4siAAyRy155LChUzh8vVVHv2sentB6r/15057104134096646567610465694622545946028038286120096630952183657332876412038"
+            },
+            "mintedAt": "2024-09-12T07:56:24Z",
+            "createdAt": "2024-09-12T07:56:47.384069Z",
+            "updatedAt": "2024-12-25T06:31:16Z"
+          }
+        },
+        {
+          "id": "6762c645-8f23-4d4d-ab33-cdbf1667d009",
+          "blockchain": "ethereum",
+          "contractAddress": "0x4fdE7b3310E8c4C9A35Ea78fa222ffCa18e229F7",
+          "tokenID": "1809880548170220016338774260772826260342473867",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T10:24:06.344955Z",
+          "updatedAt": "2024-12-25T10:24:13.839091Z",
+          "artwork": {
+            "id": "1809880548170220016338774260772826260342473867",
+            "seriesID": "e28231b3-0bbd-4e04-aa0a-17ff1d241403",
+            "index": 11,
+            "name": "#12",
+            "category": "NE",
+            "ownerAddress": "6faee5b9-1bbc-4f1d-8e3b-ddc5a091c49f",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": false,
+            "thumbnailURI":
+                "previews/e28231b3-0bbd-4e04-aa0a-17ff1d241403/1718092225/_unique-thumbnails/11-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/e28231b3-0bbd-4e04-aa0a-17ff1d241403/1718092225/_unique-previews/11",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmSv2c4NGgjRYpUDr75t4z51MbfKNc1itcdUtHeKdhJRko/1809880548170220016338774260772826260342473867"
+            },
+            "mintedAt": "2024-06-11T09:19:00Z",
+            "createdAt": "2024-06-11T09:20:47.252876Z",
+            "updatedAt": "2024-10-31T09:32:51Z"
+          }
+        },
+        {
+          "id": "29fdbd3a-d3c9-4b0b-8d1f-83100fc9b6dd",
+          "blockchain": "ethereum",
+          "contractAddress": "0x5dcBD078230fCAAa8459794A154b0CFf41A6769d",
+          "tokenID":
+              "17202869939195561404231149018847252702642077894095053777114157924456398226560",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T10:24:58.60047Z",
+          "updatedAt": "2024-12-25T10:25:07.241207Z",
+          "artwork": {
+            "id":
+                "17202869939195561404231149018847252702642077894095053777114157924456398226560",
+            "seriesID": "42bdd1b3-25a7-451c-9fa1-9c69453c702d",
+            "index": 0,
+            "name": "#1",
+            "category": "NE",
+            "ownerAddress": "0x5dcBD078230fCAAa8459794A154b0CFf41A6769d",
+            "virgin": true,
+            "blockchainStatus": "settled",
+            "isExternal": true,
+            "thumbnailURI":
+                "thumbnails/42bdd1b3-25a7-451c-9fa1-9c69453c702d/1733296696",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/42bdd1b3-25a7-451c-9fa1-9c69453c702d/1733296715/preview.jpeg",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmSYrHP22VM4ZtRpVhZJqTi7TVeZQpeFaM2nAayEAW34DG/17202869939195561404231149018847252702642077894095053777114157924456398226560"
+            },
+            "mintedAt": "2024-12-04T08:15:24Z",
+            "createdAt": "2024-12-04T08:51:57.452532Z",
+            "updatedAt": "2024-12-25T06:31:16Z"
+          }
+        }
+      ]
+    });
+    final resp = FeralFileListResponse<DailyToken>.fromJson(
+        fakeData, DailyToken.fromJson);
+    await _feralFileApi.getDailiesTokenByDate(
       date: dateFormatter.format(date),
     );
     final dailiesTokens = resp.result;

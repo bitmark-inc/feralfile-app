@@ -17,6 +17,8 @@ class DailyWorkEvent {}
 
 class GetDailyAssetTokenEvent extends DailyWorkEvent {}
 
+class UpdateDailySlideEvent extends DailyWorkEvent {}
+
 class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
   DailyWorkBloc(this._feralfileService, this._indexerService)
       : super(DailiesWorkState(dailyInfos: [])) {
@@ -32,6 +34,9 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
 
       emit(DailiesWorkState(dailyInfos: dailyInfoList));
       unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
+    });
+    on<UpdateDailySlideEvent>((event, emit) {
+      emit(state.copyWith());
     });
   }
 
@@ -75,4 +80,15 @@ class DailyInfo {
   List<AssetToken> assetTokens;
   AlumniAccount? currentArtist;
   Exhibition? currentExhibition;
+
+  // override hashCode and == methods
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is DailyInfo && other.daily.indexId == daily.indexId;
+  }
+
+  @override
+  int get hashCode => super.hashCode;
 }
