@@ -76,4 +76,3 @@ jobs:
           track: internal
           mappingFile: build/app/outputs/mapping/productionRelease/mapping.txt
           whatsNewDirectory: ./whatsnew
-          changesNotSentForReview: true
