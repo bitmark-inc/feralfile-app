@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter/services.dart';
 
 class WifiConfigPage extends StatefulWidget {
   const WifiConfigPage({super.key});
@@ -47,6 +48,27 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
   // Add timer related variables
   int _scanTimeRemaining = 60;
   Timer? _scanTimer;
+
+  // Add new controller for logs
+  final ScrollController _logScrollController = ScrollController();
+  final List<String> _logs = [];
+
+  // Add helper method to add logs
+  void _addLog(String message) {
+    setState(() {
+      _logs.add("[${DateTime.now().toString()}] $message");
+      // Scroll to bottom after new log
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_logScrollController.hasClients) {
+          _logScrollController.animateTo(
+            _logScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    });
+  }
 
   @override
   void initState() {
@@ -100,6 +122,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
   }
 
   void startScan() {
+    _addLog("Starting BLE scan...");
     setState(() {
       scanning = true;
       scanResults.clear();
@@ -122,8 +145,9 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
     _scanSubscription = FlutterBluePlus.onScanResults.listen(
       (results) {
         for (ScanResult r in results) {
-          log.info(
-              'Found device: ${r.device.name}, ID: ${r.device.id.id}, Services: ${r.advertisementData.serviceUuids}');
+          _addLog('Device found: ${r.device.name} (${r.device.id.id})');
+          _addLog('  Service UUIDs: ${r.advertisementData.serviceUuids}');
+          log.info('Found device: ${r.device.name}, ID: ${r.device.id.id}');
         }
 
         // Filter results to only include devices advertising our service UUID
@@ -138,7 +162,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
         });
       },
       onError: (error) {
-        log.warning('Scan error: $error');
+        _addLog('Scan error: $error');
         setState(() {
           scanning = false;
           status = 'Scan error: $error';
@@ -155,11 +179,29 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
   Future<void> connectToDevice() async {
     if (targetDevice == null) return;
 
-    setState(() {
-      status = 'Connecting to ${targetDevice!.name}...';
-    });
+    _addLog(
+        'Attempting to connect to ${targetDevice!.name} (${targetDevice!.id.id})');
 
-    await targetDevice!.connect(autoConnect: false);
+    try {
+      await targetDevice!.connect(autoConnect: false);
+      _addLog('Successfully connected to device');
+
+      _addLog('Discovering services...');
+      final services = await targetDevice!.discoverServices();
+      _addLog('Found ${services.length} services');
+
+      for (var service in services) {
+        _addLog('Service: ${service.uuid}');
+        for (var characteristic in service.characteristics) {
+          _addLog('  Characteristic: ${characteristic.uuid}');
+          _addLog(
+              '  Properties: ${_getCharacteristicProperties(characteristic)}');
+        }
+      }
+    } catch (e) {
+      _addLog('Connection error: $e');
+      return;
+    }
 
     // After connection, show the WiFi credentials dialog
     if (mounted) {
@@ -204,6 +246,18 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
     setState(() {
       status = 'Target characteristic not found';
     });
+  }
+
+  // Helper to format characteristic properties
+  String _getCharacteristicProperties(BluetoothCharacteristic char) {
+    final props = [];
+    if (char.properties.read) props.add('Read');
+    if (char.properties.write) props.add('Write');
+    if (char.properties.notify) props.add('Notify');
+    if (char.properties.indicate) props.add('Indicate');
+    if (char.properties.writeWithoutResponse)
+      props.add('Write Without Response');
+    return props.join(', ');
   }
 
   void _showWifiCredentialsDialog() {
@@ -336,6 +390,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
         // Handle any errors
       });
     }
+    _logScrollController.dispose();
     super.dispose();
   }
 
@@ -422,6 +477,79 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
               child: Text(
                 'Received Data: $receivedData',
                 style: theme.textTheme.ppMori400Grey14,
+              ),
+            ),
+            // Add log display area
+            Container(
+              height: 200,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColor.auLightGrey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: AppColor.auLightGrey),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Debug Logs',
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.copy, size: 20),
+                              onPressed: () {
+                                final logText = _logs.join('\n');
+                                Clipboard.setData(ClipboardData(text: logText))
+                                    .then((_) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Logs copied to clipboard'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                });
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.clear, size: 20),
+                              onPressed: () => setState(() => _logs.clear()),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _logScrollController,
+                      padding: const EdgeInsets.all(8),
+                      itemCount: _logs.length,
+                      itemBuilder: (context, index) {
+                        return Text(
+                          _logs[index],
+                          style: theme.textTheme.ppMori400Grey14,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
