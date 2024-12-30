@@ -19,7 +19,7 @@
             "type": "dart",
 			"args": [
 				"--flavor",
-				"inhouse"
+				"development"
 			]
         },
         {
