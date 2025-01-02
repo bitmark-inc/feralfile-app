@@ -9,3 +9,5 @@ package com.bitmark.autonomy_flutter
 import kotlinx.serialization.json.Json
 
 val jsonKT = Json { ignoreUnknownKeys = true }
+
+val slideDurationInSeconds = 1 * 60L // 5 minutes in seconds

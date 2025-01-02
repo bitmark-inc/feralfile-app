@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -29,11 +30,12 @@ class HomeWidgetService {
   }
 
   Future<void> updateWidget(
-      {required Map<String, String> data, bool shouldUpdate = true}) async {
+      {required Map<String, List<String>> data,
+      bool shouldUpdate = true}) async {
     try {
       await Future.wait(
-        data.entries
-            .map((entry) => HomeWidget.saveWidgetData(entry.key, entry.value)),
+        data.entries.map((entry) =>
+            HomeWidget.saveWidgetData(entry.key, jsonEncode(entry.value))),
       );
     } catch (e) {
       log.info('Error in saveWidgetData: $e');
@@ -55,22 +57,12 @@ class HomeWidgetService {
       final startDateInUtc =
           DateTime.utc(localDate.year, localDate.month, localDate.day);
       log.info('startDateInUtc: ${startDateInUtc.toIso8601String()}');
-      final listDailies = await injector<FeralFileService>()
+      final listDailies = <DailyToken>[];
+      await injector<FeralFileService>()
           .getUpcomingDailyTokens(startDate: startDateInUtc.toIso8601String());
-
-      // Filter out dailies that have the same date
-      final filteredDailies = listDailies
-          .fold<Map<String, DailyToken>>({}, (map, token) {
-            final dateKey = token.displayTime.toIso8601String().split('T')[0];
-            if (!map.containsKey(dateKey)) {
-              map[dateKey] = token;
-            }
-            return map;
-          })
-          .values
-          .toList();
-
-      await _updateDailyTokensToHomeWidget(filteredDailies);
+      final fakeDailies = DailiesHelper.currentDailies;
+      listDailies.addAll(fakeDailies);
+      await _updateDailyTokensToHomeWidget(listDailies);
     } catch (e) {
       log.info('Error in updateDailyTokensToHomeWidget: $e');
     }
@@ -79,11 +71,17 @@ class HomeWidgetService {
   Future<void> _updateDailyTokensToHomeWidget(
       List<DailyToken> dailyTokens) async {
     // Format all daily tokens and combine their data
-    final Map<String, String> combinedData = {};
+    final Map<String, List<String>> combinedData = {};
     for (final dailyToken in dailyTokens) {
       final data = await _formatDailyTokenData(dailyToken);
       if (data != null) {
-        combinedData.addAll(data);
+        data.forEach((key, value) {
+          if (combinedData.containsKey(key)) {
+            combinedData[key]!.add(value);
+          } else {
+            combinedData[key] = [value];
+          }
+        });
       }
     }
 
