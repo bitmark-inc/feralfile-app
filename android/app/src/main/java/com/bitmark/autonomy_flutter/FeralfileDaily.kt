@@ -6,22 +6,23 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.widget.RemoteViews
 import com.bitmark.autonomywallet.MainActivity
-import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+import org.json.JSONArray
 import timber.log.Timber
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
@@ -35,50 +36,69 @@ class FeralfileDaily : AppWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             Log.d("FeralfileDaily", "onUpdate $appWidgetId")
-            updateWidget(context, appWidgetManager, appWidgetId)
+            startWidgetUpdateCycle(context, appWidgetManager, appWidgetId)
         }
     }
 
-    private fun updateWidget(
+    private fun startWidgetUpdateCycle(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        // Ensure PendingIntent is always recreated
-        val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
-            context,
-            MainActivity::class.java,
-            Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
-        )
-
-        // Set up the layout for the widget
-        val views = RemoteViews(context.packageName, R.layout.feralfile_daily)
-        views.setOnClickPendingIntent(R.id.daily_widget, openAppPendingIntent)
-
-        // If Android 12 or above, set RemoteResponse for additional interaction
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val remoteResponse = RemoteViews.RemoteResponse.fromPendingIntent(openAppPendingIntent)
-            views.setOnCheckedChangeResponse(R.id.daily_widget, remoteResponse)
-        }
-
-        // Trigger full widget update
-        appWidgetManager.updateAppWidget(appWidgetId, views)
-
-        // Update widget content with latest data
-        getDailyInfo(context) { dailyInfo ->
-            updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
+        CoroutineScope(Dispatchers.IO).launch {
+            val dailyInfoList = getDailyInfoList(context)
+            withContext(Dispatchers.Main) {
+                updateWidgetWithCycle(context, appWidgetManager, appWidgetId, dailyInfoList)
+            }
         }
     }
 
+    private fun getCurrentIndex(dailyInfoList: List<DailyInfo>): Int {
+        require(dailyInfoList.isNotEmpty()) { "Slide list must not be empty" }
+
+        // Each slide lasts for a fixed duration (e.g., 5 minutes in this case).
+        // At the start of the cycle, the index is 0.
+        // As time progresses, the index increases every 5 minutes, cycling through the length of `slideInfos`.
+
+        val now = System.currentTimeMillis()
+        val startDate =
+            getCurrentDate().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val secondsSinceStart = (now - startDate) / 1000 // time in seconds
+
+        // Calculate the current index based on the time elapsed and the length of `slideInfos`.
+        val index = (secondsSinceStart / slideDurationInSeconds) % dailyInfoList.size
+
+        return index.toInt()
+    }
+
+    private fun updateWidgetWithCycle(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        dailyInfoList: List<DailyInfo>
+    ) {
+        val handler = Handler(Looper.getMainLooper())
+        var currentIndex = getCurrentIndex(dailyInfoList)
+
+        val updateRunnable = object : Runnable {
+            override fun run() {
+                if (dailyInfoList.isNotEmpty()) {
+                    val dailyInfo = dailyInfoList[currentIndex]
+                    updateAppWidget(context, appWidgetManager, appWidgetId, dailyInfo)
+                    currentIndex = getCurrentIndex(dailyInfoList)
+                }
+                handler.postDelayed(this, (slideDurationInSeconds + 3) * 1000)
+            }
+        }
+
+        handler.post(updateRunnable)
+    }
+
     override fun onEnabled(context: Context) {
-        // Enter relevant functionality for when the first widget is created
-        // print log
         Timber.tag("FeralfileDaily").d("FeralfileDaily onEnabled")
     }
 
     override fun onDisabled(context: Context) {
-        // Enter relevant functionality for when the last widget is disabled
-        // print log
         Timber.tag("FeralfileDaily").d("FeralfileDaily onDisabled")
     }
 
@@ -89,7 +109,6 @@ class FeralfileDaily : AppWidgetProvider() {
 
         when (intent.action) {
             "com.bitmark.autonomy_flutter.OPEN_APP" -> {
-                // Only handle opening the app without triggering onUpdate
                 val openAppIntent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
@@ -113,126 +132,90 @@ class FeralfileDaily : AppWidgetProvider() {
         newOptions: Bundle
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-
-        // Handle theme update
-        Timber.tag("FeralfileDaily").d("Theme or configuration change detected")
-        updateWidget(
-            context,
-            appWidgetManager,
-            appWidgetId
-        )
+        startWidgetUpdateCycle(context, appWidgetManager, appWidgetId)
     }
-}
-
-internal fun updateAppWidget(
-    context: Context,
-    appWidgetManager: AppWidgetManager,
-    appWidgetId: Int,
-    dailyInfo: DailyInfo // dailyInfo is guaranteed to be non-null
-) {
-    val layoutId = R.layout.feralfile_daily
-    val views = RemoteViews(context.packageName, layoutId)
-
-    // Set text fields with DailyInfo
-    views.setTextViewText(R.id.appwidget_title, dailyInfo.title)
-    views.setTextViewText(R.id.appwidget_artist, dailyInfo.artistName)
-
-    // Load the image from Base64
-    val base64ImageData = dailyInfo.base64ImageData
-    if (base64ImageData.isNotEmpty()) {
-        try {
-            // Decode Base64 string to a byte array
-            val imageBytes = Base64.decode(base64ImageData, Base64.DEFAULT)
-            // Convert byte array to Bitmap
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-            // Set the image to the widget
-            views.setImageViewBitmap(R.id.appwidget_image, bitmap)
-        } catch (e: Exception) {
-            // Handle error in decoding, set a placeholder image
-            views.setImageViewResource(R.id.appwidget_image, R.drawable.failed_daily_image)
-        }
-    } else {
-        // If no Base64 data, set a placeholder image
-        views.setImageViewResource(R.id.appwidget_image, R.drawable.no_thumbnail)
-    }
-
-    val base64Medium = dailyInfo.medium
-    if (base64Medium.isNotEmpty()) {
-        try {
-            // Decode Base64 string to a byte array
-            val imageBytes = Base64.decode(base64Medium, Base64.DEFAULT)
-            // Convert byte array to Bitmap
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-            // Set the image to the widget
-            views.setImageViewBitmap(R.id.medium_image, bitmap)
-        } catch (e: Exception) {
-            // Handle error in decoding, set a placeholder image
-            views.setImageViewResource(R.id.medium_image, R.drawable.failed_daily_image)
-        }
-    }
-
-    // Update the widget with the new views
-    appWidgetManager.updateAppWidget(appWidgetId, views)
 }
 
 data class DailyInfo(
-    val base64ImageData: String,  // Changed from thumbnailUrl to base64ImageData
+    val base64ImageData: String,
     val title: String,
     val artistName: String,
     val medium: String
 )
 
+internal fun updateAppWidget(
+    context: Context,
+    appWidgetManager: AppWidgetManager,
+    appWidgetId: Int,
+    dailyInfo: DailyInfo
+) {
+    val layoutId = R.layout.feralfile_daily
+    val views = RemoteViews(context.packageName, layoutId)
 
-fun getDailyInfo(context: Context, callback: (DailyInfo) -> Unit) {
-    CoroutineScope(Dispatchers.IO).launch {
-        val localDailyInfo =
-            getStoredDailyInfo(context = context) // Method to get previously stored data
-        withContext(Dispatchers.Main) {
-            callback(localDailyInfo)
+    views.setTextViewText(R.id.appwidget_title, dailyInfo.title)
+    views.setTextViewText(R.id.appwidget_artist, dailyInfo.artistName)
+
+    setImageFromBase64(context, views, R.id.appwidget_image, dailyInfo.base64ImageData)
+    if (dailyInfo.medium.isNotEmpty()) {
+        setImageFromBase64(context, views, R.id.medium_image, dailyInfo.medium)
+        views.setViewVisibility(R.id.medium_image, View.VISIBLE)
+    } else {
+        views.setViewVisibility(R.id.medium_image, View.GONE)
+    }
+
+    appWidgetManager.updateAppWidget(appWidgetId, views)
+}
+
+fun setImageFromBase64(
+    context: Context,
+    views: RemoteViews,
+    imageViewId: Int,
+    base64Data: String
+) {
+    if (base64Data.isNotEmpty()) {
+        try {
+            val imageBytes = Base64.decode(base64Data, Base64.DEFAULT)
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            views.setImageViewBitmap(imageViewId, bitmap)
+        } catch (e: Exception) {
+            views.setImageViewResource(imageViewId, R.drawable.failed_daily_image)
         }
+    } else {
+        views.setImageViewResource(imageViewId, R.drawable.no_thumbnail)
     }
 }
 
-private fun getStoredDailyInfo(context: Context): DailyInfo {
+fun getDailyInfoList(context: Context): List<DailyInfo> {
     val widgetData = HomeWidgetPlugin.getData(context)
+    val dailyInfoList = mutableListOf<DailyInfo>()
 
-    val currentDateKey = getCurrentDateKey();
-
-    // Retrieve JSON string for the current date
+    val currentDateKey = getCurrentDateKey()
     val jsonString = widgetData.getString(currentDateKey, null)
 
     if (jsonString != null) {
         try {
-            // Parse JSON string
-            val jsonObject = JSONObject(jsonString)
-            val base64ImageData = jsonObject.optString("base64ImageData", "")
-            val title = jsonObject.optString("title", "default_title")
-            val artistName = jsonObject.optString("artistName", "default_artist_name")
-            val medium = jsonObject.optString("base64MediumIcon", "")
-
-            // Return DailyInfo object with the parsed data
-            return DailyInfo(
-                base64ImageData = base64ImageData,
-                title = title,
-                artistName = artistName,
-                medium = medium
-            )
+            val jsonArray = JSONArray(jsonString)
+            for (i in 0 until jsonArray.length()) {
+                val string = jsonArray.getString(i)
+                val jsonObject = org.json.JSONObject(string)
+                val dailyInfo = DailyInfo(
+                    base64ImageData = jsonObject.optString("base64ImageData", ""),
+                    title = jsonObject.optString("title", "Default Title"),
+                    artistName = jsonObject.optString("artistName", "Default Artist"),
+                    medium = jsonObject.optString("base64MediumIcon", "")
+                )
+                dailyInfoList.add(dailyInfo)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
-            return getDefaultDailyInfo()
         }
     }
 
-    // Return default DailyInfo if data for current date is not found or parsing fails
-    return getDefaultDailyInfo()
-}
+    if (dailyInfoList.isEmpty()) {
+        dailyInfoList.add(getDefaultDailyInfo())
+    }
 
-private fun getCurrentDateKey(): String {
-    val currentDate = LocalDate.now()
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    return currentDate.format(formatter)
+    return dailyInfoList
 }
 
 private fun getDefaultDailyInfo(): DailyInfo {
@@ -242,4 +225,16 @@ private fun getDefaultDailyInfo(): DailyInfo {
         artistName = "Daily is not available",
         medium = ""
     )
+}
+
+private fun getCurrentDate(): LocalDate {
+    val current = LocalDate.now()
+    return LocalDate.of(current.year, current.month, current.dayOfMonth)
+
+}
+
+private fun getCurrentDateKey(): String {
+    val currentDate = getCurrentDate()
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    return currentDate.format(formatter)
 }

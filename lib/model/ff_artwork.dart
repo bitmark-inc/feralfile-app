@@ -63,9 +63,9 @@ class Artwork {
         json['thumbnailURI'] as String,
         json['thumbnailDisplay'] as String?,
         json['previewURI'] as String,
-        (json['previewDisplay'] as Map<String, dynamic>)
+        (Map<String, dynamic>.from(json['previewDisplay'] as Map))
             .map((key, value) => MapEntry(key, value as String)),
-        json['metadata'] as Map<String, dynamic>?,
+        Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
         json['mintedAt'] == null || (json['mintedAt'] as String).isEmpty
             ? null
             : DateTime.parse(json['mintedAt'] as String),
@@ -78,15 +78,18 @@ class Artwork {
         json['isArchived'] as bool?,
         json['series'] == null
             ? null
-            : FFSeries.fromJson(json['series'] as Map<String, dynamic>),
+            : FFSeries.fromJson(
+                Map<String, dynamic>.from(json['series'] as Map)),
         json['swap'] == null
             ? null
-            : ArtworkSwap.fromJson(json['swap'] as Map<String, dynamic>),
+            : ArtworkSwap.fromJson(
+                Map<String, dynamic>.from(json['swap'] as Map)),
         json['artworkAttributes'] == null
             ? null
             : (json['artworkAttributes'] as List<dynamic>)
                 .map(
-                  (e) => ArtworkAttribute.fromJson(e as Map<String, dynamic>),
+                  (e) => ArtworkAttribute.fromJson(
+                      Map<String, dynamic>.from(e as Map)),
                 )
                 .toList(),
       );

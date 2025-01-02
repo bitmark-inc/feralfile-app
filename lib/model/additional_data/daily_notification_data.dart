@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
-import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
@@ -85,7 +84,7 @@ class DailyNotificationData extends AdditionalData {
       _logAndSendSentryForNullData('dailyToken');
       return;
     }
-    final dailyToken = _dailyWorkBloc.state.currentDailyToken;
+    final dailyInfo = _dailyWorkBloc.state.currentDailyInfo;
 
     if (dailyCTATarget == null) {
       log.info('Invalid daily cta target ${cta!.navigationRoute}');
@@ -96,7 +95,7 @@ class DailyNotificationData extends AdditionalData {
       case DailyCTATarget.dailyPage:
         await _navigationService.navigatePath(AppRouter.dailyWorkPage);
       case DailyCTATarget.viewDailySeries:
-        final artwork = dailyToken!.artwork;
+        final artwork = dailyInfo?.daily.artwork;
         if (artwork == null) {
           _logAndSendSentryForNullData('artwork');
           return;
@@ -113,7 +112,7 @@ class DailyNotificationData extends AdditionalData {
           ),
         );
       case DailyCTATarget.viewDailyExhibition:
-        final artwork = dailyToken!.artwork;
+        final artwork = dailyInfo?.daily.artwork;
         if (artwork == null) {
           _logAndSendSentryForNullData('artwork');
           return;
@@ -133,7 +132,7 @@ class DailyNotificationData extends AdditionalData {
               ExhibitionDetailPayload(exhibitions: [exhibition], index: 0),
         );
       case DailyCTATarget.viewDailyArtist:
-        final artistID = _dailyWorkBloc.state.assetTokens.firstOrNull?.artistID;
+        final artistID = dailyInfo?.assetTokens.firstOrNull?.artistID;
 
         if (artistID == null) {
           _logAndSendSentryForNullData('artistID');
@@ -155,16 +154,16 @@ class DailyNotificationData extends AdditionalData {
 
   @override
   Future<bool> prepareAndDidSuccess() async {
-    DailyToken? dailyToken = _dailyWorkBloc.state.currentDailyToken;
-    if (dailyToken == null) {
-      log.warning('DailyNotificationData: dailyToken is null, retrying');
+    DailyInfo? dailyInfo = _dailyWorkBloc.state.currentDailyInfo;
+    if (dailyInfo == null) {
+      log.warning('DailyNotificationData: dailyInfo is null, retrying');
       await Future.delayed(const Duration(milliseconds: 1000));
-      dailyToken = _dailyWorkBloc.state.currentDailyToken;
+      dailyInfo = _dailyWorkBloc.state.currentDailyInfo;
     }
-    if (dailyToken == null) {
-      log.warning('DailyNotificationData: dailyToken is null');
+    if (dailyInfo == null) {
+      log.warning('DailyNotificationData: dailyInfo is null');
       unawaited(
-          Sentry.captureMessage('DailyNotificationData: dailyToken is null'));
+          Sentry.captureMessage('DailyNotificationData: dailyInfo is null'));
       return false;
     }
     return true;

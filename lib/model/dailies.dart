@@ -17,7 +17,8 @@ class DailyToken {
         tokenID: json['tokenID'] as String,
         dailyNote: json['note'] as String?,
         artwork: json['artwork'] != null
-            ? Artwork.fromJson(json['artwork'] as Map<String, dynamic>)
+            ? Artwork.fromJson(
+                Map<String, dynamic>.from(json['artwork'] as Map))
             : null,
       );
   final DateTime displayTime;

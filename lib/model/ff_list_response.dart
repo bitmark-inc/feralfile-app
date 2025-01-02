@@ -7,7 +7,7 @@ class FeralFileListResponse<T> {
   ) =>
       FeralFileListResponse(
         result: (json['result'] as List<dynamic>)
-            .map((e) => fromJson(e as Map<String, dynamic>))
+            .map((e) => fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
         paging: json['paging'] == null
             ? null

@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:sentry/sentry.dart';
 
@@ -136,11 +135,16 @@ abstract class FeralFileService {
   static const int offset = 0;
   static const int limit = 300;
 
-  Future<FFSeries> getSeries(String id,
-      {String? exhibitionID, bool includeFirstArtwork = false});
+  Future<FFSeries> getSeries(
+    String id, {
+    String? exhibitionID,
+    bool includeFirstArtwork = false,
+  });
 
-  Future<List<FFSeries>> getListSeries(String exhibitionId,
-      {bool includeFirstArtwork = false});
+  Future<List<FFSeries>> getListSeries(
+    String exhibitionId, {
+    bool includeFirstArtwork = false,
+  });
 
   Future<Exhibition?> getExhibitionFromTokenID(String artworkID);
 
@@ -148,8 +152,10 @@ abstract class FeralFileService {
 
   Future<String?> getPartnerFullName(String exhibitionId);
 
-  Future<Exhibition> getExhibition(String id,
-      {bool includeFirstArtwork = false});
+  Future<Exhibition> getExhibition(
+    String id, {
+    bool includeFirstArtwork = false,
+  });
 
   Future<List<Exhibition>> getAllExhibitions({
     String sortBy = 'openAt',
@@ -172,14 +178,18 @@ abstract class FeralFileService {
   Future<List<Artwork>> getFeaturedArtworks();
 
   Future<FeralFileListResponse<Artwork>> getSeriesArtworks(
-      String seriesId, String exhibitionID,
-      {bool withSeries = false, int offset = offset, int limit = limit});
+    String seriesId,
+    String exhibitionID, {
+    bool withSeries = false,
+    int offset = offset,
+    int limit = limit,
+  });
 
   Future<Artwork?> getFirstViewableArtwork(String seriesId);
 
   Future<Artwork> getArtwork(String artworkId);
 
-  Future<DailyToken?> getCurrentDailiesToken();
+  Future<List<DailyToken>> getCurrentDailyTokens();
 
   Future<List<DailyToken>> getUpcomingDailyTokens({
     String? startDate,
@@ -202,14 +212,15 @@ abstract class FeralFileService {
     Map<FilterType, FilterValue> filters = const {},
   });
 
-  Future<FeralFileListResponse<AlumniAccount>> getListAlumni(
-      {int limit = 20,
-      int offset = 0,
-      bool isArtist = false,
-      bool isCurator = false,
-      String keywork = '',
-      String orderBy = 'relevance',
-      String sortOrder = 'DESC'});
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni({
+    int limit = 20,
+    int offset = 0,
+    bool isArtist = false,
+    bool isCurator = false,
+    String keywork = '',
+    String orderBy = 'relevance',
+    String sortOrder = 'DESC',
+  });
 
   Future<AlumniAccount> getAlumniDetail(String alumniID);
 
@@ -228,32 +239,37 @@ abstract class FeralFileService {
 }
 
 class FeralFileServiceImpl extends FeralFileService {
-  final FeralFileApi _feralFileApi;
-  final SourceExhibitionAPI _sourceExhibitionAPI;
-  Exhibition? sourceExhibition;
-  List<BeforeMintingArtworkInfo> beforeMintingArtworkInfos = [];
-
   FeralFileServiceImpl(
     this._feralFileApi,
     this._sourceExhibitionAPI,
   );
 
+  final FeralFileApi _feralFileApi;
+  final SourceExhibitionAPI _sourceExhibitionAPI;
+  Exhibition? sourceExhibition;
+  List<BeforeMintingArtworkInfo> beforeMintingArtworkInfos = [];
+
   @override
-  Future<FFSeries> getSeries(String id,
-      {String? exhibitionID, bool includeFirstArtwork = false}) async {
+  Future<FFSeries> getSeries(
+    String id, {
+    String? exhibitionID,
+    bool includeFirstArtwork = false,
+  }) async {
     if (exhibitionID == SOURCE_EXHIBITION_ID) {
-      return await _getSourceSeries(
+      return _getSourceSeries(
         id,
         includeFirstArtwork: includeFirstArtwork,
       );
     }
     final series = (await _feralFileApi.getSeries(
-            seriesId: id, includeFirstArtwork: includeFirstArtwork))
+      seriesId: id,
+      includeFirstArtwork: includeFirstArtwork,
+    ))
         .result;
 
     if (includeFirstArtwork && series.artwork == null) {
       final exhibition = await getExhibition(series.exhibitionID);
-      List<Artwork> artworks = [];
+      var artworks = <Artwork>[];
       if (!exhibition.isMinted) {
         final fakeArtworks =
             await _getFakeSeriesArtworks(exhibition, series, 0, 1);
@@ -268,20 +284,24 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<Exhibition> getExhibition(String id,
-      {bool includeFirstArtwork = false}) async {
+  Future<Exhibition> getExhibition(
+    String id, {
+    bool includeFirstArtwork = false,
+  }) async {
     if (id == SOURCE_EXHIBITION_ID) {
       return getSourceExhibition();
     }
-    final resp = await _feralFileApi.getExhibition(id,
-        includeFirstArtwork: includeFirstArtwork);
+    final resp = await _feralFileApi.getExhibition(
+      id,
+      includeFirstArtwork: includeFirstArtwork,
+    );
     final exhibition = resp.result!;
 
     if (includeFirstArtwork &&
         exhibition.series != null &&
         exhibition.series!.any((series) => series.artwork == null)) {
-      final List<FFSeries> newSeries = [];
-      for (final FFSeries series in exhibition.series ?? []) {
+      final newSeries = <FFSeries>[];
+      for (final series in exhibition.series ?? <FFSeries>[]) {
         if (!exhibition.isMinted) {
           final seriesDetail = await getSeries(series.id);
           final fakeArtwork =
@@ -319,8 +339,11 @@ class FeralFileServiceImpl extends FeralFileService {
       return getExhibition(artwork.result.series?.exhibitionID ?? '');
     } catch (e) {
       log.info('[FeralFileService] Failed to get exhibition from token ID: $e');
-      unawaited(Sentry.captureException(
-          '[FeralFileService] getExhibitionFromTokenID: $e'));
+      unawaited(
+        Sentry.captureException(
+          '[FeralFileService] getExhibitionFromTokenID: $e',
+        ),
+      );
       return null;
     }
   }
@@ -390,12 +413,16 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<List<Artwork>> _getFakeSeriesArtworks(
-      Exhibition exhibition, FFSeries series, int offset, int limit) async {
+    Exhibition exhibition,
+    FFSeries series,
+    int offset,
+    int limit,
+  ) async {
     if (!series.shouldFakeArtwork) {
       return [];
     }
     if (exhibition.isJohnGerrardShow) {
-      return await _getJohnGerrardFakeArtworks(
+      return _getJohnGerrardFakeArtworks(
         series: series,
         offset: offset,
         limit: limit,
@@ -408,8 +435,12 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<List<Artwork>> _createFakeSeriesArtworks(
-      FFSeries series, Exhibition exhibition, int offset, int limit) async {
-    final List<Artwork> artworks = [];
+    FFSeries series,
+    Exhibition exhibition,
+    int offset,
+    int limit,
+  ) async {
+    final artworks = <Artwork>[];
     final maxArtworks =
         min(offset + limit, series.settings?.maxArtwork ?? offset + limit);
     for (var i = offset; i < maxArtworks; i++) {
@@ -449,36 +480,42 @@ class FeralFileServiceImpl extends FeralFileService {
     return artworks;
   }
 
-  String getFeralfileTokenId(
-      {required String seriesOnchainID,
-      required String exhibitionID,
-      required int artworkIndex}) {
-    final BigInt si = BigInt.parse(seriesOnchainID);
-    final BigInt msi = si * BigInt.from(1000000) + BigInt.from(artworkIndex);
-    final String part1 = exhibitionID.replaceAll('-', '');
+  String getFeralfileTokenId({
+    required String seriesOnchainID,
+    required String exhibitionID,
+    required int artworkIndex,
+  }) {
+    final si = BigInt.parse(seriesOnchainID);
+    final msi = si * BigInt.from(1000000) + BigInt.from(artworkIndex);
+    final part1 = exhibitionID.replaceAll('-', '');
     // padding with 0 to 32 characters
-    final String part2 = msi.toRadixString(16).padLeft(32, '0');
-    final String p = part1 + part2;
-    final BigInt tokenIDBigInt = BigInt.parse('0x$p');
-    final String tokenID = tokenIDBigInt.toString();
+    final part2 = msi.toRadixString(16).padLeft(32, '0');
+    final p = part1 + part2;
+    final tokenIDBigInt = BigInt.parse('0x$p');
+    final tokenID = tokenIDBigInt.toString();
     return tokenID;
   }
 
-  Future<String> previewArtCustomTokenID(
-      {required String seriesOnchainID,
-      required String exhibitionID,
-      required int artworkIndex}) async {
-    final String tokenID = getFeralfileTokenId(
-        seriesOnchainID: seriesOnchainID,
-        exhibitionID: exhibitionID,
-        artworkIndex: artworkIndex);
-    final Uint8List tokenIDBytes = utf8.encode(tokenID);
-    final String tokenIDHash = sha256.convert(tokenIDBytes).toString();
+  Future<String> previewArtCustomTokenID({
+    required String seriesOnchainID,
+    required String exhibitionID,
+    required int artworkIndex,
+  }) async {
+    final tokenID = getFeralfileTokenId(
+      seriesOnchainID: seriesOnchainID,
+      exhibitionID: exhibitionID,
+      artworkIndex: artworkIndex,
+    );
+    final tokenIDBytes = utf8.encode(tokenID);
+    final tokenIDHash = sha256.convert(tokenIDBytes).toString();
     return '&token_id=$tokenID&token_id_hash=0x$tokenIDHash';
   }
 
   Future<String?> _getPreviewURI(
-      FFSeries series, int artworkIndex, Exhibition exhibition) async {
+    FFSeries series,
+    int artworkIndex,
+    Exhibition exhibition,
+  ) async {
     String? previewURI;
     if (!series.isMultiUnique) {
       previewURI = getFFUrl(series.previewFile?.uri ?? '');
@@ -520,58 +557,73 @@ class FeralFileServiceImpl extends FeralFileService {
           : series.thumbnailURI;
 
   Future<FeralFileListResponse<Artwork>> _fakeSeriesArtworks(
-      String seriesId, Exhibition exhibition,
-      {required int offset, required int limit}) async {
+    String seriesId,
+    Exhibition exhibition, {
+    required int offset,
+    required int limit,
+  }) async {
     final series = await getSeries(seriesId);
-    final List<Artwork> seriesArtworks =
+    final seriesArtworks =
         await _getFakeSeriesArtworks(exhibition, series, offset, limit);
     final total = series.latestRevealedArtworkIndex == null
         ? series.maxEdition
         : series.latestRevealedArtworkIndex! + 1;
     return FeralFileListResponse(
-        result: seriesArtworks,
-        paging: Paging(offset: offset, limit: limit, total: total));
+      result: seriesArtworks,
+      paging: Paging(offset: offset, limit: limit, total: total),
+    );
   }
 
   @override
   Future<FeralFileListResponse<Artwork>> getSeriesArtworks(
-      String seriesId, String exhibitionID,
-      {bool withSeries = false,
-      int offset = FeralFileService.offset,
-      int limit = FeralFileService.limit}) async {
+    String seriesId,
+    String exhibitionID, {
+    bool withSeries = false,
+    int offset = FeralFileService.offset,
+    int limit = FeralFileService.limit,
+  }) async {
     if (exhibitionID == SOURCE_EXHIBITION_ID) {
       final artworks = await _getSourceSeriesArtworks(seriesId);
       return FeralFileListResponse(
-          result:
-              artworks.sublist(offset, min(artworks.length, offset + limit)),
-          paging: Paging(offset: 0, limit: limit, total: artworks.length));
+        result: artworks.sublist(offset, min(artworks.length, offset + limit)),
+        paging: Paging(offset: 0, limit: limit, total: artworks.length),
+      );
     }
     final exhibition = await getExhibition(exhibitionID);
 
     if (!exhibition.isMinted) {
-      return await _fakeSeriesArtworks(seriesId, exhibition,
-          offset: offset, limit: limit);
+      return _fakeSeriesArtworks(
+        seriesId,
+        exhibition,
+        offset: offset,
+        limit: limit,
+      );
     }
 
     final FeralFileListResponse<Artwork> artworksResponse;
     if (seriesId == CrawlHelper.mergeSeriesID) {
       artworksResponse = await _feralFileApi.getListArtworks(
-          seriesId: seriesId,
-          offset: offset,
-          limit: limit,
-          sortOrder: 'DESC',
-          filterBurned: true);
+        seriesId: seriesId,
+        offset: offset,
+        limit: limit,
+        sortOrder: 'DESC',
+        filterBurned: true,
+      );
     } else {
       artworksResponse = await _feralFileApi.getListArtworks(
-          seriesId: seriesId, offset: offset, limit: limit);
+        seriesId: seriesId,
+        offset: offset,
+        limit: limit,
+      );
     }
 
     if (withSeries) {
       final series = await getSeries(seriesId);
       artworksResponse.copyWith(
-          result: artworksResponse.result
-              .map((e) => e.copyWith(series: series))
-              .toList());
+        result: artworksResponse.result
+            .map((e) => e.copyWith(series: series))
+            .toList(),
+      );
     }
     log
       ..info(
@@ -603,14 +655,19 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<FFSeries>> getListSeries(String exhibitionId,
-      {bool includeFirstArtwork = false}) async {
+  Future<List<FFSeries>> getListSeries(
+    String exhibitionId, {
+    bool includeFirstArtwork = false,
+  }) async {
     if (exhibitionId == SOURCE_EXHIBITION_ID) {
       final exhibition = await getSourceExhibition();
       return exhibition.series ?? [];
     }
     final response = await _feralFileApi.getListSeries(
-        exhibitionID: exhibitionId, sortBy: 'displayIndex', sortOrder: 'ASC');
+      exhibitionID: exhibitionId,
+      sortBy: 'displayIndex',
+      sortOrder: 'ASC',
+    );
     return response.result;
   }
 
@@ -645,8 +702,10 @@ class FeralFileServiceImpl extends FeralFileService {
     return sourceExhibition!;
   }
 
-  Future<FFSeries> _getSourceSeries(String seriesID,
-      {bool includeFirstArtwork = false}) async {
+  Future<FFSeries> _getSourceSeries(
+    String seriesID, {
+    bool includeFirstArtwork = false,
+  }) async {
     late List<FFSeries> listSeries;
     if (sourceExhibition != null && sourceExhibition!.series != null) {
       listSeries = sourceExhibition!.series!;
@@ -672,7 +731,8 @@ class FeralFileServiceImpl extends FeralFileService {
 
   // John Gerrard exhibition
   Future<List<BeforeMintingArtworkInfo>> _getBeforeMintingArtworkInfos(
-      FFSeries series) async {
+    FFSeries series,
+  ) async {
     if (beforeMintingArtworkInfos.isNotEmpty) {
       return beforeMintingArtworkInfos;
     }
@@ -720,7 +780,7 @@ class FeralFileServiceImpl extends FeralFileService {
       return [];
     }
 
-    List<Artwork> fakeArtworks = [];
+    final fakeArtworks = <Artwork>[];
     for (var index = offset; index < endIndex; index++) {
       final fakeArtwork = await _getJohnGerrardArtworkByIndex(index, series);
       fakeArtworks.add(fakeArtwork);
@@ -730,7 +790,9 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<Artwork> _getJohnGerrardArtworkByIndex(
-      int index, FFSeries series) async {
+    int index,
+    FFSeries series,
+  ) async {
     final beforeMintingArtworkInfos =
         await _getBeforeMintingArtworkInfos(series);
     final artworkId = getFeralfileTokenId(
@@ -739,30 +801,31 @@ class FeralFileServiceImpl extends FeralFileService {
       artworkIndex: index,
     );
     return Artwork(
-        artworkId,
-        series.id,
-        index,
-        beforeMintingArtworkInfos[index].artworkTitle,
-        '',
-        null,
-        null,
-        null,
-        '',
-        false,
-        'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
-        null,
-        'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
-        {},
-        {
-          'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
-        },
-        DateTime.now(),
-        DateTime.now(),
-        DateTime.now(),
-        null,
-        series,
-        null,
-        null);
+      artworkId,
+      series.id,
+      index,
+      beforeMintingArtworkInfos[index].artworkTitle,
+      '',
+      null,
+      null,
+      null,
+      '',
+      false,
+      'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
+      null,
+      'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+      {},
+      {
+        'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
+      },
+      DateTime.now(),
+      DateTime.now(),
+      DateTime.now(),
+      null,
+      series,
+      null,
+      null,
+    );
   }
 
   Future<List<DailyToken>> _fetchDailiesTokens() async {
@@ -771,15 +834,18 @@ class FeralFileServiceImpl extends FeralFileService {
       unawaited(Sentry.captureMessage('Failed to get current daily token'));
       return [];
     }
-    DailiesHelper.updateDailies([currentDailyTokens.first]);
+    DailiesHelper.updateDailies(currentDailyTokens);
     return currentDailyTokens;
   }
 
   Future<List<DailyToken>> _fetchDailyTokenByDate(DateTime localTime) async {
     const defaultScheduleTime = 6;
-    final configScheduleTime = injector<RemoteConfigService>()
-        .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
-            defaultScheduleTime.toString());
+    final configScheduleTime =
+        injector<RemoteConfigService>().getConfig<String>(
+      ConfigGroup.daily,
+      ConfigKey.scheduleTime,
+      defaultScheduleTime.toString(),
+    );
 
     // the daily artwork change at configScheduleTime
     // so we will subtract configScheduleTime hours to get the correct date
@@ -787,8 +853,198 @@ class FeralFileServiceImpl extends FeralFileService {
         localTime.subtract(Duration(hours: int.parse(configScheduleTime)));
     final dateFormatter = DateFormat('yyyy-MM-dd');
 
-    final resp = await _feralFileApi.getDailiesTokenByDate(
-        date: dateFormatter.format(date));
+    final fakeData = Map<String, dynamic>.from({
+      "result": [
+        {
+          "id": "09ffe6e2-851e-4056-bceb-8bf452d9edb5",
+          "blockchain": "ethereum",
+          "contractAddress": "0xBD7dB299B3B3ab8CD9327Bb16B9449B0FECa1362",
+          "tokenID":
+              "15057104134096646567610465694622545946028038286120096630952183657332875412033",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T09:36:00.548064Z",
+          "updatedAt": "2024-12-25T09:36:00.548064Z",
+          "artwork": {
+            "id":
+                "15057104134096646567610465694622545946028038286120096630952183657332875412033",
+            "seriesID": "3085188b-b9b6-4953-9816-7aadef2fa0c4",
+            "index": 1,
+            "name": "#2",
+            "category": "AE",
+            "ownerAddress": "6e70c22d-b661-4080-8cfe-35e358ff3c51",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": false,
+            "thumbnailURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-thumbnails/1-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-previews/1",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmTMbU6mByfzgZy4siAAyRy155LChUzh8vVVHv2sentB6r/15057104134096646567610465694622545946028038286120096630952183657332875412033"
+            },
+            "mintedAt": "2024-09-12T07:56:24Z",
+            "createdAt": "2024-09-12T07:56:47.384069Z",
+            "updatedAt": "2024-10-31T09:32:30Z"
+          }
+        },
+        {
+          "id": "05eaeab8-8fb1-4771-aecb-bb4622b3a374",
+          "blockchain": "ethereum",
+          "contractAddress": "0xBD7dB299B3B3ab8CD9327Bb16B9449B0FECa1362",
+          "tokenID":
+              "15057104134096646567610465694622545946028038286120096630952183657332875412034",
+          "displayTime": "2024-12-25T01:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T09:36:07.36686Z",
+          "updatedAt": "2024-12-25T09:36:07.36686Z",
+          "artwork": {
+            "id":
+                "15057104134096646567610465694622545946028038286120096630952183657332875412034",
+            "seriesID": "3085188b-b9b6-4953-9816-7aadef2fa0c4",
+            "index": 2,
+            "name": "#3",
+            "category": "NE",
+            "ownerAddress": "c9f32481-c3ec-4079-8394-15267a369127",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": false,
+            "thumbnailURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-thumbnails/2-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/3085188b-b9b6-4953-9816-7aadef2fa0c4/1726106035/_unique-previews/2",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmTMbU6mByfzgZy4siAAyRy155LChUzh8vVVHv2sentB6r/15057104134096646567610465694622545946028038286120096630952183657332875412034"
+            },
+            "mintedAt": "2024-09-12T07:56:24Z",
+            "createdAt": "2024-09-12T07:56:47.384069Z",
+            "updatedAt": "2024-10-31T09:32:30Z"
+          }
+        },
+        {
+          "id": "f4fa00ad-0284-4d83-b35a-abdaec6248d5",
+          "blockchain": "ethereum",
+          "contractAddress": "0xBD7dB299B3B3ab8CD9327Bb16B9449B0FECa1362",
+          "tokenID":
+              "15057104134096646567610465694622545946028038286120096630952183657332876412038",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T10:23:20.525705Z",
+          "updatedAt": "2024-12-25T10:23:24.526198Z",
+          "artwork": {
+            "id":
+                "15057104134096646567610465694622545946028038286120096630952183657332876412038",
+            "seriesID": "3a06cf94-7035-4ce8-989b-b1b8fac191e1",
+            "index": 6,
+            "name": "#7",
+            "category": "NE",
+            "ownerAddress": "0x61d69c096cD5d5a9061516EbEB5de80167914095",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": true,
+            "thumbnailURI":
+                "previews/3a06cf94-7035-4ce8-989b-b1b8fac191e1/1726106035/_unique-thumbnails/6-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/3a06cf94-7035-4ce8-989b-b1b8fac191e1/1726106035/_unique-previews/6",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmTMbU6mByfzgZy4siAAyRy155LChUzh8vVVHv2sentB6r/15057104134096646567610465694622545946028038286120096630952183657332876412038"
+            },
+            "mintedAt": "2024-09-12T07:56:24Z",
+            "createdAt": "2024-09-12T07:56:47.384069Z",
+            "updatedAt": "2024-12-25T06:31:16Z"
+          }
+        },
+        {
+          "id": "6762c645-8f23-4d4d-ab33-cdbf1667d009",
+          "blockchain": "ethereum",
+          "contractAddress": "0x4fdE7b3310E8c4C9A35Ea78fa222ffCa18e229F7",
+          "tokenID": "1809880548170220016338774260772826260342473867",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T10:24:06.344955Z",
+          "updatedAt": "2024-12-25T10:24:13.839091Z",
+          "artwork": {
+            "id": "1809880548170220016338774260772826260342473867",
+            "seriesID": "e28231b3-0bbd-4e04-aa0a-17ff1d241403",
+            "index": 11,
+            "name": "#12",
+            "category": "NE",
+            "ownerAddress": "6faee5b9-1bbc-4f1d-8e3b-ddc5a091c49f",
+            "virgin": false,
+            "blockchainStatus": "settled",
+            "isExternal": false,
+            "thumbnailURI":
+                "previews/e28231b3-0bbd-4e04-aa0a-17ff1d241403/1718092225/_unique-thumbnails/11-large.jpg",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/e28231b3-0bbd-4e04-aa0a-17ff1d241403/1718092225/_unique-previews/11",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmSv2c4NGgjRYpUDr75t4z51MbfKNc1itcdUtHeKdhJRko/1809880548170220016338774260772826260342473867"
+            },
+            "mintedAt": "2024-06-11T09:19:00Z",
+            "createdAt": "2024-06-11T09:20:47.252876Z",
+            "updatedAt": "2024-10-31T09:32:51Z"
+          }
+        },
+        {
+          "id": "29fdbd3a-d3c9-4b0b-8d1f-83100fc9b6dd",
+          "blockchain": "ethereum",
+          "contractAddress": "0x5dcBD078230fCAAa8459794A154b0CFf41A6769d",
+          "tokenID":
+              "17202869939195561404231149018847252702642077894095053777114157924456398226560",
+          "displayTime": "2024-12-25T00:00:00Z",
+          "note": "",
+          "createdAt": "2024-12-25T10:24:58.60047Z",
+          "updatedAt": "2024-12-25T10:25:07.241207Z",
+          "artwork": {
+            "id":
+                "17202869939195561404231149018847252702642077894095053777114157924456398226560",
+            "seriesID": "42bdd1b3-25a7-451c-9fa1-9c69453c702d",
+            "index": 0,
+            "name": "#1",
+            "category": "NE",
+            "ownerAddress": "0x5dcBD078230fCAAa8459794A154b0CFf41A6769d",
+            "virgin": true,
+            "blockchainStatus": "settled",
+            "isExternal": true,
+            "thumbnailURI":
+                "thumbnails/42bdd1b3-25a7-451c-9fa1-9c69453c702d/1733296696",
+            "thumbnailDisplay": "",
+            "previewURI":
+                "previews/42bdd1b3-25a7-451c-9fa1-9c69453c702d/1733296715/preview.jpeg",
+            "previewDisplay": {},
+            "previewMIMEType": "",
+            "metadata": {
+              "ipfs_cid":
+                  "QmSYrHP22VM4ZtRpVhZJqTi7TVeZQpeFaM2nAayEAW34DG/17202869939195561404231149018847252702642077894095053777114157924456398226560"
+            },
+            "mintedAt": "2024-12-04T08:15:24Z",
+            "createdAt": "2024-12-04T08:51:57.452532Z",
+            "updatedAt": "2024-12-25T06:31:16Z"
+          }
+        }
+      ]
+    });
+    final resp = FeralFileListResponse<DailyToken>.fromJson(
+        fakeData, DailyToken.fromJson);
+    await _feralFileApi.getDailiesTokenByDate(
+      date: dateFormatter.format(date),
+    );
     final dailiesTokens = resp.result;
     return dailiesTokens;
   }
@@ -806,10 +1062,10 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<DailyToken?> getCurrentDailiesToken() async {
+  Future<List<DailyToken>> getCurrentDailyTokens() async {
     // call nextDailies to make daily tokens up to date
     await _fetchDailiesTokens();
-    DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
+    final currentDailiesToken = DailiesHelper.currentDailies;
     return currentDailiesToken;
   }
 
@@ -828,7 +1084,7 @@ class FeralFileServiceImpl extends FeralFileService {
     bool includeUniqeFilePath = true,
     Map<FilterType, FilterValue> filters = const {},
   }) async {
-    final Map<String, String> customParams = {};
+    final customParams = <String, String>{};
     for (final entry in filters.entries) {
       final key = entry.key;
       final value = entry.value;
@@ -853,22 +1109,24 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<AlumniAccount>> getListAlumni(
-      {int limit = 20,
-      int offset = 0,
-      bool isArtist = false,
-      bool isCurator = false,
-      String keywork = '',
-      String orderBy = 'relevance',
-      String sortOrder = 'DESC'}) async {
+  Future<FeralFileListResponse<AlumniAccount>> getListAlumni({
+    int limit = 20,
+    int offset = 0,
+    bool isArtist = false,
+    bool isCurator = false,
+    String keywork = '',
+    String orderBy = 'relevance',
+    String sortOrder = 'DESC',
+  }) async {
     final res = await _feralFileApi.getListAlumni(
-        limit: limit,
-        offset: offset,
-        isArtist: isArtist,
-        isCurator: isCurator,
-        keyword: keywork,
-        sortOrder: sortOrder,
-        sortBy: orderBy);
+      limit: limit,
+      offset: offset,
+      isArtist: isArtist,
+      isCurator: isCurator,
+      keyword: keywork,
+      sortOrder: sortOrder,
+      sortBy: orderBy,
+    );
     return res;
   }
 
