@@ -106,7 +106,7 @@ data class BackupAccount(
     @SerialName("mnemonic")
     val mnemonic: String,
     @SerialName("passphrase")
-    val passphrase: String?,
+    val passphrase: String? = null,
     @SerialName("name")
     val name: String,
 )
