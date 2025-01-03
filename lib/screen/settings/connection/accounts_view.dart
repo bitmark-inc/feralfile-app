@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
+import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -83,12 +84,12 @@ class _AccountsViewState extends State<AccountsView> {
             physics: const AlwaysScrollableScrollPhysics(),
             scrollController: widget.scrollController,
             onReorder: (int oldIndex, int newIndex) {
-              _accountsBloc.add(
-                ChangeAccountOrderEvent(
-                  newOrder: newIndex,
-                  oldOrder: oldIndex,
-                ),
-              );
+              // _accountsBloc.add(
+              //   ChangeAccountOrderEvent(
+              //     newOrder: newIndex,
+              //     oldOrder: oldIndex,
+              //   ),
+              // );
             },
             itemCount: walletAddresses.length + 1,
             itemBuilder: (context, index) {
@@ -99,14 +100,15 @@ class _AccountsViewState extends State<AccountsView> {
                 );
               }
               final address = walletAddresses[index];
-              return _addressCard(context, address);
+              return KeepAliveWidget(
+                  key: ValueKey(address.key),
+                  child: _addressCard(context, address));
             },
           );
         },
       );
 
   Widget _addressCard(BuildContext context, WalletAddress address) => Column(
-        key: ValueKey(address.key),
         children: [
           Padding(
             padding: padding,
