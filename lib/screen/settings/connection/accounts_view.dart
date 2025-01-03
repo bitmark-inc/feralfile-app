@@ -84,12 +84,12 @@ class _AccountsViewState extends State<AccountsView> {
             physics: const AlwaysScrollableScrollPhysics(),
             scrollController: widget.scrollController,
             onReorder: (int oldIndex, int newIndex) {
-              // _accountsBloc.add(
-              //   ChangeAccountOrderEvent(
-              //     newOrder: newIndex,
-              //     oldOrder: oldIndex,
-              //   ),
-              // );
+              _accountsBloc.add(
+                ChangeAccountOrderEvent(
+                  newOrder: newIndex,
+                  oldOrder: oldIndex,
+                ),
+              );
             },
             itemCount: walletAddresses.length + 1,
             itemBuilder: (context, index) {
