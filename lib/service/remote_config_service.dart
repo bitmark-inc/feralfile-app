@@ -191,7 +191,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
               .keys
               .contains(key.getString);
       if (!hasKey) {
-        final hasDefaultKey =
+        final hasDefaultKey = _defaults.keys.contains(group.getString) &&
             (_defaults[group.getString] as Map<String, dynamic>)
                 .keys
                 .contains(key.getString);
