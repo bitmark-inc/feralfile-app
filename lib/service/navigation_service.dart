@@ -888,12 +888,6 @@ class NavigationService {
   }
 
   Future<void> showBackupRecoveryPhraseDialog() async {
-    final primaryAddressInfo = null; // TODO: implement getPrimaryAddressInfo
-    // await injector<AddressService>().getPrimaryAddressInfo();
-    final uuid = primaryAddressInfo?.uuid;
-    final walletStorage = null;
-    // TODO: implement WalletStorage
-    // uuid == null ? null : WalletStorage(uuid);
     if (context.mounted) {
       await UIHelper.showCenterSheet(
         context,
@@ -956,16 +950,11 @@ class NavigationService {
                   children: [
                     PrimaryButton(
                       text: 'backup_recovery_phrase'.tr(),
-                      onTap: walletStorage == null
-                          ? null
-                          : () {
-                              navigateTo(
-                                AppRouter.recoveryPhrasePage,
-                                // TODO: uncomment this when the recovery phrase is ready
-                                // arguments: RecoveryPhrasePayload(
-                                //     wallet: walletStorage),
-                              );
-                            },
+                      onTap: () {
+                        navigateTo(
+                          AppRouter.recoveryPhrasePage,
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
@@ -1090,5 +1079,6 @@ class NavigationService {
         ),
       ),
     );
+    return res as JWT?;
   }
 }

@@ -629,22 +629,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
               ],
               if (state.currentExhibition != null) ...[
                 SliverToBoxAdapter(
-                  child: GestureDetector(
-                    onTap: () {
-                      unawaited(
-                        Navigator.of(context).pushNamed(
-                          AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: [state.currentExhibition!],
-                            index: 0,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _exhibitionInfo(context, state.currentExhibition!),
-                    ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _exhibitionInfo(context, state.currentExhibition!),
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -762,10 +749,23 @@ class DailyWorkPageState extends State<DailyWorkPage>
           style: theme.textTheme.ppMori400Grey12,
         ),
         const SizedBox(height: 16),
-        ExhibitionCard(
-          exhibition: exhibition,
-          viewableExhibitions: [exhibition],
-          horizontalMargin: 16,
+        GestureDetector(
+          onTap: () {
+            unawaited(
+              Navigator.of(context).pushNamed(
+                AppRouter.exhibitionDetailPage,
+                arguments: ExhibitionDetailPayload(
+                  exhibitions: [exhibition],
+                  index: 0,
+                ),
+              ),
+            );
+          },
+          child: ExhibitionCard(
+            exhibition: exhibition,
+            viewableExhibitions: [exhibition],
+            horizontalMargin: 16,
+          ),
         ),
         const SizedBox(height: 48),
         if (exhibition.noteBrief?.isNotEmpty == true) ...[
@@ -780,10 +780,16 @@ class DailyWorkPageState extends State<DailyWorkPage>
             },
           ),
           const SizedBox(height: 16),
-          Text(
-            'read_more'.tr(),
-            style: theme.textTheme.ppMori400White14.copyWith(
-              decoration: TextDecoration.underline,
+          GestureDetector(
+            onTap: () async {
+              await injector<NavigationService>()
+                  .openFeralFileExhibitionNotePage(exhibition.slug);
+            },
+            child: Text(
+              'read_more'.tr(),
+              style: theme.textTheme.ppMori400White14.copyWith(
+                decoration: TextDecoration.underline,
+              ),
             ),
           ),
         ],

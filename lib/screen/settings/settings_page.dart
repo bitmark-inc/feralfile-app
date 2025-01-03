@@ -140,7 +140,6 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                   ),
                   addOnlyDivider(),
-                  addOnlyDivider(),
                   _settingItem(
                     title: 'hidden_artwork'.tr(),
                     icon: const Icon(AuIcon.hidden_artwork),

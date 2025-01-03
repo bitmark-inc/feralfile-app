@@ -30,9 +30,9 @@ class Announcement extends ChatThread {
         content: json['content'] as String,
         additionalData: (json['additionalData'] ?? <String, dynamic>{})
             as Map<String, dynamic>,
-        startedAt:
-            DateTime.tryParse(json['startedAt'] as String) ?? DateTime.now(),
-        endedAt: DateTime.tryParse(json['endedAt'] as String) ??
+        startedAt: DateTime.tryParse(json['startedAt'] as String? ?? '') ??
+            DateTime.now(),
+        endedAt: DateTime.tryParse(json['endedAt'] as String? ?? '') ??
             DateTime.now().add(const Duration(days: 365)),
         imageURL: json['imageURL'] as String?,
         notificationType: NotificationSettingType.fromString(
