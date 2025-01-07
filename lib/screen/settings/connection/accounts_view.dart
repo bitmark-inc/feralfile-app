@@ -101,8 +101,9 @@ class _AccountsViewState extends State<AccountsView> {
               }
               final address = walletAddresses[index];
               return KeepAliveWidget(
-                  key: ValueKey(address.key),
-                  child: _addressCard(context, address),);
+                key: ValueKey(address.key),
+                child: _addressCard(context, address),
+              );
             },
           );
         },

@@ -194,7 +194,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                       final balanceInUSD =
                           exchangeRate != null && cryptoBalance != null
                               ? exchangeRate.toUsd(
-                                  amount: cryptoBalance, cryptoType: cryptoType,)
+                                  amount: cryptoBalance,
+                                  cryptoType: cryptoType,
+                                )
                               : '';
                       return _balanceSection(
                         context,

@@ -4,8 +4,7 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:web3dart/web3dart.dart';
 
 extension BigIntExtension on BigInt {
-  String get toXTZStringValue =>
-      '${XtzAmountFormatter().format(toInt())} XTZ';
+  String get toXTZStringValue => '${XtzAmountFormatter().format(toInt())} XTZ';
 
   String get toEthStringValue =>
       EtherAmount.fromBigInt(EtherUnit.wei, this).toEthStringValue;
