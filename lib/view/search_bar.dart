@@ -36,7 +36,7 @@ class _SearchBarState extends State<AuSearchBar>
 
   @override
   void initState() {
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
     _controller = widget.controller ?? TextEditingController();
 
