@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -27,16 +28,25 @@ class AuSearchBar extends StatefulWidget {
   State<AuSearchBar> createState() => _SearchBarState();
 }
 
-class _SearchBarState extends State<AuSearchBar> {
+class _SearchBarState extends State<AuSearchBar>
+    with RouteAware, WidgetsBindingObserver {
   late TextEditingController _controller;
   final _focusNode = FocusNode();
   Timer? _timer;
 
   @override
   void initState() {
+    WidgetsBinding.instance?.addObserver(this);
     super.initState();
     _controller = widget.controller ?? TextEditingController();
+
     // _focusNode.requestFocus();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -45,6 +55,13 @@ class _SearchBarState extends State<AuSearchBar> {
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+    routeObserver.unsubscribe(this);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _focusNode.unfocus();
   }
 
   @override
