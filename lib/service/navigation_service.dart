@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
+import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -958,15 +959,17 @@ class NavigationService {
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      child: Text(
-                        'need_help'.tr(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .ppMori400White14
-                            .copyWith(
-                              color: AppColor.auQuickSilver,
-                              decoration: TextDecoration.underline,
-                            ),
+                      child: GestureConstrainWidget(
+                        child: Text(
+                          'need_help'.tr(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .ppMori400White14
+                              .copyWith(
+                                color: AppColor.auQuickSilver,
+                                decoration: TextDecoration.underline,
+                              ),
+                        ),
                       ),
                       onTap: () {
                         navigateTo(
@@ -1022,13 +1025,17 @@ class NavigationService {
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
-                    child: Text(
-                      'need_help'.tr(),
-                      style:
-                          Theme.of(context).textTheme.ppMori400White14.copyWith(
-                                color: AppColor.auQuickSilver,
-                                decoration: TextDecoration.underline,
-                              ),
+                    child: GestureConstrainWidget(
+                      child: Text(
+                        'need_help'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .ppMori400White14
+                            .copyWith(
+                              color: AppColor.auQuickSilver,
+                              decoration: TextDecoration.underline,
+                            ),
+                      ),
                     ),
                     onTap: () {
                       navigateTo(
