@@ -59,10 +59,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       for (final address in event.addresses) {
         try {
           final balance = await getAddressBalance(address);
-          if (balance != null) {
-            addressBalances[address] = balance;
-          }
-          emit(
+          addressBalances[address] = balance;
+                  emit(
             state.copyWith(
               addressBalances: Map.from(
                 addressBalances
