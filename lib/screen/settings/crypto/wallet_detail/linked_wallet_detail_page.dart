@@ -10,6 +10,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -18,6 +20,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -91,20 +94,10 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   }
 
   void _callBloc() {
-    final cryptoType = widget.payload.address.cryptoType;
-
-    switch (cryptoType) {
-      case CryptoType.ETH:
-        context
-            .read<WalletDetailBloc>()
-            .add(WalletDetailBalanceEvent(cryptoType, _address));
-      case CryptoType.XTZ:
-        context
-            .read<WalletDetailBloc>()
-            .add(WalletDetailBalanceEvent(cryptoType, _address));
-      default:
-      // do nothing
-    }
+    // update exchange rate
+    context.read<WalletDetailBloc>().add(WalletDetailBalanceEvent(_address));
+    // update balance
+    context.read<AccountsBloc>().add(GetAccountBalanceEvent([_address]));
   }
 
   void _listener() {
@@ -189,10 +182,26 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 3000),
                   height: hideConnection ? 60 : null,
-                  child: _balanceSection(
-                    context,
-                    state.balance,
-                    state.balanceInUSD,
+                  child: BlocBuilder<AccountsBloc, AccountsState>(
+                    builder: (context, accountsState) {
+                      final balance = accountsState.addressBalances[_address];
+                      final cryptoBalance = balance?.first;
+                      final exchangeRate = state.exchangeRate;
+                      final balanceString = cryptoBalance == null
+                          ? '--'
+                          : cryptoBalance
+                              .toBalanceStringValue(_walletAddress.cryptoType);
+                      final balanceInUSD =
+                          exchangeRate != null && cryptoBalance != null
+                              ? exchangeRate.toUsd(
+                                  amount: cryptoBalance, cryptoType: cryptoType)
+                              : '';
+                      return _balanceSection(
+                        context,
+                        balanceString,
+                        balanceInUSD,
+                      );
+                    },
                   ),
                 ),
                 Visibility(

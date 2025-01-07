@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -149,9 +148,10 @@ class AppRouter {
   static const playlistActivationPage = 'playlist_activation_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final accountsBloc = AccountsBloc(injector(), injector());
+    final accountsBloc = injector<AccountsBloc>();
+    final walletDetailBloc = injector<WalletDetailBloc>();
 
-    final identityBloc = IdentityBloc(ObjectBox.identityBox, injector());
+    final identityBloc = injector<IdentityBloc>();
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
     final subscriptionBloc = injector<SubscriptionBloc>();
@@ -212,7 +212,7 @@ class AppRouter {
           settings: settings,
           child: MultiBlocProvider(
             providers: [
-              BlocProvider(create: (_) => identityBloc),
+              BlocProvider.value(value: identityBloc),
             ],
             child: PreviewPrimerPage(
               token: settings.arguments! as AssetToken,
@@ -229,12 +229,12 @@ class AppRouter {
               BlocProvider(
                 create: (_) => HomeBloc(),
               ),
-              BlocProvider(create: (_) => identityBloc),
+              BlocProvider.value(value: identityBloc),
               BlocProvider.value(value: royaltyBloc),
               BlocProvider.value(
                 value: subscriptionBloc,
               ),
-              BlocProvider(create: (_) => canvasDeviceBloc),
+              BlocProvider.value(value: canvasDeviceBloc),
               BlocProvider.value(value: listPlaylistBloc),
             ],
             child: HomeNavigationPage(
@@ -323,7 +323,7 @@ class AppRouter {
             providers: [
               BlocProvider.value(value: accountsBloc),
               BlocProvider.value(value: subscriptionBloc),
-              BlocProvider(create: (_) => identityBloc),
+              BlocProvider.value(value: identityBloc),
             ],
             child: const SettingsPage(),
           ),
@@ -334,13 +334,10 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(
             providers: [
-              BlocProvider(
-                create: (_) => WalletDetailBloc(
-                  injector(),
-                  injector(),
-                  injector(),
-                ),
+              BlocProvider.value(
+                value: walletDetailBloc,
               ),
+              BlocProvider.value(value: accountsBloc),
             ],
             child: LinkedWalletDetailPage(
               payload: settings.arguments! as LinkedWalletDetailsPayload,
@@ -368,7 +365,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider.value(value: accountsBloc),
-              BlocProvider(create: (_) => identityBloc),
+              BlocProvider.value(value: identityBloc),
               BlocProvider(create: (_) => royaltyBloc),
               BlocProvider(
                 create: (_) => ArtworkDetailBloc(
@@ -380,8 +377,8 @@ class AppRouter {
                   injector(),
                 ),
               ),
-              BlocProvider(
-                create: (_) => canvasDeviceBloc,
+              BlocProvider.value(
+                value: canvasDeviceBloc,
               ),
               BlocProvider.value(
                 value: subscriptionBloc,
@@ -392,14 +389,6 @@ class AppRouter {
             ),
           ),
         );
-
-      // TODO: Implement the recovery phrase page
-      // case recoveryPhrasePage:
-      //   return CupertinoPageRoute(
-      //       settings: settings,
-      //       builder: (context) => RecoveryPhrasePage(
-      //             payload: settings.arguments! as RecoveryPhrasePayload,
-      //           ));
 
       case autonomySecurityPage:
         return CupertinoPageRoute(
@@ -467,8 +456,8 @@ class AppRouter {
               BlocProvider(
                 create: (_) => ExhibitionDetailBloc(injector()),
               ),
-              BlocProvider(
-                create: (_) => canvasDeviceBloc,
+              BlocProvider.value(
+                value: canvasDeviceBloc,
               ),
               BlocProvider.value(
                 value: subscriptionBloc,
@@ -485,8 +474,8 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(
             providers: [
-              BlocProvider(
-                create: (_) => royaltyBloc,
+              BlocProvider.value(
+                value: royaltyBloc,
               ),
               BlocProvider.value(
                 value: subscriptionBloc,
@@ -585,7 +574,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(
             providers: [
-              BlocProvider(create: (_) => identityBloc),
+              BlocProvider.value(value: identityBloc),
             ],
             child: const DataManagementPage(),
           ),

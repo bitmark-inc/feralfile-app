@@ -7,6 +7,8 @@
 
 import 'dart:math';
 
+import 'package:autonomy_flutter/util/constants.dart';
+
 class CurrencyExchange {
   CurrencyExchange({required this.currency, required this.rates});
 
@@ -50,5 +52,13 @@ class CurrencyExchangeRate {
 
   String xtzToUsd(int amount) {
     return (amount / pow(10, 6) / double.parse(xtz)).toStringAsFixed(2);
+  }
+
+  String toUsd({required BigInt amount, required CryptoType cryptoType}) {
+    if (cryptoType == CryptoType.ETH) {
+      return '${ethToUsd(amount)} USD';
+    } else {
+      return '${xtzToUsd(amount.toInt())} USD';
+    }
   }
 }
