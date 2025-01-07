@@ -256,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage>
             ),
           ),
           Text(
-            '_and'.tr(),
+            " ${'_and'.tr()} ",
             style: theme.textTheme.ppMori400Grey12,
           ),
           GestureDetector(
