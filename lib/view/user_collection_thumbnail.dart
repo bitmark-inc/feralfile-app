@@ -44,7 +44,7 @@ class _UserCollectionThumbnailState extends State<UserCollectionThumbnail> {
                       imageUrl: collection.thumbnailUrl,
                       fit: BoxFit.fitWidth,
                       errorWidget: (context, url, error) =>
-                          const NFTErrorWidget()),
+                          const NFTErrorWidget(),),
                 ),
               ],
             ),
