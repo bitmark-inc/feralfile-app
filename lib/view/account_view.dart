@@ -117,15 +117,22 @@ Future<Pair<BigInt?, String>> getAddressBalance(
   final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
   final nftBalance =
       "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
-  switch (cryptoType) {
-    case CryptoType.ETH:
-      final etherAmount = await injector<EthereumService>().getBalance(address);
-      return Pair(etherAmount.getInWei, nftBalance);
-    case CryptoType.XTZ:
-      final tezosAmount = await injector<TezosService>().getBalance(address);
-      return Pair(BigInt.from(tezosAmount), nftBalance);
-    case CryptoType.USDC:
-    case CryptoType.UNKNOWN:
-      return Pair(null, '');
+  BigInt? cryptoBalance;
+  try {
+    switch (cryptoType) {
+      case CryptoType.ETH:
+        final etherAmount =
+            await injector<EthereumService>().getBalance(address);
+        cryptoBalance = etherAmount.getInWei;
+      case CryptoType.XTZ:
+        final tezosAmount = await injector<TezosService>().getBalance(address);
+        cryptoBalance = BigInt.from(tezosAmount);
+      case CryptoType.USDC:
+      case CryptoType.UNKNOWN:
+        cryptoBalance = null;
+    }
+  } catch (e) {
+    cryptoBalance = null;
   }
+  return Pair(cryptoBalance, nftBalance);
 }
