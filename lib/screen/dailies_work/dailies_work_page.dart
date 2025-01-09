@@ -15,11 +15,11 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -307,7 +307,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   );
             },
             onBluetoothDeviceSelected: (device) {
-              FFBluetoothService.sendCommand(body: )
+              final res = BluetoothCastService(device)
+                  .castDailyWork(CastDailyWorkRequest());
+              log.info('Bluetooth Cast Daily Work Reply: $res');
             },
             onTap: _setUserLiked,
             text: 'display'.tr(),

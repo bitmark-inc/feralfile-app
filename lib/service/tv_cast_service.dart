@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
@@ -264,7 +265,7 @@ class BluetoothCastService extends BaseTvCastService {
     Map<String, dynamic> body, {
     bool shouldShowError = true,
   }) async {
-    // do something
+    final res = await FFBluetoothService.sendCommand(body: body);
     return {};
   }
 }
