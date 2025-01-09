@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
@@ -55,59 +56,13 @@ abstract class TvCastService {
   Future<SetCursorOffsetReply> setCursorOffset(SetCursorOffsetRequest request);
 }
 
-class TvCastServiceImpl implements TvCastService {
-  TvCastServiceImpl(this._api, this._device);
-
-  final TvCastApi _api;
-  final CanvasDevice _device;
-
-  void _handleError(Object error) {
-    final context = injector<NavigationService>().context;
-    unawaited(Sentry.captureException(error));
-    if (error is DioException) {
-      if (error.error is FeralfileError) {
-        unawaited(
-          UIHelper.showTVConnectError(
-            context,
-            error.error! as FeralfileError,
-          ),
-        );
-      } else if (error.isBranchError) {
-        final feralfileError = error.branchError;
-        unawaited(UIHelper.showTVConnectError(context, feralfileError));
-      }
-    } else {
-      unawaited(
-        UIHelper.showTVConnectError(
-          context,
-          FeralfileError(
-            StatusCode.badRequest.value,
-            'Unknown error: $error',
-          ),
-        ),
-      );
-    }
-  }
+abstract class BaseTvCastService implements TvCastService {
+  BaseTvCastService();
 
   Future<Map<String, dynamic>> _cast(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
-  }) async {
-    try {
-      final result = await _api.request(
-        locationId: _device.locationId,
-        topicId: _device.topicId,
-        body: body,
-      );
-      return (result['message'] as Map).cast<String, dynamic>();
-    } catch (e) {
-      unawaited(Sentry.captureException(e));
-      if (shouldShowError) {
-        _handleError(e);
-      }
-      rethrow;
-    }
-  }
+  });
 
   Map<String, dynamic> _getBody(Request request) =>
       RequestBody(request).toJson();
@@ -241,5 +196,75 @@ class TvCastServiceImpl implements TvCastService {
   ) async {
     final result = await _cast(_getBody(request));
     return SetCursorOffsetReply.fromJson(result);
+  }
+}
+
+class TvCastServiceImpl extends BaseTvCastService {
+  TvCastServiceImpl(this._api, this._device);
+
+  final TvCastApi _api;
+  final CanvasDevice _device;
+
+  void _handleError(Object error) {
+    final context = injector<NavigationService>().context;
+    unawaited(Sentry.captureException(error));
+    if (error is DioException) {
+      if (error.error is FeralfileError) {
+        unawaited(
+          UIHelper.showTVConnectError(
+            context,
+            error.error! as FeralfileError,
+          ),
+        );
+      } else if (error.isBranchError) {
+        final feralfileError = error.branchError;
+        unawaited(UIHelper.showTVConnectError(context, feralfileError));
+      }
+    } else {
+      unawaited(
+        UIHelper.showTVConnectError(
+          context,
+          FeralfileError(
+            StatusCode.badRequest.value,
+            'Unknown error: $error',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> _cast(
+    Map<String, dynamic> body, {
+    bool shouldShowError = true,
+  }) async {
+    try {
+      final result = await _api.request(
+        locationId: _device.locationId,
+        topicId: _device.topicId,
+        body: body,
+      );
+      return (result['message'] as Map).cast<String, dynamic>();
+    } catch (e) {
+      unawaited(Sentry.captureException(e));
+      if (shouldShowError) {
+        _handleError(e);
+      }
+      rethrow;
+    }
+  }
+}
+
+class BluetoothCastService extends BaseTvCastService {
+  BluetoothCastService(this._device);
+
+  final BluetoothDevice _device;
+
+  @override
+  Future<Map<String, dynamic>> _cast(
+    Map<String, dynamic> body, {
+    bool shouldShowError = true,
+  }) async {
+    // do something
+    return {};
   }
 }

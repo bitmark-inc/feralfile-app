@@ -3,14 +3,15 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class WifiConfigPage extends StatefulWidget {
   const WifiConfigPage({super.key});
@@ -22,7 +23,10 @@ class WifiConfigPage extends StatefulWidget {
 class _WifiConfigPageState extends State<WifiConfigPage> {
   final flutterBlue = FlutterBluePlus;
   BluetoothDevice? targetDevice;
+
+  // characteristic to send Wi-Fi credentials to Peripheral
   BluetoothCharacteristic? targetCharacteristic;
+
   bool scanning = false;
   String status = 'Idle';
   String receivedData = '';
@@ -214,11 +218,14 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
     for (var service in services) {
       log.info(
           'Discovered service UUID: ${service.uuid.toString().toLowerCase()}');
+
+      // if the service UUID matches the target service UUID
       if (service.uuid.toString().toLowerCase() == serviceUuid) {
         for (var characteristic in service.characteristics) {
           log.info(
             'Found characteristic UUID: ${characteristic.uuid.toString().toLowerCase()}',
           );
+          // if the characteristic UUID matches the target characteristic UUID
           if (characteristic.uuid.toString().toLowerCase() == charUuid) {
             targetCharacteristic = characteristic;
             setState(() {
@@ -460,6 +467,8 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
                                 setState(() {
                                   targetDevice = result.device;
                                   status = 'Selected: ${result.device.name}';
+                                  FFBluetoothService.connectedDevice =
+                                      result.device;
                                 });
                                 await connectToDevice();
                               },

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -304,6 +305,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
                       CastDailyWorkRequest(),
                     ),
                   );
+            },
+            onBluetoothDeviceSelected: (device) {
+              FFBluetoothService.sendCommand(body: )
             },
             onTap: _setUserLiked,
             text: 'display'.tr(),

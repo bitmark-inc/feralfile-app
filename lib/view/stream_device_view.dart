@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -15,15 +16,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class StreamDeviceView extends StatefulWidget {
   final Function(CanvasDevice device)? onDeviceSelected;
+  final Function(BluetoothDevice device)? onBluetoothDeviceSelected;
   final String? displayKey;
 
   const StreamDeviceView({
     super.key,
     this.onDeviceSelected,
+    this.onBluetoothDeviceSelected,
     this.displayKey,
   });
 
@@ -55,6 +59,12 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final connectedDevice = widget.displayKey == null
             ? null
             : state.lastSelectedActiveDeviceForKey(widget.displayKey!);
+
+        final connectedBluetoothDevice = FFBluetoothService.connectedDevice;
+
+        final isDeviceListEmpty =
+            devices.isEmpty && connectedBluetoothDevice == null;
+
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
@@ -98,7 +108,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   )
                 ],
               ),
-              if (devices.isNotEmpty) ...[
+              if (!isDeviceListEmpty) ...[
                 const SizedBox(height: 40),
                 ListView.builder(
                   shrinkWrap: true,
@@ -109,35 +119,21 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     final device = devices[index].device;
                     final isControlling =
                         device.deviceId == connectedDevice?.deviceId;
-                    return Column(
-                      children: [
-                        Builder(
-                          builder: (context) => StreamDrawerItem(
-                            item: OptionItem(
-                                title: device.name,
-                                onTap: () {
-                                  log.info(
-                                      'device selected: ${device.deviceId}');
-                                  widget.onDeviceSelected?.call(device);
-                                  Navigator.pop(context);
-                                }),
-                            backgroundColor: connectedDevice == null
-                                ? AppColor.white
-                                : isControlling
-                                    ? AppColor.feralFileLightBlue
-                                    : AppColor.disabledColor,
-                            isControlling: isControlling,
-                            onRotateClicked: () => onRotate(context),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        )
-                      ],
-                    );
+                    return _deviceItemBuilder(
+                        context: context,
+                        device: device,
+                        isControlling: isControlling);
                   },
                 ),
-                if (connectedDevice != null) ...[
+                if (connectedBluetoothDevice != null) ...[
+                  const SizedBox(height: 15),
+                  _bluetoothDeviceItemBuilder(
+                      context: context,
+                      device: connectedBluetoothDevice,
+                      isControlling: true),
+                ],
+                if (connectedDevice != null ||
+                    connectedBluetoothDevice != null) ...[
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
@@ -177,6 +173,67 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
           ),
         );
       },
+    );
+  }
+
+  Widget _deviceItemBuilder(
+      {required BuildContext context,
+      required CanvasDevice device,
+      bool? isControlling}) {
+    return Column(
+      children: [
+        Builder(
+          builder: (context) => StreamDrawerItem(
+            item: OptionItem(
+                title: device.name,
+                onTap: () {
+                  log.info('device selected: ${device.deviceId}');
+                  widget.onDeviceSelected?.call(device);
+                  Navigator.pop(context);
+                }),
+            backgroundColor: isControlling == null
+                ? AppColor.white
+                : isControlling
+                    ? AppColor.feralFileLightBlue
+                    : AppColor.disabledColor,
+            isControlling: isControlling ?? false,
+            onRotateClicked: () => onRotate(context),
+          ),
+        ),
+        const SizedBox(
+          height: 15,
+        )
+      ],
+    );
+  }
+
+  Widget _bluetoothDeviceItemBuilder(
+      {required BuildContext context,
+      required BluetoothDevice device,
+      bool? isControlling}) {
+    return Column(
+      children: [
+        Builder(
+          builder: (context) => StreamDrawerItem(
+            item: OptionItem(
+                title: device.name,
+                onTap: () {
+                  widget.onBluetoothDeviceSelected?.call(device);
+                  Navigator.pop(context);
+                }),
+            backgroundColor: isControlling == null
+                ? AppColor.white
+                : isControlling
+                    ? AppColor.feralFileLightBlue
+                    : AppColor.disabledColor,
+            isControlling: isControlling ?? false,
+            onRotateClicked: () => onRotate(context),
+          ),
+        ),
+        const SizedBox(
+          height: 15,
+        )
+      ],
     );
   }
 
