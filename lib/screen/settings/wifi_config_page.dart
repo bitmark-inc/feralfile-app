@@ -4,9 +4,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -198,10 +196,10 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
       _addLog('Successfully connected to device');
 
       // after connect success, save the connected device to the service
-      BluetoothDeviceHelper.addDevice(FFBluetoothDevice(
-        remoteId: targetDevice!.remoteId.str,
-        name: targetDevice!.name,
-      ));
+      // BluetoothDeviceHelper.addDevice(FFBluetoothDevice(
+      //   remoteId: targetDevice!.remoteId.str,
+      //   name: targetDevice!.name,
+      // ));
 
       _addLog('Discovering services...');
       final services = await targetDevice!.discoverServices();
