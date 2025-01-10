@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -241,6 +242,10 @@ Future<void> setupInjector() async {
       injector(),
       injector(),
     ),
+  );
+
+  injector.registerLazySingleton<FFBluetoothService>(
+    () => FFBluetoothService(),
   );
 
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(

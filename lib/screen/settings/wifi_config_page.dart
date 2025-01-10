@@ -3,7 +3,11 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -21,11 +25,11 @@ class WifiConfigPage extends StatefulWidget {
 }
 
 class _WifiConfigPageState extends State<WifiConfigPage> {
-  final flutterBlue = FlutterBluePlus;
+  final flutterBlue = FlutterBluePlus.instance;
   BluetoothDevice? targetDevice;
 
   // characteristic to send Wi-Fi credentials to Peripheral
-  BluetoothCharacteristic? targetCharacteristic;
+  BluetoothCharacteristic? wifiConnectCharacteristic;
 
   bool scanning = false;
   String status = 'Idle';
@@ -46,8 +50,10 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
 
   // Add these new state variables
   List<ScanResult> scanResults = [];
-  final TextEditingController ssidController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController ssidController =
+      TextEditingController(text: 'Bitmark');
+  final TextEditingController passwordController =
+      TextEditingController(text: 'btmrkrckt@)@\$');
 
   // Add timer related variables
   int _scanTimeRemaining = 60;
@@ -82,6 +88,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
 
   Future<void> _checkBluetoothStatus() async {
     // Check if Bluetooth is supported
+    final connectedDevices = await FlutterBluePlus.connectedDevices;
     if (await FlutterBluePlus.isSupported == false) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -190,6 +197,12 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
       await targetDevice!.connect(autoConnect: false);
       _addLog('Successfully connected to device');
 
+      // after connect success, save the connected device to the service
+      BluetoothDeviceHelper.addDevice(FFBluetoothDevice(
+        remoteId: targetDevice!.remoteId.str,
+        name: targetDevice!.name,
+      ));
+
       _addLog('Discovering services...');
       final services = await targetDevice!.discoverServices();
       _addLog('Found ${services.length} services');
@@ -225,9 +238,16 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
           log.info(
             'Found characteristic UUID: ${characteristic.uuid.toString().toLowerCase()}',
           );
+
+          if (characteristic.uuid.toString().toLowerCase() ==
+              injector<FFBluetoothService>().commandCharUuid) {
+            injector<FFBluetoothService>().commandCharacteristic =
+                characteristic;
+            _addLog('Found command characteristic');
+          }
           // if the characteristic UUID matches the target characteristic UUID
           if (characteristic.uuid.toString().toLowerCase() == charUuid) {
-            targetCharacteristic = characteristic;
+            wifiConnectCharacteristic = characteristic;
             setState(() {
               status = 'Found target characteristic';
             });
@@ -244,7 +264,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
               });
             }
 
-            return; // Found what we need
+            // return; // Found what we need
           }
         }
       }
@@ -337,7 +357,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
   }
 
   Future<void> sendWifiCredentials() async {
-    if (targetCharacteristic == null) {
+    if (wifiConnectCharacteristic == null) {
       setState(() {
         status = 'Target characteristic not set';
       });
@@ -355,32 +375,24 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
     // Create a BytesBuilder to construct the message
     final builder = BytesBuilder();
 
-    // Write SSID length as varint
-    _writeVarint(builder, ssidBytes.length);
-    // Write SSID bytes
-    builder.add(ssidBytes);
+    builder
+      // Write SSID length as varint
+      ..writeVarint(ssidBytes.length)
+      // Write SSID bytes
+      ..add(ssidBytes)
 
-    // Write password length as varint
-    _writeVarint(builder, passwordBytes.length);
-    // Write password bytes
-    builder.add(passwordBytes);
+      // Write password length as varint
+      ..writeVarint(passwordBytes.length)
+      // Write password bytes
+      ..add(passwordBytes);
 
     // Write the data to the characteristic
-    await targetCharacteristic!
+    await wifiConnectCharacteristic!
         .write(builder.takeBytes(), withoutResponse: false);
 
     setState(() {
       status = 'Credentials sent, waiting for response (if any)';
     });
-  }
-
-  // Helper method to write varint
-  void _writeVarint(BytesBuilder builder, int value) {
-    while (value >= 0x80) {
-      builder.addByte((value & 0x7F) | 0x80);
-      value >>= 7;
-    }
-    builder.addByte(value & 0x7F);
   }
 
   @override
@@ -452,23 +464,26 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
                           ),
                           itemBuilder: (context, index) {
                             final result = scanResults[index];
+                            final device = result.device;
+                            // final device =
+                            //     BluetoothDevice.fromId('2C:CF:67:48:5B:5F');
                             return ListTile(
                               title: Text(
-                                result.device.name.isNotEmpty
-                                    ? result.device.name
+                                device.name.isNotEmpty
+                                    ? device.name
                                     : "Unknown Device",
                                 style: theme.textTheme.ppMori400Black16,
                               ),
                               subtitle: Text(
-                                result.device.id.id,
+                                device.id.id,
                                 style: theme.textTheme.ppMori400Grey14,
                               ),
                               onTap: () async {
                                 setState(() {
-                                  targetDevice = result.device;
-                                  status = 'Selected: ${result.device.name}';
-                                  FFBluetoothService.connectedDevice =
-                                      result.device;
+                                  targetDevice = device;
+                                  status = 'Selected: ${device.name}';
+                                  injector<FFBluetoothService>()
+                                      .connectedDevice = device;
                                 });
                                 await connectToDevice();
                               },

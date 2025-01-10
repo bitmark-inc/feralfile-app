@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 class CanvasClientServiceV2 {
@@ -47,16 +48,31 @@ class CanvasClientServiceV2 {
         platform: _platform,
       );
 
-  TvCastService _getStub(CanvasDevice device) =>
-      TvCastServiceImpl(_tvCastApi, device);
+  TvCastServiceImpl _getTvCastStub(CanvasDevice device) =>
+      TvCastServiceImpl(_tvCastApi, device as CanvasDevice);
+
+  BluetoothCastService _getBluetoothStub(BluetoothDevice device) =>
+      BluetoothCastService(device);
+
+  TvCastService _getStub(
+    BaseDevice device,
+  ) {
+    if (device is CanvasDevice) {
+      return _getTvCastStub(device);
+    } else if (device is BluetoothDevice) {
+      return _getBluetoothStub(device as BluetoothDevice);
+    } else {
+      throw Exception('Unknown device type');
+    }
+  }
 
   Future<CheckDeviceStatusReply> getDeviceCastingStatus(
-    CanvasDevice device,
+    BaseDevice device,
   ) async =>
       _getDeviceCastingStatus(device);
 
   Future<CheckDeviceStatusReply> _getDeviceCastingStatus(
-    CanvasDevice device, {
+    BaseDevice device, {
     bool shouldShowError = true,
   }) async {
     final stub = _getStub(device);
@@ -94,7 +110,9 @@ class CanvasClientServiceV2 {
     return null;
   }
 
-  Future<void> _mergeUser(String oldUserId) async {
+  Future<void> _mergeUser(
+    String oldUserId,
+  ) async {
     try {
       final metricClientService = injector<MetricClientService>();
       await metricClientService.mergeUser(oldUserId);
@@ -106,7 +124,9 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<ConnectReplyV2> _connect(CanvasDevice device) async {
+  Future<ConnectReplyV2> _connect(
+    BaseDevice device,
+  ) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
     final userId = injector<AuthService>().getUserId();
@@ -120,7 +140,9 @@ class CanvasClientServiceV2 {
     return response;
   }
 
-  Future<bool> connectToDevice(CanvasDevice device) async {
+  Future<bool> connectToDevice(
+    BaseDevice device,
+  ) async {
     try {
       final response = await _connect(device);
       return response.ok;
@@ -130,13 +152,15 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<void> disconnectDevice(CanvasDevice device) async {
+  Future<void> disconnectDevice(
+    BaseDevice device,
+  ) async {
     final stub = _getStub(device);
     await stub.disconnect(DisconnectRequestV2());
   }
 
   Future<bool> castListArtwork(
-    CanvasDevice device,
+    BaseDevice device,
     List<PlayArtworkV2> artworks,
   ) async {
     try {
@@ -155,19 +179,26 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<bool> pauseCasting(CanvasDevice device) async {
+  Future<bool> pauseCasting(
+    BaseDevice device,
+  ) async {
     final stub = _getStub(device);
     final response = await stub.pauseCasting(PauseCastingRequest());
     return response.ok;
   }
 
-  Future<bool> resumeCasting(CanvasDevice device) async {
+  Future<bool> resumeCasting(
+    BaseDevice device,
+  ) async {
     final stub = _getStub(device);
     final response = await stub.resumeCasting(ResumeCastingRequest());
     return response.ok;
   }
 
-  Future<bool> nextArtwork(CanvasDevice device, {String? startTime}) async {
+  Future<bool> nextArtwork(
+    BaseDevice device, {
+    String? startTime,
+  }) async {
     final stub = _getStub(device);
     final request = NextArtworkRequest(
       startTime: startTime == null ? null : int.tryParse(startTime),
@@ -177,7 +208,10 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
-  Future<bool> previousArtwork(CanvasDevice device, {String? startTime}) async {
+  Future<bool> previousArtwork(
+    BaseDevice device, {
+    String? startTime,
+  }) async {
     final stub = _getStub(device);
     final request = PreviousArtworkRequest(
       startTime: startTime == null ? null : int.tryParse(startTime),
@@ -187,7 +221,7 @@ class CanvasClientServiceV2 {
   }
 
   Future<bool> appendListArtwork(
-    CanvasDevice device,
+    BaseDevice device,
     List<PlayArtworkV2> artworks,
   ) async {
     final stub = _getStub(device);
@@ -198,7 +232,7 @@ class CanvasClientServiceV2 {
   }
 
   Future<bool> castExhibition(
-    CanvasDevice device,
+    BaseDevice device,
     CastExhibitionRequest castRequest,
   ) async {
     final canConnect = await connectToDevice(device);
@@ -211,7 +245,7 @@ class CanvasClientServiceV2 {
   }
 
   Future<bool> castDailyWork(
-    CanvasDevice device,
+    BaseDevice device,
     CastDailyWorkRequest castRequest,
   ) async {
     final canConnect = await connectToDevice(device);
@@ -224,7 +258,7 @@ class CanvasClientServiceV2 {
   }
 
   Future<UpdateDurationReply> updateDuration(
-    CanvasDevice device,
+    BaseDevice device,
     List<PlayArtworkV2> artworks,
   ) async {
     final stub = _getStub(device);
@@ -290,7 +324,7 @@ class CanvasClientServiceV2 {
 
   // function to rotate canvas
   Future<void> rotateCanvas(
-    CanvasDevice device, {
+    BaseDevice device, {
     bool clockwise = true,
   }) async {
     final stub = _getStub(device);
@@ -303,7 +337,7 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<void> tap(List<CanvasDevice> devices) async {
+  Future<void> tap(List<BaseDevice> devices) async {
     for (final device in devices) {
       final stub = _getStub(device);
       final tapRequest = TapGestureRequest();
@@ -312,7 +346,7 @@ class CanvasClientServiceV2 {
   }
 
   Future<void> drag(
-    List<CanvasDevice> devices,
+    List<BaseDevice> devices,
     Offset offset,
     Size touchpadSize,
   ) async {
@@ -337,7 +371,7 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<Offset> getCursorOffset(CanvasDevice device) async {
+  Future<Offset> getCursorOffset(BaseDevice device) async {
     final stub = _getStub(device);
     final response = await stub.getCursorOffset(GetCursorOffsetRequest());
     final size =
@@ -348,7 +382,7 @@ class CanvasClientServiceV2 {
     return Offset(dx, dy);
   }
 
-  Future<void> setCursorOffset(CanvasDevice device) async {
+  Future<void> setCursorOffset(BaseDevice device) async {
     final stub = _getStub(device);
     final size =
         MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;

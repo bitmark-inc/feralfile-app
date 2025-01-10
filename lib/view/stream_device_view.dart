@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -60,7 +61,8 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
             ? null
             : state.lastSelectedActiveDeviceForKey(widget.displayKey!);
 
-        final connectedBluetoothDevice = FFBluetoothService.connectedDevice;
+        final connectedBluetoothDevice =
+            injector<FFBluetoothService>().connectedDevice;
 
         final isDeviceListEmpty =
             devices.isEmpty && connectedBluetoothDevice == null;
@@ -267,6 +269,10 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         .lastSelectedActiveDeviceForKey(widget.displayKey!);
     if (lastSelectedCanvasDevice != null) {
       _canvasDeviceBloc.add(CanvasDeviceRotateEvent(lastSelectedCanvasDevice));
+    }
+    final bluetoothDevice = injector<FFBluetoothService>().connectedDevice;
+    if (bluetoothDevice != null) {
+      injector<CanvasClientServiceV2>().rotateCanvas(bluetoothDevice!);
     }
   }
 
