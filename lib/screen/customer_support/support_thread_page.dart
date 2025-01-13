@@ -512,19 +512,22 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                 .copyWith(color: AppColor.auQuickSilver),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _isFileAttached = false;
-                _debugLog = null;
-              });
-            },
-            child: SvgPicture.asset(
-              'assets/images/iconClose.svg',
-              width: 20,
-              height: 20,
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          Semantics(
+            label: 'Remove debug log',
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isFileAttached = false;
+                  _debugLog = null;
+                });
+              },
+              child: SvgPicture.asset(
+                'assets/images/iconClose.svg',
+                width: 20,
+                height: 20,
+                colorFilter:
+                    const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              ),
             ),
           ),
         ],
@@ -1161,13 +1164,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       inputBackgroundColor: theme.colorScheme.primary,
       inputTextStyle: theme.textTheme.ppMori400White14,
       inputTextColor: theme.colorScheme.secondary,
-      attachmentButtonIcon: SvgPicture.asset(
-        'assets/images/joinFile.svg',
-        colorFilter: ColorFilter.mode(
-          _isFileAttached
-              ? AppColor.disabledColor
-              : theme.colorScheme.secondary,
-          BlendMode.srcIn,
+      attachmentButtonIcon: Semantics(
+        label: 'Attach file',
+        child: SvgPicture.asset(
+          'assets/images/joinFile.svg',
+          colorFilter: ColorFilter.mode(
+            _isFileAttached
+                ? AppColor.disabledColor
+                : theme.colorScheme.secondary,
+            BlendMode.srcIn,
+          ),
         ),
       ),
       inputBorderRadius: BorderRadius.zero,
