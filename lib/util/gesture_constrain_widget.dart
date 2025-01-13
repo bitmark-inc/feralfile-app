@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class GestureConstrainWidget extends StatelessWidget {
   const GestureConstrainWidget({
-    required this.child, super.key,
+    required this.child,
+    super.key,
   });
 
   final Widget child;
