@@ -144,6 +144,9 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'local_cache_config': {
       'exhibition_last_updated': '2022-02-22T00:00:00Z',
       'featured_works_last_updated': '2022-02-22T00:00:00Z',
+    },
+    'tester': {
+      'beta_tester': <String>[],
     }
   };
 
@@ -191,7 +194,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
               .keys
               .contains(key.getString);
       if (!hasKey) {
-        final hasDefaultKey =
+        final hasDefaultKey = _defaults.keys.contains(group.getString) &&
             (_defaults[group.getString] as Map<String, dynamic>)
                 .keys
                 .contains(key.getString);
@@ -223,6 +226,7 @@ enum ConfigGroup {
   daily,
   videoSettings,
   localCacheConfig,
+  tester,
 }
 
 // ConfigGroup getString extension
@@ -257,6 +261,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'video_settings';
       case ConfigGroup.localCacheConfig:
         return 'local_cache_config';
+      case ConfigGroup.tester:
+        return 'tester';
     }
   }
 }
@@ -300,6 +306,7 @@ enum ConfigKey {
   exhibitionLastUpdated,
   featuredWorksLastUpdated,
   foreWord,
+  betaTester,
 }
 
 // ConfigKey getString extension
@@ -382,6 +389,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'featured_works_last_updated';
       case ConfigKey.foreWord:
         return 'foreword';
+      case ConfigKey.betaTester:
+        return 'beta_tester';
     }
   }
 }

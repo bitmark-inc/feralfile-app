@@ -465,7 +465,7 @@ AppBar getFFAppBar(
 Widget backButton(BuildContext context,
         {required Function() onBack, Color? color}) =>
     Semantics(
-        label: 'BACK',
+        label: 'Back Button',
         child: IconButton(
           constraints: const BoxConstraints(
             maxWidth: 44,

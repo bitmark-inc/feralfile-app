@@ -1411,7 +1411,7 @@ class UIHelper {
     );
   }
 
-  static Future<void> showCustomDialog({
+  static Future<T?> showCustomDialog<T>({
     required BuildContext context,
     required Widget child,
     bool isDismissible = false,
@@ -1420,7 +1420,7 @@ class UIHelper {
     BorderRadius? borderRadius,
   }) async {
     final theme = Theme.of(context);
-    return await showModalBottomSheet<dynamic>(
+    return showModalBottomSheet<T>(
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,

@@ -7,11 +7,16 @@
 
 // ignore_for_file: sort_constructors_first
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/view/account_view.dart';
+import 'package:sentry/sentry.dart';
 
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   final AddressService _addressService;
@@ -22,10 +27,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<GetAccountsEvent>((event, emit) async {
       final addresses = _cloudObject.addressObject.getAllAddresses();
       emit(
-        AccountsState(
+        state.copyWith(
           addresses: addresses,
         ),
       );
+      add(GetAccountBalanceEvent(addresses.map((e) => e.address).toList()));
     });
 
     on<ChangeAccountOrderEvent>((event, emit) {
@@ -46,6 +52,33 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       newAddresses.insert(newOrder, address);
       emit(state.copyWith(addresses: newAddresses));
       _addressService.insertAddresses(newAddresses);
+    });
+
+    on<GetAccountBalanceEvent>((event, emit) async {
+      final addressBalances = <String, Pair<BigInt?, String>>{};
+      for (final address in event.addresses) {
+        try {
+          final balance = await getAddressBalance(address);
+          addressBalances[address] = balance;
+          emit(
+            state.copyWith(
+              addressBalances: Map.from(
+                addressBalances
+                  ..addAll(
+                    state.addressBalances,
+                  ),
+              ),
+            ),
+          );
+        } catch (e, s) {
+          unawaited(
+            Sentry.captureException(
+              'Failed to get balance for $address: $e',
+              stackTrace: s,
+            ),
+          );
+        }
+      }
     });
 
     on<FetchAllAddressesEvent>((event, emit) async {

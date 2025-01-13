@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
+import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -894,12 +895,6 @@ class NavigationService {
   }
 
   Future<void> showBackupRecoveryPhraseDialog() async {
-    final primaryAddressInfo = null; // TODO: implement getPrimaryAddressInfo
-    // await injector<AddressService>().getPrimaryAddressInfo();
-    final uuid = primaryAddressInfo?.uuid;
-    final walletStorage = null;
-    // TODO: implement WalletStorage
-    // uuid == null ? null : WalletStorage(uuid);
     if (context.mounted) {
       await UIHelper.showCenterSheet(
         context,
@@ -962,28 +957,25 @@ class NavigationService {
                   children: [
                     PrimaryButton(
                       text: 'backup_recovery_phrase'.tr(),
-                      onTap: walletStorage == null
-                          ? null
-                          : () {
-                              navigateTo(
-                                AppRouter.recoveryPhrasePage,
-                                // TODO: uncomment this when the recovery phrase is ready
-                                // arguments: RecoveryPhrasePayload(
-                                //     wallet: walletStorage),
-                              );
-                            },
+                      onTap: () {
+                        navigateTo(
+                          AppRouter.recoveryPhrasePage,
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      child: Text(
-                        'need_help'.tr(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .ppMori400White14
-                            .copyWith(
-                              color: AppColor.auQuickSilver,
-                              decoration: TextDecoration.underline,
-                            ),
+                      child: GestureConstrainWidget(
+                        child: Text(
+                          'need_help'.tr(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .ppMori400White14
+                              .copyWith(
+                                color: AppColor.auQuickSilver,
+                                decoration: TextDecoration.underline,
+                              ),
+                        ),
                       ),
                       onTap: () {
                         navigateTo(
@@ -1039,13 +1031,17 @@ class NavigationService {
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
-                    child: Text(
-                      'need_help'.tr(),
-                      style:
-                          Theme.of(context).textTheme.ppMori400White14.copyWith(
-                                color: AppColor.auQuickSilver,
-                                decoration: TextDecoration.underline,
-                              ),
+                    child: GestureConstrainWidget(
+                      child: Text(
+                        'need_help'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .ppMori400White14
+                            .copyWith(
+                              color: AppColor.auQuickSilver,
+                              decoration: TextDecoration.underline,
+                            ),
+                      ),
                     ),
                     onTap: () {
                       navigateTo(
@@ -1070,7 +1066,7 @@ class NavigationService {
   Future<JWT?> showRefreshJwtFailedDialog(
       {required Future<JWT> Function() onRetry}) async {
     log.info('showRefreshJwtFailedDialog');
-    final res = await UIHelper.showCustomDialog(
+    final res = await UIHelper.showCustomDialog<JWT>(
       context: context,
       child: PopScope(
         canPop: false,
@@ -1096,5 +1092,6 @@ class NavigationService {
         ),
       ),
     );
+    return res;
   }
 }

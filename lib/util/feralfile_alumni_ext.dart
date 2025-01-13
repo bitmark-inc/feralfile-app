@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/common.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/util/alias_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -7,9 +8,12 @@ extension AlumniAccountExt on AlumniAccount {
   String get displayAlias =>
       AliasHelper.transform(alias ?? id, isArtistOrCurator: true);
 
-  String? get avatarUrl => (avatarURI != null && avatarURI!.isNotEmpty)
-      ? getFFUrl(avatarURI!)
-      : null;
+  String? get avatarUrl {
+    final uri = avatarDisplay?.isNotEmpty ?? false ? avatarDisplay : avatarURI;
+    return uri != null
+        ? getFFUrl(uri, variant: CloudFlareVariant.m.value)
+        : null;
+  }
 
   List<String> get websiteUrl {
     final listRawWebsite =

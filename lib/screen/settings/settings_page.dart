@@ -140,7 +140,6 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                   ),
                   addOnlyDivider(),
-                  addOnlyDivider(),
                   _settingItem(
                     title: 'hidden_artwork'.tr(),
                     icon: const Icon(AuIcon.hidden_artwork),
@@ -257,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage>
             ),
           ),
           Text(
-            '_and'.tr(),
+            " ${'_and'.tr()} ",
             style: theme.textTheme.ppMori400Grey12,
           ),
           GestureDetector(

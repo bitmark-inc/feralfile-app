@@ -9,6 +9,7 @@ class AlumniAccount {
     this.bio,
     this.email,
     this.avatarURI,
+    this.avatarDisplay,
     this.location,
     this.website,
     this.company,
@@ -28,6 +29,7 @@ class AlumniAccount {
         bio: json['bio'] as String?,
         email: json['email'] as String?,
         avatarURI: json['avatarURI'] as String?,
+        avatarDisplay: json['avatarDisplay'] as String?,
         location: json['location'] as String?,
         website: json['website'] as String?,
         company: json['company'] as String?,
@@ -58,6 +60,7 @@ class AlumniAccount {
   final String? bio;
   final String? email;
   final String? avatarURI;
+  final String? avatarDisplay;
   final String? location;
   final String? website;
   final String? company;
@@ -76,6 +79,7 @@ class AlumniAccount {
         'bio': bio,
         'email': email,
         'avatarURI': avatarURI,
+        'avatarDisplay': avatarDisplay,
         'location': location,
         'website': website,
         'company': company,
