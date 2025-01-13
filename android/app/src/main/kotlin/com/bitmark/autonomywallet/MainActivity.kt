@@ -79,12 +79,16 @@ class MainActivity : FlutterFragmentActivity() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                     // No accounts found
-                    result.success(emptyMap<String, List<String>>())
+                    result.error("exportMnemonicForAllPersonaUUIDs error", e.message, e)
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("MainActivity", e.message ?: "Blockstore retrieval error")
-                result.error("exportMnemonicForAllPersonaUUIDs error", e.message, e)
+                result.error(
+                    "exportMnemonicForAllPersonaUUIDs Blockstore retrieval error",
+                    e.message,
+                    e
+                )
             }
     }
 }
@@ -102,7 +106,7 @@ data class BackupAccount(
     @SerialName("mnemonic")
     val mnemonic: String,
     @SerialName("passphrase")
-    val passphrase: String?,
+    val passphrase: String? = null,
     @SerialName("name")
     val name: String,
 )

@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
+import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -99,14 +100,16 @@ class _AccountsViewState extends State<AccountsView> {
                 );
               }
               final address = walletAddresses[index];
-              return _addressCard(context, address);
+              return KeepAliveWidget(
+                key: ValueKey(address.key),
+                child: _addressCard(context, address),
+              );
             },
           );
         },
       );
 
   Widget _addressCard(BuildContext context, WalletAddress address) => Column(
-        key: ValueKey(address.key),
         children: [
           Padding(
             padding: padding,

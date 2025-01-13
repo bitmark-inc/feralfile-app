@@ -5,43 +5,27 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/wallet_address.dart';
-import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/model/currency_exchange.dart';
 
 abstract class WalletDetailEvent {}
 
 class WalletDetailBalanceEvent extends WalletDetailEvent {
-  CryptoType type;
+  WalletDetailBalanceEvent(this.address);
+
   String address;
-
-  WalletDetailBalanceEvent(this.type, this.address);
-}
-
-class WalletDetailPrimaryAddressEvent extends WalletDetailEvent {
-  WalletAddress walletAddress;
-
-  WalletDetailPrimaryAddressEvent(this.walletAddress);
 }
 
 class WalletDetailState {
-  final String balance;
-  final String balanceInUSD;
-  final bool isPrimary;
-
   WalletDetailState({
-    this.balance = '',
-    this.balanceInUSD = '',
-    this.isPrimary = false,
+    this.exchangeRate,
   });
 
+  final CurrencyExchangeRate? exchangeRate;
+
   WalletDetailState copyWith({
-    String? balance,
-    String? balanceInUSD,
-    bool? isPrimary,
+    CurrencyExchangeRate? exchangeRate,
   }) =>
       WalletDetailState(
-        balance: balance ?? this.balance,
-        balanceInUSD: balanceInUSD ?? this.balanceInUSD,
-        isPrimary: isPrimary ?? this.isPrimary,
+        exchangeRate: exchangeRate ?? this.exchangeRate,
       );
 }

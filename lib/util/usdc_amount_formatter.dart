@@ -23,7 +23,7 @@ class USDAmountFormatter {
   late NumberFormat formatter;
 
   USDAmountFormatter({this.digit = 2}) {
-    formatter = NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
+    formatter = NumberFormat("${'#' * 10}.${'#' * (digit - 1)}", 'en_US');
   }
 
   final int digit;
