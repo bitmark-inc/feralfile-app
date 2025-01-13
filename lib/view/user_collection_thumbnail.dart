@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/model/ff_alumni.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_error_widget.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
@@ -40,9 +41,10 @@ class _UserCollectionThumbnailState extends State<UserCollectionThumbnail> {
               children: [
                 Expanded(
                   child: FFCacheNetworkImage(
-                    imageUrl: collection.thumbnailUrl,
-                    fit: BoxFit.fitWidth,
-                  ),
+                      imageUrl: collection.thumbnailUrl,
+                      fit: BoxFit.fitWidth,
+                      errorWidget: (context, url, error) =>
+                          const NFTErrorWidget(),),
                 ),
               ],
             ),

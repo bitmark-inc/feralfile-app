@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
@@ -412,6 +414,14 @@ Future<void> setupInjector() async {
   );
   injector.registerLazySingleton<DailyWorkBloc>(
     () => DailyWorkBloc(injector(), injector()),
+  );
+
+  injector.registerLazySingleton<AccountsBloc>(
+    () => AccountsBloc(injector(), injector()),
+  );
+
+  injector.registerLazySingleton<WalletDetailBloc>(
+    () => WalletDetailBloc(injector()),
   );
 
   injector.registerLazySingleton<AnnouncementStore>(AnnouncementStore.new);

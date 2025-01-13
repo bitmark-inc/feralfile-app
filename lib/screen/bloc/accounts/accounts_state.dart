@@ -5,7 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 abstract class AccountsEvent {}
 
@@ -20,18 +22,30 @@ class ChangeAccountOrderEvent extends AccountsEvent {
 
 class FetchAllAddressesEvent extends AccountsEvent {}
 
+class GetAccountBalanceEvent extends AccountsEvent {
+  GetAccountBalanceEvent(this.addresses);
+
+  final List<String> addresses;
+}
+
 class AccountsState {
   AccountsState({
     this.addresses,
-  });
+    this.addressBalances = const {},
+  }) {
+    log.info('Create AccountsState');
+  }
 
   List<WalletAddress>? addresses;
+  final Map<String, Pair<BigInt?, String>> addressBalances;
 
   AccountsState copyWith({
     List<WalletAddress>? addresses,
+    Map<String, Pair<BigInt?, String>>? addressBalances,
   }) =>
       AccountsState(
         addresses: addresses ?? this.addresses,
+        addressBalances: addressBalances ?? this.addressBalances,
       );
 }
 

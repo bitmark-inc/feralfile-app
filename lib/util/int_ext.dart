@@ -1,7 +1,25 @@
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/ether_amount_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:web3dart/web3dart.dart';
 
-extension IntExtension on int {
-  String get toXTZStringValue => '${XtzAmountFormatter().format(this)} XTZ';
+extension BigIntExtension on BigInt {
+  String get toXTZStringValue => '${XtzAmountFormatter().format(toInt())} XTZ';
+
+  String get toEthStringValue =>
+      EtherAmount.fromBigInt(EtherUnit.wei, this).toEthStringValue;
+
+  String toBalanceStringValue(CryptoType cryptoType) {
+    switch (cryptoType) {
+      case CryptoType.XTZ:
+        return toXTZStringValue;
+      case CryptoType.ETH:
+        return toEthStringValue;
+      case CryptoType.USDC:
+      case CryptoType.UNKNOWN:
+        return '--';
+    }
+  }
 }
 
 extension MapExtention on Map {
