@@ -1060,7 +1060,7 @@ class NavigationService {
   Future<JWT?> showRefreshJwtFailedDialog(
       {required Future<JWT> Function() onRetry}) async {
     log.info('showRefreshJwtFailedDialog');
-    final res = await UIHelper.showCustomDialog(
+    final res = await UIHelper.showCustomDialog<JWT>(
       context: context,
       child: PopScope(
         canPop: false,
@@ -1086,6 +1086,6 @@ class NavigationService {
         ),
       ),
     );
-    return res as JWT?;
+    return res;
   }
 }
