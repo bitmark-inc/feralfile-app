@@ -68,9 +68,15 @@ class AuthService {
   }
 
   bool isBetaTester() {
-    final betaTester = injector<RemoteConfigService>().getConfig<List<dynamic>>(
-        ConfigGroup.tester, ConfigKey.betaTester, <String>[]).cast<String>();
-    return betaTester.contains(getUserId());
+    try {
+      final betaTester = injector<RemoteConfigService>()
+          .getConfig<List<dynamic>>(ConfigGroup.tester, ConfigKey.betaTester,
+              <String>[]).cast<String>();
+      return betaTester.contains(getUserId());
+    } catch (e) {
+      log.warning('Failed to get beta tester config: $e');
+      return false;
+    }
   }
 
   Future<void> reset() async {
