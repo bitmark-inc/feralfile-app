@@ -68,8 +68,8 @@ class AuthService {
   }
 
   bool isBetaTester() {
-    final betaTester = injector<RemoteConfigService>().getConfig<List<String>>(
-        ConfigGroup.tester, ConfigKey.betaTester, <String>[]);
+    final betaTester = injector<RemoteConfigService>().getConfig<List<dynamic>>(
+        ConfigGroup.tester, ConfigKey.betaTester, <String>[]).cast<String>();
     return betaTester.contains(getUserId());
   }
 
