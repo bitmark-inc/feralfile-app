@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -150,15 +151,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       await UIHelper.showCenterMenu(
         context,
         options: [
-          OptionItem(
-            title: 'Wi-Fi',
-            icon: const Icon(
-              AuIcon.discover,
+          if (injector<AuthService>().isBetaTester())
+            OptionItem(
+              title: 'Wi-Fi',
+              icon: const Icon(
+                AuIcon.discover,
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed(AppRouter.wifiConfigPage);
+              },
             ),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.wifiConfigPage);
-            },
-          ),
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
