@@ -265,7 +265,10 @@ class BluetoothCastService extends BaseTvCastService {
     Map<String, dynamic> body, {
     bool shouldShowError = true,
   }) async {
-    final res = await injector<FFBluetoothService>().sendCommand(body: body);
+    final command = body['command'] as String;
+    final request = Map<String, dynamic>.from(body['request'] as Map);
+    final res = await injector<FFBluetoothService>()
+        .sendCommand(command: command, request: request);
     return {};
   }
 }
