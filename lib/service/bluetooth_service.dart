@@ -55,6 +55,7 @@ class FFBluetoothService {
     required String command,
     required Map<String, dynamic> request,
   }) async {
+    log.info('[sendCommand] Sending command: $command');
     // Check if the device is connected
     if (_connectedDevice == null) {
       return;
@@ -72,6 +73,7 @@ class FFBluetoothService {
     if (_commandCharacteristic == null) {
       return;
     }
+
     final commandBytes = utf8.encode(command);
 
     final bodyString = json.encode(request);
@@ -95,7 +97,8 @@ class FFBluetoothService {
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
     log.info('[sendCommand] Sending bytes: $bytesInHex');
     try {
-      await _commandCharacteristic!.write(bytes, withoutResponse: false);
+      await _commandCharacteristic!
+          .write(bytes, withoutResponse: false, allowLongWrite: true);
       log.info('[sendCommand] Command sent');
     } catch (e) {
       Sentry.captureException(e);

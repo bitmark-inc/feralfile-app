@@ -40,8 +40,6 @@ class CanvasClientServiceV2 {
   Timer? _timer;
   final dragOffsets = <CursorOffset>[];
 
-  Offset currentCursorOffset = Offset.zero;
-
   DeviceInfoV2 get clientDeviceInfo => DeviceInfoV2(
         deviceId: _deviceInfoService.deviceId,
         deviceName: _deviceInfoService.deviceName,
@@ -309,7 +307,7 @@ class CanvasClientServiceV2 {
     return Pair(device, status);
   }
 
-  Future<void> sendKeyBoard(List<CanvasDevice> devices, int code) async {
+  Future<void> sendKeyBoard(List<BaseDevice> devices, int code) async {
     for (final device in devices) {
       final stub = _getStub(device);
       final sendKeyboardRequest = KeyboardEventRequest(code: code);
@@ -345,6 +343,21 @@ class CanvasClientServiceV2 {
     }
   }
 
+  Future<void> _sendDrag(
+      List<BaseDevice> devices, List<CursorOffset> dragOffsets) async {
+    await Future.forEach(devices, (device) async {
+      try {
+        final stub = _getStub(device);
+        final dragRequest = DragGestureRequest(cursorOffsets: dragOffsets);
+        await stub.drag(dragRequest);
+      } catch (e) {
+        log.info('CanvasClientService: Drag Failed');
+        unawaited(Sentry.captureException(
+            'CanvasClientService: Drag Failed to device: ${device.deviceId}'));
+      }
+    });
+  }
+
   Future<void> drag(
     List<BaseDevice> devices,
     Offset offset,
@@ -357,46 +370,21 @@ class CanvasClientServiceV2 {
       coefficientY: 1 / touchpadSize.height,
     );
 
-    currentCursorOffset += offset;
     dragOffsets.add(dragOffset);
-    if (_timer == null || !_timer!.isActive) {
-      _timer = Timer(const Duration(milliseconds: 300), () {
-        for (final device in devices) {
-          final stub = _getStub(device);
-          final dragRequest = DragGestureRequest(cursorOffsets: dragOffsets);
-          stub.drag(dragRequest);
-        }
-        dragOffsets.clear();
-      });
+    if (dragOffsets.length > 5) {
+      final offsets = List<CursorOffset>.from(dragOffsets);
+      dragOffsets.clear();
+      unawaited(_sendDrag(devices, offsets));
     }
-  }
-
-  Future<Offset> getCursorOffset(BaseDevice device) async {
-    final stub = _getStub(device);
-    final response = await stub.getCursorOffset(GetCursorOffsetRequest());
-    final size =
-        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
-    final cursorOffset = response.cursorOffset;
-    final dx = size.width * cursorOffset.coefficientX * cursorOffset.dx;
-    final dy = size.height * cursorOffset.coefficientY * cursorOffset.dy;
-    return Offset(dx, dy);
-  }
-
-  Future<void> setCursorOffset(BaseDevice device) async {
-    final stub = _getStub(device);
-    final size =
-        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
-    final dx = currentCursorOffset.dx / size.width;
-    final dy = currentCursorOffset.dy / size.height;
-    final cursorOffset = CursorOffset(
-      dx: dx,
-      dy: dy,
-      coefficientX: 1 / size.width,
-      coefficientY: 1 / size.height,
-    );
-
-    final request = SetCursorOffsetRequest(cursorOffset: cursorOffset);
-
-    await stub.setCursorOffset(request);
+    // if (_timer == null || !_timer!.isActive) {
+    //   _timer = Timer(const Duration(milliseconds: 30), () {
+    //     for (final device in devices) {
+    //       final stub = _getStub(device);
+    //       final dragRequest = DragGestureRequest(cursorOffsets: dragOffsets);
+    //       stub.drag(dragRequest);
+    //     }
+    //     dragOffsets.clear();
+    //   });
+    // }
   }
 }

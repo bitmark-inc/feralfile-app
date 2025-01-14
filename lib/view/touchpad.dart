@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class TouchPad extends StatefulWidget {
-  final List<CanvasDevice> devices;
+  final List<BaseDevice> devices;
   final Function()? onExpand;
 
   const TouchPad({required this.devices, super.key, this.onExpand});

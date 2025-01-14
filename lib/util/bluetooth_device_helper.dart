@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
 
 class BluetoothDeviceHelper {
-  static Box<FFBluetoothDevice> _pairedDevicesBox =
+  static Box<FFBluetoothDevice> get _pairedDevicesBox =>
       ObjectBox.bluetoothPairedDevicesBox;
 
   static List<FFBluetoothDevice> get pairedDevices {

@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -51,10 +52,6 @@ abstract class TvCastService {
   Future<GestureReply> tap(TapGestureRequest request);
 
   Future<GestureReply> drag(DragGestureRequest request);
-
-  Future<GetCursorOffsetReply> getCursorOffset(GetCursorOffsetRequest request);
-
-  Future<SetCursorOffsetReply> setCursorOffset(SetCursorOffsetRequest request);
 }
 
 abstract class BaseTvCastService implements TvCastService {
@@ -182,22 +179,6 @@ abstract class BaseTvCastService implements TvCastService {
     final result = await _cast(_getBody(request));
     return GestureReply.fromJson(result);
   }
-
-  @override
-  Future<GetCursorOffsetReply> getCursorOffset(
-    GetCursorOffsetRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return GetCursorOffsetReply.fromJson(result);
-  }
-
-  @override
-  Future<SetCursorOffsetReply> setCursorOffset(
-    SetCursorOffsetRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return SetCursorOffsetReply.fromJson(result);
-  }
 }
 
 class TvCastServiceImpl extends BaseTvCastService {
@@ -267,8 +248,15 @@ class BluetoothCastService extends BaseTvCastService {
   }) async {
     final command = body['command'] as String;
     final request = Map<String, dynamic>.from(body['request'] as Map);
-    final res = await injector<FFBluetoothService>()
-        .sendCommand(command: command, request: request);
-    return {};
+    try {
+      final res = await injector<FFBluetoothService>()
+          .sendCommand(command: command, request: request);
+      log.info('[BluetoothCastService] sendCommand $command');
+      return {};
+    } catch (e) {
+      unawaited(Sentry.captureException(
+          '[BluetoothCastService] sendCommand $command failed'));
+      rethrow;
+    }
   }
 }

@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -638,14 +639,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Navigator.of(context).pop();
                 final castingDevice = canvasDeviceState
                     .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-                if (castingDevice != null) {
+                final bluetoothConnectedDevice =
+                    injector<FFBluetoothService>().connectedDevice;
+                if (castingDevice != null || bluetoothConnectedDevice != null) {
                   unawaited(
                     Navigator.of(context).pushNamed(
                       AppRouter.keyboardControlPage,
                       arguments: KeyboardControlPagePayload(
                         getEditionSubTitle(asset),
                         asset.description ?? '',
-                        [castingDevice],
+                        [bluetoothConnectedDevice ?? castingDevice!],
                       ),
                     ),
                   );

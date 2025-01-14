@@ -15,8 +15,6 @@ enum CastCommand {
   castExhibition,
   connect,
   disconnect,
-  setCursorOffset,
-  getCursorOffset,
   sendKeyboardEvent,
   rotate,
   tapGesture,
@@ -51,10 +49,6 @@ enum CastCommand {
         return CastCommand.connect;
       case 'disconnect':
         return CastCommand.disconnect;
-      case 'setCursorOffset':
-        return CastCommand.setCursorOffset;
-      case 'getCursorOffset':
-        return CastCommand.getCursorOffset;
       case 'sendKeyboardEvent':
         return CastCommand.sendKeyboardEvent;
       case 'rotate':
@@ -96,10 +90,6 @@ enum CastCommand {
         return CastCommand.connect;
       case const (DisconnectRequestV2):
         return CastCommand.disconnect;
-      case const (SetCursorOffsetRequest):
-        return CastCommand.setCursorOffset;
-      case const (GetCursorOffsetRequest):
-        return CastCommand.getCursorOffset;
       case const (KeyboardEventRequest):
         return CastCommand.sendKeyboardEvent;
       case const (RotateRequest):
@@ -176,12 +166,22 @@ class RequestBody {
           json['request'] as Map<String, dynamic>,
         );
 
-      case CastCommand.setCursorOffset:
-      case CastCommand.getCursorOffset:
       case CastCommand.sendKeyboardEvent:
+        request = KeyboardEventRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
       case CastCommand.rotate:
+        request = RotateRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
       case CastCommand.tapGesture:
+        request = TapGestureRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
       case CastCommand.dragGesture:
+        request = DragGestureRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
       default:
         throw ArgumentError('Unknown command: $commandString');
     }
@@ -822,62 +822,13 @@ class CursorOffset {
   final double coefficientY;
 
   Map<String, dynamic> toJson() => {
-        'dx': dx,
-        'dy': dy,
-        'coefficientX': coefficientX,
-        'coefficientY': coefficientY,
+        'dx': // round to 2 decimal places
+            double.parse(dx.toStringAsFixed(2)),
+        'dy': // round to 2 decimal places
+            double.parse(dy.toStringAsFixed(2)),
+        'coefficientX': double.parse(coefficientX.toStringAsFixed(6)),
+        'coefficientY': double.parse(coefficientY.toStringAsFixed(6)),
       };
-}
-
-class GetCursorOffsetRequest implements Request {
-  factory GetCursorOffsetRequest.fromJson(Map<String, dynamic> json) =>
-      GetCursorOffsetRequest();
-
-  GetCursorOffsetRequest();
-
-  @override
-  Map<String, dynamic> toJson() => {};
-}
-
-class GetCursorOffsetReply extends Reply {
-  GetCursorOffsetReply({
-    required this.cursorOffset,
-  });
-
-  factory GetCursorOffsetReply.fromJson(Map<String, dynamic> json) =>
-      GetCursorOffsetReply(
-        cursorOffset: CursorOffset.fromJson(
-            Map<String, dynamic>.from(json['cursorOffset'] as Map)),
-      );
-  final CursorOffset cursorOffset;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'cursorOffset': cursorOffset.toJson(),
-      };
-}
-
-class SetCursorOffsetRequest implements Request {
-  SetCursorOffsetRequest({required this.cursorOffset});
-
-  factory SetCursorOffsetRequest.fromJson(Map<String, dynamic> json) =>
-      SetCursorOffsetRequest(
-        cursorOffset: CursorOffset.fromJson(
-            Map<String, dynamic>.from(json['cursorOffset'] as Map)),
-      );
-  final CursorOffset cursorOffset;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'cursorOffset': cursorOffset.toJson(),
-      };
-}
-
-class SetCursorOffsetReply extends EmptyReply {
-  SetCursorOffsetReply();
-
-  factory SetCursorOffsetReply.fromJson(Map<String, dynamic> json) =>
-      SetCursorOffsetReply();
 }
 
 class EmptyRequest implements Request {

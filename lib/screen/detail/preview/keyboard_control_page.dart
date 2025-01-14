@@ -19,7 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 class KeyboardControlPagePayload {
   final String subtitle;
   final String description;
-  final List<CanvasDevice> devices;
+  final List<BaseDevice> devices;
 
   KeyboardControlPagePayload(this.subtitle, this.description, this.devices);
 }
