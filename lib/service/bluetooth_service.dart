@@ -45,6 +45,18 @@ class FFBluetoothService {
     _wifiConnectCharacteristic = characteristic;
   }
 
+  BluetoothCharacteristic? get commandCharacteristic => _commandCharacteristic;
+
+  BluetoothCharacteristic? get wifiConnectCharacteristic =>
+      _wifiConnectCharacteristic;
+
+  Map<String, Stream<BluetoothConnectionState>> _connectionStateStreams = {};
+
+  final String advertisingUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
+
+  // For scanning
+  final String serviceUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
+
   String commandCharUuid =
       '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // command characteristic
 
@@ -64,6 +76,7 @@ class FFBluetoothService {
     // Check if the device is connected
     if (!_connectedDevice!.isConnected) {
       await connectToDevice(_connectedDevice as BluetoothDevice);
+      await _connectedDevice!.discoverServices();
       if (!_connectedDevice!.isConnected) {
         return;
       }
@@ -97,8 +110,7 @@ class FFBluetoothService {
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
     log.info('[sendCommand] Sending bytes: $bytesInHex');
     try {
-      await _commandCharacteristic!
-          .write(bytes, withoutResponse: false, allowLongWrite: true);
+      await _commandCharacteristic!.write(bytes, withoutResponse: true);
       log.info('[sendCommand] Command sent');
     } catch (e) {
       Sentry.captureException(e);
@@ -168,12 +180,42 @@ class FFBluetoothService {
   }
 
   Future<void> connectToDevice(BluetoothDevice device) async {
-    await device.connect();
-    final services = await device.discoverServices();
-    final commandService = services.firstWhere(
-      (service) =>
-          service.uuid.toString() == '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
+    List<BluetoothService> services = [];
+    if (device.isDisconnected) {
+      log.info('Connecting to device: ${device.remoteId.str}');
+      final subscription = device.connectionState.listen((state) {
+        log.info(
+            'Connection state update for ${device.remoteId.str}: ${state.name}');
+      });
+
+      final bondSubscription = device.bondState.listen((state) {
+        log.info('Bond state update for ${device.remoteId.str}: ${state.name}');
+      });
+
+      device.cancelWhenDisconnected(subscription, delayed: true, next: true);
+      device.cancelWhenDisconnected(bondSubscription,
+          delayed: true, next: true);
+      await device.connect();
+      // Discover services
+      // Note: You must call discoverServices after every re-connection!
+      final discoveredServices = await device.discoverServices();
+      services.clear();
+      services.addAll(discoveredServices);
+    } else {
+      log.info('Device already connected: ${device.remoteId.str}');
+    }
+
+    // if connect to the same device, return
+    if (_connectedDevice?.remoteId.str == device.remoteId.str) {
+      return;
+    }
+    final commandService = services.firstWhereOrNull(
+      (service) => service.uuid.toString() == serviceUuid,
     );
+    if (commandService == null) {
+      Sentry.captureMessage('Command service not found');
+      return;
+    }
     final commandChar = commandService.characteristics.firstWhere(
       (characteristic) => characteristic.uuid.toString() == commandCharUuid,
     );
@@ -183,42 +225,55 @@ class FFBluetoothService {
     // Set the command and wifi connect characteristics
     commandCharacteristic = commandChar;
     wifiConnectCharacteristic = wifiConnectChar;
+
+    final commandCharSub = commandChar.onValueReceived.listen((value) {
+      final receivedText = utf8.decode(value);
+      log.info('Received data from command characteristic: $receivedText');
+    });
+    final wifiConnectCharSub = wifiConnectChar.onValueReceived.listen((value) {
+      final receivedText = utf8.decode(value);
+      log.info('Received data from wifi connect characteristic: $receivedText');
+    });
+
+    device.cancelWhenDisconnected(commandCharSub, delayed: true);
+    device.cancelWhenDisconnected(wifiConnectCharSub, delayed: true);
+
+    await commandChar.setNotifyValue(true);
+    await wifiConnectChar.setNotifyValue(true);
   }
 
-// Future<StreamSubscription> startScan({FutureOr<void> Function()? onStart, FutureOr<void> Function()? onStop, FutureOr<void> Function()? onError,}) async {
-//   _addLog("Starting BLE scan...");
-//
-//   await onStart?.call();
-//
-//   final StreamSubscription scanSubscription = FlutterBluePlus.onScanResults.listen(
-//         (results) {
-//       for (ScanResult r in results) {
-//         _addLog('Device found: ${r.device.name} (${r.device.id.id})');
-//         _addLog('  Service UUIDs: ${r.advertisementData.serviceUuids}');
-//         log.info('Found device: ${r.device.name}, ID: ${r.device.id.id}');
-//       }
-//
-//       // Filter results to only include devices advertising our service UUID
-//       final filteredResults = results.where((result) {
-//         return result.advertisementData.serviceUuids
-//             .map((uuid) => uuid.toString().toLowerCase())
-//             .contains(advertisingUuid.toLowerCase());
-//       }).toList();
-//
-//       setState(() {
-//         scanResults = filteredResults;
-//       });
-//     },
-//     onError: (error) {
-//       _addLog('Error during scan: $error');
-//       await onError?.call();
-//     },
-//   );
-//
-//   FlutterBluePlus.startScan(
-//     timeout: const Duration(seconds: 60), // Updated to 60 seconds
-//     androidUsesFineLocation: true,
-//   );
-//   return scanSubscription;
-// }
+  Future<void> findCharacteristics(BluetoothDevice devices) async {
+    final List<BluetoothService> services = await devices.discoverServices();
+    for (var service in services) {
+      log.info(
+          'Discovered service UUID: ${service.uuid.toString().toLowerCase()}');
+      if (service.uuid.toString().toLowerCase() == serviceUuid) {
+        for (var characteristic in service.characteristics) {
+          log.info(
+            'Found characteristic UUID: ${characteristic.uuid.toString().toLowerCase()}',
+          );
+
+          if (characteristic.uuid.toString().toLowerCase() == commandCharUuid) {
+            commandCharacteristic = characteristic;
+            log.info('Found command characteristic');
+          }
+          // if the characteristic UUID matches the target characteristic UUID
+          if (characteristic.uuid.toString().toLowerCase() ==
+              wifiConnectCharUuid) {
+            wifiConnectCharacteristic = characteristic;
+
+            // Set up notifications
+            if (characteristic.properties.notify) {
+              await characteristic.setNotifyValue(true);
+              characteristic.value.listen((value) {
+                final receivedText = utf8.decode(value);
+              });
+            }
+
+            // return; // Found what we need
+          }
+        }
+      }
+    }
+  }
 }

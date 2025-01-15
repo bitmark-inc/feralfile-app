@@ -611,7 +611,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final showKeyboard = _isOpenedWithWebview(asset);
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-    final isCasting = castingDevice != null;
+    final connectedDevice = injector<FFBluetoothService>().connectedDevice;
+    final isCasting = connectedDevice != null;
     final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
       return;
@@ -631,7 +632,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               _setFullScreen();
             },
           ),
-          if (showKeyboard && !isCasting)
+          if (showKeyboard && isCasting)
             OptionItem(
               title: 'interact'.tr(),
               icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
