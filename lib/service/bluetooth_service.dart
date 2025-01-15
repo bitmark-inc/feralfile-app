@@ -110,7 +110,7 @@ class FFBluetoothService {
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
     log.info('[sendCommand] Sending bytes: $bytesInHex');
     try {
-      await _commandCharacteristic!.write(bytes, withoutResponse: true);
+      await _commandCharacteristic!.write(bytes, withoutResponse: false);
       log.info('[sendCommand] Command sent');
     } catch (e) {
       Sentry.captureException(e);
