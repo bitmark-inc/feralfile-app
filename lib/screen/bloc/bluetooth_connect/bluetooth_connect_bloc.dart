@@ -58,7 +58,7 @@ class BluetoothConnectBloc
       emit(state.copyWith(isScanning: false));
     });
     on<BluetoothConnectEventConnect>((event, emit) async {
-      emit(state.copyWith(isConnecting: true));
+      emit(state.copyWith(connectingDevice: event.device));
 
       final device = event.device;
 
@@ -68,10 +68,10 @@ class BluetoothConnectBloc
         }
         injector<FFBluetoothService>().connectedDevice = device;
         await event.onConnectSuccess?.call(device);
-        emit(state.copyWith(isConnecting: false, connectedDevice: device));
+        emit(state.copyWith(connectingDevice: null, connectedDevice: device));
       } catch (e) {
         await event.onConnectFailure?.call(device);
-        emit(state.copyWith(isConnecting: false, error: e.toString()));
+        emit(state.copyWith(connectedDevice: null, error: e.toString()));
         return;
       }
     });

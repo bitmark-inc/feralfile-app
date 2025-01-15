@@ -26,7 +26,7 @@ class BluetoothConnectState {
     this.device,
     this.error,
     this.isScanning = false,
-    this.isConnecting = false,
+    this.connectingDevice,
     this.connectedDevice,
     this.pairedDevices = const [],
     this.scanResults = const [],
@@ -35,7 +35,7 @@ class BluetoothConnectState {
   final BluetoothDevice? device;
   final String? error;
   final bool isScanning;
-  final bool isConnecting;
+  final BluetoothDevice? connectingDevice;
   final BluetoothDevice? connectedDevice;
 
   final List<BluetoothDevice> pairedDevices;
@@ -45,7 +45,7 @@ class BluetoothConnectState {
     BluetoothDevice? device,
     String? error,
     bool? isScanning,
-    bool? isConnecting,
+    BluetoothDevice? connectingDevice,
     BluetoothDevice? connectedDevice,
     List<BluetoothDevice>? pairedDevices,
     List<ScanResult>? scanResults,
@@ -54,7 +54,7 @@ class BluetoothConnectState {
       device: device ?? this.device,
       error: error ?? this.error,
       isScanning: isScanning ?? this.isScanning,
-      isConnecting: isConnecting ?? this.isConnecting,
+      connectingDevice: connectingDevice ?? this.connectingDevice,
       connectedDevice: connectedDevice ?? this.connectedDevice,
       pairedDevices: pairedDevices ?? this.pairedDevices,
       scanResults: scanResults ?? this.scanResults,

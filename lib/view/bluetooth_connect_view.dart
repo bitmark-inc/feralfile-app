@@ -48,8 +48,8 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
   @override
   void initState() {
     super.initState();
-    _bloc = BluetoothConnectBloc();
-    // _bloc.add(BluetoothConnectEventScan());
+    _bloc = injector<BluetoothConnectBloc>();
+    _bloc.add(BluetoothConnectEventScan());
   }
 
   @override
@@ -104,15 +104,19 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
 
   Widget bluetoothItem(BuildContext context, BluetoothDevice device) {
     final theme = Theme.of(context);
-    device.connectionState.listen((event) {
-      if (event == BluetoothConnectionState.disconnected) {
-        widget.onDeviceDisconnected?.call(device);
-      }
-    });
+
     return BlocBuilder<BluetoothConnectBloc, BluetoothConnectState>(
       bloc: _bloc,
       builder: (context, state) {
-        final subTitle = (device.isConnected) ? 'Connected' : 'Not Connected';
+        final connectedDevice = state.connectedDevice;
+        final isConnected = connectedDevice?.remoteId == device.remoteId;
+        final isConnecting =
+            state.connectingDevice?.remoteId == device.remoteId;
+        final subTitle = (device.isConnected)
+            ? 'Connected'
+            : isConnecting
+                ? 'Connecting..'
+                : 'Not Connected';
         return GestureDetector(
           onTap: () async {
             _bloc.add(
@@ -144,7 +148,9 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
                             device.platformName.isNotEmpty
                                 ? device.platformName
                                 : 'Unknown Device',
-                            style: theme.textTheme.ppMori400Black16,
+                            style: isConnected
+                                ? theme.textTheme.ppMori700Black16
+                                : theme.textTheme.ppMori400Black16,
                           ),
                         ),
                         const SizedBox(

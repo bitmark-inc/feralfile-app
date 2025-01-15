@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
@@ -428,6 +429,9 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<WalletDetailBloc>(
     () => WalletDetailBloc(injector()),
   );
+
+  injector.registerLazySingleton<BluetoothConnectBloc>(
+      () => BluetoothConnectBloc());
 
   injector.registerLazySingleton<AnnouncementStore>(AnnouncementStore.new);
   await injector<AnnouncementStore>().init('');
