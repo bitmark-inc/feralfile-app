@@ -23,6 +23,7 @@ class CanvasDevice implements BaseDevice {
   final String deviceId; //hardware id
   final String locationId; // location id
   final String topicId; // topic id
+  @override
   final String name;
 
   // toJson
@@ -82,20 +83,24 @@ class DeviceInfo {
 
 abstract class BaseDevice {
   String get deviceId;
+
+  String get name;
 }
 
 @Entity()
 class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   FFBluetoothDevice({
     required this.name,
-    required String remoteId,
-  }) : super.fromId(remoteId);
+    required String remoteID,
+  }) : super.fromId(remoteID);
 
   @Id()
   int objId = 0;
 
   @override
   final String name;
+
+  String get remoteID => remoteId.str;
 
   @override
   String get deviceId => remoteId.str;

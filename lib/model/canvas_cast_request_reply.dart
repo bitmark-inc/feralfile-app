@@ -5,8 +5,6 @@
 enum CastCommand {
   checkStatus,
   castListArtwork,
-  cancelCasting,
-  appendArtworkToCastingList,
   pauseCasting,
   resumeCasting,
   nextArtwork,
@@ -29,10 +27,6 @@ enum CastCommand {
         return CastCommand.castListArtwork;
       case 'castDaily':
         return CastCommand.castDaily;
-      case 'cancelCasting':
-        return CastCommand.cancelCasting;
-      case 'appendArtworkToCastingList':
-        return CastCommand.appendArtworkToCastingList;
       case 'pauseCasting':
         return CastCommand.pauseCasting;
       case 'resumeCasting':
@@ -70,10 +64,6 @@ enum CastCommand {
         return CastCommand.castListArtwork;
       case const (CastDailyWorkRequest):
         return CastCommand.castDaily;
-      case const (CancelCastingRequest):
-        return CastCommand.cancelCasting;
-      case const (AppendArtworkToCastingListRequest):
-        return CastCommand.appendArtworkToCastingList;
       case const (PauseCastingRequest):
         return CastCommand.pauseCasting;
       case const (ResumeCastingRequest):
@@ -124,14 +114,6 @@ class RequestBody {
         );
       case CastCommand.castDaily:
         request = CastDailyWorkRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.cancelCasting:
-        request = CancelCastingRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.appendArtworkToCastingList:
-        request = AppendArtworkToCastingListRequest.fromJson(
           json['request'] as Map<String, dynamic>,
         );
       case CastCommand.pauseCasting:
@@ -476,55 +458,6 @@ class CastListArtworkReply extends ReplyWithOK {
   Map<String, dynamic> toJson() => {
         'ok': ok,
       };
-}
-
-// Class representing CancelCastingRequest message
-class CancelCastingRequest implements Request {
-  factory CancelCastingRequest.fromJson(Map<String, dynamic> json) =>
-      CancelCastingRequest();
-
-  CancelCastingRequest();
-
-  @override
-  Map<String, dynamic> toJson() => {};
-}
-
-// Class representing CancelCastingReply message
-class CancelCastingReply extends ReplyWithOK {
-  CancelCastingReply({required super.ok});
-
-  factory CancelCastingReply.fromJson(Map<String, dynamic> json) =>
-      CancelCastingReply(ok: json['ok'] as bool);
-}
-
-// Class representing AppendArtworkToCastingListRequest message
-class AppendArtworkToCastingListRequest implements Request {
-  AppendArtworkToCastingListRequest({required this.artworks});
-
-  factory AppendArtworkToCastingListRequest.fromJson(
-    Map<String, dynamic> json,
-  ) =>
-      AppendArtworkToCastingListRequest(
-        artworks: List<PlayArtworkV2>.from(
-          (json['artworks'] as List).map(
-            (x) => PlayArtworkV2.fromJson(Map<String, dynamic>.from(x as Map)),
-          ),
-        ),
-      );
-  List<PlayArtworkV2> artworks;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'artworks': artworks.map((artwork) => artwork.toJson()).toList(),
-      };
-}
-
-// Class representing AppendArtworkToCastingListReply message
-class AppendArtworkToCastingListReply extends ReplyWithOK {
-  AppendArtworkToCastingListReply({required super.ok});
-
-  factory AppendArtworkToCastingListReply.fromJson(Map<String, dynamic> json) =>
-      AppendArtworkToCastingListReply(ok: json['ok'] as bool);
 }
 
 // Class representing PauseCastingRequest message

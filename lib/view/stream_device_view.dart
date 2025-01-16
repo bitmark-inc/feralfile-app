@@ -17,20 +17,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class StreamDeviceView extends StatefulWidget {
-  final Function(CanvasDevice device)? onDeviceSelected;
-  final Function(BluetoothDevice device)? onBluetoothDeviceSelected;
-  final String? displayKey;
-
   const StreamDeviceView({
     super.key,
     this.onDeviceSelected,
-    this.onBluetoothDeviceSelected,
     this.displayKey,
   });
+
+  final FutureOr<void> Function(BaseDevice device)? onDeviceSelected;
+  final String? displayKey;
 
   @override
   State<StreamDeviceView> createState() => _StreamDeviceViewState();
@@ -61,11 +58,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
             ? null
             : state.lastSelectedActiveDeviceForKey(widget.displayKey!);
 
-        final connectedBluetoothDevice =
-            injector<FFBluetoothService>().connectedDevice;
-
-        final isDeviceListEmpty =
-            devices.isEmpty && connectedBluetoothDevice == null;
+        final isDeviceListEmpty = devices.isEmpty;
 
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -76,27 +69,29 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
               Row(
                 children: [
                   Expanded(
-                      child: (connectedDevice != null)
-                          ? RichText(
-                              textScaler: MediaQuery.textScalerOf(context),
-                              text: TextSpan(
-                                style: theme.textTheme.ppMori700White24,
-                                children: <TextSpan>[
-                                  TextSpan(
-                                    text: 'display'.tr(),
-                                  ),
-                                  TextSpan(
-                                    text: ' ${connectedDevice.name}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w400),
-                                  )
-                                ],
-                              ),
-                            )
-                          : Text(
-                              'display_art_on_your_tv'.tr(),
+                    child: (connectedDevice != null)
+                        ? RichText(
+                            textScaler: MediaQuery.textScalerOf(context),
+                            text: TextSpan(
                               style: theme.textTheme.ppMori700White24,
-                            )),
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: 'display'.tr(),
+                                ),
+                                TextSpan(
+                                  text: ' ${connectedDevice.name}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Text(
+                            'display_art_on_your_tv'.tr(),
+                            style: theme.textTheme.ppMori700White24,
+                          ),
+                  ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: Padding(
@@ -107,7 +102,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                         height: 22,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
               if (!isDeviceListEmpty) ...[
@@ -121,21 +116,23 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     final device = devices[index].device;
                     final isControlling =
                         device.deviceId == connectedDevice?.deviceId;
-                    return _deviceItemBuilder(
+                    if (device is FFBluetoothDevice) {
+                      return _bluetoothDeviceItemBuilder(
                         context: context,
                         device: device,
-                        isControlling: isControlling);
+                        isControlling:
+                            device.deviceId == connectedDevice?.deviceId,
+                      );
+                    } else {
+                      return _deviceItemBuilder(
+                        context: context,
+                        device: device as CanvasDevice,
+                        isControlling: isControlling,
+                      );
+                    }
                   },
                 ),
-                if (connectedBluetoothDevice != null) ...[
-                  const SizedBox(height: 15),
-                  _bluetoothDeviceItemBuilder(
-                      context: context,
-                      device: connectedBluetoothDevice,
-                      isControlling: true),
-                ],
-                if (connectedDevice != null ||
-                    connectedBluetoothDevice != null) ...[
+                if (connectedDevice != null) ...[
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
@@ -178,21 +175,23 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     );
   }
 
-  Widget _deviceItemBuilder(
-      {required BuildContext context,
-      required CanvasDevice device,
-      bool? isControlling}) {
+  Widget _deviceItemBuilder({
+    required BuildContext context,
+    required CanvasDevice device,
+    bool? isControlling,
+  }) {
     return Column(
       children: [
         Builder(
           builder: (context) => StreamDrawerItem(
             item: OptionItem(
-                title: device.name,
-                onTap: () {
-                  log.info('device selected: ${device.deviceId}');
-                  widget.onDeviceSelected?.call(device);
-                  Navigator.pop(context);
-                }),
+              title: device.name,
+              onTap: () {
+                log.info('device selected: ${device.deviceId}');
+                widget.onDeviceSelected?.call(device);
+                Navigator.pop(context);
+              },
+            ),
             backgroundColor: isControlling == null
                 ? AppColor.white
                 : isControlling
@@ -204,25 +203,32 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         ),
         const SizedBox(
           height: 15,
-        )
+        ),
       ],
     );
   }
 
-  Widget _bluetoothDeviceItemBuilder(
-      {required BuildContext context,
-      required BluetoothDevice device,
-      bool? isControlling}) {
+  Widget _bluetoothDeviceItemBuilder({
+    required BuildContext context,
+    required FFBluetoothDevice device,
+    bool? isControlling,
+  }) {
     return Column(
       children: [
         Builder(
           builder: (context) => StreamDrawerItem(
             item: OptionItem(
-                title: device.name,
-                onTap: () {
-                  widget.onBluetoothDeviceSelected?.call(device);
-                  Navigator.pop(context);
-                }),
+              title: device.name + '(${device.deviceId})',
+              onTap: () {
+                widget.onDeviceSelected?.call(device);
+                Navigator.pop(context);
+              },
+              icon: SvgPicture.asset(
+                'assets/images/bluetooth.svg',
+                width: 20,
+                height: 20,
+              ),
+            ),
             backgroundColor: isControlling == null
                 ? AppColor.white
                 : isControlling
@@ -234,7 +240,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         ),
         const SizedBox(
           height: 15,
-        )
+        ),
       ],
     );
   }
@@ -246,18 +252,18 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
 
   Future<void> _scanToAddMore() async {
     injector<NavigationService>().hideInfoDialog();
-    final device =
-        await injector<NavigationService>().navigateTo(AppRouter.scanQRPage,
-            arguments: ScanQRPagePayload(
-                scannerItem: ScannerItem.CANVAS,
-                onHandleFinished: (device) {
-                  if (device is CanvasDevice) {
-                    widget.onDeviceSelected?.call(device);
-                    injector
-                        .get<CanvasDeviceBloc>()
-                        .add(CanvasDeviceGetDevicesEvent());
-                  }
-                }));
+    final device = await injector<NavigationService>().navigateTo(
+      AppRouter.scanQRPage,
+      arguments: ScanQRPagePayload(
+        scannerItem: ScannerItem.CANVAS,
+        onHandleFinished: (device) {
+          if (device is CanvasDevice) {
+            widget.onDeviceSelected?.call(device);
+            injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+          }
+        },
+      ),
+    );
     log.info('device selected: $device');
     if (device != null) {
       injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
@@ -272,7 +278,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     }
     final bluetoothDevice = injector<FFBluetoothService>().connectedDevice;
     if (bluetoothDevice != null) {
-      injector<CanvasClientServiceV2>().rotateCanvas(bluetoothDevice!);
+      injector<CanvasClientServiceV2>().rotateCanvas(bluetoothDevice);
     }
   }
 

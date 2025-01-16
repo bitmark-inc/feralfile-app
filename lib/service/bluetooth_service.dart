@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/database.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -23,7 +24,7 @@ class FFBluetoothService {
 
   set connectedDevice(BluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
-      remoteId: device!.id.toString(),
+      remoteID: device!.id.toString(),
       name: device.name,
     );
     _connectedDevice = ffdevice;
@@ -63,14 +64,14 @@ class FFBluetoothService {
   String wifiConnectCharUuid =
       '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // wifi connect characteristic
 
-  Future<void> sendCommand({
+  Future<Map<String, dynamic>> sendCommand({
     required String command,
     required Map<String, dynamic> request,
   }) async {
     log.info('[sendCommand] Sending command: $command');
     // Check if the device is connected
     if (_connectedDevice == null) {
-      return;
+      throw Exception('No connected device');
     }
 
     // Check if the device is connected
@@ -78,13 +79,13 @@ class FFBluetoothService {
       await connectToDevice(_connectedDevice as BluetoothDevice);
       await _connectedDevice!.discoverServices();
       if (!_connectedDevice!.isConnected) {
-        return;
+        throw Exception('Device not connected after reconnection');
       }
     }
 
     // Check if the command characteristic is available
     if (_commandCharacteristic == null) {
-      return;
+      throw Exception('Command characteristic not found');
     }
 
     final commandBytes = utf8.encode(command);
@@ -112,9 +113,11 @@ class FFBluetoothService {
     try {
       await _commandCharacteristic!.write(bytes, withoutResponse: false);
       log.info('[sendCommand] Command sent');
+      return fakeReply(command).toJson();
     } catch (e) {
       Sentry.captureException(e);
       log.info('[sendCommand] Error sending command: $e');
+      throw e;
     }
   }
 
@@ -209,6 +212,18 @@ class FFBluetoothService {
     if (_connectedDevice?.remoteId.str == device.remoteId.str) {
       return;
     }
+
+    _connectedDevice = FFBluetoothDevice(
+      remoteID: device.remoteId.str,
+      name: device.platformName,
+    );
+
+    //if device connected, add to objectbox
+    BluetoothDeviceHelper.addDevice(FFBluetoothDevice(
+      remoteID: device.id.toString(),
+      name: device.name,
+    ));
+
     final commandService = services.firstWhereOrNull(
       (service) => service.uuid.toString() == serviceUuid,
     );
@@ -274,6 +289,74 @@ class FFBluetoothService {
           }
         }
       }
+    }
+  }
+
+  Reply fakeReply(String commandString) {
+    final command = CastCommand.fromString(commandString);
+
+    switch (command) {
+      case CastCommand.checkStatus:
+        return CheckDeviceStatusReply(artworks: []);
+      case CastCommand.castListArtwork:
+        return CastListArtworkReply(
+          ok: true,
+        );
+      case CastCommand.castDaily:
+        return CastDailyWorkReply(
+          ok: true,
+        );
+      case CastCommand.pauseCasting:
+        return PauseCastingReply(
+          ok: true,
+        );
+      case CastCommand.resumeCasting:
+        return ResumeCastingReply(
+          ok: true,
+        );
+      case CastCommand.nextArtwork:
+        return NextArtworkReply(
+          ok: true,
+        );
+      case CastCommand.previousArtwork:
+        return PreviousArtworkReply(
+          ok: true,
+        );
+      case CastCommand.updateDuration:
+        return UpdateDurationReply(
+          artworks: [],
+        );
+      case CastCommand.castExhibition:
+        return CastExhibitionReply(
+          ok: true,
+        );
+      case CastCommand.connect:
+        return ConnectReplyV2(
+          ok: true,
+        );
+      case CastCommand.disconnect:
+        return DisconnectReplyV2(
+          ok: true,
+        );
+
+      case CastCommand.sendKeyboardEvent:
+        return KeyboardEventReply(
+          ok: true,
+        );
+      case CastCommand.rotate:
+        return RotateReply(
+          degree: 1,
+        );
+      case CastCommand.tapGesture:
+        return GestureReply(
+          ok: true,
+        );
+      case CastCommand.dragGesture:
+        return GestureReply(
+          ok: true,
+        );
+      default:
+        throw ArgumentError('Unknown command: $commandString');
     }
   }
 }

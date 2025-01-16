@@ -5,7 +5,7 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 
 extension ListDeviceStatusExtension
-    on List<Pair<CanvasDevice, CheckDeviceStatusReply>> {
+    on List<Pair<BaseDevice, CheckDeviceStatusReply>> {
   Map<String, CheckDeviceStatusReply> get controllingDevices {
     final canvasClientServiceV2 = injector<CanvasClientServiceV2>();
     final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};

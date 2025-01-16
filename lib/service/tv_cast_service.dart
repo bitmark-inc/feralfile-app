@@ -35,10 +35,6 @@ abstract class TvCastService {
 
   Future<PreviousArtworkReply> previousArtwork(PreviousArtworkRequest request);
 
-  Future<AppendArtworkToCastingListReply> appendListArtwork(
-    AppendArtworkToCastingListRequest request,
-  );
-
   Future<UpdateDurationReply> updateDuration(UpdateDurationRequest request);
 
   Future<KeyboardEventReply> keyboardEvent(KeyboardEventRequest request);
@@ -119,14 +115,6 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _cast(_getBody(request));
     return PreviousArtworkReply.fromJson(result);
-  }
-
-  @override
-  Future<AppendArtworkToCastingListReply> appendListArtwork(
-    AppendArtworkToCastingListRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return AppendArtworkToCastingListReply.fromJson(result);
   }
 
   @override
@@ -252,10 +240,13 @@ class BluetoothCastService extends BaseTvCastService {
       final res = await injector<FFBluetoothService>()
           .sendCommand(command: command, request: request);
       log.info('[BluetoothCastService] sendCommand $command');
-      return {};
+      return res;
     } catch (e) {
-      unawaited(Sentry.captureException(
-          '[BluetoothCastService] sendCommand $command failed'));
+      unawaited(
+        Sentry.captureException(
+          '[BluetoothCastService] sendCommand $command failed with error:  $e',
+        ),
+      );
       rethrow;
     }
   }

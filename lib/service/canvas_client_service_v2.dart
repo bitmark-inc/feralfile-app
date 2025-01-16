@@ -12,8 +12,10 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -73,6 +75,9 @@ class CanvasClientServiceV2 {
     BaseDevice device, {
     bool shouldShowError = true,
   }) async {
+    if (device is FFBluetoothDevice) {
+      return CheckDeviceStatusReply(artworks: []);
+    }
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
     final response =
@@ -103,7 +108,7 @@ class CanvasClientServiceV2 {
       await connectToDevice(device);
       log.info('CanvasClientService: Added device to db ${device.name}');
       injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-      return deviceStatus;
+      return Pair(deviceStatus.first as CanvasDevice, deviceStatus.second);
     }
     return null;
   }
@@ -146,6 +151,7 @@ class CanvasClientServiceV2 {
       return response.ok;
     } catch (e) {
       log.info('CanvasClientService: connectToDevice error: $e');
+      if (device is FFBluetoothDevice) return true;
       return false;
     }
   }
@@ -218,17 +224,6 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
-  Future<bool> appendListArtwork(
-    BaseDevice device,
-    List<PlayArtworkV2> artworks,
-  ) async {
-    final stub = _getStub(device);
-    final response = await stub.appendListArtwork(
-      AppendArtworkToCastingListRequest(artworks: artworks),
-    );
-    return response.ok;
-  }
-
   Future<bool> castExhibition(
     BaseDevice device,
     CastExhibitionRequest castRequest,
@@ -272,17 +267,31 @@ class CanvasClientServiceV2 {
 
   /// This method will get devices via mDNS and local db, for local db devices
   /// it will check the status of the device by calling grpc
-  Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> scanDevices() async {
+  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
     final rawDevices = _findRawDevices();
-    final devices = await _getDeviceStatuses(rawDevices);
-    devices.sort((a, b) => a.first.name.compareTo(b.first.name));
-    return devices;
+    final connectedDevice = injector<FFBluetoothService>().connectedDevice;
+    final connectedDevices =
+        connectedDevice == null ? <BaseDevice>[] : [connectedDevice];
+    injector<BluetoothConnectBloc>().state.scanResults.map((result) {
+      return FFBluetoothDevice(
+        remoteID: result.device.remoteId.str,
+        name: result.device.name,
+      );
+    });
+    final devices = [
+      ...rawDevices,
+      ...connectedDevices,
+    ];
+    final pairDevices = await _getDeviceStatuses(devices);
+    pairDevices.sort((a, b) => a.first.name.compareTo(b.first.name));
+
+    return pairDevices;
   }
 
-  Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> _getDeviceStatuses(
-    List<CanvasDevice> devices,
+  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> _getDeviceStatuses(
+    List<BaseDevice> devices,
   ) async {
-    final statuses = <Pair<CanvasDevice, CheckDeviceStatusReply>>[];
+    final statuses = <Pair<BaseDevice, CheckDeviceStatusReply>>[];
     await Future.wait(
       devices.map((device) async {
         try {
@@ -298,8 +307,8 @@ class CanvasClientServiceV2 {
     return statuses;
   }
 
-  Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> _getDeviceStatus(
-    CanvasDevice device, {
+  Future<Pair<BaseDevice, CheckDeviceStatusReply>?> _getDeviceStatus(
+    BaseDevice device, {
     bool shouldShowError = true,
   }) async {
     final status =

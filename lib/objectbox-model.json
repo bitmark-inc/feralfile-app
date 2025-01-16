@@ -92,9 +92,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:5815070005230898589",
+      "lastPropertyId": "3:8241112144675205140",
+      "name": "FFBluetoothDevice",
+      "properties": [
+        {
+          "id": "1:5302331128225242522",
+          "name": "objId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:928975233396538713",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:8241112144675205140",
+          "name": "remoteID",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "3:1005553247711674799",
+  "lastEntityId": "4:5815070005230898589",
   "lastIndexId": "2:5025194395419363601",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

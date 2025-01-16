@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
-import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -305,11 +304,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
                       CastDailyWorkRequest(),
                     ),
                   );
-            },
-            onBluetoothDeviceSelected: (device) {
-              final res = BluetoothCastService(device)
-                  .castDailyWork(CastDailyWorkRequest());
-              log.info('Bluetooth Cast Daily Work Reply: $res');
             },
             onTap: _setUserLiked,
             text: 'display'.tr(),

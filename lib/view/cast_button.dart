@@ -15,12 +15,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class FFCastButton extends StatefulWidget {
-  final Function(CanvasDevice device)? onDeviceSelected;
-  final Function(BluetoothDevice device)? onBluetoothDeviceSelected;
+  final Function(BaseDevice device)? onDeviceSelected;
   final String displayKey;
   final String? text;
   final String? type;
@@ -32,7 +30,6 @@ class FFCastButton extends StatefulWidget {
     this.type = '',
     super.key,
     this.onDeviceSelected,
-    this.onBluetoothDeviceSelected,
     this.text,
     this.shouldCheckSubscription = true,
     this.onTap,
@@ -132,7 +129,6 @@ class FFCastButtonState extends State<FFCastButton> {
       await injector<NavigationService>().showStreamAction(
         widget.displayKey,
         widget.onDeviceSelected,
-        widget.onBluetoothDeviceSelected,
       );
     } else {
       await _showUpgradeDialog(context);

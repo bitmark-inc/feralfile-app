@@ -13,7 +13,7 @@ class BluetoothDeviceHelper {
 
   static void addDevice(FFBluetoothDevice device) {
     try {
-      _pairedDevicesBox.put(device);
+      ObjectBox.bluetoothPairedDevicesBox.put(device);
     } catch (e) {
       print('Error adding device $e');
     }

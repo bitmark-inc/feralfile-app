@@ -35,7 +35,7 @@ class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
   final bool clockwise;
 
   CanvasDeviceRotateEvent(this.device, {this.clockwise = true});
@@ -46,66 +46,66 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
 */
 
 class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
-  final List<CanvasDevice> devices;
+  final List<BaseDevice> devices;
   final bool callRPC;
 
   CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
   final List<PlayArtworkV2> artwork;
 
   CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
 }
 
 class CanvasDeviceChangeControlDeviceEvent extends CanvasDeviceEvent {
-  final CanvasDevice newDevice;
+  final BaseDevice newDevice;
   final List<PlayArtworkV2> artwork;
 
   CanvasDeviceChangeControlDeviceEvent(this.newDevice, this.artwork);
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
 
   CanvasDevicePauseCastingEvent(this.device);
 }
 
 class CanvasDeviceResumeCastingEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
 
   CanvasDeviceResumeCastingEvent(this.device);
 }
 
 class CanvasDeviceNextArtworkEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
 
   CanvasDeviceNextArtworkEvent(this.device);
 }
 
 class CanvasDevicePreviousArtworkEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
 
   CanvasDevicePreviousArtworkEvent(this.device);
 }
 
 class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
   final List<PlayArtworkV2> artwork;
 
   CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
 }
 
 class CanvasDeviceCastExhibitionEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
   final CastExhibitionRequest castRequest;
 
   CanvasDeviceCastExhibitionEvent(this.device, this.castRequest);
 }
 
 class CanvasDeviceCastDailyWorkEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
+  final BaseDevice device;
   final CastDailyWorkRequest castRequest;
 
   CanvasDeviceCastDailyWorkEvent(this.device, this.castRequest);
@@ -114,7 +114,7 @@ class CanvasDeviceCastDailyWorkEvent extends CanvasDeviceEvent {
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final Map<String, CheckDeviceStatusReply> canvasDeviceStatus;
-  final Map<String, CanvasDevice> lastSelectedActiveDeviceMap;
+  final Map<String, BaseDevice> lastSelectedActiveDeviceMap;
 
   // final String sceneId;
   final RPCError? rpcError;
@@ -122,7 +122,7 @@ class CanvasDeviceState {
   CanvasDeviceState({
     required this.devices,
     Map<String, CheckDeviceStatusReply>? canvasDeviceStatus,
-    Map<String, CanvasDevice>? lastSelectedActiveDeviceMap,
+    Map<String, BaseDevice>? lastSelectedActiveDeviceMap,
     this.rpcError,
   })  : canvasDeviceStatus = canvasDeviceStatus ?? {},
         lastSelectedActiveDeviceMap = lastSelectedActiveDeviceMap ?? {};
@@ -130,7 +130,7 @@ class CanvasDeviceState {
   CanvasDeviceState copyWith(
           {List<DeviceState>? devices,
           Map<String, CheckDeviceStatusReply>? controllingDeviceStatus,
-          Map<String, CanvasDevice>? lastActiveDevice,
+          Map<String, BaseDevice>? lastActiveDevice,
           RPCError? rpcError}) =>
       CanvasDeviceState(
           devices: devices ?? this.devices,
@@ -140,7 +140,7 @@ class CanvasDeviceState {
           rpcError: rpcError ?? this.rpcError);
 
   CanvasDeviceState updateOnCast(
-      {required CanvasDevice device, required String displayKey}) {
+      {required BaseDevice device, required String displayKey}) {
     lastSelectedActiveDeviceMap.removeWhere((key, value) => value == device);
     lastSelectedActiveDeviceMap[displayKey] = device;
     return copyWith(
@@ -149,7 +149,7 @@ class CanvasDeviceState {
   }
 
   CanvasDeviceState replaceDeviceState(
-      {required CanvasDevice device, required DeviceState deviceState}) {
+      {required BaseDevice device, required DeviceState deviceState}) {
     final newDeviceState = devices.map((e) {
       if (e.device == device) {
         return deviceState;
@@ -159,7 +159,7 @@ class CanvasDeviceState {
     return copyWith(devices: newDeviceState);
   }
 
-  CanvasDevice? lastSelectedActiveDeviceForKey(String key) {
+  BaseDevice? lastSelectedActiveDeviceForKey(String key) {
     final lastActiveDevice = lastSelectedActiveDeviceMap[key];
     if (lastActiveDevice != null) {
       if (isDeviceAlive(lastActiveDevice)) {
@@ -176,7 +176,7 @@ class CanvasDeviceState {
   }
 
   Duration? castingSpeed(String key) {
-    CanvasDevice? lastActiveDevice = lastSelectedActiveDeviceForKey(key);
+    BaseDevice? lastActiveDevice = lastSelectedActiveDeviceForKey(key);
     final lastActiveDeviceStatus =
         canvasDeviceStatus[lastActiveDevice?.deviceId];
     final durationInMilisecond =
@@ -187,15 +187,21 @@ class CanvasDeviceState {
     return null;
   }
 
-  CheckDeviceStatusReply? statusOf(CanvasDevice device) =>
+  CheckDeviceStatusReply? statusOf(BaseDevice device) =>
       canvasDeviceStatus[device.deviceId];
 
-  bool isDeviceAlive(CanvasDevice device) {
-    final status = statusOf(device);
-    return status != null;
+  bool isDeviceAlive(BaseDevice device) {
+    if (device is CanvasDevice) {
+      final status = statusOf(device);
+      return status != null;
+    } else if (device is FFBluetoothDevice) {
+      return device.isConnected;
+    } else {
+      return false;
+    }
   }
 
-  CanvasDevice? _activeDeviceForKey(String key) {
+  BaseDevice? _activeDeviceForKey(String key) {
     final id = canvasDeviceStatus.entries
         .firstWhereOrNull((element) => element.value.playingArtworkKey == key)
         ?.key;
@@ -206,7 +212,7 @@ class CanvasDeviceState {
 }
 
 class DeviceState {
-  final CanvasDevice device;
+  final BaseDevice device;
   final Duration? duration;
   final bool? isPlaying;
 
@@ -219,7 +225,7 @@ class DeviceState {
 
   //
   DeviceState copyWith({
-    CanvasDevice? device,
+    BaseDevice? device,
     Duration? duration,
     // for playlist: true: playing, false: pause
     bool? isPlaying,
@@ -296,10 +302,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
     on<CanvasDeviceDisconnectEvent>((event, emit) async {
       final devices = event.devices;
-      await Future.forEach<CanvasDevice>(devices, (device) async {
+      await Future.forEach<BaseDevice>(devices, (device) async {
         try {
           log.info('CanvasDeviceBloc: disconnect device: '
-              '${device.deviceId}, ${device.name}, ${device.deviceId}');
+              '${device.deviceId}, ${device.deviceId}');
           if (event.callRPC) {
             await _canvasClientServiceV2.disconnectDevice(device);
           }

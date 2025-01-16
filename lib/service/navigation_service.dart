@@ -39,7 +39,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
@@ -829,8 +828,7 @@ class NavigationService {
               GestureDetector(
                 onTap: () {
                   Navigator.pop(context);
-                  injector<NavigationService>()
-                      .showStreamAction('', null, null);
+                  injector<NavigationService>().showStreamAction('', null);
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 22, bottom: 22),
@@ -870,8 +868,7 @@ class NavigationService {
 
   Future<void> showStreamAction(
     String displayKey,
-    FutureOr<void> Function(CanvasDevice device)? onDeviceSelected,
-    FutureOr<void> Function(BluetoothDevice device)? onBluetoothDeviceSelected,
+    FutureOr<void> Function(BaseDevice device)? onDeviceSelected,
   ) async {
     await injector<NavigationService>().showFlexibleDialog(
       BlocProvider.value(
@@ -880,9 +877,6 @@ class NavigationService {
           displayKey: displayKey,
           onDeviceSelected: (canvasDevice) {
             onDeviceSelected?.call(canvasDevice);
-          },
-          onBluetoothDeviceSelected: (bluetoothDevice) {
-            onBluetoothDeviceSelected?.call(bluetoothDevice);
           },
         ),
       ),

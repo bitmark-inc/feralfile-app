@@ -72,9 +72,27 @@ class StreamDrawerItem extends StatelessWidget {
                       vertical: 12,
                     ),
                     child: Center(
-                      child: Text(
-                        item.title ?? '',
-                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                textAlign: TextAlign.center,
+                                item.title ?? '',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400Black14,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (item.icon != null) ...[
+                              const SizedBox(width: 10),
+                              item.icon!,
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -125,7 +143,7 @@ class PlaylistControl extends StatefulWidget {
 class _PlaylistControlState extends State<PlaylistControl> {
   Timer? _timer;
   late CanvasDeviceBloc _canvasDeviceBloc;
-  CanvasDevice? _controllingDevice;
+  BaseDevice? _controllingDevice;
 
   @override
   void initState() {

@@ -217,7 +217,7 @@ class _FeralFileArtworkPreviewPageState
         ),
       );
 
-  Future<void> _onDeviceSelected(CanvasDevice device) async {
+  Future<void> _onDeviceSelected(BaseDevice device) async {
     final exhibitionId = widget.payload.artwork.series?.exhibitionID;
     if (exhibitionId == null) {
       await Sentry.captureMessage('Exhibition ID is null for artwork '
