@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 extension ListDeviceStatusExtension
     on List<Pair<BaseDevice, CheckDeviceStatusReply>> {
@@ -12,8 +13,12 @@ extension ListDeviceStatusExtension
     final thisDevice = canvasClientServiceV2.clientDeviceInfo;
     for (final devicePair in this) {
       final status = devicePair.second;
-      if (status.connectedDevice?.deviceId == thisDevice.deviceId) {
+      if (status.connectedDevice?.deviceId == thisDevice.deviceId ||
+          devicePair.first is FFBluetoothDevice) {
         controllingDeviceStatus[devicePair.first.deviceId] = status;
+      } else {
+        log.info(
+            'Device ${devicePair.first.deviceId} is not controlling device');
       }
     }
     return controllingDeviceStatus;

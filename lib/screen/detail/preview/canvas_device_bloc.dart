@@ -191,14 +191,8 @@ class CanvasDeviceState {
       canvasDeviceStatus[device.deviceId];
 
   bool isDeviceAlive(BaseDevice device) {
-    if (device is CanvasDevice) {
-      final status = statusOf(device);
-      return status != null;
-    } else if (device is FFBluetoothDevice) {
-      return device.isConnected;
-    } else {
-      return false;
-    }
+    final status = statusOf(device);
+    return status != null;
   }
 
   BaseDevice? _activeDeviceForKey(String key) {

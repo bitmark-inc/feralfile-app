@@ -66,6 +66,7 @@ class FFCastButtonState extends State<FFCastButton> {
             onTap: () async {
               widget.onTap?.call();
               await onTap(context, isSubscribed);
+              _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
             },
             child: Semantics(
               label: 'cast_icon',
