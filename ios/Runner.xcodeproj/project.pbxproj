@@ -141,8 +141,6 @@
 		7F7693412D02A05F0085C68C /* Exceptions for "Daily Widget" folder in "Daily WidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				AppIntent.swift,
-				Daily_WidgetControl.swift,
 				Info.plist,
 			);
 			target = 7F7693222D02A05C0085C68C /* Daily WidgetExtension */;

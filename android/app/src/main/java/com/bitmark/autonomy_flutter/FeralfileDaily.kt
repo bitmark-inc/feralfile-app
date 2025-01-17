@@ -157,16 +157,9 @@ internal fun updateAppWidget(
         views.setImageViewResource(R.id.appwidget_image, R.drawable.no_thumbnail)
     }
 
-    val base64Medium = dailyInfo.medium
-    if (base64Medium.isNotEmpty()) {
+    if (dailyInfo.displayMediumIcon) {
         try {
-            // Decode Base64 string to a byte array
-            val imageBytes = Base64.decode(base64Medium, Base64.DEFAULT)
-            // Convert byte array to Bitmap
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-            // Set the image to the widget
-            views.setImageViewBitmap(R.id.medium_image, bitmap)
+            views.setImageViewResource(R.id.medium_image, R.drawable.medium_icon)
         } catch (e: Exception) {
             // Handle error in decoding, set a placeholder image
             views.setImageViewResource(R.id.medium_image, R.drawable.failed_daily_image)
@@ -181,7 +174,7 @@ data class DailyInfo(
     val base64ImageData: String,  // Changed from thumbnailUrl to base64ImageData
     val title: String,
     val artistName: String,
-    val medium: String
+    val displayMediumIcon: Boolean
 )
 
 
@@ -197,36 +190,22 @@ fun getDailyInfo(context: Context, callback: (DailyInfo) -> Unit) {
 
 private fun getStoredDailyInfo(context: Context): DailyInfo {
     val widgetData = HomeWidgetPlugin.getData(context)
-
-    val currentDateKey = getCurrentDateKey();
-
-    // Retrieve JSON string for the current date
-    val jsonString = widgetData.getString(currentDateKey, null)
-
-    if (jsonString != null) {
-        try {
-            // Parse JSON string
-            val jsonObject = JSONObject(jsonString)
-            val base64ImageData = jsonObject.optString("base64ImageData", "")
-            val title = jsonObject.optString("title", "default_title")
-            val artistName = jsonObject.optString("artistName", "default_artist_name")
-            val medium = jsonObject.optString("base64MediumIcon", "")
-
-            // Return DailyInfo object with the parsed data
-            return DailyInfo(
-                base64ImageData = base64ImageData,
-                title = title,
-                artistName = artistName,
-                medium = medium
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return getDefaultDailyInfo()
-        }
+    val dailyDataString = widgetData.getString("dailyData", null) ?: return getDefaultDailyInfo()
+    try {
+        val dailyObject = JSONObject(dailyDataString)
+        val currentDateKey = getCurrentDateKey()
+        val todayDailyString = dailyObject.optString(currentDateKey) ?: return getDefaultDailyInfo()
+        val todayDailyObject = JSONObject(todayDailyString)
+        return DailyInfo(
+            base64ImageData = todayDailyObject.optString("base64ImageData", ""),
+            title = todayDailyObject.optString("title", "Daily Artwork"),
+            artistName = todayDailyObject.optString("artistName", "Artist"),
+            displayMediumIcon = todayDailyObject.optBoolean("displayMediumIcon", false)
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return getDefaultDailyInfo()
     }
-
-    // Return default DailyInfo if data for current date is not found or parsing fails
-    return getDefaultDailyInfo()
 }
 
 private fun getCurrentDateKey(): String {
@@ -240,6 +219,6 @@ private fun getDefaultDailyInfo(): DailyInfo {
         base64ImageData = "",
         title = "Daily Artwork",
         artistName = "Daily is not available",
-        medium = ""
+        displayMediumIcon = false
     )
 }
