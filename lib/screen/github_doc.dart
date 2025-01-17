@@ -31,9 +31,9 @@ class GithubDocPage extends StatefulWidget {
   State<GithubDocPage> createState() => _GithubDocPageState();
 
   static const String ffDocsAppsPrefix =
-      '/bitmark-inc/feral-file-docs/master/app';
+      '/bitmark-inc/feral-file-docs/main/app';
   static const String ffDocsAgreementsPrefix =
-      '/bitmark-inc/feral-file-docs/master/agreements';
+      '/bitmark-inc/feral-file-docs/main/agreements';
 }
 
 class _GithubDocPageState extends State<GithubDocPage> {

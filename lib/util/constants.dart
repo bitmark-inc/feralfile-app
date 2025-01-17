@@ -40,11 +40,11 @@ const DEEP_LINKS = [
 ];
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
-    '/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md';
+    '/bitmark-inc/feral-file-docs/main/agreements/ff-collector-rights/en_US.md';
 const COLLECTOR_RIGHTS_MEMENTO_DOCS =
-    '/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md';
+    '/bitmark-inc/feral-file-docs/main/agreements/ff-collector-rights/MoMA-Memento/en_US.md';
 const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
-    '/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md';
+    '/bitmark-inc/feral-file-docs/main/agreements/ff-collector-rights/009-unsupervised/en_US.md';
 
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   '00370334-6151-4c04-b6be-dc09e325d57d',
