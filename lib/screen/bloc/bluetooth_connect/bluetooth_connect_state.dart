@@ -61,3 +61,9 @@ class BluetoothConnectState {
     );
   }
 }
+
+extension BluetoothConnectStateExtension on BluetoothConnectState {
+  List<BluetoothDevice> get scanedDevices {
+    return scanResults.map((result) => result.device).toList();
+  }
+}

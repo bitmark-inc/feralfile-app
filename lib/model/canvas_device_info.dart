@@ -104,4 +104,17 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 
   @override
   String get deviceId => remoteId.str;
+
+  // toJson
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'remoteID': remoteID,
+      };
+
+  // fromJson
+  factory FFBluetoothDevice.fromJson(Map<String, dynamic> json) =>
+      FFBluetoothDevice(
+        name: json['name'] as String,
+        remoteID: json['remoteID'] as String,
+      );
 }

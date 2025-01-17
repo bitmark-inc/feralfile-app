@@ -28,9 +28,12 @@ class FFBluetoothService {
       name: device.name,
     );
     _connectedDevice = ffdevice;
+    BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
   }
 
-  FFBluetoothDevice? get connectedDevice => _connectedDevice;
+  FFBluetoothDevice? get connectedDevice =>
+      _connectedDevice ??
+      BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
 
   // characteristic for sending commands to Peripheral
   BluetoothCharacteristic? _commandCharacteristic;
@@ -69,16 +72,19 @@ class FFBluetoothService {
     required Map<String, dynamic> request,
   }) async {
     log.info('[sendCommand] Sending command: $command');
+
+    final device = connectedDevice;
+
     // Check if the device is connected
-    if (_connectedDevice == null) {
+    if (device == null) {
       throw Exception('No connected device');
     }
 
     // Check if the device is connected
-    if (!_connectedDevice!.isConnected) {
-      await connectToDevice(_connectedDevice as BluetoothDevice);
-      await _connectedDevice!.discoverServices();
-      if (!_connectedDevice!.isConnected) {
+    if (!device.isConnected) {
+      await connectToDevice(device as BluetoothDevice);
+      await device.discoverServices();
+      if (!device.isConnected) {
         throw Exception('Device not connected after reconnection');
       }
     }
@@ -123,14 +129,16 @@ class FFBluetoothService {
 
   Future<void> sendWifiCredentials(String ssid, String password) async {
     // Check if the device is connected
-    if (_connectedDevice == null) {
+    final device = connectedDevice;
+
+    if (device == null) {
       return;
     }
 
     // Check if the device is connected
-    if (!_connectedDevice!.isConnected) {
-      await connectToDevice(_connectedDevice as BluetoothDevice);
-      if (!_connectedDevice!.isConnected) {
+    if (!device!.isConnected) {
+      await connectToDevice(device as BluetoothDevice);
+      if (!device!.isConnected) {
         return;
       }
     }
@@ -209,11 +217,11 @@ class FFBluetoothService {
     }
 
     // if connect to the same device, return
-    if (_connectedDevice?.remoteId.str == device.remoteId.str) {
-      return;
-    }
+    // if (connectedDevice?.remoteId.str == device.remoteId.str) {
+    //   return;
+    // }
 
-    _connectedDevice = FFBluetoothDevice(
+    connectedDevice = FFBluetoothDevice(
       remoteID: device.remoteId.str,
       name: device.platformName,
     );
@@ -223,6 +231,10 @@ class FFBluetoothService {
       remoteID: device.id.toString(),
       name: device.name,
     ));
+
+    if (commandCharacteristic != null && wifiConnectCharacteristic != null) {
+      return;
+    }
 
     final commandService = services.firstWhereOrNull(
       (service) => service.uuid.toString() == serviceUuid,
