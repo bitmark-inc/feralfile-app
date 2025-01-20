@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -89,11 +91,15 @@ class FFBluetoothService {
       throw Exception('Command characteristic not found');
     }
 
-    final commandBytes = utf8.encode(command);
+    // Generate random 4 char replyId
+    final replyId = String.fromCharCodes(
+      List.generate(4, (_) => Random().nextInt(26) + 97),
+    );
 
+    final commandBytes = ascii.encode(command);
     final bodyString = json.encode(request);
-    // Convert credentials to ASCII bytes
     final bodyBytes = ascii.encode(bodyString);
+    final replyIdBytes = ascii.encode(replyId);
 
     // Create a BytesBuilder to construct the message
     final builder = BytesBuilder()
@@ -101,21 +107,45 @@ class FFBluetoothService {
       ..writeVarint(command.length)
       // Write command bytes
       ..add(commandBytes)
-
-      // Write SSID length as varint
+      // Write body length as varint
       ..writeVarint(bodyBytes.length)
-      // Write SSID bytes
-      ..add(bodyBytes);
+      // Write body bytes
+      ..add(bodyBytes)
+      // Write replyId length as varint
+      ..writeVarint(replyIdBytes.length)
+      // Write replyId bytes
+      ..add(replyIdBytes);
 
     // Write the data to the characteristic
     final bytes = builder.takeBytes();
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
     log.info('[sendCommand] Sending bytes: $bytesInHex');
+
+    // Create a completer to wait for the reply
+    final completer = Completer<Map<String, dynamic>>();
+
+    // Subscribe to notifications for this replyId
+    BluetoothNotificationService().subscribe(replyId, (data) {
+      completer.complete(data);
+      // Unsubscribe after getting the reply
+      BluetoothNotificationService().unsubscribe(replyId, (data) {});
+    });
+
     try {
-      await _commandCharacteristic!.write(bytes, withoutResponse: false);
+      await _commandCharacteristic!.write(bytes, withoutResponse: true);
       log.info('[sendCommand] Command sent');
-      return fakeReply(command).toJson();
+
+      // Wait for reply with timeout
+      return await completer.future.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          BluetoothNotificationService().unsubscribe(replyId, (data) {});
+          return fakeReply(command)
+              .toJson(); // Fallback to fake reply on timeout
+        },
+      );
     } catch (e) {
+      BluetoothNotificationService().unsubscribe(replyId, (data) {});
       Sentry.captureException(e);
       log.info('[sendCommand] Error sending command: $e');
       throw e;
@@ -235,20 +265,33 @@ class FFBluetoothService {
     commandCharacteristic = commandChar;
     wifiConnectCharacteristic = wifiConnectChar;
 
-    final commandCharSub = commandChar.onValueReceived.listen((value) {
-      final receivedText = utf8.decode(value);
-      log.info('Received data from command characteristic: $receivedText');
-    });
-    final wifiConnectCharSub = wifiConnectChar.onValueReceived.listen((value) {
-      final receivedText = utf8.decode(value);
-      log.info('Received data from wifi connect characteristic: $receivedText');
-    });
+    log.info('Command char properties: ${commandChar.properties}');
+    if (!commandChar.properties.notify) {
+      log.warning('Command characteristic does not support notifications!');
+      return;
+    }
+
+    try {
+      await commandChar.setNotifyValue(true);
+      log.info('Successfully enabled notifications for command char');
+    } catch (e) {
+      log.warning('Failed to enable notifications for command char: $e');
+      Sentry.captureException(e);
+      return;
+    }
+
+    final commandCharSub = commandChar.onValueReceived.listen(
+      (value) {
+        log.info('Received data from command characteristic: $value');
+        BluetoothNotificationService().handleNotification(value);
+      },
+      onError: (error) {
+        log.warning('Error in command char subscription: $error');
+        Sentry.captureException(error);
+      },
+    );
 
     device.cancelWhenDisconnected(commandCharSub, delayed: true);
-    device.cancelWhenDisconnected(wifiConnectCharSub, delayed: true);
-
-    await commandChar.setNotifyValue(true);
-    await wifiConnectChar.setNotifyValue(true);
   }
 
   Future<void> findCharacteristics(BluetoothDevice devices) async {
