@@ -13,9 +13,9 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -269,15 +269,16 @@ class CanvasClientServiceV2 {
   /// it will check the status of the device by calling grpc
   Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
     final rawDevices = _findRawDevices();
-    final connectedDevice = injector<FFBluetoothService>().connectedDevice;
+    // final connectedDevice = injector<FFBluetoothService>().connectedDevice;
     final connectedDevices =
-        connectedDevice == null ? <BaseDevice>[] : [connectedDevice];
-    injector<BluetoothConnectBloc>().state.scanResults.map((result) {
-      return FFBluetoothDevice(
-        remoteID: result.device.remoteId.str,
-        name: result.device.name,
-      );
-    });
+        injector<BluetoothConnectBloc>().state.scanedDevices;
+    // connectedDevice == null ? <BaseDevice>[] : [connectedDevice];
+    // injector<BluetoothConnectBloc>().state.scanResults.map((result) {
+    //   return FFBluetoothDevice(
+    //     remoteID: result.device.remoteId.str,
+    //     name: result.device.name,
+    //   );
+    // });
     final devices = [
       ...rawDevices,
       ...connectedDevices,

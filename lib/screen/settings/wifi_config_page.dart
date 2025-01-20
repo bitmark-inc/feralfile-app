@@ -18,28 +18,6 @@ class WifiConfigPage extends StatefulWidget {
 class _WifiConfigPageState extends State<WifiConfigPage> {
   final flutterBlue = FlutterBluePlus.instance;
 
-  StreamSubscription? _scanSubscription;
-  // Add new controller for logs
-  final ScrollController _logScrollController = ScrollController();
-  final List<String> _logs = [];
-
-  // Add helper method to add logs
-  void _addLog(String message) {
-    setState(() {
-      _logs.add("[${DateTime.now().toString()}] $message");
-      // Scroll to bottom after new log
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (_logScrollController.hasClients) {
-          _logScrollController.animateTo(
-            _logScrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -48,7 +26,6 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
 
   Future<void> _checkBluetoothStatus() async {
     // Check if Bluetooth is supported
-    final connectedDevices = await FlutterBluePlus.connectedDevices;
     if (await FlutterBluePlus.isSupported == false) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,16 +71,11 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
 
   @override
   void dispose() {
-    _scanSubscription?.cancel();
-    // Updated disconnect method
-    _logScrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -119,10 +91,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
               child: Padding(
                 padding: ResponsiveLayout.pageEdgeInsets,
                 child: BluetoothConnectWidget(
-                  onScanStarted: () {
-                    _addLog('Scanning for devices...');
-                    // startScan();
-                  },
+                  onScanStarted: () {},
                   onDeviceSelected: (device) {},
                 ),
               ),

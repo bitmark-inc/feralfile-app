@@ -23,22 +23,22 @@ import 'package:web3dart/json_rpc.dart';
 abstract class CanvasDeviceEvent {}
 
 class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
-  final bool retry;
-
   CanvasDeviceGetDevicesEvent({this.retry = false});
+
+  final bool retry;
 }
 
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
   CanvasDeviceAppendDeviceEvent(this.device);
+
+  final CanvasDevice device;
 }
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
+  CanvasDeviceRotateEvent(this.device, {this.clockwise = true});
+
   final BaseDevice device;
   final bool clockwise;
-
-  CanvasDeviceRotateEvent(this.device, {this.clockwise = true});
 }
 
 /*
@@ -46,79 +46,72 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
 */
 
 class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
+  CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
+
   final List<BaseDevice> devices;
   final bool callRPC;
-
-  CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
+  CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
+
   final BaseDevice device;
   final List<PlayArtworkV2> artwork;
-
-  CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
 }
 
 class CanvasDeviceChangeControlDeviceEvent extends CanvasDeviceEvent {
+  CanvasDeviceChangeControlDeviceEvent(this.newDevice, this.artwork);
+
   final BaseDevice newDevice;
   final List<PlayArtworkV2> artwork;
-
-  CanvasDeviceChangeControlDeviceEvent(this.newDevice, this.artwork);
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
-  final BaseDevice device;
-
   CanvasDevicePauseCastingEvent(this.device);
+
+  final BaseDevice device;
 }
 
 class CanvasDeviceResumeCastingEvent extends CanvasDeviceEvent {
-  final BaseDevice device;
-
   CanvasDeviceResumeCastingEvent(this.device);
+
+  final BaseDevice device;
 }
 
 class CanvasDeviceNextArtworkEvent extends CanvasDeviceEvent {
-  final BaseDevice device;
-
   CanvasDeviceNextArtworkEvent(this.device);
+
+  final BaseDevice device;
 }
 
 class CanvasDevicePreviousArtworkEvent extends CanvasDeviceEvent {
-  final BaseDevice device;
-
   CanvasDevicePreviousArtworkEvent(this.device);
+
+  final BaseDevice device;
 }
 
 class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
+  CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
+
   final BaseDevice device;
   final List<PlayArtworkV2> artwork;
-
-  CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
 }
 
 class CanvasDeviceCastExhibitionEvent extends CanvasDeviceEvent {
+  CanvasDeviceCastExhibitionEvent(this.device, this.castRequest);
+
   final BaseDevice device;
   final CastExhibitionRequest castRequest;
-
-  CanvasDeviceCastExhibitionEvent(this.device, this.castRequest);
 }
 
 class CanvasDeviceCastDailyWorkEvent extends CanvasDeviceEvent {
+  CanvasDeviceCastDailyWorkEvent(this.device, this.castRequest);
+
   final BaseDevice device;
   final CastDailyWorkRequest castRequest;
-
-  CanvasDeviceCastDailyWorkEvent(this.device, this.castRequest);
 }
 
 class CanvasDeviceState {
-  final List<DeviceState> devices;
-  final Map<String, CheckDeviceStatusReply> canvasDeviceStatus;
-  final Map<String, BaseDevice> lastSelectedActiveDeviceMap;
-
-  // final String sceneId;
-  final RPCError? rpcError;
-
   CanvasDeviceState({
     required this.devices,
     Map<String, CheckDeviceStatusReply>? canvasDeviceStatus,
@@ -126,6 +119,12 @@ class CanvasDeviceState {
     this.rpcError,
   })  : canvasDeviceStatus = canvasDeviceStatus ?? {},
         lastSelectedActiveDeviceMap = lastSelectedActiveDeviceMap ?? {};
+  final List<DeviceState> devices;
+  final Map<String, CheckDeviceStatusReply> canvasDeviceStatus;
+  final Map<String, BaseDevice> lastSelectedActiveDeviceMap;
+
+  // final String sceneId;
+  final RPCError? rpcError;
 
   CanvasDeviceState copyWith(
           {List<DeviceState>? devices,
@@ -206,16 +205,16 @@ class CanvasDeviceState {
 }
 
 class DeviceState {
-  final BaseDevice device;
-  final Duration? duration;
-  final bool? isPlaying;
-
   // constructor
   DeviceState({
     required this.device,
     this.duration,
     this.isPlaying,
   });
+
+  final BaseDevice device;
+  final Duration? duration;
+  final bool? isPlaying;
 
   //
   DeviceState copyWith({
@@ -242,14 +241,12 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
     (events, mapper) => events.throttleTime(duration).asyncExpand(mapper);
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
-  final CanvasClientServiceV2 _canvasClientServiceV2;
-
   // constructor
   CanvasDeviceBloc(this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
-        log.info('CanvasDeviceBloc: adding devices');
+        log.info('CanvasDeviceGetDevicesEvent');
         try {
           final devices = await _canvasClientServiceV2.scanDevices();
 
@@ -270,7 +267,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           emit(state.copyWith());
         }
       },
-      transformer: debounceSequential(const Duration(seconds: 5)),
+      // transformer: debounceSequential(
+      //   const Duration(seconds: 5),
+      // ),
     );
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
@@ -308,7 +307,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }
       });
-      emit(state.copyWith(controllingDeviceStatus: {}));
+
+      emit(state.copyWith(controllingDeviceStatus: {}, lastActiveDevice: {}));
+      add(CanvasDeviceGetDevicesEvent());
     });
 
     on<CanvasDeviceCastListArtworkEvent>((event, emit) async {
@@ -506,6 +507,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       } catch (_) {}
     });
   }
+
+  final CanvasClientServiceV2 _canvasClientServiceV2;
 
   void clear() {
     state.devices.clear();

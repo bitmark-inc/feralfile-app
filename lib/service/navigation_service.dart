@@ -142,6 +142,16 @@ class NavigationService {
     }
   }
 
+  Future<void> openBluetoothSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.bluetooth();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.bluetooth();
+    }
+  }
+
   Future<void> showAppLoadError() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {

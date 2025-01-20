@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothConnectEvent {}
@@ -7,6 +8,14 @@ class BluetoothConnectEvent {}
 class BluetoothConnectEventScan extends BluetoothConnectEvent {}
 
 class BluetoothConnectEventStopScan extends BluetoothConnectEvent {}
+
+class BluetoothConnectEventGetBluetoothStatus extends BluetoothConnectEvent {}
+
+class BluetoothConnectEventUpdateBluetoothState extends BluetoothConnectEvent {
+  BluetoothConnectEventUpdateBluetoothState(this.bluetoothAdapterState);
+
+  final BluetoothAdapterState bluetoothAdapterState;
+}
 
 class BluetoothConnectEventConnect extends BluetoothConnectEvent {
   BluetoothConnectEventConnect({
@@ -30,8 +39,10 @@ class BluetoothConnectState {
     this.connectedDevice,
     this.pairedDevices = const [],
     this.scanResults = const [],
+    this.bluetoothAdapterState = BluetoothAdapterState.unknown,
   });
 
+  final BluetoothAdapterState bluetoothAdapterState;
   final BluetoothDevice? device;
   final String? error;
   final bool isScanning;
@@ -49,6 +60,7 @@ class BluetoothConnectState {
     BluetoothDevice? connectedDevice,
     List<BluetoothDevice>? pairedDevices,
     List<ScanResult>? scanResults,
+    BluetoothAdapterState? bluetoothAdapterState,
   }) {
     return BluetoothConnectState(
       device: device ?? this.device,
@@ -58,12 +70,18 @@ class BluetoothConnectState {
       connectedDevice: connectedDevice ?? this.connectedDevice,
       pairedDevices: pairedDevices ?? this.pairedDevices,
       scanResults: scanResults ?? this.scanResults,
+      bluetoothAdapterState:
+          bluetoothAdapterState ?? this.bluetoothAdapterState,
     );
   }
 }
 
 extension BluetoothConnectStateExtension on BluetoothConnectState {
-  List<BluetoothDevice> get scanedDevices {
-    return scanResults.map((result) => result.device).toList();
+  List<FFBluetoothDevice> get scanedDevices {
+    return scanResults
+        .map((result) => FFBluetoothDevice(
+            name: result.device.platformName,
+            remoteID: result.device.remoteId.str))
+        .toList();
   }
 }

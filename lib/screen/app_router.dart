@@ -264,7 +264,7 @@ class AppRouter {
               BlocProvider.value(
                 value: subscriptionBloc,
               ),
-              BlocProvider(create: (_) => canvasDeviceBloc),
+              BlocProvider.value(value: canvasDeviceBloc),
               BlocProvider.value(value: listPlaylistBloc),
 
               /// The page itself doesn't need to use the bloc.

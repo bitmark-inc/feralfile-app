@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/send_wifi_crendential_view.dart';
@@ -61,6 +62,10 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
       bloc: _bloc,
       listener: (context, state) {},
       builder: (context, state) {
+        final bluetoothState = state.bluetoothAdapterState;
+        if (bluetoothState != BluetoothAdapterState.on) {
+          return bluetoothNotAvailable(context);
+        }
         final isScanning = state.isScanning;
         final scannedDevices = state.scanResults;
         return Column(
@@ -202,6 +207,32 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
         },
       ),
       isDismissible: true,
+    );
+  }
+
+  Widget bluetoothNotAvailable(BuildContext context) {
+    return Center(
+      child: Column(
+        children: [
+          const Icon(
+            Icons.bluetooth_disabled,
+            size: 48,
+            color: AppColor.feralFileLightBlue,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Bluetooth is not available',
+            style: Theme.of(context).textTheme.ppMori400Black16,
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            text: 'Go to Bluetooth Settings',
+            onTap: () async {
+              injector<NavigationService>().openBluetoothSettings();
+            },
+          ),
+        ],
+      ),
     );
   }
 }

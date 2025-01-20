@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -19,13 +17,10 @@ class FFBluetoothService {
   // connected device
   FFBluetoothDevice? _connectedDevice;
 
-  Box<FFBluetoothDevice> get _pairedDevicesBox =>
-      ObjectBox.bluetoothPairedDevicesBox;
-
   set connectedDevice(BluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
-      remoteID: device!.id.toString(),
-      name: device.name,
+      remoteID: device!.remoteId.str,
+      name: device.platformName,
     );
     _connectedDevice = ffdevice;
     BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
@@ -174,19 +169,6 @@ class FFBluetoothService {
     } catch (e) {
       Sentry.captureException(e);
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
-    }
-  }
-
-  Future<void> autoReConnect() async {
-    final pairedDevices = BluetoothDeviceHelper.pairedDevices;
-    if (pairedDevices.isEmpty) {
-      return;
-    }
-    final remoteId = pairedDevices.first.deviceId;
-    final device = FlutterBluePlus.connectedDevices
-        .firstWhereOrNull((element) => element.id.toString() == remoteId);
-    if (device != null) {
-      await connectToDevice(device);
     }
   }
 

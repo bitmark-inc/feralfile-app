@@ -241,7 +241,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(UIHelper.showLiveWithArtIntro(context));
       }
     });
-    injector<BluetoothConnectBloc>().add(BluetoothConnectEventScan());
+    injector<BluetoothConnectBloc>()
+        .add(BluetoothConnectEventGetBluetoothStatus());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getChatThreads());
     _initialTab = widget.payload.startedTab;
