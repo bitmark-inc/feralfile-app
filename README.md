@@ -67,7 +67,7 @@ Bitmark started with the idea of building tools to help individuals and institut
 3. Initialize submodule by running; `git submodule update --init --recursive`
 - If you don't want to clone the auto-test package, simply run: `git -c submodule.auto-test.update=none submodule update --init --recursive`
 4. Initialize the config file. `cp .env.example .env`
-- Contact with Feral File app development team for development env. 
+- Contact with Feral File app development team for development env.
 5. Initialize the secret config file. `cp .env.secret.example .env.secret`
 - There are credentials information. You may need to provide your own credentials.Contact with Feral File app development team for consultation.
 6. Run ./script/encrypt_secrets.sh <-entropy-> to generate the encrypted secrets file.
@@ -88,7 +88,7 @@ samples, guidance on mobile development, and a full API reference.
 - [App Store](https://apps.apple.com/us/app/feral-file/id1544022728)
 - [Google Play](https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client&pli=)
 
-[Release Notes](https://github.com/bitmark-inc/feral-file-docs/blob/master/app/release_notes/production/changelog.md)
+[Release Notes](https://github.com/bitmark-inc/feral-file-docs/blob/main/app/release_notes/production/changelog.md)
 
 ## Contributing
 
@@ -102,7 +102,7 @@ Join us on [Discord](https://discord.gg/3BBkrjS4n7) to give feedback and help us
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
-//  Use of this UI/UX is governed by the CC BY-NC 4.0 License. 
+//  Use of this UI/UX is governed by the CC BY-NC 4.0 License.
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
