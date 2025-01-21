@@ -235,7 +235,7 @@ class FFBluetoothService {
 
     connectedDevice = FFBluetoothDevice(
       remoteID: device.remoteId.str,
-      name: device.platformName,
+      name: device.advName,
     );
 
     //if device connected, add to objectbox

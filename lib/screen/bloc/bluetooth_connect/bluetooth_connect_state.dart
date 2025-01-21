@@ -80,8 +80,7 @@ extension BluetoothConnectStateExtension on BluetoothConnectState {
   List<FFBluetoothDevice> get scanedDevices {
     return scanResults
         .map((result) => FFBluetoothDevice(
-            name: result.device.platformName,
-            remoteID: result.device.remoteId.str))
+            name: result.device.advName, remoteID: result.device.remoteId.str))
         .toList();
   }
 }
