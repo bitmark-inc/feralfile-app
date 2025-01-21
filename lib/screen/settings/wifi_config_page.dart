@@ -79,7 +79,7 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: 'Configure Wi-Fi',
+        title: 'Configure FF-X1 Pilot',
         onBack: () => Navigator.of(context).pop(),
       ),
       body: SafeArea(

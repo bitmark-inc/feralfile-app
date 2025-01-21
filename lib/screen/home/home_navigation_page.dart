@@ -155,7 +155,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         options: [
           if (injector<AuthService>().isBetaTester())
             OptionItem(
-              title: 'Wi-Fi',
+              title: 'FF-X1 Pilot',
               icon: const Icon(
                 AuIcon.discover,
               ),
