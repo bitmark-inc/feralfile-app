@@ -38,6 +38,10 @@ class FFBluetoothService {
   // characteristic to send Wi-Fi credentials to Peripheral
   BluetoothCharacteristic? _wifiConnectCharacteristic;
 
+  // device state
+
+  BluetoothBondState _bondState = BluetoothBondState.none;
+
   set commandCharacteristic(BluetoothCharacteristic? characteristic) {
     _commandCharacteristic = characteristic;
   }
@@ -139,16 +143,20 @@ class FFBluetoothService {
       return await completer.future.timeout(
         const Duration(seconds: 2),
         onTimeout: () {
-          BluetoothNotificationService().unsubscribe(replyId, (data) {});
+          BluetoothNotificationService().unsubscribe(replyId, (data) {
+            log.info('[sendCommand] Unsubscribed from replyId: $replyId');
+          });
+          Sentry.captureMessage(
+              '[sendCommand] Timeout waiting for reply: $replyId');
           return fakeReply(command)
               .toJson(); // Fallback to fake reply on timeout
         },
       );
     } catch (e) {
       BluetoothNotificationService().unsubscribe(replyId, (data) {});
-      Sentry.captureException(e);
+      unawaited(Sentry.captureException(e));
       log.info('[sendCommand] Error sending command: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -202,23 +210,92 @@ class FFBluetoothService {
     }
   }
 
+  Future<void> connectToDeviceIfBonded(BluetoothDevice device) async {
+    final isDevicePaired = BluetoothDeviceHelper.isDeviceSaved(device);
+    if (!isDevicePaired) {
+      log.warning('Device not paired: ${device.remoteId.str}');
+      return;
+    }
+    final checkBondedCompleter = Completer<bool>();
+    device.bondState.listen((state) {
+      if (state == BluetoothBondState.bonded) {
+        checkBondedCompleter.complete(true);
+      }
+    });
+    final isDeviceBonded = await checkBondedCompleter.future.timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        log.warning('Bonding timeout');
+        return false;
+      },
+    );
+
+    if (isDeviceBonded) {
+      await connectToDevice(device);
+    }
+  }
+
   Future<void> connectToDevice(BluetoothDevice device) async {
     List<BluetoothService> services = [];
     if (device.isDisconnected) {
+      final connectCompleter = Completer<void>();
+      final bondCompleter = Completer<void>();
+
       log.info('Connecting to device: ${device.remoteId.str}');
       final subscription = device.connectionState.listen((state) {
         log.info(
             'Connection state update for ${device.remoteId.str}: ${state.name}');
+        if (state == BluetoothConnectionState.connected) {
+          connectCompleter.complete();
+        }
+        if (state == BluetoothConnectionState.disconnected) {
+          log.warning('Device disconnected reason: ${device.disconnectReason}');
+        }
       });
 
       final bondSubscription = device.bondState.listen((state) {
         log.info('Bond state update for ${device.remoteId.str}: ${state.name}');
+        _bondState = state;
+        if (state == BluetoothBondState.bonded) {
+          bondCompleter.complete();
+        }
       });
 
       device.cancelWhenDisconnected(subscription, delayed: true, next: true);
       device.cancelWhenDisconnected(bondSubscription,
           delayed: true, next: true);
+
       await device.connect();
+
+      await connectCompleter.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          log.warning('Connection timeout');
+          return;
+        },
+      );
+
+      // await device.requestMtu(512);
+
+      if (_bondState != BluetoothBondState.bonded &&
+          _bondState != BluetoothBondState.bonding) {
+        try {
+          await device.createBond();
+        } catch (e) {
+          log.warning('Failed to create bond: $e');
+        }
+      } else {
+        log.info('Device already bonded: ${device.remoteId.str}');
+      }
+
+      await bondCompleter.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          log.warning('Bonding timeout');
+          return;
+        },
+      );
+
       // Discover services
       // Note: You must call discoverServices after every re-connection!
       final discoveredServices = await device.discoverServices();
@@ -244,35 +321,39 @@ class FFBluetoothService {
       name: device.name,
     ));
 
-    if (commandCharacteristic != null && wifiConnectCharacteristic != null) {
+    if (commandCharacteristic == null || wifiConnectCharacteristic == null) {
+      final commandService = services.firstWhereOrNull(
+        (service) => service.uuid.toString() == serviceUuid,
+      );
+      if (commandService == null) {
+        Sentry.captureMessage('Command service not found');
+        return;
+      }
+      final commandChar = commandService.characteristics.firstWhere(
+        (characteristic) => characteristic.uuid.toString() == commandCharUuid,
+      );
+      final wifiConnectChar = commandService.characteristics.firstWhere(
+        (characteristic) =>
+            characteristic.uuid.toString() == wifiConnectCharUuid,
+      );
+      // Set the command and wifi connect characteristics
+      commandCharacteristic = commandChar;
+      wifiConnectCharacteristic = wifiConnectChar;
+    }
+
+    if (commandCharacteristic == null) {
+      log.warning('Command characteristic not found');
       return;
     }
 
-    final commandService = services.firstWhereOrNull(
-      (service) => service.uuid.toString() == serviceUuid,
-    );
-    if (commandService == null) {
-      Sentry.captureMessage('Command service not found');
-      return;
-    }
-    final commandChar = commandService.characteristics.firstWhere(
-      (characteristic) => characteristic.uuid.toString() == commandCharUuid,
-    );
-    final wifiConnectChar = commandService.characteristics.firstWhere(
-      (characteristic) => characteristic.uuid.toString() == wifiConnectCharUuid,
-    );
-    // Set the command and wifi connect characteristics
-    commandCharacteristic = commandChar;
-    wifiConnectCharacteristic = wifiConnectChar;
-
-    log.info('Command char properties: ${commandChar.properties}');
-    if (!commandChar.properties.notify) {
+    log.info('Command char properties: ${commandCharacteristic!.properties}');
+    if (!commandCharacteristic!.properties.notify) {
       log.warning('Command characteristic does not support notifications!');
       return;
     }
 
     try {
-      await commandChar.setNotifyValue(true);
+      await commandCharacteristic!.setNotifyValue(true);
       log.info('Successfully enabled notifications for command char');
     } catch (e) {
       log.warning('Failed to enable notifications for command char: $e');
@@ -280,7 +361,7 @@ class FFBluetoothService {
       return;
     }
 
-    final commandCharSub = commandChar.onValueReceived.listen(
+    final commandCharSub = commandCharacteristic!.onValueReceived.listen(
       (value) {
         log.info('Received data from command characteristic: $value');
         BluetoothNotificationService().handleNotification(value);

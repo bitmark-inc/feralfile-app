@@ -57,6 +57,7 @@ class BluetoothConnectState {
     String? error,
     bool? isScanning,
     BluetoothDevice? connectingDevice,
+    bool shouldOverrideConnectingDevice = false,
     BluetoothDevice? connectedDevice,
     List<BluetoothDevice>? pairedDevices,
     List<ScanResult>? scanResults,
@@ -66,7 +67,9 @@ class BluetoothConnectState {
       device: device ?? this.device,
       error: error ?? this.error,
       isScanning: isScanning ?? this.isScanning,
-      connectingDevice: connectingDevice ?? this.connectingDevice,
+      connectingDevice: shouldOverrideConnectingDevice
+          ? connectingDevice
+          : connectingDevice ?? this.connectingDevice,
       connectedDevice: connectedDevice ?? this.connectedDevice,
       pairedDevices: pairedDevices ?? this.pairedDevices,
       scanResults: scanResults ?? this.scanResults,

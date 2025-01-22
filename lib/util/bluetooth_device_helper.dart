@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothDeviceHelper {
   static Box<FFBluetoothDevice> get _pairedDevicesBox =>
@@ -21,6 +22,13 @@ class BluetoothDeviceHelper {
     } catch (e) {
       print('Error adding device $e');
     }
+  }
+
+  static bool isDeviceSaved(BluetoothDevice device) {
+    final devices = pairedDevices;
+    return devices
+        .where((element) => element.deviceId == device.remoteId.str)
+        .isNotEmpty;
   }
 
   static Future<void> saveLastConnectedDevice(FFBluetoothDevice device) async {

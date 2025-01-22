@@ -21,6 +21,7 @@ class BluetoothConnectBloc
       _scanTimer?.cancel();
 
       if (state.bluetoothAdapterState != BluetoothAdapterState.on) {
+        log.info('BluetoothConnectEventScan BluetoothAdapterState is not on');
         return;
       }
 
@@ -37,6 +38,15 @@ class BluetoothConnectBloc
                 );
           }).toList();
           currentState = currentState.copyWith(scanResults: filteredResults);
+          try {
+            final devices = currentState.scanedDevices;
+            for (final device in devices) {
+              injector<FFBluetoothService>().connectToDeviceIfBonded(device);
+            }
+          } catch (e) {
+            log.info('Failed to connect to bonded devices: $e');
+            currentState = currentState.copyWith(error: e.toString());
+          }
           emit(currentState);
           log.info(
               'BluetoothConnectEventScan emitted ${filteredResults.length}');
@@ -87,10 +97,16 @@ class BluetoothConnectBloc
         }
         injector<FFBluetoothService>().connectedDevice = device;
         await event.onConnectSuccess?.call(device);
-        emit(state.copyWith(connectingDevice: null, connectedDevice: device));
+        emit(state.copyWith(
+            connectedDevice: device,
+            connectingDevice: null,
+            shouldOverrideConnectingDevice: true));
       } catch (e) {
         await event.onConnectFailure?.call(device);
-        emit(state.copyWith(connectedDevice: null, error: e.toString()));
+        emit(state.copyWith(
+            error: e.toString(),
+            connectingDevice: null,
+            shouldOverrideConnectingDevice: true));
         return;
       }
     });
