@@ -117,4 +117,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
       );
+
+  static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
+    return FFBluetoothDevice(name: device.name, remoteID: device.remoteId.str);
+  }
 }

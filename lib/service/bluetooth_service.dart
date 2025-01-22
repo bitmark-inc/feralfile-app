@@ -23,12 +23,14 @@ class FFBluetoothService {
     if (!(await FlutterBluePlus.isSupported)) {
       log.info('Bluetooth is not supported');
       injector<BluetoothConnectBloc>().add(
-          BluetoothConnectEventUpdateBluetoothState(
-              BluetoothAdapterState.unavailable));
+        BluetoothConnectEventUpdateBluetoothState(
+          BluetoothAdapterState.unavailable,
+        ),
+      );
       return;
     }
 
-    _adapterStateSubscription?.cancel();
+    await _adapterStateSubscription?.cancel();
     _adapterStateSubscription = FlutterBluePlus.adapterState
         .listen((BluetoothAdapterState bluetoothState) {
       _bluetoothAdapterState = bluetoothState;
@@ -172,7 +174,8 @@ class FFBluetoothService {
             log.info('[sendCommand] Unsubscribed from replyId: $replyId');
           });
           Sentry.captureMessage(
-              '[sendCommand] Timeout waiting for reply: $replyId');
+            '[sendCommand] Timeout waiting for reply: $replyId',
+          );
           return fakeReply(command)
               .toJson(); // Fallback to fake reply on timeout
         },
@@ -185,7 +188,10 @@ class FFBluetoothService {
     }
   }
 
-  Future<void> sendWifiCredentials(String ssid, String password) async {
+  Future<void> sendWifiCredentials({
+    required String ssid,
+    required String password,
+  }) async {
     // Check if the device is connected
     final device = connectedDevice;
 
@@ -194,9 +200,9 @@ class FFBluetoothService {
     }
 
     // Check if the device is connected
-    if (!device!.isConnected) {
+    if (!device.isConnected) {
       await connectToDevice(device as BluetoothDevice);
-      if (!device!.isConnected) {
+      if (!device.isConnected) {
         return;
       }
     }
@@ -256,11 +262,18 @@ class FFBluetoothService {
     );
 
     if (isDeviceBonded) {
-      await connectToDevice(device);
+      final connectedDevice = injector<FFBluetoothService>().connectedDevice;
+      if (connectedDevice == null ||
+          connectedDevice.remoteID == device.remoteId.str) {
+        await connectToDevice(device);
+      }
     }
   }
 
-  Future<void> connectToDevice(BluetoothDevice device) async {
+  Future<void> connectToDevice(
+    BluetoothDevice device, {
+    bool forceRefreshChar = true,
+  }) async {
     List<BluetoothService> services = [];
     if (device.isDisconnected) {
       final connectCompleter = Completer<void>();
@@ -269,7 +282,8 @@ class FFBluetoothService {
       log.info('Connecting to device: ${device.remoteId.str}');
       final subscription = device.connectionState.listen((state) {
         log.info(
-            'Connection state update for ${device.remoteId.str}: ${state.name}');
+          'Connection state update for ${device.remoteId.str}: ${state.name}',
+        );
         if (state == BluetoothConnectionState.connected) {
           connectCompleter.complete();
         }
@@ -287,8 +301,11 @@ class FFBluetoothService {
       });
 
       device.cancelWhenDisconnected(subscription, delayed: true, next: true);
-      device.cancelWhenDisconnected(bondSubscription,
-          delayed: true, next: true);
+      device.cancelWhenDisconnected(
+        bondSubscription,
+        delayed: true,
+        next: true,
+      );
 
       await device.connect();
 
@@ -341,10 +358,20 @@ class FFBluetoothService {
     );
 
     //if device connected, add to objectbox
-    BluetoothDeviceHelper.addDevice(FFBluetoothDevice(
-      remoteID: device.id.toString(),
-      name: device.name,
-    ));
+    BluetoothDeviceHelper.addDevice(
+      FFBluetoothDevice(
+        remoteID: device.id.toString(),
+        name: device.name,
+      ),
+    );
+
+    if (forceRefreshChar) {
+      commandCharacteristic = null;
+      wifiConnectCharacteristic = null;
+      final discoveredServices = await device.discoverServices();
+      services.clear();
+      services.addAll(discoveredServices);
+    }
 
     if (commandCharacteristic == null || wifiConnectCharacteristic == null) {
       final commandService = services.firstWhereOrNull(
@@ -400,10 +427,11 @@ class FFBluetoothService {
     device.cancelWhenDisconnected(commandCharSub, delayed: true);
   }
 
-  Future<void> startScan(
-      {Duration timeout = const Duration(seconds: 30),
-      FutureOr<void> Function(List<ScanResult>)? onData,
-      FutureOr<void> Function(dynamic)? onError}) async {
+  Future<void> startScan({
+    Duration timeout = const Duration(seconds: 30),
+    FutureOr<void> Function(List<ScanResult>)? onData,
+    FutureOr<void> Function(dynamic)? onError,
+  }) async {
     StreamSubscription<List<ScanResult>>? scanSubscription;
 
     // if (state.bluetoothAdapterState != BluetoothAdapterState.on) {
@@ -439,11 +467,13 @@ class FFBluetoothService {
     final List<BluetoothService> services = await devices.discoverServices();
     for (var service in services) {
       log.info(
-          'Discovered service UUID: ${service.uuid.toString().toLowerCase()}');
+        'Discovered service UUID: ${service.uuid.toString().toLowerCase()}',
+      );
       if (service.uuid.toString().toLowerCase() == serviceUuid) {
-        for (var characteristic in service.characteristics) {
+        for (final characteristic in service.characteristics) {
           log.info(
-            'Found characteristic UUID: ${characteristic.uuid.toString().toLowerCase()}',
+            'Found characteristic UUID: '
+            '${characteristic.uuid.toString().toLowerCase()}',
           );
 
           if (characteristic.uuid.toString().toLowerCase() == commandCharUuid) {

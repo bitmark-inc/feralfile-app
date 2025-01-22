@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/bluetooth_connect_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -86,7 +85,6 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            addTitleSpace(),
             Expanded(
               child: Padding(
                 padding: ResponsiveLayout.pageEdgeInsets,
@@ -96,7 +94,6 @@ class _WifiConfigPageState extends State<WifiConfigPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),

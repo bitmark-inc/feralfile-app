@@ -203,6 +203,7 @@ class TvCastServiceImpl extends BaseTvCastService {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> _cast(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
@@ -237,6 +238,14 @@ class BluetoothCastService extends BaseTvCastService {
     final command = body['command'] as String;
     final request = Map<String, dynamic>.from(body['request'] as Map);
     try {
+      if (_device.remoteId.str !=
+          injector<FFBluetoothService>().connectedDevice?.remoteID) {
+        await injector<FFBluetoothService>().connectToDevice(_device);
+        await _device.discoverServices();
+        if (!_device.isConnected) {
+          throw Exception('Device not connected after reconnection');
+        }
+      }
       final res = await injector<FFBluetoothService>()
           .sendCommand(command: command, request: request);
       log.info('[BluetoothCastService] sendCommand $command');
