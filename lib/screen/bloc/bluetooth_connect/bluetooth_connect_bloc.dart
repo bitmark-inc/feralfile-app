@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -12,23 +11,19 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 class BluetoothConnectBloc
     extends AuBloc<BluetoothConnectEvent, BluetoothConnectState> {
   BluetoothConnectBloc() : super(BluetoothConnectState()) {
-    Timer? _scanTimer;
     on<BluetoothConnectEventScan>((event, emit) async {
       emit(state.copyWith(isScanning: true));
       StreamSubscription<List<ScanResult>>? scanSubscription;
 
       // start scanning
-      _scanTimer?.cancel();
 
       if (state.bluetoothAdapterState != BluetoothAdapterState.on) {
         log.info('BluetoothConnectEventScan BluetoothAdapterState is not on');
         return;
       }
 
-      var currentState = state;
-
       scanSubscription = FlutterBluePlus.onScanResults.listen(
-        (results) {
+        (results) async {
           // Filter results to only include devices advertising our service UUID
           final filteredResults = results.where((result) {
             return result.advertisementData.serviceUuids
@@ -37,17 +32,19 @@ class BluetoothConnectBloc
                   injector<FFBluetoothService>().advertisingUuid.toLowerCase(),
                 );
           }).toList();
-          currentState = currentState.copyWith(scanResults: filteredResults);
           try {
+            final currentState = state.copyWith(scanResults: filteredResults);
+
             final devices = currentState.scanedDevices;
             for (final device in devices) {
-              injector<FFBluetoothService>().connectToDeviceIfBonded(device);
+              await injector<FFBluetoothService>()
+                  .connectToDeviceIfBonded(device);
             }
+            emit(currentState);
           } catch (e) {
             log.info('Failed to connect to bonded devices: $e');
-            currentState = currentState.copyWith(error: e.toString());
+            emit(state.copyWith(error: e.toString()));
           }
-          emit(currentState);
           log.info(
               'BluetoothConnectEventScan emitted ${filteredResults.length}');
           injector<CanvasDeviceBloc>().add(
@@ -56,7 +53,6 @@ class BluetoothConnectBloc
         },
         onError: (error) {
           emit(state.copyWith(isScanning: false));
-          _scanTimer?.cancel();
           scanSubscription?.cancel();
         },
       );
@@ -74,11 +70,10 @@ class BluetoothConnectBloc
       while (FlutterBluePlus.isScanningNow) {
         await Future.delayed(const Duration(milliseconds: 1000));
       }
-      emit(currentState.copyWith(isScanning: false));
+      emit(state.copyWith(isScanning: false));
     });
 
     on<BluetoothConnectEventStopScan>((event, emit) async {
-      _scanTimer?.cancel();
       await FlutterBluePlus.stopScan();
       final newState = state.copyWith(isScanning: false);
       emit(newState);
@@ -136,34 +131,34 @@ class BluetoothConnectBloc
       }
     });
 
-    on<BluetoothConnectEventGetBluetoothStatus>((event, emit) async {
-      // Check if Bluetooth is supported
-      if (await FlutterBluePlus.isSupported == false) {
-        add(BluetoothConnectEventUpdateBluetoothState(
-            BluetoothAdapterState.unavailable));
-        return;
-      }
-
-      addBluetoothConnectEventGetBluetoothStatus();
-
-      // Auto-enable Bluetooth on Android
-      if (Platform.isAndroid) {
-        try {
-          await FlutterBluePlus.turnOn();
-        } catch (e) {
-          emit(state.copyWith(error: 'Failed to enable Bluetooth'));
-        }
-      }
-    });
+    //   on<BluetoothConnectEventGetBluetoothStatus>((event, emit) async {
+    //     // Check if Bluetooth is supported
+    //     if (await FlutterBluePlus.isSupported == false) {
+    //       add(BluetoothConnectEventUpdateBluetoothState(
+    //           BluetoothAdapterState.unavailable));
+    //       return;
+    //     }
+    //
+    //     addBluetoothConnectEventGetBluetoothStatus();
+    //
+    //     // Auto-enable Bluetooth on Android
+    //     if (Platform.isAndroid) {
+    //       try {
+    //         await FlutterBluePlus.turnOn();
+    //       } catch (e) {
+    //         emit(state.copyWith(error: 'Failed to enable Bluetooth'));
+    //       }
+    //     }
+    //   });
   }
 
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
 
-  void addBluetoothConnectEventGetBluetoothStatus() {
-    _adapterStateSubscription?.cancel();
-    _adapterStateSubscription = FlutterBluePlus.adapterState
-        .listen((BluetoothAdapterState bluetoothState) {
-      add(BluetoothConnectEventUpdateBluetoothState(bluetoothState));
-    });
-  }
+// void addBluetoothConnectEventGetBluetoothStatus() {
+//   _adapterStateSubscription?.cancel();
+//   _adapterStateSubscription = FlutterBluePlus.adapterState
+//       .listen((BluetoothAdapterState bluetoothState) {
+//     add(BluetoothConnectEventUpdateBluetoothState(bluetoothState));
+//   });
+// }
 }

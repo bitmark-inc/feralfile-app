@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
@@ -14,7 +17,25 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 class FFBluetoothService {
-  FFBluetoothService();
+  FFBluetoothService() {}
+
+  Future<void> init() async {
+    if (!(await FlutterBluePlus.isSupported)) {
+      log.info('Bluetooth is not supported');
+      injector<BluetoothConnectBloc>().add(
+          BluetoothConnectEventUpdateBluetoothState(
+              BluetoothAdapterState.unavailable));
+      return;
+    }
+
+    _adapterStateSubscription?.cancel();
+    _adapterStateSubscription = FlutterBluePlus.adapterState
+        .listen((BluetoothAdapterState bluetoothState) {
+      _bluetoothAdapterState = bluetoothState;
+      injector<BluetoothConnectBloc>()
+          .add(BluetoothConnectEventUpdateBluetoothState(bluetoothState));
+    });
+  }
 
   // connected device
   FFBluetoothDevice? _connectedDevice;
@@ -55,7 +76,11 @@ class FFBluetoothService {
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       _wifiConnectCharacteristic;
 
-  Map<String, Stream<BluetoothConnectionState>> _connectionStateStreams = {};
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
+
+  BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
+
+  bool get isBluetoothOn => _bluetoothAdapterState == BluetoothAdapterState.on;
 
   final String advertisingUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
 
@@ -268,7 +293,7 @@ class FFBluetoothService {
       await device.connect();
 
       await connectCompleter.future.timeout(
-        const Duration(seconds: 10),
+        const Duration(seconds: 3),
         onTimeout: () {
           log.warning('Connection timeout');
           return;
@@ -373,6 +398,41 @@ class FFBluetoothService {
     );
 
     device.cancelWhenDisconnected(commandCharSub, delayed: true);
+  }
+
+  Future<void> startScan(
+      {Duration timeout = const Duration(seconds: 30),
+      FutureOr<void> Function(List<ScanResult>)? onData,
+      FutureOr<void> Function(dynamic)? onError}) async {
+    StreamSubscription<List<ScanResult>>? scanSubscription;
+
+    // if (state.bluetoothAdapterState != BluetoothAdapterState.on) {
+    //   log.info('BluetoothConnectEventScan BluetoothAdapterState is not on');
+    //   return;
+    // }
+    scanSubscription = FlutterBluePlus.onScanResults.listen(
+      (results) {
+        onData?.call(results);
+      },
+      onError: (error) {
+        onError?.call(error);
+        scanSubscription?.cancel();
+      },
+    );
+
+    FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
+    log.info('BluetoothConnectEventScan startScan');
+    await FlutterBluePlus.startScan(
+      timeout: const Duration(seconds: 60), // Updated to 60 seconds
+      androidUsesFineLocation: true,
+      withServices: [
+        Guid(injector<FFBluetoothService>().serviceUuid),
+      ],
+    );
+    // wait for scan to complete
+    while (FlutterBluePlus.isScanningNow) {
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
   }
 
   Future<void> findCharacteristics(BluetoothDevice devices) async {

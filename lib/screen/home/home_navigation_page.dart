@@ -13,8 +13,6 @@ import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
@@ -241,8 +239,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(UIHelper.showLiveWithArtIntro(context));
       }
     });
-    injector<BluetoothConnectBloc>()
-        .add(BluetoothConnectEventGetBluetoothStatus());
+    // injector<BluetoothConnectBloc>()
+    //     .add(BluetoothConnectEventGetBluetoothStatus());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getChatThreads());
     _initialTab = widget.payload.startedTab;

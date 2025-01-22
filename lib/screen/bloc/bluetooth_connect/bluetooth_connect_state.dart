@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothConnectEvent {}
@@ -63,6 +64,12 @@ class BluetoothConnectState {
     List<ScanResult>? scanResults,
     BluetoothAdapterState? bluetoothAdapterState,
   }) {
+    log.info(
+        'BluetoothConnectState copyWith ${bluetoothAdapterState ?? this.bluetoothAdapterState}');
+    if ((bluetoothAdapterState ?? this.bluetoothAdapterState) ==
+        BluetoothAdapterState.on) {
+      log.info('BluetoothConnectState copyWith on');
+    }
     return BluetoothConnectState(
       device: device ?? this.device,
       error: error ?? this.error,
