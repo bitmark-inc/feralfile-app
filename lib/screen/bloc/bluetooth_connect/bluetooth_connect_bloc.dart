@@ -35,11 +35,11 @@ class BluetoothConnectBloc
           try {
             final currentState = state.copyWith(scanResults: filteredResults);
 
-            final devices = currentState.scanedDevices;
-            for (final device in devices) {
-              await injector<FFBluetoothService>()
-                  .connectToDeviceIfBonded(device);
-            }
+            // final devices = currentState.scanedDevices;
+            // for (final device in devices) {
+            //   await injector<FFBluetoothService>()
+            //       .connectToDeviceIfBonded(device);
+            // }
             emit(currentState);
           } catch (e) {
             log.info('Failed to connect to bonded devices: $e');

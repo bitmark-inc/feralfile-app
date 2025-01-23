@@ -61,10 +61,6 @@ class FFBluetoothService {
   // characteristic to send Wi-Fi credentials to Peripheral
   BluetoothCharacteristic? _wifiConnectCharacteristic;
 
-  // device state
-
-  BluetoothBondState _bondState = BluetoothBondState.none;
-
   set commandCharacteristic(BluetoothCharacteristic? characteristic) {
     _commandCharacteristic = characteristic;
   }
@@ -94,6 +90,8 @@ class FFBluetoothService {
 
   String wifiConnectCharUuid =
       '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // wifi connect characteristic
+
+  StreamSubscription<List<int>>? _commandCharSub;
 
   Future<Map<String, dynamic>> sendCommand({
     required String command,
@@ -247,26 +245,11 @@ class FFBluetoothService {
       log.warning('Device not paired: ${device.remoteId.str}');
       return;
     }
-    final checkBondedCompleter = Completer<bool>();
-    device.bondState.listen((state) {
-      if (state == BluetoothBondState.bonded) {
-        checkBondedCompleter.complete(true);
-      }
-    });
-    final isDeviceBonded = await checkBondedCompleter.future.timeout(
-      const Duration(seconds: 3),
-      onTimeout: () {
-        log.warning('Bonding timeout');
-        return false;
-      },
-    );
 
-    if (isDeviceBonded) {
-      final connectedDevice = injector<FFBluetoothService>().connectedDevice;
-      if (connectedDevice == null ||
-          connectedDevice.remoteID == device.remoteId.str) {
-        await connectToDevice(device);
-      }
+    final connectedDevice = injector<FFBluetoothService>().connectedDevice;
+    if (connectedDevice == null ||
+        connectedDevice.remoteID == device.remoteId.str) {
+      await connectToDevice(device);
     }
   }
 
@@ -277,7 +260,6 @@ class FFBluetoothService {
     List<BluetoothService> services = [];
     if (device.isDisconnected) {
       final connectCompleter = Completer<void>();
-      final bondCompleter = Completer<void>();
 
       log.info('Connecting to device: ${device.remoteId.str}');
       final subscription = device.connectionState.listen((state) {
@@ -292,20 +274,7 @@ class FFBluetoothService {
         }
       });
 
-      final bondSubscription = device.bondState.listen((state) {
-        log.info('Bond state update for ${device.remoteId.str}: ${state.name}');
-        _bondState = state;
-        if (state == BluetoothBondState.bonded) {
-          bondCompleter.complete();
-        }
-      });
-
       device.cancelWhenDisconnected(subscription, delayed: true, next: true);
-      device.cancelWhenDisconnected(
-        bondSubscription,
-        delayed: true,
-        next: true,
-      );
 
       await device.connect();
 
@@ -313,27 +282,6 @@ class FFBluetoothService {
         const Duration(seconds: 3),
         onTimeout: () {
           log.warning('Connection timeout');
-          return;
-        },
-      );
-
-      // await device.requestMtu(512);
-
-      if (_bondState != BluetoothBondState.bonded &&
-          _bondState != BluetoothBondState.bonding) {
-        try {
-          await device.createBond();
-        } catch (e) {
-          log.warning('Failed to create bond: $e');
-        }
-      } else {
-        log.info('Device already bonded: ${device.remoteId.str}');
-      }
-
-      await bondCompleter.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          log.warning('Bonding timeout');
           return;
         },
       );
@@ -367,6 +315,7 @@ class FFBluetoothService {
 
     if (forceRefreshChar) {
       commandCharacteristic = null;
+      _commandCharSub?.cancel();
       wifiConnectCharacteristic = null;
       final discoveredServices = await device.discoverServices();
       services.clear();
@@ -413,7 +362,7 @@ class FFBluetoothService {
       return;
     }
 
-    final commandCharSub = commandCharacteristic!.onValueReceived.listen(
+    _commandCharSub = commandCharacteristic!.onValueReceived.listen(
       (value) {
         log.info('Received data from command characteristic: $value');
         BluetoothNotificationService().handleNotification(value);
@@ -424,7 +373,7 @@ class FFBluetoothService {
       },
     );
 
-    device.cancelWhenDisconnected(commandCharSub, delayed: true);
+    device.cancelWhenDisconnected(_commandCharSub!, delayed: true);
   }
 
   Future<void> startScan({
