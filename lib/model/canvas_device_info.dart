@@ -121,6 +121,17 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
     return FFBluetoothDevice(name: device.name, remoteID: device.remoteId.str);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is FFBluetoothDevice && remoteID == other.remoteID;
+  }
+
+  @override
+  int get hashCode => super.hashCode;
 }
 
 extension BluetoothDeviceExtension on BluetoothDevice {

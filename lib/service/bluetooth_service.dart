@@ -45,7 +45,7 @@ class FFBluetoothService {
   set connectedDevice(BluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
       remoteID: device!.remoteId.str,
-      name: device.platformName,
+      name: device.advName,
     );
     _connectedDevice = ffdevice;
     BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
@@ -304,7 +304,7 @@ class FFBluetoothService {
     );
 
     //if device connected, add to objectbox
-    BluetoothDeviceHelper.addDevice(
+    await BluetoothDeviceHelper.addDevice(
       FFBluetoothDevice(
         remoteID: device.remoteId.str,
         name: device.advName,
@@ -498,6 +498,10 @@ class FFBluetoothService {
       case CastCommand.rotate:
         return RotateReply(
           degree: 1,
+        );
+      case CastCommand.sendLog:
+        return SendLogReply(
+          ok: true,
         );
       case CastCommand.tapGesture:
         return GestureReply(

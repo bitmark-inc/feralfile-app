@@ -1604,7 +1604,7 @@ class OptionItem {
   TextStyle? titleStyle;
   TextStyle? titleStyleOnPrecessing;
   TextStyle? titleStyleOnDisable;
-  Function()? onTap;
+  FutureOr<dynamic> Function()? onTap;
   bool isEnable;
   Widget? icon;
   Widget? iconOnProcessing;

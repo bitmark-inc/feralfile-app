@@ -69,7 +69,6 @@ class BluetoothConnectBloc
         if (device.isDisconnected) {
           await injector<FFBluetoothService>().connectToDevice(device);
         }
-        injector<FFBluetoothService>().connectedDevice = device;
         await event.onConnectSuccess?.call(device);
         emit(state.copyWith(
             connectedDevice: device,

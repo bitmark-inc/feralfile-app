@@ -35,10 +35,12 @@ class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
-  CanvasDeviceRotateEvent(this.device, {this.clockwise = true});
+  CanvasDeviceRotateEvent(this.device,
+      {this.clockwise = true, this.onDoneCallback});
 
   final BaseDevice device;
   final bool clockwise;
+  final FutureOr<void> Function()? onDoneCallback;
 }
 
 /*
@@ -286,7 +288,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       try {
         await _canvasClientServiceV2.rotateCanvas(device,
             clockwise: event.clockwise);
-      } catch (_) {}
+        await event.onDoneCallback?.call();
+      } catch (e, s) {
+        log.info('CanvasDeviceBloc: error while rotate device: $e', s);
+      }
     });
 
     /*

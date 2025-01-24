@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
@@ -245,7 +246,10 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
   }
 
   Future<void> _onMoreTap(BuildContext context, BluetoothDevice device) async {
-    Theme.of(context);
+    final theme = Theme.of(context);
+    final titleStyle = theme.textTheme.ppMori400White14;
+    final disabledTitleStyle = theme.textTheme.ppMori400Grey14;
+    final processingTitleStyle = theme.textTheme.ppMori400FFYellow14;
     await UIHelper.showDrawerAction(
       context,
       options: [
@@ -259,8 +263,11 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
               BlendMode.srcIn,
             ),
           ),
-          onTap: () {
-            onSendWifiSelected(context, device);
+          titleStyle: titleStyle,
+          titleStyleOnPrecessing: processingTitleStyle,
+          titleStyleOnDisable: disabledTitleStyle,
+          onTap: () async {
+            await onSendWifiSelected(context, device);
           },
         ),
         OptionItem(
@@ -273,20 +280,29 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
               BlendMode.srcIn,
             ),
           ),
-          onTap: () {
-            onRotateDisplaySelected(context, device);
+          titleStyle: titleStyle,
+          titleStyleOnPrecessing: processingTitleStyle,
+          titleStyleOnDisable: disabledTitleStyle,
+          onTap: () async {
+            await onRotateDisplaySelected(context, device);
           },
         ),
         OptionItem(
           title: 'get_support'.tr(),
           icon: const Icon(
             AuIcon.help,
+            color: AppColor.white,
           ),
           iconOnDisable: const Icon(
             AuIcon.help,
             color: AppColor.disabledColor,
           ),
-          isEnable: false,
+          titleStyle: titleStyle,
+          titleStyleOnPrecessing: processingTitleStyle,
+          titleStyleOnDisable: disabledTitleStyle,
+          onTap: () async {
+            await onGetSupportSelected(context, device);
+          },
         ),
         OptionItem(),
       ],
@@ -296,32 +312,71 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
   FutureOr<void> onSendWifiSelected(
     BuildContext context,
     BluetoothDevice device,
-  ) {
+  ) async {
+    final completer = Completer<void>();
     _bloc.add(
       BluetoothConnectEventConnect(
         device: device,
         onConnectSuccess: (device) async {
           await injector<FFBluetoothService>().findCharacteristics(device);
           Navigator.of(context).pop();
-          _showWifiCredentialsDialog(device: device);
+          await _showWifiCredentialsDialog(device: device);
+          completer.complete();
           // widget.onDeviceSelected?.call(device);
 
           // show connect to wifi dialog
         },
       ),
     );
+    await completer.future;
   }
 
   FutureOr<void> onRotateDisplaySelected(
     BuildContext context,
     BluetoothDevice device,
-  ) {
+  ) async {
     final ffDevice = FFBluetoothDevice.fromBluetoothDevice(device);
-    injector<CanvasDeviceBloc>().add(CanvasDeviceRotateEvent(ffDevice));
+    final completer = Completer<void>();
+    injector<CanvasDeviceBloc>()
+        .add(CanvasDeviceRotateEvent(ffDevice, onDoneCallback: () {
+      completer.complete();
+    }));
+    await completer.future.timeout(const Duration(seconds: 3), onTimeout: () {
+      UIHelper.showDialog(context, 'Failed to rotate display',
+          const Text('Failed to rotate display: timeout'),
+          isDismissible: true);
+    });
   }
 
-  void _showWifiCredentialsDialog({required BluetoothDevice device}) {
-    UIHelper.showDialog(
+  FutureOr<void> onGetSupportSelected(
+    BuildContext context,
+    BluetoothDevice device,
+  ) async {
+    try {
+      final ffDevice = FFBluetoothDevice.fromBluetoothDevice(device);
+      bool isSuceess = false;
+      await injector<CanvasClientServiceV2>().sendLog(ffDevice).then((value) {
+        isSuceess = true;
+      }).timeout(const Duration(seconds: 3), onTimeout: () {
+        UIHelper.showDialog(context, 'Failed to get support',
+            const Text('Failed to get support: timeout'),
+            isDismissible: true);
+      });
+      if (isSuceess) {
+        UIHelper.showDialog(
+            context, 'Get support', const Text('Get support: success'),
+            isDismissible: true);
+      }
+    } catch (e) {
+      UIHelper.showDialog(
+          context, 'Failed to get support', Text('Failed to get support: $e'),
+          isDismissible: true);
+    }
+  }
+
+  Future<void> _showWifiCredentialsDialog(
+      {required BluetoothDevice device}) async {
+    await UIHelper.showDialog(
       context,
       'Send Wifi Credential',
       KeyboardVisibilityBuilder(

@@ -338,6 +338,14 @@ class CanvasClientServiceV2 {
     }
   }
 
+  Future<void> sendLog(BaseDevice device) async {
+    final stub = _getStub(device);
+    final user = injector<AuthService>().getUserId();
+    final request = SendLogRequest(userId: user ?? '');
+    final response = await stub.getSupport(request);
+    log.info('CanvasClientService: Get Support Success ${response.ok}');
+  }
+
   Future<void> tap(List<BaseDevice> devices) async {
     for (final device in devices) {
       final stub = _getStub(device);

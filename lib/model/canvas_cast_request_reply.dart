@@ -15,6 +15,7 @@ enum CastCommand {
   disconnect,
   sendKeyboardEvent,
   rotate,
+  sendLog,
   tapGesture,
   dragGesture,
   castDaily;
@@ -47,6 +48,8 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case 'rotate':
         return CastCommand.rotate;
+      case 'sendLog':
+        return CastCommand.sendLog;
       case 'tapGesture':
         return CastCommand.tapGesture;
       case 'dragGesture':
@@ -84,6 +87,8 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case const (RotateRequest):
         return CastCommand.rotate;
+      case const (SendLogRequest):
+        return CastCommand.sendLog;
       case const (TapGestureRequest):
         return CastCommand.tapGesture;
       case const (DragGestureRequest):
@@ -181,9 +186,9 @@ class RequestBody {
 }
 
 class Reply {
-  factory Reply.fromJson(Map<String, dynamic> json) => Reply();
-
   Reply();
+
+  factory Reply.fromJson(Map<String, dynamic> json) => Reply();
 
   Map<String, dynamic> toJson() => {};
 }
@@ -286,10 +291,10 @@ class ConnectReplyV2 extends ReplyWithOK {
 
 // Class representing DisconnectRequestV2 message
 class DisconnectRequestV2 implements Request {
+  DisconnectRequestV2();
+
   factory DisconnectRequestV2.fromJson(Map<String, dynamic> json) =>
       DisconnectRequestV2();
-
-  DisconnectRequestV2();
 
   @override
   Map<String, dynamic> toJson() => {};
@@ -391,10 +396,10 @@ class CastListArtworkRequest implements Request {
 
 // Class representing CheckDeviceStatusRequest message
 class CheckDeviceStatusRequest implements Request {
+  CheckDeviceStatusRequest();
+
   factory CheckDeviceStatusRequest.fromJson(Map<String, dynamic> json) =>
       CheckDeviceStatusRequest();
-
-  CheckDeviceStatusRequest();
 
   @override
   Map<String, dynamic> toJson() => {};
@@ -462,10 +467,10 @@ class CastListArtworkReply extends ReplyWithOK {
 
 // Class representing PauseCastingRequest message
 class PauseCastingRequest implements Request {
+  PauseCastingRequest();
+
   factory PauseCastingRequest.fromJson(Map<String, dynamic> json) =>
       PauseCastingRequest();
-
-  PauseCastingRequest();
 
   @override
   Map<String, dynamic> toJson() => {};
@@ -553,6 +558,8 @@ class PreviousArtworkReply extends ReplyWithOK {
 
 // Class representing UpdateDurationRequest message
 class UpdateDurationRequest implements Request {
+  UpdateDurationRequest({required this.artworks});
+
   factory UpdateDurationRequest.fromJson(Map<String, dynamic> json) =>
       UpdateDurationRequest(
         artworks: List<PlayArtworkV2>.from(
@@ -560,8 +567,6 @@ class UpdateDurationRequest implements Request {
               PlayArtworkV2.fromJson(Map<String, dynamic>.from(x as Map))),
         ),
       );
-
-  UpdateDurationRequest({required this.artworks});
 
   List<PlayArtworkV2> artworks;
 
@@ -697,12 +702,38 @@ class RotateReply extends Reply {
   Map<String, dynamic> toJson() => {'degree': degree};
 }
 
+class SendLogRequest implements Request {
+  SendLogRequest({required this.userId});
+
+  final String userId;
+
+  factory SendLogRequest.fromJson(Map<String, dynamic> json) =>
+      SendLogRequest(userId: json['userId'] as String);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+      };
+}
+
+class SendLogReply extends ReplyWithOK {
+  SendLogReply({required super.ok});
+
+  factory SendLogReply.fromJson(Map<String, dynamic> json) =>
+      SendLogReply(ok: json['ok'] as bool);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'ok': ok,
+      };
+}
+
 class TapGestureRequest implements Request {
+  TapGestureRequest();
+
   @override
   factory TapGestureRequest.fromJson(Map<String, dynamic> json) =>
       TapGestureRequest();
-
-  TapGestureRequest();
 
   @override
   Map<String, dynamic> toJson() => {};
@@ -765,9 +796,9 @@ class CursorOffset {
 }
 
 class EmptyRequest implements Request {
-  factory EmptyRequest.fromJson(Map<String, dynamic> json) => EmptyRequest();
-
   EmptyRequest();
+
+  factory EmptyRequest.fromJson(Map<String, dynamic> json) => EmptyRequest();
 
   @override
   Map<String, dynamic> toJson() => {};

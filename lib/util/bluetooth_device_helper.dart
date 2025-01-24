@@ -14,19 +14,19 @@ class BluetoothDeviceHelper {
 
   static List<FFBluetoothDevice> get pairedDevices {
     final devices = _pairedDevicesBox.getAll();
-    return devices;
+    return devices.toSet().toList();
   }
 
   static Future<void> addDevice(
     FFBluetoothDevice device, {
-    bool override = true,
+    bool override = false,
   }) async {
     try {
       final isSaved = isDeviceSaved(device);
       if (isSaved && !override) {
         return;
       } else if (isSaved && override) {
-        final devices = pairedDevices;
+        final devices = _pairedDevicesBox.getAll();
         final dupObjIds = devices
             .where((element) => element.deviceId == device.deviceId)
             .map((e) => e.objId)
