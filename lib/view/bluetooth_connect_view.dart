@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/send_wifi_crendential_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -135,27 +136,82 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
           'how_you_can_help'.tr(),
           style: theme.textTheme.ppMori700Black16,
         ),
-        for (final index in [1, 2, 3])
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8).copyWith(left: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$index.',
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    'how_you_can_help_$index'.tr(),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8).copyWith(left: 8),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '1.',
                     style: theme.textTheme.ppMori400Black14,
-                    textAlign: TextAlign.justify,
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: RichText(
+                        text: TextSpan(
+                      style: theme.textTheme.ppMori400Black14,
+                      children: [
+                        TextSpan(
+                          text: '${'experiment_freely'.tr()} ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'experiment_freely_desc'.tr(),
+                        ),
+                      ],
+                    )),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '2.',
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: RichText(
+                        text: TextSpan(
+                      style: theme.textTheme.ppMori400Black14,
+                      children: [
+                        TextSpan(
+                          text: '${'share_your_experience'.tr()} ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '${'join_our'.tr()} ',
+                        ),
+                        TextSpan(
+                          text: '${'google_chat_space'.tr()}',
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              injector<NavigationService>()
+                                  .openGoogleChatSpace();
+                            },
+                        ),
+                        TextSpan(
+                          text: ' ${'to_provide_feedback'.tr()}',
+                        ),
+                      ],
+                    )),
+                  ),
+                ],
+              ),
+            ],
           ),
+        ),
       ],
     );
   }

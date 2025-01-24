@@ -1098,4 +1098,8 @@ class NavigationService {
     );
     return res;
   }
+
+  void openGoogleChatSpace() {
+    _browser.openUrl(googleChatSpaceUrl);
+  }
 }

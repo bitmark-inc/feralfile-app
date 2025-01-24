@@ -457,3 +457,5 @@ final chatPrivateBannerMessage = SystemMessage(
   text: 'chat_is_private'.tr(),
   status: Status.delivered,
 );
+
+const googleChatSpaceUrl = 'https://chat.google.com/room/AAAApbjAbfs?cls=7';
