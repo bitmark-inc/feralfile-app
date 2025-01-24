@@ -303,7 +303,7 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
         onConnectSuccess: (device) async {
           await injector<FFBluetoothService>().findCharacteristics(device);
           Navigator.of(context).pop();
-          _showWifiCredentialsDialog();
+          _showWifiCredentialsDialog(device: device);
           // widget.onDeviceSelected?.call(device);
 
           // show connect to wifi dialog
@@ -320,7 +320,7 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
     injector<CanvasDeviceBloc>().add(CanvasDeviceRotateEvent(ffDevice));
   }
 
-  void _showWifiCredentialsDialog() {
+  void _showWifiCredentialsDialog({required BluetoothDevice device}) {
     UIHelper.showDialog(
       context,
       'Send Wifi Credential',
@@ -330,8 +330,8 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
             padding: MediaQuery.of(context).viewInsets,
             child: SendWifiCredentialView(
               onSend: (ssid, password) async {
-                await injector<FFBluetoothService>()
-                    .sendWifiCredentials(ssid: ssid, password: password);
+                await injector<FFBluetoothService>().sendWifiCredentials(
+                    device: device, ssid: ssid, password: password);
               },
             ),
           );

@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothDeviceHelper {
@@ -16,11 +17,27 @@ class BluetoothDeviceHelper {
     return devices;
   }
 
-  static void addDevice(FFBluetoothDevice device) {
+  static Future<void> addDevice(
+    FFBluetoothDevice device, {
+    bool override = true,
+  }) async {
     try {
-      ObjectBox.bluetoothPairedDevicesBox.put(device);
+      final isSaved = isDeviceSaved(device);
+      if (isSaved && !override) {
+        return;
+      } else if (isSaved && override) {
+        final devices = pairedDevices;
+        final dupObjIds = devices
+            .where((element) => element.deviceId == device.deviceId)
+            .map((e) => e.objId)
+            .toList();
+        await _pairedDevicesBox.removeManyAsync(dupObjIds);
+        await _pairedDevicesBox.putAsync(device);
+      } else {
+        await _pairedDevicesBox.putAsync(device);
+      }
     } catch (e) {
-      print('Error adding device $e');
+      log.info('Error adding device $e');
     }
   }
 
@@ -36,12 +53,13 @@ class BluetoothDeviceHelper {
       final configurationService = injector<ConfigurationService>();
       await configurationService.saveLastConnectedDevice(device);
     } catch (e) {
-      print('Error saving last connected device $e');
+      log.info('Error saving last connected device $e');
     }
   }
 
-  static FFBluetoothDevice? getLastConnectedDevice(
-      {bool checkAvailability = false}) {
+  static FFBluetoothDevice? getLastConnectedDevice({
+    bool checkAvailability = false,
+  }) {
     try {
       final configurationService = injector<ConfigurationService>();
       FFBluetoothDevice? device = configurationService.getLastConnectedDevice();
@@ -58,7 +76,7 @@ class BluetoothDeviceHelper {
       }
       return device;
     } catch (e) {
-      print('Error getting last connected device $e');
+      log.info('Error getting last connected device $e');
       return null;
     }
   }

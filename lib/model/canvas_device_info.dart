@@ -122,3 +122,9 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     return FFBluetoothDevice(name: device.name, remoteID: device.remoteId.str);
   }
 }
+
+extension BluetoothDeviceExtension on BluetoothDevice {
+  FFBluetoothDevice toFFBluetoothDevice() {
+    return FFBluetoothDevice.fromBluetoothDevice(this);
+  }
+}

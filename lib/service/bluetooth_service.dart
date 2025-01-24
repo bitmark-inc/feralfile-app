@@ -55,25 +55,6 @@ class FFBluetoothService {
       _connectedDevice ??
       BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
 
-  // characteristic for sending commands to Peripheral
-  BluetoothCharacteristic? _commandCharacteristic;
-
-  // characteristic to send Wi-Fi credentials to Peripheral
-  BluetoothCharacteristic? _wifiConnectCharacteristic;
-
-  set commandCharacteristic(BluetoothCharacteristic? characteristic) {
-    _commandCharacteristic = characteristic;
-  }
-
-  set wifiConnectCharacteristic(BluetoothCharacteristic? characteristic) {
-    _wifiConnectCharacteristic = characteristic;
-  }
-
-  BluetoothCharacteristic? get commandCharacteristic => _commandCharacteristic;
-
-  BluetoothCharacteristic? get wifiConnectCharacteristic =>
-      _wifiConnectCharacteristic;
-
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
 
   BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
@@ -93,30 +74,54 @@ class FFBluetoothService {
 
   StreamSubscription<List<int>>? _commandCharSub;
 
+  // characteristic for sending commands to Peripheral
+  Map<String, BluetoothCharacteristic> _commandCharacteristic = {};
+
+  // characteristic to send Wi-Fi credentials to Peripheral
+  Map<String, BluetoothCharacteristic> _wifiConnectCharacteristic = {};
+
+  void setCommandCharacteristic(BluetoothCharacteristic characteristic) {
+    _commandCharacteristic[characteristic.remoteId.str] = characteristic;
+  }
+
+  void clearCommandCharacteristic({required String remoteId}) {
+    _commandCharacteristic.remove(remoteId);
+  }
+
+  void setWifiConnectCharacteristic(BluetoothCharacteristic characteristic) {
+    _wifiConnectCharacteristic[characteristic.remoteId.str] = characteristic;
+  }
+
+  void clearWifiConnectCharacteristic({required String remoteId}) {
+    _wifiConnectCharacteristic.remove(remoteId);
+  }
+
+  BluetoothCharacteristic? getCommandCharacteristic(String remoteId) =>
+      _commandCharacteristic[remoteId];
+
+  BluetoothCharacteristic? getWifiConnectCharacteristic(String remoteId) =>
+      _wifiConnectCharacteristic[remoteId];
+
   Future<Map<String, dynamic>> sendCommand({
+    required BluetoothDevice device,
     required String command,
     required Map<String, dynamic> request,
   }) async {
-    log.info('[sendCommand] Sending command: $command');
-
-    final device = connectedDevice;
-
-    // Check if the device is connected
-    if (device == null) {
-      throw Exception('No connected device');
-    }
+    log.info(
+        '[sendCommand] Sending command: $command to device: ${device.remoteId.str}');
 
     // Check if the device is connected
     if (!device.isConnected) {
-      await connectToDevice(device as BluetoothDevice);
+      await connectToDevice(device);
       await device.discoverServices();
       if (!device.isConnected) {
         throw Exception('Device not connected after reconnection');
       }
     }
 
+    final commandChar = getCommandCharacteristic(device.remoteId.str);
     // Check if the command characteristic is available
-    if (_commandCharacteristic == null) {
+    if (commandChar == null) {
       throw Exception('Command characteristic not found');
     }
 
@@ -161,7 +166,7 @@ class FFBluetoothService {
     });
 
     try {
-      await _commandCharacteristic!.write(bytes, withoutResponse: true);
+      await commandChar.write(bytes, withoutResponse: true);
       log.info('[sendCommand] Command sent');
 
       // Wait for reply with timeout
@@ -187,26 +192,22 @@ class FFBluetoothService {
   }
 
   Future<void> sendWifiCredentials({
+    required BluetoothDevice device,
     required String ssid,
     required String password,
   }) async {
     // Check if the device is connected
-    final device = connectedDevice;
-
-    if (device == null) {
-      return;
-    }
-
-    // Check if the device is connected
     if (!device.isConnected) {
-      await connectToDevice(device as BluetoothDevice);
+      await connectToDevice(device);
       if (!device.isConnected) {
         return;
       }
     }
 
+    final wifiConnectChar = getWifiConnectCharacteristic(device.remoteId.str);
     // Check if the wifi connect characteristic is available
-    if (_wifiConnectCharacteristic == null) {
+    if (wifiConnectChar == null) {
+      log.warning('Wi-Fi connect characteristic not found');
       return;
     }
 
@@ -231,7 +232,7 @@ class FFBluetoothService {
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
     log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
     try {
-      await _wifiConnectCharacteristic!.write(bytes, withoutResponse: false);
+      await wifiConnectChar.write(bytes, withoutResponse: false);
       log.info('[sendWifiCredentials] Wi-Fi credentials sent');
     } catch (e) {
       Sentry.captureException(e);
@@ -239,7 +240,7 @@ class FFBluetoothService {
     }
   }
 
-  Future<void> connectToDeviceIfBonded(BluetoothDevice device) async {
+  Future<void> connectToDeviceIfPaired(BluetoothDevice device) async {
     final isDevicePaired = BluetoothDeviceHelper.isDeviceSaved(device);
     if (!isDevicePaired) {
       log.warning('Device not paired: ${device.remoteId.str}');
@@ -253,10 +254,7 @@ class FFBluetoothService {
     }
   }
 
-  Future<void> connectToDevice(
-    BluetoothDevice device, {
-    bool forceRefreshChar = true,
-  }) async {
+  Future<void> connectToDevice(BluetoothDevice device) async {
     List<BluetoothService> services = [];
     if (device.isDisconnected) {
       final connectCompleter = Completer<void>();
@@ -308,21 +306,13 @@ class FFBluetoothService {
     //if device connected, add to objectbox
     BluetoothDeviceHelper.addDevice(
       FFBluetoothDevice(
-        remoteID: device.id.toString(),
-        name: device.name,
+        remoteID: device.remoteId.str,
+        name: device.advName,
       ),
     );
 
-    if (forceRefreshChar) {
-      commandCharacteristic = null;
-      _commandCharSub?.cancel();
-      wifiConnectCharacteristic = null;
-      final discoveredServices = await device.discoverServices();
-      services.clear();
-      services.addAll(discoveredServices);
-    }
-
-    if (commandCharacteristic == null || wifiConnectCharacteristic == null) {
+    if (getCommandCharacteristic(device.remoteId.str) == null ||
+        getWifiConnectCharacteristic(device.remoteId.str) == null) {
       final commandService = services.firstWhereOrNull(
         (service) => service.uuid.toString() == serviceUuid,
       );
@@ -338,23 +328,25 @@ class FFBluetoothService {
             characteristic.uuid.toString() == wifiConnectCharUuid,
       );
       // Set the command and wifi connect characteristics
-      commandCharacteristic = commandChar;
-      wifiConnectCharacteristic = wifiConnectChar;
+      setCommandCharacteristic(commandChar);
+      setWifiConnectCharacteristic(wifiConnectChar);
     }
+
+    final commandCharacteristic = getCommandCharacteristic(device.remoteId.str);
 
     if (commandCharacteristic == null) {
       log.warning('Command characteristic not found');
       return;
     }
 
-    log.info('Command char properties: ${commandCharacteristic!.properties}');
-    if (!commandCharacteristic!.properties.notify) {
+    log.info('Command char properties: ${commandCharacteristic.properties}');
+    if (!commandCharacteristic.properties.notify) {
       log.warning('Command characteristic does not support notifications!');
       return;
     }
 
     try {
-      await commandCharacteristic!.setNotifyValue(true);
+      await commandCharacteristic.setNotifyValue(true);
       log.info('Successfully enabled notifications for command char');
     } catch (e) {
       log.warning('Failed to enable notifications for command char: $e');
@@ -362,7 +354,7 @@ class FFBluetoothService {
       return;
     }
 
-    _commandCharSub = commandCharacteristic!.onValueReceived.listen(
+    final commandCharSub = commandCharacteristic.onValueReceived.listen(
       (value) {
         log.info('Received data from command characteristic: $value');
         BluetoothNotificationService().handleNotification(value);
@@ -373,12 +365,12 @@ class FFBluetoothService {
       },
     );
 
-    device.cancelWhenDisconnected(_commandCharSub!, delayed: true);
+    device.cancelWhenDisconnected(commandCharSub, delayed: true);
   }
 
   Future<void> startScan({
     Duration timeout = const Duration(seconds: 30),
-    FutureOr<void> Function(List<ScanResult>)? onData,
+    FutureOr<bool> Function(List<ScanResult>)? onData,
     FutureOr<void> Function(dynamic)? onError,
   }) async {
     StreamSubscription<List<ScanResult>>? scanSubscription;
@@ -388,8 +380,11 @@ class FFBluetoothService {
     //   return;
     // }
     scanSubscription = FlutterBluePlus.onScanResults.listen(
-      (results) {
-        onData?.call(results);
+      (results) async {
+        final shouldStopScan = await onData?.call(results);
+        if (shouldStopScan == true) {
+          FlutterBluePlus.stopScan();
+        }
       },
       onError: (error) {
         onError?.call(error);
@@ -400,7 +395,7 @@ class FFBluetoothService {
     FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
     log.info('BluetoothConnectEventScan startScan');
     await FlutterBluePlus.startScan(
-      timeout: const Duration(seconds: 60), // Updated to 60 seconds
+      timeout: timeout, // Updated to 60 seconds
       androidUsesFineLocation: true,
       withServices: [
         Guid(injector<FFBluetoothService>().serviceUuid),
@@ -426,13 +421,13 @@ class FFBluetoothService {
           );
 
           if (characteristic.uuid.toString().toLowerCase() == commandCharUuid) {
-            commandCharacteristic = characteristic;
+            setCommandCharacteristic(characteristic);
             log.info('Found command characteristic');
           }
           // if the characteristic UUID matches the target characteristic UUID
           if (characteristic.uuid.toString().toLowerCase() ==
               wifiConnectCharUuid) {
-            wifiConnectCharacteristic = characteristic;
+            setWifiConnectCharacteristic(characteristic);
 
             // Set up notifications
             if (characteristic.properties.notify) {

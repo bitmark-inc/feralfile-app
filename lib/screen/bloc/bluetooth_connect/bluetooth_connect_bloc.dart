@@ -22,9 +22,9 @@ class BluetoothConnectBloc
         return;
       }
 
-      scanSubscription = FlutterBluePlus.onScanResults.listen(
-        (results) async {
-          // Filter results to only include devices advertising our service UUID
+      await injector<FFBluetoothService>().startScan(
+        timeout: Duration(seconds: 15),
+        onData: (results) async {
           final filteredResults = results.where((result) {
             return result.advertisementData.serviceUuids
                 .map((uuid) => uuid.toString().toLowerCase())
@@ -34,42 +34,21 @@ class BluetoothConnectBloc
           }).toList();
           try {
             final currentState = state.copyWith(scanResults: filteredResults);
-
-            // final devices = currentState.scanedDevices;
-            // for (final device in devices) {
-            //   await injector<FFBluetoothService>()
-            //       .connectToDeviceIfBonded(device);
-            // }
             emit(currentState);
           } catch (e) {
             log.info('Failed to connect to bonded devices: $e');
             emit(state.copyWith(error: e.toString()));
           }
-          log.info(
-              'BluetoothConnectEventScan emitted ${filteredResults.length}');
           injector<CanvasDeviceBloc>().add(
             CanvasDeviceGetDevicesEvent(),
           );
+          return false;
         },
         onError: (error) {
           emit(state.copyWith(isScanning: false));
           scanSubscription?.cancel();
         },
       );
-
-      FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
-      log.info('BluetoothConnectEventScan startScan');
-      await FlutterBluePlus.startScan(
-        timeout: const Duration(seconds: 60), // Updated to 60 seconds
-        androidUsesFineLocation: true,
-        withServices: [
-          Guid(injector<FFBluetoothService>().serviceUuid),
-        ],
-      );
-      // wait for scan to complete
-      while (FlutterBluePlus.isScanningNow) {
-        await Future.delayed(const Duration(milliseconds: 1000));
-      }
       emit(state.copyWith(isScanning: false));
     });
 
@@ -110,8 +89,7 @@ class BluetoothConnectBloc
       emit(state.copyWith(bluetoothAdapterState: event.bluetoothAdapterState));
       switch (event.bluetoothAdapterState) {
         case BluetoothAdapterState.on:
-          add(BluetoothConnectEventScan());
-          break;
+        // add(BluetoothConnectEventScan());
         case BluetoothAdapterState.off:
         case BluetoothAdapterState.unavailable:
         case BluetoothAdapterState.unauthorized:
