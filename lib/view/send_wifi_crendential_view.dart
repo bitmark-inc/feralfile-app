@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class SendWifiCredentialView extends StatefulWidget {
@@ -15,10 +16,10 @@ class SendWifiCredentialView extends StatefulWidget {
 
 class _SendWifiCredentialViewState extends State<SendWifiCredentialView> {
   final TextEditingController ssidController =
-      TextEditingController(text: 'Bitmark');
+      TextEditingController(text: kDebugMode ? 'Bitmark' : '');
 
   final TextEditingController passwordController =
-      TextEditingController(text: r'btmrkrckt@)@$');
+      TextEditingController(text: kDebugMode ? r'btmrkrckt@)@$' : '');
 
   @override
   void dispose() {
