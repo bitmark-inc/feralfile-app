@@ -394,10 +394,6 @@ class Constants {
     'home-widget://',
   ];
 
-  static const bluetoothConnectDeepLinks = [
-    'feralfile://device_connect',
-  ];
-
   static const branchDeepLinks = [
     'https://autonomy-app.app.link',
     'https://autonomy-app-alternate.app.link',

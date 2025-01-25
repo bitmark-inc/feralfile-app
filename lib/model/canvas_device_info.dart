@@ -133,9 +133,3 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   @override
   int get hashCode => super.hashCode;
 }
-
-extension BluetoothDeviceExtension on BluetoothDevice {
-  FFBluetoothDevice toFFBluetoothDevice() {
-    return FFBluetoothDevice.fromBluetoothDevice(this);
-  }
-}

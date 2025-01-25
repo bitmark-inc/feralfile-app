@@ -255,7 +255,7 @@ class BluetoothCastService extends BaseTvCastService {
         }
       }
       final res = await injector<FFBluetoothService>()
-          .sendCommand(device: _device, command: command, request: request);
+          .sendCommand(command: command, request: request);
       log.info('[BluetoothCastService] sendCommand $command');
       return res;
     } catch (e) {
