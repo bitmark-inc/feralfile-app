@@ -15,6 +15,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class StreamDeviceView extends StatefulWidget {
@@ -255,8 +256,13 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
       arguments: ScanQRPagePayload(
         scannerItem: ScannerItem.CANVAS,
         onHandleFinished: (device) {
-          if (device is CanvasDevice) {
-            widget.onDeviceSelected?.call(device);
+          if (device is CanvasDevice ||
+              device is FFBluetoothDevice ||
+              device is BluetoothDevice) {
+            final castedDevice = (device is BluetoothDevice)
+                ? (device).toFFBluetoothDevice()
+                : device as BaseDevice;
+            widget.onDeviceSelected?.call(castedDevice);
             injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
           }
         },
