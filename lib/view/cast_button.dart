@@ -129,7 +129,7 @@ class FFCastButtonState extends State<FFCastButton> {
 
   Future<void> onTap(BuildContext context, bool isSubscribed) async {
     if (!widget.shouldCheckSubscription || isSubscribed) {
-      if (injector<BluetoothConnectBloc>().state.pairedDevices.isEmpty) {
+      if (injector<BluetoothConnectBloc>().state.scanResults.isEmpty) {
         injector<BluetoothConnectBloc>().add(BluetoothConnectEventScan());
       }
       await injector<NavigationService>().showStreamAction(
