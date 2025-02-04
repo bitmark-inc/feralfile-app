@@ -75,8 +75,13 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<ConnectReplyV2> connect(ConnectRequestV2 request) async {
-    final result = await _cast(_getBody(request));
-    return ConnectReplyV2.fromJson(result);
+    try {
+      final result = await _cast(_getBody(request));
+      return ConnectReplyV2.fromJson(result);
+    } catch (e) {
+      log.info('Failed to connect to device: $e');
+      rethrow;
+    }
   }
 
   @override

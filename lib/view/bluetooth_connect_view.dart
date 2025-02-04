@@ -13,14 +13,12 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_flutter/view/send_wifi_crendential_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/svg.dart';
 
 class BluetoothConnectWidget extends StatefulWidget {
@@ -150,20 +148,21 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
                   const SizedBox(width: 4),
                   Expanded(
                     child: RichText(
-                        text: TextSpan(
-                      style: theme.textTheme.ppMori400Black14,
-                      children: [
-                        TextSpan(
-                          text: '${'experiment_freely'.tr()} ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                      text: TextSpan(
+                        style: theme.textTheme.ppMori400Black14,
+                        children: [
+                          TextSpan(
+                            text: '${'experiment_freely'.tr()} ',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: 'experiment_freely_desc'.tr(),
-                        ),
-                      ],
-                    )),
+                          TextSpan(
+                            text: 'experiment_freely_desc'.tr(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -178,34 +177,35 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
                   const SizedBox(width: 4),
                   Expanded(
                     child: RichText(
-                        text: TextSpan(
-                      style: theme.textTheme.ppMori400Black14,
-                      children: [
-                        TextSpan(
-                          text: '${'share_your_experience'.tr()} ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                      text: TextSpan(
+                        style: theme.textTheme.ppMori400Black14,
+                        children: [
+                          TextSpan(
+                            text: '${'share_your_experience'.tr()} ',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: '${'join_our'.tr()} ',
-                        ),
-                        TextSpan(
-                          text: '${'google_chat_space'.tr()}',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
+                          TextSpan(
+                            text: '${'join_our'.tr()} ',
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              injector<NavigationService>()
-                                  .openGoogleChatSpace();
-                            },
-                        ),
-                        TextSpan(
-                          text: ' ${'to_provide_feedback'.tr()}',
-                        ),
-                      ],
-                    )),
+                          TextSpan(
+                            text: '${'google_chat_space'.tr()}',
+                            style: const TextStyle(
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                injector<NavigationService>()
+                                    .openGoogleChatSpace();
+                              },
+                          ),
+                          TextSpan(
+                            text: ' ${'to_provide_feedback'.tr()}',
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -241,8 +241,8 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
                         children: [
                           Expanded(
                             child: Text(
-                              device.platformName.isNotEmpty
-                                  ? device.platformName
+                              device.advName.isNotEmpty
+                                  ? device.advName
                                   : 'Unknown Device',
                               style: theme.textTheme.ppMori700Black16,
                             ),
@@ -376,7 +376,7 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
         onConnectSuccess: (device) async {
           await injector<FFBluetoothService>().findCharacteristics(device);
           Navigator.of(context).pop();
-          await _showWifiCredentialsDialog(device: device);
+          await UIHelper.showWifiCredentialsDialog(device: device);
           completer.complete();
           // widget.onDeviceSelected?.call(device);
 
@@ -393,15 +393,25 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
   ) async {
     final ffDevice = FFBluetoothDevice.fromBluetoothDevice(device);
     final completer = Completer<void>();
-    injector<CanvasDeviceBloc>()
-        .add(CanvasDeviceRotateEvent(ffDevice, onDoneCallback: () {
-      completer.complete();
-    }));
-    await completer.future.timeout(const Duration(seconds: 3), onTimeout: () {
-      UIHelper.showDialog(context, 'Failed to rotate display',
+    injector<CanvasDeviceBloc>().add(
+      CanvasDeviceRotateEvent(
+        ffDevice,
+        onDoneCallback: () {
+          completer.complete();
+        },
+      ),
+    );
+    await completer.future.timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        UIHelper.showDialog(
+          context,
+          'Failed to rotate display',
           const Text('Failed to rotate display: timeout'),
-          isDismissible: true);
-    });
+          isDismissible: true,
+        );
+      },
+    );
   }
 
   FutureOr<void> onGetSupportSelected(
@@ -413,43 +423,33 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
       bool isSuceess = false;
       await injector<CanvasClientServiceV2>().sendLog(ffDevice).then((value) {
         isSuceess = true;
-      }).timeout(const Duration(seconds: 3), onTimeout: () {
-        UIHelper.showDialog(context, 'Failed to get support',
+      }).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          UIHelper.showDialog(
+            context,
+            'Failed to get support',
             const Text('Failed to get support: timeout'),
-            isDismissible: true);
-      });
+            isDismissible: true,
+          );
+        },
+      );
       if (isSuceess) {
         UIHelper.showDialog(
-            context, 'Get support', const Text('Get support: success'),
-            isDismissible: true);
+          context,
+          'Get support',
+          const Text('Get support: success'),
+          isDismissible: true,
+        );
       }
     } catch (e) {
       UIHelper.showDialog(
-          context, 'Failed to get support', Text('Failed to get support: $e'),
-          isDismissible: true);
+        context,
+        'Failed to get support',
+        Text('Failed to get support: $e'),
+        isDismissible: true,
+      );
     }
-  }
-
-  Future<void> _showWifiCredentialsDialog(
-      {required BluetoothDevice device}) async {
-    await UIHelper.showDialog(
-      context,
-      'Send Wifi Credential',
-      KeyboardVisibilityBuilder(
-        builder: (context, isKeyboardVisible) {
-          return Padding(
-            padding: MediaQuery.of(context).viewInsets,
-            child: SendWifiCredentialView(
-              onSend: (ssid, password) async {
-                await injector<FFBluetoothService>().sendWifiCredentials(
-                    device: device, ssid: ssid, password: password);
-              },
-            ),
-          );
-        },
-      ),
-      isDismissible: true,
-    );
   }
 
   Widget bluetoothNotAvailable(BuildContext context) {

@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
@@ -118,7 +119,6 @@ class FFBluetoothService {
         throw Exception('Device not connected after reconnection');
       }
     }
-
     final commandChar = getCommandCharacteristic(device.remoteId.str);
     // Check if the command characteristic is available
     if (commandChar == null) {
@@ -167,11 +167,11 @@ class FFBluetoothService {
 
     try {
       await commandChar.write(bytes, withoutResponse: true);
-      log.info('[sendCommand] Command sent');
+      log.info('[sendCommand] Command $command sent');
 
       // Wait for reply with timeout
       return await completer.future.timeout(
-        const Duration(seconds: 2),
+        const Duration(seconds: 1),
         onTimeout: () {
           BluetoothNotificationService().unsubscribe(replyId, (data) {
             log.info('[sendCommand] Unsubscribed from replyId: $replyId');
@@ -274,7 +274,12 @@ class FFBluetoothService {
 
       device.cancelWhenDisconnected(subscription, delayed: true, next: true);
 
-      await device.connect();
+      try {
+        await device.connect();
+      } catch (e) {
+        log.warning('Failed to connect to device: $e');
+        rethrow;
+      }
 
       await connectCompleter.future.timeout(
         const Duration(seconds: 3),
@@ -373,6 +378,9 @@ class FFBluetoothService {
     FutureOr<bool> Function(List<ScanResult>)? onData,
     FutureOr<void> Function(dynamic)? onError,
   }) async {
+    if (!injector<AuthService>().isBetaTester()) {
+      return;
+    }
     StreamSubscription<List<ScanResult>>? scanSubscription;
 
     // if (state.bluetoothAdapterState != BluetoothAdapterState.on) {

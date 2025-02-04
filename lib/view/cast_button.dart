@@ -1,5 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -127,6 +129,9 @@ class FFCastButtonState extends State<FFCastButton> {
 
   Future<void> onTap(BuildContext context, bool isSubscribed) async {
     if (!widget.shouldCheckSubscription || isSubscribed) {
+      if (injector<BluetoothConnectBloc>().state.pairedDevices.isEmpty) {
+        injector<BluetoothConnectBloc>().add(BluetoothConnectEventScan());
+      }
       await injector<NavigationService>().showStreamAction(
         widget.displayKey,
         widget.onDeviceSelected,

@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/view/passkey/passkey_login_view.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_register_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/send_wifi_crendential_view.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:confetti/confetti.dart';
@@ -40,6 +42,8 @@ import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
@@ -1528,6 +1532,29 @@ class UIHelper {
           ),
         ],
       ),
+    );
+  }
+
+  static Future<void> showWifiCredentialsDialog(
+      {required BluetoothDevice device}) async {
+    final context = injector<NavigationService>().context;
+    await UIHelper.showDialog(
+      context,
+      'Send Wifi Credential',
+      KeyboardVisibilityBuilder(
+        builder: (context, isKeyboardVisible) {
+          return Padding(
+            padding: MediaQuery.of(context).viewInsets,
+            child: SendWifiCredentialView(
+              onSend: (ssid, password) async {
+                await injector<FFBluetoothService>().sendWifiCredentials(
+                    device: device, ssid: ssid, password: password);
+              },
+            ),
+          );
+        },
+      ),
+      isDismissible: true,
     );
   }
 

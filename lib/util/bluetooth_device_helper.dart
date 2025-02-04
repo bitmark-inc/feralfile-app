@@ -41,6 +41,19 @@ class BluetoothDeviceHelper {
     }
   }
 
+  static Future<void> removeDevice(String remoteId) async {
+    try {
+      final devices = _pairedDevicesBox.getAll();
+      final dupObjIds = devices
+          .where((element) => element.deviceId == remoteId)
+          .map((e) => e.objId)
+          .toList();
+      await _pairedDevicesBox.removeManyAsync(dupObjIds);
+    } catch (e) {
+      log.info('Error removing device $e');
+    }
+  }
+
   static bool isDeviceSaved(BluetoothDevice device) {
     final devices = pairedDevices;
     return devices

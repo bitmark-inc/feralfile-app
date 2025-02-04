@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -19,7 +21,6 @@ import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class CanvasClientServiceV2 {
       );
 
   TvCastServiceImpl _getTvCastStub(CanvasDevice device) =>
-      TvCastServiceImpl(_tvCastApi, device as CanvasDevice);
+      TvCastServiceImpl(_tvCastApi, device);
 
   BluetoothCastService _getBluetoothStub(BluetoothDevice device) =>
       BluetoothCastService(device);
@@ -74,6 +75,9 @@ class CanvasClientServiceV2 {
     BaseDevice device, {
     bool shouldShowError = true,
   }) async {
+    if (device is FFBluetoothDevice) {
+      return CheckDeviceStatusReply(artworks: []);
+    }
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
     final response =
@@ -264,7 +268,9 @@ class CanvasClientServiceV2 {
   /// it will check the status of the device by calling grpc
   Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
     final rawDevices = _findRawDevices();
-    final connectedDevices = BluetoothDeviceHelper.pairedDevices;
+    final connectedDevices =
+        injector<BluetoothConnectBloc>().state.scanedDevices;
+    // BluetoothDeviceHelper.pairedDevices;
     // connectedDevice == null ? <BaseDevice>[] : [connectedDevice];
     // injector<BluetoothConnectBloc>().state.scanResults.map((result) {
     //   return FFBluetoothDevice(
@@ -272,7 +278,7 @@ class CanvasClientServiceV2 {
     //     name: result.device.name,
     //   );
     // });
-    final devices = [
+    final devices = <BaseDevice>[
       ...rawDevices,
       ...connectedDevices,
     ];
@@ -293,7 +299,7 @@ class CanvasClientServiceV2 {
           if (status != null) {
             statuses.add(status);
           }
-        } catch (e) {
+        } catch (e, s) {
           log.info('CanvasClientService: _getDeviceStatus error: $e');
         }
       }),
