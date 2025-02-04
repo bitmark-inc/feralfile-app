@@ -36,7 +36,7 @@ class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
   CanvasDeviceRotateEvent(this.device,
-      {this.clockwise = true, this.onDoneCallback});
+      {this.clockwise = false, this.onDoneCallback});
 
   final BaseDevice device;
   final bool clockwise;
