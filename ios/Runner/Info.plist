@@ -39,11 +39,7 @@
 			<string>me.autonomy</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>wc</string>
 				<string>autonomy</string>
-				<string>autonomy-tezos</string>
-				<string>tezos</string>
-				<string>autonomy-wc</string>
 				<string>autonomy-app</string>
 				<string>feralfile</string>
 			</array>
