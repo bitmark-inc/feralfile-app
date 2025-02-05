@@ -70,7 +70,10 @@ class HomeWidgetService {
           .values
           .toList();
 
+      log.info('Filtered dailies: ${filteredDailies.length}');
+
       await _updateDailyTokensToHomeWidget(filteredDailies);
+      log.info('Updated daily tokens to home widget');
     } catch (e) {
       log.info('Error in updateDailyTokensToHomeWidget: $e');
     }
@@ -84,6 +87,8 @@ class HomeWidgetService {
       final data = await _formatDailyTokenData(dailyToken);
       if (data != null) {
         combinedData.addAll(data);
+      } else {
+        log.info('No data found for daily token: ${dailyToken.indexId}');
       }
     }
 
@@ -99,6 +104,8 @@ class HomeWidgetService {
       final assetTokens = await injector<IndexerService>()
           .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
       if (assetTokens.isEmpty) {
+        log.info(
+            'No asset tokens found for daily token: ${dailyToken.indexId}');
         return null;
       }
 
