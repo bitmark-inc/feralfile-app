@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/gift_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -226,13 +225,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
         });
 
     if (resultDevice != null) {
-      await UIHelper.showWifiCredentialsDialog(
-        device: resultDevice!,
-      );
+      await injector<NavigationService>().navigateTo(
+          AppRouter.bluetoothDevicePortalPage,
+          arguments: resultDevice);
       await BluetoothDeviceHelper.addDevice(
           resultDevice!.toFFBluetoothDevice());
       injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-      await injector<FFBluetoothService>().connectToDevice(resultDevice!);
+
       onFinish?.call(resultDevice);
     }
   }

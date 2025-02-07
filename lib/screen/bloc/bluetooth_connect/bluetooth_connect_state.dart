@@ -9,8 +9,6 @@ class BluetoothConnectEventScan extends BluetoothConnectEvent {}
 
 class BluetoothConnectEventStopScan extends BluetoothConnectEvent {}
 
-class BluetoothConnectEventGetBluetoothStatus extends BluetoothConnectEvent {}
-
 class BluetoothConnectEventUpdateBluetoothState extends BluetoothConnectEvent {
   BluetoothConnectEventUpdateBluetoothState(this.bluetoothAdapterState);
 

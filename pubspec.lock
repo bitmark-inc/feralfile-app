@@ -1776,8 +1776,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b7ae2ec870c38b3c17df32db5e4af6e64f7a4efb
-      resolved-ref: b7ae2ec870c38b3c17df32db5e4af6e64f7a4efb
+      ref: db6091746a428a6980e4cd5f379f1896d729bf5e
+      resolved-ref: db6091746a428a6980e4cd5f379f1896d729bf5e
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -2971,6 +2971,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  wifi_scan:
+    dependency: "direct main"
+    description:
+      name: wifi_scan
+      sha256: "9a9df688d3e71c39edcd861e6d50beb63815d5505d3884867d75f93e49d66363"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1+1"
   win32:
     dependency: transitive
     description:

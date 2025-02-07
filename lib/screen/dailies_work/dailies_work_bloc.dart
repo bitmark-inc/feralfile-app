@@ -33,8 +33,10 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
       AlumniAccount? currentArtist;
       Exhibition? currentExhibition;
       if (dailiesToken != null) {
-        final tokens = await _indexerService
-            .getNftTokens(QueryListTokensRequest(ids: [dailiesToken.indexId]));
+        final burnedIncluded = dailiesToken.blockchain == 'bitmark';
+        final tokens = await _indexerService.getNftTokens(
+            QueryListTokensRequest(
+                ids: [dailiesToken.indexId], burnedIncluded: burnedIncluded));
         assetTokens.addAll(tokens);
       }
       if (assetTokens.isEmpty) {

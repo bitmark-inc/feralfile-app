@@ -43,6 +43,14 @@ abstract class TvCastService {
 
   Future<SendLogReply> getSupport(SendLogRequest request);
 
+  Future<GetVersionReply> getVersion(GetVersionRequest request);
+
+  Future<UpdateOrientationReply> updateOrientation(
+      UpdateOrientationRequest request);
+
+  Future<UpdateArtFramingReply> updateArtFraming(
+      UpdateArtFramingRequest request);
+
   Future<CastExhibitionReply> castExhibition(CastExhibitionRequest request);
 
   Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request);
@@ -55,7 +63,7 @@ abstract class TvCastService {
 abstract class BaseTvCastService implements TvCastService {
   BaseTvCastService();
 
-  Future<Map<String, dynamic>> _cast(
+  Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
   });
@@ -69,14 +77,14 @@ abstract class BaseTvCastService implements TvCastService {
     bool shouldShowError = true,
   }) async {
     final result =
-        await _cast(_getBody(request), shouldShowError: shouldShowError);
+        await _sendData(_getBody(request), shouldShowError: shouldShowError);
     return CheckDeviceStatusReply.fromJson(result);
   }
 
   @override
   Future<ConnectReplyV2> connect(ConnectRequestV2 request) async {
     try {
-      final result = await _cast(_getBody(request));
+      final result = await _sendData(_getBody(request));
       return ConnectReplyV2.fromJson(result);
     } catch (e) {
       log.info('Failed to connect to device: $e');
@@ -86,7 +94,7 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<DisconnectReplyV2> disconnect(DisconnectRequestV2 request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return DisconnectReplyV2.fromJson(result);
   }
 
@@ -94,25 +102,25 @@ abstract class BaseTvCastService implements TvCastService {
   Future<CastListArtworkReply> castListArtwork(
     CastListArtworkRequest request,
   ) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return CastListArtworkReply.fromJson(result);
   }
 
   @override
   Future<PauseCastingReply> pauseCasting(PauseCastingRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return PauseCastingReply.fromJson(result);
   }
 
   @override
   Future<ResumeCastingReply> resumeCasting(ResumeCastingRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return ResumeCastingReply.fromJson(result);
   }
 
   @override
   Future<NextArtworkReply> nextArtwork(NextArtworkRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return NextArtworkReply.fromJson(result);
   }
 
@@ -120,7 +128,7 @@ abstract class BaseTvCastService implements TvCastService {
   Future<PreviousArtworkReply> previousArtwork(
     PreviousArtworkRequest request,
   ) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return PreviousArtworkReply.fromJson(result);
   }
 
@@ -128,33 +136,55 @@ abstract class BaseTvCastService implements TvCastService {
   Future<UpdateDurationReply> updateDuration(
     UpdateDurationRequest request,
   ) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return UpdateDurationReply.fromJson(result);
   }
 
   @override
   Future<KeyboardEventReply> keyboardEvent(KeyboardEventRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return KeyboardEventReply.fromJson(result);
   }
 
   @override
   Future<RotateReply> rotate(RotateRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return RotateReply.fromJson(result);
   }
 
   @override
   Future<SendLogReply> getSupport(SendLogRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return SendLogReply.fromJson(result);
+  }
+
+  @override
+  Future<GetVersionReply> getVersion(GetVersionRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return GetVersionReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateOrientationReply> updateOrientation(
+    UpdateOrientationRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return UpdateOrientationReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateArtFramingReply> updateArtFraming(
+    UpdateArtFramingRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return UpdateArtFramingReply.fromJson(result);
   }
 
   @override
   Future<CastExhibitionReply> castExhibition(
     CastExhibitionRequest request,
   ) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return CastExhibitionReply.fromJson(result);
   }
 
@@ -162,7 +192,7 @@ abstract class BaseTvCastService implements TvCastService {
   Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request) async {
     try {
       final body = _getBody(request);
-      final result = await _cast(body);
+      final result = await _sendData(body);
       return CastDailyWorkReply.fromJson(result);
     } catch (e) {
       rethrow;
@@ -171,13 +201,13 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<GestureReply> tap(TapGestureRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return GestureReply.fromJson(result);
   }
 
   @override
   Future<GestureReply> drag(DragGestureRequest request) async {
-    final result = await _cast(_getBody(request));
+    final result = await _sendData(_getBody(request));
     return GestureReply.fromJson(result);
   }
 }
@@ -217,7 +247,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   }
 
   @override
-  Future<Map<String, dynamic>> _cast(
+  Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
   }) async {
@@ -244,7 +274,7 @@ class BluetoothCastService extends BaseTvCastService {
   final BluetoothDevice _device;
 
   @override
-  Future<Map<String, dynamic>> _cast(
+  Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
   }) async {

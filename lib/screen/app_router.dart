@@ -35,6 +35,11 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
+import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
+import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart';
+import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/screen/device_setting/start_setup_device_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_custom_note/exhibition_custom_note_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
@@ -80,8 +85,10 @@ import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:wifi_scan/wifi_scan.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
@@ -148,6 +155,11 @@ class AppRouter {
   static const curatorsPage = 'curators_page';
   static const playlistActivationPage = 'playlist_activation_page';
   static const wifiConfigPage = 'wifi_config_page';
+  static const bluetoothDevicePortalPage = 'bluetooth_device_portal_page';
+  static const scanWifiNetworkPage = 'scan_wifi_network_page';
+  static const sendWifiCredentialPage = 'send_wifi_credential_page';
+  static const configureDevice = 'configure_device';
+  static const nowDisplayingPage = 'now_displaying_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final accountsBloc = injector<AccountsBloc>();
@@ -711,6 +723,65 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => WifiConfigPage(),
+        );
+
+      case bluetoothDevicePortalPage:
+        final device = settings.arguments! as BluetoothDevice;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => BluetoothDevicePortalPage(device: device),
+        );
+
+      case scanWifiNetworkPage:
+        final onWifiSelected = settings.arguments! as Function(WiFiAccessPoint);
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) =>
+              ScanWifiNetworkPage(onNetworkSelected: onWifiSelected),
+        );
+
+      case sendWifiCredentialPage:
+        final payload = settings.arguments! as SendWifiCredentialsPagePayload;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => SendWifiCredentialsPage(
+            payload: payload,
+          ),
+        );
+
+      case configureDevice:
+        final device = settings.arguments! as BluetoothDevice;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ConfigureDevice(
+            device: device,
+          ),
+        );
+      case nowDisplayingPage:
+        final payload = settings.arguments! as NowDisplayingPagePayload;
+
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => ArtworkDetailBloc(
+                  injector(),
+                  injector(),
+                  injector(),
+                  injector(),
+                  injector(),
+                  injector(),
+                ),
+              ),
+              BlocProvider.value(value: accountsBloc),
+              BlocProvider.value(value: identityBloc),
+              BlocProvider(create: (_) => royaltyBloc),
+            ],
+            child: NowDisplayingPage(
+              payload: payload,
+            ),
+          ),
         );
 
       default:

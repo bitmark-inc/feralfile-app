@@ -281,6 +281,8 @@ extension AssetTokenExtension on AssetToken {
     return artworkID;
   }
 
+  String get displayKey => id.hashCode.toString();
+
   // copyWith method
   AssetToken copyWith({
     String? id,

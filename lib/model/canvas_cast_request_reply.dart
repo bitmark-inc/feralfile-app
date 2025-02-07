@@ -2,6 +2,8 @@
 
 // ignore_for_file: avoid_unused_constructor_parameters
 
+import 'package:flutter/material.dart';
+
 enum CastCommand {
   checkStatus,
   castListArtwork,
@@ -16,6 +18,9 @@ enum CastCommand {
   sendKeyboardEvent,
   rotate,
   sendLog,
+  getVersion,
+  updateOrientation,
+  updateArtFraming,
   tapGesture,
   dragGesture,
   castDaily;
@@ -50,6 +55,12 @@ enum CastCommand {
         return CastCommand.rotate;
       case 'sendLog':
         return CastCommand.sendLog;
+      case 'getVersion':
+        return CastCommand.getVersion;
+      case 'updateOrientation':
+        return CastCommand.updateOrientation;
+      case 'updateArtFraming':
+        return CastCommand.updateArtFraming;
       case 'tapGesture':
         return CastCommand.tapGesture;
       case 'dragGesture':
@@ -87,6 +98,12 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case const (RotateRequest):
         return CastCommand.rotate;
+      case const (GetVersionRequest):
+        return CastCommand.getVersion;
+      case const (UpdateOrientationRequest):
+        return CastCommand.updateOrientation;
+      case const (UpdateArtFramingRequest):
+        return CastCommand.updateArtFraming;
       case const (SendLogRequest):
         return CastCommand.sendLog;
       case const (TapGestureRequest):
@@ -159,6 +176,10 @@ class RequestBody {
         );
       case CastCommand.rotate:
         request = RotateRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
+      case CastCommand.updateArtFraming:
+        request = UpdateArtFramingRequest.fromJson(
           json['request'] as Map<String, dynamic>,
         );
       case CastCommand.tapGesture:
@@ -363,8 +384,8 @@ class PlayArtworkV2 {
   int duration;
 
   Map<String, dynamic> toJson() => {
-        'token': token?.toJson(),
-        'artwork': artwork?.toJson(),
+        if (token != null) 'token': token?.toJson(),
+        if (artwork != null) 'artwork': artwork!.toJson(),
         'duration': duration,
       };
 }
@@ -409,12 +430,36 @@ class CheckDeviceStatusRequest implements Request {
 class CheckDeviceStatusReply extends Reply {
   CheckDeviceStatusReply({
     required this.artworks,
+    // time when the first artwork started playing
     this.startTime,
     this.connectedDevice,
     this.exhibitionId,
     this.catalogId,
     this.displayKey,
   });
+
+  int? get currentArtworkIndex {
+    if (artworks.isEmpty) {
+      return null;
+    }
+    if (startTime == null) {
+      return 0;
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    // each artwork display in artwork.duration, the first artwork start display at startTime, the displaying is looped, find which artwork is currently playing
+    final durationSum = artworks.fold<int>(
+      0,
+      (previousValue, element) => previousValue + element.duration,
+    );
+    final duration = now - startTime!;
+    int currentDuration = duration % durationSum;
+
+    int index = artworks.indexWhere(
+      (artwork) => (currentDuration -= artwork.duration) < 0,
+    );
+
+    return index >= 0 ? index : artworks.length - 1;
+  }
 
   factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
       CheckDeviceStatusReply(
@@ -726,6 +771,123 @@ class SendLogReply extends ReplyWithOK {
   Map<String, dynamic> toJson() => {
         'ok': ok,
       };
+}
+
+class GetVersionRequest implements Request {
+  GetVersionRequest();
+
+  factory GetVersionRequest.fromJson(Map<String, dynamic> json) =>
+      GetVersionRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class GetVersionReply extends Reply {
+  GetVersionReply({required this.version});
+
+  factory GetVersionReply.fromJson(Map<String, dynamic> json) =>
+      GetVersionReply(version: json['version'] as String);
+  final String version;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'version': version,
+      };
+}
+
+extension OrientationExtension on Orientation {
+  String get name {
+    switch (this) {
+      case Orientation.portrait:
+        return 'portrait';
+      case Orientation.landscape:
+        return 'landscape';
+      default:
+        return '';
+    }
+  }
+
+  static Orientation fromString(String orientation) {
+    switch (orientation) {
+      case 'portrait':
+        return Orientation.portrait;
+      case 'landscape':
+        return Orientation.landscape;
+      default:
+        throw ArgumentError('Unknown orientation: $orientation');
+    }
+  }
+}
+
+class UpdateOrientationRequest implements Request {
+  UpdateOrientationRequest({required this.orientation});
+
+  factory UpdateOrientationRequest.fromJson(Map<String, dynamic> json) =>
+      UpdateOrientationRequest(
+        orientation:
+            OrientationExtension.fromString(json['orientation'] as String),
+      );
+  final Orientation orientation;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'orientation': orientation.name,
+      };
+}
+
+class UpdateOrientationReply extends Reply {
+  UpdateOrientationReply();
+
+  factory UpdateOrientationReply.fromJson(Map<String, dynamic> json) =>
+      UpdateOrientationReply();
+}
+
+enum ArtFraming {
+  fitToScreen,
+  cropToFill;
+
+  int get value {
+    switch (this) {
+      case ArtFraming.fitToScreen:
+        return 0;
+      case ArtFraming.cropToFill:
+        return 1;
+    }
+  }
+
+  static ArtFraming fromValue(int value) {
+    switch (value) {
+      case 0:
+        return ArtFraming.fitToScreen;
+      case 1:
+        return ArtFraming.cropToFill;
+      default:
+        throw ArgumentError('Unknown value: $value');
+    }
+  }
+}
+
+class UpdateArtFramingRequest implements Request {
+  UpdateArtFramingRequest({required this.artFraming});
+
+  factory UpdateArtFramingRequest.fromJson(Map<String, dynamic> json) =>
+      UpdateArtFramingRequest(
+        artFraming: ArtFraming.fromValue(json['frameConfig'] as int),
+      );
+  final ArtFraming artFraming;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'frameConfig': artFraming.value,
+      };
+}
+
+class UpdateArtFramingReply extends Reply {
+  UpdateArtFramingReply();
+
+  factory UpdateArtFramingReply.fromJson(Map<String, dynamic> json) =>
+      UpdateArtFramingReply();
 }
 
 class TapGestureRequest implements Request {

@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 
 typedef NotificationCallback = void Function(Map<String, dynamic> data);
 
@@ -60,7 +58,7 @@ class BluetoothNotificationService {
       _subscribers[topic]?.forEach((callback) {
         callback(jsonData);
       });
-    } catch (e) {
+    } catch (e, s) {
       log.info('[BluetoothNotification] Error processing notification: $e');
     }
   }

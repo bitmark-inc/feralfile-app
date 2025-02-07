@@ -382,7 +382,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  String _getDisplayKey(AssetToken asset) => asset.id.hashCode.toString();
+  String _getDisplayKey(AssetToken asset) => asset.displayKey;
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',

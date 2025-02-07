@@ -408,7 +408,7 @@ Future<void> setupInjector() async {
   injector.registerFactory<PredefinedCollectionBloc>(
     PredefinedCollectionBloc.new,
   );
-  injector.registerFactory<IdentityBloc>(
+  injector.registerLazySingleton<IdentityBloc>(
     () => IdentityBloc(ObjectBox.identityBox, injector()),
   );
 

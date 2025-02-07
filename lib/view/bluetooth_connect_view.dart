@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -10,11 +11,13 @@ import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -226,75 +229,92 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
           behavior: HitTestBehavior.deferToChild,
           onTap: () async {
             // _onMoreTap(context, device);
+
+            Navigator.of(context).pushNamed(AppRouter.bluetoothDevicePortalPage,
+                arguments: device);
           },
-          child: Stack(
-            children: [
-              ColoredBox(
-                color: Colors.transparent,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: ColoredBox(
+            color: Colors.transparent,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              device.advName.isNotEmpty
-                                  ? device.advName
-                                  : 'Unknown Device',
-                              style: theme.textTheme.ppMori700Black16,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              onRotateDisplaySelected(context, device);
-                            },
-                            child: GestureConstrainWidget(
-                              child: SvgPicture.asset(
-                                'assets/images/icon_rotate.svg',
-                                width: 24,
-                                height: 24,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              _onMoreTap(context, device);
-                            },
-                            child: GestureConstrainWidget(
-                              child: SvgPicture.asset(
-                                'assets/images/more_circle.svg',
-                                width: 24,
-                                height: 24,
-                                colorFilter: const ColorFilter.mode(
-                                  AppColor.primaryBlack,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      Expanded(
+                        child: Text(
+                          device.advName.isNotEmpty
+                              ? device.advName
+                              : 'Unknown Device',
+                          style: theme.textTheme.ppMori700Black16,
+                        ),
                       ),
                       const SizedBox(
-                        height: 16,
+                        width: 16,
                       ),
-                      Text(
-                        device.remoteId.str,
-                        style: theme.textTheme.ppMori400Grey14,
+                      GestureDetector(
+                        onTap: () {
+                          onRotateDisplaySelected(context, device);
+                        },
+                        child: GestureConstrainWidget(
+                          child: SvgPicture.asset(
+                            'assets/images/icon_rotate.svg',
+                            width: 24,
+                            height: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          _onMoreTap(context, device);
+                        },
+                        child: GestureConstrainWidget(
+                          child: SvgPicture.asset(
+                            'assets/images/more_circle.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: const ColorFilter.mode(
+                              AppColor.primaryBlack,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Text(
+                    device.remoteId.str,
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
+                  FutureBuilder(
+                      future: injector<CanvasClientServiceV2>()
+                          .getVersion(device.toFFBluetoothDevice()),
+                      builder: (context, snapshot) {
+                        final theme = Theme.of(context);
+                        final style = theme.textTheme.ppMori400Grey14;
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Text('Loading...', style: style);
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}', style: style);
+                        }
+                        if (snapshot.hasData) {
+                          return Text('Version: ${snapshot.data}',
+                              style: style);
+                        }
+                        return Text('Unknown version', style: style);
+                      }),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -360,6 +380,21 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
             await onGetSupportSelected(context, device);
           },
         ),
+        if (kDebugMode) ...[
+          OptionItem(
+            title: 'delete'.tr(),
+            icon: const Icon(
+              Icons.delete,
+              color: AppColor.white,
+            ),
+            titleStyle: titleStyle,
+            titleStyleOnPrecessing: processingTitleStyle,
+            titleStyleOnDisable: disabledTitleStyle,
+            onTap: () async {
+              await BluetoothDeviceHelper.removeDevice(device.remoteId.str);
+            },
+          ),
+        ],
         OptionItem(),
       ],
     );

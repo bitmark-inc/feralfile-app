@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
@@ -75,9 +76,9 @@ class CanvasClientServiceV2 {
     BaseDevice device, {
     bool shouldShowError = true,
   }) async {
-    if (device is FFBluetoothDevice) {
-      return CheckDeviceStatusReply(artworks: []);
-    }
+    // if (device is FFBluetoothDevice) {
+    //   return CheckDeviceStatusReply(artworks: []);
+    // }
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
     final response =
@@ -268,9 +269,13 @@ class CanvasClientServiceV2 {
   /// it will check the status of the device by calling grpc
   Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
     final rawDevices = _findRawDevices();
-    final connectedDevices =
-        injector<BluetoothConnectBloc>().state.scanedDevices;
-    // BluetoothDeviceHelper.pairedDevices;
+    final scanedDevices = injector<BluetoothConnectBloc>().state.scanedDevices;
+    final pairedDevices = BluetoothDeviceHelper.pairedDevices;
+    final blDevices = pairedDevices.where((device) {
+      return scanedDevices.any((scanedDevice) {
+        return scanedDevice.remoteID == device.remoteId.str;
+      });
+    }).toList();
     // connectedDevice == null ? <BaseDevice>[] : [connectedDevice];
     // injector<BluetoothConnectBloc>().state.scanResults.map((result) {
     //   return FFBluetoothDevice(
@@ -280,7 +285,7 @@ class CanvasClientServiceV2 {
     // });
     final devices = <BaseDevice>[
       ...rawDevices,
-      ...connectedDevices,
+      ...blDevices,
     ];
     final pairDevices = await _getDeviceStatuses(devices);
     pairDevices.sort((a, b) => a.first.name.compareTo(b.first.name));
@@ -350,6 +355,30 @@ class CanvasClientServiceV2 {
     final request = SendLogRequest(userId: user ?? '');
     final response = await stub.getSupport(request);
     log.info('CanvasClientService: Get Support Success ${response.ok}');
+  }
+
+  Future<String> getVersion(BaseDevice device) async {
+    final stub = _getStub(device);
+    final request = GetVersionRequest();
+    final response = await stub.getVersion(request);
+    log.info('CanvasClientService: Get Version Success ${response.version}');
+    return response.version;
+  }
+
+  Future<void> updateOrientation(
+      BaseDevice device, Orientation orientation) async {
+    final stub = _getStub(device);
+    final request = UpdateOrientationRequest(orientation: orientation);
+    final response = await stub.updateOrientation(request);
+    log.info('CanvasClientService: Update Orientation Success');
+  }
+
+  Future<void> updateArtFraming(
+      BaseDevice device, ArtFraming artFraming) async {
+    final stub = _getStub(device);
+    final request = UpdateArtFramingRequest(artFraming: artFraming);
+    final response = await stub.updateArtFraming(request);
+    log.info('CanvasClientService: Update Art Framing Success');
   }
 
   Future<void> tap(List<BaseDevice> devices) async {

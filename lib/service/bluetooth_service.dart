@@ -170,7 +170,7 @@ class FFBluetoothService {
       log.info('[sendCommand] Command $command sent');
 
       // Wait for reply with timeout
-      return await completer.future.timeout(
+      final res = await completer.future.timeout(
         const Duration(seconds: 1),
         onTimeout: () {
           BluetoothNotificationService().unsubscribe(replyId, (data) {
@@ -183,6 +183,7 @@ class FFBluetoothService {
               .toJson(); // Fallback to fake reply on timeout
         },
       );
+      return res;
     } catch (e) {
       BluetoothNotificationService().unsubscribe(replyId, (data) {});
       unawaited(Sentry.captureException(e));
@@ -254,7 +255,8 @@ class FFBluetoothService {
     }
   }
 
-  Future<void> connectToDevice(BluetoothDevice device) async {
+  Future<void> connectToDevice(BluetoothDevice device,
+      {bool shouldUpdateConnectedDevice = false}) async {
     List<BluetoothService> services = [];
     if (device.isDisconnected) {
       final connectCompleter = Completer<void>();
@@ -302,19 +304,20 @@ class FFBluetoothService {
     // if (connectedDevice?.remoteId.str == device.remoteId.str) {
     //   return;
     // }
-
-    connectedDevice = FFBluetoothDevice(
-      remoteID: device.remoteId.str,
-      name: device.advName,
-    );
-
-    //if device connected, add to objectbox
-    await BluetoothDeviceHelper.addDevice(
-      FFBluetoothDevice(
+    if (shouldUpdateConnectedDevice) {
+      connectedDevice = FFBluetoothDevice(
         remoteID: device.remoteId.str,
         name: device.advName,
-      ),
-    );
+      );
+    }
+
+    //if device connected, add to objectbox
+    // await BluetoothDeviceHelper.addDevice(
+    //   FFBluetoothDevice(
+    //     remoteID: device.remoteId.str,
+    //     name: device.advName,
+    //   ),
+    // );
 
     if (getCommandCharacteristic(device.remoteId.str) == null ||
         getWifiConnectCharacteristic(device.remoteId.str) == null) {
@@ -518,6 +521,12 @@ class FFBluetoothService {
       case CastCommand.dragGesture:
         return GestureReply(
           ok: true,
+        );
+      case CastCommand.updateOrientation:
+        return UpdateOrientationReply();
+      case CastCommand.getVersion:
+        return GetVersionReply(
+          version: 'Device does not support version command',
         );
       default:
         throw ArgumentError('Unknown command: $commandString');

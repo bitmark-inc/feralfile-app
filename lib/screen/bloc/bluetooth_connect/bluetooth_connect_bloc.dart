@@ -88,7 +88,7 @@ class BluetoothConnectBloc
       emit(state.copyWith(bluetoothAdapterState: event.bluetoothAdapterState));
       switch (event.bluetoothAdapterState) {
         case BluetoothAdapterState.on:
-        // add(BluetoothConnectEventScan());
+          add(BluetoothConnectEventScan());
         case BluetoothAdapterState.off:
         case BluetoothAdapterState.unavailable:
         case BluetoothAdapterState.unauthorized:

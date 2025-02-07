@@ -30,13 +30,6 @@ final speedValues = {
 };
 
 class StreamDrawerItem extends StatelessWidget {
-  final OptionItem item;
-  final Color backgroundColor;
-  final Function()? onRotateClicked;
-  final bool isControlling;
-
-  static const double rotateIconSize = 22;
-
   const StreamDrawerItem({
     required this.item,
     required this.backgroundColor,
@@ -44,6 +37,13 @@ class StreamDrawerItem extends StatelessWidget {
     super.key,
     this.onRotateClicked,
   });
+
+  final OptionItem item;
+  final Color backgroundColor;
+  final Function()? onRotateClicked;
+  final bool isControlling;
+
+  static const double rotateIconSize = 22;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -132,9 +132,12 @@ class StreamDrawerItem extends StatelessWidget {
 }
 
 class PlaylistControl extends StatefulWidget {
-  final String displayKey;
+  const PlaylistControl(
+      {required this.displayKey, super.key, this.viewingArtworkBuilder});
 
-  const PlaylistControl({required this.displayKey, super.key});
+  final String displayKey;
+  final Widget Function(BuildContext context, CanvasDeviceState state)?
+      viewingArtworkBuilder;
 
   @override
   State<PlaylistControl> createState() => _PlaylistControlState();
@@ -172,6 +175,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
               ),
               child: Column(
                 children: [
+                  if (widget.viewingArtworkBuilder != null) ...[
+                    widget.viewingArtworkBuilder!.call(context, state),
+                    const SizedBox(height: 15),
+                  ],
                   _buildPlayControls(context, state),
                   const SizedBox(height: 15),
                   _buildSpeedControl(context, state),
@@ -304,11 +311,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
 }
 
 class ArtworkDurationControl extends StatefulWidget {
-  final Duration? duration;
-  final String displayKey;
-
   const ArtworkDurationControl(
       {required this.displayKey, super.key, this.duration});
+
+  final Duration? duration;
+  final String displayKey;
 
   @override
   State<ArtworkDurationControl> createState() => _ArtworkDurationControlState();
