@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
+import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -14,7 +15,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:wifi_scan/wifi_scan.dart';
 
 class BluetoothDevicePortalPage extends StatefulWidget {
   final BluetoothDevice device;
@@ -85,7 +85,7 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage> {
     );
   }
 
-  FutureOr<void> onWifiSelected(WiFiAccessPoint accessPoint) {
+  FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
         wifiAccessPoint: accessPoint, device: widget.device);

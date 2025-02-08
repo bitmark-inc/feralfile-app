@@ -88,7 +88,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:wifi_scan/wifi_scan.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
@@ -733,7 +732,7 @@ class AppRouter {
         );
 
       case scanWifiNetworkPage:
-        final onWifiSelected = settings.arguments! as Function(WiFiAccessPoint);
+        final onWifiSelected = settings.arguments! as Function(WifiPoint);
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>

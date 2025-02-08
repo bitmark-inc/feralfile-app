@@ -48,6 +48,7 @@ post_install do |installer|
           '$(inherited)',
           ## dart: PermissionGroup.camera
           'PERMISSION_CAMERA=1',
+          'PERMISSION_LOCATION=1'
         ]
       end
   end

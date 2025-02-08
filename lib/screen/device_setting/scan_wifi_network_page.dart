@@ -6,20 +6,27 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:wifi_scan/wifi_scan.dart';
+
+class WifiPoint {
+  WifiPoint(this.ssid);
+
+  final String ssid;
+}
 
 class ScanWifiNetworkPage extends StatefulWidget {
   const ScanWifiNetworkPage({super.key, required this.onNetworkSelected});
 
-  final FutureOr<void> Function(WiFiAccessPoint wifiAccessPoint)
-      onNetworkSelected;
+  final FutureOr<void> Function(WifiPoint wifiAccessPoint) onNetworkSelected;
 
   @override
   State<ScanWifiNetworkPage> createState() => ScanWifiNetworkPageState();
 }
 
 class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
-  List<WiFiAccessPoint> _accessPoints = [];
+  List<WifiPoint> _accessPoints = [];
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
 
   @override
@@ -59,11 +66,26 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
         });
       default:
         log.info('Cannot get scanned results: $can');
+        final connectedWifi = await _getConnectedWifiSSID();
+        setState(() {
+          _accessPoints = [connectedWifi];
+        });
       // ... handle other cases of CanGetScannedResults values
     }
   }
 
-  List<WiFiAccessPoint> _filterUniqueSSIDs(List<WiFiAccessPoint> scanResults) {
+  Future<WifiPoint> _getConnectedWifiSSID() async {
+    final isLocationPermissionGranted =
+        await Permission.locationWhenInUse.request().isGranted;
+    log.info('Location permission granted: $isLocationPermissionGranted');
+    final info = NetworkInfo();
+    final wifiName = await info.getWifiName();
+    final point = WifiPoint(wifiName ?? '');
+    log.info('Connected wifi: ${point.ssid}');
+    return point;
+  }
+
+  List<WifiPoint> _filterUniqueSSIDs(List<WiFiAccessPoint> scanResults) {
     Map<String, WiFiAccessPoint> uniqueNetworks = {};
 
     for (var wifi in scanResults) {
@@ -79,7 +101,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
       ..sort((a, b) =>
           b.level.compareTo(a.level)); // Higher RSSI (closer to 0) is stronger
 
-    return sortedNetworks;
+    return sortedNetworks.map((e) => WifiPoint(e.ssid)).toList();
   }
 
   @override
@@ -119,7 +141,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
         )));
   }
 
-  Widget itemBuilder(BuildContext context, WiFiAccessPoint wifiAccessPoint) {
+  Widget itemBuilder(BuildContext context, WifiPoint wifiAccessPoint) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
