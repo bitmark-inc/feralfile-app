@@ -54,9 +54,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Feral File to scan for your Feral File Device.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Feral File to scan for your Feral File Device.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_googlecast._tcp</string>
