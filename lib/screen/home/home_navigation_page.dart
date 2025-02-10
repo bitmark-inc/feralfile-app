@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -230,6 +231,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     super.initState();
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
+    injector<FFBluetoothService>().init();
 
     Future.delayed(const Duration(seconds: 1), () {
       if (!_configurationService.didShowLiveWithArt()) {

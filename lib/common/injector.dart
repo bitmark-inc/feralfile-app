@@ -433,8 +433,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<BluetoothConnectBloc>(
       () => BluetoothConnectBloc());
 
-  injector<FFBluetoothService>().init();
-
   injector.registerLazySingleton<AnnouncementStore>(AnnouncementStore.new);
   await injector<AnnouncementStore>().init('');
 

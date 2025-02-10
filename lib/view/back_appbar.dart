@@ -219,7 +219,7 @@ AppBar getCloseAppBar(
 
 AppBar getDarkEmptyAppBar([Color? statusBarColor]) => AppBar(
       systemOverlayStyle: _systemUiOverlayDarkStyle(statusBarColor),
-      backgroundColor: statusBarColor,
+      backgroundColor: statusBarColor ?? AppColor.primaryBlack,
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
       elevation: 0,
