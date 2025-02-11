@@ -465,6 +465,34 @@ class CheckDeviceStatusReply extends Reply {
     return index >= 0 ? index : artworks.length - 1;
   }
 
+  Duration? get remainDurationCurrentArtwork {
+    if (artworks.isEmpty || startTime == null) {
+      return null;
+    }
+
+    int? index = currentArtworkIndex;
+    if (index == null || index < 0 || index >= artworks.length) {
+      return null;
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final durationSum = artworks.fold<int>(
+      0,
+      (previousValue, element) => previousValue + element.duration,
+    );
+    final duration = now - startTime!;
+    int currentDuration = duration % durationSum;
+
+    for (var artwork in artworks) {
+      if (currentDuration < artwork.duration) {
+        return Duration(milliseconds: artwork.duration - currentDuration);
+      }
+      currentDuration -= artwork.duration;
+    }
+
+    return null;
+  }
+
   factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
       CheckDeviceStatusReply(
         artworks: json['artworks'] == null
