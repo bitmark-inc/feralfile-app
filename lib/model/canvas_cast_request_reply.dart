@@ -446,6 +446,9 @@ class CheckDeviceStatusReply extends Reply {
     if (startTime == null) {
       return 0;
     }
+    if (artworks.length == 1) {
+      return 0;
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     // each artwork display in artwork.duration, the first artwork start display at startTime, the displaying is looped, find which artwork is currently playing
     final durationSum = artworks.fold<int>(

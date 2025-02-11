@@ -46,10 +46,12 @@ abstract class TvCastService {
   Future<GetVersionReply> getVersion(GetVersionRequest request);
 
   Future<UpdateOrientationReply> updateOrientation(
-      UpdateOrientationRequest request);
+    UpdateOrientationRequest request,
+  );
 
   Future<UpdateArtFramingReply> updateArtFraming(
-      UpdateArtFramingRequest request);
+    UpdateArtFramingRequest request,
+  );
 
   Future<CastExhibitionReply> castExhibition(CastExhibitionRequest request);
 
@@ -281,14 +283,11 @@ class BluetoothCastService extends BaseTvCastService {
     final command = body['command'] as String;
     final request = Map<String, dynamic>.from(body['request'] as Map);
     try {
-      if (_device.remoteId.str !=
-          injector<FFBluetoothService>().connectedDevice?.remoteID) {
-        await injector<FFBluetoothService>().connectToDevice(_device);
-        await _device.discoverServices();
-        if (!_device.isConnected) {
-          throw Exception('Device not connected after reconnection');
-        }
+      await injector<FFBluetoothService>().connectToDevice(_device);
+      if (!_device.isConnected) {
+        throw Exception('Device not connected after reconnection');
       }
+
       final res = await injector<FFBluetoothService>()
           .sendCommand(device: _device, command: command, request: request);
       log.info('[BluetoothCastService] sendCommand $command');

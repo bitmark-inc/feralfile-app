@@ -18,10 +18,9 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothDevicePortalPage extends StatefulWidget {
-  final BluetoothDevice device;
+  const BluetoothDevicePortalPage({required this.device, super.key});
 
-  const BluetoothDevicePortalPage({Key? key, required this.device})
-      : super(key: key);
+  final BluetoothDevice device;
 
   @override
   State<BluetoothDevicePortalPage> createState() =>
@@ -61,16 +60,18 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
             children: [
               CustomScrollView(
                 slivers: [
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: SizedBox(
                       height: 120,
                     ),
                   ),
                   SliverToBoxAdapter(
-                    child: SvgPicture.asset('assets/images/portal.svg',
-                        fit: BoxFit.fitWidth),
+                    child: SvgPicture.asset(
+                      'assets/images/portal.svg',
+                      fit: BoxFit.fitWidth,
+                    ),
                   ),
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: SizedBox(
                       height: 120,
                     ),
@@ -78,9 +79,9 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                   SliverToBoxAdapter(
                     child: _instruction(context),
                   ),
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: SizedBox(
-                      height: 40,
+                      height: 80,
                     ),
                   ),
                 ],
@@ -92,8 +93,9 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 child: PrimaryAsyncButton(
                   onTap: () {
                     Navigator.of(context).pushNamed(
-                        AppRouter.scanWifiNetworkPage,
-                        arguments: onWifiSelected);
+                      AppRouter.scanWifiNetworkPage,
+                      arguments: onWifiSelected,
+                    );
                   },
                   color: AppColor.white,
                   text: 'start_device_setup'.tr(),
@@ -109,14 +111,15 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
-        wifiAccessPoint: accessPoint,
-        device: widget.device,
-        onSubmitted: () {
-          Navigator.of(context).pushNamed(
-            AppRouter.configureDevice,
-            arguments: widget.device,
-          );
-        });
+      wifiAccessPoint: accessPoint,
+      device: widget.device,
+      onSubmitted: () {
+        Navigator.of(context).pushNamed(
+          AppRouter.configureDevice,
+          arguments: widget.device,
+        );
+      },
+    );
     injector<NavigationService>()
         .navigateTo(AppRouter.sendWifiCredentialPage, arguments: payload);
   }
@@ -202,7 +205,7 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                             text: '${'join_our'.tr()} ',
                           ),
                           TextSpan(
-                            text: '${'google_chat_space'.tr()}',
+                            text: 'google_chat_space'.tr(),
                             style: const TextStyle(
                               decoration: TextDecoration.underline,
                             ),

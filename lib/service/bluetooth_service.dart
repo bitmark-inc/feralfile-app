@@ -17,6 +17,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
+const displayingCommand = [
+  CastCommand.castDaily,
+  CastCommand.castListArtwork,
+  CastCommand.castExhibition,
+];
+
 class FFBluetoothService {
   FFBluetoothService() {}
 
@@ -41,20 +47,28 @@ class FFBluetoothService {
   }
 
   // connected device
-  FFBluetoothDevice? _connectedDevice;
+  FFBluetoothDevice? _castingBluetoothDevice;
 
-  set connectedDevice(BluetoothDevice? device) {
+  set castingBluetoothDevice(BluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
       remoteID: device!.remoteId.str,
       name: device.advName,
     );
-    _connectedDevice = ffdevice;
+    _castingBluetoothDevice = ffdevice;
     BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
   }
 
-  FFBluetoothDevice? get connectedDevice =>
-      _connectedDevice ??
-      BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
+  FFBluetoothDevice? get castingBluetoothDevice {
+    if (_castingBluetoothDevice != null) {
+      return _castingBluetoothDevice;
+    }
+    final lastCastingBluetoothDevice =
+        BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
+    if (lastCastingBluetoothDevice != null) {
+      _castingBluetoothDevice = lastCastingBluetoothDevice;
+    }
+    return _castingBluetoothDevice;
+  }
 
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
 
@@ -183,6 +197,10 @@ class FFBluetoothService {
               .toJson(); // Fallback to fake reply on timeout
         },
       );
+      if (displayingCommand
+          .any((element) => element == CastCommand.fromString(command))) {
+        castingBluetoothDevice = device;
+      }
       return res;
     } catch (e) {
       BluetoothNotificationService().unsubscribe(replyId, (data) {});
@@ -241,20 +259,6 @@ class FFBluetoothService {
     }
   }
 
-  Future<void> connectToDeviceIfPaired(BluetoothDevice device) async {
-    final isDevicePaired = BluetoothDeviceHelper.isDeviceSaved(device);
-    if (!isDevicePaired) {
-      log.warning('Device not paired: ${device.remoteId.str}');
-      return;
-    }
-
-    final connectedDevice = injector<FFBluetoothService>().connectedDevice;
-    if (connectedDevice == null ||
-        connectedDevice.remoteID == device.remoteId.str) {
-      await connectToDevice(device);
-    }
-  }
-
   Future<void> connectToDevice(BluetoothDevice device,
       {bool shouldUpdateConnectedDevice = false}) async {
     List<BluetoothService> services = [];
@@ -299,25 +303,6 @@ class FFBluetoothService {
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
     }
-
-    // if connect to the same device, return
-    // if (connectedDevice?.remoteId.str == device.remoteId.str) {
-    //   return;
-    // }
-    if (shouldUpdateConnectedDevice) {
-      connectedDevice = FFBluetoothDevice(
-        remoteID: device.remoteId.str,
-        name: device.advName,
-      );
-    }
-
-    //if device connected, add to objectbox
-    // await BluetoothDeviceHelper.addDevice(
-    //   FFBluetoothDevice(
-    //     remoteID: device.remoteId.str,
-    //     name: device.advName,
-    //   ),
-    // );
 
     if (getCommandCharacteristic(device.remoteId.str) == null ||
         getWifiConnectCharacteristic(device.remoteId.str) == null) {
@@ -526,7 +511,7 @@ class FFBluetoothService {
         return UpdateOrientationReply();
       case CastCommand.getVersion:
         return GetVersionReply(
-          version: 'Device does not support version command',
+          version: 'No response',
         );
       default:
         throw ArgumentError('Unknown command: $commandString');

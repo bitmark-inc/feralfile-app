@@ -611,7 +611,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final showKeyboard = _isOpenedWithWebview(asset);
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-    final connectedDevice = injector<FFBluetoothService>().connectedDevice;
+    final connectedDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
     final isCasting = connectedDevice != null;
     final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
@@ -641,7 +642,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 final castingDevice = canvasDeviceState
                     .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
                 final bluetoothConnectedDevice =
-                    injector<FFBluetoothService>().connectedDevice;
+                    injector<FFBluetoothService>().castingBluetoothDevice;
                 if (castingDevice != null || bluetoothConnectedDevice != null) {
                   unawaited(
                     Navigator.of(context).pushNamed(

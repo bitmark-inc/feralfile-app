@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/view/exhibition_item.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -396,7 +397,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _dailyPreview() => Column(
         children: [
           SizedBox(
-            height: MediaQuery.paddingOf(context).top + 32,
+            height: MediaQuery.paddingOf(context).top,
+          ),
+          const NowDisplaying(),
+          const SizedBox(
+            height: 32,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -755,8 +760,10 @@ Widget exhibitionInfo(BuildContext context, Exhibition exhibition) {
           customStylesBuilder: auHtmlStyle,
           textStyle: theme.textTheme.ppMori400White14,
           onTapUrl: (url) async {
-            await launchUrl(Uri.parse(url),
-                mode: LaunchMode.externalApplication);
+            await launchUrl(
+              Uri.parse(url),
+              mode: LaunchMode.externalApplication,
+            );
             return true;
           },
         ),

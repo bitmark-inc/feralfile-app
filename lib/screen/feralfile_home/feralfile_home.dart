@@ -137,8 +137,12 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       onDeviceSelected: (device) async {
         final duration = speedValues.values.first.inMilliseconds;
         final listPlayArtwork = tokenIDs
-            .map((e) =>
-                PlayArtworkV2(token: CastAssetToken(id: e), duration: duration))
+            .map(
+              (e) => PlayArtworkV2(
+                token: CastAssetToken(id: e),
+                duration: duration,
+              ),
+            )
             .toList();
         _canvasDeviceBloc
             .add(CanvasDeviceChangeControlDeviceEvent(device, listPlayArtwork));
@@ -223,14 +227,15 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         },
       ),
       Item(
-          id: FeralfileHomeTab.artists.index.toString(),
-          title: 'artists'.tr(),
-          subtitle: state.exploreStatisticsData != null
-              ? numberFormater.format(state.exploreStatisticsData!.totalArtist)
-              : '-',
-          onSelected: () {
-            _selectTab(FeralfileHomeTab.artists);
-          }),
+        id: FeralfileHomeTab.artists.index.toString(),
+        title: 'artists'.tr(),
+        subtitle: state.exploreStatisticsData != null
+            ? numberFormater.format(state.exploreStatisticsData!.totalArtist)
+            : '-',
+        onSelected: () {
+          _selectTab(FeralfileHomeTab.artists);
+        },
+      ),
       Item(
         id: FeralfileHomeTab.curators.index.toString(),
         title: 'curators'.tr(),
@@ -271,29 +276,33 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       size: 18,
       color: Theme.of(context).colorScheme.secondary,
     );
-    return BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
-      builder: (context, state) => Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
-        child: ItemExpandedWidget(
-          key: _itemExpandedKey,
-          items: _getItemList(state),
-          selectedIndex: _selectedIndex,
-          iconOnExpanded: RotatedBox(
-            quarterTurns: 3,
-            child: icon,
+    return Column(
+      children: [
+        BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
+          builder: (context, state) => Padding(
+            padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+            child: ItemExpandedWidget(
+              key: _itemExpandedKey,
+              items: _getItemList(state),
+              selectedIndex: _selectedIndex,
+              iconOnExpanded: RotatedBox(
+                quarterTurns: 3,
+                child: icon,
+              ),
+              iconOnUnExpanded: RotatedBox(
+                quarterTurns: 1,
+                child: icon,
+              ),
+              actions: [
+                if (_selectedIndex == FeralfileHomeTab.featured.index &&
+                    state.featuredArtworks != null &&
+                    state.featuredArtworks!.isNotEmpty)
+                  _castButton(context, state.featuredArtworks ?? []),
+              ],
+            ),
           ),
-          iconOnUnExpanded: RotatedBox(
-            quarterTurns: 1,
-            child: icon,
-          ),
-          actions: [
-            if (_selectedIndex == FeralfileHomeTab.featured.index &&
-                state.featuredArtworks != null &&
-                state.featuredArtworks!.isNotEmpty)
-              _castButton(context, state.featuredArtworks ?? []),
-          ],
         ),
-      ),
+      ],
     );
   }
 
@@ -339,28 +348,20 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
 }
 
 class Item {
-  String id;
-  String title;
-  String subtitle;
-  Function onSelected;
-
   Item({
     required this.id,
     required this.title,
     required this.subtitle,
     required this.onSelected,
   });
+
+  String id;
+  String title;
+  String subtitle;
+  Function onSelected;
 }
 
 class ItemExpandedWidget extends StatefulWidget {
-  final Widget? iconOnExpanded;
-  final Widget? iconOnUnExpanded;
-  final List<Item> items;
-  final int selectedIndex;
-
-  // actions on unexpanded
-  final List<Widget> actions;
-
   const ItemExpandedWidget({
     required this.items,
     required this.selectedIndex,
@@ -369,6 +370,14 @@ class ItemExpandedWidget extends StatefulWidget {
     this.iconOnUnExpanded,
     this.actions = const [],
   });
+
+  final Widget? iconOnExpanded;
+  final Widget? iconOnUnExpanded;
+  final List<Item> items;
+  final int selectedIndex;
+
+  // actions on unexpanded
+  final List<Widget> actions;
 
   @override
   State<ItemExpandedWidget> createState() => _ItemExpandedWidgetState();
@@ -407,20 +416,20 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
                   _isExpanded = !_isExpanded;
                 });
               },
-              child: Container(
+              child: ColoredBox(
                 color: Colors.transparent,
                 child: _isExpanded ? _expandedHeader() : _unexpandedHeader(),
               ),
             ),
             // Expanded items
             if (_isExpanded) ...[
-              for (var item in widget.items.skip(1))
+              for (final item in widget.items.skip(1))
                 _itemWidget(
                   context,
                   item,
                   withSubtitle: false,
                 ),
-            ]
+            ],
           ],
         ),
       );
@@ -440,7 +449,7 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
           children: [
             widget.iconOnExpanded ?? defaultIcon,
           ],
-        )
+        ),
       ],
     );
   }
@@ -476,8 +485,11 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
 
   Item _selectedItem() => widget.items[_selectedIndex];
 
-  Widget _itemWidget(BuildContext context, Item item,
-      {bool withSubtitle = true}) {
+  Widget _itemWidget(
+    BuildContext context,
+    Item item, {
+    bool withSubtitle = true,
+  }) {
     final isSelected = item == _selectedItem();
     final theme = Theme.of(context);
     final defaultTitleStyle = theme.textTheme.ppMori700Black36
@@ -503,7 +515,7 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
         });
         item.onSelected();
       },
-      child: Container(
+      child: ColoredBox(
         color: Colors.transparent,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -17,7 +17,7 @@ class WifiPoint {
 }
 
 class ScanWifiNetworkPage extends StatefulWidget {
-  const ScanWifiNetworkPage({super.key, required this.onNetworkSelected});
+  const ScanWifiNetworkPage({required this.onNetworkSelected, super.key});
 
   final FutureOr<void> Function(WifiPoint wifiAccessPoint) onNetworkSelected;
 
@@ -38,7 +38,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
 
   Future<void> _startScan() async {
     // check platform support and necessary requirements
-    final can = await WiFiScan.instance.canStartScan(askPermissions: true);
+    final can = await WiFiScan.instance.canStartScan();
     switch (can) {
       case CanStartScan.yes:
         // start full scan async-ly
@@ -52,8 +52,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
 
   Future<void> _startListeningToScannedResults() async {
     // check platform support and necessary requirements
-    final can =
-        await WiFiScan.instance.canGetScannedResults(askPermissions: true);
+    final can = await WiFiScan.instance.canGetScannedResults();
     switch (can) {
       case CanGetScannedResults.yes:
         // listen to onScannedResultsAvailable stream
@@ -86,9 +85,9 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   }
 
   List<WifiPoint> _filterUniqueSSIDs(List<WiFiAccessPoint> scanResults) {
-    Map<String, WiFiAccessPoint> uniqueNetworks = {};
+    final uniqueNetworks = <String, WiFiAccessPoint>{};
 
-    for (var wifi in scanResults) {
+    for (final wifi in scanResults) {
       if (!uniqueNetworks.containsKey(wifi.ssid) ||
           wifi.level > uniqueNetworks[wifi.ssid]!.level) {
         uniqueNetworks[wifi.ssid] = wifi; // Keep the strongest signal
@@ -96,10 +95,11 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
     }
 
     // Convert to list and sort by signal strength (RSSI), strongest first
-    List<WiFiAccessPoint> sortedNetworks = uniqueNetworks.values.toList()
+    final sortedNetworks = uniqueNetworks.values.toList()
       ..removeWhere((element) => element.ssid.isEmpty)
-      ..sort((a, b) =>
-          b.level.compareTo(a.level)); // Higher RSSI (closer to 0) is stronger
+      ..sort(
+        (a, b) => b.level.compareTo(a.level),
+      ); // Higher RSSI (closer to 0) is stronger
 
     return sortedNetworks.map((e) => WifiPoint(e.ssid)).toList();
   }
@@ -113,32 +113,33 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.of(context).pop();
-          },
-          title: 'select_network'.tr(),
-          isWhite: false,
-        ),
-        backgroundColor: AppColor.primaryBlack,
-        body: SafeArea(
-            child: Padding(
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+        title: 'select_network'.tr(),
+        isWhite: false,
+      ),
+      backgroundColor: AppColor.primaryBlack,
+      body: SafeArea(
+        child: Padding(
           padding: ResponsiveLayout.pageEdgeInsets,
           child: CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SizedBox(
                   height: 100,
                 ),
               ),
-              ..._accessPoints
-                  .map(
-                      (e) => SliverToBoxAdapter(child: itemBuilder(context, e)))
-                  .toList(),
+              ..._accessPoints.map(
+                (e) => SliverToBoxAdapter(child: itemBuilder(context, e)),
+              ),
             ],
           ),
-        )));
+        ),
+      ),
+    );
   }
 
   Widget itemBuilder(BuildContext context, WifiPoint wifiAccessPoint) {
@@ -150,20 +151,23 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
           onTap: () async {
             await widget.onNetworkSelected(wifiAccessPoint);
           },
-          child: ColoredBox(
-            color: Colors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                wifiAccessPoint.ssid,
-                style: theme.textTheme.ppMori400White14,
+          child: SizedBox(
+            width: double.infinity,
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  wifiAccessPoint.ssid,
+                  style: theme.textTheme.ppMori400White14,
+                ),
               ),
             ),
           ),
         ),
-        Divider(
+        const Divider(
           color: AppColor.auGreyBackground,
-        )
+        ),
       ],
     );
   }
