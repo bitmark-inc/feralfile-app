@@ -347,6 +347,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   Widget _viewingArtworkWidget(BuildContext context,
       List<CompactedAssetToken> assetTokens, CheckDeviceStatusReply status) {
+    return const NowDisplaying();
     final currentIndex = status.currentArtworkIndex;
     if (currentIndex == null) {
       return const SizedBox();

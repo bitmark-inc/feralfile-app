@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart'
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -20,6 +21,8 @@ import 'package:nft_collection/services/indexer_service.dart';
 
 class NowDisplayingManager {
   factory NowDisplayingManager() => _instance;
+
+  static Timer? _timer;
 
   NowDisplayingManager._internal();
 
@@ -34,8 +37,21 @@ class NowDisplayingManager {
 
   Future<void> updateToken() async {
     final tokenId = _getCurrentDisplayingTokenId();
-    if (tokenId == null) return;
-
+    if (tokenId == null) {
+      _streamController.add(null);
+      _timer?.cancel();
+      return;
+    } else {
+      _timer?.cancel();
+      final duration =
+          (_remainDurationCurrentArtwork() ?? const Duration(seconds: 27)) +
+              const Duration(seconds: 3);
+      log.info('Update token in $duration');
+      _timer = Timer(duration, () {
+        updateToken();
+      });
+    }
+    if (this.assetToken?.id == tokenId) return;
     final assetToken = await _fetchAssetToken(tokenId);
     if (assetToken != null) {
       this.assetToken = assetToken;
@@ -61,6 +77,16 @@ class NowDisplayingManager {
     if (currentIndex == null) return null;
 
     return status.artworks[currentIndex].token?.id;
+  }
+
+  Duration? _remainDurationCurrentArtwork() {
+    final castingDevice = injector<FFBluetoothService>().castingBluetoothDevice;
+    if (castingDevice == null) return null;
+
+    final canvasState = injector<CanvasDeviceBloc>().state;
+    final status = canvasState.canvasDeviceStatus[castingDevice.remoteID];
+    if (status == null) return null;
+    return status.remainDurationCurrentArtwork;
   }
 }
 

@@ -162,9 +162,10 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                   bloc: injector<CanvasDeviceBloc>(),
                   builder: (context, canvasDeviceState) {
                     final displayKey = widget.tokenIDs.displayKey;
-                    final isPlaylistCasting = canvasDeviceState
-                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
-                        null;
+                    final isPlaylistCasting = displayKey != null &&
+                        canvasDeviceState
+                                .lastSelectedActiveDeviceForKey(displayKey) !=
+                            null;
                     return Visibility(
                       visible: isPlaylistCasting && !_shouldShowControllerBar,
                       child: Padding(
