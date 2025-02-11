@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
@@ -27,7 +28,27 @@ class BluetoothDevicePortalPage extends StatefulWidget {
       BluetoothDevicePortalPageState();
 }
 
-class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage> {
+class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
+    with RouteAware, WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +109,14 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage> {
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
-        wifiAccessPoint: accessPoint, device: widget.device);
+        wifiAccessPoint: accessPoint,
+        device: widget.device,
+        onSubmitted: () {
+          Navigator.of(context).pushNamed(
+            AppRouter.configureDevice,
+            arguments: widget.device,
+          );
+        });
     injector<NavigationService>()
         .navigateTo(AppRouter.sendWifiCredentialPage, arguments: payload);
   }

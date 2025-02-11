@@ -34,7 +34,8 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   final _controller = KeyboardVisibilityController();
   late StreamSubscription? _keyboardSubscription;
   final _textController = TextEditingController();
-  final _scrollController = ScrollController();
+
+  // final _scrollController = ScrollController();
   bool _isExpanded = false;
 
   @override
@@ -96,11 +97,6 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
       resizeToAvoidBottomInset: false,
       appBar: getDarkEmptyAppBar(AppColor.auGreyBackground),
       body: KeyboardVisibilityBuilder(builder: (context, isKeyboardVisible) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (isKeyboardVisible) {
-            _scrollController.jumpTo(0);
-          }
-        });
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
           child: Column(

@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -12,6 +13,9 @@ class BluetoothConnectBloc
     extends AuBloc<BluetoothConnectEvent, BluetoothConnectState> {
   BluetoothConnectBloc() : super(BluetoothConnectState()) {
     on<BluetoothConnectEventScan>((event, emit) async {
+      if (!injector<AuthService>().isBetaTester()) {
+        return;
+      }
       emit(state.copyWith(isScanning: true));
       StreamSubscription<List<ScanResult>>? scanSubscription;
 
@@ -85,6 +89,9 @@ class BluetoothConnectBloc
     });
 
     on<BluetoothConnectEventUpdateBluetoothState>((event, emit) async {
+      if (!injector<AuthService>().isBetaTester()) {
+        return;
+      }
       emit(state.copyWith(bluetoothAdapterState: event.bluetoothAdapterState));
       switch (event.bluetoothAdapterState) {
         case BluetoothAdapterState.on:
@@ -127,6 +134,16 @@ class BluetoothConnectBloc
     //       }
     //     }
     //   });
+  }
+
+  @override
+  void add(BluetoothConnectEvent event) {
+    if (injector<AuthService>().isBetaTester()) {
+      super.add(event);
+    } else {
+      log.info(
+          'BluetoothConnectBloc user is not beta tester, ignoring event ${event.runtimeType}');
+    }
   }
 
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;

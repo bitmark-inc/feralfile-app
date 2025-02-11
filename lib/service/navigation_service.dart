@@ -222,6 +222,12 @@ class NavigationService {
     );
   }
 
+  void popUntil(String route) {
+    navigatorKey.currentState?.popUntil(
+      (r) => r.settings.name == route,
+    );
+  }
+
   void popUntilHomeOrSettings() {
     navigatorKey.currentState?.popUntil(
       (route) =>

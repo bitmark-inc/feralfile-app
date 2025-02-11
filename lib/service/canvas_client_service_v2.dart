@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
@@ -366,7 +367,7 @@ class CanvasClientServiceV2 {
   }
 
   Future<void> updateOrientation(
-      BaseDevice device, Orientation orientation) async {
+      BaseDevice device, ScreenOrientation orientation) async {
     final stub = _getStub(device);
     final request = UpdateOrientationRequest(orientation: orientation);
     final response = await stub.updateOrientation(request);

@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -16,10 +15,12 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 class SendWifiCredentialsPagePayload {
   final WifiPoint wifiAccessPoint;
   final BluetoothDevice device;
+  final Function? onSubmitted;
 
   SendWifiCredentialsPagePayload({
     required this.wifiAccessPoint,
     required this.device,
+    this.onSubmitted,
   });
 }
 
@@ -76,17 +77,11 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                         const SizedBox(
                           height: 16,
                         ),
-                        TextField(
+                        PasswordTextField(
                           controller: passwordController,
                           style: Theme.of(context).textTheme.ppMori400White14,
-                          decoration: InputDecoration(
-                            labelText: 'Wi-Fi Password',
-                            labelStyle:
-                                Theme.of(context).textTheme.ppMori400Grey14,
-                            border: const OutlineInputBorder(),
-                            fillColor: AppColor.auGreyBackground,
-                          ),
-                          obscureText: true,
+                          hintText: 'password'.tr(),
+                          defaultObscure: false,
                         ),
                       ],
                     ),
@@ -107,10 +102,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                         ssid: ssid,
                         password: password,
                       );
-                      Navigator.of(context).pushNamed(
-                        AppRouter.configureDevice,
-                        arguments: widget.payload.device,
-                      );
+                      widget.payload.onSubmitted?.call();
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       UIHelper.showInfoDialog(
@@ -123,6 +115,81 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// class PasswordTextField, to enter password, with button to change the visibility of the password
+
+class PasswordTextField extends StatefulWidget {
+  const PasswordTextField({
+    super.key,
+    required this.controller,
+    this.defaultObscure = true,
+    this.style,
+    this.hintText,
+    this.onChanged,
+    this.onSubmitted,
+    this.onVisibilityChanged,
+  });
+
+  final TextEditingController controller;
+  final TextStyle? style;
+  final bool defaultObscure;
+  final String? hintText;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final ValueChanged<bool>? onVisibilityChanged;
+
+  @override
+  State<PasswordTextField> createState() => _PasswordTextFieldState();
+}
+
+class _PasswordTextFieldState extends State<PasswordTextField> {
+  late bool _isObscure;
+
+  @override
+  void initState() {
+    super.initState();
+    _isObscure = widget.defaultObscure;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const backgroundColor = AppColor.auGreyBackground;
+    return TextField(
+      controller: widget.controller,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      obscureText: _isObscure,
+      style: widget.style,
+      decoration: InputDecoration(
+        // border radius 10
+        hintText: widget.hintText,
+        hintStyle: widget.style,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        fillColor: backgroundColor,
+        focusColor: backgroundColor,
+        filled: true,
+        constraints: const BoxConstraints(minHeight: 60),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isObscure ? Icons.visibility : Icons.visibility_off,
+            color: AppColor.greyMedium,
+          ),
+          onPressed: () {
+            setState(() {
+              _isObscure = !_isObscure;
+              widget.onVisibilityChanged?.call(_isObscure);
+            });
+          },
         ),
       ),
     );

@@ -2,6 +2,7 @@
 
 // ignore_for_file: avoid_unused_constructor_parameters
 
+import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -826,9 +827,9 @@ class UpdateOrientationRequest implements Request {
   factory UpdateOrientationRequest.fromJson(Map<String, dynamic> json) =>
       UpdateOrientationRequest(
         orientation:
-            OrientationExtension.fromString(json['orientation'] as String),
+            ScreenOrientation.fromString(json['orientation'] as String),
       );
-  final Orientation orientation;
+  final ScreenOrientation orientation;
 
   @override
   Map<String, dynamic> toJson() => {

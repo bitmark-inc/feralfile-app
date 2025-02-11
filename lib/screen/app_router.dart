@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart';
@@ -159,6 +160,8 @@ class AppRouter {
   static const sendWifiCredentialPage = 'send_wifi_credential_page';
   static const configureDevice = 'configure_device';
   static const nowDisplayingPage = 'now_displaying_page';
+  static const bluetoothConnectedDeviceConfig =
+      'bluetooth_connected_device_config';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final accountsBloc = injector<AccountsBloc>();
@@ -780,6 +783,15 @@ class AppRouter {
             child: NowDisplayingPage(
               payload: payload,
             ),
+          ),
+        );
+
+      case bluetoothConnectedDeviceConfig:
+        final device = settings.arguments! as BluetoothDevice;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => BluetoothConnectedDeviceConfig(
+            device: device,
           ),
         );
 

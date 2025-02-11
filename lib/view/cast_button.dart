@@ -132,6 +132,11 @@ class FFCastButtonState extends State<FFCastButton> {
       if (injector<BluetoothConnectBloc>().state.scanResults.isEmpty) {
         injector<BluetoothConnectBloc>().add(BluetoothConnectEventScan());
       }
+      if (injector<CanvasDeviceBloc>().state.devices.length == 1) {
+        final device = injector<CanvasDeviceBloc>().state.devices.first.device;
+        widget.onDeviceSelected?.call(device);
+        return;
+      }
       await injector<NavigationService>().showStreamAction(
         widget.displayKey,
         widget.onDeviceSelected,

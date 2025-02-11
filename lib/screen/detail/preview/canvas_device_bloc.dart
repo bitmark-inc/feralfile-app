@@ -181,7 +181,7 @@ class CanvasDeviceState {
     final lastActiveDeviceStatus =
         canvasDeviceStatus[lastActiveDevice?.deviceId];
     final durationInMilisecond =
-        lastActiveDeviceStatus?.artworks.first.duration;
+        lastActiveDeviceStatus?.artworks.firstOrNull?.duration;
     if (durationInMilisecond != null) {
       return Duration(milliseconds: durationInMilisecond);
     }

@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -167,9 +168,17 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
   }
 
   Widget _artworkPreview(BuildContext context, AssetToken assetToken) {
-    final castingDevice = injector<CanvasDeviceBloc>()
-        .state
-        .lastSelectedActiveDeviceForKey(assetToken.displayKey);
+    final state = injector<CanvasDeviceBloc>().state;
+    final castingDevice = state.devices
+        .firstWhereOrNull((device) =>
+            state.canvasDeviceStatus[device.device.deviceId]?.artworks
+                .where((artwork) => artwork.token?.id == assetToken.id)
+                .isNotEmpty ??
+            false)
+        ?.device;
+    // injector<CanvasDeviceBloc>()
+    //     .state
+    //     .lastSelectedActiveDeviceForKey(assetToken.displayKey);
     final screenWidth = MediaQuery.of(context).size.width;
     return ColoredBox(
       color: AppColor.auGreyBackground,

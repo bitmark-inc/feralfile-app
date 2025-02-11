@@ -243,11 +243,19 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          device.advName.isNotEmpty
-                              ? device.advName
-                              : 'Unknown Device',
-                          style: theme.textTheme.ppMori700Black16,
+                        child: GestureDetector(
+                          onTap: () {
+                            injector<NavigationService>().navigateTo(
+                              AppRouter.bluetoothConnectedDeviceConfig,
+                              arguments: device,
+                            );
+                          },
+                          child: Text(
+                            device.advName.isNotEmpty
+                                ? device.advName
+                                : 'Unknown Device',
+                            style: theme.textTheme.ppMori700Black16,
+                          ),
                         ),
                       ),
                       const SizedBox(
