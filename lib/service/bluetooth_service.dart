@@ -4,16 +4,21 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
@@ -21,6 +26,11 @@ const displayingCommand = [
   CastCommand.castDaily,
   CastCommand.castListArtwork,
   CastCommand.castExhibition,
+];
+
+const updateDeviceStatusCommand = [
+  CastCommand.updateOrientation,
+  CastCommand.rotate,
 ];
 
 class FFBluetoothService {
@@ -48,6 +58,11 @@ class FFBluetoothService {
 
   // connected device
   FFBluetoothDevice? _castingBluetoothDevice;
+  ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
+      ValueNotifier(null);
+
+  ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus =>
+      _bluetoothDeviceStatus;
 
   set castingBluetoothDevice(BluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
@@ -55,6 +70,11 @@ class FFBluetoothService {
       name: device.advName,
     );
     _castingBluetoothDevice = ffdevice;
+    injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(ffdevice).then(
+      (value) {
+        _bluetoothDeviceStatus.value = value;
+      },
+    );
     BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
   }
 
@@ -65,7 +85,7 @@ class FFBluetoothService {
     final lastCastingBluetoothDevice =
         BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
     if (lastCastingBluetoothDevice != null) {
-      _castingBluetoothDevice = lastCastingBluetoothDevice;
+      castingBluetoothDevice = lastCastingBluetoothDevice;
     }
     return _castingBluetoothDevice;
   }
@@ -201,6 +221,14 @@ class FFBluetoothService {
           .any((element) => element == CastCommand.fromString(command))) {
         castingBluetoothDevice = device;
       }
+      if (updateDeviceStatusCommand
+          .any((element) => element == CastCommand.fromString(command))) {
+        injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(device).then(
+          (value) {
+            _bluetoothDeviceStatus.value = value;
+          },
+        );
+      }
       return res;
     } catch (e) {
       BluetoothNotificationService().unsubscribe(replyId, (data) {});
@@ -257,6 +285,11 @@ class FFBluetoothService {
       Sentry.captureException(e);
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
+    injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(device).then(
+      (value) {
+        _bluetoothDeviceStatus.value = value;
+      },
+    );
   }
 
   Future<void> connectToDevice(BluetoothDevice device,
@@ -513,6 +546,18 @@ class FFBluetoothService {
         return GetVersionReply(
           version: 'No response',
         );
+      case CastCommand.getBluetoothDeviceStatus:
+        return GetBluetoothDeviceStatusReply(
+          deviceStatus: BluetoothDeviceStatus(
+            version: 'No response',
+            ipAddress: 'No response',
+            connectedWifi: 'No response',
+            screenRotation: ScreenOrientation.portrait,
+            isConnectedToWifi: false,
+          ),
+        );
+      case CastCommand.updateArtFraming:
+        return UpdateArtFramingReply();
       default:
         throw ArgumentError('Unknown command: $commandString');
     }

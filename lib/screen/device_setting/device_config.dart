@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -37,12 +39,16 @@ enum ScreenOrientation {
   static ScreenOrientation fromString(String value) {
     switch (value) {
       case 'landscape':
+      case 'normal':
         return ScreenOrientation.landscape;
       case 'landscapeReverse':
+      case 'inverted':
         return ScreenOrientation.landscapeReverse;
       case 'portrait':
+      case 'left':
         return ScreenOrientation.portrait;
       case 'portraitReverse':
+      case 'right':
         return ScreenOrientation.portraitReverse;
       default:
         throw ArgumentError('Invalid screen orientation: $value');
@@ -129,6 +135,7 @@ class ConfigureDeviceState extends State<ConfigureDevice> {
   }
 
   Widget _displayOrientation(BuildContext context) {
+    final blDevice = widget.device!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -136,67 +143,64 @@ class ConfigureDeviceState extends State<ConfigureDevice> {
           'display_orientation'.tr(),
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
-        const SizedBox(height: 30),
-        SelectDeviceConfigView(selectedIndex: 0, items: [
-          DeviceConfigItem(
-            title: 'landscape'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/landscape.svg',
-            ),
-            iconOnUnselected: SvgPicture.asset(
-              'assets/images/landscape_inactive.svg',
-            ),
-            onSelected: () {
-              final device = widget.device.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateOrientation(device, ScreenOrientation.landscape);
-            },
-          ),
-          DeviceConfigItem(
-            title: 'landscape_flipped'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/landscape.svg',
-            ),
-            iconOnUnselected: SvgPicture.asset(
-              'assets/images/landscape_inactive.svg',
-            ),
-            onSelected: () {
-              final device = widget.device.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>().updateOrientation(
-                  device, ScreenOrientation.landscapeReverse);
-            },
-          ),
-          DeviceConfigItem(
-            title: 'portrait_left'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/portrait.svg',
-            ),
-            iconOnUnselected: SvgPicture.asset(
-              'assets/images/portrait_inactive.svg',
-            ),
-            onSelected: () {
-              final device = widget.device.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateOrientation(device, ScreenOrientation.portrait);
-            },
-          ),
-          DeviceConfigItem(
-            title: 'portrait_right'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/portrait.svg',
-            ),
-            iconOnUnselected: SvgPicture.asset(
-              'assets/images/portrait_inactive.svg',
-            ),
-            onSelected: () {
-              final device = widget.device.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateOrientation(device, ScreenOrientation.portraitReverse);
-            },
-          ),
-        ])
+        const SizedBox(height: 16),
+        _displayOrientationPreview(),
+        const SizedBox(height: 16),
+        PrimaryAsyncButton(
+          text: 'rotate'.tr(),
+          color: AppColor.white,
+          onTap: () async {
+            final device = blDevice.toFFBluetoothDevice();
+            await injector<CanvasClientServiceV2>().rotateCanvas(device);
+            // update orientation
+          },
+        )
       ],
     );
+  }
+
+  Widget _displayOrientationPreview() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColor.auGreyBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      height: 200,
+      child: Center(
+        child: _displayOrientationPreviewImage(),
+      ),
+    );
+  }
+
+  Widget _displayOrientationPreviewImage() {
+    return ValueListenableBuilder(
+        valueListenable: injector<FFBluetoothService>().bluetoothDeviceStatus,
+        builder: (context, BluetoothDeviceStatus? status, child) {
+          if (status == null) {
+            return const SizedBox.shrink();
+          }
+          final screenRotation = status.screenRotation;
+          switch (screenRotation) {
+            case ScreenOrientation.landscape:
+              return SvgPicture.asset('assets/images/landscape.svg',
+                  width: 150);
+            case ScreenOrientation.landscapeReverse:
+              return SvgPicture.asset(
+                'assets/images/landscape.svg',
+                width: 150,
+              );
+            case ScreenOrientation.portrait:
+              return SvgPicture.asset(
+                'assets/images/portrait.svg',
+                height: 150,
+              );
+            case ScreenOrientation.portraitReverse:
+              return SvgPicture.asset(
+                'assets/images/portrait.svg',
+                height: 150,
+              );
+          }
+        });
   }
 
   Widget _canvasSetting(BuildContext context) {

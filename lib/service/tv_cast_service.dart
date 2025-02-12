@@ -49,6 +49,10 @@ abstract class TvCastService {
     UpdateOrientationRequest request,
   );
 
+  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
+    GetBluetoothDeviceStatusRequest request,
+  );
+
   Future<UpdateArtFramingReply> updateArtFraming(
     UpdateArtFramingRequest request,
   );
@@ -172,6 +176,14 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _sendData(_getBody(request));
     return UpdateOrientationReply.fromJson(result);
+  }
+
+  @override
+  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
+    GetBluetoothDeviceStatusRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 
   @override

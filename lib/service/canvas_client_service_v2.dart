@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -338,7 +339,7 @@ class CanvasClientServiceV2 {
   // function to rotate canvas
   Future<void> rotateCanvas(
     BaseDevice device, {
-    bool clockwise = true,
+    bool clockwise = false,
   }) async {
     final stub = _getStub(device);
     final rotateCanvasRequest = RotateRequest(clockwise: clockwise);
@@ -372,6 +373,15 @@ class CanvasClientServiceV2 {
     final request = UpdateOrientationRequest(orientation: orientation);
     final response = await stub.updateOrientation(request);
     log.info('CanvasClientService: Update Orientation Success');
+  }
+
+  Future<BluetoothDeviceStatus> getBluetoothDeviceStatus(
+    BluetoothDevice device,
+  ) async {
+    final stub = _getBluetoothStub(device);
+    final request = GetBluetoothDeviceStatusRequest();
+    final response = await stub.getBluetoothDeviceStatus(request);
+    return response.deviceStatus;
   }
 
   Future<void> updateArtFraming(

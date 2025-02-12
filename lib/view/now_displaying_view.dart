@@ -80,7 +80,12 @@ class NowDisplayingManager {
           const Duration(seconds: 3);
       log.info('Update token in $duration');
       _timer = Timer(duration, () {
-        updateDisplayingNow();
+        final castingDevice =
+            injector<FFBluetoothService>().castingBluetoothDevice;
+        if (castingDevice == null) return;
+        injector<CanvasDeviceBloc>()
+            .add(CanvasDeviceGetStatusEvent(castingDevice));
+        // updateDisplayingNow();
       });
     } else {
       _timer?.cancel();

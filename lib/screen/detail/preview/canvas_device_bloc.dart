@@ -28,6 +28,12 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   final bool retry;
 }
 
+class CanvasDeviceGetStatusEvent extends CanvasDeviceEvent {
+  CanvasDeviceGetStatusEvent(this.device);
+
+  final BaseDevice device;
+}
+
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
   CanvasDeviceAppendDeviceEvent(this.device);
 
@@ -265,6 +271,29 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           emit(newState);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
+          unawaited(Sentry.captureException(e));
+          emit(state.copyWith());
+        }
+      },
+      // transformer: debounceSequential(
+      //   const Duration(seconds: 5),
+      // ),
+    );
+
+    on<CanvasDeviceGetStatusEvent>(
+      (event, emit) async {
+        try {
+          final status = await _canvasClientServiceV2.getDeviceCastingStatus(
+            event.device,
+          );
+          final newStatuses = state.canvasDeviceStatus
+            ..[event.device.deviceId] = status;
+          final newState = state.copyWith(
+            controllingDeviceStatus: newStatuses,
+          );
+          emit(newState);
+        } catch (e) {
+          log.info('CanvasDeviceBloc: error while get device status: $e');
           unawaited(Sentry.captureException(e));
           emit(state.copyWith());
         }

@@ -2,6 +2,7 @@
 
 // ignore_for_file: avoid_unused_constructor_parameters
 
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,7 @@ enum CastCommand {
   sendLog,
   getVersion,
   updateOrientation,
+  getBluetoothDeviceStatus,
   updateArtFraming,
   tapGesture,
   dragGesture,
@@ -60,6 +62,8 @@ enum CastCommand {
         return CastCommand.getVersion;
       case 'updateOrientation':
         return CastCommand.updateOrientation;
+      case 'getBluetoothDeviceStatus':
+        return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
         return CastCommand.updateArtFraming;
       case 'tapGesture':
@@ -103,6 +107,8 @@ enum CastCommand {
         return CastCommand.getVersion;
       case const (UpdateOrientationRequest):
         return CastCommand.updateOrientation;
+      case const (GetBluetoothDeviceStatusRequest):
+        return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
         return CastCommand.updateArtFraming;
       case const (SendLogRequest):
@@ -436,6 +442,7 @@ class CheckDeviceStatusReply extends Reply {
     this.connectedDevice,
     this.exhibitionId,
     this.catalogId,
+    this.catalog,
     this.displayKey,
   });
 
@@ -498,27 +505,30 @@ class CheckDeviceStatusReply extends Reply {
 
   factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
       CheckDeviceStatusReply(
-        artworks: json['artworks'] == null
-            ? []
-            : List<PlayArtworkV2>.from(
-                (json['artworks'] as List).map(
-                    (x) => PlayArtworkV2.fromJson(x as Map<String, dynamic>)),
-              ),
-        startTime: json['startTime'] as int?,
-        connectedDevice: json['connectedDevice'] != null
-            ? DeviceInfoV2.fromJson(
-                json['connectedDevice'] as Map<String, dynamic>,
-              )
-            : null,
-        exhibitionId: json['exhibitionId'] as String?,
-        catalogId: json['catalogId'] as String?,
-        displayKey: json['displayKey'] as String?,
-      );
+          artworks: json['artworks'] == null
+              ? []
+              : List<PlayArtworkV2>.from(
+                  (json['artworks'] as List).map(
+                      (x) => PlayArtworkV2.fromJson(x as Map<String, dynamic>)),
+                ),
+          startTime: json['startTime'] as int?,
+          connectedDevice: json['connectedDevice'] != null
+              ? DeviceInfoV2.fromJson(
+                  json['connectedDevice'] as Map<String, dynamic>,
+                )
+              : null,
+          exhibitionId: json['exhibitionId'] as String?,
+          catalogId: json['catalogId'] as String?,
+          catalog: json['catalog'] == null
+              ? null
+              : ExhibitionCatalog.values[json['catalog'] as int],
+          displayKey: json['displayKey'] as String?);
   List<PlayArtworkV2> artworks;
   int? startTime;
   DeviceInfoV2? connectedDevice;
   String? exhibitionId;
   String? catalogId;
+  ExhibitionCatalog? catalog;
   String? displayKey;
 
   @override
@@ -528,6 +538,7 @@ class CheckDeviceStatusReply extends Reply {
         'connectedDevice': connectedDevice?.toJson(),
         'exhibitionId': exhibitionId,
         'catalogId': catalogId,
+        'catalog': catalog?.index,
         'displayKey': displayKey,
       };
 }
@@ -876,6 +887,33 @@ class UpdateOrientationReply extends Reply {
 
   factory UpdateOrientationReply.fromJson(Map<String, dynamic> json) =>
       UpdateOrientationReply();
+}
+
+class GetBluetoothDeviceStatusRequest implements Request {
+  GetBluetoothDeviceStatusRequest();
+
+  factory GetBluetoothDeviceStatusRequest.fromJson(Map<String, dynamic> json) =>
+      GetBluetoothDeviceStatusRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class GetBluetoothDeviceStatusReply extends Reply {
+  GetBluetoothDeviceStatusReply({required this.deviceStatus});
+
+  factory GetBluetoothDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
+      GetBluetoothDeviceStatusReply(
+        deviceStatus: BluetoothDeviceStatus.fromJson(
+          json,
+        ),
+      );
+  final BluetoothDeviceStatus deviceStatus;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'deviceConfig': deviceStatus.toJson(),
+      };
 }
 
 enum ArtFraming {

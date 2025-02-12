@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -19,6 +21,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
   const BluetoothConnectedDeviceConfig({super.key, required this.device});
@@ -33,10 +36,23 @@ class BluetoothConnectedDeviceConfig extends StatefulWidget {
 class BluetoothConnectedDeviceConfigState
     extends State<BluetoothConnectedDeviceConfig>
     with RouteAware, WidgetsBindingObserver {
+  BluetoothDeviceStatus? status;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+    injector<FFBluetoothService>()
+        .bluetoothDeviceStatus
+        .addListener(_statusListener);
+  }
+
+  void _statusListener() {
+    final status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+    setState(() {
+      this.status = status;
+    });
   }
 
   @override
@@ -47,6 +63,9 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   void dispose() {
+    injector<FFBluetoothService>()
+        .bluetoothDeviceStatus
+        .removeListener(_statusListener);
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     super.dispose();
@@ -137,7 +156,7 @@ class BluetoothConnectedDeviceConfigState
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 40,
+              height: 20,
             ),
           ),
           SliverToBoxAdapter(
@@ -158,9 +177,41 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _displayOrientationPreview() {
     return Container(
+      decoration: BoxDecoration(
+        color: AppColor.auGreyBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
       height: 200,
-      color: Colors.red,
+      child: Center(
+        child: _displayOrientationPreviewImage(),
+      ),
     );
+  }
+
+  Widget _displayOrientationPreviewImage() {
+    if (status == null) {
+      return const SizedBox.shrink();
+    }
+    final screenRotation = status!.screenRotation;
+    switch (screenRotation) {
+      case ScreenOrientation.landscape:
+        return SvgPicture.asset('assets/images/landscape.svg', width: 150);
+      case ScreenOrientation.landscapeReverse:
+        return SvgPicture.asset(
+          'assets/images/landscape.svg',
+          width: 150,
+        );
+      case ScreenOrientation.portrait:
+        return SvgPicture.asset(
+          'assets/images/portrait.svg',
+          height: 150,
+        );
+      case ScreenOrientation.portraitReverse:
+        return SvgPicture.asset(
+          'assets/images/portrait.svg',
+          height: 150,
+        );
+    }
   }
 
   Widget _displayOrientation(BuildContext context) {
@@ -265,13 +316,15 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceInfo(BuildContext context) {
+    final version = status?.version;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'device_info'.tr(),
-          style: Theme.of(context).textTheme.ppMori400White14,
-        ),
+        if (version != null)
+          Text(
+            'v.' + version + ' - Up to date',
+            style: Theme.of(context).textTheme.ppMori400Grey14,
+          ),
         const SizedBox(height: 30),
       ],
     );
