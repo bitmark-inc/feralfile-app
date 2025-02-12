@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -348,24 +347,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   Widget _viewingArtworkWidget(BuildContext context,
       List<CompactedAssetToken> assetTokens, CheckDeviceStatusReply status) {
     return const NowDisplaying();
-    final currentIndex = status.currentArtworkIndex;
-    if (currentIndex == null) {
-      return const SizedBox();
-    }
-    final currentToken = assetTokens.elementAtOrNull(currentIndex);
-    if (currentToken == null) {
-      return const SizedBox();
-    }
-    return GestureDetector(
-      onTap: () async {
-        final payload = NowDisplayingPagePayload(
-          artworkIdentity: ArtworkIdentity(currentToken.id, currentToken.owner),
-        );
-        const pageName = AppRouter.nowDisplayingPage;
-        await Navigator.of(context).pushNamed(pageName, arguments: payload);
-      },
-      child: NowDisplayingView(currentToken),
-    );
   }
 
   Widget _assetsWidget(

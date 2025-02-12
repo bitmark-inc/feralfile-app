@@ -18,27 +18,10 @@ class BluetoothDeviceHelper {
   }
 
   static Future<void> addDevice(
-    FFBluetoothDevice device, {
-    bool override = false,
-  }) async {
-    try {
-      final isSaved = isDeviceSaved(device);
-      if (isSaved && !override) {
-        return;
-      } else if (isSaved && override) {
-        final devices = _pairedDevicesBox.getAll();
-        final dupObjIds = devices
-            .where((element) => element.deviceId == device.deviceId)
-            .map((e) => e.objId)
-            .toList();
-        await _pairedDevicesBox.removeManyAsync(dupObjIds);
-        await _pairedDevicesBox.putAsync(device);
-      } else {
-        await _pairedDevicesBox.putAsync(device);
-      }
-    } catch (e) {
-      log.info('Error adding device $e');
-    }
+    FFBluetoothDevice device,
+  ) async {
+    await _pairedDevicesBox.removeAllAsync();
+    await _pairedDevicesBox.putAsync(device);
   }
 
   static Future<void> removeDevice(String remoteId) async {

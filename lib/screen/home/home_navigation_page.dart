@@ -26,7 +26,6 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -47,6 +46,7 @@ import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -152,7 +152,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       await UIHelper.showCenterMenu(
         context,
         options: [
-          if (injector<AuthService>().isBetaTester())
+          if (kDebugMode)
             OptionItem(
               title: 'FF-X1 Pilot',
               icon: const Icon(

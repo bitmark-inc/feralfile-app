@@ -480,10 +480,13 @@ class CheckDeviceStatusReply extends Reply {
       0,
       (previousValue, element) => previousValue + element.duration,
     );
+    if (durationSum == 0) {
+      return null;
+    }
     final duration = now - startTime!;
     int currentDuration = duration % durationSum;
 
-    for (var artwork in artworks) {
+    for (final artwork in artworks) {
       if (currentDuration < artwork.duration) {
         return Duration(milliseconds: artwork.duration - currentDuration);
       }
