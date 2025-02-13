@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 
 class BluetoothDeviceStatus {
@@ -6,6 +7,7 @@ class BluetoothDeviceStatus {
   final String? connectedWifi;
   final ScreenOrientation screenRotation;
   final bool isConnectedToWifi;
+  final ArtFraming artFraming;
 
   BluetoothDeviceStatus({
     required this.version,
@@ -13,7 +15,8 @@ class BluetoothDeviceStatus {
     this.connectedWifi,
     this.isConnectedToWifi = false,
     required this.screenRotation,
-  });
+    ArtFraming? artFraming,
+  }) : artFraming = artFraming ?? ArtFraming.fitToScreen;
 
   Map<String, dynamic> toJson() {
     return {
@@ -21,6 +24,8 @@ class BluetoothDeviceStatus {
       'ipAddress': ipAddress,
       'connectedWifi': connectedWifi,
       'screenRotation': screenRotation.name,
+      'isConnectedToWifi': isConnectedToWifi,
+      'artFraming': artFraming?.value,
     };
   }
 
@@ -32,6 +37,9 @@ class BluetoothDeviceStatus {
       isConnectedToWifi: json['isConnectedToWifi'] as bool? ?? false,
       screenRotation:
           ScreenOrientation.fromString(json['screenRotation'] as String),
+      artFraming: json['artFraming'] == null
+          ? null
+          : ArtFraming.fromValue(json['artFraming'] as int),
     );
   }
 }

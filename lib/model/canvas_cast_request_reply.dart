@@ -24,6 +24,7 @@ enum CastCommand {
   updateOrientation,
   getBluetoothDeviceStatus,
   updateArtFraming,
+  setTimezone,
   tapGesture,
   dragGesture,
   castDaily;
@@ -66,6 +67,8 @@ enum CastCommand {
         return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
         return CastCommand.updateArtFraming;
+      case 'setTimezone':
+        return CastCommand.setTimezone;
       case 'tapGesture':
         return CastCommand.tapGesture;
       case 'dragGesture':
@@ -111,6 +114,8 @@ enum CastCommand {
         return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
         return CastCommand.updateArtFraming;
+      case const (SetTimezoneRequest):
+        return CastCommand.setTimezone;
       case const (SendLogRequest):
         return CastCommand.sendLog;
       case const (TapGestureRequest):
@@ -794,16 +799,18 @@ class RotateReply extends Reply {
 }
 
 class SendLogRequest implements Request {
-  SendLogRequest({required this.userId});
+  SendLogRequest({required this.userId, required this.title});
 
   final String userId;
+  final String? title;
 
-  factory SendLogRequest.fromJson(Map<String, dynamic> json) =>
-      SendLogRequest(userId: json['userId'] as String);
+  factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
+      userId: json['userId'] as String, title: json['title'] as String?);
 
   @override
   Map<String, dynamic> toJson() => {
         'userId': userId,
+        'title': title,
       };
 }
 
@@ -911,9 +918,29 @@ class GetBluetoothDeviceStatusReply extends Reply {
   final BluetoothDeviceStatus deviceStatus;
 
   @override
+  Map<String, dynamic> toJson() => deviceStatus.toJson();
+}
+
+class SetTimezoneRequest implements Request {
+  SetTimezoneRequest({required this.timezone});
+
+  factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
+      SetTimezoneRequest(
+        timezone: json['timeZone'] as String,
+      );
+  final String timezone;
+
+  @override
   Map<String, dynamic> toJson() => {
-        'deviceConfig': deviceStatus.toJson(),
+        'timezone': timezone,
       };
+}
+
+class SetTimezoneReply extends Reply {
+  SetTimezoneReply();
+
+  factory SetTimezoneReply.fromJson(Map<String, dynamic> json) =>
+      SetTimezoneReply();
 }
 
 enum ArtFraming {

@@ -42,6 +42,7 @@ class BluetoothConnectedDeviceConfigState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
     status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
     injector<FFBluetoothService>()
         .bluetoothDeviceStatus
@@ -241,6 +242,8 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _canvasSetting(BuildContext context) {
     final blDevice = widget.device!;
+    final defaultArtFramingIndex =
+        (status?.artFraming == ArtFraming.cropToFill) ? 1 : 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -249,7 +252,7 @@ class BluetoothConnectedDeviceConfigState
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
         const SizedBox(height: 30),
-        SelectDeviceConfigView(selectedIndex: 0, items: [
+        SelectDeviceConfigView(selectedIndex: defaultArtFramingIndex, items: [
           DeviceConfigItem(
             title: 'fit'.tr(),
             icon: Image.asset('assets/images/fit.png', width: 100, height: 100),

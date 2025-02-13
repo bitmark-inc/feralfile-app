@@ -154,6 +154,10 @@ abstract class ConfigurationService {
   Future<void> saveLastConnectedDevice(FFBluetoothDevice device);
 
   FFBluetoothDevice? getLastConnectedDevice();
+
+  bool isBetaTester();
+
+  Future<void> setBetaTester(bool value);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -237,6 +241,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_REFERRAL_CODE = 'referral_code';
 
   static const String LAST_CONNECTED_DEVICE = 'last_connected_device';
+
+  static const String KEY_BETA_TESTER = 'beta_tester';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -608,6 +614,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> saveLastConnectedDevice(FFBluetoothDevice device) {
     final deviceJson = jsonEncode(device.toJson());
     return _preferences.setString(LAST_CONNECTED_DEVICE, deviceJson);
+  }
+
+  @override
+  bool isBetaTester() {
+    return _preferences.getBool(KEY_BETA_TESTER) ?? false;
+  }
+
+  @override
+  Future<void> setBetaTester(bool value) {
+    return _preferences.setBool(KEY_BETA_TESTER, value);
   }
 }
 

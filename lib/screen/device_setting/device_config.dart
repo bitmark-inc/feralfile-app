@@ -281,6 +281,12 @@ class SelectItemState extends State<SelectDeviceConfigView> {
   }
 
   @override
+  void didUpdateWidget(covariant SelectDeviceConfigView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _selectedIndex = widget.selectedIndex;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),

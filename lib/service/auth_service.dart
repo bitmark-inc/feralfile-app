@@ -71,6 +71,11 @@ class AuthService {
   bool isBetaTester() {
     if (kDebugMode) return true;
     try {
+      final isBetaTesterFromLocalConfig =
+          injector<ConfigurationService>().isBetaTester();
+      if (isBetaTesterFromLocalConfig) {
+        return true;
+      }
       final betaTester = injector<RemoteConfigService>()
           .getConfig<List<dynamic>>(ConfigGroup.tester, ConfigKey.betaTester,
               <String>[]).cast<String>();

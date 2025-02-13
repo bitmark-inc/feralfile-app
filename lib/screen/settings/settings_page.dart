@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -134,18 +135,19 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               Column(
                 children: [
-                  _settingItem(
-                    title: 'Portal (FF-X1) Alpha Pilot',
-                    icon: const Icon(AuIcon.add),
-                    onTap: () async {
-                      final connectedDevice =
-                          await injector<FFBluetoothService>()
-                              .castingBluetoothDevice;
-                      await Navigator.of(context).pushNamed(
-                          AppRouter.bluetoothConnectedDeviceConfig,
-                          arguments: connectedDevice);
-                    },
-                  ),
+                  if (injector<AuthService>().isBetaTester())
+                    _settingItem(
+                      title: 'Portal (FF-X1) Alpha Pilot',
+                      icon: const Icon(AuIcon.add),
+                      onTap: () async {
+                        final connectedDevice =
+                            await injector<FFBluetoothService>()
+                                .castingBluetoothDevice;
+                        await Navigator.of(context).pushNamed(
+                            AppRouter.bluetoothConnectedDeviceConfig,
+                            arguments: connectedDevice);
+                      },
+                    ),
                   addOnlyDivider(),
                   _settingItem(
                     title: 'preferences'.tr(),

@@ -213,6 +213,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     BluetoothDevice? resultDevice;
     await injector<FFBluetoothService>().startScan(
         timeout: Duration(seconds: 5),
+        forceScan: true,
         onData: (results) {
           final devices = results.map((e) => e.device).toList();
           final device = devices
@@ -225,6 +226,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         });
 
     if (resultDevice != null) {
+      await injector<ConfigurationService>().setBetaTester(true);
       await injector<NavigationService>().navigateTo(
           AppRouter.bluetoothDevicePortalPage,
           arguments: resultDevice);
