@@ -166,7 +166,7 @@ class FFBluetoothService {
     );
 
     final bytes = _buildCommandMessage(command, request, replyId);
-    final chunks = _prepareChunks(bytes);
+    final chunks = _prepareChunks(device, bytes);
 
     return _sendChunksAndWaitForResponse(
       device: device,
@@ -223,11 +223,11 @@ class FFBluetoothService {
       ..add(replyIdBytes);
   }
 
-  List<List<int>> _prepareChunks(BytesBuilder bytesBuilder) {
+  List<List<int>> _prepareChunks(
+      BluetoothDevice device, BytesBuilder bytesBuilder) {
     const maxChunks = 10;
     const chunkHeaderSize = 12;
-    const maxChunkPayloadSize = 512 - chunkHeaderSize;
-
+    final maxChunkPayloadSize = _getMaxPayloadSize(device) - chunkHeaderSize;
     final chunks =
         _splitIntoChunks(bytesBuilder.takeBytes(), maxChunkPayloadSize);
     if (chunks.length > maxChunks) {
@@ -705,5 +705,11 @@ class FFBluetoothService {
       chunks.add(data.sublist(i, end));
     }
     return chunks;
+  }
+
+  int _getMaxPayloadSize(BluetoothDevice device) {
+    // ATT protocol overhead
+    const attOverhead = 3;
+    return device.mtuNow - attOverhead;
   }
 }
