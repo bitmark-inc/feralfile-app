@@ -478,6 +478,7 @@ class FFBluetoothService {
         },
       );
     }
+
     if (device.isDisconnected) {
       _connectCompleter = Completer<void>();
 
@@ -547,12 +548,15 @@ class FFBluetoothService {
 
     if (commandCharacteristic == null) {
       log.warning('Command characteristic not found');
+      _connectCompleter?.completeError('Command characteristic not found');
       return;
     }
 
     log.info('Command char properties: ${commandCharacteristic.properties}');
     if (!commandCharacteristic.properties.notify) {
       log.warning('Command characteristic does not support notifications!');
+      _connectCompleter?.completeError(
+          'Command characteristic does not support notifications');
       return;
     }
 
@@ -562,6 +566,7 @@ class FFBluetoothService {
     } catch (e) {
       log.warning('Failed to enable notifications for command char: $e');
       Sentry.captureException(e);
+      _connectCompleter?.completeError(e);
       return;
     }
     if (_commandCharSub != null) {
