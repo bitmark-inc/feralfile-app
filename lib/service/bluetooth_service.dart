@@ -286,7 +286,8 @@ class FFBluetoothService {
 
       if (updateDeviceStatusCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
+        // ignore: unawaited_futures
+        fetchBluetoothDeviceStatus(device);
       }
 
       return res;
