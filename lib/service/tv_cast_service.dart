@@ -57,6 +57,8 @@ abstract class TvCastService {
     UpdateArtFramingRequest request,
   );
 
+  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request);
+
   Future<CastExhibitionReply> castExhibition(CastExhibitionRequest request);
 
   Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request);
@@ -192,6 +194,12 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _sendData(_getBody(request));
     return UpdateArtFramingReply.fromJson(result);
+  }
+
+  @override
+  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return SetTimezoneReply.fromJson(result);
   }
 
   @override

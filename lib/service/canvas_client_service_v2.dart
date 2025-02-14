@@ -351,10 +351,10 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<void> sendLog(BaseDevice device) async {
+  Future<void> sendLog(BaseDevice device, String? title) async {
     final stub = _getStub(device);
     final user = injector<AuthService>().getUserId();
-    final request = SendLogRequest(userId: user ?? '');
+    final request = SendLogRequest(userId: user ?? '', title: title);
     final response = await stub.getSupport(request);
     log.info('CanvasClientService: Get Support Success ${response.ok}');
   }
@@ -390,6 +390,13 @@ class CanvasClientServiceV2 {
     final request = UpdateArtFramingRequest(artFraming: artFraming);
     final response = await stub.updateArtFraming(request);
     log.info('CanvasClientService: Update Art Framing Success');
+  }
+
+  Future<void> setTimezone(BaseDevice device, String timezone) async {
+    final stub = _getStub(device);
+    final request = SetTimezoneRequest(timezone: timezone);
+    final response = await stub.setTimezone(request);
+    log.info('CanvasClientService: Set Timezone Success');
   }
 
   Future<void> tap(List<BaseDevice> devices) async {

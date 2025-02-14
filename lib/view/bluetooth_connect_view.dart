@@ -464,7 +464,9 @@ class _BluetoothConnectWidgetState extends State<BluetoothConnectWidget>
     try {
       final ffDevice = FFBluetoothDevice.fromBluetoothDevice(device);
       bool isSuceess = false;
-      await injector<CanvasClientServiceV2>().sendLog(ffDevice).then((value) {
+      await injector<CanvasClientServiceV2>()
+          .sendLog(ffDevice, null)
+          .then((value) {
         isSuceess = true;
       }).timeout(
         const Duration(seconds: 3),

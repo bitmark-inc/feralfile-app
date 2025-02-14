@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
@@ -31,6 +30,7 @@ const displayingCommand = [
 const updateDeviceStatusCommand = [
   CastCommand.updateOrientation,
   CastCommand.rotate,
+  CastCommand.updateArtFraming,
 ];
 
 class FFBluetoothService {
@@ -61,8 +61,13 @@ class FFBluetoothService {
   ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
       ValueNotifier(null);
 
-  ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus =>
-      _bluetoothDeviceStatus;
+  ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
+    if (_bluetoothDeviceStatus.value == null &&
+        castingBluetoothDevice != null) {
+      fetchBluetoothDeviceStatus(castingBluetoothDevice!.toFFBluetoothDevice());
+    }
+    return _bluetoothDeviceStatus;
+  }
 
   set castingBluetoothDevice(BluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
@@ -70,11 +75,7 @@ class FFBluetoothService {
       name: device.advName,
     );
     _castingBluetoothDevice = ffdevice;
-    injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(ffdevice).then(
-      (value) {
-        _bluetoothDeviceStatus.value = value;
-      },
-    );
+    fetchBluetoothDeviceStatus(ffdevice);
     BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
   }
 
@@ -86,6 +87,8 @@ class FFBluetoothService {
         BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
     if (lastCastingBluetoothDevice != null) {
       castingBluetoothDevice = lastCastingBluetoothDevice;
+    } else {
+      _castingBluetoothDevice = BluetoothDeviceHelper.pairedDevices.firstOrNull;
     }
     return _castingBluetoothDevice;
   }
@@ -283,12 +286,7 @@ class FFBluetoothService {
 
       if (updateDeviceStatusCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        // ignore: unawaited_futures
-        injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(device).then(
-          (value) {
-            _bluetoothDeviceStatus.value = value;
-          },
-        );
+        fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
       }
 
       return res;
@@ -420,11 +418,7 @@ class FFBluetoothService {
       Sentry.captureException(e);
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
-    injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(device).then(
-      (value) {
-        _bluetoothDeviceStatus.value = value;
-      },
-    );
+    fetchBluetoothDeviceStatus(device);
   }
 
   Future<void> connectToDevice(BluetoothDevice device,
@@ -533,8 +527,9 @@ class FFBluetoothService {
     Duration timeout = const Duration(seconds: 30),
     FutureOr<bool> Function(List<ScanResult>)? onData,
     FutureOr<void> Function(dynamic)? onError,
+    bool forceScan = false,
   }) async {
-    if (!injector<AuthService>().isBetaTester()) {
+    if (!injector<AuthService>().isBetaTester() && !forceScan) {
       return;
     }
     StreamSubscription<List<ScanResult>>? scanSubscription;
@@ -696,6 +691,15 @@ class FFBluetoothService {
       default:
         throw ArgumentError('Unknown command: $commandString');
     }
+  }
+
+  Future<BluetoothDeviceStatus> fetchBluetoothDeviceStatus(
+    BluetoothDevice device,
+  ) async {
+    final res = await injector<CanvasClientServiceV2>()
+        .getBluetoothDeviceStatus(device.toFFBluetoothDevice());
+    _bluetoothDeviceStatus.value = res;
+    return res;
   }
 
   List<List<int>> _splitIntoChunks(List<int> data, int chunkSize) {
