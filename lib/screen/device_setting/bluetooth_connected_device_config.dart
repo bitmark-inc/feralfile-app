@@ -320,14 +320,46 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _deviceInfo(BuildContext context) {
     final version = status?.version;
+    final installedVersion = status?.installedVersion ?? version;
+    final latestVersion = status?.latestVersion;
+    final isUpToDate =
+        installedVersion == latestVersion || latestVersion == null;
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (version != null)
-          Text(
-            'v.' + version + ' - Up to date',
-            style: Theme.of(context).textTheme.ppMori400Grey14,
+        if (installedVersion != null)
+          RichText(
+              text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'v.$installedVersion',
+                style: theme.textTheme.ppMori400Grey14,
+              ),
+              if (isUpToDate)
+                TextSpan(
+                  text: ' - Up to date',
+                  style: theme.textTheme.ppMori400Grey14,
+                )
+              else
+                TextSpan(
+                  text: ' - Update available',
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+            ],
+          )),
+        if (!isUpToDate && latestVersion != null) ...[
+          const SizedBox(height: 16),
+          PrimaryAsyncButton(
+            text: 'Update to latest version v.$latestVersion',
+            color: AppColor.white,
+            onTap: () async {
+              final device = widget.device!.toFFBluetoothDevice();
+              await injector<CanvasClientServiceV2>()
+                  .updateToLatestVersion(device);
+            },
           ),
+        ],
         const SizedBox(height: 30),
       ],
     );

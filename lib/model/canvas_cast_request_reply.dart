@@ -25,6 +25,7 @@ enum CastCommand {
   getBluetoothDeviceStatus,
   updateArtFraming,
   setTimezone,
+  updateToLatestVersion,
   tapGesture,
   dragGesture,
   castDaily;
@@ -69,6 +70,8 @@ enum CastCommand {
         return CastCommand.updateArtFraming;
       case 'setTimezone':
         return CastCommand.setTimezone;
+      case 'updateToLatestVersion':
+        return CastCommand.updateToLatestVersion;
       case 'tapGesture':
         return CastCommand.tapGesture;
       case 'dragGesture':
@@ -116,6 +119,8 @@ enum CastCommand {
         return CastCommand.updateArtFraming;
       case const (SetTimezoneRequest):
         return CastCommand.setTimezone;
+      case const (UpdateToLatestVersionRequest):
+        return CastCommand.updateToLatestVersion;
       case const (SendLogRequest):
         return CastCommand.sendLog;
       case const (TapGestureRequest):
@@ -941,6 +946,23 @@ class SetTimezoneReply extends Reply {
 
   factory SetTimezoneReply.fromJson(Map<String, dynamic> json) =>
       SetTimezoneReply();
+}
+
+class UpdateToLatestVersionRequest implements Request {
+  UpdateToLatestVersionRequest();
+
+  factory UpdateToLatestVersionRequest.fromJson(Map<String, dynamic> json) =>
+      UpdateToLatestVersionRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class UpdateToLatestVersionReply extends Reply {
+  UpdateToLatestVersionReply();
+
+  factory UpdateToLatestVersionReply.fromJson(Map<String, dynamic> json) =>
+      UpdateToLatestVersionReply();
 }
 
 enum ArtFraming {

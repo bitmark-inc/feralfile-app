@@ -13,9 +13,6 @@ class BluetoothConnectBloc
     extends AuBloc<BluetoothConnectEvent, BluetoothConnectState> {
   BluetoothConnectBloc() : super(BluetoothConnectState()) {
     on<BluetoothConnectEventScan>((event, emit) async {
-      if (!injector<AuthService>().isBetaTester()) {
-        return;
-      }
       emit(state.copyWith(isScanning: true));
       StreamSubscription<List<ScanResult>>? scanSubscription;
 
@@ -89,9 +86,6 @@ class BluetoothConnectBloc
     });
 
     on<BluetoothConnectEventUpdateBluetoothState>((event, emit) async {
-      if (!injector<AuthService>().isBetaTester()) {
-        return;
-      }
       emit(state.copyWith(bluetoothAdapterState: event.bluetoothAdapterState));
       switch (event.bluetoothAdapterState) {
         case BluetoothAdapterState.on:
@@ -138,7 +132,8 @@ class BluetoothConnectBloc
 
   @override
   void add(BluetoothConnectEvent event) {
-    if (injector<AuthService>().isBetaTester()) {
+    if (injector<AuthService>().isBetaTester() ||
+        eventNotBetaTester.contains(event.runtimeType)) {
       super.add(event);
     } else {
       log.info(
@@ -156,3 +151,7 @@ class BluetoothConnectBloc
 //   });
 // }
 }
+
+const eventNotBetaTester = [
+  BluetoothConnectEventUpdateBluetoothState,
+];

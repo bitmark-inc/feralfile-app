@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -31,6 +32,7 @@ const updateDeviceStatusCommand = [
   CastCommand.updateOrientation,
   CastCommand.rotate,
   CastCommand.updateArtFraming,
+  CastCommand.updateToLatestVersion,
 ];
 
 class FFBluetoothService {
@@ -144,6 +146,7 @@ class FFBluetoothService {
     required BluetoothDevice device,
     required String command,
     required Map<String, dynamic> request,
+    Duration? timeout,
   }) async {
     log.info(
         '[sendCommand] Sending command: $command to device: ${device.remoteId.str}');
@@ -372,6 +375,39 @@ class FFBluetoothService {
       ..add(chunk);
   }
 
+  String getTimeZone() {
+    String timezone = (Platform.isAndroid)
+        ? _getAndroidTimezone()
+        : (Platform.isIOS)
+            ? _getIOSTimezone()
+            : "";
+    return timezone;
+  }
+
+  static String _getAndroidTimezone() {
+    try {
+      final result = Process.runSync("getprop", ["persist.sys.timezone"]);
+      return result.stdout.toString().trim();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  static String _getIOSTimezone() {
+    try {
+      final result = Process.runSync("systemsetup", ["-gettimezone"]);
+      return result.stdout.toString().trim().replaceAll("Time Zone: ", "");
+    } catch (e) {
+      return "";
+    }
+  }
+
+  Future<void> setTimezone(BluetoothDevice device) async {
+    final timezone = getTimeZone();
+    await injector<CanvasClientServiceV2>()
+        .setTimezone(device.toFFBluetoothDevice(), timezone);
+  }
+
   Future<void> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
@@ -390,6 +426,11 @@ class FFBluetoothService {
     if (wifiConnectChar == null) {
       log.warning('Wi-Fi connect characteristic not found');
       return;
+    }
+    try {
+      await setTimezone(device);
+    } catch (e) {
+      log.warning('Failed to set timezone: $e');
     }
 
     // Convert SSID and password to ASCII bytes
@@ -422,11 +463,23 @@ class FFBluetoothService {
     fetchBluetoothDeviceStatus(device);
   }
 
+  Completer<void>? _connectCompleter;
+
   Future<void> connectToDevice(BluetoothDevice device,
       {bool shouldUpdateConnectedDevice = false}) async {
     List<BluetoothService> services = [];
+    if (_connectCompleter != null) {
+      log.info('Already connecting to device: ${device.remoteId.str}');
+      return _connectCompleter?.future.timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          log.warning('Connection timeout');
+          return;
+        },
+      );
+    }
     if (device.isDisconnected) {
-      final connectCompleter = Completer<void>();
+      _connectCompleter = Completer<void>();
 
       log.info('Connecting to device: ${device.remoteId.str}');
       final subscription = device.connectionState.listen((state) {
@@ -434,7 +487,8 @@ class FFBluetoothService {
           'Connection state update for ${device.remoteId.str}: ${state.name}',
         );
         if (state == BluetoothConnectionState.connected) {
-          connectCompleter.complete();
+          _connectCompleter?.complete();
+          _connectCompleter = null;
         }
         if (state == BluetoothConnectionState.disconnected) {
           log.warning('Device disconnected reason: ${device.disconnectReason}');
@@ -450,13 +504,14 @@ class FFBluetoothService {
         rethrow;
       }
 
-      await connectCompleter.future.timeout(
+      await _connectCompleter?.future.timeout(
         const Duration(seconds: 3),
         onTimeout: () {
           log.warning('Connection timeout');
           return;
         },
       );
+      _connectCompleter = null;
 
       // Discover services
       // Note: You must call discoverServices after every re-connection!
@@ -509,7 +564,10 @@ class FFBluetoothService {
       Sentry.captureException(e);
       return;
     }
-
+    if (_commandCharSub != null) {
+      await _commandCharSub?.cancel();
+    }
+    log.info('Subscribing to command char notifications');
     final commandCharSub = commandCharacteristic.onValueReceived.listen(
       (value) {
         log.info('Received data from command characteristic: $value');

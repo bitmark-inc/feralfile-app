@@ -8,6 +8,8 @@ class BluetoothDeviceStatus {
   final ScreenOrientation screenRotation;
   final bool isConnectedToWifi;
   final ArtFraming artFraming;
+  final String? installedVersion;
+  final String? latestVersion;
 
   BluetoothDeviceStatus({
     required this.version,
@@ -16,6 +18,8 @@ class BluetoothDeviceStatus {
     this.isConnectedToWifi = false,
     required this.screenRotation,
     ArtFraming? artFraming,
+    this.installedVersion,
+    this.latestVersion,
   }) : artFraming = artFraming ?? ArtFraming.fitToScreen;
 
   Map<String, dynamic> toJson() {
@@ -25,7 +29,9 @@ class BluetoothDeviceStatus {
       'connectedWifi': connectedWifi,
       'screenRotation': screenRotation.name,
       'isConnectedToWifi': isConnectedToWifi,
-      'artFraming': artFraming?.value,
+      'artFraming': artFraming.value,
+      'installedVersion': installedVersion,
+      'latestVersion': latestVersion,
     };
   }
 
@@ -40,6 +46,8 @@ class BluetoothDeviceStatus {
       artFraming: json['artFraming'] == null
           ? null
           : ArtFraming.fromValue(json['artFraming'] as int),
+      installedVersion: json['installedVersion'] as String?,
+      latestVersion: json['latestVersion'] as String?,
     );
   }
 }

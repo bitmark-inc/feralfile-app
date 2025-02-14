@@ -19,13 +19,11 @@ import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/check_bluetooth_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
@@ -38,7 +36,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -139,7 +136,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           unawaited(_navigationService.showUnknownLink());
       }
       _deepLinkHandlingMap.remove(link);
-      if (handlerType != DeepLinkHandlerType.branch) {
+      if (handlerType != DeepLinkHandlerType.branch &&
+          handlerType != DeepLinkHandlerType.bluetoothConnect) {
         onFinished?.call();
       }
     });
@@ -201,41 +199,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
           '[DeeplinkService] _handleBluetoothConnectDeeplink prefix not found');
       return;
     }
-    final data = link.replaceFirst(prefix, '').split('/');
-    if (data.length < 2) {
-      log.info(
-          '[DeeplinkService] _handleBluetoothConnectDeeplink data wrong format');
-      return;
-    }
-
-    final deviceName = data[1];
-
-    BluetoothDevice? resultDevice;
-    await injector<FFBluetoothService>().startScan(
-        timeout: Duration(seconds: 5),
-        forceScan: true,
-        onData: (results) {
-          final devices = results.map((e) => e.device).toList();
-          final device = devices
-              .firstWhereOrNull((element) => element.advName == deviceName);
-          if (device != null) {
-            resultDevice = device;
-            return true;
-          }
-          return false;
-        });
-
-    if (resultDevice != null) {
-      await injector<ConfigurationService>().setBetaTester(true);
-      await injector<NavigationService>().navigateTo(
-          AppRouter.bluetoothDevicePortalPage,
-          arguments: resultDevice);
-      await BluetoothDeviceHelper.addDevice(
-          resultDevice!.toFFBluetoothDevice());
-      injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-
-      onFinish?.call(resultDevice);
-    }
+    injector<NavigationService>().navigateTo(
+      AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
+      arguments: HandleBluetoothDeviceScanDeeplinkScreenPayload(
+        deeplink: link,
+        onFinish: onFinish,
+      ),
+    );
   }
 
   Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {

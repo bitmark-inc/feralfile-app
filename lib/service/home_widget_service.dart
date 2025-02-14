@@ -101,8 +101,9 @@ class HomeWidgetService {
   Future<Map<String, String>?> _formatDailyTokenData(
       DailyToken dailyToken) async {
     try {
-      final assetTokens = await injector<IndexerService>()
-          .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
+      final assetTokens = await injector<IndexerService>().getNftTokens(
+          QueryListTokensRequest(
+              ids: [dailyToken.indexId], burnedIncluded: true));
       if (assetTokens.isEmpty) {
         log.info(
             'No asset tokens found for daily token: ${dailyToken.indexId}');

@@ -59,6 +59,10 @@ abstract class TvCastService {
 
   Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request);
 
+  Future<UpdateToLatestVersionReply> updateToLatestVersion(
+    UpdateToLatestVersionRequest request,
+  );
+
   Future<CastExhibitionReply> castExhibition(CastExhibitionRequest request);
 
   Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request);
@@ -74,6 +78,7 @@ abstract class BaseTvCastService implements TvCastService {
   Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
+    Duration? timeout,
   });
 
   Map<String, dynamic> _getBody(Request request) =>
@@ -184,7 +189,8 @@ abstract class BaseTvCastService implements TvCastService {
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   ) async {
-    final result = await _sendData(_getBody(request));
+    final result =
+        await _sendData(_getBody(request), timeout: Duration(seconds: 10));
     return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 
@@ -200,6 +206,15 @@ abstract class BaseTvCastService implements TvCastService {
   Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request) async {
     final result = await _sendData(_getBody(request));
     return SetTimezoneReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateToLatestVersionReply> updateToLatestVersion(
+    UpdateToLatestVersionRequest request,
+  ) async {
+    final result =
+        await _sendData(_getBody(request), timeout: Duration(seconds: 10));
+    return UpdateToLatestVersionReply.fromJson(result);
   }
 
   @override
@@ -272,6 +287,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
+    Duration? timeout,
   }) async {
     try {
       final result = await _api.request(
@@ -299,6 +315,7 @@ class BluetoothCastService extends BaseTvCastService {
   Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
+    Duration? timeout,
   }) async {
     final command = body['command'] as String;
     final request = Map<String, dynamic>.from(body['request'] as Map);
@@ -308,8 +325,11 @@ class BluetoothCastService extends BaseTvCastService {
         throw Exception('Device not connected after reconnection');
       }
 
-      final res = await injector<FFBluetoothService>()
-          .sendCommand(device: _device, command: command, request: request);
+      final res = await injector<FFBluetoothService>().sendCommand(
+          device: _device,
+          command: command,
+          request: request,
+          timeout: timeout);
       log.info('[BluetoothCastService] sendCommand $command');
       return res;
     } catch (e) {

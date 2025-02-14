@@ -389,14 +389,23 @@ class CanvasClientServiceV2 {
     final stub = _getStub(device);
     final request = UpdateArtFramingRequest(artFraming: artFraming);
     final response = await stub.updateArtFraming(request);
-    log.info('CanvasClientService: Update Art Framing Success');
+    log.info(
+        'CanvasClientService: Update Art Framing Success: response $response');
   }
 
   Future<void> setTimezone(BaseDevice device, String timezone) async {
     final stub = _getStub(device);
     final request = SetTimezoneRequest(timezone: timezone);
     final response = await stub.setTimezone(request);
-    log.info('CanvasClientService: Set Timezone Success');
+    log.info('CanvasClientService: Set Timezone Success: response $response');
+  }
+
+  Future<void> updateToLatestVersion(BaseDevice device) async {
+    final stub = _getStub(device);
+    final request = UpdateToLatestVersionRequest();
+    final response = await stub.updateToLatestVersion(request);
+    log.info(
+        'CanvasClientService: Update To Latest Version Success: response ${response.toJson()}');
   }
 
   Future<void> tap(List<BaseDevice> devices) async {
