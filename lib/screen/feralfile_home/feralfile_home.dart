@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/explore_statistics_data.dart';
@@ -144,8 +146,11 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
               ),
             )
             .toList();
-        _canvasDeviceBloc
-            .add(CanvasDeviceChangeControlDeviceEvent(device, listPlayArtwork));
+        final completer = Completer<void>();
+        _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+            device, listPlayArtwork,
+            completer: completer));
+        await completer.future;
       },
     );
   }

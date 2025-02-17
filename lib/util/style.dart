@@ -709,5 +709,5 @@ Map<String, String>? auHtmlStyle(dom.Element element) {
       'text-decoration': 'none',
     };
   }
-  return null;
+  return {'user-select': 'text'};
 }

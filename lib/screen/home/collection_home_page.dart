@@ -191,7 +191,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           ),
           action: FFCastButton(
             displayKey: _getDisplayKey(),
-            onDeviceSelected: (device) {
+            onDeviceSelected: (device) async {
               log.info('Device selected: ${device.name}');
               final listTokenIds = _updateTokens(nftBloc.state.tokens.items)
                   .map((e) => e.id)
@@ -209,12 +209,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
                     ),
                   )
                   .toList();
+              final completer = Completer<void>();
               _canvasDeviceBloc.add(
-                CanvasDeviceChangeControlDeviceEvent(
+                CanvasDeviceCastListArtworkEvent(
                   device,
                   listPlayArtwork,
+                  completer: completer,
                 ),
               );
+              await completer.future;
             },
           ),
         ),

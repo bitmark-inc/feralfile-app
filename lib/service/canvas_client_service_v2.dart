@@ -18,12 +18,12 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
@@ -272,19 +272,13 @@ class CanvasClientServiceV2 {
   Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
     final rawDevices = _findRawDevices();
     final scanedDevices = injector<BluetoothConnectBloc>().state.scanedDevices;
-    final pairedDevices = BluetoothDeviceHelper.pairedDevices;
-    final blDevices = pairedDevices.where((device) {
-      return scanedDevices.any((scanedDevice) {
-        return scanedDevice.remoteID == device.remoteId.str;
-      });
-    }).toList();
-    // connectedDevice == null ? <BaseDevice>[] : [connectedDevice];
-    // injector<BluetoothConnectBloc>().state.scanResults.map((result) {
-    //   return FFBluetoothDevice(
-    //     remoteID: result.device.remoteId.str,
-    //     name: result.device.name,
-    //   );
-    // });
+    final connectedDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    final isConnectedDeviceAvailable = connectedDevice != null &&
+        scanedDevices
+            .any((element) => element.remoteID == connectedDevice.remoteID);
+    final blDevices =
+        isConnectedDeviceAvailable ? [connectedDevice] : <FFBluetoothDevice>[];
     final devices = <BaseDevice>[
       ...rawDevices,
       ...blDevices,

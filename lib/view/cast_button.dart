@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
@@ -20,7 +22,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class FFCastButton extends StatefulWidget {
-  final Function(BaseDevice device)? onDeviceSelected;
+  final FutureOr<void> Function(BaseDevice device)? onDeviceSelected;
   final String displayKey;
   final String? text;
   final String? type;
@@ -44,6 +46,7 @@ class FFCastButton extends StatefulWidget {
 class FFCastButtonState extends State<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _upgradesBloc = injector.get<UpgradesBloc>();
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -66,9 +69,15 @@ class FFCastButtonState extends State<FFCastButton> {
           final isSubscribed = subscriptionState.isSubscribed;
           return GestureDetector(
             onTap: () async {
+              setState(() {
+                _isProcessing = true;
+              });
               widget.onTap?.call();
               await onTap(context, isSubscribed);
               _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
+              setState(() {
+                _isProcessing = false;
+              });
             },
             child: Semantics(
               label: 'cast_icon',
@@ -106,15 +115,18 @@ class FFCastButtonState extends State<FFCastButton> {
                           width: 3,
                           height: 20,
                         ),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          margin: const EdgeInsets.only(top: 1),
-                          decoration: const BoxDecoration(
-                            color: AppColor.primaryBlack,
-                            shape: BoxShape.circle,
+                        if (_isProcessing)
+                          const ProcessingIndicator()
+                        else
+                          Container(
+                            width: 4,
+                            height: 4,
+                            margin: const EdgeInsets.only(top: 1),
+                            decoration: const BoxDecoration(
+                              color: AppColor.primaryBlack,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
                       ],
                     ],
                   ),
@@ -197,5 +209,45 @@ class FFCastButtonState extends State<FFCastButton> {
     final ids = [subscriptionDetails.productDetails.id];
     log.info('Cast button: upgrade purchase: ${ids.first}');
     _upgradesBloc.add(UpgradePurchaseEvent(ids));
+  }
+}
+
+class ProcessingIndicator extends StatefulWidget {
+  const ProcessingIndicator({super.key});
+
+  @override
+  State<ProcessingIndicator> createState() => _ProcessingIndicatorState();
+}
+
+class _ProcessingIndicatorState extends State<ProcessingIndicator> {
+  int _colorIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Timer.periodic(const Duration(milliseconds: 300), (timer) {
+      setState(() {
+        _colorIndex = (_colorIndex + 1) % 2;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // return dot with color flicker
+    final colors = [
+      AppColor.primaryBlack,
+      AppColor.feralFileLightBlue,
+    ];
+    final color = colors[_colorIndex];
+    return Container(
+      width: 4,
+      height: 4,
+      margin: const EdgeInsets.only(top: 1),
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
   }
 }

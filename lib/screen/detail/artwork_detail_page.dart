@@ -94,6 +94,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   bool _isFullScreen = false;
   ShakeDetector? _detector;
 
+  final FocusNode _selectTextFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -185,6 +187,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     setState(() {
       _isInfoExpand = false;
     });
+    _selectTextFocusNode.unfocus();
     _animationController.animateTo(_infoShrinkPosition);
   }
 
@@ -278,17 +281,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             actions: [
                               FFCastButton(
                                 displayKey: _getDisplayKey(asset),
-                                onDeviceSelected: (device) {
+                                onDeviceSelected: (device) async {
                                   final artwork = PlayArtworkV2(
                                     token: CastAssetToken(id: asset.id),
                                     duration: 0,
                                   );
+                                  final completer = Completer<void>();
                                   _canvasDeviceBloc.add(
                                     CanvasDeviceCastListArtworkEvent(
-                                      device,
-                                      [artwork],
-                                    ),
+                                        device, [artwork],
+                                        completer: completer),
                                   );
+                                  await completer.future;
                                 },
                               ),
                             ],
@@ -535,17 +539,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     children: [
                       Semantics(
                         label: 'Desc',
-                        child: HtmlWidget(
-                          customStylesBuilder: auHtmlStyle,
-                          asset.description ?? '',
-                          textStyle: theme.textTheme.ppMori400White14,
-                          onTapUrl: (url) async {
-                            await launchUrl(
-                              Uri.parse(url),
-                              mode: LaunchMode.externalApplication,
-                            );
-                            return true;
-                          },
+                        child: SelectionArea(
+                          focusNode: _selectTextFocusNode,
+                          child: HtmlWidget(
+                            customStylesBuilder: auHtmlStyle,
+                            asset.description ?? '',
+                            textStyle: theme.textTheme.ppMori400White14,
+                            onTapUrl: (url) async {
+                              await launchUrl(
+                                Uri.parse(url),
+                                mode: LaunchMode.externalApplication,
+                              );
+                              return true;
+                            },
+                          ),
                         ),
                       ),
                       const SizedBox(height: 40),

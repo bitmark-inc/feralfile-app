@@ -229,7 +229,10 @@ class _FeralFileArtworkPreviewPageState
         catalog: ExhibitionCatalog.artwork,
         catalogId: artworkId,
       );
-      _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(device, request));
+      final completer = Completer<void>();
+      _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(device, request,
+          completer: completer));
+      await completer.future;
     }
   }
 

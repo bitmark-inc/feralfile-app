@@ -92,6 +92,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                       shrinkWrap: true,
                       data: widget.releaseNotes,
                       softLineBreak: true,
+                      selectable: true,
                       padding: const EdgeInsets.only(bottom: 32, top: 32),
                       styleSheet: markDownChangeLogStyle(context),
                       builders: <String, MarkdownElementBuilder>{

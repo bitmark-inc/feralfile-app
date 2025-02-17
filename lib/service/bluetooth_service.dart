@@ -463,22 +463,32 @@ class FFBluetoothService {
     fetchBluetoothDeviceStatus(device);
   }
 
+  // completer for connectToDevice
   Completer<void>? _connectCompleter;
 
-  Future<void> connectToDevice(BluetoothDevice device,
-      {bool shouldUpdateConnectedDevice = false}) async {
-    List<BluetoothService> services = [];
-    if (_connectCompleter != null) {
+  // completer for multi call connectToDevice
+  Completer<void>? _multiConnectCompleter;
+
+  Future<void> connectToDevice(BluetoothDevice device) async {
+    if (_multiConnectCompleter?.isCompleted == false) {
       log.info('Already connecting to device: ${device.remoteId.str}');
-      return _connectCompleter?.future.timeout(
-        const Duration(seconds: 3),
-        onTimeout: () {
-          log.warning('Connection timeout');
-          return;
-        },
-      );
+      return _multiConnectCompleter?.future;
     }
 
+    _multiConnectCompleter = Completer<void>();
+    _connectToDevice(device).then((value) {
+      _multiConnectCompleter?.complete();
+    }).catchError((e) {
+      _multiConnectCompleter?.completeError('Failed to connect to device: $e');
+    });
+
+    return _multiConnectCompleter?.future;
+  }
+
+  Future<void> _connectToDevice(BluetoothDevice device) async {
+    List<BluetoothService> services = [];
+
+    // connect to device
     if (device.isDisconnected) {
       _connectCompleter = Completer<void>();
 
@@ -498,13 +508,15 @@ class FFBluetoothService {
 
       device.cancelWhenDisconnected(subscription, delayed: true, next: true);
 
+      // Connect to device
       try {
-        await device.connect();
+        await device.connect(timeout: const Duration(seconds: 3));
       } catch (e) {
         log.warning('Failed to connect to device: $e');
         rethrow;
       }
 
+      // Wait for connection to complete
       await _connectCompleter?.future.timeout(
         const Duration(seconds: 3),
         onTimeout: () {
@@ -512,19 +524,21 @@ class FFBluetoothService {
           return;
         },
       );
-      _connectCompleter = null;
 
       // Discover services
       // Note: You must call discoverServices after every re-connection!
       final discoveredServices = await device.discoverServices();
-      services.clear();
-      services.addAll(discoveredServices);
+      services
+        ..clear()
+        ..addAll(discoveredServices);
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
     }
 
+    // Check if the command and wifi connect characteristics are available
     if (getCommandCharacteristic(device.remoteId.str) == null ||
         getWifiConnectCharacteristic(device.remoteId.str) == null) {
+      // if the command and wifi connect characteristics are not found, try to find them
       final commandService = services.firstWhereOrNull(
         (service) => service.uuid.toString() == serviceUuid,
       );
@@ -545,19 +559,15 @@ class FFBluetoothService {
     }
 
     final commandCharacteristic = getCommandCharacteristic(device.remoteId.str);
-
     if (commandCharacteristic == null) {
       log.warning('Command characteristic not found');
-      _connectCompleter?.completeError('Command characteristic not found');
-      return;
+      throw Exception('Command characteristic not found');
     }
 
     log.info('Command char properties: ${commandCharacteristic.properties}');
     if (!commandCharacteristic.properties.notify) {
       log.warning('Command characteristic does not support notifications!');
-      _connectCompleter?.completeError(
-          'Command characteristic does not support notifications');
-      return;
+      throw Exception('Command characteristic does not support notifications');
     }
 
     try {
@@ -565,10 +575,11 @@ class FFBluetoothService {
       log.info('Successfully enabled notifications for command char');
     } catch (e) {
       log.warning('Failed to enable notifications for command char: $e');
-      Sentry.captureException(e);
-      _connectCompleter?.completeError(e);
-      return;
+      unawaited(Sentry.captureException(e));
+      rethrow;
     }
+
+    // Subscribe to command char notifications
     if (_commandCharSub != null) {
       await _commandCharSub?.cancel();
     }
@@ -583,7 +594,6 @@ class FFBluetoothService {
         Sentry.captureException(error);
       },
     );
-
     device.cancelWhenDisconnected(commandCharSub, delayed: true);
   }
 
@@ -777,7 +787,7 @@ class FFBluetoothService {
 
   int _getMaxPayloadSize(BluetoothDevice device) {
     // ATT protocol overhead
-    const attOverhead = 3;
+    const attOverhead = 10; // it should be 5, but we are using 10 to be safe
     return device.mtuNow - attOverhead;
   }
 }

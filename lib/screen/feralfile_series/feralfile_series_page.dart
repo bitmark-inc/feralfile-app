@@ -153,12 +153,15 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                         exhibitionId: series.exhibitionID,
                         catalog: ExhibitionCatalog.artwork,
                         catalogId: artwork.id);
+                    final completer = Completer<void>();
                     _canvasDeviceBloc.add(
                       CanvasDeviceCastExhibitionEvent(
                         lastSelectedCanvasDevice,
                         castRequest,
+                        completer: completer,
                       ),
                     );
+                    await completer.future;
                   }
                   await Navigator.of(context).pushNamed(
                     AppRouter.ffArtworkPreviewPage,

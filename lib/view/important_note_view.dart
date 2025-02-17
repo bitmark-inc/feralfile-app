@@ -40,7 +40,7 @@ class ImportantNoteView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          SelectableText(
             title ?? 'important'.tr(),
             style: titleStyle ?? theme.textTheme.ppMori700Black14,
           ),

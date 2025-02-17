@@ -254,8 +254,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   .map((e) => PlayArtworkV2(
                       token: CastAssetToken(id: e), duration: duration))
                   .toList();
-              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-                  device, listPlayArtwork));
+              final completer = Completer<void>();
+              _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+                  device, listPlayArtwork,
+                  completer: completer));
+              await completer.future;
             },
           ),
           const SizedBox(width: 15),

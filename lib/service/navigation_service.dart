@@ -168,7 +168,7 @@ class NavigationService {
         'App Load Error',
         Column(
           children: [
-            Text(
+            SelectableText(
               'it_seem_loading_issue'.tr(),
               style: theme.textTheme.ppMori400White14,
             ),
@@ -711,7 +711,7 @@ class NavigationService {
                     border: Border.all(color: AppColor.white),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Text(
+                  child: SelectableText(
                     textScaler: TextScaler.noScaling,
                     'https://display.feralfile.com',
                     style: theme.textTheme.ppMori700White14,
@@ -831,7 +831,7 @@ class NavigationService {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    SelectableText(
                       'Display Art on',
                       style: theme.textTheme.ppMori700White24,
                     ),
@@ -915,12 +915,12 @@ class NavigationService {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                SelectableText(
                   'upgrade_required'.tr(),
                   style: Theme.of(context).textTheme.ppMori700White24,
                 ),
                 const SizedBox(height: 50),
-                Text(
+                SelectableText(
                   'your_device_not_support_passkey_desc'.tr(),
                   style: Theme.of(context).textTheme.ppMori400White14,
                 ),
@@ -935,7 +935,7 @@ class NavigationService {
                         style: Theme.of(context).textTheme.ppMori400White14,
                       ),
                       Expanded(
-                        child: Text(
+                        child: SelectableText(
                           'step_1_backup_recovery'.tr(),
                           style: Theme.of(context).textTheme.ppMori400White14,
                         ),
@@ -954,7 +954,7 @@ class NavigationService {
                         style: Theme.of(context).textTheme.ppMori400White14,
                       ),
                       Expanded(
-                        child: Text(
+                        child: SelectableText(
                           'step_2_move_to_another_wallet'.tr(),
                           style: Theme.of(context).textTheme.ppMori400White14,
                         ),
