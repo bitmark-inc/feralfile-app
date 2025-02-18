@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -113,7 +115,9 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
       device: widget.device,
-      onSubmitted: () {
+      onSubmitted: () async {
+        await injector<FFBluetoothService>()
+            .updatePilotVersion(widget.device.toFFBluetoothDevice());
         Navigator.of(context).pushNamed(
           AppRouter.configureDevice,
           arguments: widget.device,

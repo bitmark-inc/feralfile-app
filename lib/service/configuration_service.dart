@@ -158,6 +158,10 @@ abstract class ConfigurationService {
   bool isBetaTester();
 
   Future<void> setBetaTester(bool value);
+
+  String? getPilotVersion();
+
+  Future<void> setPilotVersion(String version);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -243,6 +247,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_CONNECTED_DEVICE = 'last_connected_device';
 
   static const String KEY_BETA_TESTER = 'beta_tester';
+
+  static const String PILOT_VERSION = 'pilot_version';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -624,6 +630,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setBetaTester(bool value) {
     return _preferences.setBool(KEY_BETA_TESTER, value);
+  }
+
+  @override
+  String? getPilotVersion() {
+    return _preferences.getString(PILOT_VERSION);
+  }
+
+  @override
+  Future<void> setPilotVersion(String version) {
+    return _preferences.setString(PILOT_VERSION, version);
   }
 }
 

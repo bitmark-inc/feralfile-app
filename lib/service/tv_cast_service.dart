@@ -324,12 +324,15 @@ class BluetoothCastService extends BaseTvCastService {
       if (!_device.isConnected) {
         throw Exception('Device not connected after reconnection');
       }
+      final writeChunked = injector<FFBluetoothService>().shouldWriteChunk() ||
+          command == CastCommand.getVersion.name;
 
       final res = await injector<FFBluetoothService>().sendCommand(
           device: _device,
           command: command,
           request: request,
-          timeout: timeout);
+          timeout: timeout,
+          writeChunk: writeChunked);
       log.info('[BluetoothCastService] sendCommand $command');
       return res;
     } catch (e) {

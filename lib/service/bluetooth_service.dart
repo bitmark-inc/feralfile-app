@@ -14,12 +14,14 @@ import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:markdown/markdown.dart';
 import 'package:sentry/sentry.dart';
 
 const displayingCommand = [
@@ -142,11 +144,38 @@ class FFBluetoothService {
   BluetoothCharacteristic? getWifiConnectCharacteristic(String remoteId) =>
       _wifiConnectCharacteristic[remoteId];
 
+  Future<void> updatePilotVersion(BluetoothDevice device) async {
+    final res = await injector<CanvasClientServiceV2>()
+        .getVersion(device.toFFBluetoothDevice());
+    if (version.isNotEmpty) {
+      await injector<ConfigurationService>().setPilotVersion(res);
+    }
+  }
+
+  DateTime? _lastGetPilotVersionTime;
+
+  bool shouldWriteChunk() {
+    final pilotVersion = injector<ConfigurationService>().getPilotVersion();
+    final writeChunked =
+        pilotVersion != null && pilotVersion.compareTo('0.3.3') >= 0;
+    if (!writeChunked) {
+      if ((_lastGetPilotVersionTime == null ||
+              DateTime.now().difference(_lastGetPilotVersionTime!) >
+                  const Duration(minutes: 10)) &&
+          castingBluetoothDevice != null) {
+        _lastGetPilotVersionTime = DateTime.now();
+        updatePilotVersion(castingBluetoothDevice!);
+      }
+    }
+    return writeChunked;
+  }
+
   Future<Map<String, dynamic>> sendCommand({
     required BluetoothDevice device,
     required String command,
     required Map<String, dynamic> request,
     Duration? timeout,
+    bool writeChunk = false,
   }) async {
     log.info(
         '[sendCommand] Sending command: $command to device: ${device.remoteId.str}');
@@ -171,43 +200,61 @@ class FFBluetoothService {
       List.generate(4, (_) => Random().nextInt(26) + 97),
     );
 
-    final bytes = _buildCommandMessage(command, request, replyId);
-    final chunks = _prepareChunks(device, bytes);
+    final byteBuilder = _buildCommandMessage(command, request, replyId);
 
-    return _sendChunksAndWaitForResponse(
-      device: device,
-      commandChar: commandChar,
-      chunks: chunks,
-      replyId: replyId,
-      command: command,
-    );
-  }
+    final completer = Completer<Map<String, dynamic>>();
 
-  void _setupNotificationSubscriptions({
-    required String replyId,
-    required String ackReplyId,
-    required Completer<Map<String, dynamic>> responseCompleter,
-    required List<Completer<void>> chunkCompleters,
-  }) {
-    BluetoothNotificationService().subscribe(ackReplyId, (data) {
-      final chunkIndex = data['chunkIndex'] as int;
-      if (chunkIndex >= 0 &&
-          chunkIndex < chunkCompleters.length &&
-          !chunkCompleters[chunkIndex].isCompleted) {
-        log.info('[sendCommand] completing chunk $chunkIndex');
-        chunkCompleters[chunkIndex].complete();
-      }
-    });
-
+    // Subscribe to notifications for this replyId
     BluetoothNotificationService().subscribe(replyId, (data) {
-      responseCompleter.complete(data);
-      _cleanupSubscriptions(replyId, ackReplyId);
+      completer.complete(data);
+      // Unsubscribe after getting the reply
+      BluetoothNotificationService().unsubscribe(replyId, (data) {});
     });
-  }
 
-  void _cleanupSubscriptions(String replyId, String ackReplyId) {
-    BluetoothNotificationService().unsubscribe(replyId, (data) {});
-    BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
+    try {
+      final bytes = byteBuilder.takeBytes();
+      if (writeChunk) {
+        log.info('[sendCommand] Sending command in chunks');
+        await commandChar.writeChunk(bytes);
+      } else {
+        log.info('[sendCommand] Sending command in one go');
+        await commandChar.write(bytes);
+      }
+      log.info('[sendCommand] Command $command sent');
+
+      // Wait for reply with timeout
+      final res = await completer.future.timeout(
+        const Duration(seconds: 1),
+        onTimeout: () {
+          BluetoothNotificationService().unsubscribe(replyId, (data) {
+            log.info('[sendCommand] Unsubscribed from replyId: $replyId');
+          });
+          Sentry.captureMessage(
+            '[sendCommand] Timeout waiting for reply: $replyId',
+          );
+          return fakeReply(command)
+              .toJson(); // Fallback to fake reply on timeout
+        },
+      );
+      if (displayingCommand
+          .any((element) => element == CastCommand.fromString(command))) {
+        castingBluetoothDevice = device;
+      }
+      if (updateDeviceStatusCommand
+          .any((element) => element == CastCommand.fromString(command))) {
+        injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(device).then(
+          (value) {
+            _bluetoothDeviceStatus.value = value;
+          },
+        );
+      }
+      return res;
+    } catch (e) {
+      BluetoothNotificationService().unsubscribe(replyId, (data) {});
+      unawaited(Sentry.captureException(e));
+      log.info('[sendCommand] Error sending command: $e');
+      rethrow;
+    }
   }
 
   BytesBuilder _buildCommandMessage(
@@ -227,152 +274,6 @@ class FFBluetoothService {
       ..add(bodyBytes)
       ..writeVarint(replyIdBytes.length)
       ..add(replyIdBytes);
-  }
-
-  List<List<int>> _prepareChunks(
-      BluetoothDevice device, BytesBuilder bytesBuilder) {
-    const maxChunks = 10;
-    const chunkHeaderSize = 12;
-    final maxChunkPayloadSize = _getMaxPayloadSize(device) - chunkHeaderSize;
-    final chunks =
-        _splitIntoChunks(bytesBuilder.takeBytes(), maxChunkPayloadSize);
-    if (chunks.length > maxChunks) {
-      throw Exception(
-        'Message too large: would require ${chunks.length} chunks (max: $maxChunks)',
-      );
-    }
-    return chunks;
-  }
-
-  Future<Map<String, dynamic>> _sendChunksAndWaitForResponse({
-    required BluetoothDevice device,
-    required BluetoothCharacteristic commandChar,
-    required List<List<int>> chunks,
-    required String replyId,
-    required String command,
-  }) async {
-    final responseCompleter = Completer<Map<String, dynamic>>();
-    final chunkCompleters =
-        List.generate(chunks.length, (_) => Completer<void>());
-    final ackReplyId = '${replyId}C';
-
-    _setupNotificationSubscriptions(
-      replyId: replyId,
-      ackReplyId: ackReplyId,
-      responseCompleter: responseCompleter,
-      chunkCompleters: chunkCompleters,
-    );
-
-    try {
-      await _sendChunks(
-        chunks: chunks,
-        commandChar: commandChar,
-        ackReplyId: ackReplyId,
-        chunkCompleters: chunkCompleters,
-      );
-
-      log.info('[sendCommand] Waiting for final response');
-      final res = await responseCompleter.future.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          _cleanupSubscriptions(replyId, ackReplyId);
-          log.warning('[sendCommand] Timeout waiting for final response');
-          return fakeReply(command).toJson();
-        },
-      );
-      log.info('[sendCommand] Received final response');
-
-      if (displayingCommand
-          .any((element) => element == CastCommand.fromString(command))) {
-        castingBluetoothDevice = device;
-      }
-
-      if (updateDeviceStatusCommand
-          .any((element) => element == CastCommand.fromString(command))) {
-        // ignore: unawaited_futures
-        fetchBluetoothDeviceStatus(device);
-      }
-
-      return res;
-    } catch (e) {
-      _cleanupSubscriptions(replyId, ackReplyId);
-      unawaited(Sentry.captureException(e));
-      log.info('[sendCommand] Error sending command: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> _sendChunks({
-    required List<List<int>> chunks,
-    required BluetoothCharacteristic commandChar,
-    required String ackReplyId,
-    required List<Completer<void>> chunkCompleters,
-  }) async {
-    final ackReplyIdBytes = ascii.encode(ackReplyId);
-    final totalChunksBytes = ascii.encode(chunks.length.toString());
-
-    for (var i = 0; i < chunks.length; i++) {
-      final chunkWithHeader = _buildChunkWithHeader(
-        chunk: chunks[i],
-        index: i,
-        totalChunksBytes: totalChunksBytes,
-        ackReplyIdBytes: ackReplyIdBytes,
-      );
-
-      await _sendChunkWithRetry(
-        commandChar: commandChar,
-        chunkWithHeader: chunkWithHeader,
-        chunkIndex: i,
-        totalChunks: chunks.length,
-        completer: chunkCompleters[i],
-      );
-    }
-  }
-
-  Future<void> _sendChunkWithRetry({
-    required BluetoothCharacteristic commandChar,
-    required BytesBuilder chunkWithHeader,
-    required int chunkIndex,
-    required int totalChunks,
-    required Completer<void> completer,
-  }) async {
-    final bytes = chunkWithHeader.takeBytes();
-    await commandChar.write(bytes, withoutResponse: true);
-    log.info('[sendCommand] Sent chunk ${chunkIndex + 1}/$totalChunks');
-
-    try {
-      await completer.future.timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          throw Exception(
-              'Timeout waiting for chunk $chunkIndex acknowledgment');
-        },
-      );
-      log.info('[sendCommand] Received ack for chunk ${chunkIndex + 1}');
-    } catch (e) {
-      log.warning(
-          '[sendCommand] Retrying chunk ${chunkIndex + 1} after timeout');
-      await commandChar.write(bytes, withoutResponse: true);
-      await completer.future.timeout(const Duration(seconds: 1));
-    }
-  }
-
-  BytesBuilder _buildChunkWithHeader({
-    required List<int> chunk,
-    required int index,
-    required List<int> totalChunksBytes,
-    required List<int> ackReplyIdBytes,
-  }) {
-    final chunkIndexBytes = ascii.encode(index.toString());
-    return BytesBuilder()
-      ..writeVarint(chunkIndexBytes.length)
-      ..add(chunkIndexBytes)
-      ..writeVarint(totalChunksBytes.length)
-      ..add(totalChunksBytes)
-      ..writeVarint(ackReplyIdBytes.length)
-      ..add(ackReplyIdBytes)
-      ..writeVarint(chunk.length)
-      ..add(chunk);
   }
 
   String getTimeZone() {
@@ -748,7 +649,7 @@ class FFBluetoothService {
         return UpdateOrientationReply();
       case CastCommand.getVersion:
         return GetVersionReply(
-          version: 'No response',
+          version: '',
         );
       case CastCommand.getBluetoothDeviceStatus:
         return GetBluetoothDeviceStatusReply(
@@ -775,6 +676,21 @@ class FFBluetoothService {
     _bluetoothDeviceStatus.value = res;
     return res;
   }
+}
+
+extension BluetoothCharacteristicExt on BluetoothCharacteristic {
+  int _getMaxPayloadSize(BluetoothDevice device) {
+    // ATT protocol overhead
+    const attOverhead = 10; // it should be 5, but we are using 10 to be safe
+    return device.mtuNow - attOverhead;
+  }
+
+  String generateReplyId() {
+    final replyId = String.fromCharCodes(
+      List.generate(4, (_) => Random().nextInt(26) + 97),
+    );
+    return replyId;
+  }
 
   List<List<int>> _splitIntoChunks(List<int> data, int chunkSize) {
     final chunks = <List<int>>[];
@@ -785,9 +701,128 @@ class FFBluetoothService {
     return chunks;
   }
 
-  int _getMaxPayloadSize(BluetoothDevice device) {
-    // ATT protocol overhead
-    const attOverhead = 10; // it should be 5, but we are using 10 to be safe
-    return device.mtuNow - attOverhead;
+  List<List<int>> _prepareChunks(BluetoothDevice device, List<int> bytes) {
+    const maxChunks = 10;
+    const chunkHeaderSize = 12;
+    final maxChunkPayloadSize = _getMaxPayloadSize(device) - chunkHeaderSize;
+    final chunks = _splitIntoChunks(bytes, maxChunkPayloadSize);
+    if (chunks.length > maxChunks) {
+      throw Exception(
+        'Message too large: would require ${chunks.length} chunks (max: $maxChunks)',
+      );
+    }
+    return chunks;
+  }
+
+  Future<void> writeChunk(List<int> value) async {
+    final chunks = _prepareChunks(device, value);
+    final replyId = generateReplyId();
+    final chunkCompleters =
+        List.generate(chunks.length, (_) => Completer<void>());
+    final ackReplyId = '${replyId}C';
+
+    _setupNotificationSubscriptions(
+      ackReplyId: ackReplyId,
+      chunkCompleters: chunkCompleters,
+    );
+    await _sendChunks(
+      chunks: chunks,
+      ackReplyId: ackReplyId,
+      chunkCompleters: chunkCompleters,
+    );
+  }
+
+  Future<void> _sendChunks({
+    required List<List<int>> chunks,
+    required String ackReplyId,
+    required List<Completer<void>> chunkCompleters,
+  }) async {
+    final ackReplyIdBytes = ascii.encode(ackReplyId);
+    final totalChunksBytes = ascii.encode(chunks.length.toString());
+
+    for (var i = 0; i < chunks.length; i++) {
+      final chunkWithHeader = _buildChunkWithHeader(
+        chunk: chunks[i],
+        index: i,
+        totalChunksBytes: totalChunksBytes,
+        ackReplyIdBytes: ackReplyIdBytes,
+      );
+
+      await _sendChunkWithRetry(
+        commandChar: this,
+        chunkWithHeader: chunkWithHeader,
+        chunkIndex: i,
+        totalChunks: chunks.length,
+        completer: chunkCompleters[i],
+      );
+    }
+  }
+
+  Future<void> _sendChunkWithRetry({
+    required BluetoothCharacteristic commandChar,
+    required BytesBuilder chunkWithHeader,
+    required int chunkIndex,
+    required int totalChunks,
+    required Completer<void> completer,
+  }) async {
+    final bytes = chunkWithHeader.takeBytes();
+    await commandChar.write(bytes, withoutResponse: true);
+    log.info('[sendCommand] Sent chunk ${chunkIndex + 1}/$totalChunks');
+
+    try {
+      await completer.future.timeout(
+        const Duration(seconds: 1),
+        onTimeout: () {
+          throw Exception(
+              'Timeout waiting for chunk $chunkIndex acknowledgment');
+        },
+      );
+      log.info('[sendCommand] Received ack for chunk ${chunkIndex + 1}');
+    } catch (e) {
+      log.warning(
+          '[sendCommand] Retrying chunk ${chunkIndex + 1} after timeout');
+      await commandChar.write(bytes, withoutResponse: true);
+      await completer.future.timeout(const Duration(seconds: 1));
+    }
+  }
+
+  BytesBuilder _buildChunkWithHeader({
+    required List<int> chunk,
+    required int index,
+    required List<int> totalChunksBytes,
+    required List<int> ackReplyIdBytes,
+  }) {
+    final chunkIndexBytes = ascii.encode(index.toString());
+    return BytesBuilder()
+      ..writeVarint(chunkIndexBytes.length)
+      ..add(chunkIndexBytes)
+      ..writeVarint(totalChunksBytes.length)
+      ..add(totalChunksBytes)
+      ..writeVarint(ackReplyIdBytes.length)
+      ..add(ackReplyIdBytes)
+      ..writeVarint(chunk.length)
+      ..add(chunk);
+  }
+
+  void _setupNotificationSubscriptions({
+    required String ackReplyId,
+    required List<Completer<void>> chunkCompleters,
+  }) {
+    BluetoothNotificationService().subscribe(ackReplyId, (data) {
+      final chunkIndex = data['chunkIndex'] as int;
+      if (chunkIndex >= 0 &&
+          chunkIndex < chunkCompleters.length &&
+          !chunkCompleters[chunkIndex].isCompleted) {
+        log.info('[sendCommand] completing chunk $chunkIndex');
+        chunkCompleters[chunkIndex].complete();
+      }
+      if (chunkCompleters.every((completer) => completer.isCompleted)) {
+        _cleanupSubscriptions(ackReplyId);
+      }
+    });
+  }
+
+  void _cleanupSubscriptions(String ackReplyId) {
+    BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
   }
 }
