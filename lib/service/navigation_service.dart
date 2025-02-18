@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
+import 'package:autonomy_flutter/view/how_to_install_daily_widget_build.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -896,6 +897,13 @@ class NavigationService {
           },
         ),
       ),
+      isDismissible: true,
+    );
+  }
+
+  Future<void> showHowToInstallDailyWidget() async {
+    await injector<NavigationService>().showFlexibleDialog(
+      const HowToInstallDailyWidget(),
       isDismissible: true,
     );
   }

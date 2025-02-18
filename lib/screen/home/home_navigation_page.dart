@@ -149,6 +149,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       setState(() {
         _selectedIndex = index;
       });
+      final isWidgetAdded = await injector<HomeWidgetService>()
+          .isWidgetAdded()
+          .timeout(const Duration(seconds: 10), onTimeout: () => false);
       await UIHelper.showCenterMenu(
         context,
         options: [
@@ -160,6 +163,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               ),
               onTap: () {
                 Navigator.of(context).pushNamed(AppRouter.wifiConfigPage);
+              },
+            ),
+          if (!isWidgetAdded)
+            OptionItem(
+              title: 'Install Feral File Widget',
+              icon: const Icon(
+                AuIcon.add,
+              ),
+              onTap: () {
+                injector<NavigationService>().showHowToInstallDailyWidget();
               },
             ),
           OptionItem(

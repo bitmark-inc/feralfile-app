@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
@@ -26,6 +27,22 @@ class HomeWidgetService {
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
+  }
+
+  Future<bool> isWidgetAdded() async {
+    try {
+      final installedWidget = await HomeWidget.getInstalledWidgets();
+      return installedWidget.any((widget) {
+        if (Platform.isAndroid)
+          return widget.androidClassName?.contains(androidWidgetName) ?? false;
+        if (Platform.isIOS)
+          return widget.iOSKind?.contains(iosWidgetName) ?? false;
+        return false;
+      });
+    } catch (e) {
+      log.info('Error in isWidgetAdded: $e');
+      return false;
+    }
   }
 
   Future<void> updateWidget(
