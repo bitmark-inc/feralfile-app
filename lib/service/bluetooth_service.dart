@@ -145,10 +145,14 @@ class FFBluetoothService {
       _wifiConnectCharacteristic[remoteId];
 
   Future<void> updatePilotVersion(BluetoothDevice device) async {
-    final res = await injector<CanvasClientServiceV2>()
-        .getVersion(device.toFFBluetoothDevice());
-    if (version.isNotEmpty) {
-      await injector<ConfigurationService>().setPilotVersion(res);
+    try {
+      final res = await injector<CanvasClientServiceV2>()
+          .getVersion(device.toFFBluetoothDevice());
+      if (version.isNotEmpty) {
+        await injector<ConfigurationService>().setPilotVersion(res);
+      }
+    } catch (e) {
+      log.warning('Failed to get pilot version: $e');
     }
   }
 
@@ -414,6 +418,7 @@ class FFBluetoothService {
         await device.connect(timeout: const Duration(seconds: 3));
       } catch (e) {
         log.warning('Failed to connect to device: $e');
+        unawaited(Sentry.captureException('Failed to connect to device: $e'));
         rethrow;
       }
 
@@ -462,12 +467,15 @@ class FFBluetoothService {
     final commandCharacteristic = getCommandCharacteristic(device.remoteId.str);
     if (commandCharacteristic == null) {
       log.warning('Command characteristic not found');
+      unawaited(Sentry.captureMessage('Command characteristic not found'));
       throw Exception('Command characteristic not found');
     }
 
     log.info('Command char properties: ${commandCharacteristic.properties}');
     if (!commandCharacteristic.properties.notify) {
       log.warning('Command characteristic does not support notifications!');
+      unawaited(Sentry.captureMessage(
+          'Command characteristic does not support notifications'));
       throw Exception('Command characteristic does not support notifications');
     }
 
@@ -476,7 +484,7 @@ class FFBluetoothService {
       log.info('Successfully enabled notifications for command char');
     } catch (e) {
       log.warning('Failed to enable notifications for command char: $e');
-      unawaited(Sentry.captureException(e));
+      unawaited(Sentry.captureException('Failed to enable notifications: $e'));
       rethrow;
     }
 
