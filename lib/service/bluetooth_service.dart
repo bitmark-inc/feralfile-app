@@ -160,6 +160,7 @@ class FFBluetoothService {
 
   bool shouldWriteChunk() {
     final pilotVersion = injector<ConfigurationService>().getPilotVersion();
+    log.info('Pilot version: $pilotVersion');
     final writeChunked =
         pilotVersion != null && pilotVersion.compareTo('0.3.3') >= 0;
     if (!writeChunked) {
