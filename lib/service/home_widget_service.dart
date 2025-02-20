@@ -12,8 +12,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
   HomeWidgetService() {

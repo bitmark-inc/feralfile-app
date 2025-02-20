@@ -88,7 +88,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();

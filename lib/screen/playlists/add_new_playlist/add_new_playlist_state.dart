@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 
 abstract class AddNewPlaylistEvent {}
 
@@ -46,10 +46,11 @@ class AddNewPlaylistState {
     PlayListModel? playListModel,
     List<String>? selectedIDs,
     bool isAddSuccess = false,
-  }) => AddNewPlaylistState(
-      tokens: tokens ?? this.tokens,
-      playListModel: playListModel ?? this.playListModel,
-      isAddSuccess: isAddSuccess,
-      selectedIDs: selectedIDs ?? this.selectedIDs,
-    );
+  }) =>
+      AddNewPlaylistState(
+        tokens: tokens ?? this.tokens,
+        playListModel: playListModel ?? this.playListModel,
+        isAddSuccess: isAddSuccess,
+        selectedIDs: selectedIDs ?? this.selectedIDs,
+      );
 }

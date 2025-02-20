@@ -1,5 +1,5 @@
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/predefined_collection_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
 
 extension PredefinedCollectionModelListExt on List<PredefinedCollectionModel> {
   List<PredefinedCollectionModel> filterByName(String name) =>

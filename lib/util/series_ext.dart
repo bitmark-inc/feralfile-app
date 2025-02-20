@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
-import 'package:nft_collection/models/user_collection.dart';
+import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
 
 extension FFSeriesExt on FFSeries {
   String get displayTitle {

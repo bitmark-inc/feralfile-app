@@ -25,7 +25,7 @@ import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:nft_collection/database/nft_collection_database.dart';
+import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;

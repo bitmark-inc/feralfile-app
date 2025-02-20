@@ -9,9 +9,9 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class DailyWorkEvent {}
 

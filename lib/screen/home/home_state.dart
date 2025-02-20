@@ -6,7 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 
 abstract class HomeEvent {}
 

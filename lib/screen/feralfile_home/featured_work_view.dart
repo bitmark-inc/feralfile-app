@@ -21,8 +21,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/services/tokens_service.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 
 class FeaturedWorkView extends StatefulWidget {
   const FeaturedWorkView({

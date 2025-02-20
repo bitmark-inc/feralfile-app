@@ -8,8 +8,8 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/provenance.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 
 abstract class ArtworkDetailEvent {}
 

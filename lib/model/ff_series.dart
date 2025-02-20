@@ -2,13 +2,10 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:nft_collection/models/user_collection.dart';
 
 class SecondaryMarket {
-  final String name;
-  final String url;
-
   SecondaryMarket(this.name, this.url);
 
   factory SecondaryMarket.fromJson(Map<String, dynamic> json) =>
@@ -16,6 +13,8 @@ class SecondaryMarket {
         json['name'] as String,
         json['url'] as String,
       );
+  final String name;
+  final String url;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -24,34 +23,6 @@ class SecondaryMarket {
 }
 
 class FFSeries extends ArtistCollection {
-  final String id;
-  final String artistAlumniAccountID;
-  final String? assetID;
-  final String title;
-  final String? slug;
-  final String medium;
-  final String? description;
-  final String thumbnailURI;
-  final String? thumbnailDisplay;
-  final String exhibitionID;
-  final Map<String, dynamic>? metadata;
-  final int? displayIndex;
-  final int? featuringIndex;
-  final FFSeriesSettings? settings;
-  final AlumniAccount? artistAlumni;
-  final Exhibition? exhibition;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final DateTime? mintedAt;
-  final FileInfo? originalFile;
-  final FileInfo? previewFile;
-  final Artwork? artwork;
-  final String? externalSource;
-  final String? uniqueThumbnailPath;
-  final String? uniquePreviewPath;
-  final String? onchainID;
-  final List<Artwork>? artworks;
-
   FFSeries(
     this.id,
     this.artistAlumniAccountID,
@@ -82,10 +53,6 @@ class FFSeries extends ArtistCollection {
     this.artworks,
   );
 
-  int get maxEdition => settings?.maxArtwork ?? -1;
-
-  bool get isAirdropSeries => settings?.isAirdrop == true;
-
   factory FFSeries.fromJson(Map<String, dynamic> json) => FFSeries(
         json['id'] as String,
         json['artistAlumniAccountID'] as String,
@@ -101,11 +68,13 @@ class FFSeries extends ArtistCollection {
         json['settings'] == null
             ? null
             : FFSeriesSettings.fromJson(
-                json['settings'] as Map<String, dynamic>),
+                json['settings'] as Map<String, dynamic>,
+              ),
         json['artistAlumni'] == null
             ? null
             : AlumniAccount.fromJson(
-                json['artistAlumni'] as Map<String, dynamic>),
+                json['artistAlumni'] as Map<String, dynamic>,
+              ),
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -139,6 +108,37 @@ class FFSeries extends ArtistCollection {
                 .map((e) => Artwork.fromJson(e as Map<String, dynamic>))
                 .toList(),
       );
+  final String id;
+  final String artistAlumniAccountID;
+  final String? assetID;
+  final String title;
+  final String? slug;
+  final String medium;
+  final String? description;
+  final String thumbnailURI;
+  final String? thumbnailDisplay;
+  final String exhibitionID;
+  final Map<String, dynamic>? metadata;
+  final int? displayIndex;
+  final int? featuringIndex;
+  final FFSeriesSettings? settings;
+  final AlumniAccount? artistAlumni;
+  final Exhibition? exhibition;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? mintedAt;
+  final FileInfo? originalFile;
+  final FileInfo? previewFile;
+  final Artwork? artwork;
+  final String? externalSource;
+  final String? uniqueThumbnailPath;
+  final String? uniquePreviewPath;
+  final String? onchainID;
+  final List<Artwork>? artworks;
+
+  int get maxEdition => settings?.maxArtwork ?? -1;
+
+  bool get isAirdropSeries => settings?.isAirdrop == true;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -229,8 +229,6 @@ class FFSeries extends ArtistCollection {
 }
 
 class FFSeriesResponse {
-  final FFSeries result;
-
   FFSeriesResponse(
     this.result,
   );
@@ -239,6 +237,7 @@ class FFSeriesResponse {
       FFSeriesResponse(
         FFSeries.fromJson(json['result'] as Map<String, dynamic>),
       );
+  final FFSeries result;
 
   Map<String, dynamic> toJson() => {
         'result': result,
@@ -246,22 +245,16 @@ class FFSeriesResponse {
 }
 
 class FFSeriesSettings {
-  final int maxArtwork;
-  final String? saleModel;
-  ArtworkModel? artworkModel;
-  int artistReservation;
-  int publisherProof;
-  int promotionalReservation;
-  bool? tradeSeries;
-  bool? transferToCurator;
-
-  FFSeriesSettings(this.saleModel, this.maxArtwork,
-      {this.artworkModel,
-      this.artistReservation = 0,
-      this.publisherProof = 0,
-      this.promotionalReservation = 0,
-      this.tradeSeries = false,
-      this.transferToCurator = false});
+  FFSeriesSettings(
+    this.saleModel,
+    this.maxArtwork, {
+    this.artworkModel,
+    this.artistReservation = 0,
+    this.publisherProof = 0,
+    this.promotionalReservation = 0,
+    this.tradeSeries = false,
+    this.transferToCurator = false,
+  });
 
   factory FFSeriesSettings.fromJson(Map<String, dynamic> json) =>
       FFSeriesSettings(
@@ -276,6 +269,14 @@ class FFSeriesSettings {
         tradeSeries: json['tradeSeries'] as bool?,
         transferToCurator: json['transferToCurator'] as bool?,
       );
+  final int maxArtwork;
+  final String? saleModel;
+  ArtworkModel? artworkModel;
+  int artistReservation;
+  int publisherProof;
+  int promotionalReservation;
+  bool? tradeSeries;
+  bool? transferToCurator;
 
   Map<String, dynamic> toJson() => {
         'maxArtwork': maxArtwork,

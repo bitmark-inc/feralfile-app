@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:nft_collection/utils/medium_category.dart';
+import 'package:autonomy_flutter/nft_collection/utils/medium_category.dart';
 
 extension MediumCategoryExt on MediumCategory {
   static String getName(String medium) {

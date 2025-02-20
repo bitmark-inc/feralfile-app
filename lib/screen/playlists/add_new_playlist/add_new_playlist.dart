@@ -21,8 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
   const AddNewPlaylistScreen({super.key, this.playListModel});
