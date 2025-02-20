@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/predefined_collection/predefined_collection_item.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:collection/collection.dart';
@@ -225,7 +224,7 @@ class CollectionProState extends State<CollectionPro>
                   controller: _scrollController,
                   shrinkWrap: true,
                   slivers: [
-                    SliverToBoxAdapter(child: NowDisplaying()),
+                    // SliverToBoxAdapter(child: NowDisplaying()),
                     SliverToBoxAdapter(
                         child: Padding(
                       padding: padding,

@@ -329,7 +329,6 @@ class AppRouter {
           settings: settings,
           type: PageTransitionType.topToBottom,
           curve: Curves.easeIn,
-          duration: const Duration(milliseconds: 250),
           child: ScanQRPage(
             payload: payload,
           ),

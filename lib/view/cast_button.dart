@@ -222,14 +222,26 @@ class ProcessingIndicator extends StatefulWidget {
 class _ProcessingIndicatorState extends State<ProcessingIndicator> {
   int _colorIndex = 0;
 
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    Timer.periodic(const Duration(milliseconds: 300), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       setState(() {
         _colorIndex = (_colorIndex + 1) % 2;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override

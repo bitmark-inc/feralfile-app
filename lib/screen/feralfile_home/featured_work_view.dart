@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -127,7 +126,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                   height: MediaQuery.of(context).padding.top,
                 ),
               ),
-              const SliverToBoxAdapter(child: NowDisplaying()),
+              // const SliverToBoxAdapter(child: NowDisplaying()),
               const SliverToBoxAdapter(
                 child: SizedBox(
                   height: 32,

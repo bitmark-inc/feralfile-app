@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/ff_series_tappable_thumbnail.dart';
 import 'package:autonomy_flutter/view/loading.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/user_collection_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -269,9 +268,9 @@ class _SeriesViewState extends State<SeriesView> {
           SliverToBoxAdapter(
             child: SizedBox(height: MediaQuery.of(context).padding.top),
           ),
-          const SliverToBoxAdapter(
-            child: NowDisplaying(),
-          ),
+          // const SliverToBoxAdapter(
+          //   child: NowDisplaying(),
+          // ),
           const SliverToBoxAdapter(
             child: SizedBox(height: 32),
           ),

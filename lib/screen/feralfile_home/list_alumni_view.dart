@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/view/alumni_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -373,9 +372,9 @@ class _ListAlumniViewState extends State<ListAlumniView> {
             SliverToBoxAdapter(
               child: SizedBox(height: MediaQuery.of(context).padding.top),
             ),
-            const SliverToBoxAdapter(
-              child: NowDisplaying(),
-            ),
+            // const SliverToBoxAdapter(
+            //   child: NowDisplaying(),
+            // ),
             const SliverToBoxAdapter(
               child: SizedBox(height: 32),
             ),

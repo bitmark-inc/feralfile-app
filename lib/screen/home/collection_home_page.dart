@@ -174,57 +174,71 @@ class CollectionHomePageState extends State<CollectionHomePage>
         }
       },
     );
-
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-        appBar: getFFAppBar(
-          context,
-          onBack: () {
-            Navigator.pop(context);
-          },
-          title: TitleText(
-            title: 'all'.tr(),
-            ellipsis: false,
-            isCentered: true,
-            fontSize: 14,
-          ),
-          action: FFCastButton(
-            displayKey: _getDisplayKey(),
-            onDeviceSelected: (device) async {
-              log.info('Device selected: ${device.name}');
-              final listTokenIds = _updateTokens(nftBloc.state.tokens.items)
-                  .map((e) => e.id)
-                  .toList();
-              if (listTokenIds.isEmpty) {
-                log.info('playList is empty');
-                return;
-              }
-              final duration = speedValues.values.first.inMilliseconds;
-              final listPlayArtwork = listTokenIds
-                  .map(
-                    (e) => PlayArtworkV2(
-                      token: CastAssetToken(id: e),
-                      duration: duration,
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: AppColor.primaryBlack,
+      appBar: getDarkEmptyAppBar(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // const NowDisplaying(),
+            Expanded(
+              child: PrimaryScrollController(
+                controller: _controller,
+                child: Scaffold(
+                  appBar: getFFAppBar(
+                    context,
+                    onBack: () {
+                      Navigator.pop(context);
+                    },
+                    title: TitleText(
+                      title: 'all'.tr(),
+                      ellipsis: false,
+                      isCentered: true,
+                      fontSize: 14,
                     ),
-                  )
-                  .toList();
-              final completer = Completer<void>();
-              _canvasDeviceBloc.add(
-                CanvasDeviceCastListArtworkEvent(
-                  device,
-                  listPlayArtwork,
-                  completer: completer,
+                    action: FFCastButton(
+                      displayKey: _getDisplayKey(),
+                      onDeviceSelected: (device) async {
+                        log.info('Device selected: ${device.name}');
+                        final listTokenIds =
+                            _updateTokens(nftBloc.state.tokens.items)
+                                .map((e) => e.id)
+                                .toList();
+                        if (listTokenIds.isEmpty) {
+                          log.info('playList is empty');
+                          return;
+                        }
+                        final duration =
+                            speedValues.values.first.inMilliseconds;
+                        final listPlayArtwork = listTokenIds
+                            .map(
+                              (e) => PlayArtworkV2(
+                                token: CastAssetToken(id: e),
+                                duration: duration,
+                              ),
+                            )
+                            .toList();
+                        final completer = Completer<void>();
+                        _canvasDeviceBloc.add(
+                          CanvasDeviceCastListArtworkEvent(
+                            device,
+                            listPlayArtwork,
+                            completer: completer,
+                          ),
+                        );
+                        await completer.future;
+                      },
+                    ),
+                  ),
+                  // extendBodyBehindAppBar: true,
+                  backgroundColor: AppColor.primaryBlack,
+                  body: contentWidget,
                 ),
-              );
-              await completer.future;
-            },
-          ),
+              ),
+            ),
+          ],
         ),
-        extendBody: true,
-        // extendBodyBehindAppBar: true,
-        backgroundColor: AppColor.primaryBlack,
-        body: contentWidget,
       ),
     );
   }

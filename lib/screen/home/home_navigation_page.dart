@@ -154,6 +154,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           .timeout(const Duration(seconds: 10), onTimeout: () => false);
       await UIHelper.showCenterMenu(
         context,
+        routeSettings: const RouteSettings(name: UIHelper.homeMenu),
         options: [
           if (kDebugMode)
             OptionItem(

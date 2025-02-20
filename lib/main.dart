@@ -24,6 +24,8 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -64,6 +66,8 @@ Future<void> callbackDispatcher() async {
     return Future.value(true);
   });
 }
+
+ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(true);
 
 void main() async {
   unawaited(
@@ -247,6 +251,42 @@ class AutonomyApp extends StatelessWidget {
             ],
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
+            builder: (context, child) {
+              return ValueListenableBuilder(
+                  valueListenable: shouldShowNowDisplaying,
+                  child: child,
+                  builder: (context, value, c) {
+                    log.info('shouldShowNowDisplaying: $value');
+                    if (!value) {
+                      return c!;
+                    }
+                    return Scaffold(
+                      backgroundColor: AppColor.primaryBlack,
+                      appBar: getDarkEmptyAppBar(),
+                      body: SafeArea(
+                        child: Column(
+                          children: [
+                            AnimatedSwitcher(
+                              child: NowDisplaying(
+                                key: GlobalKey(),
+                              ),
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                );
+                              },
+                              duration: const Duration(milliseconds: 300),
+                            ),
+                            Expanded(
+                              child: c!,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  });
+            },
           );
         },
       );
