@@ -344,10 +344,12 @@ class IAPServiceImpl implements IAPService {
   }
 
   @override
-  Future<bool> isSubscribed({bool includeInhouse = true}) async {
+  Future<bool> isSubscribed(
+      {bool includeInhouse = true, bool includeBetaTester = true}) async {
     final jwt = _configurationService.getIAPJWT();
     return (jwt != null && jwt.isValid(withSubscription: true)) ||
-        (includeInhouse && await isAppCenterBuild());
+        (includeInhouse && await isAppCenterBuild() && false) ||
+        includeBetaTester && injector<AuthService>().isBetaTester();
   }
 
   Future<void> _cleanupPendingTransactions() async {

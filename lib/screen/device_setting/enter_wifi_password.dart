@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -11,6 +13,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:sentry/sentry.dart';
 
 class SendWifiCredentialsPagePayload {
   final WifiPoint wifiAccessPoint;
@@ -105,8 +108,16 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                       widget.payload.onSubmitted?.call();
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
-                      UIHelper.showInfoDialog(
-                          context, 'Send wifi credentials failed', 'Reson: $e');
+                      unawaited(
+                        Sentry.captureException(
+                          'Failed to send wifi credentials: $e',
+                        ),
+                      );
+                      unawaited(UIHelper.showInfoDialog(
+                        context,
+                        'Send wifi credentials failed',
+                        'Reason: $e',
+                      ));
                     }
                   },
                   color: AppColor.white,

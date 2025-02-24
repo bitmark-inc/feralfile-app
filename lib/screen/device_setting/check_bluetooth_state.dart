@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
@@ -187,18 +188,25 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       _isScanning = true;
     });
     await injector<FFBluetoothService>().startScan(
-        timeout: Duration(seconds: 10),
-        forceScan: true,
-        onData: (results) {
-          final devices = results.map((e) => e.device).toList();
-          final device = devices
-              .firstWhereOrNull((element) => element.advName == deviceName);
-          if (device != null) {
-            resultDevice = device;
-            return true;
-          }
-          return false;
+      timeout: Duration(seconds: 10),
+      forceScan: true,
+      onData: (results) {
+        final devices = results.map((e) => e.device).toList();
+        final device = devices
+            .firstWhereOrNull((element) => element.advName == deviceName);
+        if (device != null) {
+          resultDevice = device;
+          return true;
+        }
+        return false;
+      },
+      onError: (error) {
+        log.info('Failed to scan for device: $error');
+        setState(() {
+          _isScanning = false;
         });
+      },
+    );
     setState(() {
       _isScanning = false;
       _resultDevice = resultDevice;

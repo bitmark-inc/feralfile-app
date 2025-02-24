@@ -744,7 +744,7 @@ class UIHelper {
     BuildContext context,
     String title,
     String description, {
-    bool isDismissible = false,
+    bool isDismissible = true,
     int autoDismissAfter = 0,
     String closeButton = '',
     VoidCallback? onClose,

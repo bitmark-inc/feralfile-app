@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sentry/sentry.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
 class WifiPoint {
@@ -27,6 +29,7 @@ class ScanWifiNetworkPage extends StatefulWidget {
 
 class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   List<WifiPoint> _accessPoints = [];
+  bool _isLocationPermissionGranted = true;
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
 
   @override
@@ -66,19 +69,29 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
       default:
         log.info('Cannot get scanned results: $can');
         final connectedWifi = await _getConnectedWifiSSID();
-        setState(() {
-          _accessPoints = [connectedWifi];
-        });
+        if (connectedWifi != null)
+          setState(() {
+            _accessPoints = [connectedWifi];
+          });
       // ... handle other cases of CanGetScannedResults values
     }
   }
 
-  Future<WifiPoint> _getConnectedWifiSSID() async {
-    final isLocationPermissionGranted =
+  Future<WifiPoint?> _getConnectedWifiSSID() async {
+    _isLocationPermissionGranted =
         await Permission.locationWhenInUse.request().isGranted;
-    log.info('Location permission granted: $isLocationPermissionGranted');
+    log.info('Location permission granted: $_isLocationPermissionGranted');
+    if (!_isLocationPermissionGranted) {
+      Sentry.captureException('Location permission not granted');
+      return null;
+    }
     final info = NetworkInfo();
     final wifiName = await info.getWifiName();
+    if (wifiName == null) {
+      log.info('No wifi connected');
+      Sentry.captureException('No wifi connected');
+      return null;
+    }
     final point = WifiPoint(wifiName ?? '');
     log.info('Connected wifi: ${point.ssid}');
     return point;
@@ -132,9 +145,50 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                   height: 100,
                 ),
               ),
-              ..._accessPoints.map(
-                (e) => SliverToBoxAdapter(child: itemBuilder(context, e)),
-              ),
+              if (!_isLocationPermissionGranted) ...[
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Location permission is required to scan for wifi networks, please enable it in settings',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      const SizedBox(height: 10),
+                      PrimaryButton(
+                        onTap: () async {
+                          await _startScan();
+                          await _startListeningToScannedResults();
+                        },
+                        text: 'retry'.tr(),
+                      )
+                    ],
+                  ),
+                )
+              ] else if (_accessPoints.isEmpty)
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'No wifi networks found',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      const SizedBox(height: 10),
+                      PrimaryButton(
+                        onTap: () async {
+                          await _startScan();
+                          await _startListeningToScannedResults();
+                        },
+                        text: 'retry'.tr(),
+                      )
+                    ],
+                  ),
+                )
+              else
+                ..._accessPoints.map(
+                  (e) => SliverToBoxAdapter(child: itemBuilder(context, e)),
+                ),
             ],
           ),
         ),

@@ -68,14 +68,20 @@ class BluetoothConnectBloc
 
       try {
         if (device.isDisconnected) {
+          log.info('Connecting to device ${device.advName}');
           await injector<FFBluetoothService>().connectToDevice(device);
+          log.info('Connected to device ${device.advName}');
+        } else {
+          log.info('Already connected to device ${device.advName}');
         }
         await event.onConnectSuccess?.call(device);
         emit(state.copyWith(
             connectedDevice: device,
             connectingDevice: null,
             shouldOverrideConnectingDevice: true));
-      } catch (e) {
+      } catch (e, s) {
+        log.info(
+            'Failed to connect to device ${device.advName}: $e \n with stacktrace: $s');
         await event.onConnectFailure?.call(device);
         emit(state.copyWith(
             error: e.toString(),

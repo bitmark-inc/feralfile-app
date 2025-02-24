@@ -187,6 +187,7 @@ class FFBluetoothService {
 
     // Check if the device is connected
     if (!device.isConnected) {
+      log.info('[sendCommand] Device not connected, reconnecting');
       await connectToDevice(device);
       await device.discoverServices();
       if (!device.isConnected) {
@@ -382,13 +383,14 @@ class FFBluetoothService {
     }
 
     _multiConnectCompleter = Completer<void>();
-    _connectToDevice(device).then((value) {
+    try {
+      await _connectToDevice(device);
       _multiConnectCompleter?.complete();
-    }).catchError((e) {
-      _multiConnectCompleter?.completeError('Failed to connect to device: $e');
-    });
-
-    return _multiConnectCompleter?.future;
+    } catch (e) {
+      log.severe('Failed to connect to device: $e');
+      _multiConnectCompleter?.completeError(e);
+      Sentry.captureException(e);
+    }
   }
 
   Future<void> _connectToDevice(BluetoothDevice device) async {
@@ -396,18 +398,18 @@ class FFBluetoothService {
 
     // connect to device
     if (device.isDisconnected) {
+      await device.disconnect();
       _connectCompleter = Completer<void>();
 
       log.info('Connecting to device: ${device.remoteId.str}');
-      final subscription = device.connectionState.listen((state) {
+      final subscription = device.connectionState.listen((state) async {
         log.info(
           'Connection state update for ${device.remoteId.str}: ${state.name}',
         );
         if (state == BluetoothConnectionState.connected) {
           _connectCompleter?.complete();
           _connectCompleter = null;
-        }
-        if (state == BluetoothConnectionState.disconnected) {
+        } else if (state == BluetoothConnectionState.disconnected) {
           log.warning('Device disconnected reason: ${device.disconnectReason}');
         }
       });
@@ -416,7 +418,7 @@ class FFBluetoothService {
 
       // Connect to device
       try {
-        await device.connect(timeout: const Duration(seconds: 3));
+        await device.connect(timeout: const Duration(seconds: 10));
       } catch (e) {
         log.warning('Failed to connect to device: $e');
         unawaited(Sentry.captureException('Failed to connect to device: $e'));
@@ -427,7 +429,7 @@ class FFBluetoothService {
       await _connectCompleter?.future.timeout(
         const Duration(seconds: 3),
         onTimeout: () {
-          log.warning('Connection timeout');
+          log.warning('Timeout waiting for connection to complete');
           return;
         },
       );
@@ -494,7 +496,7 @@ class FFBluetoothService {
       await _commandCharSub?.cancel();
     }
     log.info('Subscribing to command char notifications');
-    final commandCharSub = commandCharacteristic.onValueReceived.listen(
+    _commandCharSub = commandCharacteristic.onValueReceived.listen(
       (value) {
         log.info('Received data from command characteristic: $value');
         BluetoothNotificationService().handleNotification(value);
@@ -504,7 +506,7 @@ class FFBluetoothService {
         Sentry.captureException(error);
       },
     );
-    device.cancelWhenDisconnected(commandCharSub, delayed: true);
+    device.cancelWhenDisconnected(_commandCharSub!, delayed: true);
   }
 
   Future<void> startScan({
