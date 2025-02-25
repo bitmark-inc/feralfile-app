@@ -43,7 +43,10 @@ abstract class TvCastService {
 
   Future<SendLogReply> getSupport(SendLogRequest request);
 
-  Future<GetVersionReply> getVersion(GetVersionRequest request);
+  Future<GetVersionReply> getVersion(
+    GetVersionRequest request, {
+    bool? shouldWriteChunk,
+  });
 
   Future<UpdateOrientationReply> updateOrientation(
     UpdateOrientationRequest request,
@@ -79,6 +82,7 @@ abstract class BaseTvCastService implements TvCastService {
     Map<String, dynamic> body, {
     bool shouldShowError = true,
     Duration? timeout,
+    bool? shouldWriteChunk,
   });
 
   Map<String, dynamic> _getBody(Request request) =>
@@ -172,8 +176,10 @@ abstract class BaseTvCastService implements TvCastService {
   }
 
   @override
-  Future<GetVersionReply> getVersion(GetVersionRequest request) async {
-    final result = await _sendData(_getBody(request));
+  Future<GetVersionReply> getVersion(GetVersionRequest request,
+      {bool? shouldWriteChunk}) async {
+    final result =
+        await _sendData(_getBody(request), shouldWriteChunk: shouldWriteChunk);
     return GetVersionReply.fromJson(result);
   }
 
@@ -213,7 +219,7 @@ abstract class BaseTvCastService implements TvCastService {
     UpdateToLatestVersionRequest request,
   ) async {
     final result =
-        await _sendData(_getBody(request), timeout: Duration(seconds: 10));
+        await _sendData(_getBody(request), timeout: Duration(seconds: 30));
     return UpdateToLatestVersionReply.fromJson(result);
   }
 
@@ -288,6 +294,7 @@ class TvCastServiceImpl extends BaseTvCastService {
     Map<String, dynamic> body, {
     bool shouldShowError = true,
     Duration? timeout,
+    bool? shouldWriteChunk,
   }) async {
     try {
       final result = await _api.request(
@@ -316,6 +323,7 @@ class BluetoothCastService extends BaseTvCastService {
     Map<String, dynamic> body, {
     bool shouldShowError = true,
     Duration? timeout,
+    bool? shouldWriteChunk,
   }) async {
     final command = body['command'] as String;
     final request = Map<String, dynamic>.from(body['request'] as Map);
@@ -324,8 +332,9 @@ class BluetoothCastService extends BaseTvCastService {
       if (!_device.isConnected) {
         throw Exception('Device not connected after reconnection');
       }
-      final writeChunked = injector<FFBluetoothService>().shouldWriteChunk() ||
-          command == CastCommand.getVersion.name;
+      final writeChunked = shouldWriteChunk ??
+          (injector<FFBluetoothService>().shouldWriteChunk() ||
+              command == CastCommand.getVersion.name);
 
       final res = await injector<FFBluetoothService>().sendCommand(
           device: _device,

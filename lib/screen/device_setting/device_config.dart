@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -68,7 +69,13 @@ class ConfigureDevice extends StatefulWidget {
   State<ConfigureDevice> createState() => ConfigureDeviceState();
 }
 
-class ConfigureDeviceState extends State<ConfigureDevice> {
+class ConfigureDeviceState extends State<ConfigureDevice>
+    with AfterLayoutMixin<ConfigureDevice> {
+  @override
+  void afterFirstLayout(BuildContext context) {
+    // injector<FFBluetoothService>().checkVersionCompatibility(widget.device);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

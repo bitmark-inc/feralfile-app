@@ -36,7 +36,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class DeeplinkService {
@@ -65,21 +64,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   Future<void> setup() async {
     log.info('[DeeplinkService] setup');
-    await FlutterBranchSdk.init(enableLogging: true);
-    FlutterBranchSdk.listSession().listen((data) async {
-      log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
-      log.info('[DeeplinkService] data: $data');
-      log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
-      if (data['+clicked_branch_link'] == true &&
-          _deepLinkHandlingMap[data['~referring_link']] == null) {
-        _deepLinkHandlingMap[data['~referring_link'] as String] = true;
-
-        await handleBranchDeeplinkData(data);
-      }
-    }, onError: (error, stacktrace) {
-      Sentry.captureException(error, stackTrace: stacktrace);
-      log.warning('[DeeplinkService] InitBranchSession error: $error');
-    });
+    // await FlutterBranchSdk.init(enableLogging: true);
+    // FlutterBranchSdk.listSession().listen((data) async {
+    //   log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
+    //   log.info('[DeeplinkService] data: $data');
+    //   log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
+    //   if (data['+clicked_branch_link'] == true &&
+    //       _deepLinkHandlingMap[data['~referring_link']] == null) {
+    //     _deepLinkHandlingMap[data['~referring_link'] as String] = true;
+    //
+    //     await handleBranchDeeplinkData(data);
+    //   }
+    // }, onError: (error, stacktrace) {
+    //   Sentry.captureException(error, stackTrace: stacktrace);
+    //   log.warning('[DeeplinkService] InitBranchSession error: $error');
+    // });
 
     try {
       final appLink = AppLinks();
@@ -192,6 +191,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<void> _handleBluetoothConnectDeeplink(String link,
       {Function? onFinish}) async {
+    unawaited(injector<ConfigurationService>().setDidShowLiveWithArt(true));
     final prefix = Constants.bluetoothConnectDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (prefix == null) {

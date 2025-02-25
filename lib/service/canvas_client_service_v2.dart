@@ -277,6 +277,11 @@ class CanvasClientServiceV2 {
     final isConnectedDeviceAvailable = connectedDevice != null &&
         scanedDevices
             .any((element) => element.remoteID == connectedDevice.remoteID);
+
+    if (!isConnectedDeviceAvailable) {
+      log.info(
+          'CanvasClientService: Connected device ${connectedDevice?.remoteID} is not available');
+    }
     final blDevices =
         isConnectedDeviceAvailable ? [connectedDevice] : <FFBluetoothDevice>[];
     final devices = <BaseDevice>[
@@ -353,10 +358,11 @@ class CanvasClientServiceV2 {
     log.info('CanvasClientService: Get Support Success ${response.ok}');
   }
 
-  Future<String> getVersion(BaseDevice device) async {
+  Future<String> getVersion(BaseDevice device, {bool? shouldWriteChunk}) async {
     final stub = _getStub(device);
     final request = GetVersionRequest();
-    final response = await stub.getVersion(request);
+    final response =
+        await stub.getVersion(request, shouldWriteChunk: shouldWriteChunk);
     log.info('CanvasClientService: Get Version Success ${response.version}');
     return response.version;
   }
@@ -400,6 +406,9 @@ class CanvasClientServiceV2 {
     final response = await stub.updateToLatestVersion(request);
     log.info(
         'CanvasClientService: Update To Latest Version Success: response ${response.toJson()}');
+    if (device is FFBluetoothDevice) {
+      await injector<FFBluetoothService>().fetchBluetoothDeviceStatus(device);
+    }
   }
 
   Future<void> tap(List<BaseDevice> devices) async {

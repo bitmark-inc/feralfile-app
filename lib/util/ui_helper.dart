@@ -74,7 +74,7 @@ class UIHelper {
     BuildContext context,
     String title,
     Widget content, {
-    bool isDismissible = false,
+    bool isDismissible = true,
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,

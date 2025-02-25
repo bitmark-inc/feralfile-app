@@ -80,7 +80,6 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/wifi_config_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
@@ -722,11 +721,6 @@ class AppRouter {
           builder: (context) => PlaylistActivationPage(
             payload: settings.arguments! as PlaylistActivationPagePayload,
           ),
-        );
-      case wifiConfigPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => WifiConfigPage(),
         );
 
       case bluetoothDevicePortalPage:

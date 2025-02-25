@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
@@ -26,7 +27,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
   const BluetoothConnectedDeviceConfig({super.key, required this.device});
 
-  final BluetoothDevice? device;
+  final BluetoothDevice device;
 
   @override
   State<BluetoothConnectedDeviceConfig> createState() =>
@@ -35,7 +36,10 @@ class BluetoothConnectedDeviceConfig extends StatefulWidget {
 
 class BluetoothConnectedDeviceConfigState
     extends State<BluetoothConnectedDeviceConfig>
-    with RouteAware, WidgetsBindingObserver {
+    with
+        RouteAware,
+        WidgetsBindingObserver,
+        AfterLayoutMixin<BluetoothConnectedDeviceConfig> {
   BluetoothDeviceStatus? status;
 
   @override
@@ -47,6 +51,13 @@ class BluetoothConnectedDeviceConfigState
     injector<FFBluetoothService>()
         .bluetoothDeviceStatus
         .addListener(_statusListener);
+
+    injector<FFBluetoothService>().fetchBluetoothDeviceStatus(widget.device);
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    // injector<FFBluetoothService>().checkVersionCompatibility(widget.device);
   }
 
   void _statusListener() {
