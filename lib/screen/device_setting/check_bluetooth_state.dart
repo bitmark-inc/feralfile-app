@@ -5,6 +5,8 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -217,6 +219,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         Navigator.of(context).pop();
       }
       unawaited(injector<ConfigurationService>().setBetaTester(true));
+      injector<SubscriptionBloc>().add(GetSubscriptionEvent());
       await injector<NavigationService>().navigateTo(
           AppRouter.bluetoothDevicePortalPage,
           arguments: resultDevice);

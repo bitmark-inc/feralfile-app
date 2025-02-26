@@ -247,7 +247,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // we don't need to wait for canvas service to init
     injector<FFBluetoothService>().init();
 
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (!_configurationService.didShowLiveWithArt()) {
         if (!mounted) {
           return;

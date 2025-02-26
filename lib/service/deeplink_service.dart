@@ -191,7 +191,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<void> _handleBluetoothConnectDeeplink(String link,
       {Function? onFinish}) async {
-    unawaited(injector<ConfigurationService>().setDidShowLiveWithArt(true));
     final prefix = Constants.bluetoothConnectDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (prefix == null) {
@@ -199,6 +198,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           '[DeeplinkService] _handleBluetoothConnectDeeplink prefix not found');
       return;
     }
+    unawaited(injector<ConfigurationService>().setDidShowLiveWithArt(true));
+
     injector<NavigationService>().navigateTo(
       AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
       arguments: HandleBluetoothDeviceScanDeeplinkScreenPayload(
