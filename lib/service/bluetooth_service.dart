@@ -75,7 +75,7 @@ class FFBluetoothService {
     return _bluetoothDeviceStatus;
   }
 
-  set castingBluetoothDevice(BluetoothDevice? device) {
+  set castingBluetoothDevice(FFBluetoothDevice? device) {
     final ffdevice = FFBluetoothDevice(
       remoteID: device!.remoteId.str,
       name: device.advName,
@@ -94,7 +94,10 @@ class FFBluetoothService {
     if (lastCastingBluetoothDevice != null) {
       castingBluetoothDevice = lastCastingBluetoothDevice;
     } else {
-      castingBluetoothDevice = BluetoothDeviceHelper.pairedDevices.firstOrNull;
+      final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
+      if (device != null) {
+        castingBluetoothDevice = device;
+      }
     }
     return _castingBluetoothDevice;
   }
@@ -265,7 +268,7 @@ class FFBluetoothService {
       );
       if (displayingCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        castingBluetoothDevice = device;
+        castingBluetoothDevice = device.toFFBluetoothDevice();
       }
       if (updateDeviceStatusCommand
           .any((element) => element == CastCommand.fromString(command))) {

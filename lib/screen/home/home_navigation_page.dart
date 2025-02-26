@@ -249,6 +249,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     Future.delayed(const Duration(seconds: 2), () {
       if (!_configurationService.didShowLiveWithArt()) {
+        log.info('Show live with art intro');
         if (!mounted) {
           return;
         }

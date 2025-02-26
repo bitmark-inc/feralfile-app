@@ -198,7 +198,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           '[DeeplinkService] _handleBluetoothConnectDeeplink prefix not found');
       return;
     }
-    unawaited(injector<ConfigurationService>().setDidShowLiveWithArt(true));
+    unawaited(
+        injector<ConfigurationService>().setDidShowLiveWithArt(true).then((_) {
+      log.info('setDidShowLiveWithArt to true');
+    }));
 
     injector<NavigationService>().navigateTo(
       AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
