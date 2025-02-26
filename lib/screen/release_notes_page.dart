@@ -107,8 +107,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                         }
                         if (DEEP_LINKS
                             .any((prefix) => href.startsWith(prefix))) {
-                          injector<DeeplinkService>()
-                              .handleDeeplink(href, delay: Duration.zero);
+                          injector<DeeplinkService>().handleDeeplink(href);
                         } else if (await canLaunchUrlString(href)) {
                           await launchUrlString(href,
                               mode: LaunchMode.externalApplication);

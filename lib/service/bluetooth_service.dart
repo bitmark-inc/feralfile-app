@@ -76,8 +76,13 @@ class FFBluetoothService {
   }
 
   set castingBluetoothDevice(FFBluetoothDevice? device) {
+    if (device == null) {
+      _castingBluetoothDevice = null;
+      Sentry.captureException('Set Casting device value to null');
+      return;
+    }
     final ffdevice = FFBluetoothDevice(
-      remoteID: device!.remoteId.str,
+      remoteID: device.remoteId.str,
       name: device.advName,
     );
     _castingBluetoothDevice = ffdevice;

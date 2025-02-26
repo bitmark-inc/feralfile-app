@@ -117,28 +117,41 @@ class DeeplinkServiceImpl extends DeeplinkService {
     Timer.periodic(delay, (timer) async {
       timer.cancel();
       if (_deepLinkHandlingMap[link] != null) {
+        log.info('[DeeplinkService] deeplink $link is handling');
         return;
       }
       _deepLinkHandlingMap[link] = true;
       final handlerType = DeepLinkHandlerType.fromString(link);
+
+      Future<void> onFinishDeeplink() async {
+        try {
+          await onFinished?.call();
+        } catch (e) {
+          log.info('[DeeplinkService] onFinishDeeplink error: $e');
+        }
+        _deepLinkHandlingMap.remove(link);
+      }
+
       log.info('[DeeplinkService] handlerType $handlerType');
       switch (handlerType) {
         case DeepLinkHandlerType.branch:
-          await _handleBranchDeeplink(link, onFinish: onFinished);
+          await _handleBranchDeeplink(link, onFinish: onFinishDeeplink);
         case DeepLinkHandlerType.dAppConnect:
           await _handleDappConnectDeeplink(link);
         case DeepLinkHandlerType.homeWidget:
           await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.bluetoothConnect:
-          await _handleBluetoothConnectDeeplink(link, onFinish: onFinished);
+          await _handleBluetoothConnectDeeplink(link,
+              onFinish: onFinishDeeplink);
         case DeepLinkHandlerType.unknown:
           unawaited(_navigationService.showUnknownLink());
       }
-      _deepLinkHandlingMap.remove(link);
       if (handlerType != DeepLinkHandlerType.branch &&
           handlerType != DeepLinkHandlerType.bluetoothConnect) {
-        onFinished?.call();
+        await onFinishDeeplink.call();
       }
+      // this function is called in onFinishDeeplink, so we don't need to call it here
+      // _deepLinkHandlingMap.remove(link);
     });
   }
 
@@ -203,7 +216,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info('setDidShowLiveWithArt to true');
     }));
 
-    injector<NavigationService>().navigateTo(
+    await injector<NavigationService>().navigateTo(
       AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
       arguments: HandleBluetoothDeviceScanDeeplinkScreenPayload(
         deeplink: link,

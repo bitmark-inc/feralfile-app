@@ -209,10 +209,12 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         });
       },
     );
-    setState(() {
-      _isScanning = false;
-      _resultDevice = resultDevice;
-    });
+    if (context.mounted) {
+      setState(() {
+        _isScanning = false;
+        _resultDevice = resultDevice;
+      });
+    }
 
     if (resultDevice != null) {
       if (context.mounted) {
@@ -226,8 +228,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       await BluetoothDeviceHelper.addDevice(
           resultDevice!.toFFBluetoothDevice());
       injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-
-      onFinish?.call(resultDevice);
+      try {
+        await onFinish?.call(resultDevice);
+      } catch (e) {
+        log.info('Failed to call onFinish: $e');
+      }
     }
   }
 }

@@ -274,9 +274,10 @@ class CanvasClientServiceV2 {
     final scanedDevices = injector<BluetoothConnectBloc>().state.scanedDevices;
     final connectedDevice =
         injector<FFBluetoothService>().castingBluetoothDevice;
-    final isConnectedDeviceAvailable = connectedDevice != null &&
-        scanedDevices
-            .any((element) => element.remoteID == connectedDevice.remoteID);
+    final isConnectedDeviceAvailable = connectedDevice != null;
+    // &&
+    // scanedDevices
+    //     .any((element) => element.remoteID == connectedDevice.remoteID);
 
     if (!isConnectedDeviceAvailable) {
       log.info(
