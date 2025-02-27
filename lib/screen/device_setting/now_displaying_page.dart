@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -41,13 +42,41 @@ class NowDisplayingPage extends StatefulWidget {
 }
 
 class NowDisplayingPageState extends State<NowDisplayingPage> {
+  final NowDisplayingManager _manager = NowDisplayingManager();
+  NowDisplayingObject? nowDisplaying;
+
   @override
   void initState() {
     super.initState();
-    final artworkIdentity = widget.payload.artworkIdentity;
-    context
-        .read<ArtworkDetailBloc>()
-        .add(ArtworkDetailGetInfoEvent(artworkIdentity, withArtwork: true));
+    nowDisplaying = _manager.nowDisplaying;
+    _onUpdateNowDisplaying(nowDisplaying!);
+
+    _manager.nowDisplayingStream.listen(
+      (nowDisplayingObject) {
+        if (mounted) {
+          setState(
+            () {
+              nowDisplaying = nowDisplayingObject;
+            },
+          );
+          _onUpdateNowDisplaying(nowDisplayingObject);
+        }
+      },
+    );
+  }
+
+  void _onUpdateNowDisplaying(NowDisplayingObject? nowDisplayingObject) {
+    final assetToken = nowDisplayingObject?.assetToken ??
+        nowDisplayingObject?.dailiesWorkState?.assetTokens.firstOrNull;
+    if (assetToken != null) {
+      final artworkIdentity = ArtworkIdentity(
+        assetToken.id,
+        assetToken.owner,
+      );
+      context
+          .read<ArtworkDetailBloc>()
+          .add(ArtworkDetailGetInfoEvent(artworkIdentity, withArtwork: true));
+    }
   }
 
   @override

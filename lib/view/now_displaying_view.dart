@@ -6,6 +6,8 @@ import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart';
@@ -44,10 +46,12 @@ class ExhibitionDisplaying {
 class NowDisplayingObject {
   final AssetToken? assetToken;
   final ExhibitionDisplaying? exhibitionDisplaying;
+  final DailiesWorkState? dailiesWorkState;
 
   NowDisplayingObject({
     this.assetToken,
     this.exhibitionDisplaying,
+    this.dailiesWorkState,
   });
 }
 
@@ -117,7 +121,7 @@ class NowDisplayingManager {
         artwork: artwork,
       );
       return NowDisplayingObject(exhibitionDisplaying: exhibitionDisplaying);
-    } else {
+    } else if (status.artworks.isNotEmpty) {
       final index = status.currentArtworkIndex;
       if (index == null) {
         return null;
@@ -128,6 +132,11 @@ class NowDisplayingManager {
       }
       final assetToken = await _fetchAssetToken(tokenId);
       return NowDisplayingObject(assetToken: assetToken);
+    } else {
+      if (status.displayKey == CastDailyWorkRequest.displayKey) {
+        return NowDisplayingObject(
+            dailiesWorkState: injector<DailyWorkBloc>().state);
+      }
     }
   }
 
@@ -196,6 +205,10 @@ class _NowDisplayingState extends State<NowDisplaying> {
         if (exhibitionDisplaying != null) {
           return _exhibitionNowDisplayingView(context, exhibitionDisplaying);
         }
+        if (nowDisplaying.dailiesWorkState != null) {
+          return _dailyWorkNowDisplayingView(
+              context, nowDisplaying.dailiesWorkState!);
+        }
         return const SizedBox();
       },
     );
@@ -212,7 +225,31 @@ Widget _tokenNowDisplayingView(BuildContext context, AssetToken assetToken) {
         artworkIdentity: ArtworkIdentity(assetToken.id, assetToken.owner),
       );
       const pageName = AppRouter.nowDisplayingPage;
-      Navigator.of(context).pushNamed(pageName, arguments: payload);
+      injector<NavigationService>().navigateTo(
+        pageName,
+        arguments: payload,
+      );
+    },
+  );
+}
+
+Widget _dailyWorkNowDisplayingView(
+    BuildContext context, DailiesWorkState state) {
+  final assetToken = state.assetTokens.firstOrNull;
+  if (assetToken == null) {
+    return const SizedBox();
+  }
+  return GestureDetector(
+    child: TokenNowDisplayingView(
+      CompactedAssetToken.fromAssetToken(assetToken),
+    ),
+    onTap: () {
+      injector<NavigationService>().navigateTo(
+        AppRouter.nowDisplayingPage,
+        arguments: NowDisplayingPagePayload(
+          artworkIdentity: ArtworkIdentity(assetToken.id, assetToken.owner),
+        ),
+      );
     },
   );
 }
@@ -302,7 +339,7 @@ class TokenNowDisplayingView extends StatelessWidget {
               if (assetToken.title != null)
                 Expanded(
                   child: Text(
-                    assetToken.title!,
+                    assetToken.displayTitle!,
                     style: theme.textTheme.ppMori400Black14,
                     overflow: TextOverflow.ellipsis,
                   ),

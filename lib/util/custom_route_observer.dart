@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +29,8 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   static bool get onIgnoreBackLayerPopUp => _onIgnoreBackLayerPopUp;
 
+  Timer? _timer;
+
   void onCurrentRouteChanged() {
     if (currentRoute != null) {
       final routeName = currentRoute!.settings.name;
@@ -34,9 +39,13 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
         return;
       }
       if (listRouteShouldnotShowNowDisplaying.contains(routeName)) {
+        _timer?.cancel();
         shouldShowNowDisplaying.value = false;
       } else {
-        Future.delayed(Duration(milliseconds: 50), () {
+        log.info('shouldShowNowDisplaying.value = true');
+        _timer?.cancel();
+        _timer = Timer.periodic(Duration(milliseconds: 50), (_) {
+          _timer?.cancel();
           shouldShowNowDisplaying.value = true;
         });
         // shouldShowNowDisplaying.value = true;
