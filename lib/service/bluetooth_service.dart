@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/chunk.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
@@ -239,12 +240,7 @@ class FFBluetoothService {
 
     final completer = Completer<Map<String, dynamic>>();
 
-    // Subscribe to notifications for this replyId
-    BluetoothNotificationService().subscribe(replyId, (data) {
-      completer.complete(data);
-      // Unsubscribe after getting the reply
-      BluetoothNotificationService().unsubscribe(replyId, (data) {});
-    });
+    _setupCommandNotificationSubscriptions(replyId, completer);
 
     try {
       final bytes = byteBuilder.takeBytes();
@@ -754,6 +750,47 @@ class FFBluetoothService {
           ));
     }
   }
+
+  // Map to store chunks for each response
+  final Map<String, List<ChunkInfo>> chunks = {};
+
+  void _setupCommandNotificationSubscriptions(
+    String replyId,
+    Completer<Map<String, dynamic>> responseCompleter,
+  ) {
+    BluetoothNotificationService().subscribe(replyId, (data) {
+      log.info('[sendCommand] Received data: $data');
+      final isChunkData = data.containsKey('i') &&
+          data.containsKey('d') &&
+          data.containsKey('t');
+
+      if (isChunkData) {
+        chunks[replyId] ??= [];
+        final chunkInfo = ChunkInfo.fromData(data);
+        log.info('[sendCommand] Received chunk: $chunkInfo');
+        chunks[replyId]!.add(chunkInfo);
+
+        if (chunks[replyId]!.length == chunkInfo.total) {
+          chunks[replyId]!.sort((a, b) => a.index.compareTo(b.index));
+          final allChunkData = chunks[replyId]!
+              .map((chunk) => chunk.data)
+              .expand((data) => data)
+              .toList();
+
+          final responseString = utf8.decode(allChunkData);
+          final response = json.decode(responseString) as Map<String, dynamic>;
+          log.info('[sendCommand] Received full response: $response');
+
+          responseCompleter.complete(response);
+          BluetoothNotificationService().unsubscribe(replyId, (data) {});
+          chunks.remove(replyId);
+        }
+      } else {
+        responseCompleter.complete(data);
+        BluetoothNotificationService().unsubscribe(replyId, (data) {});
+      }
+    });
+  }
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
@@ -799,7 +836,7 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
         List.generate(chunks.length, (_) => Completer<void>());
     final ackReplyId = '${replyId}C';
 
-    _setupNotificationSubscriptions(
+    _setupChunkNotificationSubscriptions(
       ackReplyId: ackReplyId,
       chunkCompleters: chunkCompleters,
     );
@@ -882,7 +919,7 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
       ..add(chunk);
   }
 
-  void _setupNotificationSubscriptions({
+  void _setupChunkNotificationSubscriptions({
     required String ackReplyId,
     required List<Completer<void>> chunkCompleters,
   }) {
