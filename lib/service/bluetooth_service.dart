@@ -817,7 +817,7 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
   }
 
   List<List<int>> _prepareChunks(BluetoothDevice device, List<int> bytes) {
-    const maxChunks = 10;
+    const maxChunks = 30;
     const chunkHeaderSize = 12;
     final maxChunkPayloadSize = _getMaxPayloadSize(device) - chunkHeaderSize;
     final chunks = _splitIntoChunks(bytes, maxChunkPayloadSize);
