@@ -298,55 +298,61 @@ class TokenNowDisplayingView extends StatelessWidget {
         final artistTitle =
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
-        return NowDisplayingView(thumbnailBuilder: (context) {
-          return tokenGalleryThumbnailWidget(
-            context,
-            assetToken,
-            65,
-            useHero: false,
-          );
-        }, titleBuilder: (context) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (artistTitle != null) ...[
-                GestureDetector(
-                  onTap: () {
-                    if (assetToken.isFeralfile) {
-                      injector<NavigationService>().openFeralFileArtistPage(
-                        assetToken.artistID!,
-                      );
-                    } else {
-                      final uri = Uri.parse(
-                        assetToken.artistURL?.split(' & ').firstOrNull ?? '',
-                      );
-                      injector<NavigationService>().openUrl(uri);
-                    }
-                  },
-                  child: Text(
-                    artistTitle,
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColor.primaryBlack,
+        return NowDisplayingView(
+          thumbnailBuilder: (context) {
+            return AspectRatio(
+              aspectRatio: 1,
+              child: tokenGalleryThumbnailWidget(
+                context,
+                assetToken,
+                65,
+                useHero: false,
+              ),
+            );
+          },
+          titleBuilder: (context) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (artistTitle != null) ...[
+                  GestureDetector(
+                    onTap: () {
+                      if (assetToken.isFeralfile) {
+                        injector<NavigationService>().openFeralFileArtistPage(
+                          assetToken.artistID!,
+                        );
+                      } else {
+                        final uri = Uri.parse(
+                          assetToken.artistURL?.split(' & ').firstOrNull ?? '',
+                        );
+                        injector<NavigationService>().openUrl(uri);
+                      }
+                    },
+                    child: Text(
+                      artistTitle,
+                      style: theme.textTheme.ppMori400Black14.copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColor.primaryBlack,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(
-                  width: 8,
-                ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                ],
+                if (assetToken.title != null)
+                  Expanded(
+                    child: Text(
+                      assetToken.displayTitle!,
+                      style: theme.textTheme.ppMori400Black14,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
               ],
-              if (assetToken.title != null)
-                Expanded(
-                  child: Text(
-                    assetToken.displayTitle!,
-                    style: theme.textTheme.ppMori400Black14,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -365,7 +371,10 @@ class NowDisplayingExhibitionView extends StatelessWidget {
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     return NowDisplayingView(
       thumbnailBuilder: (context) {
-        return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
+        return AspectRatio(
+          child: FFCacheNetworkImage(imageUrl: thumbnailUrl ?? ''),
+          aspectRatio: 1,
+        );
       },
       titleBuilder: (context) {
         if (artwork != null) {

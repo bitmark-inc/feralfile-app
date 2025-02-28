@@ -73,9 +73,10 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
         assetToken.id,
         assetToken.owner,
       );
-      context
-          .read<ArtworkDetailBloc>()
-          .add(ArtworkDetailGetInfoEvent(artworkIdentity, withArtwork: true));
+      context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
+          artworkIdentity,
+          withArtwork: true,
+          useIndexer: true));
     }
   }
 

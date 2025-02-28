@@ -180,7 +180,7 @@ class AuFileService extends FileService {
         }
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.failed) {
-        log.info('[AuFileService] Download failed: ${info.url}');
+        log.info('[AuFileService] Download failed: ${info.url} ${info.taskId}');
         unawaited(Sentry.captureMessage('Download failed ${info.url}'));
         info.task.completeError(Exception('Download failed ${info.url}'));
         _taskId2Info.remove(id);
