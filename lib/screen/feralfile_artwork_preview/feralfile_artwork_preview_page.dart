@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -328,17 +327,14 @@ class _FeralFileArtworkPreviewPageState
         ),
       );
 
-  Future _showArtworkOptionsDialog(BuildContext context, Artwork artwork,
+  Future<void> _showArtworkOptionsDialog(BuildContext context, Artwork artwork,
       CanvasDeviceState canvasDeviceState) async {
-    final renderingType = await artwork.renderingType();
     final castingDevice = canvasDeviceState
         .lastSelectedActiveDeviceForKey(artwork.series?.exhibitionID ?? '');
     final status =
         canvasDeviceState.canvasDeviceStatus[castingDevice?.deviceId];
     final isCastingThisArtwork =
         castingDevice != null && status?.catalogId == artwork.id;
-    final showKeyboard =
-        renderingType == RenderingType.webview; // show keyboard for webview
     if (!context.mounted) {
       return;
     }
@@ -353,7 +349,7 @@ class _FeralFileArtworkPreviewPageState
               Navigator.of(context).pop();
               _setFullScreen();
             }),
-        if (showKeyboard && !isCastingThisArtwork)
+        if (isCastingThisArtwork)
           OptionItem(
             title: 'interact'.tr(),
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),

@@ -20,6 +20,7 @@ final listRouteShouldnotShowNowDisplaying = [
   AppRouter.hiddenArtworksPage,
   AppRouter.dataManagementPage,
   AppRouter.bugBountyPage,
+  AppRouter.nowDisplayingPage,
 ];
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {

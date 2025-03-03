@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
@@ -16,13 +18,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
 class ExhibitionCard extends StatelessWidget {
-  final Exhibition exhibition;
-  final List<Exhibition> viewableExhibitions;
-  final double? horizontalMargin;
-  final double? width;
-  final double? height;
-  static const _exhibitionInfoDivideWidth = 20.0;
-
   const ExhibitionCard({
     required this.exhibition,
     required this.viewableExhibitions,
@@ -30,7 +25,17 @@ class ExhibitionCard extends StatelessWidget {
     this.width,
     this.height,
     super.key,
+    this.onExhibitionTap,
   });
+
+  final Exhibition exhibition;
+  final List<Exhibition> viewableExhibitions;
+  final double? horizontalMargin;
+  final double? width;
+  final double? height;
+  static const _exhibitionInfoDivideWidth = 20.0;
+  final FutureOr<void> Function(List<Exhibition> exhibitions, int index)?
+      onExhibitionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -153,13 +158,17 @@ class ExhibitionCard extends StatelessWidget {
   Future<void> _onExhibitionTap(BuildContext context,
       List<Exhibition> viewableExhibitions, int index) async {
     if (index >= 0) {
-      await Navigator.of(context).pushNamed(
-        AppRouter.exhibitionDetailPage,
-        arguments: ExhibitionDetailPayload(
-          exhibitions: viewableExhibitions,
-          index: index,
-        ),
-      );
+      if (onExhibitionTap != null) {
+        await onExhibitionTap!(viewableExhibitions, index);
+      } else {
+        await Navigator.of(context).pushNamed(
+          AppRouter.exhibitionDetailPage,
+          arguments: ExhibitionDetailPayload(
+            exhibitions: viewableExhibitions,
+            index: index,
+          ),
+        );
+      }
     }
   }
 }

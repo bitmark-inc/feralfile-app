@@ -13,6 +13,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
@@ -50,10 +54,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
-import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
-import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:shake/shake.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -482,7 +482,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     return Stack(
       children: [
         Visibility(
-          visible: _isOpenedWithWebview(asset),
+          visible: true,
           child: WebviewControllerTextField(
             webViewController: _webViewController,
             focusNode: _focusNode,
@@ -615,7 +615,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     AssetToken asset,
     CanvasDeviceState canvasDeviceState,
   ) async {
-    final showKeyboard = _isOpenedWithWebview(asset);
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
     final connectedDevice =
@@ -640,7 +639,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               _setFullScreen();
             },
           ),
-          if (showKeyboard && isCasting)
+          if (isCasting)
             OptionItem(
               title: 'interact'.tr(),
               icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
@@ -734,11 +733,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ),
     );
   }
-
-  bool _isOpenedWithWebview(AssetToken asset) =>
-      asset.medium == 'software' ||
-      asset.medium == 'other' ||
-      (asset.medium?.isEmpty ?? true);
 
   Future<void> _setFullScreen() async {
     unawaited(_openSnackBar(context));

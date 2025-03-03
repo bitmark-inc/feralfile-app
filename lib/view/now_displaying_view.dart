@@ -4,30 +4,25 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart';
-import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class ExhibitionDisplaying {
   final Exhibition? exhibition;
@@ -77,23 +72,18 @@ class NowDisplayingManager {
     final nowDisplaying = await getNowDisplayingObject();
     this.nowDisplaying = nowDisplaying;
     _streamController.add(nowDisplaying);
-    if (nowDisplaying?.assetToken != null) {
-      _timer?.cancel();
-      final duration = (status?.remainDurationCurrentArtwork ??
-              const Duration(seconds: 27)) +
-          const Duration(seconds: 3);
-      log.info('Update token in $duration');
-      _timer = Timer(duration, () {
-        final castingDevice =
-            injector<FFBluetoothService>().castingBluetoothDevice;
-        if (castingDevice == null) return;
-        injector<CanvasDeviceBloc>()
-            .add(CanvasDeviceGetStatusEvent(castingDevice));
-        // updateDisplayingNow();
-      });
-    } else {
-      _timer?.cancel();
-    }
+    _timer?.cancel();
+    final duration =
+        (status?.remainDurationCurrentArtwork ?? const Duration(seconds: 27)) +
+            const Duration(seconds: 3);
+    _timer = Timer(duration, () {
+      final castingDevice =
+          injector<FFBluetoothService>().castingBluetoothDevice;
+      if (castingDevice == null) return;
+      injector<CanvasDeviceBloc>()
+          .add(CanvasDeviceGetStatusEvent(castingDevice));
+      updateDisplayingNow();
+    });
   }
 
   Future<NowDisplayingObject?> getNowDisplayingObject() async {
@@ -138,6 +128,7 @@ class NowDisplayingManager {
             dailiesWorkState: injector<DailyWorkBloc>().state);
       }
     }
+    return null;
   }
 
   Future<AssetToken?> _fetchAssetToken(String tokenId) async {
@@ -190,7 +181,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
     return BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {
-        _manager.updateDisplayingNow();
+        // _manager.updateDisplayingNow();
       },
       builder: (context, state) {
         final nowDisplaying = this.nowDisplaying;
@@ -221,13 +212,9 @@ Widget _tokenNowDisplayingView(BuildContext context, AssetToken assetToken) {
       CompactedAssetToken.fromAssetToken(assetToken),
     ),
     onTap: () {
-      final payload = NowDisplayingPagePayload(
-        artworkIdentity: ArtworkIdentity(assetToken.id, assetToken.owner),
-      );
       const pageName = AppRouter.nowDisplayingPage;
       injector<NavigationService>().navigateTo(
         pageName,
-        arguments: payload,
       );
     },
   );
@@ -246,9 +233,6 @@ Widget _dailyWorkNowDisplayingView(
     onTap: () {
       injector<NavigationService>().navigateTo(
         AppRouter.nowDisplayingPage,
-        arguments: NowDisplayingPagePayload(
-          artworkIdentity: ArtworkIdentity(assetToken.id, assetToken.owner),
-        ),
       );
     },
   );
@@ -263,18 +247,11 @@ Widget _exhibitionNowDisplayingView(
       final artwork = exhibitionDisplaying.artwork;
       if (artwork != null) {
         injector<NavigationService>().navigateTo(
-          AppRouter.ffArtworkPreviewPage,
-          arguments: FeralFileArtworkPreviewPagePayload(
-            artwork: artwork,
-          ),
+          AppRouter.nowDisplayingPage,
         );
       } else if (exhibition != null) {
         injector<NavigationService>().navigateTo(
-          AppRouter.exhibitionDetailPage,
-          arguments: ExhibitionDetailPayload(
-            exhibitions: [exhibition],
-            index: 0,
-          ),
+          AppRouter.nowDisplayingPage,
         );
       }
     },

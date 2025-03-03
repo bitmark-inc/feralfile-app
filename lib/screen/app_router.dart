@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
@@ -87,7 +88,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
@@ -756,11 +756,12 @@ class AppRouter {
           ),
         );
       case nowDisplayingPage:
-        final payload = settings.arguments! as NowDisplayingPagePayload;
-
-        return CupertinoPageRoute(
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 500),
           settings: settings,
-          builder: (context) => MultiBlocProvider(
+          child: MultiBlocProvider(
             providers: [
               BlocProvider(
                 create: (_) => ArtworkDetailBloc(
@@ -776,9 +777,7 @@ class AppRouter {
               BlocProvider.value(value: identityBloc),
               BlocProvider(create: (_) => royaltyBloc),
             ],
-            child: NowDisplayingPage(
-              payload: payload,
-            ),
+            child: NowDisplayingPage(),
           ),
         );
 
