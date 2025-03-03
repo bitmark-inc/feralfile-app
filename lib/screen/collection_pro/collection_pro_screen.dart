@@ -34,8 +34,8 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/predefined_collection_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
 
 class CollectionPro extends StatefulWidget {
   const CollectionPro({

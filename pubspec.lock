@@ -1771,15 +1771,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
-  nft_collection:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: a0c6c26aabf8915096e03e3f384a6771753287a2
-      resolved-ref: a0c6c26aabf8915096e03e3f384a6771753287a2
-      url: "https://github.com/autonomy-system/nft-collection"
-    source: git
-    version: "0.0.1"
   nm:
     dependency: transitive
     description:

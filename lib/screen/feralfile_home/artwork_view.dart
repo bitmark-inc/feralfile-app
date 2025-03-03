@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/view/user_collection_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/user_collection.dart';
+import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
 
 class ExploreSeriesView extends StatefulWidget {
   const ExploreSeriesView({

@@ -22,6 +22,13 @@ import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
+import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
+import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -77,12 +84,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:nft_collection/data/api/indexer_api.dart';
-import 'package:nft_collection/data/api/tzkt_api.dart';
-import 'package:nft_collection/graphql/clients/indexer_client.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:nft_collection/services/indexer_service.dart';
-import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
@@ -178,10 +179,12 @@ Future<void> setupInjector() async {
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(MetricsInterceptor());
 
-  final authenticatedDioWithTimeout5sec = baseDio(dioOptions.copyWith(
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 5),
-  ));
+  final authenticatedDioWithTimeout5sec = baseDio(
+    dioOptions.copyWith(
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
+    ),
+  );
 
   authenticatedDioWithTimeout5sec.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDioWithTimeout5sec.interceptors.add(MetricsInterceptor());
@@ -207,8 +210,10 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton(
-    () => IAPApi(authenticatedDioWithTimeout5sec,
-        baseUrl: Environment.autonomyAuthURL),
+    () => IAPApi(
+      authenticatedDioWithTimeout5sec,
+      baseUrl: Environment.autonomyAuthURL,
+    ),
     instanceName: iapApiTimeout5secInstanceName,
   );
 
@@ -248,7 +253,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<FFBluetoothService>(
-    () => FFBluetoothService(),
+    FFBluetoothService.new,
   );
 
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
@@ -319,7 +324,8 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton(
-      () => Web3Client(Environment.web3RpcURL, injector()));
+    () => Web3Client(Environment.web3RpcURL, injector()),
+  );
 
   injector.registerLazySingleton<ClientTokenService>(
     () => ClientTokenService(
@@ -431,7 +437,8 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<BluetoothConnectBloc>(
-      () => BluetoothConnectBloc());
+    BluetoothConnectBloc.new,
+  );
 
   injector.registerLazySingleton<AnnouncementStore>(AnnouncementStore.new);
   await injector<AnnouncementStore>().init('');

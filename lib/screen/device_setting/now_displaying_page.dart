@@ -23,7 +23,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NowDisplayingPagePayload {

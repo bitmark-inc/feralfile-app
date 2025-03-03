@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
-import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc_event.dart';
 
 abstract class PredefinedCollectionState {}
 

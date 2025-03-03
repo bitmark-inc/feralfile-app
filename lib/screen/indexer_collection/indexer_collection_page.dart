@@ -15,9 +15,9 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/user_collection.dart';
-import 'package:nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:sentry/sentry.dart';
 
 class IndexerCollectionPage extends StatefulWidget {

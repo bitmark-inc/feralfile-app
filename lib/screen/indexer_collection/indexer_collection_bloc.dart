@@ -7,7 +7,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class IndexerCollectionBloc
     extends AuBloc<IndexerCollectionEvent, IndexerCollectionState> {
