@@ -38,7 +38,7 @@ class UserCollection extends ArtistCollection {
         thumbnailURL: json['thumbnailURL'] as String,
         lastUpdatedTime: json['lastUpdatedTime'] as String,
         lastActivityTime: json['lastActivityTime'] as String,
-        createdAt: json['createdAt'] as String,
+        createdAt: json['createdAt'] as String?,
       );
   final String id;
   final String externalID;
@@ -56,5 +56,5 @@ class UserCollection extends ArtistCollection {
   final String thumbnailURL;
   final String lastUpdatedTime;
   final String lastActivityTime;
-  final String createdAt;
+  final String? createdAt;
 }
