@@ -103,12 +103,11 @@ class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDeviceCastExhibitionEvent extends CanvasDeviceEvent {
-  CanvasDeviceCastExhibitionEvent(this.device, this.castRequest,
-      {this.completer});
+  CanvasDeviceCastExhibitionEvent(this.device, this.castRequest, {this.onDone});
 
   final BaseDevice device;
   final CastExhibitionRequest castRequest;
-  final Completer<void>? completer;
+  final FutureOr<void> Function()? onDone;
 }
 
 class CanvasDeviceCastDailyWorkEvent extends CanvasDeviceEvent {
@@ -441,7 +440,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           ),
         );
       } finally {
-        event.completer?.complete();
+        await event.onDone?.call();
       }
     });
 

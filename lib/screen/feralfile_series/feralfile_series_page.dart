@@ -158,7 +158,9 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                       CanvasDeviceCastExhibitionEvent(
                         lastSelectedCanvasDevice,
                         castRequest,
-                        completer: completer,
+                        onDone: () {
+                          completer.complete();
+                        },
                       ),
                     );
                     await completer.future;

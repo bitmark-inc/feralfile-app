@@ -229,8 +229,15 @@ class _FeralFileArtworkPreviewPageState
         catalogId: artworkId,
       );
       final completer = Completer<void>();
-      _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(device, request,
-          completer: completer));
+      _canvasDeviceBloc.add(
+        CanvasDeviceCastExhibitionEvent(
+          device,
+          request,
+          onDone: () {
+            completer.complete();
+          },
+        ),
+      );
       await completer.future;
     }
   }

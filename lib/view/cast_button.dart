@@ -20,6 +20,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry/sentry.dart';
 
 class FFCastButton extends StatefulWidget {
   final FutureOr<void> Function(BaseDevice device)? onDeviceSelected;
@@ -73,9 +74,15 @@ class FFCastButtonState extends State<FFCastButton> {
               setState(() {
                 _isProcessing = true;
               });
-              widget.onTap?.call();
-              await onTap(context, isSubscribed);
-              _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
+              try {
+                widget.onTap?.call();
+                await onTap(context, isSubscribed);
+                _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
+              } catch (e) {
+                log.info('Error while casting: $e');
+                unawaited(Sentry.captureException(
+                    '[FFCastButton] Error while casting: $e'));
+              }
               setState(() {
                 _isProcessing = false;
               });

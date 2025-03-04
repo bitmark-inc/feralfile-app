@@ -182,7 +182,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       final completer = Completer<void>();
       _canvasDeviceBloc.add(
         CanvasDeviceCastExhibitionEvent(lastSelectedDevice, request,
-            completer: completer),
+            onDone: completer.complete),
       );
       await completer.future;
     }
@@ -292,7 +292,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                   final request = _getCastExhibitionRequest(exhibition);
                   final completer = Completer<void>();
                   _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(device, request),
+                    CanvasDeviceCastExhibitionEvent(device, request,
+                        onDone: completer.complete),
                   );
                   await completer.future;
                 },
