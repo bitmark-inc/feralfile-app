@@ -359,11 +359,12 @@ class CanvasClientServiceV2 {
     log.info('CanvasClientService: Get Support Success ${response.ok}');
   }
 
-  Future<String> getVersion(BaseDevice device, {bool? shouldWriteChunk}) async {
+  Future<String> getVersion(
+    BaseDevice device,
+  ) async {
     final stub = _getStub(device);
     final request = GetVersionRequest();
-    final response =
-        await stub.getVersion(request, shouldWriteChunk: shouldWriteChunk);
+    final response = await stub.getVersion(request);
     log.info('CanvasClientService: Get Version Success ${response.version}');
     return response.version;
   }

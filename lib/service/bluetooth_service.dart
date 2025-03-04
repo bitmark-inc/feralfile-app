@@ -15,13 +15,9 @@ import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -119,11 +115,11 @@ class FFBluetoothService {
   // For scanning
   final String serviceUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
 
-  String commandCharUuid =
-      '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // command characteristic
+  // command characteristic
+  String commandCharUuid = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 
-  String wifiConnectCharUuid =
-      '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // wifi connect characteristic
+  // wifi connect characteristic
+  String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
   StreamSubscription<List<int>>? _commandCharSub;
 
@@ -155,62 +151,11 @@ class FFBluetoothService {
   BluetoothCharacteristic? getWifiConnectCharacteristic(String remoteId) =>
       _wifiConnectCharacteristic[remoteId];
 
-  Future<String?> _getVersion(BluetoothDevice device) async {
-    String? version;
-    try {
-      version = await injector<CanvasClientServiceV2>()
-          .getVersion(device.toFFBluetoothDevice(), shouldWriteChunk: true);
-    } catch (e) {
-      log.warning('Failed to get version by chunk: $e');
-    }
-    if (version == null || version.isEmpty) {
-      try {
-        version = await injector<CanvasClientServiceV2>()
-            .getVersion(device.toFFBluetoothDevice(), shouldWriteChunk: false);
-      } catch (e) {
-        log.warning('Failed to get version without chunk: $e');
-      }
-    }
-    return version;
-  }
-
-  Future<void> updatePilotVersion(BluetoothDevice device) async {
-    try {
-      final res = await injector<CanvasClientServiceV2>()
-          .getVersion(device.toFFBluetoothDevice());
-      if (res.isNotEmpty) {
-        await injector<ConfigurationService>().setPilotVersion(res);
-      }
-    } catch (e) {
-      log.warning('Failed to get pilot version: $e');
-    }
-  }
-
-  DateTime? _lastGetPilotVersionTime;
-
-  bool shouldWriteChunk() {
-    final pilotVersion = injector<ConfigurationService>().getPilotVersion();
-    log.info('Pilot version: $pilotVersion');
-    final writeChunked =
-        pilotVersion != null && pilotVersion.compareTo('0.3.3') >= 0;
-    if (!writeChunked) {
-      if ((_lastGetPilotVersionTime == null ||
-              DateTime.now().difference(_lastGetPilotVersionTime!) >
-                  const Duration(minutes: 10)) &&
-          castingBluetoothDevice != null) {
-        _lastGetPilotVersionTime = DateTime.now();
-        updatePilotVersion(castingBluetoothDevice!);
-      }
-    }
-    return writeChunked;
-  }
-
   Future<Map<String, dynamic>> sendCommand({
     required BluetoothDevice device,
     required String command,
     required Map<String, dynamic> request,
     Duration? timeout,
-    bool writeChunk = false,
   }) async {
     log.info(
         '[sendCommand] Sending command: $command to device: ${device.remoteId.str}');
@@ -244,13 +189,9 @@ class FFBluetoothService {
 
     try {
       final bytes = byteBuilder.takeBytes();
-      if (writeChunk) {
-        log.info('[sendCommand] Sending command in chunks');
-        await commandChar.writeChunk(bytes);
-      } else {
-        log.info('[sendCommand] Sending command in one go');
-        await commandChar.write(bytes);
-      }
+      log.info('[sendCommand] Sending command in chunks');
+      await commandChar.writeChunk(bytes);
+
       log.info('[sendCommand] Command $command sent');
 
       // Wait for reply with timeout
@@ -717,37 +658,6 @@ class FFBluetoothService {
     } catch (e) {
       log.warning('Failed to get device status: $e');
       return null;
-    }
-  }
-
-  Future<void> checkVersionCompatibility(BluetoothDevice device) async {
-    final res = _bluetoothDeviceStatus.value ??
-        await fetchBluetoothDeviceStatus(device);
-    final version = await _getVersion(device);
-    final installedVersion = res?.installedVersion ?? version;
-    final latestVersion = res?.latestVersion;
-    final isCompatible =
-        installedVersion == latestVersion && installedVersion != null;
-    if (!isCompatible) {
-      final context = injector<NavigationService>().context;
-      UIHelper.showDialog(
-          context,
-          'Update Available',
-          Column(
-            children: [
-              Text(
-                  'A newer version of the pilot is available. Please update to the latest version.'),
-              const SizedBox(height: 16),
-              if (latestVersion != null)
-                PrimaryAsyncButton(
-                  onTap: () async {
-                    injector<CanvasClientServiceV2>()
-                        .updateToLatestVersion(device.toFFBluetoothDevice());
-                  },
-                  text: 'Update',
-                ),
-            ],
-          ));
     }
   }
 
