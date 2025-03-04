@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -40,9 +41,9 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -264,6 +265,18 @@ class NavigationService {
         'can_not_connect_to_tv_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
         isDismissible: true,
+      );
+    }
+  }
+
+  Future<void> showCannotConnectToBluetoothDevice(BluetoothDevice device, Object? error) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+        context,
+        'Can not connect to ${device.advName}',
+        'Error: ${error}',
+        onClose: () => UIHelper.hideInfoDialog(context),
       );
     }
   }

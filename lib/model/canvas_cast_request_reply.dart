@@ -473,6 +473,9 @@ class CheckDeviceStatusReply extends Reply {
       (previousValue, element) => previousValue + element.duration,
     );
     final duration = now - startTime!;
+    if (durationSum == 0) {
+      return 0;
+    }
     int currentDuration = duration % durationSum;
 
     int index = artworks.indexWhere(

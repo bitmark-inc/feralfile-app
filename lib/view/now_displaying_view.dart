@@ -181,7 +181,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
     return BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {
-        // _manager.updateDisplayingNow();
+        _manager.updateDisplayingNow();
       },
       builder: (context, state) {
         final nowDisplaying = this.nowDisplaying;

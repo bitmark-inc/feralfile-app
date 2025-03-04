@@ -147,7 +147,7 @@ class FFCastButtonState extends State<FFCastButton> {
       }
       if (injector<CanvasDeviceBloc>().state.devices.length == 1) {
         final device = injector<CanvasDeviceBloc>().state.devices.first.device;
-        widget.onDeviceSelected?.call(device);
+        await widget.onDeviceSelected?.call(device);
         return;
       }
       await injector<NavigationService>().showStreamAction(

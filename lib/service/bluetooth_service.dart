@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -15,9 +14,11 @@ import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -248,35 +249,8 @@ class FFBluetoothService {
       ..add(replyIdBytes);
   }
 
-  String getTimeZone() {
-    String timezone = (Platform.isAndroid)
-        ? _getAndroidTimezone()
-        : (Platform.isIOS)
-            ? _getIOSTimezone()
-            : "";
-    return timezone;
-  }
-
-  static String _getAndroidTimezone() {
-    try {
-      final result = Process.runSync("getprop", ["persist.sys.timezone"]);
-      return result.stdout.toString().trim();
-    } catch (e) {
-      return "";
-    }
-  }
-
-  static String _getIOSTimezone() {
-    try {
-      final result = Process.runSync("systemsetup", ["-gettimezone"]);
-      return result.stdout.toString().trim().replaceAll("Time Zone: ", "");
-    } catch (e) {
-      return "";
-    }
-  }
-
   Future<void> setTimezone(BluetoothDevice device) async {
-    final timezone = getTimeZone();
+    final timezone = TimezoneHelper.getTimeZone();
     await injector<CanvasClientServiceV2>()
         .setTimezone(device.toFFBluetoothDevice(), timezone);
   }
@@ -303,6 +277,7 @@ class FFBluetoothService {
     try {
       await setTimezone(device);
     } catch (e) {
+      unawaited(Sentry.captureException('Failed to set timezone: $e'));
       log.warning('Failed to set timezone: $e');
     }
 
@@ -360,10 +335,9 @@ class FFBluetoothService {
   }
 
   Future<void> _connectToDevice(BluetoothDevice device) async {
-    List<BluetoothService> services = [];
-
     // connect to device
     if (device.isDisconnected) {
+      // completely disconnect from the device
       await device.disconnect();
       _connectCompleter = Completer<void>();
 
@@ -373,13 +347,13 @@ class FFBluetoothService {
           'Connection state update for ${device.remoteId.str}: ${state.name}',
         );
         if (state == BluetoothConnectionState.connected) {
+          await discoverCharacteristics(device);
           _connectCompleter?.complete();
           _connectCompleter = null;
         } else if (state == BluetoothConnectionState.disconnected) {
           log.warning('Device disconnected reason: ${device.disconnectReason}');
         }
       });
-
       device.cancelWhenDisconnected(subscription, delayed: true, next: true);
 
       // Connect to device
@@ -388,51 +362,108 @@ class FFBluetoothService {
       } catch (e) {
         log.warning('Failed to connect to device: $e');
         unawaited(Sentry.captureException('Failed to connect to device: $e'));
+        unawaited(
+          injector<NavigationService>().showCannotConnectToBluetoothDevice(
+            device,
+            e,
+          ),
+        );
         rethrow;
       }
 
       // Wait for connection to complete
       await _connectCompleter?.future.timeout(
-        const Duration(seconds: 3),
+        const Duration(seconds: 10),
         onTimeout: () {
           log.warning('Timeout waiting for connection to complete');
+          unawaited(
+            injector<NavigationService>().showCannotConnectToBluetoothDevice(
+                device,
+                TimeoutException('Taking too long to connect to device')),
+          );
           return;
         },
-      );
-
-      // Discover services
-      // Note: You must call discoverServices after every re-connection!
-      final discoveredServices = await device.discoverServices();
-      services
-        ..clear()
-        ..addAll(discoveredServices);
+      ).catchError((e) {
+        log.warning('Error waiting for connection to complete: $e');
+        unawaited(Sentry.captureException(
+            'Error waiting for connection to complete: $e'));
+        unawaited(
+          injector<NavigationService>().showCannotConnectToBluetoothDevice(
+            device,
+            e,
+          ),
+        );
+      });
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
     }
+  }
 
-    // Check if the command and wifi connect characteristics are available
-    if (getCommandCharacteristic(device.remoteId.str) == null ||
-        getWifiConnectCharacteristic(device.remoteId.str) == null) {
-      // if the command and wifi connect characteristics are not found, try to find them
-      final commandService = services.firstWhereOrNull(
-        (service) => service.uuid.toString() == serviceUuid,
-      );
-      if (commandService == null) {
-        Sentry.captureMessage('Command service not found');
-        return;
-      }
-      final commandChar = commandService.characteristics.firstWhere(
-        (characteristic) => characteristic.uuid.toString() == commandCharUuid,
-      );
-      final wifiConnectChar = commandService.characteristics.firstWhere(
-        (characteristic) =>
-            characteristic.uuid.toString() == wifiConnectCharUuid,
-      );
-      // Set the command and wifi connect characteristics
-      setCommandCharacteristic(commandChar);
-      setWifiConnectCharacteristic(wifiConnectChar);
+  Future<void> startScan({
+    Duration timeout = const Duration(seconds: 30),
+    FutureOr<bool> Function(List<ScanResult>)? onData,
+    FutureOr<void> Function(dynamic)? onError,
+    bool forceScan = false,
+  }) async {
+    if (!injector<AuthService>().isBetaTester() && !forceScan) {
+      return;
     }
+    StreamSubscription<List<ScanResult>>? scanSubscription;
+    scanSubscription = FlutterBluePlus.onScanResults.listen(
+      (results) async {
+        final shouldStopScan = await onData?.call(results);
+        if (shouldStopScan == true) {
+          FlutterBluePlus.stopScan();
+        }
+      },
+      onError: (error) {
+        onError?.call(error);
+        scanSubscription?.cancel();
+      },
+    );
 
+    FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
+    log.info('BluetoothConnectEventScan startScan');
+    await FlutterBluePlus.startScan(
+      timeout: timeout, // Updated to 60 seconds
+      androidUsesFineLocation: true,
+      withServices: [
+        Guid(injector<FFBluetoothService>().serviceUuid),
+      ],
+    );
+    // wait for scan to complete
+    while (FlutterBluePlus.isScanningNow) {
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
+  }
+
+  Future<void> discoverCharacteristics(BluetoothDevice device) async {
+    log.info('Discovering characteristics for device: ${device.remoteId.str}');
+    final discoveredServices = await device.discoverServices();
+    final services = <BluetoothService>[];
+    services
+      ..clear()
+      ..addAll(discoveredServices);
+
+    // if the command and wifi connect characteristics are not found, try to find them
+    final commandService = services.firstWhereOrNull(
+      (service) => service.uuid.toString() == serviceUuid,
+    );
+    if (commandService == null) {
+      Sentry.captureMessage('Command service not found');
+      return;
+    }
+    final commandChar = commandService.characteristics.firstWhere(
+      (characteristic) => characteristic.uuid.toString() == commandCharUuid,
+    );
+    final wifiConnectChar = commandService.characteristics.firstWhere(
+      (characteristic) => characteristic.uuid.toString() == wifiConnectCharUuid,
+    );
+    // Set the command and wifi connect characteristics
+    setCommandCharacteristic(commandChar);
+    setWifiConnectCharacteristic(wifiConnectChar);
+
+    // set value notification for command characteristic
     final commandCharacteristic = getCommandCharacteristic(device.remoteId.str);
     if (commandCharacteristic == null) {
       log.warning('Command characteristic not found');
@@ -473,86 +504,6 @@ class FFBluetoothService {
       },
     );
     device.cancelWhenDisconnected(_commandCharSub!, delayed: true);
-  }
-
-  Future<void> startScan({
-    Duration timeout = const Duration(seconds: 30),
-    FutureOr<bool> Function(List<ScanResult>)? onData,
-    FutureOr<void> Function(dynamic)? onError,
-    bool forceScan = false,
-  }) async {
-    if (!injector<AuthService>().isBetaTester() && !forceScan) {
-      return;
-    }
-    StreamSubscription<List<ScanResult>>? scanSubscription;
-
-    // if (state.bluetoothAdapterState != BluetoothAdapterState.on) {
-    //   log.info('BluetoothConnectEventScan BluetoothAdapterState is not on');
-    //   return;
-    // }
-    scanSubscription = FlutterBluePlus.onScanResults.listen(
-      (results) async {
-        final shouldStopScan = await onData?.call(results);
-        if (shouldStopScan == true) {
-          FlutterBluePlus.stopScan();
-        }
-      },
-      onError: (error) {
-        onError?.call(error);
-        scanSubscription?.cancel();
-      },
-    );
-
-    FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
-    log.info('BluetoothConnectEventScan startScan');
-    await FlutterBluePlus.startScan(
-      timeout: timeout, // Updated to 60 seconds
-      androidUsesFineLocation: true,
-      withServices: [
-        Guid(injector<FFBluetoothService>().serviceUuid),
-      ],
-    );
-    // wait for scan to complete
-    while (FlutterBluePlus.isScanningNow) {
-      await Future.delayed(const Duration(milliseconds: 1000));
-    }
-  }
-
-  Future<void> findCharacteristics(BluetoothDevice devices) async {
-    final List<BluetoothService> services = await devices.discoverServices();
-    for (var service in services) {
-      log.info(
-        'Discovered service UUID: ${service.uuid.toString().toLowerCase()}',
-      );
-      if (service.uuid.toString().toLowerCase() == serviceUuid) {
-        for (final characteristic in service.characteristics) {
-          log.info(
-            'Found characteristic UUID: '
-            '${characteristic.uuid.toString().toLowerCase()}',
-          );
-
-          if (characteristic.uuid.toString().toLowerCase() == commandCharUuid) {
-            setCommandCharacteristic(characteristic);
-            log.info('Found command characteristic');
-          }
-          // if the characteristic UUID matches the target characteristic UUID
-          if (characteristic.uuid.toString().toLowerCase() ==
-              wifiConnectCharUuid) {
-            setWifiConnectCharacteristic(characteristic);
-
-            // Set up notifications
-            if (characteristic.properties.notify) {
-              await characteristic.setNotifyValue(true);
-              characteristic.value.listen((value) {
-                final receivedText = utf8.decode(value);
-              });
-            }
-
-            // return; // Found what we need
-          }
-        }
-      }
-    }
   }
 
   Reply fakeReply(String commandString) {
