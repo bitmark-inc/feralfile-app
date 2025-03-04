@@ -192,7 +192,7 @@ abstract class BaseTvCastService implements TvCastService {
     GetBluetoothDeviceStatusRequest request,
   ) async {
     final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 10));
+        timeout: const Duration(seconds: 10), shouldShowError: false);
     return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 
@@ -322,16 +322,12 @@ class BluetoothCastService extends BaseTvCastService {
     final command = body['command'] as String;
     final request = Map<String, dynamic>.from(body['request'] as Map);
     try {
-      await injector<FFBluetoothService>().connectToDevice(_device);
-      if (!_device.isConnected) {
-        throw Exception('Device not connected after reconnection');
-      }
-
       final res = await injector<FFBluetoothService>().sendCommand(
         device: _device,
         command: command,
         request: request,
         timeout: timeout,
+        shouldShowError: shouldShowError,
       );
       log.info('[BluetoothCastService] sendCommand $command');
       return res;

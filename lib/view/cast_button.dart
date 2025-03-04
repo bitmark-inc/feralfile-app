@@ -88,8 +88,8 @@ class FFCastButtonState extends State<FFCastButton> {
                   color: AppColor.feralFileLightBlue,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9)
-                      .copyWith(left: 16, right: isCasting ? 9 : 16),
+                  padding: const EdgeInsets.symmetric(vertical: 9).copyWith(
+                      left: 16, right: (isCasting || _isProcessing) ? 9 : 16),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -111,14 +111,14 @@ class FFCastButtonState extends State<FFCastButton> {
                           BlendMode.srcIn,
                         ),
                       ),
-                      if (isCasting) ...[
+                      if (isCasting || _isProcessing) ...[
                         const SizedBox(
                           width: 3,
                           height: 20,
                         ),
                         if (_isProcessing)
                           const ProcessingIndicator()
-                        else
+                        else if (isCasting)
                           Container(
                             width: 4,
                             height: 4,

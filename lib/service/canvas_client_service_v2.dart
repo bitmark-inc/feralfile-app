@@ -69,10 +69,9 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<CheckDeviceStatusReply> getDeviceCastingStatus(
-    BaseDevice device,
-  ) async =>
-      _getDeviceCastingStatus(device);
+  Future<CheckDeviceStatusReply> getDeviceCastingStatus(BaseDevice device,
+          {bool shouldShowError = true}) async =>
+      _getDeviceCastingStatus(device, shouldShowError: shouldShowError);
 
   Future<CheckDeviceStatusReply> _getDeviceCastingStatus(
     BaseDevice device, {

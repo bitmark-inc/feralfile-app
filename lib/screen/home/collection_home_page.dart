@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -37,8 +39,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:autonomy_flutter/nft_collection/models/models.dart';
-import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 
 class CollectionHomePage extends StatefulWidget {
   const CollectionHomePage({super.key});
@@ -224,7 +224,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
                           CanvasDeviceCastListArtworkEvent(
                             device,
                             listPlayArtwork,
-                            completer: completer,
+                            onDone: completer.complete,
                           ),
                         );
                         await completer.future;

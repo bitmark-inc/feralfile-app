@@ -254,9 +254,15 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       token: CastAssetToken(id: e), duration: duration))
                   .toList();
               final completer = Completer<void>();
-              _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
-                  device, listPlayArtwork,
-                  completer: completer));
+              _canvasDeviceBloc.add(
+                CanvasDeviceCastListArtworkEvent(
+                  device,
+                  listPlayArtwork,
+                  onDone: () {
+                    completer.complete();
+                  },
+                ),
+              );
               await completer.future;
             },
           ),

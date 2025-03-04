@@ -64,11 +64,11 @@ class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
-  CanvasDeviceCastListArtworkEvent(this.device, this.artwork, {this.completer});
+  CanvasDeviceCastListArtworkEvent(this.device, this.artwork, {this.onDone});
 
   final BaseDevice device;
   final List<PlayArtworkV2> artwork;
-  final Completer<void>? completer;
+  final FutureOr<void> Function()? onDone;
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
@@ -288,11 +288,19 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceGetStatusEvent>(
       (event, emit) async {
         try {
-          final status = await _canvasClientServiceV2.getDeviceCastingStatus(
-            event.device,
-          );
-          final newStatuses = state.canvasDeviceStatus
-            ..[event.device.deviceId] = status;
+          CheckDeviceStatusReply? status;
+          try {
+            status = await _canvasClientServiceV2.getDeviceCastingStatus(
+              event.device,
+              shouldShowError: false,
+            );
+          } catch (e) {
+            log.info('CanvasDeviceBloc: error while get device status: $e');
+            unawaited(Sentry.captureException(e));
+          }
+          final newStatuses = status == null
+              ? (state.canvasDeviceStatus..remove(event.device.deviceId))
+              : (state.canvasDeviceStatus..[event.device.deviceId] = status!);
           final newState = state.copyWith(
             controllingDeviceStatus: newStatuses,
           );
@@ -391,7 +399,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           ),
         );
       } finally {
-        event.completer?.complete();
+        await event.onDone?.call();
       }
     });
 
@@ -487,6 +495,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Device not found');
         }
         await _canvasClientServiceV2.nextArtwork(device);
+        add(CanvasDeviceGetStatusEvent(device));
         emit(
           state.replaceDeviceState(
             device: device,
@@ -506,6 +515,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Device not found');
         }
         await _canvasClientServiceV2.previousArtwork(device);
+        add(CanvasDeviceGetStatusEvent(device));
         emit(
           state.replaceDeviceState(
             device: device,

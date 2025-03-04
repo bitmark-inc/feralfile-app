@@ -289,8 +289,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   final completer = Completer<void>();
                                   _canvasDeviceBloc.add(
                                     CanvasDeviceCastListArtworkEvent(
-                                        device, [artwork],
-                                        completer: completer),
+                                      device,
+                                      [artwork],
+                                      onDone: () {
+                                        completer.complete();
+                                      },
+                                    ),
                                   );
                                   await completer.future;
                                 },
