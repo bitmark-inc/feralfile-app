@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/chunk.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
@@ -131,6 +132,8 @@ class FFBluetoothService {
   Map<String, BluetoothCharacteristic> _wifiConnectCharacteristic = {};
 
   void setCommandCharacteristic(BluetoothCharacteristic characteristic) {
+    log.info(
+        '[setCommandCharacteristic] Setting command characteristic for ${characteristic.remoteId.str} with primary service: ${characteristic.primaryServiceUuid}');
     _commandCharacteristic[characteristic.remoteId.str] = characteristic;
   }
 
@@ -216,11 +219,7 @@ class FFBluetoothService {
       }
       if (updateDeviceStatusCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        injector<CanvasClientServiceV2>().getBluetoothDeviceStatus(device).then(
-          (value) {
-            _bluetoothDeviceStatus.value = value;
-          },
-        );
+        unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
       }
       return res;
     } catch (e) {
@@ -332,7 +331,7 @@ class FFBluetoothService {
     } catch (e) {
       log.severe('Failed to connect to device: $e');
       _multiConnectCompleter?.completeError(e);
-      Sentry.captureException(e);
+      unawaited(Sentry.captureException('Failed to connect to device: $e'));
     }
   }
 
@@ -350,9 +349,28 @@ class FFBluetoothService {
           'Connection state update for ${device.remoteId.str}: ${state.name}',
         );
         if (state == BluetoothConnectionState.connected) {
-          await discoverCharacteristics(device);
-          _connectCompleter?.complete();
-          _connectCompleter = null;
+          try {
+            await discoverCharacteristics(device);
+            _connectCompleter?.complete();
+            _connectCompleter = null;
+            // after connected, fetch device status
+            unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+            injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+          } catch (e) {
+            log.warning('Failed to discover characteristics: $e');
+            unawaited(Sentry.captureException(
+                'Failed to discover characteristics: $e'));
+            if (shouldShowError) {
+              unawaited(
+                injector<NavigationService>()
+                    .showCannotConnectToBluetoothDevice(
+                  device,
+                  e,
+                ),
+              );
+            }
+            _connectCompleter?.completeError(e);
+          }
         } else if (state == BluetoothConnectionState.disconnected) {
           log.warning('Device disconnected reason: ${device.disconnectReason}');
         }
@@ -448,16 +466,30 @@ class FFBluetoothService {
 
   Future<void> discoverCharacteristics(BluetoothDevice device) async {
     log.info('Discovering characteristics for device: ${device.remoteId.str}');
+
     final discoveredServices = await device.discoverServices();
     final services = <BluetoothService>[];
     services
       ..clear()
       ..addAll(discoveredServices);
 
+    final primaryService = services.firstWhereOrNull(
+      (service) => service.isPrimary,
+    );
+
+    if (primaryService == null) {
+      log.warning('Primary service not found');
+      unawaited(Sentry.captureMessage('Primary service not found'));
+      return;
+    } else {
+      log.info('Primary service found: ${primaryService.uuid}');
+    }
+
     // if the command and wifi connect characteristics are not found, try to find them
     final commandService = services.firstWhereOrNull(
       (service) => service.uuid.toString() == serviceUuid,
     );
+
     if (commandService == null) {
       Sentry.captureMessage('Command service not found');
       return;
@@ -468,6 +500,7 @@ class FFBluetoothService {
     final wifiConnectChar = commandService.characteristics.firstWhere(
       (characteristic) => characteristic.uuid.toString() == wifiConnectCharUuid,
     );
+
     // Set the command and wifi connect characteristics
     setCommandCharacteristic(commandChar);
     setWifiConnectCharacteristic(wifiConnectChar);
