@@ -23,6 +23,8 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
   const BluetoothConnectedDeviceConfig({super.key, required this.device});
@@ -364,6 +366,8 @@ class BluetoothConnectedDeviceConfigState
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
     final deviceId = widget.device?.advName ?? 'Unknown';
+    final ipAddress = status?.ipAddress ?? 'Not connected to WiFi';
+    final connectedWifi = status?.connectedWifi;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,9 +417,38 @@ class BluetoothConnectedDeviceConfigState
                 style: theme.textTheme.ppMori400Grey14,
               ),
               const SizedBox(height: 4),
-              Text(
-                deviceId,
-                style: theme.textTheme.ppMori400White14,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      deviceId,
+                      style: theme.textTheme.ppMori400White14,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: deviceId));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Device ID copied to clipboard'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColor.feralFileMediumGrey,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Copy',
+                        style: theme.textTheme.ppMori400White12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               // Version Information
@@ -445,6 +478,58 @@ class BluetoothConnectedDeviceConfigState
                         ),
                     ],
                   ),
+                ),
+              ],
+
+              // IP Address
+              if (ipAddress != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'IP Address:',
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        ipAddress,
+                        style: theme.textTheme.ppMori400White14,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        final url = 'http://$ipAddress:8080/logs.html';
+                        injector<NavigationService>().openUrl(Uri.parse(url));
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColor.feralFileMediumGrey,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'View device logs',
+                          style: theme.textTheme.ppMori400White12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              // Connected WiFi
+              if (connectedWifi != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Device WiFi Network:',
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  connectedWifi,
+                  style: theme.textTheme.ppMori400White14,
                 ),
               ],
             ],
