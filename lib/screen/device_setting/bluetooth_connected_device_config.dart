@@ -41,6 +41,8 @@ class BluetoothConnectedDeviceConfigState
         WidgetsBindingObserver,
         AfterLayoutMixin<BluetoothConnectedDeviceConfig> {
   BluetoothDeviceStatus? status;
+  Timer? _connectionStatusTimer;
+  bool _isBLEDeviceConnected = false;
 
   @override
   void initState() {
@@ -53,6 +55,30 @@ class BluetoothConnectedDeviceConfigState
         .addListener(_statusListener);
 
     injector<FFBluetoothService>().fetchBluetoothDeviceStatus(widget.device);
+
+    // Start polling connection status
+    _startConnectionStatusPolling();
+  }
+
+  void _startConnectionStatusPolling() {
+    // Check initial connection status
+    _updateConnectionStatus();
+
+    // Set up timer to poll every second
+    _connectionStatusTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateConnectionStatus();
+    });
+  }
+
+  void _updateConnectionStatus() {
+    final ffDevice = widget.device.toFFBluetoothDevice();
+    final isConnected = ffDevice.isConnected;
+
+    if (_isBLEDeviceConnected != isConnected) {
+      setState(() {
+        _isBLEDeviceConnected = isConnected;
+      });
+    }
   }
 
   @override
@@ -75,6 +101,7 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   void dispose() {
+    _connectionStatusTimer?.cancel();
     injector<FFBluetoothService>()
         .bluetoothDeviceStatus
         .removeListener(_statusListener);
@@ -336,29 +363,95 @@ class BluetoothConnectedDeviceConfigState
     final isUpToDate =
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
+    final deviceId = widget.device?.advName ?? 'Unknown';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (installedVersion != null)
-          RichText(
-              text: TextSpan(
+        Text(
+          'Device Information',
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+
+        // Connection Status
+        Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextSpan(
-                text: 'v.$installedVersion',
+              // Connection Status
+              Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: _isBLEDeviceConnected ? Colors.green : Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isBLEDeviceConnected
+                        ? 'Connected'
+                        : 'Device not connected',
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Device ID
+              Text(
+                'Device ID:',
                 style: theme.textTheme.ppMori400Grey14,
               ),
-              if (isUpToDate)
-                TextSpan(
-                  text: ' - Up to date',
-                  style: theme.textTheme.ppMori400Grey14,
-                )
-              else
-                TextSpan(
-                  text: ' - Update available',
+              const SizedBox(height: 4),
+              Text(
+                deviceId,
+                style: theme.textTheme.ppMori400White14,
+              ),
+
+              // Version Information
+              if (installedVersion != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Software Version:',
                   style: theme.textTheme.ppMori400Grey14,
                 ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: installedVersion,
+                        style: theme.textTheme.ppMori400White14,
+                      ),
+                      if (isUpToDate)
+                        TextSpan(
+                          text: ' - Up to date',
+                          style: theme.textTheme.ppMori400Grey14,
+                        )
+                      else
+                        TextSpan(
+                          text: ' - Update available',
+                          style: theme.textTheme.ppMori400Grey14,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ],
-          )),
+          ),
+        ),
+
+        // Update Button
         if (!isUpToDate && latestVersion != null) ...[
           const SizedBox(height: 16),
           PrimaryAsyncButton(
