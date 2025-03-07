@@ -497,24 +497,25 @@ class BluetoothConnectedDeviceConfigState
                         style: theme.textTheme.ppMori400White14,
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        final url = 'http://$ipAddress:8080/logs.html';
-                        injector<NavigationService>().openUrl(Uri.parse(url));
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColor.feralFileMediumGrey,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'View device logs',
-                          style: theme.textTheme.ppMori400White12,
+                    if (status?.isConnectedToWifi == true)
+                      InkWell(
+                        onTap: () {
+                          final url = 'http://$ipAddress:8080/logs.html';
+                          injector<NavigationService>().openUrl(Uri.parse(url));
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColor.feralFileLightBlue,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'View device logs',
+                            style: theme.textTheme.ppMori400White12,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ],
