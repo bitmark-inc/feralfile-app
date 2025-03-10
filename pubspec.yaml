@@ -137,6 +137,7 @@ dependencies:
   wifi_scan: ^0.4.1+1
   wifi_info_flutter: ^2.0.2
   timezone: ^0.10.0
+  multi_value_listenable_builder: ^0.0.2
 
 dev_dependencies:
   bloc_test: ^9.1.7

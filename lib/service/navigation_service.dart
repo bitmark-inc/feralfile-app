@@ -269,16 +269,17 @@ class NavigationService {
     }
   }
 
-  Future<void> showCannotConnectToBluetoothDevice(BluetoothDevice device, Object? error) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'Can not connect to ${device.advName}',
-        'Error: ${error}',
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
+  Future<void> showCannotConnectToBluetoothDevice(
+      BluetoothDevice device, Object? error) async {
+    // if (navigatorKey.currentContext != null &&
+    //     navigatorKey.currentState?.mounted == true) {
+    //   await UIHelper.showInfoDialog(
+    //     context,
+    //     'Can not connect to ${device.advName}',
+    //     'Error: ${error}',
+    //     onClose: () => UIHelper.hideInfoDialog(context),
+    //   );
+    // }
   }
 
   Future<void> showUnknownLink() async {

@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -76,6 +77,9 @@ class FFBluetoothService {
           _connectCompleter = null;
           // after connected, fetch device status
           unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+          NowDisplayingManager().addStatus(ConnectSuccess(device));
+          shouldShowNowDisplayingOnDisconnect.value = true;
+
           injector<CanvasDeviceBloc>()
               .add(CanvasDeviceGetDevicesEvent(onDoneCallback: () {
             NowDisplayingManager().updateDisplayingNow();
@@ -391,8 +395,6 @@ class FFBluetoothService {
   }) async {
     // connect to device
     if (device.isDisconnected) {
-      // completely disconnect from the device
-      // await device.disconnect();
       _connectCompleter = Completer<void>();
       log.info('Connecting to device: ${device.remoteId.str}');
       try {
@@ -428,9 +430,9 @@ class FFBluetoothService {
               ),
             );
           }
-          return;
+          throw TimeoutException('Taking too long to connect to device');
         },
-      ).catchError((e) {
+      ).catchError((Object e) {
         log.warning('Error waiting for connection to complete: $e');
         unawaited(
           Sentry.captureException(
@@ -445,6 +447,7 @@ class FFBluetoothService {
             ),
           );
         }
+        throw e;
       });
     } else {
       log.info('Device already connected: ${device.remoteId.str}');

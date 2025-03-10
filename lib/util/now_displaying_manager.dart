@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
 class NowDisplayingManager {
@@ -20,6 +22,8 @@ class NowDisplayingManager {
   static final NowDisplayingManager _instance =
       NowDisplayingManager._internal();
 
+  Timer? _onDisconnectTimer;
+
   NowDisplayingStatus? nowDisplayingStatus;
   final StreamController<NowDisplayingStatus?> _streamController =
       StreamController.broadcast();
@@ -28,7 +32,19 @@ class NowDisplayingManager {
       _streamController.stream;
 
   void addStatus(NowDisplayingStatus status) {
+    log.info('NowDisplayingManager: $status');
+    this.nowDisplayingStatus = status;
     _streamController.add(status);
+    _onDisconnectTimer?.cancel();
+    if (status is ConnectFailed) {
+      _onDisconnectTimer = Timer(Duration(seconds: 5), () {
+        shouldShowNowDisplayingOnDisconnect.value = false;
+      });
+    } else if (status is ConnectionLostAndReconnecting) {
+      _onDisconnectTimer = Timer(Duration(seconds: 10), () {
+        shouldShowNowDisplayingOnDisconnect.value = false;
+      });
+    }
   }
 
   Future<void> updateDisplayingNow() async {

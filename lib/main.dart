@@ -37,6 +37,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -69,6 +70,8 @@ Future<void> callbackDispatcher() async {
 }
 
 ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
+ValueNotifier<bool> shouldShowNowDisplayingOnDisconnect =
+    ValueNotifier<bool>(true);
 
 void main() async {
   unawaited(
@@ -263,43 +266,49 @@ class AutonomyApp extends StatelessWidget {
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
             builder: (context, child) {
-              return ValueListenableBuilder(
-                  valueListenable: shouldShowNowDisplaying,
-                  child: child,
-                  builder: (context, value, c) {
-                    log.info('shouldShowNowDisplaying: $value');
-                    final hasDevice =
-                        injector<FFBluetoothService>().castingBluetoothDevice !=
-                            null;
-                    if (!value || !hasDevice) {
-                      return c!;
-                    }
-                    return Scaffold(
-                      backgroundColor: AppColor.primaryBlack,
-                      appBar: getDarkEmptyAppBar(),
-                      body: SafeArea(
-                        child: Column(
-                          children: [
-                            AnimatedSwitcher(
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                );
-                              },
-                              duration: const Duration(milliseconds: 1000),
-                              child: NowDisplaying(
-                                key: GlobalKey(),
-                              ),
+              return MultiValueListenableBuilder(
+                valueListenables: [
+                  shouldShowNowDisplaying,
+                  shouldShowNowDisplayingOnDisconnect
+                ],
+                child: child,
+                builder: (context, values, c) {
+                  final hasDevice =
+                      injector<FFBluetoothService>().castingBluetoothDevice !=
+                          null;
+                  final value = (values[0] as bool) && (values[1] as bool);
+                  log.info('shouldShowNowDisplaying: $value');
+
+                  if (!value || !hasDevice) {
+                    return c!;
+                  }
+                  return Scaffold(
+                    backgroundColor: AppColor.primaryBlack,
+                    appBar: getDarkEmptyAppBar(),
+                    body: SafeArea(
+                      child: Column(
+                        children: [
+                          AnimatedSwitcher(
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                            duration: const Duration(milliseconds: 1000),
+                            child: NowDisplaying(
+                              key: GlobalKey(),
                             ),
-                            Expanded(
-                              child: c!,
-                            ),
-                          ],
-                        ),
+                          ),
+                          Expanded(
+                            child: c!,
+                          ),
+                        ],
                       ),
-                    );
-                  });
+                    ),
+                  );
+                },
+              );
             },
           );
         },

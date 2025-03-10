@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -121,7 +122,11 @@ class _NowDisplayingState extends State<NowDisplaying> {
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {},
       builder: (context, state) {
-        final nowDisplayingStatus = this.nowDisplayingStatus;
+        final device = injector<FFBluetoothService>().castingBluetoothDevice!;
+        final nowDisplayingStatus =
+            // this.nowDisplayingStatus;
+            // ConnectingToDevice(device);
+            this.nowDisplayingStatus;
         if (nowDisplayingStatus == null) {
           return const SizedBox();
         }
@@ -153,70 +158,122 @@ class _NowDisplayingState extends State<NowDisplaying> {
   Widget _connectingToDeviceView(
       BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectingToDevice).device;
-    return NowDisplayingView(
-      thumbnailBuilder: (context) {
-        return SizedBox(
-          width: 65,
-        );
-      },
-      titleBuilder: (context) {
-        return Text(
-          'Connecting to ${device.advName}...',
-          style: Theme.of(context).textTheme.ppMori400Black14,
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
+      decoration: BoxDecoration(
+        color: AppColor.feralFileLightBlue,
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Connecting to ${device.advName}',
+                  style: Theme.of(context).textTheme.ppMori400Black14,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectSuccess).device;
-    return NowDisplayingView(
-      thumbnailBuilder: (context) {
-        return SizedBox(
-          width: 65,
-        );
-      },
-      titleBuilder: (context) {
-        return Text(
-          'Connected to ${device.advName}',
-          style: Theme.of(context).textTheme.ppMori400Black14,
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
+      decoration: BoxDecoration(
+        color: AppColor.feralFileLightBlue,
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Connected to ${device.advName}',
+                  style: Theme.of(context).textTheme.ppMori400Black14,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectFailed).device;
-    return NowDisplayingView(
-      thumbnailBuilder: (context) {
-        return SizedBox(
-          width: 65,
-        );
-      },
-      titleBuilder: (context) {
-        return Text(
-          'Failed to connect to ${device.advName}',
-          style: Theme.of(context).textTheme.ppMori400Black14,
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
+      decoration: BoxDecoration(
+        color: AppColor.feralFileLightBlue,
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Failed to connect to ${device.advName}',
+                  style: Theme.of(context).textTheme.ppMori400Black14,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _connectionLostAndReconnectingView(
       BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectionLostAndReconnecting).device;
-    return NowDisplayingView(
-      thumbnailBuilder: (context) {
-        return SizedBox(
-          width: 65,
-        );
-      },
-      titleBuilder: (context) {
-        return Text(
-          'Connection lost. Reconnecting to ${device.advName}...',
-          style: Theme.of(context).textTheme.ppMori400Black14,
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
+      decoration: BoxDecoration(
+        color: AppColor.feralFileLightBlue,
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Connection lost to ${device.advName}, reconnecting...',
+                  style: Theme.of(context).textTheme.ppMori400Black14,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
