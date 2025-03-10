@@ -8,9 +8,13 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -23,15 +27,18 @@ import 'package:web3dart/json_rpc.dart';
 abstract class CanvasDeviceEvent {}
 
 class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
-  CanvasDeviceGetDevicesEvent({this.retry = false});
+  CanvasDeviceGetDevicesEvent({this.retry = false, this.onDoneCallback});
 
   final bool retry;
+  FutureOr<void> Function()? onDoneCallback;
 }
 
 class CanvasDeviceGetStatusEvent extends CanvasDeviceEvent {
-  CanvasDeviceGetStatusEvent(this.device);
+  CanvasDeviceGetStatusEvent(this.device, {this.onDoneCallback});
 
   final BaseDevice device;
+
+  final FutureOr<void> Function(CheckDeviceStatusReply? status)? onDoneCallback;
 }
 
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
@@ -254,13 +261,13 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   // constructor
-  CanvasDeviceBloc(this._canvasClientServiceV2)
+  CanvasDeviceBloc(this._canvasClientServiceV2, this._db)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
         log.info('CanvasDeviceGetDevicesEvent');
         try {
-          final devices = await _canvasClientServiceV2.scanDevices();
+          final devices = await scanDevices();
 
           Map<String, CheckDeviceStatusReply>? controllingDeviceStatus = {};
 
@@ -278,6 +285,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           unawaited(Sentry.captureException(e));
           emit(state.copyWith());
         }
+        event.onDoneCallback?.call();
       },
       // transformer: debounceSequential(
       //   const Duration(seconds: 5),
@@ -304,15 +312,16 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             controllingDeviceStatus: newStatuses,
           );
           emit(newState);
+          event.onDoneCallback?.call(status);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get device status: $e');
           unawaited(Sentry.captureException(e));
           emit(state.copyWith());
         }
       },
-      // transformer: debounceSequential(
-      //   const Duration(seconds: 5),
-      // ),
+      transformer: debounceSequential(
+        const Duration(milliseconds: 500),
+      ),
     );
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
@@ -376,8 +385,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
-        final status =
-            await _canvasClientServiceV2.getDeviceCastingStatus(device);
+        final status = CheckDeviceStatusReply(artworks: event.artwork);
+        // await _canvasClientServiceV2.getDeviceCastingStatus(device);
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         final displayKey = event.artwork.playArtworksHashCode.toString();
@@ -579,7 +588,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Device not found');
         }
         final newControllingStatus = CheckDeviceStatusReply(artworks: artworks)
-          ..startTime = response.startTime
+          ..index = controllingStatus.index
           ..connectedDevice = controllingStatus.connectedDevice;
 
         final controllingDeviceStatus =
@@ -603,6 +612,56 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   }
 
   final CanvasClientServiceV2 _canvasClientServiceV2;
+  final HiveStoreObjectService<CanvasDevice> _db;
+
+  /// This method will get devices via mDNS and local db, for local db devices
+  /// it will check the status of the device by calling grpc
+  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
+    final rawDevices = <CanvasDevice>[];
+    final connectedDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    final isConnectedDeviceAvailable = connectedDevice != null;
+
+    if (!isConnectedDeviceAvailable) {
+      log.info(
+          'CanvasClientService: Connected device ${connectedDevice?.remoteID} is not available');
+    }
+    final blDevices =
+        isConnectedDeviceAvailable ? [connectedDevice] : <FFBluetoothDevice>[];
+    final devices = <BaseDevice>[
+      ...rawDevices,
+      ...blDevices,
+    ];
+    final pairDevices = await getDeviceStatuses(devices);
+    pairDevices.sort((a, b) => a.first.name.compareTo(b.first.name));
+
+    return pairDevices;
+  }
+
+  List<CanvasDevice> findRawDevices() {
+    final devices = _db.getAll();
+    return devices;
+  }
+
+  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> getDeviceStatuses(
+    List<BaseDevice> devices,
+  ) async {
+    final statuses = <Pair<BaseDevice, CheckDeviceStatusReply>>[];
+    await Future.wait(
+      devices.map((device) async {
+        try {
+          final status = await _canvasClientServiceV2.getDeviceStatus(device,
+              shouldShowError: false);
+          if (status != null) {
+            statuses.add(status);
+          }
+        } catch (e, s) {
+          log.info('CanvasClientService: _getDeviceStatus error: $e');
+        }
+      }),
+    );
+    return statuses;
+  }
 
   void clear() {
     state.devices.clear();

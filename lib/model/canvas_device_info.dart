@@ -1,5 +1,12 @@
+import 'dart:async';
+
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_manager.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:sentry/sentry.dart';
 
 class CanvasDevice implements BaseDevice {
   // device name
@@ -94,6 +101,13 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     required String remoteID,
   }) : super.fromId(remoteID);
 
+  // fromJson
+  factory FFBluetoothDevice.fromJson(Map<String, dynamic> json) =>
+      FFBluetoothDevice(
+        name: json['name'] as String,
+        remoteID: json['remoteID'] as String,
+      );
+
   @Id()
   int objId = 0;
 
@@ -111,15 +125,11 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
         'remoteID': remoteID,
       };
 
-  // fromJson
-  factory FFBluetoothDevice.fromJson(Map<String, dynamic> json) =>
-      FFBluetoothDevice(
-        name: json['name'] as String,
-        remoteID: json['remoteID'] as String,
-      );
-
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
-    return FFBluetoothDevice(name: device.name, remoteID: device.remoteId.str);
+    return FFBluetoothDevice(
+      name: device.advName,
+      remoteID: device.remoteId.str,
+    );
   }
 
   @override
@@ -137,5 +147,71 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 extension BluetoothDeviceExtension on BluetoothDevice {
   FFBluetoothDevice toFFBluetoothDevice() {
     return FFBluetoothDevice.fromBluetoothDevice(this);
+  }
+
+  BluetoothCharacteristic? get commandCharacteristic =>
+      BluetoothManager.getCommandCharacteristic(remoteId.str);
+
+  BluetoothCharacteristic? get wifiConnectCharacteristic =>
+      BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
+
+  Future<void> discoverCharacteristics() async {
+    log.info('Discovering characteristics for device: ${remoteId.str}');
+
+    final discoveredServices = await discoverServices();
+    final services = <BluetoothService>[]
+      ..clear()
+      ..addAll(discoveredServices);
+
+    final primaryService = services.firstWhereOrNull(
+      (service) => service.isPrimary,
+    );
+
+    if (primaryService == null) {
+      log.warning('Primary service not found');
+      unawaited(Sentry.captureMessage('Primary service not found'));
+      return;
+    } else {
+      log.info('Primary service found: ${primaryService.uuid}');
+    }
+
+    // if the command and wifi connect characteristics are not found, try to find them
+    final commandService = services.firstWhereOrNull(
+      (service) => service.uuid.toString() == BluetoothManager.serviceUuid,
+    );
+
+    if (commandService == null) {
+      unawaited(Sentry.captureMessage('Command service not found'));
+      return;
+    }
+    final commandChar = commandService.characteristics
+        .firstWhere((characteristic) => characteristic.isCommandCharacteristic);
+    final wifiConnectChar = commandService.characteristics.firstWhere(
+      (characteristic) => characteristic.isWifiConnectCharacteristic,
+    );
+
+    // Set the command and wifi connect characteristics
+    BluetoothManager.setCommandCharacteristic(commandChar);
+    BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
+
+    log.info('Command char properties: ${commandChar.properties}');
+    if (!commandChar.properties.notify) {
+      log.warning('Command characteristic does not support notifications!');
+      unawaited(
+        Sentry.captureMessage(
+          'Command characteristic does not support notifications',
+        ),
+      );
+      throw Exception('Command characteristic does not support notifications');
+    }
+
+    try {
+      await commandChar.setNotifyValue(true);
+      log.info('Successfully enabled notifications for command char');
+    } catch (e) {
+      log.warning('Failed to enable notifications for command char: $e');
+      unawaited(Sentry.captureException('Failed to enable notifications: $e'));
+      rethrow;
+    }
   }
 }

@@ -99,7 +99,14 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                   onTap: () async {
                     final ssid = widget.payload.wifiAccessPoint.ssid;
                     final password = passwordController.text.trim();
+                    final device = widget.payload.device;
                     try {
+                      // Check if the device is connected
+                      if (!device.isConnected) {
+                        await injector<FFBluetoothService>().connectToDevice(
+                            device,
+                            shouldChangeNowDisplayingStatus: true);
+                      }
                       await injector<FFBluetoothService>().sendWifiCredentials(
                         device: widget.payload.device,
                         ssid: ssid,

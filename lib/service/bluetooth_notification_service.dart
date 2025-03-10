@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/util/log.dart';
 
 typedef NotificationCallback = void Function(Map<String, dynamic> data);
 
+final statusChangeTopic = 'updateIndex';
+
 class BluetoothNotificationService {
   // Singleton instance
   static final BluetoothNotificationService _instance =
@@ -53,6 +55,10 @@ class BluetoothNotificationService {
 
       log.info(
           '[BluetoothNotification] Received notification - Topic: $topic, Data: $jsonData');
+
+      if (statusChangeTopic == topic) {
+        log.info('[BluetoothNotification] Received status change notification');
+      }
 
       // Notify subscribers
       _subscribers[topic]?.forEach((callback) {

@@ -21,6 +21,8 @@ final listRouteShouldnotShowNowDisplaying = [
   AppRouter.dataManagementPage,
   AppRouter.bugBountyPage,
   AppRouter.nowDisplayingPage,
+  AppRouter.onboardingPage,
+  AppRouter.newOnboardingPage,
 ];
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
@@ -41,7 +43,10 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
       }
       if (listRouteShouldnotShowNowDisplaying.contains(routeName)) {
         _timer?.cancel();
-        shouldShowNowDisplaying.value = false;
+        _timer = Timer.periodic(Duration(milliseconds: 50), (_) {
+          _timer?.cancel();
+          shouldShowNowDisplaying.value = false;
+        });
       } else {
         log.info('shouldShowNowDisplaying.value = true');
         _timer?.cancel();

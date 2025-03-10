@@ -154,7 +154,6 @@ class AppRouter {
   static const artistsPage = 'artists_page';
   static const curatorsPage = 'curators_page';
   static const playlistActivationPage = 'playlist_activation_page';
-  static const wifiConfigPage = 'wifi_config_page';
   static const bluetoothDevicePortalPage = 'bluetooth_device_portal_page';
   static const scanWifiNetworkPage = 'scan_wifi_network_page';
   static const sendWifiCredentialPage = 'send_wifi_credential_page';

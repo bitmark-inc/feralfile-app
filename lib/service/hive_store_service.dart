@@ -46,7 +46,7 @@ class HiveStoreObjectServiceImpl<T> implements HiveStoreObjectService<T> {
     try {
       await _box.put(objId, obj);
     } catch (e) {
-      log.info('Hive error saving object to Hive: $e');
+      // log.info('Hive error saving object to Hive: $e');
     }
   }
 

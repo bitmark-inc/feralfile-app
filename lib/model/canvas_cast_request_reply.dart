@@ -447,8 +447,7 @@ class CheckDeviceStatusRequest implements Request {
 class CheckDeviceStatusReply extends Reply {
   CheckDeviceStatusReply({
     required this.artworks,
-    // time when the first artwork started playing
-    this.startTime,
+    this.index,
     this.connectedDevice,
     this.exhibitionId,
     this.catalogId,
@@ -456,88 +455,38 @@ class CheckDeviceStatusReply extends Reply {
     this.displayKey,
   });
 
+  factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
+      CheckDeviceStatusReply(
+        artworks: json['artworks'] == null
+            ? []
+            : List<PlayArtworkV2>.from(
+                (json['artworks'] as List).map(
+                  (x) => PlayArtworkV2.fromJson(x as Map<String, dynamic>),
+                ),
+              ),
+        index: json['index'] as int?,
+        connectedDevice: json['connectedDevice'] != null
+            ? DeviceInfoV2.fromJson(
+                json['connectedDevice'] as Map<String, dynamic>,
+              )
+            : null,
+        exhibitionId: json['exhibitionId'] as String?,
+        catalogId: json['catalogId'] as String?,
+        catalog: json['catalog'] == null
+            ? null
+            : ExhibitionCatalog.values[json['catalog'] as int],
+        displayKey: json['displayKey'] as String?,
+      );
+
   int? get currentArtworkIndex {
     if (artworks.isEmpty) {
       return null;
     }
-    if (startTime == null) {
-      return 0;
-    }
-    if (artworks.length == 1) {
-      return 0;
-    }
-    final now = DateTime.now().millisecondsSinceEpoch;
-    // each artwork display in artwork.duration, the first artwork start display at startTime, the displaying is looped, find which artwork is currently playing
-    final durationSum = artworks.fold<int>(
-      0,
-      (previousValue, element) => previousValue + element.duration,
-    );
-    final duration = now - startTime!;
-    if (durationSum == 0) {
-      return 0;
-    }
-    int currentDuration = duration % durationSum;
-
-    int index = artworks.indexWhere(
-      (artwork) => (currentDuration -= artwork.duration) < 0,
-    );
-
-    return index >= 0 ? index : artworks.length - 1;
+    return index;
   }
 
-  Duration? get remainDurationCurrentArtwork {
-    if (artworks.isEmpty || startTime == null) {
-      return null;
-    }
-
-    int? index = currentArtworkIndex;
-    if (index == null || index < 0 || index >= artworks.length) {
-      return null;
-    }
-
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final durationSum = artworks.fold<int>(
-      0,
-      (previousValue, element) => previousValue + element.duration,
-    );
-    if (durationSum == 0) {
-      return null;
-    }
-    final duration = now - startTime!;
-    int currentDuration = duration % durationSum;
-
-    for (final artwork in artworks) {
-      if (currentDuration < artwork.duration) {
-        return Duration(milliseconds: artwork.duration - currentDuration);
-      }
-      currentDuration -= artwork.duration;
-    }
-
-    return null;
-  }
-
-  factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
-      CheckDeviceStatusReply(
-          artworks: json['artworks'] == null
-              ? []
-              : List<PlayArtworkV2>.from(
-                  (json['artworks'] as List).map(
-                      (x) => PlayArtworkV2.fromJson(x as Map<String, dynamic>)),
-                ),
-          startTime: json['startTime'] as int?,
-          connectedDevice: json['connectedDevice'] != null
-              ? DeviceInfoV2.fromJson(
-                  json['connectedDevice'] as Map<String, dynamic>,
-                )
-              : null,
-          exhibitionId: json['exhibitionId'] as String?,
-          catalogId: json['catalogId'] as String?,
-          catalog: json['catalog'] == null
-              ? null
-              : ExhibitionCatalog.values[json['catalog'] as int],
-          displayKey: json['displayKey'] as String?);
   List<PlayArtworkV2> artworks;
-  int? startTime;
+  int? index;
   DeviceInfoV2? connectedDevice;
   String? exhibitionId;
   String? catalogId;
@@ -547,7 +496,7 @@ class CheckDeviceStatusReply extends Reply {
   @override
   Map<String, dynamic> toJson() => {
         'artworks': artworks.map((artwork) => artwork.toJson()).toList(),
-        'startTime': startTime,
+        'index': index,
         'connectedDevice': connectedDevice?.toJson(),
         'exhibitionId': exhibitionId,
         'catalogId': catalogId,
@@ -667,8 +616,9 @@ class UpdateDurationRequest implements Request {
   factory UpdateDurationRequest.fromJson(Map<String, dynamic> json) =>
       UpdateDurationRequest(
         artworks: List<PlayArtworkV2>.from(
-          (json['artworks'] as List).map((x) =>
-              PlayArtworkV2.fromJson(Map<String, dynamic>.from(x as Map))),
+          (json['artworks'] as List).map(
+            (x) => PlayArtworkV2.fromJson(Map<String, dynamic>.from(x as Map)),
+          ),
         ),
       );
 
@@ -691,9 +641,11 @@ class UpdateDurationReply extends Reply {
       UpdateDurationReply(
         startTime: int.tryParse(json['startTime'] as String),
         artworks: List<PlayArtworkV2>.from(
-          (json['artworks'] as List).map((x) => PlayArtworkV2.fromJson(
-                Map<String, dynamic>.from(x as Map),
-              )),
+          (json['artworks'] as List).map(
+            (x) => PlayArtworkV2.fromJson(
+              Map<String, dynamic>.from(x as Map),
+            ),
+          ),
         ),
       );
   int? startTime;
@@ -725,8 +677,6 @@ enum ExhibitionCatalog {
         return 'curator_note';
       case ExhibitionCatalog.artwork:
         return 'artworks';
-      default:
-        return '';
     }
   }
 }
@@ -809,11 +759,13 @@ class RotateReply extends Reply {
 class SendLogRequest implements Request {
   SendLogRequest({required this.userId, required this.title});
 
+  factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
+        userId: json['userId'] as String,
+        title: json['title'] as String?,
+      );
+
   final String userId;
   final String? title;
-
-  factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
-      userId: json['userId'] as String, title: json['title'] as String?);
 
   @override
   Map<String, dynamic> toJson() => {
@@ -864,8 +816,6 @@ extension OrientationExtension on Orientation {
         return 'portrait';
       case Orientation.landscape:
         return 'landscape';
-      default:
-        return '';
     }
   }
 

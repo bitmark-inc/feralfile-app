@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -42,31 +43,36 @@ class NowDisplayingPage extends StatefulWidget {
 
 class NowDisplayingPageState extends State<NowDisplayingPage> {
   final NowDisplayingManager _manager = NowDisplayingManager();
-  NowDisplayingObject? nowDisplaying;
+  NowDisplayingStatus? nowDisplayingStatus;
 
   @override
   void initState() {
     super.initState();
-    nowDisplaying = _manager.nowDisplaying;
-    _onUpdateNowDisplaying(nowDisplaying!);
+    nowDisplayingStatus = _manager.nowDisplayingStatus;
+    _onUpdateNowDisplayingStatus(nowDisplayingStatus!);
 
     _manager.nowDisplayingStream.listen(
       (nowDisplayingObject) {
         if (mounted) {
           setState(
             () {
-              nowDisplaying = nowDisplayingObject;
+              nowDisplayingStatus = nowDisplayingObject;
             },
           );
-          _onUpdateNowDisplaying(nowDisplayingObject);
+          _onUpdateNowDisplayingStatus(nowDisplayingObject);
         }
       },
     );
   }
 
-  void _onUpdateNowDisplaying(NowDisplayingObject? nowDisplayingObject) {
-    final assetToken = nowDisplayingObject?.assetToken ??
-        nowDisplayingObject?.dailiesWorkState?.assetTokens.firstOrNull;
+  void _onUpdateNowDisplayingStatus(NowDisplayingStatus? nowDisplayingStatus) {
+    if (!(nowDisplayingStatus is NowDisplayingSuccess)) {
+      return;
+    }
+
+    final object = nowDisplayingStatus.object;
+    final assetToken =
+        object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
     if (assetToken != null) {
       final artworkIdentity = ArtworkIdentity(
         assetToken.id,
@@ -96,14 +102,35 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
   }
 
   Widget _body(BuildContext context) {
-    if (nowDisplaying?.exhibitionDisplaying != null) {
-      if (nowDisplaying!.exhibitionDisplaying!.artwork != null) {
-        return _ffArtworkNowDisplaying(context);
-      } else if (nowDisplaying!.exhibitionDisplaying!.exhibition != null) {
-        return _exhibitionNowDisplaying(context);
-      }
+    final theme = Theme.of(context);
+    if (nowDisplayingStatus == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColor.white),
+      );
     }
-    return _tokenNowDisplaying(context);
+    switch (nowDisplayingStatus!.runtimeType) {
+      case NowDisplayingSuccess:
+        final object = (nowDisplayingStatus as NowDisplayingSuccess).object;
+        if (object.exhibitionDisplaying != null) {
+          if (object.exhibitionDisplaying!.artwork != null) {
+            return _ffArtworkNowDisplaying(context, object);
+          } else if (object.exhibitionDisplaying!.exhibition != null) {
+            return _exhibitionNowDisplaying(context, object);
+          }
+        }
+        return _tokenNowDisplaying(context);
+      case ConnectingToDevice:
+        return Text('Connecting to device',
+            style: theme.textTheme.ppMori400White14);
+      case ConnectFailed:
+        return Text('Failed to connect to device',
+            style: theme.textTheme.ppMori400White14);
+      case ConnectionLostAndReconnecting:
+        return Text('Connection lost, reconnecting',
+            style: theme.textTheme.ppMori400White14);
+      default:
+        return Text('Unknown state', style: theme.textTheme.ppMori400White14);
+    }
   }
 
   Widget _tokenNowDisplaying(BuildContext context) {
@@ -211,9 +238,10 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     );
   }
 
-  Widget _exhibitionNowDisplaying(BuildContext context) {
+  Widget _exhibitionNowDisplaying(
+      BuildContext context, NowDisplayingObject object) {
     final theme = Theme.of(context);
-    final exhibition = nowDisplaying?.exhibitionDisplaying?.exhibition;
+    final exhibition = object.exhibitionDisplaying?.exhibition;
     if (exhibition == null) {
       return const SizedBox();
     }
@@ -290,8 +318,9 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     );
   }
 
-  Widget _ffArtworkNowDisplaying(BuildContext context) {
-    final artwork = nowDisplaying?.exhibitionDisplaying?.artwork;
+  Widget _ffArtworkNowDisplaying(
+      BuildContext context, NowDisplayingObject object) {
+    final artwork = object.exhibitionDisplaying?.artwork;
     if (artwork == null) {
       return const SizedBox();
     }

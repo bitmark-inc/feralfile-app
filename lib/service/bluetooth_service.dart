@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -17,11 +18,15 @@ import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
@@ -29,6 +34,15 @@ const displayingCommand = [
   CastCommand.castDaily,
   CastCommand.castListArtwork,
   CastCommand.castExhibition,
+];
+
+const updateCastInfoCommand = [
+  ...displayingCommand,
+  CastCommand.updateDuration,
+  CastCommand.nextArtwork,
+  CastCommand.previousArtwork,
+  CastCommand.resumeCasting,
+  CastCommand.pauseCasting,
 ];
 
 const updateDeviceStatusCommand = [
@@ -39,9 +53,70 @@ const updateDeviceStatusCommand = [
 ];
 
 class FFBluetoothService {
-  FFBluetoothService() {}
+  FFBluetoothService();
+
+  void startListen() {
+    log.info('Start listening to bluetooth events');
+    FlutterBluePlus.events.onDiscoveredServices.listen((event) {
+      log.info('Discovered services: $event');
+    });
+    FlutterBluePlus.events.onConnectionStateChanged.listen((event) async {
+      final device = event.device;
+      final state = event.connectionState;
+      log.info(
+        'Connection state update for ${device.remoteId.str}: ${state.name}',
+      );
+      if (state == BluetoothConnectionState.connected) {
+        try {
+          if (Platform.isAndroid) {
+            await device.requestMtu(512);
+          }
+          await device.discoverCharacteristics();
+          _connectCompleter?.complete();
+          _connectCompleter = null;
+          // after connected, fetch device status
+          unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+          injector<CanvasDeviceBloc>()
+              .add(CanvasDeviceGetDevicesEvent(onDoneCallback: () {
+            NowDisplayingManager().updateDisplayingNow();
+          }));
+        } catch (e) {
+          log.warning('Failed to discover characteristics: $e');
+          unawaited(
+            Sentry.captureException(
+              'Failed to discover characteristics: $e',
+            ),
+          );
+          _connectCompleter?.completeError(e);
+        }
+      } else if (state == BluetoothConnectionState.disconnected) {
+        log.warning('Device disconnected reason: ${device.disconnectReason}');
+        NowDisplayingManager().addStatus(ConnectionLostAndReconnecting(device));
+      }
+    });
+
+    FlutterBluePlus.events.onServicesReset.listen((event) {
+      log.info('Services reset: $event');
+      event.device.discoverCharacteristics();
+    });
+    FlutterBluePlus.events.onCharacteristicReceived.listen(
+      (event) {
+        final characteristic = event.characteristic;
+        final value = event.value;
+        if (characteristic.isCommandCharacteristic) {
+          BluetoothNotificationService().handleNotification(value);
+        }
+      },
+      onError: (e) {
+        log.warning('Error receiving characteristic: $e');
+      },
+    );
+  }
 
   Future<void> init() async {
+    FlutterBluePlus.logs.listen((event) {
+      log.info('[FlutterBluePlus]: $event');
+    });
     if (!(await FlutterBluePlus.isSupported)) {
       log.info('Bluetooth is not supported');
       injector<BluetoothConnectBloc>().add(
@@ -51,10 +126,7 @@ class FFBluetoothService {
       );
       return;
     }
-
-    await _adapterStateSubscription?.cancel();
-    _adapterStateSubscription = FlutterBluePlus.adapterState
-        .listen((BluetoothAdapterState bluetoothState) {
+    FlutterBluePlus.adapterState.listen((BluetoothAdapterState bluetoothState) {
       _bluetoothAdapterState = bluetoothState;
       injector<BluetoothConnectBloc>()
           .add(BluetoothConnectEventUpdateBluetoothState(bluetoothState));
@@ -63,7 +135,7 @@ class FFBluetoothService {
 
   // connected device
   FFBluetoothDevice? _castingBluetoothDevice;
-  ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
+  final ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
       ValueNotifier(null);
 
   ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
@@ -84,6 +156,9 @@ class FFBluetoothService {
       remoteID: device.remoteId.str,
       name: device.advName,
     );
+    if (ffdevice.deviceId == _castingBluetoothDevice?.deviceId) {
+      return;
+    }
     _castingBluetoothDevice = ffdevice;
     fetchBluetoothDeviceStatus(ffdevice);
     BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
@@ -106,8 +181,6 @@ class FFBluetoothService {
     return _castingBluetoothDevice;
   }
 
-  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
-
   BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
 
   bool get isBluetoothOn => _bluetoothAdapterState == BluetoothAdapterState.on;
@@ -123,38 +196,6 @@ class FFBluetoothService {
   // wifi connect characteristic
   String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-  StreamSubscription<List<int>>? _commandCharSub;
-
-  // characteristic for sending commands to Peripheral
-  Map<String, BluetoothCharacteristic> _commandCharacteristic = {};
-
-  // characteristic to send Wi-Fi credentials to Peripheral
-  Map<String, BluetoothCharacteristic> _wifiConnectCharacteristic = {};
-
-  void setCommandCharacteristic(BluetoothCharacteristic characteristic) {
-    log.info(
-        '[setCommandCharacteristic] Setting command characteristic for ${characteristic.remoteId.str} with primary service: ${characteristic.primaryServiceUuid}');
-    _commandCharacteristic[characteristic.remoteId.str] = characteristic;
-  }
-
-  void clearCommandCharacteristic({required String remoteId}) {
-    _commandCharacteristic.remove(remoteId);
-  }
-
-  void setWifiConnectCharacteristic(BluetoothCharacteristic characteristic) {
-    _wifiConnectCharacteristic[characteristic.remoteId.str] = characteristic;
-  }
-
-  void clearWifiConnectCharacteristic({required String remoteId}) {
-    _wifiConnectCharacteristic.remove(remoteId);
-  }
-
-  BluetoothCharacteristic? getCommandCharacteristic(String remoteId) =>
-      _commandCharacteristic[remoteId];
-
-  BluetoothCharacteristic? getWifiConnectCharacteristic(String remoteId) =>
-      _wifiConnectCharacteristic[remoteId];
-
   Future<Map<String, dynamic>> sendCommand({
     required BluetoothDevice device,
     required String command,
@@ -163,22 +204,15 @@ class FFBluetoothService {
     bool shouldShowError = true,
   }) async {
     log.info(
-        '[sendCommand] Sending command: $command to device: ${device.remoteId.str}');
+      '[sendCommand] Sending command: $command to device: ${device.remoteId.str}',
+    );
 
-    // Check if the device is connected
-    if (!device.isConnected) {
-      log.info('[sendCommand] Device not connected, reconnecting');
-      await connectToDevice(device, shouldShowError: shouldShowError);
-      await device.discoverServices();
-      if (!device.isConnected) {
-        throw Exception('Device not connected after reconnection');
-      }
-    }
-
-    final commandChar = getCommandCharacteristic(device.remoteId.str);
-    // Check if the command characteristic is available
-    if (commandChar == null) {
-      throw Exception('Command characteristic not found');
+    if (device.isDisconnected) {
+      log.info('[sendCommand] Device is disconnected');
+      unawaited(injector<NavigationService>()
+          .showCannotConnectToBluetoothDevice(
+              device, 'Device is disconnected'));
+      throw Exception('Device is disconnected');
     }
 
     // Generate random 4 char replyId
@@ -194,14 +228,19 @@ class FFBluetoothService {
 
     try {
       final bytes = byteBuilder.takeBytes();
-      log.info('[sendCommand] Sending command in chunks');
-      await commandChar.writeChunk(bytes);
 
-      log.info('[sendCommand] Command $command sent');
+      final commandCharacteristic = device.commandCharacteristic;
+      if (commandCharacteristic == null) {
+        log.warning('Command characteristic not found');
+        unawaited(Sentry.captureMessage('Command characteristic not found'));
+        throw Exception('Command characteristic not found');
+      }
+
+      await commandCharacteristic.writeWithRetry(bytes);
 
       // Wait for reply with timeout
       final res = await completer.future.timeout(
-        timeout ?? const Duration(seconds: 1),
+        timeout ?? const Duration(seconds: 2),
         onTimeout: () {
           BluetoothNotificationService().unsubscribe(replyId, (data) {
             log.info('[sendCommand] Unsubscribed from replyId: $replyId');
@@ -260,15 +299,13 @@ class FFBluetoothService {
     required String ssid,
     required String password,
   }) async {
-    // Check if the device is connected
-    if (!device.isConnected) {
-      await connectToDevice(device);
-      if (!device.isConnected) {
-        return;
-      }
+    if (device.isDisconnected) {
+      log.info('[sendWifi] Device is disconnected');
+      unawaited(injector<NavigationService>()
+          .showCannotConnectToBluetoothDevice(
+              device, 'Device is disconnected'));
     }
-
-    final wifiConnectChar = getWifiConnectCharacteristic(device.remoteId.str);
+    final wifiConnectChar = device.wifiConnectCharacteristic;
     // Check if the wifi connect characteristic is available
     if (wifiConnectChar == null) {
       log.warning('Wi-Fi connect characteristic not found');
@@ -305,10 +342,10 @@ class FFBluetoothService {
       await wifiConnectChar.write(bytes, withoutResponse: false);
       log.info('[sendWifiCredentials] Wi-Fi credentials sent');
     } catch (e) {
-      Sentry.captureException(e);
+      unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
-    fetchBluetoothDeviceStatus(device);
+    unawaited(fetchBluetoothDeviceStatus(device));
   }
 
   // completer for connectToDevice
@@ -317,8 +354,11 @@ class FFBluetoothService {
   // completer for multi call connectToDevice
   Completer<void>? _multiConnectCompleter;
 
-  Future<void> connectToDevice(BluetoothDevice device,
-      {bool shouldShowError = true}) async {
+  Future<void> connectToDevice(
+    BluetoothDevice device, {
+    bool shouldShowError = true,
+    bool shouldChangeNowDisplayingStatus = false,
+  }) async {
     if (_multiConnectCompleter?.isCompleted == false) {
       log.info('Already connecting to device: ${device.remoteId.str}');
       return _multiConnectCompleter?.future;
@@ -326,60 +366,41 @@ class FFBluetoothService {
 
     _multiConnectCompleter = Completer<void>();
     try {
+      if (shouldChangeNowDisplayingStatus) {
+        NowDisplayingManager().addStatus(ConnectingToDevice(device));
+      }
       await _connectToDevice(device, shouldShowError: shouldShowError);
       _multiConnectCompleter?.complete();
+      if (shouldChangeNowDisplayingStatus) {
+        NowDisplayingManager().addStatus(ConnectSuccess(device));
+      }
     } catch (e) {
+      if (shouldChangeNowDisplayingStatus) {
+        NowDisplayingManager().addStatus(ConnectFailed(device, e));
+      }
       log.severe('Failed to connect to device: $e');
       _multiConnectCompleter?.completeError(e);
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
+      rethrow;
     }
   }
 
-  Future<void> _connectToDevice(BluetoothDevice device,
-      {bool shouldShowError = true}) async {
+  Future<void> _connectToDevice(
+    BluetoothDevice device, {
+    bool shouldShowError = true,
+  }) async {
     // connect to device
     if (device.isDisconnected) {
       // completely disconnect from the device
-      await device.disconnect();
+      // await device.disconnect();
       _connectCompleter = Completer<void>();
-
       log.info('Connecting to device: ${device.remoteId.str}');
-      final subscription = device.connectionState.listen((state) async {
-        log.info(
-          'Connection state update for ${device.remoteId.str}: ${state.name}',
-        );
-        if (state == BluetoothConnectionState.connected) {
-          try {
-            await discoverCharacteristics(device);
-            _connectCompleter?.complete();
-            _connectCompleter = null;
-            // after connected, fetch device status
-            unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
-            injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-          } catch (e) {
-            log.warning('Failed to discover characteristics: $e');
-            unawaited(Sentry.captureException(
-                'Failed to discover characteristics: $e'));
-            if (shouldShowError) {
-              unawaited(
-                injector<NavigationService>()
-                    .showCannotConnectToBluetoothDevice(
-                  device,
-                  e,
-                ),
-              );
-            }
-            _connectCompleter?.completeError(e);
-          }
-        } else if (state == BluetoothConnectionState.disconnected) {
-          log.warning('Device disconnected reason: ${device.disconnectReason}');
-        }
-      });
-      device.cancelWhenDisconnected(subscription, delayed: true, next: true);
-
-      // Connect to device
       try {
-        await device.connect(timeout: const Duration(seconds: 10));
+        await device.connect(
+          timeout: const Duration(seconds: 10),
+          autoConnect: true,
+          mtu: null,
+        );
       } catch (e) {
         log.warning('Failed to connect to device: $e');
         unawaited(Sentry.captureException('Failed to connect to device: $e'));
@@ -402,16 +423,20 @@ class FFBluetoothService {
           if (shouldShowError) {
             unawaited(
               injector<NavigationService>().showCannotConnectToBluetoothDevice(
-                  device,
-                  TimeoutException('Taking too long to connect to device')),
+                device,
+                TimeoutException('Taking too long to connect to device'),
+              ),
             );
           }
           return;
         },
       ).catchError((e) {
         log.warning('Error waiting for connection to complete: $e');
-        unawaited(Sentry.captureException(
-            'Error waiting for connection to complete: $e'));
+        unawaited(
+          Sentry.captureException(
+            'Error waiting for connection to complete: $e',
+          ),
+        );
         if (shouldShowError) {
           unawaited(
             injector<NavigationService>().showCannotConnectToBluetoothDevice(
@@ -462,90 +487,6 @@ class FFBluetoothService {
     while (FlutterBluePlus.isScanningNow) {
       await Future.delayed(const Duration(milliseconds: 1000));
     }
-  }
-
-  Future<void> discoverCharacteristics(BluetoothDevice device) async {
-    log.info('Discovering characteristics for device: ${device.remoteId.str}');
-
-    final discoveredServices = await device.discoverServices();
-    final services = <BluetoothService>[];
-    services
-      ..clear()
-      ..addAll(discoveredServices);
-
-    final primaryService = services.firstWhereOrNull(
-      (service) => service.isPrimary,
-    );
-
-    if (primaryService == null) {
-      log.warning('Primary service not found');
-      unawaited(Sentry.captureMessage('Primary service not found'));
-      return;
-    } else {
-      log.info('Primary service found: ${primaryService.uuid}');
-    }
-
-    // if the command and wifi connect characteristics are not found, try to find them
-    final commandService = services.firstWhereOrNull(
-      (service) => service.uuid.toString() == serviceUuid,
-    );
-
-    if (commandService == null) {
-      Sentry.captureMessage('Command service not found');
-      return;
-    }
-    final commandChar = commandService.characteristics.firstWhere(
-      (characteristic) => characteristic.uuid.toString() == commandCharUuid,
-    );
-    final wifiConnectChar = commandService.characteristics.firstWhere(
-      (characteristic) => characteristic.uuid.toString() == wifiConnectCharUuid,
-    );
-
-    // Set the command and wifi connect characteristics
-    setCommandCharacteristic(commandChar);
-    setWifiConnectCharacteristic(wifiConnectChar);
-
-    // set value notification for command characteristic
-    final commandCharacteristic = getCommandCharacteristic(device.remoteId.str);
-    if (commandCharacteristic == null) {
-      log.warning('Command characteristic not found');
-      unawaited(Sentry.captureMessage('Command characteristic not found'));
-      throw Exception('Command characteristic not found');
-    }
-
-    log.info('Command char properties: ${commandCharacteristic.properties}');
-    if (!commandCharacteristic.properties.notify) {
-      log.warning('Command characteristic does not support notifications!');
-      unawaited(Sentry.captureMessage(
-          'Command characteristic does not support notifications'));
-      throw Exception('Command characteristic does not support notifications');
-    }
-
-    try {
-      await commandCharacteristic.setNotifyValue(true);
-      log.info('Successfully enabled notifications for command char');
-    } catch (e) {
-      log.warning('Failed to enable notifications for command char: $e');
-      unawaited(Sentry.captureException('Failed to enable notifications: $e'));
-      rethrow;
-    }
-
-    // Subscribe to command char notifications
-    if (_commandCharSub != null) {
-      await _commandCharSub?.cancel();
-    }
-    log.info('Subscribing to command char notifications');
-    _commandCharSub = commandCharacteristic.onValueReceived.listen(
-      (value) {
-        log.info('Received data from command characteristic: $value');
-        BluetoothNotificationService().handleNotification(value);
-      },
-      onError: (error) {
-        log.warning('Error in command char subscription: $error');
-        Sentry.captureException(error);
-      },
-    );
-    device.cancelWhenDisconnected(_commandCharSub!, delayed: true);
   }
 
   Reply fakeReply(String commandString) {
@@ -654,7 +595,7 @@ class FFBluetoothService {
     }
   }
 
-  // Map to store chunks for each response
+  // Map to store chunksfor each response
   final Map<String, List<ChunkInfo>> chunks = {};
 
   void _setupCommandNotificationSubscriptions(
@@ -697,6 +638,14 @@ class FFBluetoothService {
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
+  bool get isCommandCharacteristic {
+    return uuid.toString() == BluetoothManager.commandCharUuid;
+  }
+
+  bool get isWifiConnectCharacteristic {
+    return uuid.toString() == BluetoothManager.wifiConnectCharUuid;
+  }
+
   int _getMaxPayloadSize(BluetoothDevice device) {
     // ATT protocol overhead
     const attOverhead = 10; // it should be 5, but we are using 10 to be safe
@@ -750,6 +699,20 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
     );
   }
 
+  Future<void> writeWithRetry(List<int> value) async {
+    try {
+      await writeChunk(value);
+    } on PlatformException catch (e) {
+      log.info('[writeWithRetry] Error writing chunk: $e');
+      log.info('[writeWithRetry] Retrying...');
+      final device = this.device;
+      if (device.isConnected) {
+        await device.discoverCharacteristics();
+        await writeChunk(value);
+      }
+    }
+  }
+
   Future<void> _sendChunks({
     required List<List<int>> chunks,
     required String ackReplyId,
@@ -792,13 +755,15 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
         const Duration(seconds: 1),
         onTimeout: () {
           throw Exception(
-              'Timeout waiting for chunk $chunkIndex acknowledgment');
+            'Timeout waiting for chunk $chunkIndex acknowledgment',
+          );
         },
       );
       log.info('[sendCommand] Received ack for chunk ${chunkIndex + 1}');
     } catch (e) {
       log.warning(
-          '[sendCommand] Retrying chunk ${chunkIndex + 1} after timeout');
+        '[sendCommand] Retrying chunk ${chunkIndex + 1} after timeout',
+      );
       await commandChar.write(bytes, withoutResponse: true);
       await completer.future.timeout(const Duration(seconds: 1));
     }

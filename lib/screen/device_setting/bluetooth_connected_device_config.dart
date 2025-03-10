@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -84,9 +85,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    // injector<FFBluetoothService>().checkVersionCompatibility(widget.device);
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   void _statusListener() {
     final status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
@@ -151,6 +150,16 @@ class BluetoothConnectedDeviceConfigState
               height: MediaQuery.paddingOf(context).top + 32,
             ),
           ),
+          if (kDebugMode)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: Text(
+                  'Device: ${device.advName} - ${device.remoteId.str}',
+                  style: theme.textTheme.ppMori400White14,
+                ),
+              ),
+            ),
           SliverToBoxAdapter(
             child: Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,

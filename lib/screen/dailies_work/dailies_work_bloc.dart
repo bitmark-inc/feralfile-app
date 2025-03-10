@@ -4,15 +4,15 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class DailyWorkEvent {}
 

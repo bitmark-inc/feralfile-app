@@ -1,150 +1,90 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+
+abstract class NowDisplayingStatus {}
+
+class ConnectingToDevice implements NowDisplayingStatus {
+  ConnectingToDevice(this.device);
+
+  final BluetoothDevice device;
+}
+
+class NowDisplayingSuccess implements NowDisplayingStatus {
+  NowDisplayingSuccess(this.object);
+
+  final NowDisplayingObject object;
+}
+
+class NowDisplayingError implements NowDisplayingStatus {
+  NowDisplayingError(this.error);
+
+  final Object error;
+}
+
+class ConnectSuccess implements NowDisplayingStatus {
+  ConnectSuccess(this.device);
+
+  final BluetoothDevice device;
+}
+
+// connect failed
+class ConnectFailed implements NowDisplayingStatus {
+  ConnectFailed(this.device, this.error);
+
+  final BluetoothDevice device;
+  final Object error;
+}
+
+class ConnectionLostAndReconnecting implements NowDisplayingStatus {
+  ConnectionLostAndReconnecting(this.device);
+
+  final BluetoothDevice device;
+}
+
+class GettingNowDisplayingObject implements NowDisplayingStatus {}
 
 class ExhibitionDisplaying {
-  final Exhibition? exhibition;
-  final String? catalogId;
-  final ExhibitionCatalog? catalog;
-  final Artwork? artwork;
-
   ExhibitionDisplaying({
     this.exhibition,
     this.catalogId,
     this.catalog,
     this.artwork,
   });
+
+  final Exhibition? exhibition;
+  final String? catalogId;
+  final ExhibitionCatalog? catalog;
+  final Artwork? artwork;
 }
 
 class NowDisplayingObject {
-  final AssetToken? assetToken;
-  final ExhibitionDisplaying? exhibitionDisplaying;
-  final DailiesWorkState? dailiesWorkState;
-
   NowDisplayingObject({
     this.assetToken,
     this.exhibitionDisplaying,
     this.dailiesWorkState,
   });
-}
 
-class NowDisplayingManager {
-  factory NowDisplayingManager() => _instance;
-
-  static Timer? _timer;
-
-  NowDisplayingManager._internal();
-
-  static final NowDisplayingManager _instance =
-      NowDisplayingManager._internal();
-
-  NowDisplayingObject? nowDisplaying;
-  final StreamController<NowDisplayingObject?> _streamController =
-      StreamController.broadcast();
-
-  Stream<NowDisplayingObject?> get nowDisplayingStream =>
-      _streamController.stream;
-
-  Future<void> updateDisplayingNow() async {
-    final status = _getStatus();
-    final nowDisplaying = await getNowDisplayingObject();
-    this.nowDisplaying = nowDisplaying;
-    _streamController.add(nowDisplaying);
-    _timer?.cancel();
-    final duration =
-        (status?.remainDurationCurrentArtwork ?? const Duration(seconds: 27)) +
-            const Duration(seconds: 3);
-    _timer = Timer(duration, () {
-      final castingDevice =
-          injector<FFBluetoothService>().castingBluetoothDevice;
-      if (castingDevice == null) return;
-      injector<CanvasDeviceBloc>()
-          .add(CanvasDeviceGetStatusEvent(castingDevice));
-      updateDisplayingNow();
-    });
-  }
-
-  Future<NowDisplayingObject?> getNowDisplayingObject() async {
-    final status = _getStatus();
-    if (status == null) {
-      return null;
-    }
-    if (status.exhibitionId != null) {
-      final exhibitionId = status.exhibitionId!;
-      final exhibition = await injector<FeralFileService>().getExhibition(
-        exhibitionId,
-      );
-      final catalogId = status.catalogId;
-      final catalog = catalogId != null ? ExhibitionCatalog.artwork : null;
-      Artwork? artwork;
-      if (catalog == ExhibitionCatalog.artwork) {
-        artwork = await injector<FeralFileService>().getArtwork(
-          catalogId!,
-        );
-      }
-      final exhibitionDisplaying = ExhibitionDisplaying(
-        exhibition: exhibition,
-        catalogId: catalogId,
-        catalog: catalog,
-        artwork: artwork,
-      );
-      return NowDisplayingObject(exhibitionDisplaying: exhibitionDisplaying);
-    } else if (status.artworks.isNotEmpty) {
-      final index = status.currentArtworkIndex;
-      if (index == null) {
-        return null;
-      }
-      final tokenId = status.artworks[index].token?.id;
-      if (tokenId == null) {
-        return null;
-      }
-      final assetToken = await _fetchAssetToken(tokenId);
-      return NowDisplayingObject(assetToken: assetToken);
-    } else {
-      if (status.displayKey == CastDailyWorkRequest.displayKey) {
-        return NowDisplayingObject(
-            dailiesWorkState: injector<DailyWorkBloc>().state);
-      }
-    }
-    return null;
-  }
-
-  Future<AssetToken?> _fetchAssetToken(String tokenId) async {
-    final request = QueryListTokensRequest(ids: [tokenId]);
-    final assetToken = await injector<IndexerService>().getNftTokens(request);
-    return assetToken.isNotEmpty ? assetToken.first : null;
-  }
-
-  CheckDeviceStatusReply? _getStatus() {
-    final castingDevice = injector<FFBluetoothService>().castingBluetoothDevice;
-    if (castingDevice == null) return null;
-
-    final canvasState = injector<CanvasDeviceBloc>().state;
-    final status = canvasState.canvasDeviceStatus[castingDevice.remoteID];
-    return status;
-  }
+  final AssetToken? assetToken;
+  final ExhibitionDisplaying? exhibitionDisplaying;
+  final DailiesWorkState? dailiesWorkState;
 }
 
 class NowDisplaying extends StatefulWidget {
@@ -156,53 +96,198 @@ class NowDisplaying extends StatefulWidget {
 
 class _NowDisplayingState extends State<NowDisplaying> {
   final NowDisplayingManager _manager = NowDisplayingManager();
-  NowDisplayingObject? nowDisplaying;
+  NowDisplayingStatus? nowDisplayingStatus;
 
   @override
   void initState() {
     super.initState();
-    nowDisplaying = _manager.nowDisplaying;
+    nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
-      (nowDisplayingObject) {
+      (status) {
         if (mounted) {
           setState(
             () {
-              nowDisplaying = nowDisplayingObject;
+              nowDisplayingStatus = status;
             },
           );
         }
       },
     );
-    _manager.updateDisplayingNow();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
-      listener: (context, state) {
-        _manager.updateDisplayingNow();
-      },
+      listener: (context, state) {},
       builder: (context, state) {
-        final nowDisplaying = this.nowDisplaying;
-        if (nowDisplaying == null) {
+        final nowDisplayingStatus = this.nowDisplayingStatus;
+        if (nowDisplayingStatus == null) {
           return const SizedBox();
         }
-        final assetToken = nowDisplaying.assetToken;
-        if (assetToken != null) {
-          return _tokenNowDisplayingView(context, assetToken);
+        switch (nowDisplayingStatus.runtimeType) {
+          case ConnectingToDevice:
+            return _connectingToDeviceView(context, nowDisplayingStatus);
+          case ConnectSuccess:
+            return _connectSuccessView(context, nowDisplayingStatus);
+          case ConnectFailed:
+            return _connectFailedView(context, nowDisplayingStatus);
+          case ConnectionLostAndReconnecting:
+            return _connectionLostAndReconnectingView(
+                context, nowDisplayingStatus);
+          case GettingNowDisplayingObject:
+            return _gettingNowDisplayingObjectView(context);
+          case NowDisplayingSuccess:
+            return NowDisplayingSuccessWidget(
+              object: (nowDisplayingStatus as NowDisplayingSuccess).object,
+            );
+          case NowDisplayingError:
+            return _getNowDisplayingErrorView(context, nowDisplayingStatus);
+          default:
+            return const SizedBox();
         }
-        final exhibitionDisplaying = nowDisplaying.exhibitionDisplaying;
-        if (exhibitionDisplaying != null) {
-          return _exhibitionNowDisplayingView(context, exhibitionDisplaying);
-        }
-        if (nowDisplaying.dailiesWorkState != null) {
-          return _dailyWorkNowDisplayingView(
-              context, nowDisplaying.dailiesWorkState!);
-        }
-        return const SizedBox();
       },
     );
+  }
+
+  Widget _connectingToDeviceView(
+      BuildContext context, NowDisplayingStatus status) {
+    final device = (status as ConnectingToDevice).device;
+    return NowDisplayingView(
+      thumbnailBuilder: (context) {
+        return SizedBox(
+          width: 65,
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          'Connecting to ${device.advName}...',
+          style: Theme.of(context).textTheme.ppMori400Black14,
+        );
+      },
+    );
+  }
+
+  Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
+    final device = (status as ConnectSuccess).device;
+    return NowDisplayingView(
+      thumbnailBuilder: (context) {
+        return SizedBox(
+          width: 65,
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          'Connected to ${device.advName}',
+          style: Theme.of(context).textTheme.ppMori400Black14,
+        );
+      },
+    );
+  }
+
+  Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
+    final device = (status as ConnectFailed).device;
+    return NowDisplayingView(
+      thumbnailBuilder: (context) {
+        return SizedBox(
+          width: 65,
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          'Failed to connect to ${device.advName}',
+          style: Theme.of(context).textTheme.ppMori400Black14,
+        );
+      },
+    );
+  }
+
+  Widget _connectionLostAndReconnectingView(
+      BuildContext context, NowDisplayingStatus status) {
+    final device = (status as ConnectionLostAndReconnecting).device;
+    return NowDisplayingView(
+      thumbnailBuilder: (context) {
+        return SizedBox(
+          width: 65,
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          'Connection lost. Reconnecting to ${device.advName}...',
+          style: Theme.of(context).textTheme.ppMori400Black14,
+        );
+      },
+    );
+  }
+
+  Widget _gettingNowDisplayingObjectView(BuildContext context) {
+    return NowDisplayingView(
+      thumbnailBuilder: (context) {
+        return SizedBox(
+          width: 65,
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          'Getting now displaying object...',
+          style: Theme.of(context).textTheme.ppMori400Black14,
+        );
+      },
+    );
+  }
+
+  Widget _getNowDisplayingErrorView(
+      BuildContext context, NowDisplayingStatus nowDisplayingStatus) {
+    final error = (nowDisplayingStatus as NowDisplayingError).error;
+    return NowDisplayingView(
+      thumbnailBuilder: (context) {
+        return SizedBox(
+          width: 65,
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          'Error: $error',
+          style: Theme.of(context).textTheme.ppMori400Black14,
+        );
+      },
+    );
+  }
+}
+
+class NowDisplayingSuccessWidget extends StatefulWidget {
+  const NowDisplayingSuccessWidget({super.key, required this.object});
+
+  final NowDisplayingObject object;
+
+  @override
+  State<NowDisplayingSuccessWidget> createState() =>
+      _NowDisplayingSuccessWidgetState();
+}
+
+class _NowDisplayingSuccessWidgetState
+    extends State<NowDisplayingSuccessWidget> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nowDisplaying = widget.object;
+    final assetToken = nowDisplaying.assetToken;
+    if (assetToken != null) {
+      return _tokenNowDisplayingView(context, assetToken);
+    }
+    final exhibitionDisplaying = nowDisplaying.exhibitionDisplaying;
+    if (exhibitionDisplaying != null) {
+      return _exhibitionNowDisplayingView(context, exhibitionDisplaying);
+    }
+    if (nowDisplaying.dailiesWorkState != null) {
+      return _dailyWorkNowDisplayingView(
+          context, nowDisplaying.dailiesWorkState!);
+    }
+    return const SizedBox();
   }
 }
 
@@ -408,6 +493,7 @@ class NowDisplayingView extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
       decoration: BoxDecoration(
         color: AppColor.feralFileLightBlue,
         borderRadius: BorderRadius.circular(0),

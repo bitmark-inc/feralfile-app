@@ -2,8 +2,6 @@ import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
-import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -60,15 +58,7 @@ class BluetoothDeviceHelper {
       final configurationService = injector<ConfigurationService>();
       FFBluetoothDevice? device = configurationService.getLastConnectedDevice();
       if (checkAvailability) {
-        final scanedDevices =
-            injector<BluetoothConnectBloc>().state.scanedDevices;
-        if (scanedDevices
-            .where((element) => element.remoteId.str == device?.deviceId)
-            .isNotEmpty) {
-          return device;
-        } else {
-          return null;
-        }
+        return device;
       }
       return device;
     } catch (e) {

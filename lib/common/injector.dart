@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.d
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
-import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -256,6 +255,8 @@ Future<void> setupInjector() async {
     FFBluetoothService.new,
   );
 
+  injector<FFBluetoothService>().startListen();
+
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
     (p1, p2) => NftCollectionBloc(
       injector(),
@@ -375,7 +376,7 @@ Future<void> setupInjector() async {
   await injector<HiveStoreObjectService<CanvasDevice>>()
       .init('local.canvas_device');
   injector.registerLazySingleton<CanvasClientServiceV2>(
-    () => CanvasClientServiceV2(injector(), injector(), injector(), injector()),
+    () => CanvasClientServiceV2(injector(), injector(), injector()),
   );
 
   injector.registerLazySingleton<FeralFileService>(
@@ -419,7 +420,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<CanvasDeviceBloc>(
-    () => CanvasDeviceBloc(injector()),
+    () => CanvasDeviceBloc(injector(), injector()),
   );
   injector.registerLazySingleton<SubscriptionBloc>(
     () => SubscriptionBloc(injector()),

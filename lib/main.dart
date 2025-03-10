@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -67,7 +68,7 @@ Future<void> callbackDispatcher() async {
   });
 }
 
-ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(true);
+ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
 
 void main() async {
   unawaited(
@@ -194,6 +195,16 @@ Future<void> _setupApp() async {
   }
   await setupInjector();
   unawaited(_setupWorkManager());
+  try {
+    final bluetoothDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    if (bluetoothDevice != null) {
+      injector<FFBluetoothService>().connectToDevice(bluetoothDevice,
+          shouldShowError: false, shouldChangeNowDisplayingStatus: true);
+    }
+  } catch (e) {
+    log.info('Error in connecting to connected device: $e');
+  }
 
   runApp(
     SDTFScope(
@@ -257,7 +268,10 @@ class AutonomyApp extends StatelessWidget {
                   child: child,
                   builder: (context, value, c) {
                     log.info('shouldShowNowDisplaying: $value');
-                    if (!value) {
+                    final hasDevice =
+                        injector<FFBluetoothService>().castingBluetoothDevice !=
+                            null;
+                    if (!value || !hasDevice) {
                       return c!;
                     }
                     return Scaffold(
@@ -267,16 +281,16 @@ class AutonomyApp extends StatelessWidget {
                         child: Column(
                           children: [
                             AnimatedSwitcher(
-                              child: NowDisplaying(
-                                key: GlobalKey(),
-                              ),
                               transitionBuilder: (child, animation) {
                                 return FadeTransition(
                                   opacity: animation,
                                   child: child,
                                 );
                               },
-                              duration: const Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 1000),
+                              child: NowDisplaying(
+                                key: GlobalKey(),
+                              ),
                             ),
                             Expanded(
                               child: c!,
