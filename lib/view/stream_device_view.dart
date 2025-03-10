@@ -112,7 +112,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   padding: EdgeInsets.zero,
                   itemCount: devices.length,
                   itemBuilder: (BuildContext context, int index) {
-                    final device = devices[index].device;
+                    final device = devices[index];
                     final isControlling =
                         device.deviceId == connectedDevice?.deviceId;
                     if (device is FFBluetoothDevice) {
@@ -283,8 +283,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   }
 
   Future<void> onDisconnect() async {
-    final allDevices =
-        _canvasDeviceBloc.state.devices.map((e) => e.device).toList();
+    final allDevices = _canvasDeviceBloc.state.devices.toList();
     _canvasDeviceBloc.add(CanvasDeviceDisconnectEvent(allDevices));
   }
 }

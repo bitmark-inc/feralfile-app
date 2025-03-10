@@ -448,12 +448,13 @@ class CheckDeviceStatusReply extends Reply {
   CheckDeviceStatusReply({
     required this.artworks,
     this.index,
+    bool? isPaused,
     this.connectedDevice,
     this.exhibitionId,
     this.catalogId,
     this.catalog,
     this.displayKey,
-  });
+  }) : isPaused = isPaused ?? false;
 
   factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
       CheckDeviceStatusReply(
@@ -465,6 +466,7 @@ class CheckDeviceStatusReply extends Reply {
                 ),
               ),
         index: json['index'] as int?,
+        isPaused: json['isPaused'] as bool?,
         connectedDevice: json['connectedDevice'] != null
             ? DeviceInfoV2.fromJson(
                 json['connectedDevice'] as Map<String, dynamic>,
@@ -487,6 +489,7 @@ class CheckDeviceStatusReply extends Reply {
 
   List<PlayArtworkV2> artworks;
   int? index;
+  bool isPaused;
   DeviceInfoV2? connectedDevice;
   String? exhibitionId;
   String? catalogId;
@@ -497,12 +500,36 @@ class CheckDeviceStatusReply extends Reply {
   Map<String, dynamic> toJson() => {
         'artworks': artworks.map((artwork) => artwork.toJson()).toList(),
         'index': index,
+        'isPaused': isPaused,
         'connectedDevice': connectedDevice?.toJson(),
         'exhibitionId': exhibitionId,
         'catalogId': catalogId,
         'catalog': catalog?.index,
         'displayKey': displayKey,
       };
+
+  // copyWith method
+  CheckDeviceStatusReply copyWith({
+    List<PlayArtworkV2>? artworks,
+    int? index,
+    bool? isPaused,
+    DeviceInfoV2? connectedDevice,
+    String? exhibitionId,
+    String? catalogId,
+    ExhibitionCatalog? catalog,
+    String? displayKey,
+  }) {
+    return CheckDeviceStatusReply(
+      artworks: artworks ?? this.artworks,
+      index: index ?? this.index,
+      isPaused: isPaused ?? this.isPaused,
+      connectedDevice: connectedDevice ?? this.connectedDevice,
+      exhibitionId: exhibitionId ?? this.exhibitionId,
+      catalogId: catalogId ?? this.catalogId,
+      catalog: catalog ?? this.catalog,
+      displayKey: displayKey ?? this.displayKey,
+    );
+  }
 }
 
 // Class representing CastListArtworkReply message

@@ -65,82 +65,88 @@ class FFCastButtonState extends State<FFCastButton> {
             state.lastSelectedActiveDeviceForKey(widget.displayKey);
         final isCasting = castingDevice != null;
         return BlocBuilder<SubscriptionBloc, SubscriptionState>(
-            builder: (context, subscriptionState) {
-          final isSubscribed = subscriptionState.isSubscribed;
-          return GestureDetector(
-            onTap: () async {
-              setState(() {
-                _isProcessing = true;
-              });
-              try {
-                widget.onTap?.call();
-                await onTap(context, isSubscribed);
-                _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
-              } catch (e) {
-                log.info('Error while casting: $e');
-                unawaited(Sentry.captureException(
-                    '[FFCastButton] Error while casting: $e'));
-              }
-              setState(() {
-                _isProcessing = false;
-              });
-            },
-            child: Semantics(
-              label: 'cast_icon',
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(60),
-                  color: AppColor.feralFileLightBlue,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9).copyWith(
-                      left: 16, right: (isCasting || _isProcessing) ? 9 : 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.text != null)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Text(
-                            widget.text!,
-                            style: theme.textTheme.ppMori400Black14.copyWith(
-                              color: theme.colorScheme.primary,
+          builder: (context, subscriptionState) {
+            final isSubscribed = subscriptionState.isSubscribed;
+            return GestureDetector(
+              onTap: () async {
+                setState(() {
+                  _isProcessing = true;
+                });
+                try {
+                  widget.onTap?.call();
+                  await onTap(context, isSubscribed);
+                  // _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
+                } catch (e) {
+                  log.info('Error while casting: $e');
+                  unawaited(
+                    Sentry.captureException(
+                      '[FFCastButton] Error while casting: $e',
+                    ),
+                  );
+                }
+                setState(() {
+                  _isProcessing = false;
+                });
+              },
+              child: Semantics(
+                label: 'cast_icon',
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(60),
+                    color: AppColor.feralFileLightBlue,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 9).copyWith(
+                      left: 16,
+                      right: (isCasting || _isProcessing) ? 9 : 16,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (widget.text != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Text(
+                              widget.text!,
+                              style: theme.textTheme.ppMori400Black14.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
                             ),
                           ),
-                        ),
-                      SvgPicture.asset(
-                        'assets/images/cast_icon.svg',
-                        height: 20,
-                        colorFilter: ColorFilter.mode(
-                          theme.colorScheme.primary,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      if (isCasting || _isProcessing) ...[
-                        const SizedBox(
-                          width: 3,
+                        SvgPicture.asset(
+                          'assets/images/cast_icon.svg',
                           height: 20,
-                        ),
-                        if (_isProcessing)
-                          const ProcessingIndicator()
-                        else if (isCasting)
-                          Container(
-                            width: 4,
-                            height: 4,
-                            margin: const EdgeInsets.only(top: 1),
-                            decoration: const BoxDecoration(
-                              color: AppColor.primaryBlack,
-                              shape: BoxShape.circle,
-                            ),
+                          colorFilter: ColorFilter.mode(
+                            theme.colorScheme.primary,
+                            BlendMode.srcIn,
                           ),
+                        ),
+                        if (isCasting || _isProcessing) ...[
+                          const SizedBox(
+                            width: 3,
+                            height: 20,
+                          ),
+                          if (_isProcessing)
+                            const ProcessingIndicator()
+                          else if (isCasting)
+                            Container(
+                              width: 4,
+                              height: 4,
+                              margin: const EdgeInsets.only(top: 1),
+                              decoration: const BoxDecoration(
+                                color: AppColor.primaryBlack,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -148,7 +154,7 @@ class FFCastButtonState extends State<FFCastButton> {
   Future<void> onTap(BuildContext context, bool isSubscribed) async {
     if (!widget.shouldCheckSubscription || isSubscribed) {
       if (injector<CanvasDeviceBloc>().state.devices.length == 1) {
-        final device = injector<CanvasDeviceBloc>().state.devices.first.device;
+        final device = injector<CanvasDeviceBloc>().state.devices.first;
         await widget.onDeviceSelected?.call(device);
         return;
       }
@@ -168,40 +174,40 @@ class FFCastButtonState extends State<FFCastButton> {
       BlocProvider.value(
         value: _upgradesBloc,
         child: BlocConsumer<UpgradesBloc, UpgradeState>(
-            bloc: _upgradesBloc,
-            listenWhen: (previous, current) =>
-                previous.activeSubscriptionDetails.firstOrNull?.status !=
-                current.activeSubscriptionDetails.firstOrNull?.status,
-            listener: (context, upgradeState) {
-              final status =
-                  upgradeState.activeSubscriptionDetails.firstOrNull?.status;
-              log.info('Cast button: upgradeState: $status');
-              if (status == IAPProductStatus.completed) {
-                injector<SubscriptionBloc>().add(GetSubscriptionEvent());
-                Navigator.pop(context);
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  UIHelper.showUpgradedNotification();
-                });
-              }
-            },
-            builder: (context, upgradeState) {
-              final subscriptionDetail =
-                  upgradeState.activeSubscriptionDetails.firstOrNull;
-              final price = subscriptionDetail?.price ?? r'$200/year';
-              return MembershipCard(
-                type: MembershipCardType.essential,
-                price: price,
-                isProcessing: upgradeState.isProcessing ||
-                    subscriptionDetail?.status == IAPProductStatus.pending,
-                isEnable: subscriptionDetail != null,
-                onTap: (_) {
-                  _onPressSubscribe(subscriptionDetails: subscriptionDetail!);
-                },
-                buttonText: 'upgrade'.tr(),
-              );
-            }),
+          bloc: _upgradesBloc,
+          listenWhen: (previous, current) =>
+              previous.activeSubscriptionDetails.firstOrNull?.status !=
+              current.activeSubscriptionDetails.firstOrNull?.status,
+          listener: (context, upgradeState) {
+            final status =
+                upgradeState.activeSubscriptionDetails.firstOrNull?.status;
+            log.info('Cast button: upgradeState: $status');
+            if (status == IAPProductStatus.completed) {
+              injector<SubscriptionBloc>().add(GetSubscriptionEvent());
+              Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                UIHelper.showUpgradedNotification();
+              });
+            }
+          },
+          builder: (context, upgradeState) {
+            final subscriptionDetail =
+                upgradeState.activeSubscriptionDetails.firstOrNull;
+            final price = subscriptionDetail?.price ?? r'$200/year';
+            return MembershipCard(
+              type: MembershipCardType.essential,
+              price: price,
+              isProcessing: upgradeState.isProcessing ||
+                  subscriptionDetail?.status == IAPProductStatus.pending,
+              isEnable: subscriptionDetail != null,
+              onTap: (_) {
+                _onPressSubscribe(subscriptionDetails: subscriptionDetail!);
+              },
+              buttonText: 'upgrade'.tr(),
+            );
+          },
+        ),
       ),
-      isDismissible: true,
       withCloseIcon: true,
       spacing: 20,
       padding: const EdgeInsets.fromLTRB(14, 20, 14, 40),

@@ -440,7 +440,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
 
   Widget _interactButton(BuildContext context) {
     final state = injector<CanvasDeviceBloc>().state;
-    final castingDevice = state.devices.firstOrNull?.device;
+    final castingDevice = state.devices.firstOrNull;
     return PrimaryButton(
       onTap: () {
         injector<NavigationService>().navigateTo(
