@@ -106,9 +106,10 @@ class FFBluetoothService {
     FlutterBluePlus.events.onCharacteristicReceived.listen(
       (event) {
         final characteristic = event.characteristic;
+        final device = event.device;
         final value = event.value;
         if (characteristic.isCommandCharacteristic) {
-          BluetoothNotificationService().handleNotification(value);
+          BluetoothNotificationService().handleNotification(value, device);
         }
       },
       onError: (e) {

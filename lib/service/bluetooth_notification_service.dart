@@ -1,16 +1,23 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 typedef NotificationCallback = void Function(Map<String, dynamic> data);
 
-final statusChangeTopic = 'updateIndex';
+final statusChangeTopic = 'statusChanged';
 
 class BluetoothNotificationService {
   // Singleton instance
   static final BluetoothNotificationService _instance =
       BluetoothNotificationService._internal();
+
   factory BluetoothNotificationService() => _instance;
+
   BluetoothNotificationService._internal();
 
   // Map to store topic subscribers
@@ -31,7 +38,7 @@ class BluetoothNotificationService {
   }
 
   // Handle incoming notification data
-  void handleNotification(List<int> data) {
+  void handleNotification(List<int> data, BluetoothDevice device) {
     try {
       // Create a ByteData view of the notification data
       final reader = ByteDataReader(data);
@@ -57,7 +64,10 @@ class BluetoothNotificationService {
           '[BluetoothNotification] Received notification - Topic: $topic, Data: $jsonData');
 
       if (statusChangeTopic == topic) {
-        log.info('[BluetoothNotification] Received status change notification');
+        final statusChange = CheckDeviceStatusReply.fromJson(jsonData);
+        final bloc = injector<CanvasDeviceBloc>();
+        bloc.add(CanvasDeviceStatusChangedEvent(
+            device.toFFBluetoothDevice(), statusChange));
       }
 
       // Notify subscribers
