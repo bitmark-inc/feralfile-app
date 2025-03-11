@@ -16,9 +16,9 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ExploreArtistView extends StatefulWidget {
-  final Widget? header;
-
   const ExploreArtistView({super.key, this.header});
+
+  final Widget? header;
 
   @override
   State<ExploreArtistView> createState() => ExploreArtistViewState();
@@ -61,11 +61,13 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
   }
 
   void scrollToTop() {
-    unawaited(_scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    ));
+    unawaited(
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Widget _emptyView(BuildContext context) {
@@ -91,8 +93,10 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
       ListAlumniView(
         listAlumni: artists,
         onAlumniSelected: (alumni) {
-          unawaited(injector<NavigationService>()
-              .openFeralFileArtistPage(alumni.slug ?? alumni.id));
+          unawaited(
+            injector<NavigationService>()
+                .openFeralFileArtistPage(alumni.slug ?? alumni.id),
+          );
         },
         scrollController: _scrollController,
         padding: const EdgeInsets.only(
@@ -158,9 +162,9 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
 }
 
 class ExploreCuratorView extends StatefulWidget {
-  final Widget? header;
-
   const ExploreCuratorView({super.key, this.header});
+
+  final Widget? header;
 
   @override
   State<ExploreCuratorView> createState() => ExploreCuratorViewState();
@@ -205,11 +209,13 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   }
 
   void scrollToTop() {
-    unawaited(_scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    ));
+    unawaited(
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Widget _emptyView(BuildContext context) {
@@ -235,8 +241,10 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
       ListAlumniView(
         listAlumni: curators,
         onAlumniSelected: (alumni) {
-          unawaited(injector<NavigationService>()
-              .openFeralFileCuratorPage(alumni.slug ?? alumni.id));
+          unawaited(
+            injector<NavigationService>()
+                .openFeralFileCuratorPage(alumni.slug ?? alumni.id),
+          );
         },
         scrollController: _scrollController,
         padding: const EdgeInsets.only(
@@ -269,8 +277,10 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     final paging = resp.paging!;
     setState(() {
       _curators = curators
-          .where((curator) => !curator.addressesList
-              .any((address) => ignoreCuratorAddresses.contains(address)))
+          .where(
+            (curator) =>
+                !curator.addressesList.any(ignoreCuratorAddresses.contains),
+          )
           .toList();
       _paging = paging;
     });
@@ -302,10 +312,14 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     final curators = resp.result;
     final paging = resp.paging!;
     setState(() {
-      _curators!.addAll(curators
-          .where((curator) => !curator.addressesList
-              .any((address) => ignoreCuratorAddresses.contains(address)))
-          .toList());
+      _curators!.addAll(
+        curators
+            .where(
+              (curator) =>
+                  !curator.addressesList.any(ignoreCuratorAddresses.contains),
+            )
+            .toList(),
+      );
       _paging = paging;
     });
     _isLoading = false;
@@ -313,6 +327,17 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
 }
 
 class ListAlumniView extends StatefulWidget {
+  const ListAlumniView({
+    required this.listAlumni,
+    required this.onAlumniSelected,
+    this.scrollController,
+    this.padding = EdgeInsets.zero,
+    super.key,
+    this.header,
+    this.exploreBar,
+    this.emptyWidget,
+  });
+
   final List<AlumniAccount>? listAlumni;
   final Function(AlumniAccount) onAlumniSelected;
   final ScrollController? scrollController;
@@ -320,17 +345,6 @@ class ListAlumniView extends StatefulWidget {
   final Widget? header;
   final Widget? exploreBar;
   final Widget? emptyWidget;
-
-  const ListAlumniView({
-    required this.listAlumni,
-    required this.onAlumniSelected,
-    this.scrollController,
-    this.padding = const EdgeInsets.all(0),
-    super.key,
-    this.header,
-    this.exploreBar,
-    this.emptyWidget,
-  });
 
   @override
   State<ListAlumniView> createState() => _ListAlumniViewState();
@@ -356,7 +370,13 @@ class _ListAlumniViewState extends State<ListAlumniView> {
         slivers: [
           if (widget.exploreBar != null || widget.header != null) ...[
             SliverToBoxAdapter(
-              child: SizedBox(height: MediaQuery.of(context).padding.top + 32),
+              child: SizedBox(height: MediaQuery.of(context).padding.top),
+            ),
+            // const SliverToBoxAdapter(
+            //   child: NowDisplaying(),
+            // ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 32),
             ),
             SliverToBoxAdapter(
               child: widget.header ?? const SizedBox.shrink(),
@@ -377,27 +397,28 @@ class _ListAlumniViewState extends State<ListAlumniView> {
             SliverPadding(
               padding: widget.padding,
               sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 102.0 / 152,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 30,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final alumni = widget.listAlumni![index];
-                      return GestureDetector(
-                        onTap: () {
-                          widget.onAlumniSelected(alumni);
-                        },
-                        child: Container(
-                          color: Colors.transparent,
-                          child: _artistItem(context, alumni),
-                        ),
-                      );
-                    },
-                    childCount: widget.listAlumni!.length,
-                  )),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 102.0 / 152,
+                  crossAxisSpacing: 24,
+                  mainAxisSpacing: 30,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final alumni = widget.listAlumni![index];
+                    return GestureDetector(
+                      onTap: () {
+                        widget.onAlumniSelected(alumni);
+                      },
+                      child: ColoredBox(
+                        color: Colors.transparent,
+                        child: _artistItem(context, alumni),
+                      ),
+                    );
+                  },
+                  childCount: widget.listAlumni!.length,
+                ),
+              ),
             ),
           ],
         ],
@@ -416,12 +437,13 @@ class _ListAlumniViewState extends State<ListAlumniView> {
         AspectRatio(aspectRatio: 1, child: _artistAvatar(context, alumni)),
         const SizedBox(height: 14),
         Expanded(
-            child: Text(
-          alumni.displayAlias,
-          style: theme.textTheme.ppMori400White12,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 2,
-        )),
+          child: Text(
+            alumni.displayAlias,
+            style: theme.textTheme.ppMori400White12,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ),
       ],
     );
   }

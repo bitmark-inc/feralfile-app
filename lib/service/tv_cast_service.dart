@@ -5,11 +5,14 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
@@ -32,15 +35,35 @@ abstract class TvCastService {
 
   Future<PreviousArtworkReply> previousArtwork(PreviousArtworkRequest request);
 
-  Future<AppendArtworkToCastingListReply> appendListArtwork(
-    AppendArtworkToCastingListRequest request,
-  );
-
   Future<UpdateDurationReply> updateDuration(UpdateDurationRequest request);
 
   Future<KeyboardEventReply> keyboardEvent(KeyboardEventRequest request);
 
   Future<RotateReply> rotate(RotateRequest request);
+
+  Future<SendLogReply> getSupport(SendLogRequest request);
+
+  Future<GetVersionReply> getVersion(
+    GetVersionRequest request,
+  );
+
+  Future<UpdateOrientationReply> updateOrientation(
+    UpdateOrientationRequest request,
+  );
+
+  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
+    GetBluetoothDeviceStatusRequest request,
+  );
+
+  Future<UpdateArtFramingReply> updateArtFraming(
+    UpdateArtFramingRequest request,
+  );
+
+  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request);
+
+  Future<UpdateToLatestVersionReply> updateToLatestVersion(
+    UpdateToLatestVersionRequest request,
+  );
 
   Future<CastExhibitionReply> castExhibition(CastExhibitionRequest request);
 
@@ -49,13 +72,186 @@ abstract class TvCastService {
   Future<GestureReply> tap(TapGestureRequest request);
 
   Future<GestureReply> drag(DragGestureRequest request);
-
-  Future<GetCursorOffsetReply> getCursorOffset(GetCursorOffsetRequest request);
-
-  Future<SetCursorOffsetReply> setCursorOffset(SetCursorOffsetRequest request);
 }
 
-class TvCastServiceImpl implements TvCastService {
+abstract class BaseTvCastService implements TvCastService {
+  BaseTvCastService();
+
+  Future<Map<String, dynamic>> _sendData(
+    Map<String, dynamic> body, {
+    bool shouldShowError = true,
+    Duration? timeout,
+  });
+
+  Map<String, dynamic> _getBody(Request request) =>
+      RequestBody(request).toJson();
+
+  @override
+  Future<CheckDeviceStatusReply> status(
+    CheckDeviceStatusRequest request, {
+    bool shouldShowError = true,
+  }) async {
+    final result =
+        await _sendData(_getBody(request), shouldShowError: shouldShowError);
+    return CheckDeviceStatusReply.fromJson(result);
+  }
+
+  @override
+  Future<ConnectReplyV2> connect(ConnectRequestV2 request) async {
+    try {
+      final result = await _sendData(_getBody(request));
+      return ConnectReplyV2.fromJson(result);
+    } catch (e) {
+      log.info('Failed to connect to device: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DisconnectReplyV2> disconnect(DisconnectRequestV2 request) async {
+    final result = await _sendData(_getBody(request));
+    return DisconnectReplyV2.fromJson(result);
+  }
+
+  @override
+  Future<CastListArtworkReply> castListArtwork(
+    CastListArtworkRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return CastListArtworkReply.fromJson(result);
+  }
+
+  @override
+  Future<PauseCastingReply> pauseCasting(PauseCastingRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return PauseCastingReply.fromJson(result);
+  }
+
+  @override
+  Future<ResumeCastingReply> resumeCasting(ResumeCastingRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return ResumeCastingReply.fromJson(result);
+  }
+
+  @override
+  Future<NextArtworkReply> nextArtwork(NextArtworkRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return NextArtworkReply.fromJson(result);
+  }
+
+  @override
+  Future<PreviousArtworkReply> previousArtwork(
+    PreviousArtworkRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return PreviousArtworkReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateDurationReply> updateDuration(
+    UpdateDurationRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return UpdateDurationReply.fromJson(result);
+  }
+
+  @override
+  Future<KeyboardEventReply> keyboardEvent(KeyboardEventRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return KeyboardEventReply.fromJson(result);
+  }
+
+  @override
+  Future<RotateReply> rotate(RotateRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return RotateReply.fromJson(result);
+  }
+
+  @override
+  Future<SendLogReply> getSupport(SendLogRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return SendLogReply.fromJson(result);
+  }
+
+  @override
+  Future<GetVersionReply> getVersion(GetVersionRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return GetVersionReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateOrientationReply> updateOrientation(
+    UpdateOrientationRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return UpdateOrientationReply.fromJson(result);
+  }
+
+  @override
+  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
+    GetBluetoothDeviceStatusRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request),
+        timeout: const Duration(seconds: 10), shouldShowError: false);
+    return GetBluetoothDeviceStatusReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateArtFramingReply> updateArtFraming(
+    UpdateArtFramingRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return UpdateArtFramingReply.fromJson(result);
+  }
+
+  @override
+  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return SetTimezoneReply.fromJson(result);
+  }
+
+  @override
+  Future<UpdateToLatestVersionReply> updateToLatestVersion(
+    UpdateToLatestVersionRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request),
+        timeout: const Duration(seconds: 30));
+    return UpdateToLatestVersionReply.fromJson(result);
+  }
+
+  @override
+  Future<CastExhibitionReply> castExhibition(
+    CastExhibitionRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return CastExhibitionReply.fromJson(result);
+  }
+
+  @override
+  Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request) async {
+    try {
+      final body = _getBody(request);
+      final result = await _sendData(body);
+      return CastDailyWorkReply.fromJson(result);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<GestureReply> tap(TapGestureRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return GestureReply.fromJson(result);
+  }
+
+  @override
+  Future<GestureReply> drag(DragGestureRequest request) async {
+    final result = await _sendData(_getBody(request));
+    return GestureReply.fromJson(result);
+  }
+}
+
+class TvCastServiceImpl extends BaseTvCastService {
   TvCastServiceImpl(this._api, this._device);
 
   final TvCastApi _api;
@@ -89,9 +285,11 @@ class TvCastServiceImpl implements TvCastService {
     }
   }
 
-  Future<Map<String, dynamic>> _cast(
+  @override
+  Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
     bool shouldShowError = true,
+    Duration? timeout,
   }) async {
     try {
       final result = await _api.request(
@@ -108,138 +306,38 @@ class TvCastServiceImpl implements TvCastService {
       rethrow;
     }
   }
+}
 
-  Map<String, dynamic> _getBody(Request request) =>
-      RequestBody(request).toJson();
+class BluetoothCastService extends BaseTvCastService {
+  BluetoothCastService(this._device);
+
+  final BluetoothDevice _device;
 
   @override
-  Future<CheckDeviceStatusReply> status(
-    CheckDeviceStatusRequest request, {
+  Future<Map<String, dynamic>> _sendData(
+    Map<String, dynamic> body, {
     bool shouldShowError = true,
+    Duration? timeout,
   }) async {
-    final result =
-        await _cast(_getBody(request), shouldShowError: shouldShowError);
-    return CheckDeviceStatusReply.fromJson(result);
-  }
-
-  @override
-  Future<ConnectReplyV2> connect(ConnectRequestV2 request) async {
-    final result = await _cast(_getBody(request));
-    return ConnectReplyV2.fromJson(result);
-  }
-
-  @override
-  Future<DisconnectReplyV2> disconnect(DisconnectRequestV2 request) async {
-    final result = await _cast(_getBody(request));
-    return DisconnectReplyV2.fromJson(result);
-  }
-
-  @override
-  Future<CastListArtworkReply> castListArtwork(
-    CastListArtworkRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return CastListArtworkReply.fromJson(result);
-  }
-
-  @override
-  Future<PauseCastingReply> pauseCasting(PauseCastingRequest request) async {
-    final result = await _cast(_getBody(request));
-    return PauseCastingReply.fromJson(result);
-  }
-
-  @override
-  Future<ResumeCastingReply> resumeCasting(ResumeCastingRequest request) async {
-    final result = await _cast(_getBody(request));
-    return ResumeCastingReply.fromJson(result);
-  }
-
-  @override
-  Future<NextArtworkReply> nextArtwork(NextArtworkRequest request) async {
-    final result = await _cast(_getBody(request));
-    return NextArtworkReply.fromJson(result);
-  }
-
-  @override
-  Future<PreviousArtworkReply> previousArtwork(
-    PreviousArtworkRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return PreviousArtworkReply.fromJson(result);
-  }
-
-  @override
-  Future<AppendArtworkToCastingListReply> appendListArtwork(
-    AppendArtworkToCastingListRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return AppendArtworkToCastingListReply.fromJson(result);
-  }
-
-  @override
-  Future<UpdateDurationReply> updateDuration(
-    UpdateDurationRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return UpdateDurationReply.fromJson(result);
-  }
-
-  @override
-  Future<KeyboardEventReply> keyboardEvent(KeyboardEventRequest request) async {
-    final result = await _cast(_getBody(request));
-    return KeyboardEventReply.fromJson(result);
-  }
-
-  @override
-  Future<RotateReply> rotate(RotateRequest request) async {
-    final result = await _cast(_getBody(request));
-    return RotateReply.fromJson(result);
-  }
-
-  @override
-  Future<CastExhibitionReply> castExhibition(
-    CastExhibitionRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return CastExhibitionReply.fromJson(result);
-  }
-
-  @override
-  Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request) async {
+    final command = body['command'] as String;
+    final request = Map<String, dynamic>.from(body['request'] as Map);
     try {
-      final body = _getBody(request);
-      final result = await _cast(body);
-      return CastDailyWorkReply.fromJson(result);
+      final res = await injector<FFBluetoothService>().sendCommand(
+        device: _device,
+        command: command,
+        request: request,
+        timeout: timeout,
+        shouldShowError: shouldShowError,
+      );
+      log.info('[BluetoothCastService] sendCommand $command');
+      return res;
     } catch (e) {
+      unawaited(
+        Sentry.captureException(
+          '[BluetoothCastService] sendCommand $command failed with error:  $e',
+        ),
+      );
       rethrow;
     }
-  }
-
-  @override
-  Future<GestureReply> tap(TapGestureRequest request) async {
-    final result = await _cast(_getBody(request));
-    return GestureReply.fromJson(result);
-  }
-
-  @override
-  Future<GestureReply> drag(DragGestureRequest request) async {
-    final result = await _cast(_getBody(request));
-    return GestureReply.fromJson(result);
-  }
-
-  @override
-  Future<GetCursorOffsetReply> getCursorOffset(
-    GetCursorOffsetRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return GetCursorOffsetReply.fromJson(result);
-  }
-
-  @override
-  Future<SetCursorOffsetReply> setCursorOffset(
-    SetCursorOffsetRequest request,
-  ) async {
-    final result = await _cast(_getBody(request));
-    return SetCursorOffsetReply.fromJson(result);
   }
 }

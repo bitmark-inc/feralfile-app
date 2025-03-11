@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:nft_collection/models/address_index.dart';
 
 class WalletAddress implements SettingObject {
   WalletAddress({

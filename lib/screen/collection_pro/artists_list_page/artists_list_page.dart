@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/view/predefined_collection/predefined_collectio
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/predefined_collection_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
 
 class ArtistsListPage extends StatefulWidget {
   final ArtistsListPagePayload payload;

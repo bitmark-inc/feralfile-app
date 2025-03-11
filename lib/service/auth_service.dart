@@ -21,9 +21,11 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AuthService {
@@ -64,6 +66,24 @@ class AuthService {
 
   String? getUserId() {
     return _jwt?.userId;
+  }
+
+  bool isBetaTester() {
+    if (kDebugMode) return true;
+    try {
+      final isBetaTesterFromLocalConfig =
+          injector<ConfigurationService>().isBetaTester();
+      if (isBetaTesterFromLocalConfig) {
+        return true;
+      }
+      final betaTester = injector<RemoteConfigService>()
+          .getConfig<List<dynamic>>(ConfigGroup.tester, ConfigKey.betaTester,
+              <String>[]).cast<String>();
+      return betaTester.contains(getUserId());
+    } catch (e) {
+      log.warning('Failed to get beta tester config: $e');
+      return false;
+    }
   }
 
   Future<void> reset() async {

@@ -4,8 +4,8 @@ import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:nft_collection/database/dao/dao.dart';
-import 'package:nft_collection/services/tokens_service.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 
 abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();

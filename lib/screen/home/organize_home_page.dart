@@ -24,8 +24,8 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 
 class OrganizeHomePage extends StatefulWidget {
   const OrganizeHomePage({super.key});

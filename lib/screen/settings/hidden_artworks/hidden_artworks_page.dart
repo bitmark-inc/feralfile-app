@@ -25,8 +25,8 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:path/path.dart' as p;
 
 class HiddenArtworksPage extends StatefulWidget {

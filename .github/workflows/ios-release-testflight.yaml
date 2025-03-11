@@ -64,7 +64,7 @@ jobs:
       - run: flutter precache --ios
 
       - name: cache pods
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('**/ios/Podfile.lock') }}

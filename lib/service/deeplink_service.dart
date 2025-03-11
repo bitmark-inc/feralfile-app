@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/device_setting/check_bluetooth_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -35,7 +36,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class DeeplinkService {
@@ -64,21 +64,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   Future<void> setup() async {
     log.info('[DeeplinkService] setup');
-    await FlutterBranchSdk.init(enableLogging: true);
-    FlutterBranchSdk.listSession().listen((data) async {
-      log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
-      log.info('[DeeplinkService] data: $data');
-      log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
-      if (data['+clicked_branch_link'] == true &&
-          _deepLinkHandlingMap[data['~referring_link']] == null) {
-        _deepLinkHandlingMap[data['~referring_link'] as String] = true;
-
-        await handleBranchDeeplinkData(data);
-      }
-    }, onError: (error, stacktrace) {
-      Sentry.captureException(error, stackTrace: stacktrace);
-      log.warning('[DeeplinkService] InitBranchSession error: $error');
-    });
+    // await FlutterBranchSdk.init(enableLogging: true);
+    // FlutterBranchSdk.listSession().listen((data) async {
+    //   log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
+    //   log.info('[DeeplinkService] data: $data');
+    //   log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
+    //   if (data['+clicked_branch_link'] == true &&
+    //       _deepLinkHandlingMap[data['~referring_link']] == null) {
+    //     _deepLinkHandlingMap[data['~referring_link'] as String] = true;
+    //
+    //     await handleBranchDeeplinkData(data);
+    //   }
+    // }, onError: (error, stacktrace) {
+    //   Sentry.captureException(error, stackTrace: stacktrace);
+    //   log.warning('[DeeplinkService] InitBranchSession error: $error');
+    // });
 
     try {
       final appLink = AppLinks();
@@ -117,25 +117,41 @@ class DeeplinkServiceImpl extends DeeplinkService {
     Timer.periodic(delay, (timer) async {
       timer.cancel();
       if (_deepLinkHandlingMap[link] != null) {
+        log.info('[DeeplinkService] deeplink $link is handling');
         return;
       }
       _deepLinkHandlingMap[link] = true;
       final handlerType = DeepLinkHandlerType.fromString(link);
+
+      Future<void> onFinishDeeplink() async {
+        try {
+          await onFinished?.call();
+        } catch (e) {
+          log.info('[DeeplinkService] onFinishDeeplink error: $e');
+        }
+        _deepLinkHandlingMap.remove(link);
+      }
+
       log.info('[DeeplinkService] handlerType $handlerType');
       switch (handlerType) {
         case DeepLinkHandlerType.branch:
-          await _handleBranchDeeplink(link, onFinish: onFinished);
+          await _handleBranchDeeplink(link, onFinish: onFinishDeeplink);
         case DeepLinkHandlerType.dAppConnect:
           await _handleDappConnectDeeplink(link);
         case DeepLinkHandlerType.homeWidget:
           await _handleHomeWidgetDeeplink(link);
+        case DeepLinkHandlerType.bluetoothConnect:
+          await _handleBluetoothConnectDeeplink(link,
+              onFinish: onFinishDeeplink);
         case DeepLinkHandlerType.unknown:
           unawaited(_navigationService.showUnknownLink());
       }
-      _deepLinkHandlingMap.remove(link);
-      if (handlerType != DeepLinkHandlerType.branch) {
-        onFinished?.call();
+      if (handlerType != DeepLinkHandlerType.branch &&
+          handlerType != DeepLinkHandlerType.bluetoothConnect) {
+        await onFinishDeeplink.call();
       }
+      // this function is called in onFinishDeeplink, so we don't need to call it here
+      // _deepLinkHandlingMap.remove(link);
     });
   }
 
@@ -181,11 +197,32 @@ class DeeplinkServiceImpl extends DeeplinkService {
         default:
           break;
       }
-
       return true;
     }
-
     return false;
+  }
+
+  Future<void> _handleBluetoothConnectDeeplink(String link,
+      {Function? onFinish}) async {
+    final prefix = Constants.bluetoothConnectDeepLinks
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (prefix == null) {
+      log.info(
+          '[DeeplinkService] _handleBluetoothConnectDeeplink prefix not found');
+      return;
+    }
+    unawaited(
+        injector<ConfigurationService>().setDidShowLiveWithArt(true).then((_) {
+      log.info('setDidShowLiveWithArt to true');
+    }));
+
+    await injector<NavigationService>().navigateTo(
+      AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
+      arguments: HandleBluetoothDeviceScanDeeplinkScreenPayload(
+        deeplink: link,
+        onFinish: onFinish,
+      ),
+    );
   }
 
   Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {
@@ -331,7 +368,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     );
   }
 
-  Future _handleFeralFileDisplayConnecting(
+  Future<void> _handleFeralFileDisplayConnecting(
     CanvasDevice device,
     Function? onFinish,
   ) async {
@@ -396,6 +433,7 @@ enum DeepLinkHandlerType {
   branch,
   dAppConnect,
   homeWidget,
+  bluetoothConnect,
   unknown,
   ;
 
@@ -414,6 +452,10 @@ enum DeepLinkHandlerType {
       return DeepLinkHandlerType.homeWidget;
     }
 
+    if (Constants.bluetoothConnectDeepLinks
+        .any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.bluetoothConnect;
+    }
     return DeepLinkHandlerType.unknown;
   }
 }

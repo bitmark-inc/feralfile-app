@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:nft_collection/models/user_collection.dart';
+import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
 
 class AlumniDetailsState {
   final AlumniAccount? alumni;

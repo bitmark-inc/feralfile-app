@@ -171,7 +171,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         .addEvent(MetricEventName.exhibitionView, data: data));
   }
 
-  void _stream(Exhibition exhibition) {
+  Future<void> _stream(Exhibition exhibition) async {
     log.info('onPageChanged: $_currentIndex');
     final displayKey = exhibition.displayKey;
     final lastSelectedDevice =
@@ -179,9 +179,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     if (lastSelectedDevice != null) {
       final request = _getCastExhibitionRequest(exhibition);
       log.info('onPageChanged: request: $request');
+      final completer = Completer<void>();
       _canvasDeviceBloc.add(
-        CanvasDeviceCastExhibitionEvent(lastSelectedDevice, request),
+        CanvasDeviceCastExhibitionEvent(lastSelectedDevice, request,
+            onDone: completer.complete),
       );
+      await completer.future;
     }
   }
 
@@ -287,9 +290,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 displayKey: exhibition.id,
                 onDeviceSelected: (device) async {
                   final request = _getCastExhibitionRequest(exhibition);
+                  final completer = Completer<void>();
                   _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(device, request),
+                    CanvasDeviceCastExhibitionEvent(device, request,
+                        onDone: completer.complete),
                   );
+                  await completer.future;
                 },
               )
             : null,

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/mime_type.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -180,7 +181,7 @@ class AuFileService extends FileService {
         }
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.failed) {
-        log.info('[AuFileService] Download failed: ${info.url}');
+        log.info('[AuFileService] Download failed: ${info.url} ${info.taskId}');
         unawaited(Sentry.captureMessage('Download failed ${info.url}'));
         info.task.completeError(Exception('Download failed ${info.url}'));
         _taskId2Info.remove(id);
@@ -221,8 +222,8 @@ class AuFileService extends FileService {
         headers: headers ?? {},
         savedDir: _saveDir,
         fileName: fileName,
-        showNotification: false,
-        openFileFromNotification: false,
+        showNotification: kDebugMode,
+        openFileFromNotification: kDebugMode,
         timeout: 5000,
       );
       if (taskId == null) {

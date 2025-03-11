@@ -225,8 +225,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               price: subscriptionDetails.price,
               isProcessing: false,
               isEnable: true,
-              renewPolicyText:
-                  subscriptionDetails.productDetails.renewPolicyText,
+              renewPolicyBuilder: (context) =>
+                  subscriptionDetails.productDetails.renewPolicyWidget(context),
               buttonBuilder: (context) => Container(
                 padding:
                     const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
@@ -419,7 +419,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 subscriptionDetails: subscriptionDetails);
           },
           buttonText: 'upgrade'.tr(),
-          renewPolicyText: subscriptionDetails.productDetails.renewPolicyText,
+          renewPolicyBuilder: (context) =>
+              subscriptionDetails.productDetails.renewPolicyWidget(context),
         );
       case IAPProductStatus.error:
         return Text(

@@ -39,11 +39,7 @@
 			<string>me.autonomy</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>wc</string>
 				<string>autonomy</string>
-				<string>autonomy-tezos</string>
-				<string>tezos</string>
-				<string>autonomy-wc</string>
 				<string>autonomy-app</string>
 				<string>feralfile</string>
 			</array>
@@ -58,9 +54,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Feral File to scan for your FF-X1 Device.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Feral File to scan for your FF-X1 Device.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_googlecast._tcp</string>
@@ -71,8 +67,6 @@
 	<string>QR code scanning requires camera access.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow Feral File to use Face ID to authenticate.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Allow Feral File to use your location</string>
 	<key>NSLocationAlwaysUsageDescription</key>

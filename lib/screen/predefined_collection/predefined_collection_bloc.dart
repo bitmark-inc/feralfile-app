@@ -4,10 +4,10 @@ import 'package:autonomy_flutter/screen/predefined_collection/predefined_collect
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/database/dao/dao.dart';
-import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:nft_collection/utils/medium_category.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/utils/medium_category.dart';
 
 class PredefinedCollectionBloc
     extends Bloc<PredefinedCollectionEvent, PredefinedCollectionState> {

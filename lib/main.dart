@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -24,6 +25,8 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -34,6 +37,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -64,6 +68,10 @@ Future<void> callbackDispatcher() async {
     return Future.value(true);
   });
 }
+
+ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
+ValueNotifier<bool> shouldShowNowDisplayingOnDisconnect =
+    ValueNotifier<bool>(true);
 
 void main() async {
   unawaited(
@@ -190,6 +198,16 @@ Future<void> _setupApp() async {
   }
   await setupInjector();
   unawaited(_setupWorkManager());
+  try {
+    final bluetoothDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    if (bluetoothDevice != null) {
+      injector<FFBluetoothService>().connectToDevice(bluetoothDevice,
+          shouldShowError: false, shouldChangeNowDisplayingStatus: true);
+    }
+  } catch (e) {
+    log.info('Error in connecting to connected device: $e');
+  }
 
   runApp(
     SDTFScope(
@@ -247,6 +265,51 @@ class AutonomyApp extends StatelessWidget {
             ],
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
+            builder: (context, child) {
+              return MultiValueListenableBuilder(
+                valueListenables: [
+                  shouldShowNowDisplaying,
+                  shouldShowNowDisplayingOnDisconnect
+                ],
+                child: child,
+                builder: (context, values, c) {
+                  final hasDevice =
+                      injector<FFBluetoothService>().castingBluetoothDevice !=
+                          null;
+                  final value = (values[0] as bool) && (values[1] as bool);
+                  log.info('shouldShowNowDisplaying: $value');
+
+                  if (!value || !hasDevice) {
+                    return c!;
+                  }
+                  return Scaffold(
+                    backgroundColor: AppColor.primaryBlack,
+                    appBar: getDarkEmptyAppBar(),
+                    body: SafeArea(
+                      child: Column(
+                        children: [
+                          AnimatedSwitcher(
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                            duration: const Duration(milliseconds: 1000),
+                            child: NowDisplaying(
+                              key: GlobalKey(),
+                            ),
+                          ),
+                          Expanded(
+                            child: c!,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           );
         },
       );

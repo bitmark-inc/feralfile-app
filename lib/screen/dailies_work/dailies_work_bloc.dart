@@ -4,14 +4,15 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/services/indexer_service.dart';
 
 class DailyWorkEvent {}
 
@@ -33,8 +34,10 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
       AlumniAccount? currentArtist;
       Exhibition? currentExhibition;
       if (dailiesToken != null) {
-        final tokens = await _indexerService
-            .getNftTokens(QueryListTokensRequest(ids: [dailiesToken.indexId]));
+        final burnedIncluded = dailiesToken.blockchain == 'bitmark';
+        final tokens = await _indexerService.getNftTokens(
+            QueryListTokensRequest(
+                ids: [dailiesToken.indexId], burnedIncluded: burnedIncluded));
         assetTokens.addAll(tokens);
       }
       if (assetTokens.isEmpty) {
@@ -55,7 +58,7 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
           currentDailyToken: dailiesToken,
           currentArtist: currentArtist,
           currentExhibition: currentExhibition));
-
+      unawaited(NowDisplayingManager().updateDisplayingNow());
       unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     });
   }

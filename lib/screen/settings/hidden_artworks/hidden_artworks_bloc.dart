@@ -7,8 +7,8 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:nft_collection/database/dao/dao.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 
 class HiddenArtworksBloc
     extends AuBloc<HiddenArtworksEvent, List<CompactedAssetToken>> {

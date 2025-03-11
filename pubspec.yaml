@@ -31,14 +31,14 @@ dependencies:
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
-  flutter_downloader:
-    git:
-      url: https://github.com/autonomy-system/flutter_downloader
-      ref: 965d4acdfd73deeee64ed69ac2cf36b6017f749b
+  flutter_downloader: ^1.11.8
+  #    git:
+  #      url: https://github.com/autonomy-system/flutter_downloader
+  #      ref: 965d4acdfd73deeee64ed69ac2cf36b6017f749b
   flutter_fgbg: ^0.6.0
   flutter_image_compress: ^2.0.4
   flutter_markdown: ^0.7.4+1
-  flutter_slidable: ^3.0.1
+  flutter_slidable: ^3.1.2
   flutter_svg: ^2.0.7
   flutter_switch: ^0.3.2
   flutter_vibrate: ^1.3.0
@@ -64,7 +64,7 @@ dependencies:
   page_transition: ^2.0.5
   path_provider: ^2.1.1
   permission_handler: ^11.3.1
-  qr_flutter: ^4.0.0
+  qr_flutter: ^4.1.0
 
   mobile_scanner: ^6.0.2
   retrofit: null
@@ -92,10 +92,6 @@ dependencies:
   markdown: ^7.1.1
   easy_localization: ^3.0.1
   in_app_review: ^2.0.4
-  nft_collection:
-    git:
-      url: https://github.com/autonomy-system/nft-collection
-      ref: b7ae2ec870c38b3c17df32db5e4af6e64f7a4efb
   flutter_branch_sdk: ^8.2.0
   flutter_rating_bar: ^4.0.1
   auto_size_text: ^3.0.0
@@ -124,7 +120,7 @@ dependencies:
   marqueer: ^1.2.0
   hand_signature: ^3.0.1
   flutter_pdfview: ^1.3.2
-  network_info_plus: ^6.0.1
+  network_info_plus: ^6.1.3
   backdrop: ^0.9.1
   flutter_app_badger: ^1.5.0
   wakelock_plus: ^1.2.8
@@ -137,6 +133,11 @@ dependencies:
   workmanager: ^0.5.2
   go_router: ^14.6.0
   objectbox_flutter_libs: any
+  flutter_blue_plus: ^1.34.5
+  wifi_scan: ^0.4.1+1
+  wifi_info_flutter: ^2.0.2
+  timezone: ^0.10.0
+  multi_value_listenable_builder: ^0.0.2
 
 dev_dependencies:
   bloc_test: ^9.1.7

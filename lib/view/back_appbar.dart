@@ -12,8 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-AppBar getBackAppBar(
-  BuildContext context, {
+AppBar getBackAppBar(BuildContext context, {
   required Function()? onBack,
   String backTitle = 'BACK',
   String title = '',
@@ -86,24 +85,24 @@ AppBar getBackAppBar(
     elevation: 0,
     bottom: withDivider
         ? PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: addOnlyDivider(
-                color: isWhite ? null : AppColor.auGreyBackground),
-          )
+      preferredSize: const Size.fromHeight(1),
+      child: addOnlyDivider(
+          color: isWhite ? null : AppColor.auGreyBackground),
+    )
         : null,
   );
 }
 
 AppBar getTitleEditAppBar(BuildContext context,
     {required TextEditingController controller,
-    required FocusNode focusNode,
-    required Function(String value) onSubmit,
-    String backTitle = 'BACK',
-    bool hasBack = true,
-    Widget? icon,
-    Widget? titleIcon,
-    bool hasAction = true,
-    bool isWhite = true}) {
+      required FocusNode focusNode,
+      required Function(String value) onSubmit,
+      String backTitle = 'BACK',
+      bool hasBack = true,
+      Widget? icon,
+      Widget? titleIcon,
+      bool hasAction = true,
+      bool isWhite = true}) {
   final theme = Theme.of(context);
 
   final primaryColor = isWhite ? AppColor.auGrey : AppColor.white;
@@ -163,8 +162,7 @@ AppBar getTitleEditAppBar(BuildContext context,
   );
 }
 
-AppBar getCloseAppBar(
-  BuildContext context, {
+AppBar getCloseAppBar(BuildContext context, {
   required Function()? onClose,
   String title = '',
   TextStyle? titleStyle,
@@ -209,24 +207,26 @@ AppBar getCloseAppBar(
     elevation: 0,
     bottom: withBottomDivider
         ? PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: addOnlyDivider(
-                color: isWhite ? null : AppColor.auGreyBackground),
-          )
+      preferredSize: const Size.fromHeight(1),
+      child: addOnlyDivider(
+          color: isWhite ? null : AppColor.auGreyBackground),
+    )
         : null,
   );
 }
 
-AppBar getDarkEmptyAppBar([Color? statusBarColor]) => AppBar(
+AppBar getDarkEmptyAppBar([Color? statusBarColor]) =>
+    AppBar(
       systemOverlayStyle: _systemUiOverlayDarkStyle(statusBarColor),
-      backgroundColor: statusBarColor,
+      backgroundColor: statusBarColor ?? AppColor.primaryBlack,
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
     );
 
-AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
+AppBar getLightEmptyAppBar([Color? statusBarColor]) =>
+    AppBar(
       systemOverlayStyle: systemUiOverlayLightStyle(statusBarColor),
       backgroundColor: Colors.transparent,
       toolbarHeight: 0,
@@ -252,8 +252,7 @@ SystemUiOverlayStyle systemUiOverlayLightStyle(Color? statusBarColor) =>
       statusBarBrightness: Brightness.light,
     );
 
-AppBar getDoneAppBar(
-  BuildContext context, {
+AppBar getDoneAppBar(BuildContext context, {
   required String title,
   Function()? onDone,
   Function()? onCancel,
@@ -296,7 +295,7 @@ AppBar getDoneAppBar(
                 style: (onDone != null)
                     ? theme.textTheme.ppMori700Black14
                     : theme.textTheme.ppMori700Black14
-                        .copyWith(color: AppColor.disabledColor),
+                    .copyWith(color: AppColor.disabledColor),
               ),
             ),
           ),
@@ -314,8 +313,7 @@ AppBar getDoneAppBar(
   );
 }
 
-AppBar getCustomDoneAppBar(
-  BuildContext context, {
+AppBar getCustomDoneAppBar(BuildContext context, {
   required Widget title,
   Function()? onDone,
   Function()? onCancel,
@@ -370,8 +368,7 @@ AppBar getCustomDoneAppBar(
   );
 }
 
-AppBar getPlaylistAppBar(
-  BuildContext context, {
+AppBar getPlaylistAppBar(BuildContext context, {
   required Widget title,
   required List<Widget> actions,
   double adjustLeftTitleWith = 0.0,
@@ -401,7 +398,7 @@ AppBar getPlaylistAppBar(
           )),
       leadingWidth: 70 + adjustLeftTitleWith,
       titleSpacing: 0,
-      toolbarHeight: 119 - MediaQuery.paddingOf(context).top,
+      toolbarHeight: 66,
       backgroundColor: AppColor.primaryBlack,
       automaticallyImplyLeading: false,
       centerTitle: true,
@@ -413,8 +410,7 @@ AppBar getPlaylistAppBar(
       ),
     );
 
-AppBar getFFAppBar(
-  BuildContext context, {
+AppBar getFFAppBar(BuildContext context, {
   required Function()? onBack,
   Widget? title,
   Widget? action,
@@ -431,22 +427,22 @@ AppBar getFFAppBar(
       scrolledUnderElevation: 0,
       leading: onBack != null
           ? Semantics(
-              label: 'BACK',
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                  minWidth: 44,
-                  minHeight: 44,
-                ),
-                icon: SvgPicture.asset(
-                  'assets/images/ff_back_dark.svg',
-                  width: 28,
-                  height: 28,
-                ),
-              ),
-            )
+        label: 'BACK',
+        child: IconButton(
+          onPressed: () => Navigator.pop(context),
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
+          icon: SvgPicture.asset(
+            'assets/images/ff_back_dark.svg',
+            width: 28,
+            height: 28,
+          ),
+        ),
+      )
           : const SizedBox(width: 44),
       automaticallyImplyLeading: false,
       title: title,
@@ -463,7 +459,7 @@ AppBar getFFAppBar(
 }
 
 Widget backButton(BuildContext context,
-        {required Function() onBack, Color? color}) =>
+    {required Function() onBack, Color? color}) =>
     Semantics(
         label: 'Back Button',
         child: IconButton(

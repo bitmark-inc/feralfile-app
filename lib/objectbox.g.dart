@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'model/canvas_device_info.dart';
 import 'model/draft_customer_support.dart';
 import 'model/identity.dart';
 
@@ -108,6 +109,30 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(4, 5815070005230898589),
+      name: 'FFBluetoothDevice',
+      lastPropertyId: const obx_int.IdUid(3, 8241112144675205140),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 5302331128225242522),
+            name: 'objId',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 928975233396538713),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 8241112144675205140),
+            name: 'remoteID',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -146,7 +171,7 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(3, 1005553247711674799),
+      lastEntityId: const obx_int.IdUid(4, 5815070005230898589),
       lastIndexId: const obx_int.IdUid(2, 5025194395419363601),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -265,6 +290,38 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
 
           return object;
+        }),
+    FFBluetoothDevice: obx_int.EntityDefinition<FFBluetoothDevice>(
+        model: _entities[2],
+        toOneRelations: (FFBluetoothDevice object) => [],
+        toManyRelations: (FFBluetoothDevice object) => {},
+        getId: (FFBluetoothDevice object) => object.objId,
+        setId: (FFBluetoothDevice object, int id) {
+          object.objId = id;
+        },
+        objectToFB: (FFBluetoothDevice object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          final remoteIDOffset = fbb.writeString(object.remoteID);
+          fbb.startTable(4);
+          fbb.addInt64(0, object.objId);
+          fbb.addOffset(1, nameOffset);
+          fbb.addOffset(2, remoteIDOffset);
+          fbb.finish(fbb.endTable());
+          return object.objId;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final remoteIDParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final object =
+              FFBluetoothDevice(name: nameParam, remoteID: remoteIDParam)
+                ..objId =
+                    const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
         })
   };
 
@@ -331,4 +388,19 @@ class IndexerIdentity_ {
   /// See [IndexerIdentity.queriedAt].
   static final queriedAt =
       obx.QueryDateProperty<IndexerIdentity>(_entities[1].properties[4]);
+}
+
+/// [FFBluetoothDevice] entity fields to define ObjectBox queries.
+class FFBluetoothDevice_ {
+  /// See [FFBluetoothDevice.objId].
+  static final objId =
+      obx.QueryIntegerProperty<FFBluetoothDevice>(_entities[2].properties[0]);
+
+  /// See [FFBluetoothDevice.name].
+  static final name =
+      obx.QueryStringProperty<FFBluetoothDevice>(_entities[2].properties[1]);
+
+  /// See [FFBluetoothDevice.remoteID].
+  static final remoteID =
+      obx.QueryStringProperty<FFBluetoothDevice>(_entities[2].properties[2]);
 }

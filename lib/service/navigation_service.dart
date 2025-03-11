@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
+import 'package:autonomy_flutter/view/how_to_install_daily_widget_build.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -39,9 +41,9 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -142,6 +144,16 @@ class NavigationService {
     }
   }
 
+  Future<void> openBluetoothSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.bluetooth();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.bluetooth();
+    }
+  }
+
   Future<void> showAppLoadError() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -158,7 +170,7 @@ class NavigationService {
         'App Load Error',
         Column(
           children: [
-            Text(
+            SelectableText(
               'it_seem_loading_issue'.tr(),
               style: theme.textTheme.ppMori400White14,
             ),
@@ -212,6 +224,12 @@ class NavigationService {
     );
   }
 
+  void popUntil(String route) {
+    navigatorKey.currentState?.popUntil(
+      (r) => r.settings.name == route,
+    );
+  }
+
   void popUntilHomeOrSettings() {
     navigatorKey.currentState?.popUntil(
       (route) =>
@@ -249,6 +267,19 @@ class NavigationService {
         isDismissible: true,
       );
     }
+  }
+
+  Future<void> showCannotConnectToBluetoothDevice(
+      BluetoothDevice device, Object? error) async {
+    // if (navigatorKey.currentContext != null &&
+    //     navigatorKey.currentState?.mounted == true) {
+    //   await UIHelper.showInfoDialog(
+    //     context,
+    //     'Can not connect to ${device.advName}',
+    //     'Error: ${error}',
+    //     onClose: () => UIHelper.hideInfoDialog(context),
+    //   );
+    // }
   }
 
   Future<void> showUnknownLink() async {
@@ -695,7 +726,7 @@ class NavigationService {
                     border: Border.all(color: AppColor.white),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Text(
+                  child: SelectableText(
                     textScaler: TextScaler.noScaling,
                     'https://display.feralfile.com',
                     style: theme.textTheme.ppMori700White14,
@@ -815,7 +846,7 @@ class NavigationService {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    SelectableText(
                       'Display Art on',
                       style: theme.textTheme.ppMori700White24,
                     ),
@@ -868,7 +899,7 @@ class NavigationService {
 
   Future<void> showStreamAction(
     String displayKey,
-    FutureOr<void> Function(CanvasDevice device)? onDeviceSelected,
+    FutureOr<void> Function(BaseDevice device)? onDeviceSelected,
   ) async {
     await injector<NavigationService>().showFlexibleDialog(
       BlocProvider.value(
@@ -880,6 +911,13 @@ class NavigationService {
           },
         ),
       ),
+      isDismissible: true,
+    );
+  }
+
+  Future<void> showHowToInstallDailyWidget() async {
+    await injector<NavigationService>().showFlexibleDialog(
+      const HowToInstallDailyWidget(),
       isDismissible: true,
     );
   }
@@ -899,12 +937,12 @@ class NavigationService {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                SelectableText(
                   'upgrade_required'.tr(),
                   style: Theme.of(context).textTheme.ppMori700White24,
                 ),
                 const SizedBox(height: 50),
-                Text(
+                SelectableText(
                   'your_device_not_support_passkey_desc'.tr(),
                   style: Theme.of(context).textTheme.ppMori400White14,
                 ),
@@ -919,7 +957,7 @@ class NavigationService {
                         style: Theme.of(context).textTheme.ppMori400White14,
                       ),
                       Expanded(
-                        child: Text(
+                        child: SelectableText(
                           'step_1_backup_recovery'.tr(),
                           style: Theme.of(context).textTheme.ppMori400White14,
                         ),
@@ -938,7 +976,7 @@ class NavigationService {
                         style: Theme.of(context).textTheme.ppMori400White14,
                       ),
                       Expanded(
-                        child: Text(
+                        child: SelectableText(
                           'step_2_move_to_another_wallet'.tr(),
                           style: Theme.of(context).textTheme.ppMori400White14,
                         ),
@@ -1087,5 +1125,9 @@ class NavigationService {
       ),
     );
     return res;
+  }
+
+  void openGoogleChatSpace() {
+    _browser.openUrl(googleChatSpaceUrl);
   }
 }

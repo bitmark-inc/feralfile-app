@@ -13,6 +13,8 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -128,9 +130,26 @@ class _SettingsPageState extends State<SettingsPage>
         body: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 30),
+              SizedBox(
+                height: MediaQuery.of(context).padding.top + 32,
+              ),
               Column(
                 children: [
+                  if (injector<AuthService>().isBetaTester() &&
+                      injector<FFBluetoothService>().castingBluetoothDevice !=
+                          null)
+                    _settingItem(
+                      title: 'Portal (FF-X1) Alpha Pilot',
+                      icon: const Icon(AuIcon.add),
+                      onTap: () async {
+                        final connectedDevice = injector<FFBluetoothService>()
+                            .castingBluetoothDevice;
+                        await Navigator.of(context).pushNamed(
+                            AppRouter.bluetoothConnectedDeviceConfig,
+                            arguments: connectedDevice);
+                      },
+                    ),
+                  addOnlyDivider(),
                   _settingItem(
                     title: 'preferences'.tr(),
                     icon: const Icon(AuIcon.preferences),
@@ -233,118 +252,124 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _versionSection() {
     final theme = Theme.of(context);
-    return Column(children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            child: Text(
-              'eula'.tr(),
-              style: theme.textTheme.ppMori400Grey12.copyWith(
-                decoration: TextDecoration.underline,
-                decorationColor: AppColor.disabledColor,
-              ),
-            ),
-            onTap: () async => Navigator.of(context).pushNamed(
-              AppRouter.githubDocPage,
-              arguments: GithubDocPayload(
-                title: 'eula'.tr(),
-                prefix: GithubDocPage.ffDocsAgreementsPrefix,
-                document: '/ff-app-eula',
-                fileNameAsLanguage: true,
-              ),
-            ),
-          ),
-          Text(
-            " ${'_and'.tr()} ",
-            style: theme.textTheme.ppMori400Grey12,
-          ),
-          GestureDetector(
-            child: Text(
-              'privacy_policy'.tr(),
-              style: theme.textTheme.ppMori400Grey12.copyWith(
-                decoration: TextDecoration.underline,
-                decorationColor: AppColor.disabledColor,
-              ),
-            ),
-            onTap: () async => Navigator.of(context).pushNamed(
-              AppRouter.githubDocPage,
-              arguments: GithubDocPayload(
-                title: 'privacy_policy'.tr(),
-                prefix: GithubDocPage.ffDocsAgreementsPrefix,
-                document: '/ff-app-privacy',
-                fileNameAsLanguage: true,
-              ),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 24),
-      if (_packageInfo != null)
-        GestureDetector(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(color: AppColor.auGrey),
-              ),
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
               child: Text(
-                'version_'.tr(
-                  namedArgs: {
-                    'version': _packageInfo!.version,
-                    'buildNumber': _packageInfo!.buildNumber
-                  },
+                'eula'.tr(),
+                style: theme.textTheme.ppMori400Grey12.copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.disabledColor,
                 ),
-                key: const Key('version'),
-                style: theme.textTheme.ppMori400Grey14,
+              ),
+              onTap: () async => Navigator.of(context).pushNamed(
+                AppRouter.githubDocPage,
+                arguments: GithubDocPayload(
+                  title: 'eula'.tr(),
+                  prefix: GithubDocPage.ffDocsAgreementsPrefix,
+                  document: '/ff-app-eula',
+                  fileNameAsLanguage: true,
+                ),
               ),
             ),
-            onTap: () async {
-              await injector<VersionService>().showReleaseNotes();
-            }),
-      const SizedBox(height: 10),
-      StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLatestVersion = compareVersion(
-                _versionCheck?.packageVersion ?? '',
-                _versionCheck?.storeVersion ?? '') >=
-            0;
-        return GestureDetector(
-          onTap: () async {
-            if (!isLatestVersion) {
-              await UIHelper.showMessageAction(
-                context,
-                'update_available'.tr(),
-                'want_to_update'.tr(
-                  args: [
-                    _versionCheck?.storeVersion ?? 'the_latest_version'.tr(),
-                    _packageInfo?.version ?? ''
-                  ],
+            Text(
+              " ${'_and'.tr()} ",
+              style: theme.textTheme.ppMori400Grey12,
+            ),
+            GestureDetector(
+              child: Text(
+                'privacy_policy'.tr(),
+                style: theme.textTheme.ppMori400Grey12.copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.disabledColor,
                 ),
-                isDismissible: true,
-                closeButton: 'close'.tr(),
-                actionButton: 'update'.tr(),
-                onAction: () {
-                  injector<VersionService>().openLatestVersion();
-                },
-              );
-            }
+              ),
+              onTap: () async => Navigator.of(context).pushNamed(
+                AppRouter.githubDocPage,
+                arguments: GithubDocPayload(
+                  title: 'privacy_policy'.tr(),
+                  prefix: GithubDocPage.ffDocsAgreementsPrefix,
+                  document: '/ff-app-privacy',
+                  fileNameAsLanguage: true,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        if (_packageInfo != null)
+          GestureDetector(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(color: AppColor.auGrey),
+                ),
+                child: Text(
+                  'version_'.tr(
+                    namedArgs: {
+                      'version': _packageInfo!.version,
+                      'buildNumber': _packageInfo!.buildNumber
+                    },
+                  ),
+                  key: const Key('version'),
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+              ),
+              onTap: () async {
+                await injector<VersionService>().showReleaseNotes();
+              }),
+        const SizedBox(height: 10),
+        StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            final isLatestVersion = compareVersion(
+                    _versionCheck?.packageVersion ?? '',
+                    _versionCheck?.storeVersion ?? '') >=
+                0;
+            return GestureDetector(
+              onTap: () async {
+                if (!isLatestVersion) {
+                  await UIHelper.showMessageAction(
+                    context,
+                    'update_available'.tr(),
+                    'want_to_update'.tr(
+                      args: [
+                        _versionCheck?.storeVersion ??
+                            'the_latest_version'.tr(),
+                        _packageInfo?.version ?? ''
+                      ],
+                    ),
+                    isDismissible: true,
+                    closeButton: 'close'.tr(),
+                    actionButton: 'update'.tr(),
+                    onAction: () {
+                      injector<VersionService>().openLatestVersion();
+                    },
+                  );
+                }
+              },
+              child: isLatestVersion
+                  ? Text(
+                      'up_to_date'.tr(),
+                      style: theme.textTheme.ppMori400Grey12,
+                    )
+                  : Text(
+                      'update_to_the_latest_version'.tr(),
+                      style: theme.textTheme.linkStyle14.copyWith(
+                          fontWeight: FontWeight.w400,
+                          fontFamily: AppTheme.ppMori,
+                          decorationColor: AppColor.disabledColor,
+                          color: AppColor.disabledColor,
+                          shadows: [const Shadow()]),
+                    ),
+            );
           },
-          child: isLatestVersion
-              ? Text(
-                  'up_to_date'.tr(),
-                  style: theme.textTheme.ppMori400Grey12,
-                )
-              : Text(
-                  'update_to_the_latest_version'.tr(),
-                  style: theme.textTheme.linkStyle14.copyWith(
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppTheme.ppMori,
-                      decorationColor: AppColor.disabledColor,
-                      color: AppColor.disabledColor,
-                      shadows: [const Shadow()]),
-                ),
-        );
-      }),
-    ]);
+        ),
+      ],
+    );
   }
 }

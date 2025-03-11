@@ -82,6 +82,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
               data: snapshot.data!.data!,
               softLineBreak: true,
               shrinkWrap: true,
+              selectable: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.only(bottom: 50),
               styleSheet: markDownLightStyle(context),
