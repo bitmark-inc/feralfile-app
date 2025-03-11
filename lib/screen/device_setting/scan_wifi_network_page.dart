@@ -32,6 +32,9 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   bool _isLocationPermissionGranted = true;
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
 
+  TextEditingController _ssidController = TextEditingController();
+  bool _shouldEnableConnectButton = false;
+
   @override
   void initState() {
     super.initState();
@@ -92,7 +95,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
       Sentry.captureException('No wifi connected');
       return null;
     }
-    final point = WifiPoint(wifiName ?? '');
+    final point = WifiPoint(wifiName);
     log.info('Connected wifi: ${point.ssid}');
     return point;
   }
@@ -181,7 +184,51 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                           await _startListeningToScannedResults();
                         },
                         text: 'retry'.tr(),
-                      )
+                      ),
+                      const SizedBox(height: 60),
+                      Text(
+                        'or connect to a wifi network manually',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _ssidController,
+                        decoration: InputDecoration(
+                          // border radius 10
+                          hintText: 'Enter wifi network',
+                          hintStyle:
+                              Theme.of(context).textTheme.ppMori400White14,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          fillColor: AppColor.auGreyBackground,
+                          focusColor: AppColor.auGreyBackground,
+                          filled: true,
+                          constraints: const BoxConstraints(minHeight: 60),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 24, horizontal: 16),
+                        ),
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                        onChanged: (value) {
+                          setState(() {
+                            _shouldEnableConnectButton =
+                                value.trim().isNotEmpty;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      PrimaryButton(
+                        enabled: _shouldEnableConnectButton,
+                        onTap: () async {
+                          final ssid = _ssidController.text.trim();
+                          if (ssid.isEmpty) {
+                            return;
+                          }
+                          await widget.onNetworkSelected(WifiPoint(ssid));
+                        },
+                        text: 'Connect',
+                      ),
                     ],
                   ),
                 )
