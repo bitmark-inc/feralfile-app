@@ -8,18 +8,13 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:get_it/get_it.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
-import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/pending_tx_params.dart';
 import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_collection/models/token.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
@@ -27,6 +22,9 @@ import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/configuration_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/utils/logging_interceptor.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class TokensService {
@@ -45,8 +43,6 @@ abstract class TokensService {
   bool get isRefreshAllTokensListen;
 
   Future<void> purgeCachedGallery();
-
-  Future<void> postPendingToken(PendingTxParams params);
 }
 
 final _isolateScopeInjector = GetIt.asNewInstance();
@@ -282,9 +278,6 @@ class TokensServiceImpl extends TokensService {
     }
   }
 
-  @override
-  Future<void> postPendingToken(PendingTxParams params) async {}
-
   static void _isolateEntry(List<dynamic> arguments) {
     final sendPort = arguments[0] as SendPort;
 
@@ -306,8 +299,7 @@ class TokensServiceImpl extends TokensService {
       ..registerLazySingleton(
         () =>
             IndexerService(indexerClient, _isolateScopeInjector<IndexerApi>()),
-      )
-      ..registerLazySingleton(() => TZKTApi(dio));
+      );
   }
 
   Future<void> _handleMessageInMain(dynamic message) async {

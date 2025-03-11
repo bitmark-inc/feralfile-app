@@ -29,7 +29,7 @@ class ScanWifiNetworkPage extends StatefulWidget {
 
 class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   List<WifiPoint> _accessPoints = [];
-  bool _isLocationPermissionGranted = true;
+  bool _isLocationPermissionGranted = false;
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
 
   TextEditingController _ssidController = TextEditingController();

@@ -1,5 +1,9 @@
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'dart:async';
+
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/utils/nft_collection_error.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:sentry/sentry.dart';
 
 class IndexerClient {
   IndexerClient(this._baseUrl);
@@ -36,6 +40,15 @@ class IndexerClient {
       return result.data;
     } catch (e) {
       NftCollection.logger.info('Error querying: $e');
+      unawaited(
+        Sentry.captureException(
+          NFTCollectionClientQueryError(
+            query: doc,
+            message: 'Failed to query: $e',
+            variables: vars,
+          ),
+        ),
+      );
       return null;
     }
   }

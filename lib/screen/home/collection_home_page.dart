@@ -56,7 +56,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
-  final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
   final _addressService = injector<AddressService>();
 
@@ -68,8 +67,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _fgbgSubscription =
-        FGBGEvents.instance.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
   }
 
@@ -96,9 +93,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(_handleForeground());
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   void dispose() {
@@ -118,7 +113,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     //check minted postcard and navigator to artwork detail
 
     // Check if there is any Tezos token in the list
-    final List<String> allAccountNumbers =
+    final allAccountNumbers =
         _addressService.getAllWalletAddresses().map((e) => e.address).toList();
     final hashedAddresses = allAccountNumbers.fold(
       0,
@@ -484,18 +479,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         curve: Curves.fastOutSlowIn,
       ),
     );
-  }
-
-  Future<void> _handleForeBackground(FGBGType event) async {
-    switch (event) {
-      case FGBGType.foreground:
-        unawaited(_handleForeground());
-      case FGBGType.background:
-    }
-  }
-
-  Future<void> _handleForeground() async {
-    unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
   }
 
   @override

@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
-import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
@@ -67,7 +66,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -224,10 +222,6 @@ Future<void> setupInjector() async {
     () => UserInteractivityServiceImpl(injector(), injector()),
   );
 
-  final tzktUrl = Environment.appTestnetConfig
-      ? Environment.tzktTestnetURL
-      : Environment.tzktMainnetURL;
-  injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
     () => PubdocAPI(dio, baseUrl: Environment.pubdocURL),
@@ -332,7 +326,6 @@ Future<void> setupInjector() async {
     () => ClientTokenService(
       injector(),
       injector(),
-      injector(),
     ),
   );
   injector.registerLazySingleton<FeralFileApi>(
@@ -394,16 +387,6 @@ Future<void> setupInjector() async {
     ),
   );
 
-  injector.registerLazySingleton<PendingTokenService>(
-    () => PendingTokenService(
-      injector(),
-      injector(),
-      injector(),
-      NftCollection.database.assetTokenDao,
-      NftCollection.database.tokenDao,
-      NftCollection.database.assetDao,
-    ),
-  );
   injector.registerFactory<AddNewPlaylistBloc>(
     () => AddNewPlaylistBloc(injector()),
   );
