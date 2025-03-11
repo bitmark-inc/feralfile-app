@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
@@ -49,9 +50,22 @@ class NowDisplayingManager {
 
   Future<void> updateDisplayingNow() async {
     try {
-      final status = await _getStatus();
-      if (status == null) {
+      log.info('NowDisplayingManager: updateDisplayingNow');
+      final device = injector<FFBluetoothService>().castingBluetoothDevice;
+      if (device == null) {
         return;
+      }
+      CheckDeviceStatusReply? status;
+      try {
+        status = await _getStatus(device);
+      } catch (e) {}
+
+      if (status == null && device.isConnected) {
+        await Future.delayed(Duration(seconds: 5));
+        status = await _getStatus(device);
+      }
+      if (status == null) {
+        throw Exception('Failed to get Now Displaying');
       }
       final nowDisplaying = await getNowDisplayingObject(status);
       if (nowDisplaying == null) {
@@ -115,12 +129,8 @@ class NowDisplayingManager {
     return assetToken.isNotEmpty ? assetToken.first : null;
   }
 
-  Future<CheckDeviceStatusReply?> _getStatus() {
-    final device = injector<FFBluetoothService>().castingBluetoothDevice;
-    if (device == null) {
-      return Future.value();
-    }
-    final completer = Completer<CheckDeviceStatusReply>();
+  Future<CheckDeviceStatusReply?> _getStatus(FFBluetoothDevice device) async {
+    final completer = Completer<CheckDeviceStatusReply?>();
     injector<CanvasDeviceBloc>().add(
       CanvasDeviceGetStatusEvent(
         device,
@@ -129,6 +139,10 @@ class NowDisplayingManager {
         },
       ),
     );
-    return completer.future;
+    final res =
+        await completer.future.timeout(Duration(seconds: 5), onTimeout: () {
+      return null;
+    });
+    return res;
   }
 }

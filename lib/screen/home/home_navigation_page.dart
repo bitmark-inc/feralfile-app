@@ -571,6 +571,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
 
+    final device = injector<FFBluetoothService>().castingBluetoothDevice;
+    if (device != null) {
+      unawaited(injector<FFBluetoothService>().connectToDevice(device));
+    }
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     _triggerShowAnnouncement();
   }

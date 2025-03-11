@@ -237,8 +237,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
           emit(state.copyWith());
+        } finally {
+          event.onDoneCallback?.call();
         }
-        event.onDoneCallback?.call();
       },
       // transformer: debounceSequential(
       //   const Duration(seconds: 5),
@@ -272,9 +273,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           emit(state.copyWith());
         }
       },
-      transformer: debounceSequential(
-        const Duration(milliseconds: 500),
-      ),
+      // transformer: debounceSequential(
+      //   const Duration(milliseconds: 500),
+      // ),
     );
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
