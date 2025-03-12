@@ -467,7 +467,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               },
             ),
           ),
-          const SizedBox(height: 100),
+          const SizedBox(height: 100 + 60 - 16),
         ],
       );
 

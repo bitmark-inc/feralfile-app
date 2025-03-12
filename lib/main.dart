@@ -282,37 +282,115 @@ class AutonomyApp extends StatelessWidget {
                   if (!value || !hasDevice) {
                     return c!;
                   }
-                  return Scaffold(
-                    backgroundColor: AppColor.primaryBlack,
-                    appBar: getDarkEmptyAppBar(),
-                    body: SafeArea(
-                      child: Column(
-                        children: [
-                          AnimatedSwitcher(
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            duration: const Duration(milliseconds: 1000),
-                            child: NowDisplaying(
-                              key: GlobalKey(),
-                            ),
-                          ),
-                          Expanded(
-                            child: c!,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+
+                  return AutonomyAppScaffold(child: c!);
                 },
               );
             },
           );
         },
       );
+}
+
+class AutonomyAppScaffold extends StatefulWidget {
+  const AutonomyAppScaffold({required this.child, super.key});
+  final Widget child;
+
+  @override
+  State<AutonomyAppScaffold> createState() => _AutonomyAppScaffoldState();
+}
+
+class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  bool _isVisible = true;
+  double _lastScrollPosition = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: 1, // Start visible
+    );
+  }
+
+  void _handleScrollUpdate(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification) {
+      final currentScroll = notification.metrics.pixels;
+      final scrollDelta = currentScroll - _lastScrollPosition;
+
+      // Determine scroll direction and update visibility
+      if (scrollDelta > 10 && _isVisible) {
+        // Scrolling down - hide the widget
+        _animationController.reverse();
+        setState(() => _isVisible = false);
+      } else if (scrollDelta < -10 && !_isVisible) {
+        // Scrolling up - show the widget
+        _animationController.forward();
+        setState(() => _isVisible = true);
+      }
+
+      _lastScrollPosition = currentScroll;
+    }
+    return;
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColor.primaryBlack,
+      appBar: getDarkEmptyAppBar(),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          _handleScrollUpdate(notification);
+          return false; // Allow the notification to continue to be dispatched
+        },
+        child: SafeArea(
+          child: Stack(
+            children: [
+              widget.child,
+              Positioned(
+                bottom: 40 + 45 + 10,
+                left: 10,
+                right: 10,
+                child: FadeTransition(
+                  opacity: _animationController,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(
+                        0,
+                        (40 + 45 + 10) / 60,
+                      ), // Slide from bottom
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Curves.easeInOut,
+                      ),
+                    ),
+                    child: IgnorePointer(
+                      ignoring: !_isVisible,
+                      child: NowDisplaying(
+                        key: GlobalKey(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =

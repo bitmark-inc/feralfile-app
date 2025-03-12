@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -16,28 +15,19 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_svg/svg.dart';
 
 abstract class NowDisplayingStatus {}
 
+// Connect to device
 class ConnectingToDevice implements NowDisplayingStatus {
   ConnectingToDevice(this.device);
 
   final BluetoothDevice device;
-}
-
-class NowDisplayingSuccess implements NowDisplayingStatus {
-  NowDisplayingSuccess(this.object);
-
-  final NowDisplayingObject object;
-}
-
-class NowDisplayingError implements NowDisplayingStatus {
-  NowDisplayingError(this.error);
-
-  final Object error;
 }
 
 class ConnectSuccess implements NowDisplayingStatus {
@@ -46,7 +36,6 @@ class ConnectSuccess implements NowDisplayingStatus {
   final BluetoothDevice device;
 }
 
-// connect failed
 class ConnectFailed implements NowDisplayingStatus {
   ConnectFailed(this.device, this.error);
 
@@ -58,6 +47,19 @@ class ConnectionLostAndReconnecting implements NowDisplayingStatus {
   ConnectionLostAndReconnecting(this.device);
 
   final BluetoothDevice device;
+}
+
+// Now displaying
+class NowDisplayingSuccess implements NowDisplayingStatus {
+  NowDisplayingSuccess(this.object);
+
+  final NowDisplayingObject object;
+}
+
+class NowDisplayingError implements NowDisplayingStatus {
+  NowDisplayingError(this.error);
+
+  final Object error;
 }
 
 class GettingNowDisplayingObject implements NowDisplayingStatus {}
@@ -122,14 +124,11 @@ class _NowDisplayingState extends State<NowDisplaying> {
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {},
       builder: (context, state) {
-        final device = injector<FFBluetoothService>().castingBluetoothDevice!;
-        final nowDisplayingStatus =
-            // this.nowDisplayingStatus;
-            // ConnectingToDevice(device);
-            this.nowDisplayingStatus;
+        final nowDisplayingStatus = this.nowDisplayingStatus;
         if (nowDisplayingStatus == null) {
           return const SizedBox();
         }
+
         switch (nowDisplayingStatus.runtimeType) {
           case ConnectingToDevice:
             return _connectingToDeviceView(context, nowDisplayingStatus);
@@ -142,12 +141,12 @@ class _NowDisplayingState extends State<NowDisplaying> {
                 context, nowDisplayingStatus);
           case GettingNowDisplayingObject:
             return _gettingNowDisplayingObjectView(context);
+          case NowDisplayingError:
+            return _getNowDisplayingErrorView(context, nowDisplayingStatus);
           case NowDisplayingSuccess:
             return NowDisplayingSuccessWidget(
               object: (nowDisplayingStatus as NowDisplayingSuccess).object,
             );
-          case NowDisplayingError:
-            return _getNowDisplayingErrorView(context, nowDisplayingStatus);
           default:
             return const SizedBox();
         }
@@ -156,158 +155,48 @@ class _NowDisplayingState extends State<NowDisplaying> {
   }
 
   Widget _connectingToDeviceView(
-      BuildContext context, NowDisplayingStatus status) {
+    BuildContext context,
+    NowDisplayingStatus status,
+  ) {
     final device = (status as ConnectingToDevice).device;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
-      decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Connecting to ${device.advName}',
-                  style: Theme.of(context).textTheme.ppMori400Black14,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return NowDisplayingStatusView(
+      status: 'Connecting to ${device.advName}',
     );
   }
 
   Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectSuccess).device;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
-      decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Connected to ${device.advName}',
-                  style: Theme.of(context).textTheme.ppMori400Black14,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return NowDisplayingStatusView(
+      status: 'Connected to ${device.advName}',
     );
   }
 
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectFailed).device;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
-      decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Failed to connect to ${device.advName}',
-                  style: Theme.of(context).textTheme.ppMori400Black14,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return NowDisplayingStatusView(
+      status: 'Failed to connect to ${device.advName}',
     );
   }
 
   Widget _connectionLostAndReconnectingView(
       BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectionLostAndReconnecting).device;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
-      decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Connection lost to ${device.advName}, reconnecting...',
-                  style: Theme.of(context).textTheme.ppMori400Black14,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _gettingNowDisplayingObjectView(BuildContext context) {
-    return NowDisplayingView(
-      thumbnailBuilder: (context) {
-        return SizedBox(
-          width: 65,
-        );
-      },
-      titleBuilder: (context) {
-        return Text(
-          'Getting now displaying object...',
-          style: Theme.of(context).textTheme.ppMori400Black14,
-        );
-      },
+    return NowDisplayingStatusView(
+      status: 'Connection lost to ${device.advName}, reconnecting...',
     );
   }
 
   Widget _getNowDisplayingErrorView(
       BuildContext context, NowDisplayingStatus nowDisplayingStatus) {
     final error = (nowDisplayingStatus as NowDisplayingError).error;
-    return NowDisplayingView(
-      thumbnailBuilder: (context) {
-        return SizedBox(
-          width: 65,
-        );
-      },
-      titleBuilder: (context) {
-        return Text(
-          'Error: $error',
-          style: Theme.of(context).textTheme.ppMori400Black14,
-        );
-      },
+    return NowDisplayingStatusView(
+      status: 'Error: $error',
+    );
+  }
+
+  Widget _gettingNowDisplayingObjectView(BuildContext context) {
+    return const NowDisplayingStatusView(
+      status: 'Getting now displaying object...',
     );
   }
 }
@@ -430,45 +319,45 @@ class TokenNowDisplayingView extends StatelessWidget {
             );
           },
           titleBuilder: (context) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (artistTitle != null) ...[
-                  GestureDetector(
-                    onTap: () {
-                      if (assetToken.isFeralfile) {
-                        injector<NavigationService>().openFeralFileArtistPage(
-                          assetToken.artistID!,
-                        );
-                      } else {
-                        final uri = Uri.parse(
-                          assetToken.artistURL?.split(' & ').firstOrNull ?? '',
-                        );
-                        injector<NavigationService>().openUrl(uri);
-                      }
-                    },
-                    child: Text(
-                      artistTitle,
+            return RichText(
+              text: TextSpan(
+                children: [
+                  if (artistTitle != null)
+                    TextSpan(
+                      text: '${assetToken.artistTitle}',
                       style: theme.textTheme.ppMori400Black14.copyWith(
                         decoration: TextDecoration.underline,
                         decorationColor: AppColor.primaryBlack,
                       ),
-                      overflow: TextOverflow.ellipsis,
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          if (assetToken.isFeralfile) {
+                            injector<NavigationService>()
+                                .openFeralFileArtistPage(
+                              assetToken.artistID!,
+                            );
+                          } else {
+                            final uri = Uri.parse(
+                              assetToken.artistURL?.split(' & ').firstOrNull ??
+                                  '',
+                            );
+                            injector<NavigationService>().openUrl(uri);
+                          }
+                        },
                     ),
-                  ),
-                  const SizedBox(
-                    width: 8,
+                  if (artistTitle != null)
+                    TextSpan(
+                      text: ', ',
+                      style: theme.textTheme.ppMori400Black14,
+                    ),
+                  TextSpan(
+                    text: assetToken.displayTitle!,
+                    style: theme.textTheme.ppMori400Black14,
                   ),
                 ],
-                if (assetToken.title != null)
-                  Expanded(
-                    child: Text(
-                      assetToken.displayTitle!,
-                      style: theme.textTheme.ppMori400Black14,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             );
           },
         );
@@ -490,42 +379,40 @@ class NowDisplayingExhibitionView extends StatelessWidget {
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     return NowDisplayingView(
       thumbnailBuilder: (context) {
-        return AspectRatio(
-          child: FFCacheNetworkImage(imageUrl: thumbnailUrl ?? ''),
-          aspectRatio: 1,
-        );
+        return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
       titleBuilder: (context) {
         if (artwork != null) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  injector<NavigationService>().openFeralFileArtistPage(
-                    artwork.series?.artistAlumniAccountID ?? '',
-                  );
-                },
-                child: Text(
-                  artwork.series?.artistAlumni?.alias ?? '',
-                  style: theme.textTheme.ppMori400Black14.copyWith(
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColor.primaryBlack,
+          return RichText(
+            text: TextSpan(
+              children: [
+                if (artwork.series?.artistAlumni?.alias != null)
+                  TextSpan(
+                    text: artwork.series?.artistAlumni?.alias ?? '',
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColor.primaryBlack,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        injector<NavigationService>().openFeralFileArtistPage(
+                          artwork.series?.artistAlumniAccountID ?? '',
+                        );
+                      },
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(
-                width: 8,
-              ),
-              Expanded(
-                child: Text(
-                  artwork.series?.title ?? '',
+                if (artwork.series?.artistAlumni?.alias != null)
+                  TextSpan(
+                    text: ', ',
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+                TextSpan(
+                  text: artwork.series?.title ?? '',
                   style: theme.textTheme.ppMori400Black14,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           );
         }
         return Text(
@@ -539,8 +426,11 @@ class NowDisplayingExhibitionView extends StatelessWidget {
 }
 
 class NowDisplayingView extends StatelessWidget {
-  const NowDisplayingView(
-      {super.key, required this.thumbnailBuilder, required this.titleBuilder});
+  const NowDisplayingView({
+    required this.thumbnailBuilder,
+    required this.titleBuilder,
+    super.key,
+  });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
@@ -549,20 +439,20 @@ class NowDisplayingView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(maxHeight: 100, minHeight: 100),
+      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+      constraints: const BoxConstraints(maxHeight: 60, minHeight: 60),
       decoration: BoxDecoration(
         color: AppColor.feralFileLightBlue,
-        borderRadius: BorderRadius.circular(0),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 65,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 65),
             child: thumbnailBuilder(context),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -573,9 +463,47 @@ class NowDisplayingView extends StatelessWidget {
                   style: theme.textTheme.ppMori400Black14,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
                 titleBuilder(context),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NowDisplayingStatusView extends StatelessWidget {
+  const NowDisplayingStatusView({required this.status, super.key});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 10),
+      constraints: const BoxConstraints(maxHeight: 60, minHeight: 60),
+      decoration: BoxDecoration(
+        color: AppColor.auLightGrey,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              status,
+              style: Theme.of(context).textTheme.ppMori400Black14,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            onPressed: () => {},
+            icon: SvgPicture.asset(
+              'assets/images/closeCycle.svg',
+              width: 22,
+              height: 22,
             ),
           ),
         ],
