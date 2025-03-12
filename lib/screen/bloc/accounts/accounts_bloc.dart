@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:sentry/sentry.dart';
 
@@ -63,10 +64,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           emit(
             state.copyWith(
               addressBalances: Map.from(
-                addressBalances
-                  ..addAll(
-                    state.addressBalances,
-                  ),
+                state.addressBalances.copy()..addAll(addressBalances),
               ),
             ),
           );

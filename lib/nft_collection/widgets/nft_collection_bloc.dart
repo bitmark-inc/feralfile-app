@@ -2,9 +2,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:bloc/bloc.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/nft_collection/models/address_collection.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -15,6 +12,9 @@ import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/nft_collection/utils/constants.dart';
 import 'package:autonomy_flutter/nft_collection/utils/list_extentions.dart';
 import 'package:autonomy_flutter/nft_collection/utils/sorted_list.dart';
+import 'package:bloc/bloc.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 class NftCollectionBlocState {
   final NftLoadingState state;
@@ -50,7 +50,6 @@ class NftCollectionBloc
     extends Bloc<NftCollectionBlocEvent, NftCollectionBlocState> {
   final TokensService tokensService;
   final NftCollectionDatabase database;
-  final Duration pendingTokenExpire;
   final NftCollectionPrefs prefs;
   final bool isSortedToken;
   final AddressService addressService;
@@ -84,7 +83,7 @@ class NftCollectionBloc
 
   NftCollectionBloc(
       this.tokensService, this.database, this.prefs, this.addressService,
-      {required this.pendingTokenExpire, this.isSortedToken = true})
+      {this.isSortedToken = true})
       : super(
           NftCollectionBlocState(
             state: NftLoadingState.notRequested,
@@ -92,6 +91,9 @@ class NftCollectionBloc
             nextKey: PageKey.init(),
           ),
         ) {
+    /*
+     * Get Tokens by owner from local database
+     */
     on<GetTokensByOwnerEvent>((event, emit) async {
       if (state.isLoading) {
         return;
@@ -110,12 +112,8 @@ class NftCollectionBloc
           .info("[NftCollectionBloc] GetTokensByOwnerEvent ${event.pageKey}");
       final activeAddress = await addressService.getActiveAddresses();
 
-      final assetTokens = event.contractAddress != null
-          ? await database.assetTokenDao
-              .findAllAssetTokensByOwnersAndContractAddress(
-                  activeAddress, event.contractAddress!, limit, lastTime, id)
-          : await database.assetTokenDao
-              .findAllAssetTokensByOwners(activeAddress, limit, lastTime, id);
+      final assetTokens = await database.assetTokenDao
+          .findAllAssetTokensByOwners(activeAddress, limit, lastTime, id);
 
       final compactedAssetToken = assetTokens
           .map((e) => CompactedAssetToken.fromAssetToken(e))
@@ -178,6 +176,9 @@ class NftCollectionBloc
       add(UpdateTokensEvent(tokens: assetTokens));
     });
 
+    /*
+     * Refresh tokens by owners
+     */
     on<RefreshNftCollectionByOwners>((event, emit) async {
       NftCollection.logger
           .info("[NftCollectionBloc] RefreshNftCollectionByOwners");
@@ -195,32 +196,6 @@ class NftCollectionBloc
 
       try {
         final mapAddresses = _mapAddressesByLastRefreshedTime(addresses);
-
-        final pendingTokens = await database.tokenDao.findAllPendingTokens();
-        NftCollection.logger
-            .info("[NftCollectionBloc] ${pendingTokens.length} pending tokens. "
-                "${pendingTokens.map((e) => e.id).toList()}");
-
-        final removePendingIds = pendingTokens
-            .where(
-              (e) => e.lastActivityTime
-                  .add(pendingTokenExpire)
-                  .isBefore(DateTime.now()),
-            )
-            .map((e) => e.id)
-            .toList();
-
-        if (removePendingIds.isNotEmpty) {
-          NftCollection.logger.info(
-              "[NftCollectionBloc] Delete old pending tokens $removePendingIds");
-          await database.tokenDao.deleteTokens(removePendingIds);
-        }
-
-        if (pendingTokens.length - removePendingIds.length > 0) {
-          tokensService.reindexAddresses(
-            addresses.map((e) => e.address).toList(),
-          );
-        }
 
         fetchManuallyTokens(_debugTokenIds);
 
@@ -269,6 +244,9 @@ class NftCollectionBloc
       }
     });
 
+    /*
+     * Refresh tokens by IDs
+     */
     on<RefreshNftCollectionByIDs>((event, emit) async {
       NftCollection.logger
           .info("[NftCollectionBloc] RefreshNftCollectionByIDs");
@@ -312,6 +290,9 @@ class NftCollectionBloc
       ));
     });
 
+    /*
+     * Update tokens in state
+     */
     on<UpdateTokensEvent>((event, emit) async {
       if (event.tokens.isEmpty && event.state == null) return;
       NftCollection.logger

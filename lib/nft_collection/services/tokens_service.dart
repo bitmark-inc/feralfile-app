@@ -137,10 +137,6 @@ class TokensServiceImpl extends TokensService {
     await _database.removeAll();
   }
 
-  Future<List<String>> _getPendingTokenIds() async {
-    return (await _tokenDao.findAllPendingTokens()).map((e) => e.id).toList();
-  }
-
   @override
   Future<Stream<List<AssetToken>>> refreshTokensInIsolate(
     Map<int, List<String>> addresses,
@@ -169,10 +165,6 @@ class TokensServiceImpl extends TokensService {
       REFRESH_ALL_TOKENS,
       addresses,
     ]);
-
-    final pendingTokens = await _getPendingTokenIds();
-    NftCollection.logger.info('[refreshTokensInIsolate] Pending tokens: '
-        '$pendingTokens');
 
     NftCollection.logger.info('[REFRESH_ALL_TOKENS][start]');
 

@@ -190,17 +190,6 @@ class FFBluetoothService {
 
   bool get isBluetoothOn => _bluetoothAdapterState == BluetoothAdapterState.on;
 
-  final String advertisingUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
-
-  // For scanning
-  final String serviceUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
-
-  // command characteristic
-  String commandCharUuid = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-
-  // wifi connect characteristic
-  String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-
   Future<Map<String, dynamic>> sendCommand({
     required BluetoothDevice device,
     required String command,
@@ -484,7 +473,7 @@ class FFBluetoothService {
       timeout: timeout, // Updated to 60 seconds
       androidUsesFineLocation: true,
       withServices: [
-        Guid(injector<FFBluetoothService>().serviceUuid),
+        Guid(BluetoothManager.serviceUuid),
       ],
     );
     // wait for scan to complete

@@ -9,11 +9,11 @@
 
 import 'dart:async';
 
-import 'package:floor/floor.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/models/token.dart';
 import 'package:autonomy_flutter/nft_collection/utils/date_time_converter.dart';
+import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 // ignore_for_file: unused_element
@@ -172,23 +172,6 @@ class AssetTokenDao {
         'SELECT * , Asset.lastRefreshedTime as assetLastRefresh, Token.lastRefreshedTime as tokenLastRefresh FROM Token LEFT JOIN Asset ON Token.indexID = Asset.indexID WHERE (owner IN ($sqliteVariablesForOwner))  AND  (lastActivityTime >= ?1 AND id >= ?2) ORDER BY lastActivityTime DESC, id DESC LIMIT ?1',
         mapper: mapper,
         arguments: [lastTime, id, ...owners]);
-  }
-
-  Future<List<AssetToken>> findAllAssetTokensByOwnersAndContractAddress(
-    List<String> owners,
-    String contractAddress,
-    int limit,
-    int lastTime,
-    String id,
-  ) async {
-    const offsetOwner = 4;
-    final sqliteVariablesForOwner =
-        Iterable<String>.generate(owners.length, (i) => '?${i + offsetOwner}')
-            .join(',');
-    return _queryAdapter.queryList(
-        'SELECT * , Asset.lastRefreshedTime as assetLastRefresh, Token.lastRefreshedTime as tokenLastRefresh FROM Token LEFT JOIN Asset ON Token.indexID = Asset.indexID WHERE (owner IN ($sqliteVariablesForOwner)) AND balance > 0 AND contractAddress = "$contractAddress" AND (lastActivityTime < ?2 OR (lastActivityTime = ?2 AND id < ?3)) ORDER BY lastActivityTime DESC, id DESC LIMIT ?1',
-        mapper: mapper,
-        arguments: [limit, lastTime, id, ...owners]);
   }
 
   Future<List<AssetToken>> findAllAssetTokensByArtistID({

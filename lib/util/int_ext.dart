@@ -33,4 +33,8 @@ extension MapExtention on Map {
       );
     }
   }
+
+  Map<K, T> copy<K, T>() {
+    return Map<K, T>.from(this);
+  }
 }
