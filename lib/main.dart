@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -317,7 +318,9 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 
   void _handleScrollUpdate(ScrollNotification notification) {
-    if (notification is ScrollUpdateNotification) {
+    final shouldShow = shouldShowNowDisplaying.value &&
+        shouldShowNowDisplayingOnDisconnect.value;
+    if (shouldShow && notification is ScrollUpdateNotification) {
       final currentScroll = notification.metrics.pixels;
       final scrollDelta = currentScroll - _lastScrollPosition;
 
