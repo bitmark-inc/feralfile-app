@@ -65,7 +65,11 @@ class NowDisplayingManager {
         status = await _getStatus(device);
       }
       if (status == null) {
-        throw Exception('Failed to get Now Displaying');
+        if (device.isConnected) {
+          throw Exception('Failed to get Now Displaying');
+        } else {
+          return;
+        }
       }
       final nowDisplaying = await getNowDisplayingObject(status);
       if (nowDisplaying == null) {
