@@ -308,6 +308,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
         return Text(
           'Error: $error',
           style: Theme.of(context).textTheme.ppMori400Black14,
+          overflow: TextOverflow.ellipsis,
         );
       },
     );

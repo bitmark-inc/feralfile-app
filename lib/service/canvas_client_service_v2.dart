@@ -73,9 +73,6 @@ class CanvasClientServiceV2 {
     BaseDevice device, {
     bool shouldShowError = true,
   }) async {
-    // if (device is FFBluetoothDevice) {
-    //   return CheckDeviceStatusReply(artworks: []);
-    // }
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
     final response =
@@ -262,7 +259,7 @@ class CanvasClientServiceV2 {
     bool shouldShowError = true,
   }) async {
     final status =
-        await _getDeviceCastingStatus(device, shouldShowError: shouldShowError);
+        await getDeviceCastingStatus(device, shouldShowError: shouldShowError);
     return Pair(device, status);
   }
 

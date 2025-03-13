@@ -35,11 +35,13 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDeviceGetStatusEvent extends CanvasDeviceEvent {
-  CanvasDeviceGetStatusEvent(this.device, {this.onDoneCallback});
+  CanvasDeviceGetStatusEvent(this.device,
+      {this.onDoneCallback, this.onErrorCallback});
 
   final BaseDevice device;
 
   final FutureOr<void> Function(CheckDeviceStatusReply? status)? onDoneCallback;
+  final FutureOr<void> Function(Object error)? onErrorCallback;
 }
 
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
@@ -256,28 +258,21 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceGetStatusEvent>(
       (event, emit) async {
         try {
-          CheckDeviceStatusReply? status;
-          try {
-            status = await _canvasClientServiceV2.getDeviceCastingStatus(
-              event.device,
-              shouldShowError: false,
-            );
-          } catch (e) {
-            log.info('CanvasDeviceBloc: error while get device status: $e');
-            unawaited(Sentry.captureException(e));
-          }
-          final newStatuses = status == null
-              ? (state.canvasDeviceStatus..remove(event.device.deviceId))
-              : (state.canvasDeviceStatus..[event.device.deviceId] = status);
-          final newState = state.copyWith(
-            controllingDeviceStatus: newStatuses,
+          final status = await _canvasClientServiceV2.getDeviceCastingStatus(
+            event.device,
+            shouldShowError: false,
           );
-          emit(newState);
+          final newState = state.canvasDeviceStatus
+            ..[event.device.deviceId] = status;
+          emit(state.copyWith(controllingDeviceStatus: newState));
           event.onDoneCallback?.call(status);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get device status: $e');
           unawaited(Sentry.captureException(e));
-          emit(state.copyWith());
+          final newState = state.canvasDeviceStatus
+            ..remove(event.device.deviceId);
+          emit(state.copyWith(controllingDeviceStatus: newState));
+          event.onErrorCallback?.call(e);
         }
       },
       // transformer: debounceSequential(
@@ -367,7 +362,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             index: 0,
             isPaused: false,
             connectedDevice: currentDeviceState?.connectedDevice);
-        // await _canvasClientServiceV2.getDeviceCastingStatus(device);
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         final displayKey = event.artwork.playArtworksHashCode.toString();
@@ -629,7 +623,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       ...rawDevices,
       ...blDevices,
     ];
-    final pairDevices = await getDeviceStatuses(devices);
+    final pairDevices = await _getDeviceStatuses(devices);
     pairDevices.sort((a, b) => a.first.name.compareTo(b.first.name));
 
     return pairDevices;
@@ -640,7 +634,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     return devices;
   }
 
-  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> getDeviceStatuses(
+  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> _getDeviceStatuses(
     List<BaseDevice> devices,
   ) async {
     final statuses = <Pair<BaseDevice, CheckDeviceStatusReply>>[];
@@ -654,7 +648,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           if (status != null) {
             statuses.add(status);
           }
-        } catch (e, s) {
+        } catch (e) {
           log.info('CanvasClientService: _getDeviceStatus error: $e');
         }
       }),

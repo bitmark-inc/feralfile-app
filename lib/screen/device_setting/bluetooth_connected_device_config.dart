@@ -354,7 +354,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
-    final blDevice = widget.device!;
+    final blDevice = widget.device;
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
         wifiAccessPoint: accessPoint,

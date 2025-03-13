@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/model/chunk.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -76,13 +75,16 @@ class FFBluetoothService {
           _connectCompleter?.complete();
           _connectCompleter = null;
           // after connected, fetch device status
-          unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+          final status =
+              await fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
           NowDisplayingManager().addStatus(ConnectSuccess(device));
           shouldShowNowDisplayingOnDisconnect.value = true;
 
           injector<CanvasDeviceBloc>()
               .add(CanvasDeviceGetDevicesEvent(onDoneCallback: () {
-            NowDisplayingManager().updateDisplayingNow();
+            if (status?.isConnectedToWifi ?? false) {
+              NowDisplayingManager().updateDisplayingNow();
+            }
           }));
         } catch (e) {
           log.warning('Failed to discover characteristics: $e');
@@ -253,8 +255,7 @@ class FFBluetoothService {
           Sentry.captureMessage(
             '[sendCommand] Timeout waiting for reply: $replyId',
           );
-          return fakeReply(command)
-              .toJson(); // Fallback to fake reply on timeout
+          throw TimeoutException('Timeout waiting for reply $replyId');
         },
       );
       if (displayingCommand
@@ -396,24 +397,24 @@ class FFBluetoothService {
     }
 
     _multiConnectCompleter = Completer<void>();
-    try {
-      if (shouldChangeNowDisplayingStatus) {
-        NowDisplayingManager().addStatus(ConnectingToDevice(device));
-      }
-      await _connectToDevice(device, shouldShowError: shouldShowError);
-      _multiConnectCompleter?.complete();
+    if (shouldChangeNowDisplayingStatus) {
+      NowDisplayingManager().addStatus(ConnectingToDevice(device));
+    }
+    _connectToDevice(device, shouldShowError: shouldShowError).then((_) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectSuccess(device));
       }
-    } catch (e) {
+      _multiConnectCompleter?.complete();
+    }).catchError((Object e) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectFailed(device, e));
       }
       log.severe('Failed to connect to device: $e');
-      _multiConnectCompleter?.completeError(e);
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
-      rethrow;
-    }
+
+      _multiConnectCompleter?.completeError(e);
+    });
+    return _multiConnectCompleter?.future;
   }
 
   Future<void> _connectToDevice(
@@ -516,98 +517,6 @@ class FFBluetoothService {
     // wait for scan to complete
     while (FlutterBluePlus.isScanningNow) {
       await Future.delayed(const Duration(milliseconds: 1000));
-    }
-  }
-
-  Reply fakeReply(String commandString) {
-    final command = CastCommand.fromString(commandString);
-
-    switch (command) {
-      case CastCommand.checkStatus:
-        return CheckDeviceStatusReply(artworks: []);
-      case CastCommand.castListArtwork:
-        return CastListArtworkReply(
-          ok: true,
-        );
-      case CastCommand.castDaily:
-        return CastDailyWorkReply(
-          ok: true,
-        );
-      case CastCommand.pauseCasting:
-        return PauseCastingReply(
-          ok: true,
-        );
-      case CastCommand.resumeCasting:
-        return ResumeCastingReply(
-          ok: true,
-        );
-      case CastCommand.nextArtwork:
-        return NextArtworkReply(
-          ok: true,
-        );
-      case CastCommand.previousArtwork:
-        return PreviousArtworkReply(
-          ok: true,
-        );
-      case CastCommand.updateDuration:
-        return UpdateDurationReply(
-          artworks: [],
-        );
-      case CastCommand.castExhibition:
-        return CastExhibitionReply(
-          ok: true,
-        );
-      case CastCommand.connect:
-        return ConnectReplyV2(
-          ok: true,
-        );
-      case CastCommand.disconnect:
-        return DisconnectReplyV2(
-          ok: true,
-        );
-
-      case CastCommand.sendKeyboardEvent:
-        return KeyboardEventReply(
-          ok: true,
-        );
-      case CastCommand.rotate:
-        return RotateReply(
-          degree: 1,
-        );
-      case CastCommand.sendLog:
-        return SendLogReply(
-          ok: true,
-        );
-      case CastCommand.tapGesture:
-        return GestureReply(
-          ok: true,
-        );
-      case CastCommand.dragGesture:
-        return GestureReply(
-          ok: true,
-        );
-      case CastCommand.updateOrientation:
-        return UpdateOrientationReply();
-      case CastCommand.getVersion:
-        return GetVersionReply(
-          version: '',
-        );
-      case CastCommand.getBluetoothDeviceStatus:
-        return GetBluetoothDeviceStatusReply(
-          deviceStatus: BluetoothDeviceStatus(
-            version: 'No response',
-            ipAddress: 'No response',
-            connectedWifi: 'No response',
-            screenRotation: ScreenOrientation.landscape,
-            isConnectedToWifi: false,
-          ),
-        );
-      case CastCommand.updateArtFraming:
-        return UpdateArtFramingReply();
-      case CastCommand.updateToLatestVersion:
-        return UpdateToLatestVersionReply();
-      default:
-        throw ArgumentError('Unknown command: $commandString');
     }
   }
 
