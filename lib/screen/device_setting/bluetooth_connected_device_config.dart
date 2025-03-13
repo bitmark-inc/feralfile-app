@@ -21,13 +21,13 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
   const BluetoothConnectedDeviceConfig({super.key, required this.device});
@@ -420,7 +420,8 @@ class BluetoothConnectedDeviceConfigState
           onTap: () {
             injector<NavigationService>().navigateTo(
                 AppRouter.scanWifiNetworkPage,
-                arguments: onWifiSelected);
+                arguments: ScanWifiNetworkPagePayload(
+                    widget.device.toFFBluetoothDevice(), onWifiSelected));
           },
         ),
       ],
@@ -428,7 +429,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
-    final blDevice = widget.device!;
+    final blDevice = widget.device;
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
         wifiAccessPoint: accessPoint,

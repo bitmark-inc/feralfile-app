@@ -10,6 +10,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 typedef NotificationCallback = void Function(Map<String, dynamic> data);
 
 final statusChangeTopic = 'statusChanged';
+final wifiConnectionTopic = 'wifi_connection';
+final scanWifiTopic = 'scanWifi';
 
 class BluetoothNotificationService {
   // Singleton instance

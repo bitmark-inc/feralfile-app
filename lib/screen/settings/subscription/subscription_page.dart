@@ -192,6 +192,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               style: titleStyle,
             ),
             const SizedBox(height: 24),
+            Text('feralfile_is_free'.tr(), style: contentStyle),
+            const SizedBox(height: 24),
             Text(
               'upgrade_your_membership'.tr(),
               style: contentStyle,

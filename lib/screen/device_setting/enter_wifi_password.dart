@@ -107,11 +107,15 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                             device,
                             shouldChangeNowDisplayingStatus: true);
                       }
-                      await injector<FFBluetoothService>().sendWifiCredentials(
+                      final isSuccess = await injector<FFBluetoothService>()
+                          .sendWifiCredentials(
                         device: widget.payload.device,
                         ssid: ssid,
                         password: password,
                       );
+                      if (!isSuccess) {
+                        throw Exception('Failed to send wifi credentials');
+                      }
                       widget.payload.onSubmitted?.call();
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
@@ -178,6 +182,8 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
   Widget build(BuildContext context) {
     const backgroundColor = AppColor.auGreyBackground;
     return TextField(
+      autocorrect: false,
+      enableSuggestions: false,
       controller: widget.controller,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,

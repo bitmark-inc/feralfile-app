@@ -58,7 +58,8 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
           currentDailyToken: dailiesToken,
           currentArtist: currentArtist,
           currentExhibition: currentExhibition));
-      unawaited(NowDisplayingManager().updateDisplayingNow());
+      unawaited(
+          NowDisplayingManager().updateDisplayingNow(addStatusOnError: false));
       unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     });
   }

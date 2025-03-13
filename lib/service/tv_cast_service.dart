@@ -47,6 +47,8 @@ abstract class TvCastService {
     GetVersionRequest request,
   );
 
+  Future<ScanWifiReply> scanWifi(ScanWifiRequest request);
+
   Future<UpdateOrientationReply> updateOrientation(
     UpdateOrientationRequest request,
   );
@@ -185,6 +187,13 @@ abstract class BaseTvCastService implements TvCastService {
   Future<GetVersionReply> getVersion(GetVersionRequest request) async {
     final result = await _sendData(_getBody(request));
     return GetVersionReply.fromJson(result);
+  }
+
+  @override
+  Future<ScanWifiReply> scanWifi(ScanWifiRequest request) async {
+    final result =
+        await _sendData(_getBody(request), timeout: Duration(seconds: 10));
+    return ScanWifiReply.fromJson(result);
   }
 
   @override

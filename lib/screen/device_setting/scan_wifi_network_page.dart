@@ -1,15 +1,13 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/util/wifi_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:sentry/sentry.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
 class WifiPoint {
@@ -18,10 +16,17 @@ class WifiPoint {
   final String ssid;
 }
 
-class ScanWifiNetworkPage extends StatefulWidget {
-  const ScanWifiNetworkPage({required this.onNetworkSelected, super.key});
+class ScanWifiNetworkPagePayload {
+  ScanWifiNetworkPagePayload(this.device, this.onNetworkSelected);
 
   final FutureOr<void> Function(WifiPoint wifiAccessPoint) onNetworkSelected;
+  final BaseDevice device;
+}
+
+class ScanWifiNetworkPage extends StatefulWidget {
+  const ScanWifiNetworkPage({required this.payload, super.key});
+
+  final ScanWifiNetworkPagePayload payload;
 
   @override
   State<ScanWifiNetworkPage> createState() => ScanWifiNetworkPageState();
@@ -29,95 +34,52 @@ class ScanWifiNetworkPage extends StatefulWidget {
 
 class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   List<WifiPoint> _accessPoints = [];
-  bool _isLocationPermissionGranted = true;
+  final bool _isLocationPermissionGranted = true;
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
 
-  TextEditingController _ssidController = TextEditingController();
+  final TextEditingController _ssidController = TextEditingController();
   bool _shouldEnableConnectButton = false;
+  bool _isScanning = false;
 
   @override
   void initState() {
     super.initState();
     _startScan();
-    _startListeningToScannedResults();
   }
 
   Future<void> _startScan() async {
+    final device = widget.payload.device;
+    const timeout = Duration(seconds: 15);
+    setState(() {
+      _isScanning = true;
+    });
     // check platform support and necessary requirements
-    final can = await WiFiScan.instance.canStartScan();
-    switch (can) {
-      case CanStartScan.yes:
-        // start full scan async-ly
-        final isScanning = await WiFiScan.instance.startScan();
-        log.info('Scan started: $isScanning');
-      default:
-        log.info('Cannot start scan: $can');
-      // ... handle other cases of CanStartScan values
-    }
-  }
-
-  Future<void> _startListeningToScannedResults() async {
-    // check platform support and necessary requirements
-    final can = await WiFiScan.instance.canGetScannedResults();
-    switch (can) {
-      case CanGetScannedResults.yes:
-        // listen to onScannedResultsAvailable stream
-        _subscription =
-            WiFiScan.instance.onScannedResultsAvailable.listen((results) {
-          // update accessPoints
+    await WifiHelper.scanWifiNetwork(
+      device: device,
+      timeout: timeout,
+      onResultScan: (result) {
+        final accessPoints = result.keys.map(WifiPoint.new).toList();
+        if (mounted) {
           setState(() {
-            _accessPoints = _filterUniqueSSIDs(results);
+            _accessPoints = _filterUniqueSSIDs(accessPoints);
           });
-        });
-      default:
-        log.info('Cannot get scanned results: $can');
-        final connectedWifi = await _getConnectedWifiSSID();
-        if (connectedWifi != null)
-          setState(() {
-            _accessPoints = [connectedWifi];
-          });
-      // ... handle other cases of CanGetScannedResults values
+        }
+      },
+    );
+    if (mounted) {
+      setState(() {
+        _isScanning = false;
+      });
     }
   }
 
-  Future<WifiPoint?> _getConnectedWifiSSID() async {
-    _isLocationPermissionGranted =
-        await Permission.locationWhenInUse.request().isGranted;
-    log.info('Location permission granted: $_isLocationPermissionGranted');
-    if (!_isLocationPermissionGranted) {
-      Sentry.captureException('Location permission not granted');
-      return null;
+  List<WifiPoint> _filterUniqueSSIDs(List<WifiPoint> scanResults) {
+    final uniqueNetworks = <String, WifiPoint>{};
+    for (final scanResult in scanResults) {
+      uniqueNetworks[scanResult.ssid] = scanResult;
     }
-    final info = NetworkInfo();
-    final wifiName = await info.getWifiName();
-    if (wifiName == null) {
-      log.info('No wifi connected');
-      Sentry.captureException('No wifi connected');
-      return null;
-    }
-    final point = WifiPoint(wifiName);
-    log.info('Connected wifi: ${point.ssid}');
-    return point;
-  }
-
-  List<WifiPoint> _filterUniqueSSIDs(List<WiFiAccessPoint> scanResults) {
-    final uniqueNetworks = <String, WiFiAccessPoint>{};
-
-    for (final wifi in scanResults) {
-      if (!uniqueNetworks.containsKey(wifi.ssid) ||
-          wifi.level > uniqueNetworks[wifi.ssid]!.level) {
-        uniqueNetworks[wifi.ssid] = wifi; // Keep the strongest signal
-      }
-    }
-
-    // Convert to list and sort by signal strength (RSSI), strongest first
-    final sortedNetworks = uniqueNetworks.values.toList()
-      ..removeWhere((element) => element.ssid.isEmpty)
-      ..sort(
-        (a, b) => b.level.compareTo(a.level),
-      ); // Higher RSSI (closer to 0) is stronger
-
-    return sortedNetworks.map((e) => WifiPoint(e.ssid)).toList();
+    uniqueNetworks.removeWhere((key, value) => key.isEmpty);
+    return uniqueNetworks.values.toList();
   }
 
   @override
@@ -161,14 +123,13 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                       PrimaryButton(
                         onTap: () async {
                           await _startScan();
-                          await _startListeningToScannedResults();
                         },
                         text: 'retry'.tr(),
-                      )
+                      ),
                     ],
                   ),
-                )
-              ] else if (_accessPoints.isEmpty)
+                ),
+              ] else if (_accessPoints.isEmpty && !_isScanning)
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +142,6 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                       PrimaryButton(
                         onTap: () async {
                           await _startScan();
-                          await _startListeningToScannedResults();
                         },
                         text: 'retry'.tr(),
                       ),
@@ -207,7 +167,9 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                           filled: true,
                           constraints: const BoxConstraints(minHeight: 60),
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 24, horizontal: 16),
+                            vertical: 24,
+                            horizontal: 16,
+                          ),
                         ),
                         style: Theme.of(context).textTheme.ppMori400White14,
                         onChanged: (value) {
@@ -225,17 +187,28 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                           if (ssid.isEmpty) {
                             return;
                           }
-                          await widget.onNetworkSelected(WifiPoint(ssid));
+                          await widget.payload
+                              .onNetworkSelected(WifiPoint(ssid));
                         },
                         text: 'Connect',
                       ),
                     ],
                   ),
                 )
-              else
+              else ...[
+                if (_isScanning) ...[
+                  SliverToBoxAdapter(
+                    child: Text(
+                      'Scanning for wifi networks...',
+                      style: Theme.of(context).textTheme.ppMori400White14,
+                    ),
+                  ),
+                  const SizedBox(height: 24)
+                ],
                 ..._accessPoints.map(
                   (e) => SliverToBoxAdapter(child: itemBuilder(context, e)),
                 ),
+              ]
             ],
           ),
         ),
@@ -250,7 +223,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
       children: [
         GestureDetector(
           onTap: () async {
-            await widget.onNetworkSelected(wifiAccessPoint);
+            await widget.payload.onNetworkSelected(wifiAccessPoint);
           },
           child: SizedBox(
             width: double.infinity,

@@ -159,66 +159,73 @@ extension BluetoothDeviceExtension on BluetoothDevice {
       BluetoothManager.getEngineeringCharacteristic(remoteId.str);
 
   Future<void> discoverCharacteristics() async {
-    log.info('Discovering characteristics for device: ${remoteId.str}');
-
-    final discoveredServices = await discoverServices();
-    final services = <BluetoothService>[]
-      ..clear()
-      ..addAll(discoveredServices);
-
-    final primaryService = services.firstWhereOrNull(
-      (service) => service.isPrimary,
-    );
-
-    if (primaryService == null) {
-      log.warning('Primary service not found');
-      unawaited(Sentry.captureMessage('Primary service not found'));
-      return;
-    } else {
-      log.info('Primary service found: ${primaryService.uuid}');
-    }
-
-    // if the command and wifi connect characteristics are not found, try to find them
-    final commandService = services.firstWhereOrNull(
-      (service) => service.uuid.toString() == BluetoothManager.serviceUuid,
-    );
-
-    if (commandService == null) {
-      unawaited(Sentry.captureMessage('Command service not found'));
-      return;
-    }
-    final commandChar = commandService.characteristics
-        .firstWhere((characteristic) => characteristic.isCommandCharacteristic);
-    final wifiConnectChar = commandService.characteristics.firstWhere(
-      (characteristic) => characteristic.isWifiConnectCharacteristic,
-    );
-    final engineeringChar = commandService.characteristics.firstWhere(
-      (characteristic) => characteristic.isEngineeringCharacteristic,
-    );
-
-    // Set the command and wifi connect characteristics
-    BluetoothManager.setCommandCharacteristic(commandChar);
-    BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
-    BluetoothManager.setEngineeringCharacteristic(engineeringChar);
-
-    log.info('Command char properties: ${commandChar.properties}');
-    if (!commandChar.properties.notify) {
-      log.warning('Command characteristic does not support notifications!');
-      unawaited(
-        Sentry.captureMessage(
-          'Command characteristic does not support notifications',
-        ),
-      );
-      throw Exception('Command characteristic does not support notifications');
-    }
-
     try {
-      await commandChar.setNotifyValue(true);
-      log.info('Successfully enabled notifications for command char');
+      log.info('Discovering characteristics for device: ${remoteId.str}');
+
+      final discoveredServices = await discoverServices();
+      final services = <BluetoothService>[]
+        ..clear()
+        ..addAll(discoveredServices);
+
+      final primaryService = services.firstWhereOrNull(
+        (service) => service.isPrimary,
+      );
+
+      if (primaryService == null) {
+        log.warning('Primary service not found');
+        unawaited(Sentry.captureMessage('Primary service not found'));
+        return;
+      } else {
+        log.info('Primary service found: ${primaryService.uuid}');
+      }
+
+      // if the command and wifi connect characteristics are not found, try to find them
+      final commandService = services.firstWhereOrNull(
+        (service) => service.uuid.toString() == BluetoothManager.serviceUuid,
+      );
+
+      if (commandService == null) {
+        unawaited(Sentry.captureMessage('Command service not found'));
+        return;
+      }
+      final commandChar = commandService.characteristics.firstWhere(
+          (characteristic) => characteristic.isCommandCharacteristic);
+      final wifiConnectChar = commandService.characteristics.firstWhere(
+        (characteristic) => characteristic.isWifiConnectCharacteristic,
+      );
+      final engineeringChar = commandService.characteristics.firstWhere(
+        (characteristic) => characteristic.isEngineeringCharacteristic,
+      );
+
+      // Set the command and wifi connect characteristics
+      BluetoothManager.setCommandCharacteristic(commandChar);
+      BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
+      BluetoothManager.setEngineeringCharacteristic(engineeringChar);
+
+      log.info('Command char properties: ${commandChar.properties}');
+      if (!commandChar.properties.notify) {
+        log.warning('Command characteristic does not support notifications!');
+        unawaited(
+          Sentry.captureMessage(
+            'Command characteristic does not support notifications',
+          ),
+        );
+        throw Exception(
+            'Command characteristic does not support notifications');
+      }
+
+      try {
+        await commandChar.setNotifyValue(true);
+        log.info('Successfully enabled notifications for command char');
+      } catch (e) {
+        log.warning('Failed to enable notifications for command char: $e');
+        unawaited(
+            Sentry.captureException('Failed to enable notifications: $e'));
+        rethrow;
+      }
     } catch (e) {
-      log.warning('Failed to enable notifications for command char: $e');
-      unawaited(Sentry.captureException('Failed to enable notifications: $e'));
-      rethrow;
+      log.warning('Error discovering characteristics: $e');
+      unawaited(Sentry.captureException(e));
     }
   }
 }

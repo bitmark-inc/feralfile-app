@@ -50,7 +50,7 @@ class NowDisplayingManager {
     }
   }
 
-  Future<void> updateDisplayingNow() async {
+  Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {
     try {
       log.info('NowDisplayingManager: updateDisplayingNow');
       final device = injector<FFBluetoothService>().castingBluetoothDevice;
@@ -60,14 +60,18 @@ class NowDisplayingManager {
       CheckDeviceStatusReply? status;
       try {
         status = await _getStatus(device);
-      } catch (e) {}
-
-      if (status == null && device.isConnected) {
+      } catch (e) {
         await Future.delayed(Duration(seconds: 5));
-        status = await _getStatus(device);
+        if (device.isConnected) {
+          status = await _getStatus(device);
+        }
       }
       if (status == null) {
-        throw Exception('Failed to get Now Displaying');
+        if (device.isConnected) {
+          throw Exception('Failed to get Now Displaying');
+        } else {
+          return;
+        }
       }
       final nowDisplaying = await getNowDisplayingObject(status);
       if (nowDisplaying == null) {
@@ -76,7 +80,9 @@ class NowDisplayingManager {
       nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
       addStatus(nowDisplayingStatus!);
     } catch (e) {
-      addStatus(NowDisplayingError(e));
+      if (addStatusOnError) {
+        addStatus(NowDisplayingError(e));
+      }
     }
   }
 
@@ -138,11 +144,14 @@ class NowDisplayingManager {
         onDoneCallback: (status) {
           completer.complete(status);
         },
+        onErrorCallback: (e) {
+          completer.completeError(e);
+        },
       ),
     );
     final res =
         await completer.future.timeout(Duration(seconds: 5), onTimeout: () {
-      return null;
+      throw TimeoutException('Timeout getting Now Displaying');
     });
     return res;
   }

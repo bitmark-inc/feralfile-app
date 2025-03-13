@@ -730,11 +730,10 @@ class AppRouter {
         );
 
       case scanWifiNetworkPage:
-        final onWifiSelected = settings.arguments! as Function(WifiPoint);
+        final payload = settings.arguments! as ScanWifiNetworkPagePayload;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) =>
-              ScanWifiNetworkPage(onNetworkSelected: onWifiSelected),
+          builder: (context) => ScanWifiNetworkPage(payload: payload),
         );
 
       case sendWifiCredentialPage:

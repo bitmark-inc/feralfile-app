@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/chunk.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -85,13 +84,16 @@ class FFBluetoothService {
           _connectCompleter?.complete();
           _connectCompleter = null;
           // after connected, fetch device status
-          unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+          final status =
+              await fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
           NowDisplayingManager().addStatus(ConnectSuccess(device));
           shouldShowNowDisplayingOnDisconnect.value = true;
 
           injector<CanvasDeviceBloc>()
               .add(CanvasDeviceGetDevicesEvent(onDoneCallback: () {
-            NowDisplayingManager().updateDisplayingNow();
+            if (status?.isConnectedToWifi ?? false) {
+              NowDisplayingManager().updateDisplayingNow();
+            }
           }));
         } catch (e) {
           log.warning('Failed to discover characteristics: $e');
@@ -264,8 +266,7 @@ class FFBluetoothService {
           Sentry.captureMessage(
             '[sendCommand] Timeout waiting for reply: $replyId',
           );
-          return fakeReply(command)
-              .toJson(); // Fallback to fake reply on timeout
+          throw TimeoutException('Timeout  waiting for reply $replyId');
         },
       );
       if (displayingCommand
@@ -305,12 +306,19 @@ class FFBluetoothService {
   }
 
   Future<void> setTimezone(BluetoothDevice device) async {
-    final timezone = TimezoneHelper.getTimeZone();
+    final timezone = await TimezoneHelper.getTimeZone();
     await injector<CanvasClientServiceV2>()
         .setTimezone(device.toFFBluetoothDevice(), timezone);
   }
 
-  Future<void> sendWifiCredentials({
+  Future<void> scanWifi({
+    required BluetoothDevice device,
+    required Duration timeout,
+    required FutureOr<void> Function(Map<String, bool>) onResultScan,
+    FutureOr<bool> Function(Map<String, bool>)? shouldStopScan,
+  }) async {}
+
+  Future<bool> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
     required String password,
@@ -325,7 +333,7 @@ class FFBluetoothService {
     // Check if the wifi connect characteristic is available
     if (wifiConnectChar == null) {
       log.warning('Wi-Fi connect characteristic not found');
-      return;
+      throw Exception('Wi-Fi connect characteristic not found');
     }
     try {
       await setTimezone(device);
@@ -353,6 +361,17 @@ class FFBluetoothService {
     // Write the data to the characteristic
     final bytes = builder.takeBytes();
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
+
+    final _sendWifiCompleter = Completer<bool>();
+
+    BluetoothNotificationService().subscribe(wifiConnectionTopic, (data) {
+      log.info('[sendWifiCredentials] Received data: $data');
+      final success = data['success'] as bool;
+      _sendWifiCompleter.complete(success);
+      BluetoothNotificationService()
+          .unsubscribe(wifiConnectionTopic, (data) {});
+    });
+
     log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
     try {
       await wifiConnectChar.write(bytes, withoutResponse: false);
@@ -361,7 +380,15 @@ class FFBluetoothService {
       unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
+    final isSuccess = await _sendWifiCompleter.future
+        .timeout(const Duration(seconds: 30), onTimeout: () {
+      log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
+      unawaited(Sentry.captureMessage('Timeout waiting for Wi-Fi connection'));
+      throw TimeoutException('Timeout waiting for Wi-Fi connection');
+    });
+
     unawaited(fetchBluetoothDeviceStatus(device));
+    return isSuccess;
   }
 
   // completer for connectToDevice
@@ -381,24 +408,24 @@ class FFBluetoothService {
     }
 
     _multiConnectCompleter = Completer<void>();
-    try {
-      if (shouldChangeNowDisplayingStatus) {
-        NowDisplayingManager().addStatus(ConnectingToDevice(device));
-      }
-      await _connectToDevice(device, shouldShowError: shouldShowError);
-      _multiConnectCompleter?.complete();
+    if (shouldChangeNowDisplayingStatus) {
+      NowDisplayingManager().addStatus(ConnectingToDevice(device));
+    }
+    _connectToDevice(device, shouldShowError: shouldShowError).then((_) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectSuccess(device));
       }
-    } catch (e) {
+      _multiConnectCompleter?.complete();
+    }).catchError((Object e) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectFailed(device, e));
       }
       log.severe('Failed to connect to device: $e');
-      _multiConnectCompleter?.completeError(e);
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
-      rethrow;
-    }
+
+      _multiConnectCompleter?.completeError(e);
+    });
+    return _multiConnectCompleter?.future;
   }
 
   Future<void> _connectToDevice(
@@ -501,98 +528,6 @@ class FFBluetoothService {
     // wait for scan to complete
     while (FlutterBluePlus.isScanningNow) {
       await Future.delayed(const Duration(milliseconds: 1000));
-    }
-  }
-
-  Reply fakeReply(String commandString) {
-    final command = CastCommand.fromString(commandString);
-
-    switch (command) {
-      case CastCommand.checkStatus:
-        return CheckDeviceStatusReply(artworks: []);
-      case CastCommand.castListArtwork:
-        return CastListArtworkReply(
-          ok: true,
-        );
-      case CastCommand.castDaily:
-        return CastDailyWorkReply(
-          ok: true,
-        );
-      case CastCommand.pauseCasting:
-        return PauseCastingReply(
-          ok: true,
-        );
-      case CastCommand.resumeCasting:
-        return ResumeCastingReply(
-          ok: true,
-        );
-      case CastCommand.nextArtwork:
-        return NextArtworkReply(
-          ok: true,
-        );
-      case CastCommand.previousArtwork:
-        return PreviousArtworkReply(
-          ok: true,
-        );
-      case CastCommand.updateDuration:
-        return UpdateDurationReply(
-          artworks: [],
-        );
-      case CastCommand.castExhibition:
-        return CastExhibitionReply(
-          ok: true,
-        );
-      case CastCommand.connect:
-        return ConnectReplyV2(
-          ok: true,
-        );
-      case CastCommand.disconnect:
-        return DisconnectReplyV2(
-          ok: true,
-        );
-
-      case CastCommand.sendKeyboardEvent:
-        return KeyboardEventReply(
-          ok: true,
-        );
-      case CastCommand.rotate:
-        return RotateReply(
-          degree: 1,
-        );
-      case CastCommand.sendLog:
-        return SendLogReply(
-          ok: true,
-        );
-      case CastCommand.tapGesture:
-        return GestureReply(
-          ok: true,
-        );
-      case CastCommand.dragGesture:
-        return GestureReply(
-          ok: true,
-        );
-      case CastCommand.updateOrientation:
-        return UpdateOrientationReply();
-      case CastCommand.getVersion:
-        return GetVersionReply(
-          version: '',
-        );
-      case CastCommand.getBluetoothDeviceStatus:
-        return GetBluetoothDeviceStatusReply(
-          deviceStatus: BluetoothDeviceStatus(
-            version: 'No response',
-            ipAddress: 'No response',
-            connectedWifi: 'No response',
-            screenRotation: ScreenOrientation.landscape,
-            isConnectedToWifi: false,
-          ),
-        );
-      case CastCommand.updateArtFraming:
-        return UpdateArtFramingReply();
-      case CastCommand.updateToLatestVersion:
-        return UpdateToLatestVersionReply();
-      default:
-        throw ArgumentError('Unknown command: $commandString');
     }
   }
 
@@ -874,12 +809,8 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
         chunkCompleters[chunkIndex].complete();
       }
       if (chunkCompleters.every((completer) => completer.isCompleted)) {
-        _cleanupSubscriptions(ackReplyId);
+        BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
       }
     });
-  }
-
-  void _cleanupSubscriptions(String ackReplyId) {
-    BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
   }
 }

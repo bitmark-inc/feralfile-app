@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -21,8 +23,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 
 class FeaturedWorkView extends StatefulWidget {
   const FeaturedWorkView({
@@ -160,6 +160,9 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                 child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                   bloc: injector<CanvasDeviceBloc>(),
                   builder: (context, canvasDeviceState) {
+                    if (widget.tokenIDs.isEmpty) {
+                      return const SizedBox();
+                    }
                     final displayKey = widget.tokenIDs.displayKey;
                     final isPlaylistCasting = displayKey != null &&
                         canvasDeviceState

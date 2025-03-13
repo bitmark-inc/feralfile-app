@@ -28,6 +28,7 @@ enum CastCommand {
   updateToLatestVersion,
   tapGesture,
   dragGesture,
+  scanWifi,
   enableMetricsStreaming,
   disableMetricsStreaming,
   castDaily;
@@ -64,6 +65,8 @@ enum CastCommand {
         return CastCommand.sendLog;
       case 'getVersion':
         return CastCommand.getVersion;
+      case 'scanWifi':
+        return CastCommand.scanWifi;
       case 'updateOrientation':
         return CastCommand.updateOrientation;
       case 'getBluetoothDeviceStatus':
@@ -117,6 +120,8 @@ enum CastCommand {
         return CastCommand.rotate;
       case const (GetVersionRequest):
         return CastCommand.getVersion;
+      case const (ScanWifiRequest):
+        return CastCommand.scanWifi;
       case const (UpdateOrientationRequest):
         return CastCommand.updateOrientation;
       case const (GetBluetoothDeviceStatusRequest):
@@ -145,96 +150,6 @@ enum CastCommand {
 
 class RequestBody {
   RequestBody(this.request) : command = CastCommand.fromRequest(request);
-
-  // fromJson method
-  factory RequestBody.fromJson(Map<String, dynamic> json) {
-    final commandString = json['command'] as String;
-    final command = CastCommand.fromString(commandString);
-
-    Request request;
-    switch (command) {
-      case CastCommand.checkStatus:
-        request = CheckDeviceStatusRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.castListArtwork:
-        request = CastListArtworkRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.castDaily:
-        request = CastDailyWorkRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.pauseCasting:
-        request = PauseCastingRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.resumeCasting:
-        request = ResumeCastingRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.nextArtwork:
-        request = NextArtworkRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.previousArtwork:
-        request = PreviousArtworkRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.updateDuration:
-        request = UpdateDurationRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.castExhibition:
-        request = CastExhibitionRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.connect:
-        request =
-            ConnectRequestV2.fromJson(json['request'] as Map<String, dynamic>);
-      case CastCommand.disconnect:
-        request = DisconnectRequestV2.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.sendKeyboardEvent:
-        request = KeyboardEventRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.rotate:
-        request = RotateRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.updateArtFraming:
-        request = UpdateArtFramingRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.tapGesture:
-        request = TapGestureRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.dragGesture:
-        request = DragGestureRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.sendLog:
-        request = SendLogRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.enableMetricsStreaming:
-        request = EnableMetricsStreamingRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      case CastCommand.disableMetricsStreaming:
-        request = DisableMetricsStreamingRequest.fromJson(
-          json['request'] as Map<String, dynamic>,
-        );
-      default:
-        throw ArgumentError('Unknown command: $commandString');
-    }
-
-    return RequestBody(request);
-  }
-
   final CastCommand command;
   final Request request;
 
@@ -855,6 +770,28 @@ class GetVersionReply extends Reply {
   Map<String, dynamic> toJson() => {
         'version': version,
       };
+}
+
+class ScanWifiRequest implements Request {
+  ScanWifiRequest({required this.timeout});
+
+  factory ScanWifiRequest.fromJson(Map<String, dynamic> json) =>
+      ScanWifiRequest(timeout: json['timeout'] as int);
+  final int timeout;
+
+  @override
+  Map<String, dynamic> toJson() => {'timeout': timeout};
+}
+
+class ScanWifiReply extends Reply {
+  ScanWifiReply({required this.result});
+
+  factory ScanWifiReply.fromJson(Map<String, dynamic> json) =>
+      ScanWifiReply(result: Map<String, bool>.from(json['result'] as Map));
+  final Map<String, bool> result;
+
+  @override
+  Map<String, dynamic> toJson() => {'result': result};
 }
 
 extension OrientationExtension on Orientation {
