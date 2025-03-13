@@ -26,7 +26,6 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -38,7 +37,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -269,56 +267,135 @@ class AutonomyApp extends StatelessWidget {
             ],
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
-            builder: (context, child) {
-              return MultiValueListenableBuilder(
-                valueListenables: [
-                  shouldShowNowDisplaying,
-                  shouldShowNowDisplayingOnDisconnect
-                ],
-                child: child,
-                builder: (context, values, c) {
-                  final hasDevice =
-                      injector<FFBluetoothService>().castingBluetoothDevice !=
-                          null;
-                  final value = (values[0] as bool) && (values[1] as bool);
-                  log.info('shouldShowNowDisplaying: $value');
-
-                  if (!value ||
-                      !hasDevice ||
-                      !injector<AuthService>().isBetaTester()) {
-                    return c!;
-                  }
-                  return Scaffold(
-                    backgroundColor: AppColor.primaryBlack,
-                    appBar: getDarkEmptyAppBar(),
-                    body: SafeArea(
-                      child: Column(
-                        children: [
-                          AnimatedSwitcher(
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            duration: const Duration(milliseconds: 1000),
-                            child: NowDisplaying(
-                              key: GlobalKey(),
-                            ),
-                          ),
-                          Expanded(
-                            child: c!,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+            builder: (context, child) => AutonomyAppScaffold(child: child!),
           );
         },
       );
+}
+
+class AutonomyAppScaffold extends StatefulWidget {
+  const AutonomyAppScaffold({required this.child, super.key});
+  final Widget child;
+
+  @override
+  State<AutonomyAppScaffold> createState() => _AutonomyAppScaffoldState();
+}
+
+class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  bool _isVisible = true;
+  double _lastScrollPosition = 0;
+
+  // 40: padding bottom of app bar
+  // 45: height of app bar
+  // 10: space between app bar and now displaying
+  static const double kStatusBarMarginBottom = 40 + 45 + 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      value: 0,
+    );
+
+    shouldShowNowDisplaying.addListener(_updateAnimationBasedOnDisplayState);
+    shouldShowNowDisplayingOnDisconnect
+        .addListener(_updateAnimationBasedOnDisplayState);
+  }
+
+  void _updateAnimationBasedOnDisplayState() {
+    final hasDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice != null;
+    final shouldShow = shouldShowNowDisplaying.value &&
+        shouldShowNowDisplayingOnDisconnect.value;
+    final isBetaTester = injector<AuthService>().isBetaTester();
+    if (shouldShow && hasDevice && isBetaTester) {
+      _animationController.forward();
+      setState(() => _isVisible = true);
+    } else {
+      _animationController.reverse();
+      setState(() => _isVisible = false);
+    }
+  }
+
+  void _handleScrollUpdate(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return;
+    }
+
+    final shouldShow = shouldShowNowDisplaying.value &&
+        shouldShowNowDisplayingOnDisconnect.value;
+    if (shouldShow && notification is ScrollUpdateNotification) {
+      final currentScroll = notification.metrics.pixels;
+      final scrollDelta = currentScroll - _lastScrollPosition;
+
+      if (scrollDelta > 10 && _isVisible) {
+        _animationController.reverse();
+        setState(() => _isVisible = false);
+      } else if (scrollDelta < -10 && !_isVisible) {
+        _animationController.forward();
+        setState(() => _isVisible = true);
+      }
+
+      _lastScrollPosition = currentScroll;
+    }
+    return;
+  }
+
+  @override
+  void dispose() {
+    shouldShowNowDisplaying.removeListener(_updateAnimationBasedOnDisplayState);
+    shouldShowNowDisplayingOnDisconnect
+        .removeListener(_updateAnimationBasedOnDisplayState);
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        _handleScrollUpdate(notification);
+        return false; // Allow the notification to continue to be dispatched
+      },
+      child: Stack(
+        children: [
+          widget.child,
+          Positioned(
+            bottom: kStatusBarMarginBottom,
+            left: 10,
+            right: 10,
+            child: FadeTransition(
+              opacity: _animationController,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(
+                    0,
+                    kStatusBarMarginBottom / kNowDisplayingHeight,
+                  ),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: _animationController,
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+                child: IgnorePointer(
+                  ignoring: !_isVisible,
+                  child: NowDisplaying(
+                    key: GlobalKey(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =

@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/generated/protos/system_metrics.pb.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -54,6 +55,14 @@ const updateDeviceStatusCommand = [
 
 class FFBluetoothService {
   FFBluetoothService();
+
+  // Add a stream controller for system metrics
+  final StreamController<DeviceRealtimeMetrics>
+      _deviceRealtimeMetricsController =
+      StreamController<DeviceRealtimeMetrics>.broadcast();
+
+  Stream<DeviceRealtimeMetrics> get deviceRealtimeMetricsStream =>
+      _deviceRealtimeMetricsController.stream;
 
   void startListen() {
     log.info('Start listening to bluetooth events');
@@ -112,6 +121,8 @@ class FFBluetoothService {
         final value = event.value;
         if (characteristic.isCommandCharacteristic) {
           BluetoothNotificationService().handleNotification(value, device);
+        } else if (characteristic.isEngineeringCharacteristic) {
+          _handleEngineeringData(value);
         }
       },
       onError: (e) {
@@ -574,6 +585,61 @@ class FFBluetoothService {
       }
     });
   }
+
+  // Add method to handle engineering data
+  void _handleEngineeringData(List<int> data) {
+    try {
+      final metrics = DeviceRealtimeMetrics.fromBuffer(data);
+      _deviceRealtimeMetricsController.add(metrics);
+      log.fine(
+          'Received system metrics: CPU: ${metrics.cpuUsage.toStringAsFixed(2)}%, '
+          'Memory: ${metrics.memoryUsage.toStringAsFixed(2)}%, '
+          'CPU Temp: ${metrics.cpuTemperature.toStringAsFixed(1)}°C');
+    } catch (e) {
+      log.warning('Failed to parse engineering data: $e');
+    }
+  }
+
+  // Add method to start monitoring system metrics
+  Future<void> startSystemMetricsMonitoring(BluetoothDevice device) async {
+    try {
+      final engineeringChar = device.engineeringCharacteristic;
+      if (engineeringChar == null) {
+        log.warning('Engineering characteristic not found');
+        return;
+      }
+
+      await engineeringChar.setNotifyValue(true);
+      log.info('System metrics monitoring started');
+    } catch (e) {
+      log.warning('Failed to start system metrics monitoring: $e');
+      unawaited(Sentry.captureException(
+        'Failed to start system metrics monitoring: $e',
+      ));
+    }
+  }
+
+  // Add method to stop monitoring system metrics
+  Future<void> stopSystemMetricsMonitoring(BluetoothDevice device) async {
+    try {
+      final engineeringChar = device.engineeringCharacteristic;
+      if (engineeringChar == null) {
+        log.warning('Engineering characteristic not found');
+        return;
+      }
+      await engineeringChar.setNotifyValue(false);
+      log.info('System metrics monitoring stopped');
+    } catch (e) {
+      log.warning('Failed to stop system metrics monitoring: $e');
+      unawaited(Sentry.captureException(
+        'Failed to stop system metrics monitoring: $e',
+      ));
+    }
+  }
+
+  void dispose() {
+    _deviceRealtimeMetricsController.close();
+  }
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
@@ -583,6 +649,10 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
 
   bool get isWifiConnectCharacteristic {
     return uuid.toString() == BluetoothManager.wifiConnectCharUuid;
+  }
+
+  bool get isEngineeringCharacteristic {
+    return uuid.toString() == BluetoothManager.engineeringCharUuid;
   }
 
   int _getMaxPayloadSize(BluetoothDevice device) {

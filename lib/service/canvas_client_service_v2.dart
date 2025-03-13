@@ -423,4 +423,40 @@ class CanvasClientServiceV2 {
     //   });
     // }
   }
+
+  Future<bool> enableMetricsStreaming(BaseDevice device) async {
+    try {
+      final stub = _getStub(device);
+      final request = EnableMetricsStreamingRequest();
+      final response = await stub.enableMetricsStreaming(request);
+      log.info(
+          'CanvasClientService: Enable Metrics Streaming Success ${response.ok}');
+      return response.ok;
+    } catch (e) {
+      log.info('CanvasClientService: enableMetricsStreaming error: $e');
+      unawaited(
+        Sentry.captureException(
+            'CanvasClientService: enableMetricsStreaming error: $e'),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> disableMetricsStreaming(BaseDevice device) async {
+    try {
+      final stub = _getStub(device);
+      final request = DisableMetricsStreamingRequest();
+      final response = await stub.disableMetricsStreaming(request);
+      log.info(
+          'CanvasClientService: Disable Metrics Streaming Success ${response.ok}');
+      return response.ok;
+    } catch (e) {
+      log.info('CanvasClientService: disableMetricsStreaming error: $e');
+      unawaited(
+        Sentry.captureException(
+            'CanvasClientService: disableMetricsStreaming error: $e'),
+      );
+      return false;
+    }
+  }
 }

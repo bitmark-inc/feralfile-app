@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/view/exhibition_item.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -467,7 +468,16 @@ class DailyWorkPageState extends State<DailyWorkPage>
               },
             ),
           ),
-          const SizedBox(height: 100),
+          ValueListenableBuilder<bool>(
+            valueListenable: shouldShowNowDisplayingOnDisconnect,
+            builder: (context, shouldShow, _) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: shouldShow ? 100 + kNowDisplayingHeight - 16 : 100,
+              );
+            },
+          ),
         ],
       );
 
