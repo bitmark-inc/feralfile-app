@@ -155,6 +155,9 @@ extension BluetoothDeviceExtension on BluetoothDevice {
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
 
+  BluetoothCharacteristic? get engineeringCharacteristic =>
+      BluetoothManager.getEngineeringCharacteristic(remoteId.str);
+
   Future<void> discoverCharacteristics() async {
     log.info('Discovering characteristics for device: ${remoteId.str}');
 
@@ -189,10 +192,14 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     final wifiConnectChar = commandService.characteristics.firstWhere(
       (characteristic) => characteristic.isWifiConnectCharacteristic,
     );
+    final engineeringChar = commandService.characteristics.firstWhere(
+      (characteristic) => characteristic.isEngineeringCharacteristic,
+    );
 
     // Set the command and wifi connect characteristics
     BluetoothManager.setCommandCharacteristic(commandChar);
     BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
+    BluetoothManager.setEngineeringCharacteristic(engineeringChar);
 
     log.info('Command char properties: ${commandChar.properties}');
     if (!commandChar.properties.notify) {

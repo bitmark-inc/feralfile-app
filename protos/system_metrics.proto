@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package feralfile;
+
+message DeviceRealtimeMetrics {
+  double cpu_usage = 1;
+  double gpu_usage = 2;
+  double memory_usage = 3;
+  double cpu_temperature = 4;
+  double gpu_temperature = 5;
+  int32 screen_width = 6;
+  int32 screen_height = 7;
+  int64 uptime_seconds = 8;
+  int64 timestamp = 9;
+}

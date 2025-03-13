@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/generated/protos/system_metrics.pb.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -26,6 +27,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
   const BluetoothConnectedDeviceConfig({super.key, required this.device});
@@ -47,6 +49,20 @@ class BluetoothConnectedDeviceConfigState
   Timer? _connectionStatusTimer;
   bool _isBLEDeviceConnected = false;
 
+  // Add performance metrics tracking
+  final List<FlSpot> _cpuPoints = [];
+  final List<FlSpot> _memoryPoints = [];
+  final List<FlSpot> _gpuPoints = [];
+  Timer? _metricsUpdateTimer;
+  double _xValue = 0;
+  final int _maxDataPoints = 100;
+
+  // Add temperature metrics tracking
+  final List<FlSpot> _cpuTempPoints = [];
+  final List<FlSpot> _gpuTempPoints = [];
+
+  StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +77,12 @@ class BluetoothConnectedDeviceConfigState
 
     // Start polling connection status
     _startConnectionStatusPolling();
+
+    // Enable metrics streaming when the screen opens
+    _enableMetricsStreaming();
+
+    // Start updating performance chart
+    _startPerformanceMetricsUpdates();
   }
 
   void _startConnectionStatusPolling() {
@@ -103,12 +125,34 @@ class BluetoothConnectedDeviceConfigState
   @override
   void dispose() {
     _connectionStatusTimer?.cancel();
+    _metricsUpdateTimer?.cancel();
+    _metricsStreamSubscription?.cancel();
     injector<FFBluetoothService>()
         .bluetoothDeviceStatus
         .removeListener(_statusListener);
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
+
+    // Disable metrics streaming when leaving the screen
+    _disableMetricsStreaming();
+
     super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    // Called when another route has been pushed on top of this one
+    super.didPushNext();
+    // Disable metrics streaming when navigating away
+    _disableMetricsStreaming();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this route
+    super.didPopNext();
+    // Re-enable metrics streaming when returning to this screen
+    _enableMetricsStreaming();
   }
 
   @override
@@ -215,6 +259,37 @@ class BluetoothConnectedDeviceConfigState
               child: _deviceInfo(context),
             ),
           ),
+
+          // Add performance monitoring section
+          SliverToBoxAdapter(
+            child: Divider(
+              color: AppColor.auGreyBackground,
+              thickness: 1,
+              height: 40,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _performanceMonitoring(context),
+            ),
+          ),
+
+          // Temperature monitoring section
+          SliverToBoxAdapter(
+            child: Divider(
+              color: AppColor.auGreyBackground,
+              thickness: 1,
+              height: 40,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _temperatureMonitoring(context),
+            ),
+          ),
+
           const SliverToBoxAdapter(
             child: SizedBox(
               height: 80,
@@ -561,6 +636,352 @@ class BluetoothConnectedDeviceConfigState
         ],
         const SizedBox(height: 30),
       ],
+    );
+  }
+
+  // Enable metrics streaming from the device
+  Future<void> _enableMetricsStreaming() async {
+    try {
+      final device = widget.device.toFFBluetoothDevice();
+      log.info('Enabling metrics streaming for device: ${device.name}');
+      await injector<CanvasClientServiceV2>().enableMetricsStreaming(device);
+
+      // Subscribe to the metrics stream
+      _metricsStreamSubscription?.cancel(); // Cancel any existing subscription
+      _metricsStreamSubscription = injector<FFBluetoothService>()
+          .deviceRealtimeMetricsStream
+          .listen(_updateMetricsFromStream);
+    } catch (e) {
+      log.warning('Failed to enable metrics streaming: $e');
+    }
+  }
+
+  // Disable metrics streaming from the device
+  Future<void> _disableMetricsStreaming() async {
+    try {
+      // Cancel the stream subscription
+      _metricsStreamSubscription?.cancel();
+      _metricsStreamSubscription = null;
+
+      final device = widget.device.toFFBluetoothDevice();
+      log.info('Disabling metrics streaming for device: ${device.name}');
+      await injector<CanvasClientServiceV2>().disableMetricsStreaming(device);
+    } catch (e) {
+      log.warning('Failed to disable metrics streaming: $e');
+    }
+  }
+
+  void _startPerformanceMetricsUpdates() {
+    // We don't need this anymore as we're using the stream directly
+    // _metricsUpdateTimer = Timer.periodic(...);
+  }
+
+  void _updateMetricsFromStream(DeviceRealtimeMetrics metrics) {
+    if (!mounted) return;
+
+    setState(() {
+      // Add new performance data points
+      _cpuPoints.add(FlSpot(_xValue, metrics.cpuUsage));
+      _memoryPoints.add(FlSpot(_xValue, metrics.memoryUsage));
+      _gpuPoints.add(FlSpot(_xValue, metrics.gpuUsage / 10));
+
+      // Add new temperature data points
+      _cpuTempPoints.add(FlSpot(_xValue, metrics.cpuTemperature));
+      _gpuTempPoints.add(FlSpot(_xValue, metrics.gpuTemperature));
+
+      // Remove old points if we exceed the limit
+      while (_cpuPoints.length > _maxDataPoints) {
+        _cpuPoints.removeAt(0);
+        _memoryPoints.removeAt(0);
+        _gpuPoints.removeAt(0);
+        _cpuTempPoints.removeAt(0);
+        _gpuTempPoints.removeAt(0);
+      }
+
+      _xValue += 1;
+    });
+  }
+
+  Widget _performanceMonitoring(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Define colors for each metric
+    final cpuColor = Colors.blue;
+    final memoryColor = Colors.green;
+    final gpuColor = Colors.red;
+
+    // Get the latest values from the points arrays
+    final cpuValue = _cpuPoints.isNotEmpty ? _cpuPoints.last.y : 0.0;
+    final memoryValue = _memoryPoints.isNotEmpty ? _memoryPoints.last.y : 0.0;
+    final gpuValue = _gpuPoints.isNotEmpty ? _gpuPoints.last.y : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Performance Monitoring',
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+
+        // Current values display
+        Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _metricDisplay('CPU', cpuValue, '%', cpuColor),
+              _metricDisplay('Memory', memoryValue, '%', memoryColor),
+              _metricDisplay('GPU', gpuValue, '%', gpuColor),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Performance chart
+        if (_cpuPoints.isNotEmpty)
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: AppColor.auGreyBackground,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: 100, // Percentage values 0-100
+                minX: _cpuPoints.first.x,
+                maxX: _cpuPoints.last.x,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(),
+                ),
+                clipData: const FlClipData.all(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 25,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: AppColor.feralFileMediumGrey.withOpacity(0.3),
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  _createLineData(_cpuPoints, cpuColor, 'CPU'),
+                  _createLineData(_memoryPoints, memoryColor, 'Memory'),
+                  _createLineData(_gpuPoints, gpuColor, 'GPU'),
+                ],
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      interval: 25,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}%',
+                          style: theme.textTheme.ppMori400White12,
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _temperatureMonitoring(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Define colors for each metric
+    final cpuTempColor = Colors.orange;
+    final gpuTempColor = Colors.purple;
+
+    // Get the latest values from the points arrays
+    final cpuTempValue =
+        _cpuTempPoints.isNotEmpty ? _cpuTempPoints.last.y : 0.0;
+    final gpuTempValue =
+        _gpuTempPoints.isNotEmpty ? _gpuTempPoints.last.y : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Temperature Monitoring',
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+
+        // Current values display
+        Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _metricDisplay('CPU Temp', cpuTempValue, '°C', cpuTempColor),
+              _metricDisplay('GPU Temp', gpuTempValue, '°C', gpuTempColor),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Temperature chart
+        if (_cpuTempPoints.isNotEmpty)
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: AppColor.auGreyBackground,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: 100, // Temperature values typically 0-100°C
+                minX: _cpuTempPoints.first.x,
+                maxX: _cpuTempPoints.last.x,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(),
+                ),
+                clipData: const FlClipData.all(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 20,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: AppColor.feralFileMediumGrey.withOpacity(0.3),
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  _createLineData(_cpuTempPoints, cpuTempColor, 'CPU Temp'),
+                  _createLineData(_gpuTempPoints, gpuTempColor, 'GPU Temp'),
+                ],
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      interval: 20,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}°C',
+                          style: theme.textTheme.ppMori400White12,
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // Legend
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _legendItem('CPU Temp', cpuTempColor),
+            const SizedBox(width: 24),
+            _legendItem('GPU Temp', gpuTempColor),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _metricDisplay(String label, double value, String unit, Color color) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.ppMori400Grey14,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${value.toStringAsFixed(1)}$unit',
+          style: Theme.of(context).textTheme.ppMori400White14.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _legendItem(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.ppMori400White12,
+        ),
+      ],
+    );
+  }
+
+  LineChartBarData _createLineData(
+      List<FlSpot> points, Color color, String label) {
+    return LineChartBarData(
+      spots: points,
+      dotData: const FlDotData(
+        show: false,
+      ),
+      color: color,
+      barWidth: 3,
+      isCurved: true,
+      belowBarData: BarAreaData(
+        show: true,
+        color: color.withOpacity(0.2),
+      ),
     );
   }
 }

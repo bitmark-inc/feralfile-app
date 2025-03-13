@@ -28,6 +28,8 @@ enum CastCommand {
   updateToLatestVersion,
   tapGesture,
   dragGesture,
+  enableMetricsStreaming,
+  disableMetricsStreaming,
   castDaily;
 
   static CastCommand fromString(String command) {
@@ -76,6 +78,10 @@ enum CastCommand {
         return CastCommand.tapGesture;
       case 'dragGesture':
         return CastCommand.dragGesture;
+      case 'enableMetricsStreaming':
+        return CastCommand.enableMetricsStreaming;
+      case 'disableMetricsStreaming':
+        return CastCommand.disableMetricsStreaming;
       default:
         throw ArgumentError('Unknown command: $command');
     }
@@ -127,6 +133,10 @@ enum CastCommand {
         return CastCommand.tapGesture;
       case const (DragGestureRequest):
         return CastCommand.dragGesture;
+      case const (EnableMetricsStreamingRequest):
+        return CastCommand.enableMetricsStreaming;
+      case const (DisableMetricsStreamingRequest):
+        return CastCommand.disableMetricsStreaming;
       default:
         throw Exception('Unknown request type');
     }
@@ -186,7 +196,6 @@ class RequestBody {
         request = DisconnectRequestV2.fromJson(
           json['request'] as Map<String, dynamic>,
         );
-
       case CastCommand.sendKeyboardEvent:
         request = KeyboardEventRequest.fromJson(
           json['request'] as Map<String, dynamic>,
@@ -205,6 +214,18 @@ class RequestBody {
         );
       case CastCommand.dragGesture:
         request = DragGestureRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
+      case CastCommand.sendLog:
+        request = SendLogRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
+      case CastCommand.enableMetricsStreaming:
+        request = EnableMetricsStreamingRequest.fromJson(
+          json['request'] as Map<String, dynamic>,
+        );
+      case CastCommand.disableMetricsStreaming:
+        request = DisableMetricsStreamingRequest.fromJson(
           json['request'] as Map<String, dynamic>,
         );
       default:
@@ -1097,4 +1118,42 @@ class CastDailyWorkReply extends ReplyWithOK {
   Map<String, dynamic> toJson() => {
         'ok': ok,
       };
+}
+
+// Class representing EnableMetricsStreamingRequest message
+class EnableMetricsStreamingRequest implements Request {
+  EnableMetricsStreamingRequest();
+
+  factory EnableMetricsStreamingRequest.fromJson(Map<String, dynamic> json) =>
+      EnableMetricsStreamingRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+// Class representing EnableMetricsStreamingReply message
+class EnableMetricsStreamingReply extends ReplyWithOK {
+  EnableMetricsStreamingReply({required super.ok});
+
+  factory EnableMetricsStreamingReply.fromJson(Map<String, dynamic> json) =>
+      EnableMetricsStreamingReply(ok: json['ok'] as bool);
+}
+
+// Class representing DisableMetricsStreamingRequest message
+class DisableMetricsStreamingRequest implements Request {
+  DisableMetricsStreamingRequest();
+
+  factory DisableMetricsStreamingRequest.fromJson(Map<String, dynamic> json) =>
+      DisableMetricsStreamingRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+// Class representing DisableMetricsStreamingReply message
+class DisableMetricsStreamingReply extends ReplyWithOK {
+  DisableMetricsStreamingReply({required super.ok});
+
+  factory DisableMetricsStreamingReply.fromJson(Map<String, dynamic> json) =>
+      DisableMetricsStreamingReply(ok: json['ok'] as bool);
 }
