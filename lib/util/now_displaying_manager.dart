@@ -45,6 +45,8 @@ class NowDisplayingManager {
       _onDisconnectTimer = Timer(Duration(seconds: 10), () {
         shouldShowNowDisplayingOnDisconnect.value = false;
       });
+    } else if (status is NowDisplayingSuccess) {
+      shouldShowNowDisplayingOnDisconnect.value = true;
     }
   }
 
@@ -71,9 +73,8 @@ class NowDisplayingManager {
       if (nowDisplaying == null) {
         return;
       }
-      final nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
-      this.nowDisplayingStatus = nowDisplayingStatus;
-      addStatus(nowDisplayingStatus);
+      nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
+      addStatus(nowDisplayingStatus!);
     } catch (e) {
       addStatus(NowDisplayingError(e));
     }
