@@ -54,7 +54,7 @@ class BluetoothConnectedDeviceConfigState
   final List<FlSpot> _memoryPoints = [];
   final List<FlSpot> _gpuPoints = [];
   Timer? _metricsUpdateTimer;
-  final int _maxDataPoints = 10;
+  final int _maxDataPoints = 20;
 
   // Add temperature metrics tracking
   final List<FlSpot> _cpuTempPoints = [];
@@ -745,7 +745,7 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 16),
 
         // Performance chart
-        if (_cpuPoints.isNotEmpty)
+        if (_cpuPoints.length > 1)
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -763,8 +763,8 @@ class BluetoothConnectedDeviceConfigState
                 gridData: FlGridData(
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: AppColor.feralFileMediumGrey.withOpacity(0.3),
+                    return const FlLine(
+                      color: AppColor.feralFileMediumGrey,
                       strokeWidth: 1,
                     );
                   },
@@ -780,7 +780,7 @@ class BluetoothConnectedDeviceConfigState
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 30,
+                      reservedSize: 40,
                       interval: 25,
                       getTitlesWidget: (value, meta) {
                         return Text(
@@ -802,6 +802,8 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _temperatureMonitoring(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context);
+    final usesFahrenheit = locale.countryCode == 'US';
 
     // Define colors for each metric
     const cpuTempColor = Colors.blue;
@@ -812,6 +814,17 @@ class BluetoothConnectedDeviceConfigState
         _cpuTempPoints.isNotEmpty ? _cpuTempPoints.last.y : null;
     final gpuTempValue =
         _gpuTempPoints.isNotEmpty ? _gpuTempPoints.last.y : null;
+
+    // Convert to Fahrenheit if needed
+    final cpuTempDisplayValue = cpuTempValue != null && usesFahrenheit
+        ? _celsiusToFahrenheit(cpuTempValue)
+        : cpuTempValue;
+    final gpuTempDisplayValue = gpuTempValue != null && usesFahrenheit
+        ? _celsiusToFahrenheit(gpuTempValue)
+        : gpuTempValue;
+
+    // Temperature unit
+    final tempUnit = usesFahrenheit ? '°F' : '°C';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -832,8 +845,10 @@ class BluetoothConnectedDeviceConfigState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _metricDisplay('CPU Temp', cpuTempValue, '°C', cpuTempColor),
-              _metricDisplay('GPU Temp', gpuTempValue, '°C', gpuTempColor),
+              _metricDisplay(
+                  'CPU Temp', cpuTempDisplayValue, tempUnit, cpuTempColor),
+              _metricDisplay(
+                  'GPU Temp', gpuTempDisplayValue, tempUnit, gpuTempColor),
             ],
           ),
         ),
@@ -841,7 +856,7 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 16),
 
         // Temperature chart
-        if (_cpuTempPoints.isNotEmpty)
+        if (_cpuTempPoints.length > 1)
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -851,8 +866,8 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: 40,
-                maxY: 100, // Temperature values typically 0-100°C
+                minY: usesFahrenheit ? 104 : 40, // 40°C = 104°F
+                maxY: usesFahrenheit ? 212 : 100, // 100°C = 212°F
                 minX: _cpuTempPoints.first.x,
                 maxX: _cpuTempPoints.last.x,
                 clipData: const FlClipData.all(),
@@ -867,19 +882,36 @@ class BluetoothConnectedDeviceConfigState
                 ),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
-                  _createLineData(_cpuTempPoints, cpuTempColor, 'CPU Temp'),
-                  _createLineData(_gpuTempPoints, gpuTempColor, 'GPU Temp'),
+                  _createLineData(
+                      usesFahrenheit
+                          ? _cpuTempPoints
+                              .map((spot) =>
+                                  FlSpot(spot.x, _celsiusToFahrenheit(spot.y)))
+                              .toList()
+                          : _cpuTempPoints,
+                      cpuTempColor,
+                      'CPU Temp'),
+                  _createLineData(
+                      usesFahrenheit
+                          ? _gpuTempPoints
+                              .map((spot) =>
+                                  FlSpot(spot.x, _celsiusToFahrenheit(spot.y)))
+                              .toList()
+                          : _gpuTempPoints,
+                      gpuTempColor,
+                      'GPU Temp'),
                 ],
                 titlesData: FlTitlesData(
                   bottomTitles: const AxisTitles(),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 30,
-                      interval: 20,
+                      reservedSize: 40,
+                      interval:
+                          usesFahrenheit ? 36 : 20, // ~20°C = 36°F interval
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          '${value.toInt()}°C',
+                          '${value.toInt()}$tempUnit',
                           style: theme.textTheme.ppMori400White12,
                         );
                       },
@@ -891,19 +923,13 @@ class BluetoothConnectedDeviceConfigState
               ),
             ),
           ),
-
-        // Legend
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _legendItem('CPU Temp', cpuTempColor),
-            const SizedBox(width: 24),
-            _legendItem('GPU Temp', gpuTempColor),
-          ],
-        ),
       ],
     );
+  }
+
+  // Helper method to convert Celsius to Fahrenheit
+  double _celsiusToFahrenheit(double celsius) {
+    return (celsius * 9 / 5) + 32;
   }
 
   Widget _metricDisplay(String label, double? value, String unit, Color color) {
@@ -925,26 +951,6 @@ class BluetoothConnectedDeviceConfigState
     );
   }
 
-  Widget _legendItem(String label, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.ppMori400White12,
-        ),
-      ],
-    );
-  }
-
   LineChartBarData _createLineData(
       List<FlSpot> points, Color color, String label) {
     return LineChartBarData(
@@ -957,7 +963,7 @@ class BluetoothConnectedDeviceConfigState
       isCurved: true,
       belowBarData: BarAreaData(
         show: true,
-        color: color.withOpacity(0.2),
+        color: color.withAlpha(40),
       ),
     );
   }
