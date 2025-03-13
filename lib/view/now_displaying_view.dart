@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -140,7 +141,9 @@ class _NowDisplayingState extends State<NowDisplaying> {
             return _connectFailedView(context, nowDisplayingStatus);
           case ConnectionLostAndReconnecting:
             return _connectionLostAndReconnectingView(
-                context, nowDisplayingStatus);
+              context,
+              nowDisplayingStatus,
+            );
           case GettingNowDisplayingObject:
             return _gettingNowDisplayingObjectView(context);
           case NowDisplayingError:
@@ -507,7 +510,7 @@ class NowDisplayingStatusView extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () => {},
+            onPressed: () => shouldShowNowDisplayingOnDisconnect.value = false,
             icon: SvgPicture.asset(
               'assets/images/closeCycle.svg',
               width: 22,

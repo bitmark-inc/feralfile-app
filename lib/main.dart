@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -37,7 +36,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -265,28 +263,7 @@ class AutonomyApp extends StatelessWidget {
             ],
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
-            builder: (context, child) {
-              return MultiValueListenableBuilder(
-                valueListenables: [
-                  shouldShowNowDisplaying,
-                  shouldShowNowDisplayingOnDisconnect
-                ],
-                child: child,
-                builder: (context, values, c) {
-                  final hasDevice =
-                      injector<FFBluetoothService>().castingBluetoothDevice !=
-                          null;
-                  final value = (values[0] as bool) && (values[1] as bool);
-                  log.info('shouldShowNowDisplaying: $value');
-
-                  if (!value || !hasDevice) {
-                    return c!;
-                  }
-
-                  return AutonomyAppScaffold(child: c!);
-                },
-              );
-            },
+            builder: (context, child) => AutonomyAppScaffold(child: child!),
           );
         },
       );
@@ -316,9 +293,27 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
-      value: 1, // Start visible
+      duration: const Duration(milliseconds: 200),
+      value: 0,
     );
+
+    shouldShowNowDisplaying.addListener(_updateAnimationBasedOnDisplayState);
+    shouldShowNowDisplayingOnDisconnect
+        .addListener(_updateAnimationBasedOnDisplayState);
+  }
+
+  void _updateAnimationBasedOnDisplayState() {
+    final hasDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice != null;
+    final shouldShow = shouldShowNowDisplaying.value &&
+        shouldShowNowDisplayingOnDisconnect.value;
+    if (shouldShow && hasDevice) {
+      _animationController.forward();
+      setState(() => _isVisible = true);
+    } else {
+      _animationController.reverse();
+      setState(() => _isVisible = false);
+    }
   }
 
   void _handleScrollUpdate(ScrollNotification notification) {
@@ -341,6 +336,9 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
   @override
   void dispose() {
+    shouldShowNowDisplaying.removeListener(_updateAnimationBasedOnDisplayState);
+    shouldShowNowDisplayingOnDisconnect
+        .removeListener(_updateAnimationBasedOnDisplayState);
     _animationController.dispose();
     super.dispose();
   }
@@ -349,7 +347,6 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
-      appBar: getDarkEmptyAppBar(),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           _handleScrollUpdate(notification);
