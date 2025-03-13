@@ -468,7 +468,16 @@ class DailyWorkPageState extends State<DailyWorkPage>
               },
             ),
           ),
-          const SizedBox(height: 100 + kNowDisplayingHeight - 16),
+          ValueListenableBuilder<bool>(
+            valueListenable: shouldShowNowDisplayingOnDisconnect,
+            builder: (context, shouldShow, _) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: shouldShow ? 100 + kNowDisplayingHeight - 16 : 100,
+              );
+            },
+          ),
         ],
       );
 
