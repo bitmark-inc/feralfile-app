@@ -791,7 +791,72 @@ class BluetoothConnectedDeviceConfigState
                     ),
                   ),
                   rightTitles: const AxisTitles(),
-                  topTitles: const AxisTitles(),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(
+                    reservedSize: 30,
+                  )),
+                ),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchCallback:
+                      (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                    if (event is FlTapDownEvent) {
+                      HapticFeedback.lightImpact();
+                    }
+                  },
+                  touchTooltipData: LineTouchTooltipData(
+                    tooltipRoundedRadius: 8,
+                    tooltipPadding: const EdgeInsets.all(12),
+                    tooltipMargin: 8,
+                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                      // Sort spots by barIndex to ensure consistent order
+                      final sortedSpots =
+                          List<LineBarSpot>.from(touchedBarSpots)
+                            ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+
+                      // Get timestamp from the first spot (all spots have the same timestamp)
+                      final timestamp = sortedSpots.isNotEmpty
+                          ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
+                          : '';
+
+                      return sortedSpots.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final barSpot = entry.value;
+
+                        final metric = barSpot.barIndex == 0
+                            ? 'CPU'
+                            : barSpot.barIndex == 1
+                                ? 'Memory'
+                                : 'GPU';
+                        final color = barSpot.barIndex == 0
+                            ? cpuColor
+                            : barSpot.barIndex == 1
+                                ? memoryColor
+                                : gpuColor;
+
+                        return LineTooltipItem(
+                          '$metric: ${barSpot.y.toStringAsFixed(1)}%',
+                          TextStyle(
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                          children: index == sortedSpots.length - 1
+                              ? [
+                                  TextSpan(
+                                    text: timestamp,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ]
+                              : null,
+                        );
+                      }).toList();
+                    },
+                  ),
                 ),
               ),
             ),
@@ -920,6 +985,65 @@ class BluetoothConnectedDeviceConfigState
                   rightTitles: const AxisTitles(),
                   topTitles: const AxisTitles(),
                 ),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchCallback:
+                      (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                    if (event is FlTapDownEvent) {
+                      HapticFeedback.lightImpact();
+                    }
+                  },
+                  touchTooltipData: LineTouchTooltipData(
+                    tooltipRoundedRadius: 8,
+                    tooltipPadding: const EdgeInsets.all(12),
+                    tooltipMargin: 8,
+                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                      // Sort spots by barIndex to ensure consistent order
+                      final sortedSpots =
+                          List<LineBarSpot>.from(touchedBarSpots)
+                            ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+
+                      // Get timestamp from the first spot (all spots have the same timestamp)
+                      final timestamp = sortedSpots.isNotEmpty
+                          ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
+                          : '';
+
+                      return sortedSpots.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final barSpot = entry.value;
+
+                        final metric =
+                            barSpot.barIndex == 0 ? 'CPU Temp' : 'GPU Temp';
+                        final color =
+                            barSpot.barIndex == 0 ? cpuTempColor : gpuTempColor;
+                        final value = usesFahrenheit
+                            ? _celsiusToFahrenheit(barSpot.y)
+                            : barSpot.y;
+
+                        return LineTooltipItem(
+                          '$metric: ${value.toStringAsFixed(1)}$tempUnit',
+                          TextStyle(
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                          children: index == sortedSpots.length - 1
+                              ? [
+                                  TextSpan(
+                                    text: timestamp,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ]
+                              : null,
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
               ),
             ),
           ),
@@ -941,7 +1065,7 @@ class BluetoothConnectedDeviceConfigState
         ),
         const SizedBox(height: 4),
         Text(
-          '${value?.toStringAsFixed(1) ?? 'N/A'}$unit',
+          '${value?.toStringAsFixed(1) ?? '--'} $unit',
           style: Theme.of(context).textTheme.ppMori400White14.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,
@@ -966,5 +1090,11 @@ class BluetoothConnectedDeviceConfigState
         color: color.withAlpha(40),
       ),
     );
+  }
+
+  // Helper method to format timestamp for tooltip display
+  String _formatTimestamp(double timestamp) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
   }
 }
