@@ -138,6 +138,7 @@ dependencies:
   wifi_info_flutter: ^2.0.2
   timezone: ^0.10.0
   multi_value_listenable_builder: ^0.0.2
+  flutter_timezone: ^4.1.0
 
 dev_dependencies:
   bloc_test: ^9.1.7

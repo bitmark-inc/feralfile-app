@@ -22,10 +22,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
   const BluetoothConnectedDeviceConfig({super.key, required this.device});
@@ -346,7 +345,8 @@ class BluetoothConnectedDeviceConfigState
           onTap: () {
             injector<NavigationService>().navigateTo(
                 AppRouter.scanWifiNetworkPage,
-                arguments: onWifiSelected);
+                arguments: ScanWifiNetworkPagePayload(
+                    widget.device.toFFBluetoothDevice(), onWifiSelected));
           },
         ),
       ],

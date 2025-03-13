@@ -7,7 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -122,7 +122,9 @@ class _NowDisplayingState extends State<NowDisplaying> {
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {},
       builder: (context, state) {
-        final device = injector<FFBluetoothService>().castingBluetoothDevice!;
+        if (!injector<AuthService>().isBetaTester()) {
+          return const SizedBox();
+        }
         final nowDisplayingStatus =
             // this.nowDisplayingStatus;
             // ConnectingToDevice(device);

@@ -312,6 +312,13 @@ class CanvasClientServiceV2 {
     return response.version;
   }
 
+  Future<Map<String, bool>> scanWifi(BaseDevice device) async {
+    final stub = _getStub(device);
+    final request = ScanWifiRequest(timeout: 1);
+    final response = await stub.scanWifi(request);
+    return response.result;
+  }
+
   Future<void> updateOrientation(
     BaseDevice device,
     ScreenOrientation orientation,

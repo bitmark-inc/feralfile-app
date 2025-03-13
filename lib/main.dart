@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -279,7 +280,9 @@ class AutonomyApp extends StatelessWidget {
                   final value = (values[0] as bool) && (values[1] as bool);
                   log.info('shouldShowNowDisplaying: $value');
 
-                  if (!value || !hasDevice) {
+                  if (!value ||
+                      !hasDevice ||
+                      !injector<AuthService>().isBetaTester()) {
                     return c!;
                   }
                   return Scaffold(

@@ -294,12 +294,19 @@ class FFBluetoothService {
   }
 
   Future<void> setTimezone(BluetoothDevice device) async {
-    final timezone = TimezoneHelper.getTimeZone();
+    final timezone = await TimezoneHelper.getTimeZone();
     await injector<CanvasClientServiceV2>()
         .setTimezone(device.toFFBluetoothDevice(), timezone);
   }
 
-  Future<void> sendWifiCredentials({
+  Future<void> scanWifi({
+    required BluetoothDevice device,
+    required Duration timeout,
+    required FutureOr<void> Function(Map<String, bool>) onResultScan,
+    FutureOr<bool> Function(Map<String, bool>)? shouldStopScan,
+  }) async {}
+
+  Future<bool> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
     required String password,
@@ -314,7 +321,7 @@ class FFBluetoothService {
     // Check if the wifi connect characteristic is available
     if (wifiConnectChar == null) {
       log.warning('Wi-Fi connect characteristic not found');
-      return;
+      throw Exception('Wi-Fi connect characteristic not found');
     }
     try {
       await setTimezone(device);
@@ -342,6 +349,17 @@ class FFBluetoothService {
     // Write the data to the characteristic
     final bytes = builder.takeBytes();
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
+
+    final _sendWifiCompleter = Completer<bool>();
+
+    BluetoothNotificationService().subscribe(wifiConnectionTopic, (data) {
+      log.info('[sendWifiCredentials] Received data: $data');
+      final success = data['success'] as bool;
+      _sendWifiCompleter.complete(success);
+      BluetoothNotificationService()
+          .unsubscribe(wifiConnectionTopic, (data) {});
+    });
+
     log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
     try {
       await wifiConnectChar.write(bytes, withoutResponse: false);
@@ -350,7 +368,15 @@ class FFBluetoothService {
       unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
+    final isSuccess = await _sendWifiCompleter.future
+        .timeout(const Duration(seconds: 30), onTimeout: () {
+      log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
+      unawaited(Sentry.captureMessage('Timeout waiting for Wi-Fi connection'));
+      throw TimeoutException('Timeout waiting for Wi-Fi connection');
+    });
+
     unawaited(fetchBluetoothDeviceStatus(device));
+    return isSuccess;
   }
 
   // completer for connectToDevice
@@ -804,12 +830,8 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
         chunkCompleters[chunkIndex].complete();
       }
       if (chunkCompleters.every((completer) => completer.isCompleted)) {
-        _cleanupSubscriptions(ackReplyId);
+        BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
       }
     });
-  }
-
-  void _cleanupSubscriptions(String ackReplyId) {
-    BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
   }
 }
