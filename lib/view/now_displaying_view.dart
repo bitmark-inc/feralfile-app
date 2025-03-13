@@ -179,7 +179,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectFailed).device;
     return NowDisplayingStatusView(
-      status: 'Failed to connect to ${device.advName}',
+      status: 'Unable to connect to ${device.advName}. Check connection.',
     );
   }
 
@@ -187,7 +187,8 @@ class _NowDisplayingState extends State<NowDisplaying> {
       BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectionLostAndReconnecting).device;
     return NowDisplayingStatusView(
-      status: 'Connection lost to ${device.advName}, reconnecting...',
+      status:
+          'Connection to Portal ${device.advName} lost, Attempting to reconnect...',
     );
   }
 
