@@ -306,6 +306,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   bool _isVisible = true;
   double _lastScrollPosition = 0;
 
+  // 40: padding bottom of app bar
+  // 45: height of app bar
+  // 10: space between app bar and now displaying
+  static const double kStatusBarMarginBottom = 40 + 45 + 10;
+
   @override
   void initState() {
     super.initState();
@@ -321,13 +326,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
       final currentScroll = notification.metrics.pixels;
       final scrollDelta = currentScroll - _lastScrollPosition;
 
-      // Determine scroll direction and update visibility
       if (scrollDelta > 10 && _isVisible) {
-        // Scrolling down - hide the widget
         _animationController.reverse();
         setState(() => _isVisible = false);
       } else if (scrollDelta < -10 && !_isVisible) {
-        // Scrolling up - show the widget
         _animationController.forward();
         setState(() => _isVisible = true);
       }
@@ -358,7 +360,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
             children: [
               widget.child,
               Positioned(
-                bottom: 40 + 45 + 10,
+                bottom: kStatusBarMarginBottom,
                 left: 10,
                 right: 10,
                 child: FadeTransition(
@@ -367,8 +369,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                     position: Tween<Offset>(
                       begin: const Offset(
                         0,
-                        (40 + 45 + 10) / 60,
-                      ), // Slide from bottom
+                        kStatusBarMarginBottom / kNowDisplayingHeight,
+                      ),
                       end: Offset.zero,
                     ).animate(
                       CurvedAnimation(

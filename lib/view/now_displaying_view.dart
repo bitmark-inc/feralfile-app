@@ -21,6 +21,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 
+const double kNowDisplayingHeight = 60;
+
 abstract class NowDisplayingStatus {}
 
 // Connect to device
@@ -440,7 +442,10 @@ class NowDisplayingView extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
-      constraints: const BoxConstraints(maxHeight: 60, minHeight: 60),
+      constraints: const BoxConstraints(
+        maxHeight: kNowDisplayingHeight,
+        minHeight: kNowDisplayingHeight,
+      ),
       decoration: BoxDecoration(
         color: AppColor.feralFileLightBlue,
         borderRadius: BorderRadius.circular(5),
@@ -482,7 +487,10 @@ class NowDisplayingStatusView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 10),
-      constraints: const BoxConstraints(maxHeight: 60, minHeight: 60),
+      constraints: const BoxConstraints(
+        maxHeight: kNowDisplayingHeight,
+        minHeight: kNowDisplayingHeight,
+      ),
       decoration: BoxDecoration(
         color: AppColor.auLightGrey,
         borderRadius: BorderRadius.circular(5),
