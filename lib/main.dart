@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -307,7 +308,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         injector<FFBluetoothService>().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value;
-    if (shouldShow && hasDevice) {
+    final isBetaTester = injector<AuthService>().isBetaTester();
+    if (shouldShow && hasDevice && isBetaTester) {
       _animationController.forward();
       setState(() => _isVisible = true);
     } else {
