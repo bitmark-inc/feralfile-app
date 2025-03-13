@@ -54,8 +54,7 @@ class BluetoothConnectedDeviceConfigState
   final List<FlSpot> _memoryPoints = [];
   final List<FlSpot> _gpuPoints = [];
   Timer? _metricsUpdateTimer;
-  double _xValue = 0;
-  final int _maxDataPoints = 100;
+  final int _maxDataPoints = 10;
 
   // Add temperature metrics tracking
   final List<FlSpot> _cpuTempPoints = [];
@@ -681,13 +680,17 @@ class BluetoothConnectedDeviceConfigState
 
     setState(() {
       // Add new performance data points
-      _cpuPoints.add(FlSpot(_xValue, metrics.cpuUsage));
-      _memoryPoints.add(FlSpot(_xValue, metrics.memoryUsage));
-      _gpuPoints.add(FlSpot(_xValue, metrics.gpuUsage / 10));
+      _cpuPoints.add(FlSpot(metrics.timestamp.toDouble(), metrics.cpuUsage));
+      _memoryPoints
+          .add(FlSpot(metrics.timestamp.toDouble(), metrics.memoryUsage));
+      _gpuPoints
+          .add(FlSpot(metrics.timestamp.toDouble(), metrics.gpuUsage / 10));
 
       // Add new temperature data points
-      _cpuTempPoints.add(FlSpot(_xValue, metrics.cpuTemperature));
-      _gpuTempPoints.add(FlSpot(_xValue, metrics.gpuTemperature));
+      _cpuTempPoints
+          .add(FlSpot(metrics.timestamp.toDouble(), metrics.cpuTemperature));
+      _gpuTempPoints
+          .add(FlSpot(metrics.timestamp.toDouble(), metrics.gpuTemperature));
 
       // Remove old points if we exceed the limit
       while (_cpuPoints.length > _maxDataPoints) {
@@ -697,8 +700,6 @@ class BluetoothConnectedDeviceConfigState
         _cpuTempPoints.removeAt(0);
         _gpuTempPoints.removeAt(0);
       }
-
-      _xValue += 1;
     });
   }
 
@@ -706,14 +707,14 @@ class BluetoothConnectedDeviceConfigState
     final theme = Theme.of(context);
 
     // Define colors for each metric
-    final cpuColor = Colors.blue;
-    final memoryColor = Colors.green;
-    final gpuColor = Colors.red;
+    const cpuColor = Colors.blue;
+    const memoryColor = Colors.green;
+    const gpuColor = Colors.red;
 
     // Get the latest values from the points arrays
-    final cpuValue = _cpuPoints.isNotEmpty ? _cpuPoints.last.y : 0.0;
-    final memoryValue = _memoryPoints.isNotEmpty ? _memoryPoints.last.y : 0.0;
-    final gpuValue = _gpuPoints.isNotEmpty ? _gpuPoints.last.y : 0.0;
+    final cpuValue = _cpuPoints.isNotEmpty ? _cpuPoints.last.y : null;
+    final memoryValue = _memoryPoints.isNotEmpty ? _memoryPoints.last.y : null;
+    final gpuValue = _gpuPoints.isNotEmpty ? _gpuPoints.last.y : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -758,15 +759,9 @@ class BluetoothConnectedDeviceConfigState
                 maxY: 100, // Percentage values 0-100
                 minX: _cpuPoints.first.x,
                 maxX: _cpuPoints.last.x,
-                lineTouchData: LineTouchData(
-                  enabled: true,
-                  touchTooltipData: LineTouchTooltipData(),
-                ),
                 clipData: const FlClipData.all(),
                 gridData: FlGridData(
-                  show: true,
                   drawVerticalLine: false,
-                  horizontalInterval: 25,
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
                       color: AppColor.feralFileMediumGrey.withOpacity(0.3),
@@ -781,9 +776,7 @@ class BluetoothConnectedDeviceConfigState
                   _createLineData(_gpuPoints, gpuColor, 'GPU'),
                 ],
                 titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  bottomTitles: const AxisTitles(),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -797,12 +790,8 @@ class BluetoothConnectedDeviceConfigState
                       },
                     ),
                   ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  rightTitles: const AxisTitles(),
+                  topTitles: const AxisTitles(),
                 ),
               ),
             ),
@@ -815,14 +804,14 @@ class BluetoothConnectedDeviceConfigState
     final theme = Theme.of(context);
 
     // Define colors for each metric
-    final cpuTempColor = Colors.orange;
-    final gpuTempColor = Colors.purple;
+    const cpuTempColor = Colors.blue;
+    const gpuTempColor = Colors.red;
 
     // Get the latest values from the points arrays
     final cpuTempValue =
-        _cpuTempPoints.isNotEmpty ? _cpuTempPoints.last.y : 0.0;
+        _cpuTempPoints.isNotEmpty ? _cpuTempPoints.last.y : null;
     final gpuTempValue =
-        _gpuTempPoints.isNotEmpty ? _gpuTempPoints.last.y : 0.0;
+        _gpuTempPoints.isNotEmpty ? _gpuTempPoints.last.y : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -862,22 +851,16 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: 0,
+                minY: 40,
                 maxY: 100, // Temperature values typically 0-100°C
                 minX: _cpuTempPoints.first.x,
                 maxX: _cpuTempPoints.last.x,
-                lineTouchData: LineTouchData(
-                  enabled: true,
-                  touchTooltipData: LineTouchTooltipData(),
-                ),
                 clipData: const FlClipData.all(),
                 gridData: FlGridData(
-                  show: true,
                   drawVerticalLine: false,
-                  horizontalInterval: 20,
                   getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: AppColor.feralFileMediumGrey.withOpacity(0.3),
+                    return const FlLine(
+                      color: AppColor.feralFileMediumGrey,
                       strokeWidth: 1,
                     );
                   },
@@ -888,9 +871,7 @@ class BluetoothConnectedDeviceConfigState
                   _createLineData(_gpuTempPoints, gpuTempColor, 'GPU Temp'),
                 ],
                 titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  bottomTitles: const AxisTitles(),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -904,12 +885,8 @@ class BluetoothConnectedDeviceConfigState
                       },
                     ),
                   ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  rightTitles: const AxisTitles(),
+                  topTitles: const AxisTitles(),
                 ),
               ),
             ),
@@ -929,7 +906,7 @@ class BluetoothConnectedDeviceConfigState
     );
   }
 
-  Widget _metricDisplay(String label, double value, String unit, Color color) {
+  Widget _metricDisplay(String label, double? value, String unit, Color color) {
     return Column(
       children: [
         Text(
@@ -938,7 +915,7 @@ class BluetoothConnectedDeviceConfigState
         ),
         const SizedBox(height: 4),
         Text(
-          '${value.toStringAsFixed(1)}$unit',
+          '${value?.toStringAsFixed(1) ?? 'N/A'}$unit',
           style: Theme.of(context).textTheme.ppMori400White14.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,
