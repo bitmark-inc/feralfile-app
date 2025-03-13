@@ -39,6 +39,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
 
   final TextEditingController _ssidController = TextEditingController();
   bool _shouldEnableConnectButton = false;
+  bool _isScanning = false;
 
   @override
   void initState() {
@@ -49,6 +50,9 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   Future<void> _startScan() async {
     final device = widget.payload.device;
     const timeout = Duration(seconds: 15);
+    setState(() {
+      _isScanning = true;
+    });
     // check platform support and necessary requirements
     await WifiHelper.scanWifiNetwork(
       device: device,
@@ -62,6 +66,11 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
         }
       },
     );
+    if (mounted) {
+      setState(() {
+        _isScanning = false;
+      });
+    }
   }
 
   List<WifiPoint> _filterUniqueSSIDs(List<WifiPoint> scanResults) {
@@ -120,7 +129,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                     ],
                   ),
                 ),
-              ] else if (_accessPoints.isEmpty)
+              ] else if (_accessPoints.isEmpty && !_isScanning)
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,10 +195,20 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                     ],
                   ),
                 )
-              else
+              else ...[
+                if (_isScanning) ...[
+                  SliverToBoxAdapter(
+                    child: Text(
+                      'Scanning for wifi networks...',
+                      style: Theme.of(context).textTheme.ppMori400White14,
+                    ),
+                  ),
+                  const SizedBox(height: 24)
+                ],
                 ..._accessPoints.map(
                   (e) => SliverToBoxAdapter(child: itemBuilder(context, e)),
                 ),
+              ]
             ],
           ),
         ),

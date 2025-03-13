@@ -266,7 +266,7 @@ class FFBluetoothService {
           Sentry.captureMessage(
             '[sendCommand] Timeout waiting for reply: $replyId',
           );
-          throw TimeoutException('Timeout waiting for reply $replyId');
+          throw TimeoutException('Timeout  waiting for reply $replyId');
         },
       );
       if (displayingCommand

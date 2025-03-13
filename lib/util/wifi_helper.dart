@@ -14,8 +14,12 @@ class WifiHelper {
     final delay = Duration(seconds: 2);
     while (DateTime.now().difference(startTime) < timeout) {
       await Future.delayed(delay);
-      final result = await injector<CanvasClientServiceV2>().scanWifi(device);
-      onResultScan.call(result);
+      try {
+        final result = await injector<CanvasClientServiceV2>().scanWifi(device);
+        onResultScan.call(result);
+      } catch (e) {
+        print('Error scanning Wi-Fi: $e');
+      }
     }
   }
 }
