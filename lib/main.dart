@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -348,48 +347,43 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.primaryBlack,
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          _handleScrollUpdate(notification);
-          return false; // Allow the notification to continue to be dispatched
-        },
-        child: SafeArea(
-          child: Stack(
-            children: [
-              widget.child,
-              Positioned(
-                bottom: kStatusBarMarginBottom,
-                left: 10,
-                right: 10,
-                child: FadeTransition(
-                  opacity: _animationController,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(
-                        0,
-                        kStatusBarMarginBottom / kNowDisplayingHeight,
-                      ),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _animationController,
-                        curve: Curves.easeInOut,
-                      ),
-                    ),
-                    child: IgnorePointer(
-                      ignoring: !_isVisible,
-                      child: NowDisplaying(
-                        key: GlobalKey(),
-                      ),
-                    ),
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        _handleScrollUpdate(notification);
+        return false; // Allow the notification to continue to be dispatched
+      },
+      child: Stack(
+        children: [
+          widget.child,
+          Positioned(
+            bottom: kStatusBarMarginBottom,
+            left: 10,
+            right: 10,
+            child: FadeTransition(
+              opacity: _animationController,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(
+                    0,
+                    kStatusBarMarginBottom / kNowDisplayingHeight,
+                  ),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: _animationController,
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+                child: IgnorePointer(
+                  ignoring: !_isVisible,
+                  child: NowDisplaying(
+                    key: GlobalKey(),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
