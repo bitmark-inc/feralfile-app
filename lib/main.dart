@@ -317,6 +317,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 
   void _handleScrollUpdate(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return;
+    }
+
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value;
     if (shouldShow && notification is ScrollUpdateNotification) {
