@@ -72,6 +72,14 @@ abstract class TvCastService {
   Future<GestureReply> tap(TapGestureRequest request);
 
   Future<GestureReply> drag(DragGestureRequest request);
+
+  Future<EnableMetricsStreamingReply> enableMetricsStreaming(
+    EnableMetricsStreamingRequest request,
+  );
+
+  Future<DisableMetricsStreamingReply> disableMetricsStreaming(
+    DisableMetricsStreamingRequest request,
+  );
 }
 
 abstract class BaseTvCastService implements TvCastService {
@@ -248,6 +256,50 @@ abstract class BaseTvCastService implements TvCastService {
   Future<GestureReply> drag(DragGestureRequest request) async {
     final result = await _sendData(_getBody(request));
     return GestureReply.fromJson(result);
+  }
+
+  @override
+  Future<EnableMetricsStreamingReply> enableMetricsStreaming(
+    EnableMetricsStreamingRequest request,
+  ) async {
+    try {
+      final result = await _sendData(_getBody(request));
+      log.info('Enabling metrics streaming');
+
+      // Start monitoring system metrics if it's a Bluetooth device
+      if (this is BluetoothCastService) {
+        final bluetoothDevice = (this as BluetoothCastService)._device;
+        await injector<FFBluetoothService>()
+            .startSystemMetricsMonitoring(bluetoothDevice);
+      }
+
+      return EnableMetricsStreamingReply.fromJson(result);
+    } catch (e) {
+      log.warning('Failed to enable metrics streaming: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DisableMetricsStreamingReply> disableMetricsStreaming(
+    DisableMetricsStreamingRequest request,
+  ) async {
+    try {
+      final result = await _sendData(_getBody(request));
+      log.info('Disabling metrics streaming');
+
+      // Stop monitoring system metrics if it's a Bluetooth device
+      if (this is BluetoothCastService) {
+        final bluetoothDevice = (this as BluetoothCastService)._device;
+        await injector<FFBluetoothService>()
+            .stopSystemMetricsMonitoring(bluetoothDevice);
+      }
+
+      return DisableMetricsStreamingReply.fromJson(result);
+    } catch (e) {
+      log.warning('Failed to disable metrics streaming: $e');
+      rethrow;
+    }
   }
 }
 
