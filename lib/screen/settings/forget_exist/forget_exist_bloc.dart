@@ -8,10 +8,12 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -25,7 +27,6 @@ import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:nft_collection/database/nft_collection_database.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;
@@ -66,6 +67,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       unawaited(injector<CloudManager>().deleteAll());
       injector<CloudManager>().clearCache();
       await injector<HiveStoreObjectService<CanvasDevice>>().clear();
+      await ObjectBox.removeAll();
       await injector<AnnouncementStore>().clear();
       injector<CanvasDeviceBloc>().clear();
       injector<IAPService>().clearReceipt();

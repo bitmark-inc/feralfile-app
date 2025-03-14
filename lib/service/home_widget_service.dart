@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
@@ -11,8 +12,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
   HomeWidgetService() {
@@ -26,6 +27,22 @@ class HomeWidgetService {
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
+  }
+
+  Future<bool> isWidgetAdded() async {
+    try {
+      final installedWidget = await HomeWidget.getInstalledWidgets();
+      return installedWidget.any((widget) {
+        if (Platform.isAndroid)
+          return widget.androidClassName?.contains(androidWidgetName) ?? false;
+        if (Platform.isIOS)
+          return widget.iOSKind?.contains(iosWidgetName) ?? false;
+        return false;
+      });
+    } catch (e) {
+      log.info('Error in isWidgetAdded: $e');
+      return false;
+    }
   }
 
   Future<void> updateWidget(
@@ -70,7 +87,10 @@ class HomeWidgetService {
           .values
           .toList();
 
+      log.info('Filtered dailies: ${filteredDailies.length}');
+
       await _updateDailyTokensToHomeWidget(filteredDailies);
+      log.info('Updated daily tokens to home widget');
     } catch (e) {
       log.info('Error in updateDailyTokensToHomeWidget: $e');
     }
@@ -84,6 +104,8 @@ class HomeWidgetService {
       final data = await _formatDailyTokenData(dailyToken);
       if (data != null) {
         combinedData.addAll(data);
+      } else {
+        log.info('No data found for daily token: ${dailyToken.indexId}');
       }
     }
 
@@ -96,9 +118,12 @@ class HomeWidgetService {
   Future<Map<String, String>?> _formatDailyTokenData(
       DailyToken dailyToken) async {
     try {
-      final assetTokens = await injector<IndexerService>()
-          .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
+      final assetTokens = await injector<IndexerService>().getNftTokens(
+          QueryListTokensRequest(
+              ids: [dailyToken.indexId], burnedIncluded: true));
       if (assetTokens.isEmpty) {
+        log.info(
+            'No asset tokens found for daily token: ${dailyToken.indexId}');
         return null;
       }
 

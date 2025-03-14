@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class EditPlaylistGridView extends StatefulWidget {

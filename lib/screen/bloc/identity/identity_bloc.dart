@@ -8,9 +8,9 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/model/identity.dart';
-import 'package:nft_collection/graphql/model/identity.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/identity.dart';
 import 'package:objectbox/objectbox.dart';
-import 'package:nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
 
 part 'identity_state.dart';

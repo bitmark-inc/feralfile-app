@@ -12,10 +12,10 @@ class GestureConstrainWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(
-        minHeight: 48,
-        minWidth: 48,
+        minHeight: 44,
+        minWidth: 44,
       ),
-      child: child,
+      child: Center(child: child),
     );
   }
 }

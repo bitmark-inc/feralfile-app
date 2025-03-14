@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
@@ -26,6 +27,7 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -50,7 +52,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class HomeNavigationPagePayload {
@@ -147,9 +148,23 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       setState(() {
         _selectedIndex = index;
       });
+      final isWidgetAdded = await injector<HomeWidgetService>()
+          .isWidgetAdded()
+          .timeout(const Duration(seconds: 10), onTimeout: () => false);
       await UIHelper.showCenterMenu(
         context,
+        routeSettings: const RouteSettings(name: UIHelper.homeMenu),
         options: [
+          if (!isWidgetAdded)
+            OptionItem(
+              title: 'Install Feral File Widget',
+              icon: const Icon(
+                AuIcon.add,
+              ),
+              onTap: () {
+                injector<NavigationService>().showHowToInstallDailyWidget();
+              },
+            ),
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
@@ -219,9 +234,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     super.initState();
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
+    injector<FFBluetoothService>().init();
 
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (!_configurationService.didShowLiveWithArt()) {
+        log.info('Show live with art intro');
         if (!mounted) {
           return;
         }
@@ -554,6 +571,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
 
+    final device = injector<FFBluetoothService>().castingBluetoothDevice;
+    if (device != null) {
+      unawaited(injector<FFBluetoothService>().connectToDevice(device));
+    }
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     _triggerShowAnnouncement();
   }

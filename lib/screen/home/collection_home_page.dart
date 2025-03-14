@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -37,8 +39,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/nft_collection.dart';
 
 class CollectionHomePage extends StatefulWidget {
   const CollectionHomePage({super.key});
@@ -174,54 +174,71 @@ class CollectionHomePageState extends State<CollectionHomePage>
         }
       },
     );
-
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-        appBar: getFFAppBar(
-          context,
-          onBack: () {
-            Navigator.pop(context);
-          },
-          title: TitleText(
-            title: 'all'.tr(),
-            ellipsis: false,
-            isCentered: true,
-            fontSize: 14,
-          ),
-          action: FFCastButton(
-            displayKey: _getDisplayKey(),
-            onDeviceSelected: (device) {
-              log.info('Device selected: ${device.name}');
-              final listTokenIds = _updateTokens(nftBloc.state.tokens.items)
-                  .map((e) => e.id)
-                  .toList();
-              if (listTokenIds.isEmpty) {
-                log.info('playList is empty');
-                return;
-              }
-              final duration = speedValues.values.first.inMilliseconds;
-              final listPlayArtwork = listTokenIds
-                  .map(
-                    (e) => PlayArtworkV2(
-                      token: CastAssetToken(id: e),
-                      duration: duration,
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: AppColor.primaryBlack,
+      appBar: getDarkEmptyAppBar(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // const NowDisplaying(),
+            Expanded(
+              child: PrimaryScrollController(
+                controller: _controller,
+                child: Scaffold(
+                  appBar: getFFAppBar(
+                    context,
+                    onBack: () {
+                      Navigator.pop(context);
+                    },
+                    title: TitleText(
+                      title: 'all'.tr(),
+                      ellipsis: false,
+                      isCentered: true,
+                      fontSize: 14,
                     ),
-                  )
-                  .toList();
-              _canvasDeviceBloc.add(
-                CanvasDeviceChangeControlDeviceEvent(
-                  device,
-                  listPlayArtwork,
+                    action: FFCastButton(
+                      displayKey: _getDisplayKey(),
+                      onDeviceSelected: (device) async {
+                        log.info('Device selected: ${device.name}');
+                        final listTokenIds =
+                            _updateTokens(nftBloc.state.tokens.items)
+                                .map((e) => e.id)
+                                .toList();
+                        if (listTokenIds.isEmpty) {
+                          log.info('playList is empty');
+                          return;
+                        }
+                        final duration =
+                            speedValues.values.first.inMilliseconds;
+                        final listPlayArtwork = listTokenIds
+                            .map(
+                              (e) => PlayArtworkV2(
+                                token: CastAssetToken(id: e),
+                                duration: duration,
+                              ),
+                            )
+                            .toList();
+                        final completer = Completer<void>();
+                        _canvasDeviceBloc.add(
+                          CanvasDeviceCastListArtworkEvent(
+                            device,
+                            listPlayArtwork,
+                            onDone: completer.complete,
+                          ),
+                        );
+                        await completer.future;
+                      },
+                    ),
+                  ),
+                  // extendBodyBehindAppBar: true,
+                  backgroundColor: AppColor.primaryBlack,
+                  body: contentWidget,
                 ),
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         ),
-        extendBody: true,
-        // extendBodyBehindAppBar: true,
-        backgroundColor: AppColor.primaryBlack,
-        body: contentWidget,
       ),
     );
   }

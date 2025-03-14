@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -30,13 +29,6 @@ final speedValues = {
 };
 
 class StreamDrawerItem extends StatelessWidget {
-  final OptionItem item;
-  final Color backgroundColor;
-  final Function()? onRotateClicked;
-  final bool isControlling;
-
-  static const double rotateIconSize = 22;
-
   const StreamDrawerItem({
     required this.item,
     required this.backgroundColor,
@@ -44,6 +36,13 @@ class StreamDrawerItem extends StatelessWidget {
     super.key,
     this.onRotateClicked,
   });
+
+  final OptionItem item;
+  final Color backgroundColor;
+  final Function()? onRotateClicked;
+  final bool isControlling;
+
+  static const double rotateIconSize = 22;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -72,9 +71,27 @@ class StreamDrawerItem extends StatelessWidget {
                       vertical: 12,
                     ),
                     child: Center(
-                      child: Text(
-                        item.title ?? '',
-                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                textAlign: TextAlign.center,
+                                item.title ?? '',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400Black14,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (item.icon != null) ...[
+                              const SizedBox(width: 10),
+                              item.icon!,
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -114,9 +131,12 @@ class StreamDrawerItem extends StatelessWidget {
 }
 
 class PlaylistControl extends StatefulWidget {
-  final String displayKey;
+  const PlaylistControl(
+      {required this.displayKey, super.key, this.viewingArtworkBuilder});
 
-  const PlaylistControl({required this.displayKey, super.key});
+  final String displayKey;
+  final Widget Function(BuildContext context, CanvasDeviceState state)?
+      viewingArtworkBuilder;
 
   @override
   State<PlaylistControl> createState() => _PlaylistControlState();
@@ -125,7 +145,7 @@ class PlaylistControl extends StatefulWidget {
 class _PlaylistControlState extends State<PlaylistControl> {
   Timer? _timer;
   late CanvasDeviceBloc _canvasDeviceBloc;
-  CanvasDevice? _controllingDevice;
+  BaseDevice? _controllingDevice;
 
   @override
   void initState() {
@@ -154,6 +174,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
               ),
               child: Column(
                 children: [
+                  if (widget.viewingArtworkBuilder != null) ...[
+                    widget.viewingArtworkBuilder!.call(context, state),
+                    const SizedBox(height: 15),
+                  ],
                   _buildPlayControls(context, state),
                   const SizedBox(height: 15),
                   _buildSpeedControl(context, state),
@@ -188,11 +212,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
       );
 
   Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
-    final isPlaying = state.devices
-            .firstWhereOrNull(
-                (e) => e.device.deviceId == _controllingDevice?.deviceId)
-            ?.isPlaying ??
-        false;
+    final isPlaying =
+        !(state.canvasDeviceStatus[_controllingDevice?.deviceId]?.isPaused ??
+            false);
+    false;
     return Row(
       children: [
         _buildPlayButton(
@@ -272,11 +295,9 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   void onPauseOrResume(BuildContext context) {
     // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    final isPlaying = _canvasDeviceBloc.state.devices
-            .firstWhereOrNull(
-                (e) => e.device.deviceId == _controllingDevice?.deviceId)
-            ?.isPlaying ??
-        false;
+    final isPlaying = !(_canvasDeviceBloc
+            .state.canvasDeviceStatus[_controllingDevice?.deviceId]?.isPaused ??
+        false);
     if (isPlaying) {
       onPause(context);
     } else {
@@ -286,11 +307,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
 }
 
 class ArtworkDurationControl extends StatefulWidget {
-  final Duration? duration;
-  final String displayKey;
-
   const ArtworkDurationControl(
       {required this.displayKey, super.key, this.duration});
+
+  final Duration? duration;
+  final String displayKey;
 
   @override
   State<ArtworkDurationControl> createState() => _ArtworkDurationControlState();

@@ -16,9 +16,9 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ExploreExhibition extends StatefulWidget {
-  final Widget? header;
-
   const ExploreExhibition({super.key, this.header});
+
+  final Widget? header;
 
   @override
   State<ExploreExhibition> createState() => ExploreExhibitionState();
@@ -55,11 +55,13 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
   }
 
   void scrollToTop() {
-    unawaited(_scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    ));
+    unawaited(
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Widget _emptyView(BuildContext context) {
@@ -114,9 +116,10 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     }
     final sourceExhibition =
         await injector<FeralFileService>().getSourceExhibition();
-    final exhibitionAfterSource = exhibitions.firstWhereOrNull((exhibition) =>
-        exhibition.exhibitionStartAt
-            .isBefore(sourceExhibition.exhibitionStartAt));
+    final exhibitionAfterSource = exhibitions.firstWhereOrNull(
+      (exhibition) => exhibition.exhibitionStartAt
+          .isBefore(sourceExhibition.exhibitionStartAt),
+    );
     if (exhibitionAfterSource == null) {
       return exhibitions..insert(exhibitions.length - 1, sourceExhibition);
     } else {
@@ -125,8 +128,11 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     }
   }
 
-  Future<List<Exhibition>> _fetchExhibitions(BuildContext context,
-      {int offset = 0, int pageSize = 50}) async {
+  Future<List<Exhibition>> _fetchExhibitions(
+    BuildContext context, {
+    int offset = 0,
+    int pageSize = 50,
+  }) async {
     final sortBy = _sortBy;
     final exhibitions = await injector<FeralFileService>().getAllExhibitions(
       keywork: _searchText ?? '',
@@ -148,6 +154,17 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
 }
 
 class ListExhibitionView extends StatefulWidget {
+  const ListExhibitionView({
+    required this.exhibitions,
+    this.scrollController,
+    super.key,
+    this.isScrollable = true,
+    this.padding = EdgeInsets.zero,
+    this.exploreBar,
+    this.header,
+    this.emptyWidget = const SizedBox.shrink(),
+  });
+
   final List<Exhibition>? exhibitions;
   final ScrollController? scrollController;
   final bool isScrollable;
@@ -155,17 +172,6 @@ class ListExhibitionView extends StatefulWidget {
   final Widget? exploreBar;
   final Widget? header;
   final Widget emptyWidget;
-
-  const ListExhibitionView({
-    required this.exhibitions,
-    this.scrollController,
-    super.key,
-    this.isScrollable = true,
-    this.padding = const EdgeInsets.all(0),
-    this.exploreBar,
-    this.header,
-    this.emptyWidget = const SizedBox.shrink(),
-  });
 
   @override
   State<ListExhibitionView> createState() => _ListExhibitionViewState();
@@ -194,7 +200,13 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
       slivers: [
         if (widget.exploreBar != null || widget.header != null) ...[
           SliverToBoxAdapter(
-            child: SizedBox(height: MediaQuery.of(context).padding.top + 32),
+            child: SizedBox(height: MediaQuery.of(context).padding.top),
+          ),
+          // const SliverToBoxAdapter(
+          //   child: NowDisplaying(),
+          // ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 32),
           ),
           SliverToBoxAdapter(
             child: widget.header ?? const SizedBox.shrink(),
@@ -239,7 +251,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                 childCount: widget.exhibitions!.length,
               ),
             ),
-          )
+          ),
         ],
       ],
     );

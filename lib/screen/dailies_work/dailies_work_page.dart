@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/view/exhibition_item.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -42,7 +43,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DailyWorkPage extends StatefulWidget {
@@ -396,7 +397,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _dailyPreview() => Column(
         children: [
           SizedBox(
-            height: MediaQuery.paddingOf(context).top + 32,
+            height: MediaQuery.paddingOf(context).top,
+          ),
+          // const NowDisplaying(),
+          const SizedBox(
+            height: 32,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -463,7 +468,16 @@ class DailyWorkPageState extends State<DailyWorkPage>
               },
             ),
           ),
-          const SizedBox(height: 100),
+          ValueListenableBuilder<bool>(
+            valueListenable: shouldShowNowDisplayingOnDisconnect,
+            builder: (context, shouldShow, _) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: shouldShow ? 100 + kNowDisplayingHeight - 16 : 100,
+              );
+            },
+          ),
         ],
       );
 
@@ -612,7 +626,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _shortArtistProfile(context, state.currentArtist!),
+                      child: shortArtistProfile(context, state.currentArtist!),
                     ),
                   ),
                 ),
@@ -631,7 +645,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _exhibitionInfo(context, state.currentExhibition!),
+                    child: exhibitionInfo(context, state.currentExhibition!),
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -716,87 +730,88 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
-  Widget _shortArtistProfile(BuildContext context, AlumniAccount artist) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'artist_profile'.tr(),
-            style: Theme.of(context).textTheme.ppMori400Grey12,
-          ),
-          const SizedBox(height: 32),
-          AlumniProfile(
-            alumni: artist,
-            isShowAlumniRole: false,
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'read_more'.tr(),
-            style: Theme.of(context).textTheme.ppMori400White14.copyWith(
-                  decoration: TextDecoration.underline,
-                ),
-          ),
-        ],
-      );
-
-  Widget _exhibitionInfo(BuildContext context, Exhibition exhibition) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'exhibited_in'.tr(),
-          style: theme.textTheme.ppMori400Grey12,
-        ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () {
-            unawaited(
-              Navigator.of(context).pushNamed(
-                AppRouter.exhibitionDetailPage,
-                arguments: ExhibitionDetailPayload(
-                  exhibitions: [exhibition],
-                  index: 0,
-                ),
-              ),
-            );
-          },
-          child: ExhibitionCard(
-            exhibition: exhibition,
-            viewableExhibitions: [exhibition],
-            horizontalMargin: 16,
-          ),
-        ),
-        const SizedBox(height: 48),
-        if (exhibition.noteBrief?.isNotEmpty == true) ...[
-          HtmlWidget(
-            exhibition.noteBrief!,
-            customStylesBuilder: auHtmlStyle,
-            textStyle: theme.textTheme.ppMori400White14,
-            onTapUrl: (url) async {
-              await launchUrl(Uri.parse(url),
-                  mode: LaunchMode.externalApplication);
-              return true;
-            },
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () async {
-              await injector<NavigationService>()
-                  .openFeralFileExhibitionNotePage(exhibition.slug);
-            },
-            child: Text(
-              'read_more'.tr(),
-              style: theme.textTheme.ppMori400White14.copyWith(
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
   @override
   bool get wantKeepAlive => true;
 }
+
+Widget exhibitionInfo(BuildContext context, Exhibition exhibition) {
+  final theme = Theme.of(context);
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'exhibited_in'.tr(),
+        style: theme.textTheme.ppMori400Grey12,
+      ),
+      const SizedBox(height: 16),
+      GestureDetector(
+        onTap: () {
+          unawaited(
+            Navigator.of(context).pushNamed(
+              AppRouter.exhibitionDetailPage,
+              arguments: ExhibitionDetailPayload(
+                exhibitions: [exhibition],
+                index: 0,
+              ),
+            ),
+          );
+        },
+        child: ExhibitionCard(
+          exhibition: exhibition,
+          viewableExhibitions: [exhibition],
+          horizontalMargin: 16,
+        ),
+      ),
+      const SizedBox(height: 48),
+      if (exhibition.noteBrief?.isNotEmpty == true) ...[
+        HtmlWidget(
+          exhibition.noteBrief!,
+          customStylesBuilder: auHtmlStyle,
+          textStyle: theme.textTheme.ppMori400White14,
+          onTapUrl: (url) async {
+            await launchUrl(
+              Uri.parse(url),
+              mode: LaunchMode.externalApplication,
+            );
+            return true;
+          },
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () async {
+            await injector<NavigationService>()
+                .openFeralFileExhibitionNotePage(exhibition.slug);
+          },
+          child: Text(
+            'read_more'.tr(),
+            style: theme.textTheme.ppMori400White14.copyWith(
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+Widget shortArtistProfile(BuildContext context, AlumniAccount artist) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'artist_profile'.tr(),
+          style: Theme.of(context).textTheme.ppMori400Grey12,
+        ),
+        const SizedBox(height: 32),
+        AlumniProfile(
+          alumni: artist,
+          isShowAlumniRole: false,
+        ),
+        const SizedBox(height: 32),
+        Text(
+          'read_more'.tr(),
+          style: Theme.of(context).textTheme.ppMori400White14.copyWith(
+                decoration: TextDecoration.underline,
+              ),
+        ),
+      ],
+    );

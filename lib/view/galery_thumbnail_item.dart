@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 
 class GaleryThumbnailItem extends StatefulWidget {
   const GaleryThumbnailItem(

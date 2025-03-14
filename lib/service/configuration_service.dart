@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/list_extension.dart';
@@ -149,6 +150,18 @@ abstract class ConfigurationService {
   String? getIssueIdByAnnouncementContentId(String announcementContentId);
 
   String? getAnnouncementContentIdByIssueId(String issueId);
+
+  Future<void> saveLastConnectedDevice(FFBluetoothDevice device);
+
+  FFBluetoothDevice? getLastConnectedDevice();
+
+  bool isBetaTester();
+
+  Future<void> setBetaTester(bool value);
+
+  String? getPilotVersion();
+
+  Future<void> setPilotVersion(String version);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -230,6 +243,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
   static const String KEY_REFERRAL_CODE = 'referral_code';
+
+  static const String LAST_CONNECTED_DEVICE = 'last_connected_device';
+
+  static const String KEY_BETA_TESTER = 'beta_tester';
+
+  static const String PILOT_VERSION = 'pilot_version';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -584,6 +603,43 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDailyLikedCount(int count) async {
     await _preferences.setInt(keyDailyLikedCount, count);
+  }
+
+  @override
+  FFBluetoothDevice? getLastConnectedDevice() {
+    final deviceJson = _preferences.getString(LAST_CONNECTED_DEVICE);
+    if (deviceJson == null) {
+      return null;
+    }
+    final device = FFBluetoothDevice.fromJson(
+        Map<String, dynamic>.from(jsonDecode(deviceJson) as Map));
+    return device;
+  }
+
+  @override
+  Future<void> saveLastConnectedDevice(FFBluetoothDevice device) {
+    final deviceJson = jsonEncode(device.toJson());
+    return _preferences.setString(LAST_CONNECTED_DEVICE, deviceJson);
+  }
+
+  @override
+  bool isBetaTester() {
+    return _preferences.getBool(KEY_BETA_TESTER) ?? false;
+  }
+
+  @override
+  Future<void> setBetaTester(bool value) {
+    return _preferences.setBool(KEY_BETA_TESTER, value);
+  }
+
+  @override
+  String? getPilotVersion() {
+    return _preferences.getString(PILOT_VERSION);
+  }
+
+  @override
+  Future<void> setPilotVersion(String version) {
+    return _preferences.setString(PILOT_VERSION, version);
   }
 }
 

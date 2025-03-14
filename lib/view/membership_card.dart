@@ -158,7 +158,7 @@ class MembershipCard extends StatelessWidget {
                       ),
                   ],
                   if (type == MembershipCardType.essential) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 18),
                     TextButton(
                       text: 'restore_purchase'.tr(),
                       textStyle: activeTextStyle.copyWith(

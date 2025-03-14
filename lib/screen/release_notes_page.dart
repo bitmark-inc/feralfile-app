@@ -92,6 +92,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                       shrinkWrap: true,
                       data: widget.releaseNotes,
                       softLineBreak: true,
+                      selectable: true,
                       padding: const EdgeInsets.only(bottom: 32, top: 32),
                       styleSheet: markDownChangeLogStyle(context),
                       builders: <String, MarkdownElementBuilder>{
@@ -106,8 +107,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                         }
                         if (DEEP_LINKS
                             .any((prefix) => href.startsWith(prefix))) {
-                          injector<DeeplinkService>()
-                              .handleDeeplink(href, delay: Duration.zero);
+                          injector<DeeplinkService>().handleDeeplink(href);
                         } else if (await canLaunchUrlString(href)) {
                           await launchUrlString(href,
                               mode: LaunchMode.externalApplication);

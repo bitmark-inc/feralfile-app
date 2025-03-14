@@ -64,12 +64,13 @@ class UIHelper {
   static String currentDialogTitle = '';
   static final metricClient = injector.get<MetricClientService>();
   static const String ignoreBackLayerPopUpRouteName = 'popUp.ignoreBackLayer';
+  static const String homeMenu = 'homeMenu';
 
   static Future<dynamic> showDialog(
     BuildContext context,
     String title,
     Widget content, {
-    bool isDismissible = false,
+    bool isDismissible = true,
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
@@ -739,7 +740,7 @@ class UIHelper {
     BuildContext context,
     String title,
     String description, {
-    bool isDismissible = false,
+    bool isDismissible = true,
     int autoDismissAfter = 0,
     String closeButton = '',
     VoidCallback? onClose,
@@ -1223,9 +1224,11 @@ class UIHelper {
   static Future<void> showCenterMenu(
     BuildContext context, {
     required List<OptionItem> options,
+    RouteSettings? routeSettings,
   }) async {
     final theme = Theme.of(context);
     await showCupertinoModalPopup(
+      routeSettings: routeSettings,
       context: context,
       builder: (context) => Center(
         child: Padding(
@@ -1604,7 +1607,7 @@ class OptionItem {
   TextStyle? titleStyle;
   TextStyle? titleStyleOnPrecessing;
   TextStyle? titleStyleOnDisable;
-  Function()? onTap;
+  FutureOr<dynamic> Function()? onTap;
   bool isEnable;
   Widget? icon;
   Widget? iconOnProcessing;

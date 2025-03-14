@@ -3,12 +3,12 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
-import 'package:nft_collection/database/dao/predefined_collection_dao.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/predefined_collection_model.dart';
-import 'package:nft_collection/services/address_service.dart';
-import 'package:nft_collection/utils/medium_category.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/predefined_collection_dao.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
+import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
+import 'package:autonomy_flutter/nft_collection/utils/medium_category.dart';
 
 class CollectionProBloc
     extends Bloc<CollectionProEvent, CollectionLoadedState> {

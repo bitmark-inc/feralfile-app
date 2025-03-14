@@ -34,8 +34,8 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/predefined_collection_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
 
 class CollectionPro extends StatefulWidget {
   const CollectionPro({
@@ -128,39 +128,12 @@ class CollectionProState extends State<CollectionPro>
         body: SafeArea(
           top: false,
           bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              children: [
-                _header(context),
-                const SizedBox(height: 20),
-                if (isShowSearchBar)
-                  ActionBar(
-                    searchBar: AuSearchBar(
-                      onChanged: (text) {},
-                      onSearch: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                      onClear: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                    ),
-                    onCancel: () {
-                      setState(() {
-                        searchStr.value = '';
-                        isShowSearchBar = false;
-                      });
-                    },
-                  ),
-                Expanded(
-                  child: _body(context),
-                ),
-              ],
-            ),
+          child: Column(
+            children: [
+              Expanded(
+                child: _body(context),
+              ),
+            ],
           ),
         ),
       );
@@ -246,37 +219,81 @@ class CollectionProState extends State<CollectionPro>
                 final isSearchEmptyView = _isLoaded &&
                     _isEmptyCollection(context) &&
                     searchStr.value.isNotEmpty;
+                final padding = EdgeInsets.symmetric(horizontal: 15);
                 return CustomScrollView(
                   controller: _scrollController,
                   shrinkWrap: true,
                   slivers: [
+                    // SliverToBoxAdapter(child: NowDisplaying()),
+                    SliverToBoxAdapter(
+                        child: Padding(
+                      padding: padding,
+                      child: _header(context),
+                    )),
+                    SliverToBoxAdapter(child: const SizedBox(height: 20)),
+                    if (isShowSearchBar)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: padding,
+                          child: ActionBar(
+                            searchBar: AuSearchBar(
+                              onChanged: (text) {},
+                              onSearch: (text) {
+                                setState(() {
+                                  searchStr.value = text;
+                                });
+                              },
+                              onClear: (text) {
+                                setState(() {
+                                  searchStr.value = text;
+                                });
+                              },
+                            ),
+                            onCancel: () {
+                              setState(() {
+                                searchStr.value = '';
+                                isShowSearchBar = false;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
                     if (!isEmptyView)
                       SliverToBoxAdapter(
-                        child: ValueListenableBuilder(
-                          valueListenable: searchStr,
-                          builder: (
-                            BuildContext context,
-                            String value,
-                            Widget? child,
-                          ) =>
-                              CollectionSection(
-                            key: _collectionSectionKey,
-                            filterString: value,
+                        child: Padding(
+                          padding: padding,
+                          child: ValueListenableBuilder(
+                            valueListenable: searchStr,
+                            builder: (
+                              BuildContext context,
+                              String value,
+                              Widget? child,
+                            ) =>
+                                CollectionSection(
+                              key: _collectionSectionKey,
+                              filterString: value,
+                            ),
                           ),
                         ),
                       ),
                     if (isEmptyView) ...[
                       SliverToBoxAdapter(
-                        child: Visibility(
-                          visible: isEmptyView,
-                          child: _emptyView(context),
+                        child: Padding(
+                          padding: padding,
+                          child: Visibility(
+                            visible: isEmptyView,
+                            child: _emptyView(context),
+                          ),
                         ),
                       ),
                     ] else if (isSearchEmptyView) ...[
                       SliverToBoxAdapter(
-                        child: Visibility(
-                          visible: isSearchEmptyView,
-                          child: _searchEmptyView(context),
+                        child: Padding(
+                          padding: padding,
+                          child: Visibility(
+                            visible: isSearchEmptyView,
+                            child: _searchEmptyView(context),
+                          ),
                         ),
                       ),
                     ] else ...[
@@ -383,12 +400,18 @@ class CollectionProState extends State<CollectionPro>
 
   Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
     const type = PredefinedCollectionType.artist;
-    return _predefinedCollectionBuilder(context, index, type);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: _predefinedCollectionBuilder(context, index, type),
+    );
   }
 
   Widget _predefinedCollectionByMediumBuilder(BuildContext context, int index) {
     const type = PredefinedCollectionType.medium;
-    return _predefinedCollectionBuilder(context, index, type);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: _predefinedCollectionBuilder(context, index, type),
+    );
   }
 
   Widget _worksBuilder(BuildContext context, int index) {

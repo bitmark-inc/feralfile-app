@@ -16,6 +16,8 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -24,6 +26,7 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -64,6 +67,10 @@ Future<void> callbackDispatcher() async {
     return Future.value(true);
   });
 }
+
+ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
+ValueNotifier<bool> shouldShowNowDisplayingOnDisconnect =
+    ValueNotifier<bool>(true);
 
 void main() async {
   unawaited(
@@ -181,6 +188,19 @@ Future<void> _startBackgroundUpdate() async {
   );
 }
 
+Future<void> _connectToBluetoothDevice() async {
+  try {
+    final bluetoothDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    if (bluetoothDevice != null) {
+      await injector<FFBluetoothService>().connectToDevice(bluetoothDevice,
+          shouldShowError: false, shouldChangeNowDisplayingStatus: true);
+    }
+  } catch (e) {
+    log.info('Error in connecting to connected device: $e');
+  }
+}
+
 Future<void> _setupApp() async {
   try {
     await setupLogger();
@@ -190,7 +210,7 @@ Future<void> _setupApp() async {
   }
   await setupInjector();
   unawaited(_setupWorkManager());
-
+  unawaited(_connectToBluetoothDevice());
   runApp(
     SDTFScope(
       child: EasyLocalization(
@@ -247,9 +267,135 @@ class AutonomyApp extends StatelessWidget {
             ],
             initialRoute: AppRouter.onboardingPage,
             onGenerateRoute: AppRouter.onGenerateRoute,
+            builder: (context, child) => AutonomyAppScaffold(child: child!),
           );
         },
       );
+}
+
+class AutonomyAppScaffold extends StatefulWidget {
+  const AutonomyAppScaffold({required this.child, super.key});
+  final Widget child;
+
+  @override
+  State<AutonomyAppScaffold> createState() => _AutonomyAppScaffoldState();
+}
+
+class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  bool _isVisible = true;
+  double _lastScrollPosition = 0;
+
+  // 40: padding bottom of app bar
+  // 45: height of app bar
+  // 10: space between app bar and now displaying
+  static const double kStatusBarMarginBottom = 40 + 45 + 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      value: 0,
+    );
+
+    shouldShowNowDisplaying.addListener(_updateAnimationBasedOnDisplayState);
+    shouldShowNowDisplayingOnDisconnect
+        .addListener(_updateAnimationBasedOnDisplayState);
+  }
+
+  void _updateAnimationBasedOnDisplayState() {
+    final hasDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice != null;
+    final shouldShow = shouldShowNowDisplaying.value &&
+        shouldShowNowDisplayingOnDisconnect.value;
+    final isBetaTester = injector<AuthService>().isBetaTester();
+    if (shouldShow && hasDevice && isBetaTester) {
+      _animationController.forward();
+      setState(() => _isVisible = true);
+    } else {
+      _animationController.reverse();
+      setState(() => _isVisible = false);
+    }
+  }
+
+  void _handleScrollUpdate(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return;
+    }
+
+    final shouldShow = shouldShowNowDisplaying.value &&
+        shouldShowNowDisplayingOnDisconnect.value;
+    if (shouldShow && notification is ScrollUpdateNotification) {
+      final currentScroll = notification.metrics.pixels;
+      final scrollDelta = currentScroll - _lastScrollPosition;
+
+      if (scrollDelta > 10 && _isVisible) {
+        _animationController.reverse();
+        setState(() => _isVisible = false);
+      } else if (scrollDelta < -10 && !_isVisible) {
+        _animationController.forward();
+        setState(() => _isVisible = true);
+      }
+
+      _lastScrollPosition = currentScroll;
+    }
+    return;
+  }
+
+  @override
+  void dispose() {
+    shouldShowNowDisplaying.removeListener(_updateAnimationBasedOnDisplayState);
+    shouldShowNowDisplayingOnDisconnect
+        .removeListener(_updateAnimationBasedOnDisplayState);
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        _handleScrollUpdate(notification);
+        return false; // Allow the notification to continue to be dispatched
+      },
+      child: Stack(
+        children: [
+          widget.child,
+          Positioned(
+            bottom: kStatusBarMarginBottom,
+            left: 10,
+            right: 10,
+            child: FadeTransition(
+              opacity: _animationController,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(
+                    0,
+                    kStatusBarMarginBottom / kNowDisplayingHeight,
+                  ),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: _animationController,
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+                child: IgnorePointer(
+                  ignoring: !_isVisible,
+                  child: NowDisplaying(
+                    key: GlobalKey(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =

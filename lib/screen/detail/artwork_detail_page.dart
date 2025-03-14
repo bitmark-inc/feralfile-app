@@ -13,6 +13,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
@@ -22,6 +26,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -49,10 +54,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/models/provenance.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:nft_collection/services/tokens_service.dart';
 import 'package:shake/shake.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -92,6 +93,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   double? _appBarBottomDy;
   bool _isFullScreen = false;
   ShakeDetector? _detector;
+
+  final FocusNode _selectTextFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -184,6 +187,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     setState(() {
       _isInfoExpand = false;
     });
+    _selectTextFocusNode.unfocus();
     _animationController.animateTo(_infoShrinkPosition);
   }
 
@@ -277,17 +281,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             actions: [
                               FFCastButton(
                                 displayKey: _getDisplayKey(asset),
-                                onDeviceSelected: (device) {
+                                onDeviceSelected: (device) async {
                                   final artwork = PlayArtworkV2(
                                     token: CastAssetToken(id: asset.id),
                                     duration: 0,
                                   );
+                                  final completer = Completer<void>();
                                   _canvasDeviceBloc.add(
                                     CanvasDeviceCastListArtworkEvent(
                                       device,
                                       [artwork],
+                                      onDone: () {
+                                        completer.complete();
+                                      },
                                     ),
                                   );
+                                  await completer.future;
                                 },
                               ),
                             ],
@@ -381,7 +390,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  String _getDisplayKey(AssetToken asset) => asset.id.hashCode.toString();
+  String _getDisplayKey(AssetToken asset) => asset.displayKey;
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
@@ -477,7 +486,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     return Stack(
       children: [
         Visibility(
-          visible: _isOpenedWithWebview(asset),
+          visible: true,
           child: WebviewControllerTextField(
             webViewController: _webViewController,
             focusNode: _focusNode,
@@ -534,17 +543,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     children: [
                       Semantics(
                         label: 'Desc',
-                        child: HtmlWidget(
-                          customStylesBuilder: auHtmlStyle,
-                          asset.description ?? '',
-                          textStyle: theme.textTheme.ppMori400White14,
-                          onTapUrl: (url) async {
-                            await launchUrl(
-                              Uri.parse(url),
-                              mode: LaunchMode.externalApplication,
-                            );
-                            return true;
-                          },
+                        child: SelectionArea(
+                          focusNode: _selectTextFocusNode,
+                          child: HtmlWidget(
+                            customStylesBuilder: auHtmlStyle,
+                            asset.description ?? '',
+                            textStyle: theme.textTheme.ppMori400White14,
+                            onTapUrl: (url) async {
+                              await launchUrl(
+                                Uri.parse(url),
+                                mode: LaunchMode.externalApplication,
+                              );
+                              return true;
+                            },
+                          ),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -607,10 +619,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     AssetToken asset,
     CanvasDeviceState canvasDeviceState,
   ) async {
-    final showKeyboard = _isOpenedWithWebview(asset);
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-    final isCasting = castingDevice != null;
+    final connectedDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    final isCasting = connectedDevice != null;
     final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
       return;
@@ -630,7 +643,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               _setFullScreen();
             },
           ),
-          if (showKeyboard && !isCasting)
+          if (isCasting)
             OptionItem(
               title: 'interact'.tr(),
               icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
@@ -638,14 +651,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Navigator.of(context).pop();
                 final castingDevice = canvasDeviceState
                     .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-                if (castingDevice != null) {
+                final bluetoothConnectedDevice =
+                    injector<FFBluetoothService>().castingBluetoothDevice;
+                if (castingDevice != null || bluetoothConnectedDevice != null) {
                   unawaited(
                     Navigator.of(context).pushNamed(
                       AppRouter.keyboardControlPage,
                       arguments: KeyboardControlPagePayload(
                         getEditionSubTitle(asset),
                         asset.description ?? '',
-                        [castingDevice],
+                        [bluetoothConnectedDevice ?? castingDevice!],
                       ),
                     ),
                   );
@@ -722,11 +737,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ),
     );
   }
-
-  bool _isOpenedWithWebview(AssetToken asset) =>
-      asset.medium == 'software' ||
-      asset.medium == 'other' ||
-      (asset.medium?.isEmpty ?? true);
 
   Future<void> _setFullScreen() async {
     unawaited(_openSnackBar(context));

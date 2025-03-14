@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class TouchPad extends StatefulWidget {
-  final List<CanvasDevice> devices;
+  final List<BaseDevice> devices;
   final Function()? onExpand;
 
   const TouchPad({required this.devices, super.key, this.onExpand});
@@ -63,28 +63,30 @@ class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
           ),
           Positioned(
             bottom: 0,
+            right: 0,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               child: Text(
                 'touchpad'.tr(),
                 style: theme.textTheme.ppMori400White14
-                    .copyWith(color: AppColor.auGreyBackground),
+                    .copyWith(color: AppColor.auGrey),
               ),
             ),
           ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              child: GestureDetector(
-                child: SvgPicture.asset('assets/images/Expand.svg'),
-                onTap: () {
-                  widget.onExpand?.call();
-                },
+          if (widget.onExpand != null)
+            Positioned(
+              bottom: 0,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                child: GestureDetector(
+                  child: SvgPicture.asset('assets/images/Expand.svg'),
+                  onTap: () {
+                    widget.onExpand?.call();
+                  },
+                ),
               ),
-            ),
-          )
+            )
         ],
       ),
     );

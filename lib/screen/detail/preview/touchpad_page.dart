@@ -4,7 +4,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class TouchPadPagePayload {
-  final List<CanvasDevice> devices;
+  final List<BaseDevice> devices;
 
   TouchPadPagePayload(this.devices);
 }
