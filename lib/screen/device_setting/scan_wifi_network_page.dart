@@ -55,9 +55,14 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
     setState(() {
       _isScanning = true;
     });
-    if (!device.isConnected) {
+    try {
       await injector<FFBluetoothService>()
           .connectToDevice(device, shouldChangeNowDisplayingStatus: true);
+    } catch (e) {
+      setState(() {
+        _isScanning = false;
+      });
+      return;
     }
     const timeout = Duration(seconds: 15);
 
@@ -142,10 +147,17 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'No wifi networks found',
-                        style: Theme.of(context).textTheme.ppMori400White14,
-                      ),
+                      if (widget.payload.device.isConnected)
+                        Text(
+                          'No wifi networks found',
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        )
+                      else ...[
+                        Text(
+                          'Cannot connect to device',
+                          style: Theme.of(context).textTheme.ppMori400White14,
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       PrimaryButton(
                         onTap: () async {
