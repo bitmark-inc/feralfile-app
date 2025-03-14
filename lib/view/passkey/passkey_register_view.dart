@@ -51,8 +51,7 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           _getIcon(),
           const SizedBox(height: 20),
           _getAction(context),
-          const SizedBox(height: 20),
-          _havingTrouble(context),
+          ..._havingTrouble(context),
         ],
       );
 
@@ -158,10 +157,10 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
           text: 'get_started'.tr(),
           processingText: 'creating_passkey'.tr(),
         ),
-        const SizedBox(height: 10),
-        PrimaryAsyncButton(
+        const SizedBox(height: 20),
+        TextAsyncButton(
           key: const Key('login_button'),
-          color: AppColor.feralFileLightBlue,
+          color: AppColor.auQuickSilver,
           onTap: () async {
             _type = PasskeyRegisterViewType.login;
             final jwt = await _login();
@@ -230,10 +229,13 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
     return jwt;
   }
 
-  Widget _havingTrouble(BuildContext context) {
+  List<Widget> _havingTrouble(BuildContext context) {
     if (_didSuccess || (_error == null && !_registering)) {
-      return const SizedBox();
+      return const [];
     }
-    return const HavingTroubleView();
+    return [
+      const SizedBox(height: 20),
+      const HavingTroubleView(),
+    ];
   }
 }
