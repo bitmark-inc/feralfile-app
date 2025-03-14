@@ -164,31 +164,39 @@ class _NowDisplayingState extends State<NowDisplaying> {
     NowDisplayingStatus status,
   ) {
     final device = (status as ConnectingToDevice).device;
+    final deviceName =
+        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Connecting to ${device.advName}',
+      status: 'Connecting to $deviceName',
     );
   }
 
   Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectSuccess).device;
+    final deviceName =
+        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Connected to ${device.advName}',
+      status: 'Connected to $deviceName',
     );
   }
 
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectFailed).device;
+    final deviceName =
+        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Unable to connect to ${device.advName}. Check connection.',
+      status: 'Unable to connect to $deviceName. Check connection.',
     );
   }
 
   Widget _connectionLostAndReconnectingView(
       BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectionLostAndReconnecting).device;
+    final deviceName =
+        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status:
-          'Connection to Portal ${device.advName} lost, Attempting to reconnect...',
+          'Connection to $deviceName lost, Attempting to reconnect...',
     );
   }
 
