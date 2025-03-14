@@ -39,4 +39,10 @@ class ObjectBox {
         await openStore(directory: p.join(docsDir.path, objectboxDBFile));
     return ObjectBox._create(store);
   }
+
+  static Future<void> removeAll() async {
+    await _identityBox.removeAllAsync();
+    await _draftCustomerSupportBox.removeAllAsync();
+    await _bluetoothPairedDevicesBox.removeAllAsync();
+  }
 }
