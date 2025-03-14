@@ -209,3 +209,72 @@ class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
         isProcessing: _isProcessing,
       );
 }
+
+class TextAsyncButton extends StatefulWidget {
+  const TextAsyncButton({
+    required this.color,
+    super.key,
+    this.onTap,
+    this.text,
+    this.processingText,
+  });
+  final dynamic Function()? onTap;
+  final Color color;
+  final String? text;
+  final String? processingText;
+
+  @override
+  State<TextAsyncButton> createState() => _TextAsyncButtonState();
+}
+
+class _TextAsyncButtonState extends State<TextAsyncButton> {
+  bool _isProcessing = false;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_isProcessing)
+            Container(
+              height: 14,
+              width: 14,
+              margin: const EdgeInsets.only(right: 8),
+              child: CircularProgressIndicator(
+                color: widget.color,
+                backgroundColor: Colors.transparent,
+                strokeWidth: 2,
+              ),
+            ),
+          TextButton(
+            onPressed: () {
+              withDebounce(
+                () async {
+                  setState(() {
+                    _isProcessing = true;
+                  });
+                  await widget.onTap?.call();
+                  if (!mounted) {
+                    return;
+                  }
+                  setState(() {
+                    _isProcessing = false;
+                  });
+                },
+              );
+            },
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              _isProcessing ? widget.processingText ?? '' : widget.text ?? '',
+              style: Theme.of(context)
+                  .textTheme
+                  .ppMori400Black14
+                  .copyWith(color: widget.color),
+            ),
+          ),
+        ],
+      );
+}
