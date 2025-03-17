@@ -246,8 +246,8 @@ class FFBluetoothService {
     final byteBuilder = _buildCommandMessage(command, request, replyId);
 
     final completer = Completer<Map<String, dynamic>>();
-
-    _setupCommandNotificationSubscriptions(replyId, completer);
+    final cb = getCommandNotificationCallback(replyId, completer);
+    BluetoothNotificationService().subscribe(replyId, cb);
 
     try {
       final bytes = byteBuilder.takeBytes();
@@ -265,9 +265,6 @@ class FFBluetoothService {
       final res = await completer.future.timeout(
         timeout ?? const Duration(seconds: 2),
         onTimeout: () {
-          BluetoothNotificationService().unsubscribe(replyId, (data) {
-            log.info('[sendCommand] Unsubscribed from replyId: $replyId');
-          });
           Sentry.captureMessage(
             '[sendCommand] Timeout waiting for reply: $replyId',
           );
@@ -370,15 +367,16 @@ class FFBluetoothService {
     final bytes = builder.takeBytes();
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
 
-    final _sendWifiCompleter = Completer<bool>();
+    final sendWifiCompleter = Completer<bool>();
 
-    BluetoothNotificationService().subscribe(wifiConnectionTopic, (data) {
+    late NotificationCallback cb;
+    cb = (data) {
       log.info('[sendWifiCredentials] Received data: $data');
       final success = data['success'] as bool;
-      _sendWifiCompleter.complete(success);
-      BluetoothNotificationService()
-          .unsubscribe(wifiConnectionTopic, (data) {});
-    });
+      BluetoothNotificationService().unsubscribe(wifiConnectionTopic, cb);
+      sendWifiCompleter.complete(success);
+    };
+    BluetoothNotificationService().subscribe(wifiConnectionTopic, cb);
 
     log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
     try {
@@ -388,8 +386,8 @@ class FFBluetoothService {
       unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
-    final isSuccess = await _sendWifiCompleter.future.timeout(
-      const Duration(seconds: 30),
+    final isSuccess = await sendWifiCompleter.future.timeout(
+      const Duration(seconds: 120),
       onTimeout: () {
         log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
         unawaited(
@@ -559,11 +557,10 @@ class FFBluetoothService {
   // Map to store chunksfor each response
   final Map<String, List<ChunkInfo>> chunks = {};
 
-  void _setupCommandNotificationSubscriptions(
-    String replyId,
-    Completer<Map<String, dynamic>> responseCompleter,
-  ) {
-    BluetoothNotificationService().subscribe(replyId, (data) {
+  NotificationCallback getCommandNotificationCallback(
+      String replyId, Completer<Map<String, dynamic>> responseCompleter) {
+    late NotificationCallback cb;
+    cb = (Map<String, dynamic> data) {
       log.info('[sendCommand] Received data: $data');
       final isChunkData = data.containsKey('i') &&
           data.containsKey('d') &&
@@ -592,9 +589,10 @@ class FFBluetoothService {
         }
       } else {
         responseCompleter.complete(data);
-        BluetoothNotificationService().unsubscribe(replyId, (data) {});
+        BluetoothNotificationService().unsubscribe(replyId, cb);
       }
-    });
+    };
+    return cb;
   }
 
   // Add method to handle engineering data
@@ -727,8 +725,9 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
     try {
       await writeChunk(value);
     } on PlatformException catch (e) {
-      log.info('[writeWithRetry] Error writing chunk: $e');
-      log.info('[writeWithRetry] Retrying...');
+      log
+        ..info('[writeWithRetry] Error writing chunk: $e')
+        ..info('[writeWithRetry] Retrying...');
       final device = this.device;
       if (device.isConnected) {
         await device.discoverCharacteristics();

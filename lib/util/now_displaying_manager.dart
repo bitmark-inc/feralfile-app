@@ -44,9 +44,11 @@ class NowDisplayingManager {
     } else if (status is ConnectionLostAndReconnecting) {
       _onDisconnectTimer = Timer(Duration(seconds: 10), () {
         shouldShowNowDisplayingOnDisconnect.value = false;
+        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       });
     } else if (status is NowDisplayingSuccess) {
       shouldShowNowDisplayingOnDisconnect.value = true;
+      nowDisplayingVisibility.value = true;
     }
   }
 
