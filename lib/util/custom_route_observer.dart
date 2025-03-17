@@ -25,7 +25,10 @@ final listRouteShouldnotShowNowDisplaying = [
   AppRouter.newOnboardingPage,
   AppRouter.bluetoothConnectedDeviceConfig,
   AppRouter.bluetoothDevicePortalPage,
-  AppRouter.onboardingPage,
+  AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
+  AppRouter.configureDevice,
+  AppRouter.sendWifiCredentialPage,
+  AppRouter.scanWifiNetworkPage,
 ];
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
