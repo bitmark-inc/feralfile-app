@@ -47,8 +47,7 @@ extension ProductDetailsExt on ProductDetails {
             ),
           ],
         )),
-        if (Platform.isAndroid && currencyCode == _indiaCurrencyCode ||
-            true) ...[
+        if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) ...[
           const SizedBox(height: 8),
           Text(
             'renew_policy_india'.tr(),
