@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/generated/protos/system_metrics.pb.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -86,7 +85,6 @@ class FFBluetoothService {
           final status =
               await fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
           NowDisplayingManager().addStatus(ConnectSuccess(device));
-          shouldShowNowDisplayingOnDisconnect.value = true;
 
           injector<CanvasDeviceBloc>().add(
             CanvasDeviceGetDevicesEvent(

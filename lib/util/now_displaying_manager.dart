@@ -46,10 +46,10 @@ class NowDisplayingManager {
         shouldShowNowDisplayingOnDisconnect.value = false;
         injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       });
-    } else if (status is NowDisplayingSuccess) {
+    } else if (status is NowDisplayingSuccess || status is ConnectSuccess) {
       shouldShowNowDisplayingOnDisconnect.value = true;
-      nowDisplayingVisibility.value = true;
     }
+    nowDisplayingVisibility.value = true;
   }
 
   Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {
