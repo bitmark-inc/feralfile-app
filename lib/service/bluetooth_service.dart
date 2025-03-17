@@ -47,7 +47,6 @@ const updateCastInfoCommand = [
 ];
 
 const updateDeviceStatusCommand = [
-  CastCommand.updateOrientation,
   CastCommand.rotate,
   CastCommand.updateArtFraming,
   CastCommand.updateToLatestVersion,
@@ -89,12 +88,15 @@ class FFBluetoothService {
           NowDisplayingManager().addStatus(ConnectSuccess(device));
           shouldShowNowDisplayingOnDisconnect.value = true;
 
-          injector<CanvasDeviceBloc>()
-              .add(CanvasDeviceGetDevicesEvent(onDoneCallback: () {
-            if (status?.isConnectedToWifi ?? false) {
-              NowDisplayingManager().updateDisplayingNow();
-            }
-          }));
+          injector<CanvasDeviceBloc>().add(
+            CanvasDeviceGetDevicesEvent(
+              onDoneCallback: () {
+                if (status?.isConnectedToWifi ?? false) {
+                  NowDisplayingManager().updateDisplayingNow();
+                }
+              },
+            ),
+          );
         } catch (e) {
           log.warning('Failed to discover characteristics: $e');
           unawaited(
@@ -227,9 +229,12 @@ class FFBluetoothService {
 
     if (device.isDisconnected) {
       log.info('[sendCommand] Device is disconnected');
-      unawaited(injector<NavigationService>()
-          .showCannotConnectToBluetoothDevice(
-              device, 'Device is disconnected'));
+      unawaited(
+        injector<NavigationService>().showCannotConnectToBluetoothDevice(
+          device,
+          'Device is disconnected',
+        ),
+      );
       throw Exception('Device is disconnected');
     }
 
@@ -325,9 +330,12 @@ class FFBluetoothService {
   }) async {
     if (device.isDisconnected) {
       log.info('[sendWifi] Device is disconnected');
-      unawaited(injector<NavigationService>()
-          .showCannotConnectToBluetoothDevice(
-              device, 'Device is disconnected'));
+      unawaited(
+        injector<NavigationService>().showCannotConnectToBluetoothDevice(
+          device,
+          'Device is disconnected',
+        ),
+      );
     }
     final wifiConnectChar = device.wifiConnectCharacteristic;
     // Check if the wifi connect characteristic is available
@@ -380,12 +388,15 @@ class FFBluetoothService {
       unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
     }
-    final isSuccess = await _sendWifiCompleter.future
-        .timeout(const Duration(seconds: 30), onTimeout: () {
-      log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
-      unawaited(Sentry.captureMessage('Timeout waiting for Wi-Fi connection'));
-      throw TimeoutException('Timeout waiting for Wi-Fi connection');
-    });
+    final isSuccess = await _sendWifiCompleter.future.timeout(
+      const Duration(seconds: 30),
+      onTimeout: () {
+        log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
+        unawaited(
+            Sentry.captureMessage('Timeout waiting for Wi-Fi connection'));
+        throw TimeoutException('Timeout waiting for Wi-Fi connection');
+      },
+    );
 
     unawaited(fetchBluetoothDeviceStatus(device));
     return isSuccess;
@@ -613,9 +624,11 @@ class FFBluetoothService {
       log.info('System metrics monitoring started');
     } catch (e) {
       log.warning('Failed to start system metrics monitoring: $e');
-      unawaited(Sentry.captureException(
-        'Failed to start system metrics monitoring: $e',
-      ));
+      unawaited(
+        Sentry.captureException(
+          'Failed to start system metrics monitoring: $e',
+        ),
+      );
     }
   }
 
@@ -631,9 +644,11 @@ class FFBluetoothService {
       log.info('System metrics monitoring stopped');
     } catch (e) {
       log.warning('Failed to stop system metrics monitoring: $e');
-      unawaited(Sentry.captureException(
-        'Failed to stop system metrics monitoring: $e',
-      ));
+      unawaited(
+        Sentry.captureException(
+          'Failed to stop system metrics monitoring: $e',
+        ),
+      );
     }
   }
 

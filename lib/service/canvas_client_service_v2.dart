@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -314,16 +313,6 @@ class CanvasClientServiceV2 {
     final request = ScanWifiRequest(timeout: 1);
     final response = await stub.scanWifi(request);
     return response.result;
-  }
-
-  Future<void> updateOrientation(
-    BaseDevice device,
-    ScreenOrientation orientation,
-  ) async {
-    final stub = _getStub(device);
-    final request = UpdateOrientationRequest(orientation: orientation);
-    final response = await stub.updateOrientation(request);
-    log.info('CanvasClientService: Update Orientation Success');
   }
 
   Future<BluetoothDeviceStatus> getBluetoothDeviceStatus(

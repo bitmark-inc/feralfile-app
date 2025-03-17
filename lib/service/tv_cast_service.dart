@@ -49,10 +49,6 @@ abstract class TvCastService {
 
   Future<ScanWifiReply> scanWifi(ScanWifiRequest request);
 
-  Future<UpdateOrientationReply> updateOrientation(
-    UpdateOrientationRequest request,
-  );
-
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   );
@@ -191,25 +187,20 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<ScanWifiReply> scanWifi(ScanWifiRequest request) async {
-    final result =
-        await _sendData(_getBody(request), timeout: Duration(seconds: 10));
+    final result = await _sendData(_getBody(request),
+        timeout: const Duration(seconds: 10));
     return ScanWifiReply.fromJson(result);
-  }
-
-  @override
-  Future<UpdateOrientationReply> updateOrientation(
-    UpdateOrientationRequest request,
-  ) async {
-    final result = await _sendData(_getBody(request));
-    return UpdateOrientationReply.fromJson(result);
   }
 
   @override
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   ) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 10), shouldShowError: false);
+    final result = await _sendData(
+      _getBody(request),
+      timeout: const Duration(seconds: 10),
+      shouldShowError: false,
+    );
     return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 
@@ -231,8 +222,10 @@ abstract class BaseTvCastService implements TvCastService {
   Future<UpdateToLatestVersionReply> updateToLatestVersion(
     UpdateToLatestVersionRequest request,
   ) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 30));
+    final result = await _sendData(
+      _getBody(request),
+      timeout: const Duration(seconds: 30),
+    );
     return UpdateToLatestVersionReply.fromJson(result);
   }
 
