@@ -30,26 +30,29 @@ extension ProductDetailsExt on ProductDetails {
         ),
         const SizedBox(height: 8),
         RichText(
+            textAlign: TextAlign.center,
             text: TextSpan(
-          style: theme.textTheme.ppMori400Black12,
-          children: [
-            TextSpan(
-                text: 'Note:', style: TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(
-              text: 'A subscription is ',
-            ),
-            TextSpan(
-                text: 'not required',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(
-              text:
-                  ' to use the basic features of this app. Premium features require a subscription.',
-            ),
-          ],
-        )),
+              style: theme.textTheme.ppMori400Black12,
+              children: [
+                TextSpan(
+                    text: 'Note:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(
+                  text: ' A subscription is ',
+                ),
+                TextSpan(
+                    text: 'not required',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(
+                  text:
+                      ' to use the basic features of this app. Premium features require a subscription.',
+                ),
+              ],
+            )),
         if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) ...[
           const SizedBox(height: 8),
           Text(
+            textAlign: TextAlign.center,
             'renew_policy_india'.tr(),
             style: theme.textTheme.ppMori400Black12
                 .copyWith(fontWeight: FontWeight.bold),
