@@ -356,43 +356,45 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        _handleScrollUpdate(notification);
-        return false; // Allow the notification to continue to be dispatched
-      },
-      child: Stack(
-        children: [
-          widget.child,
-          Positioned(
-            bottom: kStatusBarMarginBottom,
-            left: 10,
-            right: 10,
-            child: FadeTransition(
-              opacity: _animationController,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(
-                    0,
-                    kStatusBarMarginBottom / kNowDisplayingHeight,
+    return Material(
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          _handleScrollUpdate(notification);
+          return false; // Allow the notification to continue to be dispatched
+        },
+        child: Stack(
+          children: [
+            widget.child,
+            Positioned(
+              bottom: kStatusBarMarginBottom,
+              left: 10,
+              right: 10,
+              child: FadeTransition(
+                opacity: _animationController,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(
+                      0,
+                      kStatusBarMarginBottom / kNowDisplayingHeight,
+                    ),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: _animationController,
+                      curve: Curves.easeInOut,
+                    ),
                   ),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: _animationController,
-                    curve: Curves.easeInOut,
-                  ),
-                ),
-                child: IgnorePointer(
-                  ignoring: !_isVisible,
-                  child: NowDisplaying(
-                    key: GlobalKey(),
+                  child: IgnorePointer(
+                    ignoring: !_isVisible,
+                    child: NowDisplaying(
+                      key: GlobalKey(),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
