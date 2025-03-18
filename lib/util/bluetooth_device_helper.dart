@@ -19,6 +19,8 @@ class BluetoothDeviceHelper {
     FFBluetoothDevice device,
   ) async {
     await _pairedDevicesBox.removeAllAsync();
+    await saveLastConnectedDevice(null);
+
     await _pairedDevicesBox.putAsync(device);
   }
 
@@ -42,7 +44,7 @@ class BluetoothDeviceHelper {
         .isNotEmpty;
   }
 
-  static Future<void> saveLastConnectedDevice(FFBluetoothDevice device) async {
+  static Future<void> saveLastConnectedDevice(FFBluetoothDevice? device) async {
     try {
       final configurationService = injector<ConfigurationService>();
       await configurationService.saveLastConnectedDevice(device);

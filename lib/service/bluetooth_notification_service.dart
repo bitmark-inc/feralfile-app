@@ -72,8 +72,9 @@ class BluetoothNotificationService {
             device.toFFBluetoothDevice(), statusChange));
       }
 
+      final callbacks = _subscribers[topic]?.toList();
       // Notify subscribers
-      _subscribers[topic]?.forEach((callback) {
+      callbacks?.forEach((callback) {
         callback(jsonData);
       });
     } catch (e, s) {

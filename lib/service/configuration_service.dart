@@ -151,7 +151,7 @@ abstract class ConfigurationService {
 
   String? getAnnouncementContentIdByIssueId(String issueId);
 
-  Future<void> saveLastConnectedDevice(FFBluetoothDevice device);
+  Future<void> saveLastConnectedDevice(FFBluetoothDevice? device);
 
   FFBluetoothDevice? getLastConnectedDevice();
 
@@ -617,7 +617,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> saveLastConnectedDevice(FFBluetoothDevice device) {
+  Future<void> saveLastConnectedDevice(FFBluetoothDevice? device) {
+    if (device == null) {
+      return _preferences.remove(LAST_CONNECTED_DEVICE);
+    }
     final deviceJson = jsonEncode(device.toJson());
     return _preferences.setString(LAST_CONNECTED_DEVICE, deviceJson);
   }

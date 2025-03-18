@@ -24,7 +24,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -471,9 +470,11 @@ class BluetoothConnectedDeviceConfigState
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Connection Status
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: 12,
@@ -484,12 +485,35 @@ class BluetoothConnectedDeviceConfigState
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _isBLEDeviceConnected
-                        ? 'Connected'
-                        : 'Device not connected',
-                    style: theme.textTheme.ppMori400White14,
+                  Expanded(
+                    child: Text(
+                      _isBLEDeviceConnected
+                          ? 'Connected'
+                          : 'Device not connected',
+                      style: theme.textTheme.ppMori400White14,
+                    ),
                   ),
+                  _isBLEDeviceConnected
+                      ? const SizedBox()
+                      : InkWell(
+                          onTap: () async {
+                            final device = widget.device.toFFBluetoothDevice();
+                            await injector<FFBluetoothService>()
+                                .connectToDevice(device);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColor.feralFileMediumGrey,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Connect',
+                              style: theme.textTheme.ppMori400White12,
+                            ),
+                          ),
+                        ),
                 ],
               ),
 
@@ -757,7 +781,8 @@ class BluetoothConnectedDeviceConfigState
             child: LineChart(
               LineChartData(
                 minY: 0,
-                maxY: 100, // Percentage values 0-100
+                maxY: 100,
+                // Percentage values 0-100
                 minX: _cpuPoints.first.x,
                 maxX: _cpuPoints.last.x,
                 clipData: const FlClipData.all(),
@@ -932,8 +957,10 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: usesFahrenheit ? 104 : 40, // 40°C = 104°F
-                maxY: usesFahrenheit ? 212 : 100, // 100°C = 212°F
+                minY: usesFahrenheit ? 104 : 40,
+                // 40°C = 104°F
+                maxY: usesFahrenheit ? 212 : 100,
+                // 100°C = 212°F
                 minX: _cpuTempPoints.first.x,
                 maxX: _cpuTempPoints.last.x,
                 clipData: const FlClipData.all(),

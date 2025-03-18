@@ -77,6 +77,8 @@ class FFBluetoothService {
         try {
           if (Platform.isAndroid) {
             await device.requestMtu(512);
+            await device.requestConnectionPriority(
+                connectionPriorityRequest: ConnectionPriority.high);
           }
           await device.discoverCharacteristics();
           _connectCompleter?.complete();
@@ -408,6 +410,7 @@ class FFBluetoothService {
     BluetoothDevice device, {
     bool shouldShowError = true,
     bool shouldChangeNowDisplayingStatus = false,
+    bool? autoConnect,
   }) async {
     if (_multiConnectCompleter?.isCompleted == false) {
       log.info('Already connecting to device: ${device.remoteId.str}');
@@ -418,7 +421,8 @@ class FFBluetoothService {
     if (shouldChangeNowDisplayingStatus) {
       NowDisplayingManager().addStatus(ConnectingToDevice(device));
     }
-    _connectToDevice(device, shouldShowError: shouldShowError).then((_) {
+
+    _connectDevice(device, shouldShowError: shouldShowError).then((_) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectSuccess(device));
       }
@@ -435,19 +439,47 @@ class FFBluetoothService {
     return _multiConnectCompleter?.future;
   }
 
-  Future<void> _connectToDevice(
+  /*
+    * Connect to device
+    * If autoConnect is true, it will try to connect to device with autoConnect
+    * If autoConnect is false, it will try to connect to device without autoConnect
+    * If autoConnect is null, it will try to connect to device with autoConnect first, then without autoConnect
+   */
+  Future<void> _connectDevice(
     BluetoothDevice device, {
     bool shouldShowError = true,
+    bool? autoConnect,
+  }) async {
+    try {
+      if (!(autoConnect ?? false)) {
+        await _connect(device,
+            shouldShowError: shouldShowError, autoConnect: false);
+      }
+    } catch (e) {}
+    if (autoConnect ?? true) {
+      await _connect(device,
+          shouldShowError: shouldShowError, autoConnect: true);
+    }
+  }
+
+  Future<void> _connect(
+    BluetoothDevice device, {
+    bool shouldShowError = true,
+    bool autoConnect = true,
   }) async {
     // connect to device
-    if (device.isDisconnected) {
+    if (device.isDisconnected ||
+        (autoConnect && !device.isAutoConnectEnabled)) {
+      if (!autoConnect) {
+        await device.disconnect();
+      }
       _connectCompleter = Completer<void>();
       log.info('Connecting to device: ${device.remoteId.str}');
       try {
         await device.connect(
           timeout: const Duration(seconds: 10),
-          autoConnect: true,
-          mtu: null,
+          autoConnect: autoConnect,
+          mtu: autoConnect ? null : 512,
         );
       } catch (e) {
         log.warning('Failed to connect to device: $e');
@@ -463,38 +495,43 @@ class FFBluetoothService {
         rethrow;
       }
 
-      // Wait for connection to complete
-      await _connectCompleter?.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          log.warning('Timeout waiting for connection to complete');
+      if (device.isConnected) {
+        _connectCompleter?.complete();
+      } else {
+        // Wait for connection to complete
+        await _connectCompleter?.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            log.warning('Timeout waiting for connection to complete');
+            if (shouldShowError) {
+              unawaited(
+                injector<NavigationService>()
+                    .showCannotConnectToBluetoothDevice(
+                  device,
+                  TimeoutException('Taking too long to connect to device'),
+                ),
+              );
+            }
+            throw TimeoutException('Taking too long to connect to device');
+          },
+        ).catchError((Object e) {
+          log.warning('Error waiting for connection to complete: $e');
+          unawaited(
+            Sentry.captureException(
+              'Error waiting for connection to complete: $e',
+            ),
+          );
           if (shouldShowError) {
             unawaited(
               injector<NavigationService>().showCannotConnectToBluetoothDevice(
                 device,
-                TimeoutException('Taking too long to connect to device'),
+                e,
               ),
             );
           }
-          throw TimeoutException('Taking too long to connect to device');
-        },
-      ).catchError((Object e) {
-        log.warning('Error waiting for connection to complete: $e');
-        unawaited(
-          Sentry.captureException(
-            'Error waiting for connection to complete: $e',
-          ),
-        );
-        if (shouldShowError) {
-          unawaited(
-            injector<NavigationService>().showCannotConnectToBluetoothDevice(
-              device,
-              e,
-            ),
-          );
-        }
-        throw e;
-      });
+          throw e;
+        });
+      }
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
     }
