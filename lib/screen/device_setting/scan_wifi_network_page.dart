@@ -161,7 +161,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'There might be an issue with the wifi module on your Portal. Please try restarting your Portal and scan again.',
+                          'There might be an issue with the WiFi module on your Portal. Please try restarting your Portal and scan again.',
                           style: Theme.of(context).textTheme.ppMori400White14,
                         ),
                       ],

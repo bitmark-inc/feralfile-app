@@ -75,7 +75,11 @@ class BluetoothNotificationService {
       final callbacks = _subscribers[topic]?.toList();
       // Notify subscribers
       callbacks?.forEach((callback) {
-        callback(jsonData);
+        try {
+          callback(jsonData);
+        } catch (e, s) {
+          log.info('[BluetoothNotification] Error processing notification: $e');
+        }
       });
     } catch (e, s) {
       log.info('[BluetoothNotification] Error processing notification: $e');

@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -61,9 +62,24 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
             children: [
               CustomScrollView(
                 slivers: [
-                  const SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 120,
+                  SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 120,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Icon(
+                            AuIcon.close,
+                            color: AppColor.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   SliverToBoxAdapter(
