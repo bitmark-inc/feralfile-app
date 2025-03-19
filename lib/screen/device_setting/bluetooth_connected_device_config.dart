@@ -298,7 +298,7 @@ class BluetoothConnectedDeviceConfigState
     );
   }
 
-  Widget _displayOrientationPreview() {
+  Widget _displayOrientationPreview(BluetoothDeviceStatus? status) {
     return Container(
       decoration: BoxDecoration(
         color: AppColor.auGreyBackground,
@@ -306,23 +306,26 @@ class BluetoothConnectedDeviceConfigState
       ),
       height: 200,
       child: Center(
-        child: _displayOrientationPreviewImage(),
+        child: _displayOrientationPreviewImage(status),
       ),
     );
   }
 
-  Widget _displayOrientationPreviewImage() {
+  Widget _displayOrientationPreviewImage(BluetoothDeviceStatus? status) {
     if (status == null) {
       return const SizedBox.shrink();
     }
-    final screenRotation = status!.screenRotation;
+    final screenRotation = status.screenRotation;
     switch (screenRotation) {
       case ScreenOrientation.landscape:
         return SvgPicture.asset('assets/images/landscape.svg', width: 150);
       case ScreenOrientation.landscapeReverse:
-        return SvgPicture.asset(
-          'assets/images/landscape.svg',
-          width: 150,
+        return RotatedBox(
+          quarterTurns: 2,
+          child: SvgPicture.asset(
+            'assets/images/landscape.svg',
+            width: 150,
+          ),
         );
       case ScreenOrientation.portrait:
         return SvgPicture.asset(
@@ -330,15 +333,18 @@ class BluetoothConnectedDeviceConfigState
           height: 150,
         );
       case ScreenOrientation.portraitReverse:
-        return SvgPicture.asset(
-          'assets/images/portrait.svg',
-          height: 150,
+        return RotatedBox(
+          quarterTurns: 2,
+          child: SvgPicture.asset(
+            'assets/images/portrait.svg',
+            height: 150,
+          ),
         );
     }
   }
 
   Widget _displayOrientation(BuildContext context) {
-    final blDevice = widget.device!;
+    final blDevice = widget.device;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -347,7 +353,7 @@ class BluetoothConnectedDeviceConfigState
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
         const SizedBox(height: 16),
-        _displayOrientationPreview(),
+        _displayOrientationPreview(status),
         const SizedBox(height: 16),
         PrimaryAsyncButton(
           text: 'rotate'.tr(),

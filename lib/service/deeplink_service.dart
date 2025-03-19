@@ -64,21 +64,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   Future<void> setup() async {
     log.info('[DeeplinkService] setup');
-    // await FlutterBranchSdk.init(enableLogging: true);
-    // FlutterBranchSdk.listSession().listen((data) async {
-    //   log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
-    //   log.info('[DeeplinkService] data: $data');
-    //   log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
-    //   if (data['+clicked_branch_link'] == true &&
-    //       _deepLinkHandlingMap[data['~referring_link']] == null) {
-    //     _deepLinkHandlingMap[data['~referring_link'] as String] = true;
-    //
-    //     await handleBranchDeeplinkData(data);
-    //   }
-    // }, onError: (error, stacktrace) {
-    //   Sentry.captureException(error, stackTrace: stacktrace);
-    //   log.warning('[DeeplinkService] InitBranchSession error: $error');
-    // });
 
     try {
       final appLink = AppLinks();

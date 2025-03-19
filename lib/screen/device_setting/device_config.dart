@@ -192,9 +192,12 @@ class ConfigureDeviceState extends State<ConfigureDevice>
               return SvgPicture.asset('assets/images/landscape.svg',
                   width: 150);
             case ScreenOrientation.landscapeReverse:
-              return SvgPicture.asset(
-                'assets/images/landscape.svg',
-                width: 150,
+              return RotatedBox(
+                quarterTurns: 2,
+                child: SvgPicture.asset(
+                  'assets/images/landscape.svg',
+                  width: 150,
+                ),
               );
             case ScreenOrientation.portrait:
               return SvgPicture.asset(
@@ -202,9 +205,12 @@ class ConfigureDeviceState extends State<ConfigureDevice>
                 height: 150,
               );
             case ScreenOrientation.portraitReverse:
-              return SvgPicture.asset(
-                'assets/images/portrait.svg',
-                height: 150,
+              return RotatedBox(
+                quarterTurns: 2,
+                child: SvgPicture.asset(
+                  'assets/images/portrait.svg',
+                  height: 150,
+                ),
               );
           }
         });
