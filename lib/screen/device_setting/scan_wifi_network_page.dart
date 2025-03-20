@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/wifi_helper.dart';
@@ -35,18 +36,29 @@ class ScanWifiNetworkPage extends StatefulWidget {
   State<ScanWifiNetworkPage> createState() => ScanWifiNetworkPageState();
 }
 
-class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
+class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
+    with RouteAware {
   List<WifiPoint>? _accessPoints;
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
 
-  final TextEditingController _ssidController = TextEditingController();
-  bool _shouldEnableConnectButton = false;
   bool _isScanning = false;
 
   @override
   void initState() {
     super.initState();
     _startScan();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPushNext() {
+    _isScanning = false;
+    super.didPopNext();
   }
 
   Future<void> _startScan() async {
@@ -77,6 +89,9 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
           });
         }
       },
+      shouldStop: (result) {
+        return !_isScanning;
+      },
     );
     if (mounted) {
       setState(() {
@@ -97,6 +112,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage> {
   @override
   void dispose() {
     _subscription?.cancel();
+    routeObserver.unsubscribe(this);
     super.dispose();
   }
 

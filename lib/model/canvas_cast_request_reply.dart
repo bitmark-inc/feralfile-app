@@ -3,6 +3,7 @@
 // ignore_for_file: avoid_unused_constructor_parameters
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -836,17 +837,25 @@ class GetBluetoothDeviceStatusReply extends Reply {
 }
 
 class SetTimezoneRequest implements Request {
-  SetTimezoneRequest({required this.timezone});
+  SetTimezoneRequest({required this.timezone, DateTime? time})
+      : time = time ?? DateTime.now();
+
+  // datetime formatter in YYYY-MM-DD HH:MM:SS format
+  static final DateFormat _dateTimeFormatter =
+      DateFormat('yyyy-MM-dd HH:mm:ss');
 
   factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
       SetTimezoneRequest(
         timezone: json['timeZone'] as String,
+        time: _dateTimeFormatter.parse(json['time'] as String),
       );
   final String timezone;
+  final DateTime time;
 
   @override
   Map<String, dynamic> toJson() => {
         'timezone': timezone,
+        'time': _dateTimeFormatter.format(time),
       };
 }
 

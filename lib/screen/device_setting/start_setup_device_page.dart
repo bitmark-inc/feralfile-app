@@ -134,10 +134,9 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
       wifiAccessPoint: accessPoint,
       device: widget.device,
       onSubmitted: () {
-        Navigator.of(context).pushNamed(
-          AppRouter.configureDevice,
-          arguments: widget.device,
-        );
+        injector<NavigationService>()
+            .popUntil(AppRouter.bluetoothDevicePortalPage);
+        injector<NavigationService>().goBack(result: true);
       },
     );
     injector<NavigationService>()

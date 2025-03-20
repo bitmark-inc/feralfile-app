@@ -6,12 +6,18 @@ import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
+import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -71,9 +77,57 @@ class ConfigureDevice extends StatefulWidget {
 
 class ConfigureDeviceState extends State<ConfigureDevice>
     with AfterLayoutMixin<ConfigureDevice> {
+  BluetoothDeviceStatus? _deviceStatus;
+  bool? _isWifiConnectSuccess = false;
+  Timer? _pullingDeviceInfoTimer;
+
   @override
   void afterFirstLayout(BuildContext context) {
-    // injector<FFBluetoothService>().checkVersionCompatibility(widget.device);
+    _pullingDeviceInfo();
+    _listenForCanvasCastRequestReply();
+  }
+
+  @override
+  void dispose() {
+    _pullingDeviceInfoTimer?.cancel();
+    NowDisplayingManager().updateDisplayingNow();
+    super.dispose();
+  }
+
+  // listen for response from the device
+  void _listenForCanvasCastRequestReply() {
+    late NotificationCallback cb;
+    cb = (data) {
+      log.info(' Received data: $data');
+      final success = data['success'] as bool;
+      if (mounted) {
+        setState(() {
+          _isWifiConnectSuccess = success;
+        });
+      }
+      BluetoothNotificationService().unsubscribe(wifiConnectionTopic, cb);
+    };
+    BluetoothNotificationService().subscribe(wifiConnectionTopic, cb);
+  }
+
+  Future<void> _pullingDeviceInfo() async {
+    final device = widget.device.toFFBluetoothDevice();
+    _pullingDeviceInfoTimer?.cancel();
+    _pullingDeviceInfoTimer =
+        Timer.periodic(const Duration(seconds: 3), (timer) async {
+      final deviceStatus = await injector<CanvasClientServiceV2>()
+          .getBluetoothDeviceStatus(device);
+      if (mounted) {
+        setState(() {
+          _deviceStatus = deviceStatus;
+          _isWifiConnectSuccess = deviceStatus.isConnectedToWifi ||
+              (_isWifiConnectSuccess ?? false);
+        });
+      }
+      if (deviceStatus.isConnectedToWifi) {
+        timer.cancel();
+      }
+    });
   }
 
   @override
@@ -100,6 +154,52 @@ class ConfigureDeviceState extends State<ConfigureDevice>
                       height: 20,
                     ),
                   ),
+                  // if device not connected to internet, show the device status
+                  if (_isWifiConnectSuccess == null) ...[
+                    const SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 20,
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Waiting for Portal to connect to the internet',
+                            style: Theme.of(context).textTheme.ppMori400White14,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 20,
+                      ),
+                    ),
+                  ] else if (_isWifiConnectSuccess! == false) ...[
+                    const SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 20,
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'The Portal is not connected to the internet',
+                            style: Theme.of(context).textTheme.ppMori400White14,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 20,
+                      ),
+                    ),
+                  ],
                   SliverToBoxAdapter(
                     child: _displayOrientation(context),
                   ),
@@ -112,6 +212,24 @@ class ConfigureDeviceState extends State<ConfigureDevice>
                   ),
                   SliverToBoxAdapter(
                     child: _canvasSetting(context),
+                  ),
+                  SliverToBoxAdapter(
+                    child: const SizedBox(
+                      height: 20,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Divider(
+                      color: AppColor.auGreyBackground,
+                      thickness: 1,
+                      height: 1,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _wifiConfig(context),
+                    ),
                   ),
                   const SliverToBoxAdapter(
                     child: SizedBox(
@@ -126,10 +244,10 @@ class ConfigureDeviceState extends State<ConfigureDevice>
                 right: 0,
                 child: PrimaryAsyncButton(
                   onTap: () async {
-                    injector<NavigationService>()
-                        .popUntil(AppRouter.bluetoothDevicePortalPage);
-                    injector<NavigationService>().goBack();
+                    Navigator.of(context).pop();
+                    NowDisplayingManager().updateDisplayingNow();
                   },
+                  enabled: _isWifiConnectSuccess ?? false,
                   text: 'finish'.tr(),
                   color: AppColor.white,
                 ),
@@ -139,6 +257,44 @@ class ConfigureDeviceState extends State<ConfigureDevice>
         ),
       ),
     );
+  }
+
+  Widget _wifiConfig(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TappableForwardRow(
+          leftWidget: Row(
+            children: [
+              Text(
+                'configure_wifi'.tr(),
+                style: Theme.of(context).textTheme.ppMori400White14,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          onTap: () {
+            injector<NavigationService>().navigateTo(
+                AppRouter.scanWifiNetworkPage,
+                arguments: ScanWifiNetworkPagePayload(
+                    widget.device.toFFBluetoothDevice(), onWifiSelected));
+          },
+        ),
+      ],
+    );
+  }
+
+  FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
+    final blDevice = widget.device;
+    log.info('onWifiSelected: $accessPoint');
+    final payload = SendWifiCredentialsPagePayload(
+        wifiAccessPoint: accessPoint,
+        device: blDevice,
+        onSubmitted: () {
+          injector<NavigationService>().popUntil(AppRouter.configureDevice);
+        });
+    injector<NavigationService>()
+        .navigateTo(AppRouter.sendWifiCredentialPage, arguments: payload);
   }
 
   Widget _displayOrientation(BuildContext context) {
@@ -156,6 +312,7 @@ class ConfigureDeviceState extends State<ConfigureDevice>
         PrimaryAsyncButton(
           text: 'rotate'.tr(),
           color: AppColor.white,
+          enabled: _isWifiConnectSuccess ?? false,
           onTap: () async {
             final device = blDevice.toFFBluetoothDevice();
             await injector<CanvasClientServiceV2>().rotateCanvas(device);
@@ -225,30 +382,34 @@ class ConfigureDeviceState extends State<ConfigureDevice>
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
         const SizedBox(height: 30),
-        SelectDeviceConfigView(selectedIndex: 0, items: [
-          DeviceConfigItem(
-            title: 'fit'.tr(),
-            icon: Image.asset('assets/images/fit.png', width: 100, height: 100),
-            onSelected: () {
-              final device = widget.device.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateArtFraming(device, ArtFraming.fitToScreen);
-            },
-          ),
-          DeviceConfigItem(
-            title: 'fill'.tr(),
-            icon: Image.asset(
-              'assets/images/fill.png',
-              width: 100,
-              height: 100,
-            ),
-            onSelected: () {
-              final device = widget.device.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateArtFraming(device, ArtFraming.cropToFill);
-            },
-          ),
-        ])
+        SelectDeviceConfigView(
+            selectedIndex: 0,
+            isEnable: _isWifiConnectSuccess ?? false,
+            items: [
+              DeviceConfigItem(
+                title: 'fit'.tr(),
+                icon: Image.asset('assets/images/fit.png',
+                    width: 100, height: 100),
+                onSelected: () {
+                  final device = widget.device.toFFBluetoothDevice();
+                  injector<CanvasClientServiceV2>()
+                      .updateArtFraming(device, ArtFraming.fitToScreen);
+                },
+              ),
+              DeviceConfigItem(
+                title: 'fill'.tr(),
+                icon: Image.asset(
+                  'assets/images/fill.png',
+                  width: 100,
+                  height: 100,
+                ),
+                onSelected: () {
+                  final device = widget.device.toFFBluetoothDevice();
+                  injector<CanvasClientServiceV2>()
+                      .updateArtFraming(device, ArtFraming.cropToFill);
+                },
+              ),
+            ])
       ],
     );
   }
@@ -275,10 +436,14 @@ class DeviceConfigItem {
 
 class SelectDeviceConfigView extends StatefulWidget {
   const SelectDeviceConfigView(
-      {required this.items, required this.selectedIndex, super.key});
+      {required this.items,
+      required this.selectedIndex,
+      super.key,
+      this.isEnable = true});
 
   final List<DeviceConfigItem> items;
   final int selectedIndex;
+  final bool isEnable;
 
   @override
   State<SelectDeviceConfigView> createState() => SelectItemState();
@@ -313,14 +478,17 @@ class SelectItemState extends State<SelectDeviceConfigView> {
       padding: const EdgeInsets.all(0),
       itemBuilder: (context, index) {
         final item = widget.items[index];
-        final isSelected = _selectedIndex == index;
+        final isSelected = _selectedIndex == index && widget.isEnable;
         final activeTitleStyle =
             item.titleStyle ?? Theme.of(context).textTheme.ppMori400White14;
         final deactiveTitleStyle =
             item.titleStyleOnUnselected ?? activeTitleStyle;
-        final titleStyle = isSelected ? activeTitleStyle : deactiveTitleStyle;
+        final titleStyle = (isSelected) ? activeTitleStyle : deactiveTitleStyle;
         return GestureDetector(
           onTap: () async {
+            if (!(widget.isEnable)) {
+              return;
+            }
             setState(() {
               _selectedIndex = index;
             });

@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_exeption.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_exception.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -116,7 +117,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                       );
                       if (!isSuccess) {
                         throw FailedToConnectToWifiException(
-                            ssid, widget.payload.device);
+                            ssid, widget.payload.device.toFFBluetoothDevice());
                       }
                       widget.payload.onSubmitted?.call();
                     } on FailedToConnectToWifiException catch (e) {

@@ -380,30 +380,34 @@ class BluetoothConnectedDeviceConfigState
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
         const SizedBox(height: 30),
-        SelectDeviceConfigView(selectedIndex: defaultArtFramingIndex, items: [
-          DeviceConfigItem(
-            title: 'fit'.tr(),
-            icon: Image.asset('assets/images/fit.png', width: 100, height: 100),
-            onSelected: () {
-              final device = blDevice.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateArtFraming(device, ArtFraming.fitToScreen);
-            },
-          ),
-          DeviceConfigItem(
-            title: 'fill'.tr(),
-            icon: Image.asset(
-              'assets/images/fill.png',
-              width: 100,
-              height: 100,
-            ),
-            onSelected: () {
-              final device = blDevice.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateArtFraming(device, ArtFraming.cropToFill);
-            },
-          ),
-        ])
+        SelectDeviceConfigView(
+            selectedIndex: defaultArtFramingIndex,
+            isEnable: _isBLEDeviceConnected,
+            items: [
+              DeviceConfigItem(
+                title: 'fit'.tr(),
+                icon: Image.asset('assets/images/fit.png',
+                    width: 100, height: 100),
+                onSelected: () {
+                  final device = blDevice.toFFBluetoothDevice();
+                  injector<CanvasClientServiceV2>()
+                      .updateArtFraming(device, ArtFraming.fitToScreen);
+                },
+              ),
+              DeviceConfigItem(
+                title: 'fill'.tr(),
+                icon: Image.asset(
+                  'assets/images/fill.png',
+                  width: 100,
+                  height: 100,
+                ),
+                onSelected: () {
+                  final device = blDevice.toFFBluetoothDevice();
+                  injector<CanvasClientServiceV2>()
+                      .updateArtFraming(device, ArtFraming.cropToFill);
+                },
+              ),
+            ])
       ],
     );
   }

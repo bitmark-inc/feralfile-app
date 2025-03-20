@@ -367,37 +367,16 @@ class FFBluetoothService {
     final bytes = builder.takeBytes();
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
 
-    final sendWifiCompleter = Completer<bool>();
-
-    late NotificationCallback cb;
-    cb = (data) {
-      log.info('[sendWifiCredentials] Received data: $data');
-      final success = data['success'] as bool;
-      BluetoothNotificationService().unsubscribe(wifiConnectionTopic, cb);
-      sendWifiCompleter.complete(success);
-    };
-    BluetoothNotificationService().subscribe(wifiConnectionTopic, cb);
-
     log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
     try {
-      await wifiConnectChar.write(bytes, withoutResponse: false);
+      await wifiConnectChar.write(bytes);
       log.info('[sendWifiCredentials] Wi-Fi credentials sent');
+      return true;
     } catch (e) {
       unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
+      return false;
     }
-    final isSuccess = await sendWifiCompleter.future.timeout(
-      const Duration(seconds: 120),
-      onTimeout: () {
-        log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
-        unawaited(
-            Sentry.captureMessage('Timeout waiting for Wi-Fi connection'));
-        throw TimeoutException('Timeout waiting for Wi-Fi connection');
-      },
-    );
-
-    unawaited(fetchBluetoothDeviceStatus(device));
-    return isSuccess;
   }
 
   // completer for connectToDevice
@@ -457,8 +436,7 @@ class FFBluetoothService {
       }
     } catch (e) {}
     if (autoConnect ?? true) {
-      await _connect(device,
-          shouldShowError: shouldShowError, autoConnect: true);
+      await _connect(device, shouldShowError: shouldShowError);
     }
   }
 

@@ -35,7 +35,7 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final disabledColor = this.disabledColor ?? theme.auLightGrey;
+    final disabledColor = this.disabledColor ?? AppColor.disabledColor;
     return SizedBox(
       width: width,
       child: ElevatedButton(
@@ -218,6 +218,7 @@ class TextAsyncButton extends StatefulWidget {
     this.text,
     this.processingText,
   });
+
   final dynamic Function()? onTap;
   final Color color;
   final String? text;
