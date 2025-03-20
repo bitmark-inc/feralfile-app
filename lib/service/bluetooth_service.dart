@@ -281,7 +281,7 @@ class FFBluetoothService {
       }
       return res;
     } catch (e) {
-      BluetoothNotificationService().unsubscribe(replyId, (data) {});
+      BluetoothNotificationService().unsubscribe(replyId, cb);
       unawaited(Sentry.captureException(e));
       log.info('[sendCommand] Error sending command: $e');
       rethrow;
@@ -619,7 +619,7 @@ class FFBluetoothService {
           log.info('[sendCommand] Received full response: $response');
 
           responseCompleter.complete(response);
-          BluetoothNotificationService().unsubscribe(replyId, (data) {});
+          BluetoothNotificationService().unsubscribe(replyId, cb);
           chunks.remove(replyId);
         }
       } else {
@@ -845,21 +845,24 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
       ..add(chunk);
   }
 
-  void _setupChunkNotificationSubscriptions({
+  NotificationCallback _setupChunkNotificationSubscriptions({
     required String ackReplyId,
     required List<Completer<void>> chunkCompleters,
   }) {
-    BluetoothNotificationService().subscribe(ackReplyId, (data) {
+    late NotificationCallback cb;
+    cb = (data) {
       final chunkIndex = data['chunkIndex'] as int;
       if (chunkIndex >= 0 &&
           chunkIndex < chunkCompleters.length &&
           !chunkCompleters[chunkIndex].isCompleted) {
-        log.info('[sendCommand] completing chunk $chunkIndex');
+        log.info('[sendCommand] Completing chunk $chunkIndex');
         chunkCompleters[chunkIndex].complete();
       }
       if (chunkCompleters.every((completer) => completer.isCompleted)) {
-        BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
+        BluetoothNotificationService().unsubscribe(ackReplyId, cb);
       }
-    });
+    };
+    BluetoothNotificationService().subscribe(ackReplyId, cb);
+    return cb;
   }
 }
