@@ -396,6 +396,7 @@ class Constants {
 
   static const bluetoothConnectDeepLinks = [
     'feralfile://device_connect',
+    'https://feralfile-app-links.pages.dev'
   ];
 
   static const branchDeepLinks = [
