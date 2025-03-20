@@ -168,7 +168,7 @@
                     android:scheme="https" />
 
                 <data
-                    android:host="feralfile-app-links.pages.dev"
+                    android:host="link.feralfile.com"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
