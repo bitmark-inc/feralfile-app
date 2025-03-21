@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
@@ -87,7 +88,6 @@ import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:page_transition/page_transition.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
@@ -723,7 +723,7 @@ class AppRouter {
         );
 
       case bluetoothDevicePortalPage:
-        final device = settings.arguments! as BluetoothDevice;
+        final device = settings.arguments! as FFBluetoothDevice;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BluetoothDevicePortalPage(device: device),
@@ -746,7 +746,7 @@ class AppRouter {
         );
 
       case configureDevice:
-        final device = settings.arguments! as BluetoothDevice;
+        final device = settings.arguments! as FFBluetoothDevice;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => ConfigureDevice(
@@ -780,7 +780,7 @@ class AppRouter {
         );
 
       case bluetoothConnectedDeviceConfig:
-        final device = settings.arguments! as BluetoothDevice;
+        final device = settings.arguments! as FFBluetoothDevice;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BluetoothConnectedDeviceConfig(

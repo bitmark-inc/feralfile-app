@@ -24,15 +24,13 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothConnectedDeviceConfig extends StatefulWidget {
-  const BluetoothConnectedDeviceConfig({super.key, required this.device});
+  const BluetoothConnectedDeviceConfig({required this.device, super.key});
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 
   @override
   State<BluetoothConnectedDeviceConfig> createState() =>
@@ -95,7 +93,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   void _updateConnectionStatus() {
-    final ffDevice = widget.device.toFFBluetoothDevice();
+    final ffDevice = widget.device;
     final isConnected = ffDevice.isConnected;
 
     if (_isBLEDeviceConnected != isConnected) {
@@ -157,33 +155,26 @@ class BluetoothConnectedDeviceConfigState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: () {
-        injector<NavigationService>().goBack();
-      }, title: 'configure_device'.tr(), isWhite: false),
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          injector<NavigationService>().goBack();
+        },
+        title: 'configure_device'.tr(),
+        isWhite: false,
+      ),
       backgroundColor: AppColor.primaryBlack,
       body: SafeArea(child: _body(context)),
     );
   }
 
-  Widget _emptyView(BuildContext context) {
-    return Center(
-      child: Text(
-        'no_device_connected'.tr(),
-        style: Theme.of(context).textTheme.ppMori400White14,
-      ),
-    );
-  }
-
   Widget _body(BuildContext context) {
-    if (widget.device == null) {
-      return _emptyView(context);
-    }
     return _deviceConfig(context);
   }
 
   Widget _deviceConfig(BuildContext context) {
     final theme = Theme.of(context);
-    final device = widget.device!;
+    final device = widget.device;
     return Padding(
       padding: EdgeInsets.zero,
       child: CustomScrollView(
@@ -198,7 +189,7 @@ class BluetoothConnectedDeviceConfigState
               child: Padding(
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                 child: Text(
-                  'Device: ${device.advName} - ${device.remoteId.str}',
+                  'Device: ${device.name} - ${device.remoteId.str}',
                   style: theme.textTheme.ppMori400White14,
                 ),
               ),
@@ -222,12 +213,12 @@ class BluetoothConnectedDeviceConfigState
               child: _canvasSetting(context),
             ),
           ),
-          SliverToBoxAdapter(
-            child: const SizedBox(
+          const SliverToBoxAdapter(
+            child: SizedBox(
               height: 20,
             ),
           ),
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Divider(
               color: AppColor.auGreyBackground,
               thickness: 1,
@@ -240,14 +231,14 @@ class BluetoothConnectedDeviceConfigState
               child: _wifiConfig(context),
             ),
           ),
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Divider(
               color: AppColor.auGreyBackground,
               thickness: 1,
               height: 1,
             ),
           ),
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: SizedBox(
               height: 20,
             ),
@@ -260,7 +251,7 @@ class BluetoothConnectedDeviceConfigState
           ),
 
           // Add performance monitoring section
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Divider(
               color: AppColor.auGreyBackground,
               thickness: 1,
@@ -275,7 +266,7 @@ class BluetoothConnectedDeviceConfigState
           ),
 
           // Temperature monitoring section
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Divider(
               color: AppColor.auGreyBackground,
               thickness: 1,
@@ -299,7 +290,7 @@ class BluetoothConnectedDeviceConfigState
     );
   }
 
-  Widget _displayOrientationPreview() {
+  Widget _displayOrientationPreview(BluetoothDeviceStatus? status) {
     return Container(
       decoration: BoxDecoration(
         color: AppColor.auGreyBackground,
@@ -307,23 +298,26 @@ class BluetoothConnectedDeviceConfigState
       ),
       height: 200,
       child: Center(
-        child: _displayOrientationPreviewImage(),
+        child: _displayOrientationPreviewImage(status),
       ),
     );
   }
 
-  Widget _displayOrientationPreviewImage() {
+  Widget _displayOrientationPreviewImage(BluetoothDeviceStatus? status) {
     if (status == null) {
       return const SizedBox.shrink();
     }
-    final screenRotation = status!.screenRotation;
+    final screenRotation = status.screenRotation;
     switch (screenRotation) {
       case ScreenOrientation.landscape:
         return SvgPicture.asset('assets/images/landscape.svg', width: 150);
       case ScreenOrientation.landscapeReverse:
-        return SvgPicture.asset(
-          'assets/images/landscape.svg',
-          width: 150,
+        return RotatedBox(
+          quarterTurns: 2,
+          child: SvgPicture.asset(
+            'assets/images/landscape.svg',
+            width: 150,
+          ),
         );
       case ScreenOrientation.portrait:
         return SvgPicture.asset(
@@ -331,15 +325,18 @@ class BluetoothConnectedDeviceConfigState
           height: 150,
         );
       case ScreenOrientation.portraitReverse:
-        return SvgPicture.asset(
-          'assets/images/portrait.svg',
-          height: 150,
+        return RotatedBox(
+          quarterTurns: 2,
+          child: SvgPicture.asset(
+            'assets/images/portrait.svg',
+            height: 150,
+          ),
         );
     }
   }
 
   Widget _displayOrientation(BuildContext context) {
-    final blDevice = widget.device!;
+    final blDevice = widget.device;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -348,23 +345,22 @@ class BluetoothConnectedDeviceConfigState
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
         const SizedBox(height: 16),
-        _displayOrientationPreview(),
+        _displayOrientationPreview(status),
         const SizedBox(height: 16),
         PrimaryAsyncButton(
           text: 'rotate'.tr(),
           color: AppColor.white,
           onTap: () async {
-            final device = blDevice.toFFBluetoothDevice();
-            await injector<CanvasClientServiceV2>().rotateCanvas(device);
+            await injector<CanvasClientServiceV2>().rotateCanvas(blDevice);
             // update orientation
           },
-        )
+        ),
       ],
     );
   }
 
   Widget _canvasSetting(BuildContext context) {
-    final blDevice = widget.device!;
+    final blDevice = widget.device;
     final defaultArtFramingIndex =
         (status?.artFraming == ArtFraming.cropToFill) ? 1 : 0;
     return Column(
@@ -375,30 +371,36 @@ class BluetoothConnectedDeviceConfigState
           style: Theme.of(context).textTheme.ppMori400White14,
         ),
         const SizedBox(height: 30),
-        SelectDeviceConfigView(selectedIndex: defaultArtFramingIndex, items: [
-          DeviceConfigItem(
-            title: 'fit'.tr(),
-            icon: Image.asset('assets/images/fit.png', width: 100, height: 100),
-            onSelected: () {
-              final device = blDevice.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateArtFraming(device, ArtFraming.fitToScreen);
-            },
-          ),
-          DeviceConfigItem(
-            title: 'fill'.tr(),
-            icon: Image.asset(
-              'assets/images/fill.png',
-              width: 100,
-              height: 100,
+        SelectDeviceConfigView(
+          selectedIndex: defaultArtFramingIndex,
+          isEnable: _isBLEDeviceConnected,
+          items: [
+            DeviceConfigItem(
+              title: 'fit'.tr(),
+              icon: Image.asset(
+                'assets/images/fit.png',
+                width: 100,
+                height: 100,
+              ),
+              onSelected: () {
+                injector<CanvasClientServiceV2>()
+                    .updateArtFraming(blDevice, ArtFraming.fitToScreen);
+              },
             ),
-            onSelected: () {
-              final device = blDevice.toFFBluetoothDevice();
-              injector<CanvasClientServiceV2>()
-                  .updateArtFraming(device, ArtFraming.cropToFill);
-            },
-          ),
-        ])
+            DeviceConfigItem(
+              title: 'fill'.tr(),
+              icon: Image.asset(
+                'assets/images/fill.png',
+                width: 100,
+                height: 100,
+              ),
+              onSelected: () {
+                injector<CanvasClientServiceV2>()
+                    .updateArtFraming(blDevice, ArtFraming.cropToFill);
+              },
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -419,9 +421,12 @@ class BluetoothConnectedDeviceConfigState
           padding: const EdgeInsets.symmetric(vertical: 20),
           onTap: () {
             injector<NavigationService>().navigateTo(
-                AppRouter.scanWifiNetworkPage,
-                arguments: ScanWifiNetworkPagePayload(
-                    widget.device.toFFBluetoothDevice(), onWifiSelected));
+              AppRouter.scanWifiNetworkPage,
+              arguments: ScanWifiNetworkPagePayload(
+                widget.device,
+                onWifiSelected,
+              ),
+            );
           },
         ),
       ],
@@ -432,12 +437,13 @@ class BluetoothConnectedDeviceConfigState
     final blDevice = widget.device;
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
-        wifiAccessPoint: accessPoint,
-        device: blDevice,
-        onSubmitted: () {
-          injector<NavigationService>()
-              .popUntil(AppRouter.bluetoothConnectedDeviceConfig);
-        });
+      wifiAccessPoint: accessPoint,
+      device: blDevice,
+      onSubmitted: () {
+        injector<NavigationService>()
+            .popUntil(AppRouter.bluetoothConnectedDeviceConfig);
+      },
+    );
     injector<NavigationService>()
         .navigateTo(AppRouter.sendWifiCredentialPage, arguments: payload);
   }
@@ -449,7 +455,7 @@ class BluetoothConnectedDeviceConfigState
     final isUpToDate =
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
-    final deviceId = widget.device?.advName ?? 'Unknown';
+    final deviceId = widget.device.name;
     final ipAddress = status?.ipAddress ?? 'Not connected to WiFi';
     final connectedWifi = status?.connectedWifi;
 
@@ -471,9 +477,11 @@ class BluetoothConnectedDeviceConfigState
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Connection Status
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: 12,
@@ -484,12 +492,38 @@ class BluetoothConnectedDeviceConfigState
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _isBLEDeviceConnected
-                        ? 'Connected'
-                        : 'Device not connected',
-                    style: theme.textTheme.ppMori400White14,
+                  Expanded(
+                    child: Text(
+                      _isBLEDeviceConnected
+                          ? 'Connected'
+                          : 'Device not connected',
+                      style: theme.textTheme.ppMori400White14,
+                    ),
                   ),
+                  if (_isBLEDeviceConnected)
+                    const SizedBox()
+                  else
+                    InkWell(
+                      onTap: () async {
+                        final device = widget.device;
+                        await injector<FFBluetoothService>()
+                            .connectToDevice(device);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColor.feralFileMediumGrey,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Connect',
+                          style: theme.textTheme.ppMori400White12,
+                        ),
+                      ),
+                    ),
                 ],
               ),
 
@@ -513,15 +547,17 @@ class BluetoothConnectedDeviceConfigState
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: deviceId));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Device ID copied to clipboard'),
-                          duration: const Duration(seconds: 2),
+                          duration: Duration(seconds: 2),
                         ),
                       );
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColor.feralFileMediumGrey,
                         borderRadius: BorderRadius.circular(4),
@@ -566,7 +602,7 @@ class BluetoothConnectedDeviceConfigState
               ],
 
               // IP Address
-              if (ipAddress != null) ...[
+              ...[
                 const SizedBox(height: 16),
                 Text(
                   'IP Address:',
@@ -589,7 +625,9 @@ class BluetoothConnectedDeviceConfigState
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColor.feralFileLightBlue,
                             borderRadius: BorderRadius.circular(4),
@@ -622,13 +660,13 @@ class BluetoothConnectedDeviceConfigState
         ),
 
         // Update Button
-        if (!isUpToDate && latestVersion != null) ...[
+        if (!isUpToDate) ...[
           const SizedBox(height: 16),
           PrimaryAsyncButton(
             text: 'Update to latest version v.$latestVersion',
             color: AppColor.white,
             onTap: () async {
-              final device = widget.device!.toFFBluetoothDevice();
+              final device = widget.device;
               await injector<CanvasClientServiceV2>()
                   .updateToLatestVersion(device);
             },
@@ -642,7 +680,7 @@ class BluetoothConnectedDeviceConfigState
   // Enable metrics streaming from the device
   Future<void> _enableMetricsStreaming() async {
     try {
-      final device = widget.device.toFFBluetoothDevice();
+      final device = widget.device;
       log.info('Enabling metrics streaming for device: ${device.name}');
       await injector<CanvasClientServiceV2>().enableMetricsStreaming(device);
 
@@ -663,7 +701,7 @@ class BluetoothConnectedDeviceConfigState
       _metricsStreamSubscription?.cancel();
       _metricsStreamSubscription = null;
 
-      final device = widget.device.toFFBluetoothDevice();
+      final device = widget.device;
       log.info('Disabling metrics streaming for device: ${device.name}');
       await injector<CanvasClientServiceV2>().disableMetricsStreaming(device);
     } catch (e) {
@@ -757,7 +795,8 @@ class BluetoothConnectedDeviceConfigState
             child: LineChart(
               LineChartData(
                 minY: 0,
-                maxY: 100, // Percentage values 0-100
+                maxY: 100,
+                // Percentage values 0-100
                 minX: _cpuPoints.first.x,
                 maxX: _cpuPoints.last.x,
                 clipData: const FlClipData.all(),
@@ -793,9 +832,10 @@ class BluetoothConnectedDeviceConfigState
                   ),
                   rightTitles: const AxisTitles(),
                   topTitles: const AxisTitles(
-                      sideTitles: SideTitles(
-                    reservedSize: 30,
-                  )),
+                    sideTitles: SideTitles(
+                      reservedSize: 30,
+                    ),
+                  ),
                 ),
                 lineTouchData: LineTouchData(
                   enabled: true,
@@ -912,9 +952,17 @@ class BluetoothConnectedDeviceConfigState
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _metricDisplay(
-                  'CPU Temp', cpuTempDisplayValue, tempUnit, cpuTempColor),
+                'CPU Temp',
+                cpuTempDisplayValue,
+                tempUnit,
+                cpuTempColor,
+              ),
               _metricDisplay(
-                  'GPU Temp', gpuTempDisplayValue, tempUnit, gpuTempColor),
+                'GPU Temp',
+                gpuTempDisplayValue,
+                tempUnit,
+                gpuTempColor,
+              ),
             ],
           ),
         ),
@@ -932,8 +980,10 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: usesFahrenheit ? 104 : 40, // 40°C = 104°F
-                maxY: usesFahrenheit ? 212 : 100, // 100°C = 212°F
+                minY: usesFahrenheit ? 104 : 40,
+                // 40°C = 104°F
+                maxY: usesFahrenheit ? 212 : 100,
+                // 100°C = 212°F
                 minX: _cpuTempPoints.first.x,
                 maxX: _cpuTempPoints.last.x,
                 clipData: const FlClipData.all(),
@@ -949,23 +999,29 @@ class BluetoothConnectedDeviceConfigState
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
                   _createLineData(
-                      usesFahrenheit
-                          ? _cpuTempPoints
-                              .map((spot) =>
-                                  FlSpot(spot.x, _celsiusToFahrenheit(spot.y)))
-                              .toList()
-                          : _cpuTempPoints,
-                      cpuTempColor,
-                      'CPU Temp'),
+                    usesFahrenheit
+                        ? _cpuTempPoints
+                            .map(
+                              (spot) =>
+                                  FlSpot(spot.x, _celsiusToFahrenheit(spot.y)),
+                            )
+                            .toList()
+                        : _cpuTempPoints,
+                    cpuTempColor,
+                    'CPU Temp',
+                  ),
                   _createLineData(
-                      usesFahrenheit
-                          ? _gpuTempPoints
-                              .map((spot) =>
-                                  FlSpot(spot.x, _celsiusToFahrenheit(spot.y)))
-                              .toList()
-                          : _gpuTempPoints,
-                      gpuTempColor,
-                      'GPU Temp'),
+                    usesFahrenheit
+                        ? _gpuTempPoints
+                            .map(
+                              (spot) =>
+                                  FlSpot(spot.x, _celsiusToFahrenheit(spot.y)),
+                            )
+                            .toList()
+                        : _gpuTempPoints,
+                    gpuTempColor,
+                    'GPU Temp',
+                  ),
                 ],
                 titlesData: FlTitlesData(
                   bottomTitles: const AxisTitles(),
@@ -1077,7 +1133,10 @@ class BluetoothConnectedDeviceConfigState
   }
 
   LineChartBarData _createLineData(
-      List<FlSpot> points, Color color, String label) {
+    List<FlSpot> points,
+    Color color,
+    String label,
+  ) {
     return LineChartBarData(
       spots: points,
       dotData: const FlDotData(

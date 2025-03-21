@@ -183,7 +183,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       BuildContext context, String link,
       {Function? onFinish}) async {
     final deviceName = getDeviceName(link);
-    BluetoothDevice? resultDevice;
+    FFBluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
     }
@@ -198,7 +198,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
-          resultDevice = device;
+          resultDevice = device.toFFBluetoothDevice();
           return true;
         }
         return false;
@@ -223,14 +223,23 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       }
       unawaited(injector<ConfigurationService>().setBetaTester(true));
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
-      await injector<NavigationService>().navigateTo(
-          AppRouter.bluetoothDevicePortalPage,
-          arguments: resultDevice);
-      await BluetoothDeviceHelper.addDevice(
-          resultDevice!.toFFBluetoothDevice());
-      injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+      // go to setting wifi page
+      final shouldOpenDeviceSetting = await injector<NavigationService>()
+          .navigateTo(AppRouter.bluetoothDevicePortalPage,
+              arguments: resultDevice);
+
+      // after setting wifi, go to device setting page
+      if (shouldOpenDeviceSetting is bool && shouldOpenDeviceSetting) {
+        await injector<NavigationService>()
+            .navigateTo(AppRouter.configureDevice, arguments: resultDevice);
+
+        // add device to canvas
+        await BluetoothDeviceHelper.addDevice(
+            resultDevice!.toFFBluetoothDevice());
+        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+      }
       try {
-        await onFinish?.call(resultDevice);
+        await onFinish?.call();
       } catch (e) {
         log.info('Failed to call onFinish: $e');
       }

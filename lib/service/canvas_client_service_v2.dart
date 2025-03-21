@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -24,7 +23,6 @@ import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 class CanvasClientServiceV2 {
@@ -48,7 +46,7 @@ class CanvasClientServiceV2 {
   TvCastServiceImpl _getTvCastStub(CanvasDevice device) =>
       TvCastServiceImpl(_tvCastApi, device);
 
-  BluetoothCastService _getBluetoothStub(BluetoothDevice device) =>
+  BluetoothCastService _getBluetoothStub(FFBluetoothDevice device) =>
       BluetoothCastService(device);
 
   TvCastService _getStub(
@@ -56,8 +54,8 @@ class CanvasClientServiceV2 {
   ) {
     if (device is CanvasDevice) {
       return _getTvCastStub(device);
-    } else if (device is BluetoothDevice) {
-      return _getBluetoothStub(device as BluetoothDevice);
+    } else if (device is FFBluetoothDevice) {
+      return _getBluetoothStub(device);
     } else {
       throw Exception('Unknown device type');
     }
@@ -316,20 +314,10 @@ class CanvasClientServiceV2 {
     return response.result;
   }
 
-  Future<void> updateOrientation(
+  Future<BluetoothDeviceStatus> getBluetoothDeviceStatus(
     BaseDevice device,
-    ScreenOrientation orientation,
   ) async {
     final stub = _getStub(device);
-    final request = UpdateOrientationRequest(orientation: orientation);
-    final response = await stub.updateOrientation(request);
-    log.info('CanvasClientService: Update Orientation Success');
-  }
-
-  Future<BluetoothDeviceStatus> getBluetoothDeviceStatus(
-    BluetoothDevice device,
-  ) async {
-    final stub = _getBluetoothStub(device);
     final request = GetBluetoothDeviceStatusRequest();
     final response = await stub.getBluetoothDeviceStatus(request);
     return response.deviceStatus;
@@ -430,13 +418,15 @@ class CanvasClientServiceV2 {
       final request = EnableMetricsStreamingRequest();
       final response = await stub.enableMetricsStreaming(request);
       log.info(
-          'CanvasClientService: Enable Metrics Streaming Success ${response.ok}');
+        'CanvasClientService: Enable Metrics Streaming Success ${response.ok}',
+      );
       return response.ok;
     } catch (e) {
       log.info('CanvasClientService: enableMetricsStreaming error: $e');
       unawaited(
         Sentry.captureException(
-            'CanvasClientService: enableMetricsStreaming error: $e'),
+          'CanvasClientService: enableMetricsStreaming error: $e',
+        ),
       );
       return false;
     }
@@ -448,13 +438,15 @@ class CanvasClientServiceV2 {
       final request = DisableMetricsStreamingRequest();
       final response = await stub.disableMetricsStreaming(request);
       log.info(
-          'CanvasClientService: Disable Metrics Streaming Success ${response.ok}');
+        'CanvasClientService: Disable Metrics Streaming Success ${response.ok}',
+      );
       return response.ok;
     } catch (e) {
       log.info('CanvasClientService: disableMetricsStreaming error: $e');
       unawaited(
         Sentry.captureException(
-            'CanvasClientService: disableMetricsStreaming error: $e'),
+          'CanvasClientService: disableMetricsStreaming error: $e',
+        ),
       );
       return false;
     }

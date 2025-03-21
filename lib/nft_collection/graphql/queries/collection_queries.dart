@@ -6,22 +6,15 @@ const collectionQuery = r'''
     size: $size,
   ) {
     id
-    externalID
-    blockchain
-    contracts
     description
+    externalID
     imageURL
-    thumbnailURL
     items
     name
-    creator
+    creators
     published
     source
-    sourceURL
-    projectURL
     createdAt
-    lastUpdatedTime
-    lastActivityTime
   }
 }
 ''';

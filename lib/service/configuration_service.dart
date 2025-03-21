@@ -7,7 +7,6 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/list_extension.dart';
@@ -87,8 +86,11 @@ abstract class ConfigurationService {
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
   Future<void> updateTempStorageHiddenTokenIDs(
-      List<String> tokenIDs, bool isAdd,
-      {Network? network, bool override = false});
+    List<String> tokenIDs,
+    bool isAdd, {
+    Network? network,
+    bool override = false,
+  });
 
   Future<void> setReadReleaseNotesInVersion(String version);
 
@@ -151,10 +153,6 @@ abstract class ConfigurationService {
 
   String? getAnnouncementContentIdByIssueId(String issueId);
 
-  Future<void> saveLastConnectedDevice(FFBluetoothDevice device);
-
-  FFBluetoothDevice? getLastConnectedDevice();
-
   bool isBetaTester();
 
   Future<void> setBetaTester(bool value);
@@ -165,6 +163,8 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  ConfigurationServiceImpl(this._preferences);
+
   static const String keyDailyLikedCount = 'daily_liked_count';
   static const String keyAnonymousDeviceId = 'anonymous_device_id';
   static const String keyAnonymousIssueIds = 'anonymous_issue_ids';
@@ -258,8 +258,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   final SharedPreferences _preferences;
 
-  ConfigurationServiceImpl(this._preferences);
-
   @override
   Future<void> setIAPReceipt(String? value) async {
     if (value != null) {
@@ -342,21 +340,26 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> updateTempStorageHiddenTokenIDs(
-      List<String> tokenIDs, bool isAdd,
-      {Network? network, bool override = false}) async {
+    List<String> tokenIDs,
+    bool isAdd, {
+    Network? network,
+    bool override = false,
+  }) async {
     const key = KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS;
 
     if (override && isAdd) {
       await _preferences.setStringList(key, tokenIDs);
     } else {
-      var tempHiddenTokenIDs = _preferences.getStringList(key) ?? [];
+      final tempHiddenTokenIDs = _preferences.getStringList(key) ?? [];
 
       isAdd
           ? tempHiddenTokenIDs.addAll(tokenIDs)
           : tempHiddenTokenIDs
               .removeWhere((element) => tokenIDs.contains(element));
       await _preferences.setStringList(
-          key, tempHiddenTokenIDs.toSet().toList());
+        key,
+        tempHiddenTokenIDs.toSet().toList(),
+      );
     }
   }
 
@@ -474,7 +477,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDoneOnboardingTime(DateTime time) async {
     await _preferences.setString(
-        KEY_DONE_ON_BOARDING_TIME, time.toIso8601String());
+      KEY_DONE_ON_BOARDING_TIME,
+      time.toIso8601String(),
+    );
   }
 
   @override
@@ -539,7 +544,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setDidShowLiveWithArt(bool value) async =>
-      await _preferences.setBool(keyDidShowLiveWithArt, value);
+      _preferences.setBool(keyDidShowLiveWithArt, value);
 
   @override
   String? getAnnouncementContentIdByIssueId(String issueId) {
@@ -565,12 +570,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setLinkAnnouncementToIssue(
-      String announcementContentId, String issueId) async {
+    String announcementContentId,
+    String issueId,
+  ) async {
     final map = _preferences.getString(KEY_ANNOUNCEMENT_TO_ISSUE_MAP);
     final mapJson = map == null ? <String, String>{} : jsonDecode(map);
     mapJson[announcementContentId] = issueId;
     await _preferences.setString(
-        KEY_ANNOUNCEMENT_TO_ISSUE_MAP, jsonEncode(mapJson));
+      KEY_ANNOUNCEMENT_TO_ISSUE_MAP,
+      jsonEncode(mapJson),
+    );
   }
 
   @override
@@ -603,23 +612,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDailyLikedCount(int count) async {
     await _preferences.setInt(keyDailyLikedCount, count);
-  }
-
-  @override
-  FFBluetoothDevice? getLastConnectedDevice() {
-    final deviceJson = _preferences.getString(LAST_CONNECTED_DEVICE);
-    if (deviceJson == null) {
-      return null;
-    }
-    final device = FFBluetoothDevice.fromJson(
-        Map<String, dynamic>.from(jsonDecode(deviceJson) as Map));
-    return device;
-  }
-
-  @override
-  Future<void> saveLastConnectedDevice(FFBluetoothDevice device) {
-    final deviceJson = jsonEncode(device.toJson());
-    return _preferences.setString(LAST_CONNECTED_DEVICE, deviceJson);
   }
 
   @override

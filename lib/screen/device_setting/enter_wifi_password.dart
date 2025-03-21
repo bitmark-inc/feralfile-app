@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_exception.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -12,12 +14,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 class SendWifiCredentialsPagePayload {
   final WifiPoint wifiAccessPoint;
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
   final Function? onSubmitted;
 
   SendWifiCredentialsPagePayload({
@@ -114,9 +115,20 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                         password: password,
                       );
                       if (!isSuccess) {
-                        throw Exception('Failed to send wifi credentials');
+                        throw FailedToConnectToWifiException(
+                            ssid, widget.payload.device);
                       }
                       widget.payload.onSubmitted?.call();
+                    } on FailedToConnectToWifiException catch (e) {
+                      log.info('Failed to connect to wifi: $e');
+                      unawaited(Sentry.captureException(
+                        e,
+                      ));
+                      unawaited(UIHelper.showInfoDialog(
+                        context,
+                        'Failed to connect to wifi',
+                        'The Portal failed to connect to ${e.ssid}',
+                      ));
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(

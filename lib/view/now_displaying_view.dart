@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -20,7 +21,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 
 const double kNowDisplayingHeight = 60;
@@ -31,26 +31,26 @@ abstract class NowDisplayingStatus {}
 class ConnectingToDevice implements NowDisplayingStatus {
   ConnectingToDevice(this.device);
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 }
 
 class ConnectSuccess implements NowDisplayingStatus {
   ConnectSuccess(this.device);
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 }
 
 class ConnectFailed implements NowDisplayingStatus {
   ConnectFailed(this.device, this.error);
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
   final Object error;
 }
 
 class ConnectionLostAndReconnecting implements NowDisplayingStatus {
   ConnectionLostAndReconnecting(this.device);
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 }
 
 // Now displaying
@@ -169,7 +169,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   ) {
     final device = (status as ConnectingToDevice).device;
     final deviceName =
-        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
+        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Connecting to $deviceName',
     );
@@ -178,7 +178,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectSuccess).device;
     final deviceName =
-        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
+        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Connected to $deviceName',
     );
@@ -187,25 +187,28 @@ class _NowDisplayingState extends State<NowDisplaying> {
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectFailed).device;
     final deviceName =
-        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
+        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Unable to connect to $deviceName. Check connection.',
     );
   }
 
   Widget _connectionLostAndReconnectingView(
-      BuildContext context, NowDisplayingStatus status) {
+    BuildContext context,
+    NowDisplayingStatus status,
+  ) {
     final device = (status as ConnectionLostAndReconnecting).device;
     final deviceName =
-        device.advName.isNotEmpty == true ? device.advName : 'Portal (FF-X1)';
+        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status:
-          'Connection to $deviceName lost, Attempting to reconnect...',
+      status: 'Connection to $deviceName lost, Attempting to reconnect...',
     );
   }
 
   Widget _getNowDisplayingErrorView(
-      BuildContext context, NowDisplayingStatus nowDisplayingStatus) {
+    BuildContext context,
+    NowDisplayingStatus nowDisplayingStatus,
+  ) {
     final error = (nowDisplayingStatus as NowDisplayingError).error;
     return NowDisplayingStatusView(
       status: 'Error: $error',
@@ -220,7 +223,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
 }
 
 class NowDisplayingSuccessWidget extends StatefulWidget {
-  const NowDisplayingSuccessWidget({super.key, required this.object});
+  const NowDisplayingSuccessWidget({required this.object, super.key});
 
   final NowDisplayingObject object;
 
@@ -249,7 +252,9 @@ class _NowDisplayingSuccessWidgetState
     }
     if (nowDisplaying.dailiesWorkState != null) {
       return _dailyWorkNowDisplayingView(
-          context, nowDisplaying.dailiesWorkState!);
+        context,
+        nowDisplaying.dailiesWorkState!,
+      );
     }
     return const SizedBox();
   }
@@ -270,7 +275,9 @@ Widget _tokenNowDisplayingView(BuildContext context, AssetToken assetToken) {
 }
 
 Widget _dailyWorkNowDisplayingView(
-    BuildContext context, DailiesWorkState state) {
+  BuildContext context,
+  DailiesWorkState state,
+) {
   final assetToken = state.assetTokens.firstOrNull;
   if (assetToken == null) {
     return const SizedBox();
@@ -288,7 +295,9 @@ Widget _dailyWorkNowDisplayingView(
 }
 
 Widget _exhibitionNowDisplayingView(
-    BuildContext context, ExhibitionDisplaying exhibitionDisplaying) {
+  BuildContext context,
+  ExhibitionDisplaying exhibitionDisplaying,
+) {
   return GestureDetector(
     child: NowDisplayingExhibitionView(exhibitionDisplaying),
     onTap: () {

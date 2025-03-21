@@ -71,6 +71,7 @@ Future<void> callbackDispatcher() async {
 ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
 ValueNotifier<bool> shouldShowNowDisplayingOnDisconnect =
     ValueNotifier<bool>(true);
+ValueNotifier<bool> nowDisplayingVisibility = ValueNotifier<bool>(true);
 
 void main() async {
   unawaited(
@@ -275,6 +276,7 @@ class AutonomyApp extends StatelessWidget {
 
 class AutonomyAppScaffold extends StatefulWidget {
   const AutonomyAppScaffold({required this.child, super.key});
+
   final Widget child;
 
   @override
@@ -304,13 +306,15 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplaying.addListener(_updateAnimationBasedOnDisplayState);
     shouldShowNowDisplayingOnDisconnect
         .addListener(_updateAnimationBasedOnDisplayState);
+    nowDisplayingVisibility.addListener(_updateAnimationBasedOnDisplayState);
   }
 
   void _updateAnimationBasedOnDisplayState() {
     final hasDevice =
         injector<FFBluetoothService>().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
-        shouldShowNowDisplayingOnDisconnect.value;
+        shouldShowNowDisplayingOnDisconnect.value &&
+        nowDisplayingVisibility.value;
     final isBetaTester = injector<AuthService>().isBetaTester();
     if (shouldShow && hasDevice && isBetaTester) {
       _animationController.forward();
@@ -325,18 +329,15 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     if (notification.metrics.axis != Axis.vertical) {
       return;
     }
-
-    final shouldShow = shouldShowNowDisplaying.value &&
-        shouldShowNowDisplayingOnDisconnect.value;
-    if (shouldShow && notification is ScrollUpdateNotification) {
+    if (notification is ScrollUpdateNotification) {
       final currentScroll = notification.metrics.pixels;
       final scrollDelta = currentScroll - _lastScrollPosition;
 
       if (scrollDelta > 10 && _isVisible) {
-        _animationController.reverse();
+        nowDisplayingVisibility.value = false;
         setState(() => _isVisible = false);
       } else if (scrollDelta < -10 && !_isVisible) {
-        _animationController.forward();
+        nowDisplayingVisibility.value = true;
         setState(() => _isVisible = true);
       }
 

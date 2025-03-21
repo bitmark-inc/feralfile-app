@@ -206,8 +206,15 @@ class CanvasDeviceState {
       canvasDeviceStatus[device.deviceId];
 
   bool isDeviceAlive(BaseDevice device) {
+    if (device is FFBluetoothDevice) {
+      return device.isConnected;
+    }
     final status = statusOf(device);
     return status != null;
+  }
+
+  List<BaseDevice> get activeDevices {
+    return devices.where((element) => isDeviceAlive(element)).toList();
   }
 
   BaseDevice? _activeDeviceForKey(String key) {
@@ -229,21 +236,25 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       (event, emit) async {
         log.info('CanvasDeviceGetDevicesEvent');
         try {
-          final devices = await scanDevices();
+          final devices = getDevices();
+          final deviceStatuses = await scanDevices();
 
           Map<String, CheckDeviceStatusReply>? controllingDeviceStatus = {};
 
-          controllingDeviceStatus = devices.controllingDevices;
+          controllingDeviceStatus = deviceStatuses.controllingDevices;
+
+          devices.removeWhere((element) => !(element is FFBluetoothDevice));
 
           final newState = state.copyWith(
-            devices: devices.map((e) => e.first).toList(),
+            devices: devices,
             controllingDeviceStatus: controllingDeviceStatus,
           );
-          log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
+          log.info(
+              'CanvasDeviceBloc: get deviceStatuses: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.canvasDeviceStatus}');
           emit(newState);
         } catch (e) {
-          log.info('CanvasDeviceBloc: error while get devices: $e');
+          log.info('CanvasDeviceBloc: error while get deviceStatuses: $e');
           unawaited(Sentry.captureException(e));
           emit(state.copyWith());
         } finally {
@@ -604,9 +615,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
   final HiveStoreObjectService<CanvasDevice> _db;
 
-  /// This method will get devices via mDNS and local db, for local db devices
-  /// it will check the status of the device by calling grpc
-  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
+  List<BaseDevice> getDevices() {
     final rawDevices = <CanvasDevice>[];
     final connectedDevice =
         injector<FFBluetoothService>().castingBluetoothDevice;
@@ -623,15 +632,17 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       ...rawDevices,
       ...blDevices,
     ];
+    return devices;
+  }
+
+  /// This method will get devices via mDNS and local db, for local db devices
+  /// it will check the status of the device by calling grpc
+  Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
+    final devices = await getDevices();
     final pairDevices = await _getDeviceStatuses(devices);
     pairDevices.sort((a, b) => a.first.name.compareTo(b.first.name));
 
     return pairDevices;
-  }
-
-  List<CanvasDevice> findRawDevices() {
-    final devices = _db.getAll();
-    return devices;
   }
 
   Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> _getDeviceStatuses(

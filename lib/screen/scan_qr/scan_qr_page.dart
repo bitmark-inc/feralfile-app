@@ -13,13 +13,10 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/splitted_banner.dart';
@@ -222,33 +219,6 @@ class ScannerInstruction {
   static ScannerInstruction displayFF = ScannerInstruction(
     name: 'display_with_ff'.tr(),
     detail: 'on_tv_or_desktop'.tr(),
-    icon: IconButton(
-        onPressed: () {
-          final context =
-              injector<NavigationService>().navigatorKey.currentContext!;
-          UIHelper.showDialog(
-              context,
-              'display_art'.tr(),
-              Column(
-                children: [
-                  DisplayInstructionView(
-                    onScanQRTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-              isDismissible: true,
-              withCloseIcon: true);
-        },
-        constraints: const BoxConstraints(
-          maxWidth: 44,
-          maxHeight: 44,
-          minWidth: 44,
-          minHeight: 44,
-        ),
-        icon: SvgPicture.asset('assets/images/info_white.svg')),
   );
 }
 

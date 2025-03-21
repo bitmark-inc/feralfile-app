@@ -2,20 +2,15 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class StreamDeviceView extends StatefulWidget {
@@ -164,7 +159,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 ],
               ] else ...[
                 const SizedBox(height: 15),
-                _instructionDetailWidget(context),
               ],
               const SizedBox(height: 10),
             ],
@@ -242,36 +236,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         ),
       ],
     );
-  }
-
-  Widget _instructionDetailWidget(BuildContext context) =>
-      DisplayInstructionView(
-        onScanQRTap: _scanToAddMore,
-      );
-
-  Future<void> _scanToAddMore() async {
-    injector<NavigationService>().hideInfoDialog();
-    final device = await injector<NavigationService>().navigateTo(
-      AppRouter.scanQRPage,
-      arguments: ScanQRPagePayload(
-        scannerItem: ScannerItem.CANVAS,
-        onHandleFinished: (device) {
-          if (device is CanvasDevice ||
-              device is FFBluetoothDevice ||
-              device is BluetoothDevice) {
-            final castedDevice = (device is BluetoothDevice)
-                ? (device).toFFBluetoothDevice()
-                : device as BaseDevice;
-            widget.onDeviceSelected?.call(castedDevice);
-            injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-          }
-        },
-      ),
-    );
-    log.info('device selected: $device');
-    if (device != null) {
-      injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-    }
   }
 
   void onRotate(BuildContext context) {

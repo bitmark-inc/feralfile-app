@@ -13,29 +13,52 @@ extension ProductDetailsExt on ProductDetails {
 
   Widget renewPolicyWidget(BuildContext context) {
     final theme = Theme.of(context);
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: theme.textTheme.ppMori400Black12,
-        children: [
-          TextSpan(
-            text:
-                'This subscription will automatically renew every year unless you cancel. Your account will be charged',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: theme.textTheme.ppMori400Black12,
+            children: [
+              TextSpan(
+                text: 'auto_renews_unless_cancelled'
+                    .tr(namedArgs: {'price': '$price'}),
+              ),
+            ],
           ),
-          TextSpan(
-            text: ' $price/${period.name}',
-            style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: theme.textTheme.ppMori400Black12,
+              children: [
+                TextSpan(
+                    text: 'Note:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(
+                  text: ' A subscription is ',
+                ),
+                TextSpan(
+                    text: 'not required',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(
+                  text:
+                      ' to use the basic features of this app. Premium features require a subscription.',
+                ),
+              ],
+            )),
+        if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) ...[
+          const SizedBox(height: 8),
+          Text(
+            textAlign: TextAlign.center,
+            'renew_policy_india'.tr(),
+            style: theme.textTheme.ppMori400Black12
+                .copyWith(fontWeight: FontWeight.bold),
           ),
-          TextSpan(text: ' at the start of each renewal period.'),
-          if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) ...[
-            TextSpan(text: '\n\n'),
-            TextSpan(
-              text: 'renew_policy_india'.tr(),
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
         ],
-      ),
+      ],
     );
   }
 

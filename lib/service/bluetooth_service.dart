@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/generated/protos/system_metrics.pb.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -47,7 +46,6 @@ const updateCastInfoCommand = [
 ];
 
 const updateDeviceStatusCommand = [
-  CastCommand.updateOrientation,
   CastCommand.rotate,
   CastCommand.updateArtFraming,
   CastCommand.updateToLatestVersion,
@@ -79,6 +77,8 @@ class FFBluetoothService {
         try {
           if (Platform.isAndroid) {
             await device.requestMtu(512);
+            await device.requestConnectionPriority(
+                connectionPriorityRequest: ConnectionPriority.high);
           }
           await device.discoverCharacteristics();
           _connectCompleter?.complete();
@@ -86,15 +86,18 @@ class FFBluetoothService {
           // after connected, fetch device status
           final status =
               await fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
-          NowDisplayingManager().addStatus(ConnectSuccess(device));
-          shouldShowNowDisplayingOnDisconnect.value = true;
+          NowDisplayingManager()
+              .addStatus(ConnectSuccess(device.toFFBluetoothDevice()));
 
-          injector<CanvasDeviceBloc>()
-              .add(CanvasDeviceGetDevicesEvent(onDoneCallback: () {
-            if (status?.isConnectedToWifi ?? false) {
-              NowDisplayingManager().updateDisplayingNow();
-            }
-          }));
+          injector<CanvasDeviceBloc>().add(
+            CanvasDeviceGetDevicesEvent(
+              onDoneCallback: () {
+                if (status?.isConnectedToWifi ?? false) {
+                  NowDisplayingManager().updateDisplayingNow();
+                }
+              },
+            ),
+          );
         } catch (e) {
           log.warning('Failed to discover characteristics: $e');
           unawaited(
@@ -106,7 +109,8 @@ class FFBluetoothService {
         }
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
-        NowDisplayingManager().addStatus(ConnectionLostAndReconnecting(device));
+        NowDisplayingManager().addStatus(
+            ConnectionLostAndReconnecting(device.toFFBluetoothDevice()));
       }
     });
 
@@ -159,7 +163,7 @@ class FFBluetoothService {
   ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
     if (_bluetoothDeviceStatus.value == null &&
         castingBluetoothDevice != null) {
-      fetchBluetoothDeviceStatus(castingBluetoothDevice!.toFFBluetoothDevice());
+      fetchBluetoothDeviceStatus(castingBluetoothDevice!);
     }
     return _bluetoothDeviceStatus;
   }
@@ -170,31 +174,21 @@ class FFBluetoothService {
       Sentry.captureException('Set Casting device value to null');
       return;
     }
-    final ffdevice = FFBluetoothDevice(
-      remoteID: device.remoteId.str,
-      name: device.advName,
-    );
-    if (ffdevice.deviceId == _castingBluetoothDevice?.deviceId) {
+    if (device.deviceId == _castingBluetoothDevice?.deviceId) {
       return;
     }
-    _castingBluetoothDevice = ffdevice;
-    fetchBluetoothDeviceStatus(ffdevice);
-    BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
+    _castingBluetoothDevice = device;
+    fetchBluetoothDeviceStatus(device);
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {
     if (_castingBluetoothDevice != null) {
       return _castingBluetoothDevice;
     }
-    final lastCastingBluetoothDevice =
-        BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
-    if (lastCastingBluetoothDevice != null) {
-      castingBluetoothDevice = lastCastingBluetoothDevice;
-    } else {
-      final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
-      if (device != null) {
-        castingBluetoothDevice = device;
-      }
+
+    final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
+    if (device != null) {
+      castingBluetoothDevice = device;
     }
     return _castingBluetoothDevice;
   }
@@ -215,7 +209,7 @@ class FFBluetoothService {
   String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
   Future<Map<String, dynamic>> sendCommand({
-    required BluetoothDevice device,
+    required FFBluetoothDevice device,
     required String command,
     required Map<String, dynamic> request,
     Duration? timeout,
@@ -227,9 +221,12 @@ class FFBluetoothService {
 
     if (device.isDisconnected) {
       log.info('[sendCommand] Device is disconnected');
-      unawaited(injector<NavigationService>()
-          .showCannotConnectToBluetoothDevice(
-              device, 'Device is disconnected'));
+      unawaited(
+        injector<NavigationService>().showCannotConnectToBluetoothDevice(
+          device,
+          'Device is disconnected',
+        ),
+      );
       throw Exception('Device is disconnected');
     }
 
@@ -241,8 +238,8 @@ class FFBluetoothService {
     final byteBuilder = _buildCommandMessage(command, request, replyId);
 
     final completer = Completer<Map<String, dynamic>>();
-
-    _setupCommandNotificationSubscriptions(replyId, completer);
+    final cb = getCommandNotificationCallback(replyId, completer);
+    BluetoothNotificationService().subscribe(replyId, cb);
 
     try {
       final bytes = byteBuilder.takeBytes();
@@ -260,9 +257,6 @@ class FFBluetoothService {
       final res = await completer.future.timeout(
         timeout ?? const Duration(seconds: 2),
         onTimeout: () {
-          BluetoothNotificationService().unsubscribe(replyId, (data) {
-            log.info('[sendCommand] Unsubscribed from replyId: $replyId');
-          });
           Sentry.captureMessage(
             '[sendCommand] Timeout waiting for reply: $replyId',
           );
@@ -271,15 +265,15 @@ class FFBluetoothService {
       );
       if (displayingCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        castingBluetoothDevice = device.toFFBluetoothDevice();
+        castingBluetoothDevice = device;
       }
       if (updateDeviceStatusCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+        unawaited(fetchBluetoothDeviceStatus(device));
       }
       return res;
     } catch (e) {
-      BluetoothNotificationService().unsubscribe(replyId, (data) {});
+      BluetoothNotificationService().unsubscribe(replyId, cb);
       unawaited(Sentry.captureException(e));
       log.info('[sendCommand] Error sending command: $e');
       rethrow;
@@ -305,10 +299,9 @@ class FFBluetoothService {
       ..add(replyIdBytes);
   }
 
-  Future<void> setTimezone(BluetoothDevice device) async {
+  Future<void> setTimezone(FFBluetoothDevice device) async {
     final timezone = await TimezoneHelper.getTimeZone();
-    await injector<CanvasClientServiceV2>()
-        .setTimezone(device.toFFBluetoothDevice(), timezone);
+    await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
   }
 
   Future<void> scanWifi({
@@ -319,15 +312,18 @@ class FFBluetoothService {
   }) async {}
 
   Future<bool> sendWifiCredentials({
-    required BluetoothDevice device,
+    required FFBluetoothDevice device,
     required String ssid,
     required String password,
   }) async {
     if (device.isDisconnected) {
       log.info('[sendWifi] Device is disconnected');
-      unawaited(injector<NavigationService>()
-          .showCannotConnectToBluetoothDevice(
-              device, 'Device is disconnected'));
+      unawaited(
+        injector<NavigationService>().showCannotConnectToBluetoothDevice(
+          device,
+          'Device is disconnected',
+        ),
+      );
     }
     final wifiConnectChar = device.wifiConnectCharacteristic;
     // Check if the wifi connect characteristic is available
@@ -362,33 +358,16 @@ class FFBluetoothService {
     final bytes = builder.takeBytes();
     final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
 
-    final _sendWifiCompleter = Completer<bool>();
-
-    BluetoothNotificationService().subscribe(wifiConnectionTopic, (data) {
-      log.info('[sendWifiCredentials] Received data: $data');
-      final success = data['success'] as bool;
-      _sendWifiCompleter.complete(success);
-      BluetoothNotificationService()
-          .unsubscribe(wifiConnectionTopic, (data) {});
-    });
-
     log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
     try {
-      await wifiConnectChar.write(bytes, withoutResponse: false);
+      await wifiConnectChar.write(bytes);
       log.info('[sendWifiCredentials] Wi-Fi credentials sent');
+      return true;
     } catch (e) {
       unawaited(Sentry.captureException(e));
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
+      return false;
     }
-    final isSuccess = await _sendWifiCompleter.future
-        .timeout(const Duration(seconds: 30), onTimeout: () {
-      log.info('[sendWifiCredentials] Timeout waiting for Wi-Fi connection');
-      unawaited(Sentry.captureMessage('Timeout waiting for Wi-Fi connection'));
-      throw TimeoutException('Timeout waiting for Wi-Fi connection');
-    });
-
-    unawaited(fetchBluetoothDeviceStatus(device));
-    return isSuccess;
   }
 
   // completer for connectToDevice
@@ -398,9 +377,10 @@ class FFBluetoothService {
   Completer<void>? _multiConnectCompleter;
 
   Future<void> connectToDevice(
-    BluetoothDevice device, {
+    FFBluetoothDevice device, {
     bool shouldShowError = true,
     bool shouldChangeNowDisplayingStatus = false,
+    bool? autoConnect,
   }) async {
     if (_multiConnectCompleter?.isCompleted == false) {
       log.info('Already connecting to device: ${device.remoteId.str}');
@@ -411,7 +391,8 @@ class FFBluetoothService {
     if (shouldChangeNowDisplayingStatus) {
       NowDisplayingManager().addStatus(ConnectingToDevice(device));
     }
-    _connectToDevice(device, shouldShowError: shouldShowError).then((_) {
+
+    _connectDevice(device, shouldShowError: shouldShowError).then((_) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectSuccess(device));
       }
@@ -428,19 +409,46 @@ class FFBluetoothService {
     return _multiConnectCompleter?.future;
   }
 
-  Future<void> _connectToDevice(
+  /*
+    * Connect to device
+    * If autoConnect is true, it will try to connect to device with autoConnect
+    * If autoConnect is false, it will try to connect to device without autoConnect
+    * If autoConnect is null, it will try to connect to device with autoConnect first, then without autoConnect
+   */
+  Future<void> _connectDevice(
     BluetoothDevice device, {
     bool shouldShowError = true,
+    bool? autoConnect,
+  }) async {
+    try {
+      if (!(autoConnect ?? false)) {
+        await _connect(device,
+            shouldShowError: shouldShowError, autoConnect: false);
+      }
+    } catch (e) {}
+    if (autoConnect ?? true) {
+      await _connect(device, shouldShowError: shouldShowError);
+    }
+  }
+
+  Future<void> _connect(
+    BluetoothDevice device, {
+    bool shouldShowError = true,
+    bool autoConnect = true,
   }) async {
     // connect to device
-    if (device.isDisconnected) {
+    if (device.isDisconnected ||
+        (autoConnect && !device.isAutoConnectEnabled)) {
+      if (!autoConnect) {
+        await device.disconnect();
+      }
       _connectCompleter = Completer<void>();
       log.info('Connecting to device: ${device.remoteId.str}');
       try {
         await device.connect(
           timeout: const Duration(seconds: 10),
-          autoConnect: true,
-          mtu: null,
+          autoConnect: autoConnect,
+          mtu: autoConnect ? null : 512,
         );
       } catch (e) {
         log.warning('Failed to connect to device: $e');
@@ -456,38 +464,43 @@ class FFBluetoothService {
         rethrow;
       }
 
-      // Wait for connection to complete
-      await _connectCompleter?.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          log.warning('Timeout waiting for connection to complete');
+      if (device.isConnected) {
+        _connectCompleter?.complete();
+      } else {
+        // Wait for connection to complete
+        await _connectCompleter?.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            log.warning('Timeout waiting for connection to complete');
+            if (shouldShowError) {
+              unawaited(
+                injector<NavigationService>()
+                    .showCannotConnectToBluetoothDevice(
+                  device,
+                  TimeoutException('Taking too long to connect to device'),
+                ),
+              );
+            }
+            throw TimeoutException('Taking too long to connect to device');
+          },
+        ).catchError((Object e) {
+          log.warning('Error waiting for connection to complete: $e');
+          unawaited(
+            Sentry.captureException(
+              'Error waiting for connection to complete: $e',
+            ),
+          );
           if (shouldShowError) {
             unawaited(
               injector<NavigationService>().showCannotConnectToBluetoothDevice(
                 device,
-                TimeoutException('Taking too long to connect to device'),
+                e,
               ),
             );
           }
-          throw TimeoutException('Taking too long to connect to device');
-        },
-      ).catchError((Object e) {
-        log.warning('Error waiting for connection to complete: $e');
-        unawaited(
-          Sentry.captureException(
-            'Error waiting for connection to complete: $e',
-          ),
-        );
-        if (shouldShowError) {
-          unawaited(
-            injector<NavigationService>().showCannotConnectToBluetoothDevice(
-              device,
-              e,
-            ),
-          );
-        }
-        throw e;
-      });
+          throw e;
+        });
+      }
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
     }
@@ -532,11 +545,11 @@ class FFBluetoothService {
   }
 
   Future<BluetoothDeviceStatus?> fetchBluetoothDeviceStatus(
-    BluetoothDevice device,
+    BaseDevice device,
   ) async {
     try {
       final res = await injector<CanvasClientServiceV2>()
-          .getBluetoothDeviceStatus(device.toFFBluetoothDevice());
+          .getBluetoothDeviceStatus(device);
       _bluetoothDeviceStatus.value = res;
       return res;
     } catch (e) {
@@ -548,11 +561,10 @@ class FFBluetoothService {
   // Map to store chunksfor each response
   final Map<String, List<ChunkInfo>> chunks = {};
 
-  void _setupCommandNotificationSubscriptions(
-    String replyId,
-    Completer<Map<String, dynamic>> responseCompleter,
-  ) {
-    BluetoothNotificationService().subscribe(replyId, (data) {
+  NotificationCallback getCommandNotificationCallback(
+      String replyId, Completer<Map<String, dynamic>> responseCompleter) {
+    late NotificationCallback cb;
+    cb = (Map<String, dynamic> data) {
       log.info('[sendCommand] Received data: $data');
       final isChunkData = data.containsKey('i') &&
           data.containsKey('d') &&
@@ -576,14 +588,15 @@ class FFBluetoothService {
           log.info('[sendCommand] Received full response: $response');
 
           responseCompleter.complete(response);
-          BluetoothNotificationService().unsubscribe(replyId, (data) {});
+          BluetoothNotificationService().unsubscribe(replyId, cb);
           chunks.remove(replyId);
         }
       } else {
         responseCompleter.complete(data);
-        BluetoothNotificationService().unsubscribe(replyId, (data) {});
+        BluetoothNotificationService().unsubscribe(replyId, cb);
       }
-    });
+    };
+    return cb;
   }
 
   // Add method to handle engineering data
@@ -613,9 +626,11 @@ class FFBluetoothService {
       log.info('System metrics monitoring started');
     } catch (e) {
       log.warning('Failed to start system metrics monitoring: $e');
-      unawaited(Sentry.captureException(
-        'Failed to start system metrics monitoring: $e',
-      ));
+      unawaited(
+        Sentry.captureException(
+          'Failed to start system metrics monitoring: $e',
+        ),
+      );
     }
   }
 
@@ -631,9 +646,11 @@ class FFBluetoothService {
       log.info('System metrics monitoring stopped');
     } catch (e) {
       log.warning('Failed to stop system metrics monitoring: $e');
-      unawaited(Sentry.captureException(
-        'Failed to stop system metrics monitoring: $e',
-      ));
+      unawaited(
+        Sentry.captureException(
+          'Failed to stop system metrics monitoring: $e',
+        ),
+      );
     }
   }
 
@@ -712,8 +729,9 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
     try {
       await writeChunk(value);
     } on PlatformException catch (e) {
-      log.info('[writeWithRetry] Error writing chunk: $e');
-      log.info('[writeWithRetry] Retrying...');
+      log
+        ..info('[writeWithRetry] Error writing chunk: $e')
+        ..info('[writeWithRetry] Retrying...');
       final device = this.device;
       if (device.isConnected) {
         await device.discoverCharacteristics();
@@ -796,21 +814,24 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
       ..add(chunk);
   }
 
-  void _setupChunkNotificationSubscriptions({
+  NotificationCallback _setupChunkNotificationSubscriptions({
     required String ackReplyId,
     required List<Completer<void>> chunkCompleters,
   }) {
-    BluetoothNotificationService().subscribe(ackReplyId, (data) {
+    late NotificationCallback cb;
+    cb = (data) {
       final chunkIndex = data['chunkIndex'] as int;
       if (chunkIndex >= 0 &&
           chunkIndex < chunkCompleters.length &&
           !chunkCompleters[chunkIndex].isCompleted) {
-        log.info('[sendCommand] completing chunk $chunkIndex');
+        log.info('[sendCommand] Completing chunk $chunkIndex');
         chunkCompleters[chunkIndex].complete();
       }
       if (chunkCompleters.every((completer) => completer.isCompleted)) {
-        BluetoothNotificationService().unsubscribe(ackReplyId, (data) {});
+        BluetoothNotificationService().unsubscribe(ackReplyId, cb);
       }
-    });
+    };
+    BluetoothNotificationService().subscribe(ackReplyId, cb);
+    return cb;
   }
 }

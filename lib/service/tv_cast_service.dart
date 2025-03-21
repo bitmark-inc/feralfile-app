@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
@@ -48,10 +47,6 @@ abstract class TvCastService {
   );
 
   Future<ScanWifiReply> scanWifi(ScanWifiRequest request);
-
-  Future<UpdateOrientationReply> updateOrientation(
-    UpdateOrientationRequest request,
-  );
 
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
@@ -191,25 +186,20 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<ScanWifiReply> scanWifi(ScanWifiRequest request) async {
-    final result =
-        await _sendData(_getBody(request), timeout: Duration(seconds: 10));
+    final result = await _sendData(_getBody(request),
+        timeout: const Duration(seconds: 10));
     return ScanWifiReply.fromJson(result);
-  }
-
-  @override
-  Future<UpdateOrientationReply> updateOrientation(
-    UpdateOrientationRequest request,
-  ) async {
-    final result = await _sendData(_getBody(request));
-    return UpdateOrientationReply.fromJson(result);
   }
 
   @override
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   ) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 10), shouldShowError: false);
+    final result = await _sendData(
+      _getBody(request),
+      timeout: const Duration(seconds: 10),
+      shouldShowError: false,
+    );
     return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 
@@ -231,8 +221,10 @@ abstract class BaseTvCastService implements TvCastService {
   Future<UpdateToLatestVersionReply> updateToLatestVersion(
     UpdateToLatestVersionRequest request,
   ) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 30));
+    final result = await _sendData(
+      _getBody(request),
+      timeout: const Duration(seconds: 30),
+    );
     return UpdateToLatestVersionReply.fromJson(result);
   }
 
@@ -372,7 +364,7 @@ class TvCastServiceImpl extends BaseTvCastService {
 class BluetoothCastService extends BaseTvCastService {
   BluetoothCastService(this._device);
 
-  final BluetoothDevice _device;
+  final FFBluetoothDevice _device;
 
   @override
   Future<Map<String, dynamic>> _sendData(

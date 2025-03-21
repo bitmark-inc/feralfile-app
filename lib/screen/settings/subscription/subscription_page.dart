@@ -27,6 +27,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class SubscriptionPage extends StatefulWidget {
   final SubscriptionPagePayload? payload;
@@ -95,33 +96,35 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     SubscriptionStatus? subscriptionStatus,
     bool? isProcessing,
   ) =>
-      Container(
-        color: AppColor.auGreyBackground,
-        padding: const EdgeInsets.all(3),
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 40,
-            ),
-            Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _statusSection(
-                  context, subscriptionDetails, subscriptionStatus),
-            ),
-            const SizedBox(
-              height: 64,
-            ),
-            Padding(
-              padding:
-                  ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-              child: _actionSection(
-                context,
-                subscriptionDetails,
-                subscriptionStatus,
-                isProcessing,
+      SingleChildScrollView(
+        child: Container(
+          color: AppColor.auGreyBackground,
+          padding: const EdgeInsets.all(3),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 40,
               ),
-            ),
-          ],
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: _statusSection(
+                    context, subscriptionDetails, subscriptionStatus),
+              ),
+              const SizedBox(
+                height: 64,
+              ),
+              Padding(
+                padding:
+                    ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+                child: _actionSection(
+                  context,
+                  subscriptionDetails,
+                  subscriptionStatus,
+                  isProcessing,
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
@@ -193,11 +196,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             ),
             const SizedBox(height: 24),
             Text('feralfile_is_free'.tr(), style: contentStyle),
-            const SizedBox(height: 24),
-            Text(
-              'upgrade_your_membership'.tr(),
-              style: contentStyle,
-            ),
           ],
         );
       case IAPProductStatus.error:

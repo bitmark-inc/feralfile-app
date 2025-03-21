@@ -61,6 +61,10 @@ class FFCastButtonState extends State<FFCastButton> {
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
+        final hasDevice = state.activeDevices.isNotEmpty;
+        if (!hasDevice) {
+          return const SizedBox.shrink();
+        }
         final castingDevice =
             state.lastSelectedActiveDeviceForKey(widget.displayKey);
         final isCasting = castingDevice != null;

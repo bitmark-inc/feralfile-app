@@ -132,6 +132,12 @@
 
                 <data android:scheme="autonomy" />
             </intent-filter>
+
+            <!-- Disable Flutter's automatic deep link handling -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="false" />
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

@@ -3,7 +3,7 @@
 // ignore_for_file: avoid_unused_constructor_parameters
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -21,7 +21,6 @@ enum CastCommand {
   rotate,
   sendLog,
   getVersion,
-  updateOrientation,
   getBluetoothDeviceStatus,
   updateArtFraming,
   setTimezone,
@@ -67,8 +66,6 @@ enum CastCommand {
         return CastCommand.getVersion;
       case 'scanWifi':
         return CastCommand.scanWifi;
-      case 'updateOrientation':
-        return CastCommand.updateOrientation;
       case 'getBluetoothDeviceStatus':
         return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
@@ -122,8 +119,6 @@ enum CastCommand {
         return CastCommand.getVersion;
       case const (ScanWifiRequest):
         return CastCommand.scanWifi;
-      case const (UpdateOrientationRequest):
-        return CastCommand.updateOrientation;
       case const (GetBluetoothDeviceStatusRequest):
         return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
@@ -816,29 +811,6 @@ extension OrientationExtension on Orientation {
   }
 }
 
-class UpdateOrientationRequest implements Request {
-  UpdateOrientationRequest({required this.orientation});
-
-  factory UpdateOrientationRequest.fromJson(Map<String, dynamic> json) =>
-      UpdateOrientationRequest(
-        orientation:
-            ScreenOrientation.fromString(json['orientation'] as String),
-      );
-  final ScreenOrientation orientation;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'orientation': orientation.name,
-      };
-}
-
-class UpdateOrientationReply extends Reply {
-  UpdateOrientationReply();
-
-  factory UpdateOrientationReply.fromJson(Map<String, dynamic> json) =>
-      UpdateOrientationReply();
-}
-
 class GetBluetoothDeviceStatusRequest implements Request {
   GetBluetoothDeviceStatusRequest();
 
@@ -865,17 +837,25 @@ class GetBluetoothDeviceStatusReply extends Reply {
 }
 
 class SetTimezoneRequest implements Request {
-  SetTimezoneRequest({required this.timezone});
+  SetTimezoneRequest({required this.timezone, DateTime? time})
+      : time = time ?? DateTime.now();
+
+  // datetime formatter in YYYY-MM-DD HH:MM:SS format
+  static final DateFormat _dateTimeFormatter =
+      DateFormat('yyyy-MM-dd HH:mm:ss');
 
   factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
       SetTimezoneRequest(
         timezone: json['timeZone'] as String,
+        time: _dateTimeFormatter.parse(json['time'] as String),
       );
   final String timezone;
+  final DateTime time;
 
   @override
   Map<String, dynamic> toJson() => {
         'timezone': timezone,
+        'time': _dateTimeFormatter.format(time),
       };
 }
 

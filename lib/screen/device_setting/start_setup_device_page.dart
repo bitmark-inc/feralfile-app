@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -15,13 +16,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothDevicePortalPage extends StatefulWidget {
   const BluetoothDevicePortalPage({required this.device, super.key});
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 
   @override
   State<BluetoothDevicePortalPage> createState() =>
@@ -61,9 +61,24 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
             children: [
               CustomScrollView(
                 slivers: [
-                  const SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 120,
+                  SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: SizedBox(
+                            height: 120,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Icon(
+                            AuIcon.close,
+                            color: AppColor.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   SliverToBoxAdapter(
@@ -118,10 +133,9 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
       wifiAccessPoint: accessPoint,
       device: widget.device,
       onSubmitted: () {
-        Navigator.of(context).pushNamed(
-          AppRouter.configureDevice,
-          arguments: widget.device,
-        );
+        injector<NavigationService>()
+            .popUntil(AppRouter.bluetoothDevicePortalPage);
+        injector<NavigationService>().goBack(result: true);
       },
     );
     injector<NavigationService>()
