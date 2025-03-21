@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 
 enum ScreenOrientation {
@@ -69,7 +68,7 @@ class ConfigureDevice extends StatefulWidget {
     required this.device,
   });
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 
   @override
   State<ConfigureDevice> createState() => ConfigureDeviceState();
@@ -111,7 +110,7 @@ class ConfigureDeviceState extends State<ConfigureDevice>
   }
 
   Future<void> _pullingDeviceInfo() async {
-    final device = widget.device.toFFBluetoothDevice();
+    final device = widget.device;
     _pullingDeviceInfoTimer?.cancel();
     _pullingDeviceInfoTimer =
         Timer.periodic(const Duration(seconds: 3), (timer) async {
@@ -276,8 +275,8 @@ class ConfigureDeviceState extends State<ConfigureDevice>
           onTap: () {
             injector<NavigationService>().navigateTo(
                 AppRouter.scanWifiNetworkPage,
-                arguments: ScanWifiNetworkPagePayload(
-                    widget.device.toFFBluetoothDevice(), onWifiSelected));
+                arguments:
+                    ScanWifiNetworkPagePayload(widget.device, onWifiSelected));
           },
         ),
       ],
@@ -314,7 +313,7 @@ class ConfigureDeviceState extends State<ConfigureDevice>
           color: AppColor.white,
           enabled: _isWifiConnectSuccess ?? false,
           onTap: () async {
-            final device = blDevice.toFFBluetoothDevice();
+            final device = blDevice;
             await injector<CanvasClientServiceV2>().rotateCanvas(device);
             // update orientation
           },
@@ -391,7 +390,7 @@ class ConfigureDeviceState extends State<ConfigureDevice>
                 icon: Image.asset('assets/images/fit.png',
                     width: 100, height: 100),
                 onSelected: () {
-                  final device = widget.device.toFFBluetoothDevice();
+                  final device = widget.device;
                   injector<CanvasClientServiceV2>()
                       .updateArtFraming(device, ArtFraming.fitToScreen);
                 },
@@ -404,7 +403,7 @@ class ConfigureDeviceState extends State<ConfigureDevice>
                   height: 100,
                 ),
                 onSelected: () {
-                  final device = widget.device.toFFBluetoothDevice();
+                  final device = widget.device;
                   injector<CanvasClientServiceV2>()
                       .updateArtFraming(device, ArtFraming.cropToFill);
                 },

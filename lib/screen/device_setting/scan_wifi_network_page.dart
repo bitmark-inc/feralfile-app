@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
 class WifiPoint {
@@ -24,7 +23,7 @@ class ScanWifiNetworkPagePayload {
   ScanWifiNetworkPagePayload(this.device, this.onNetworkSelected);
 
   final FutureOr<void> Function(WifiPoint wifiAccessPoint) onNetworkSelected;
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 }
 
 class ScanWifiNetworkPage extends StatefulWidget {

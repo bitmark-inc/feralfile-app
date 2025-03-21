@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -126,6 +127,12 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
       };
 
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
+    final savedDevice = BluetoothDeviceHelper.pairedDevices.firstWhereOrNull(
+      (e) => e.remoteID == device.remoteId.str,
+    );
+    if (savedDevice != null) {
+      return savedDevice;
+    }
     return FFBluetoothDevice(
       name: device.advName,
       remoteID: device.remoteId.str,

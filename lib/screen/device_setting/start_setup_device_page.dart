@@ -16,13 +16,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothDevicePortalPage extends StatefulWidget {
   const BluetoothDevicePortalPage({required this.device, super.key});
 
-  final BluetoothDevice device;
+  final FFBluetoothDevice device;
 
   @override
   State<BluetoothDevicePortalPage> createState() =>
@@ -65,7 +64,7 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                   SliverToBoxAdapter(
                     child: Row(
                       children: [
-                        Expanded(
+                        const Expanded(
                           child: SizedBox(
                             height: 120,
                           ),

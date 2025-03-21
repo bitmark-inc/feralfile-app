@@ -182,7 +182,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       BuildContext context, String link,
       {Function? onFinish}) async {
     final deviceName = getDeviceName(link);
-    BluetoothDevice? resultDevice;
+    FFBluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
     }
@@ -197,7 +197,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
-          resultDevice = device;
+          resultDevice = device.toFFBluetoothDevice();
           return true;
         }
         return false;

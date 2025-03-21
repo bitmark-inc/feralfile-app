@@ -86,7 +86,8 @@ class FFBluetoothService {
           // after connected, fetch device status
           final status =
               await fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
-          NowDisplayingManager().addStatus(ConnectSuccess(device));
+          NowDisplayingManager()
+              .addStatus(ConnectSuccess(device.toFFBluetoothDevice()));
 
           injector<CanvasDeviceBloc>().add(
             CanvasDeviceGetDevicesEvent(
@@ -108,7 +109,8 @@ class FFBluetoothService {
         }
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
-        NowDisplayingManager().addStatus(ConnectionLostAndReconnecting(device));
+        NowDisplayingManager().addStatus(
+            ConnectionLostAndReconnecting(device.toFFBluetoothDevice()));
       }
     });
 
@@ -161,7 +163,7 @@ class FFBluetoothService {
   ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
     if (_bluetoothDeviceStatus.value == null &&
         castingBluetoothDevice != null) {
-      fetchBluetoothDeviceStatus(castingBluetoothDevice!.toFFBluetoothDevice());
+      fetchBluetoothDeviceStatus(castingBluetoothDevice!);
     }
     return _bluetoothDeviceStatus;
   }
@@ -172,31 +174,22 @@ class FFBluetoothService {
       Sentry.captureException('Set Casting device value to null');
       return;
     }
-    final ffdevice = FFBluetoothDevice(
-      remoteID: device.remoteId.str,
-      name: device.advName,
-    );
-    if (ffdevice.deviceId == _castingBluetoothDevice?.deviceId) {
+    if (device.deviceId == _castingBluetoothDevice?.deviceId) {
       return;
     }
-    _castingBluetoothDevice = ffdevice;
-    fetchBluetoothDeviceStatus(ffdevice);
-    BluetoothDeviceHelper.saveLastConnectedDevice(ffdevice);
+    _castingBluetoothDevice = device;
+    fetchBluetoothDeviceStatus(device);
+    BluetoothDeviceHelper.saveLastConnectedDevice(device);
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {
     if (_castingBluetoothDevice != null) {
       return _castingBluetoothDevice;
     }
-    final lastCastingBluetoothDevice =
-        BluetoothDeviceHelper.getLastConnectedDevice(checkAvailability: true);
-    if (lastCastingBluetoothDevice != null) {
-      castingBluetoothDevice = lastCastingBluetoothDevice;
-    } else {
-      final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
-      if (device != null) {
-        castingBluetoothDevice = device;
-      }
+
+    final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
+    if (device != null) {
+      castingBluetoothDevice = device;
     }
     return _castingBluetoothDevice;
   }
@@ -217,7 +210,7 @@ class FFBluetoothService {
   String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
   Future<Map<String, dynamic>> sendCommand({
-    required BluetoothDevice device,
+    required FFBluetoothDevice device,
     required String command,
     required Map<String, dynamic> request,
     Duration? timeout,
@@ -273,11 +266,11 @@ class FFBluetoothService {
       );
       if (displayingCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        castingBluetoothDevice = device.toFFBluetoothDevice();
+        castingBluetoothDevice = device;
       }
       if (updateDeviceStatusCommand
           .any((element) => element == CastCommand.fromString(command))) {
-        unawaited(fetchBluetoothDeviceStatus(device.toFFBluetoothDevice()));
+        unawaited(fetchBluetoothDeviceStatus(device));
       }
       return res;
     } catch (e) {
@@ -307,10 +300,9 @@ class FFBluetoothService {
       ..add(replyIdBytes);
   }
 
-  Future<void> setTimezone(BluetoothDevice device) async {
+  Future<void> setTimezone(FFBluetoothDevice device) async {
     final timezone = await TimezoneHelper.getTimeZone();
-    await injector<CanvasClientServiceV2>()
-        .setTimezone(device.toFFBluetoothDevice(), timezone);
+    await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
   }
 
   Future<void> scanWifi({
@@ -321,7 +313,7 @@ class FFBluetoothService {
   }) async {}
 
   Future<bool> sendWifiCredentials({
-    required BluetoothDevice device,
+    required FFBluetoothDevice device,
     required String ssid,
     required String password,
   }) async {
@@ -386,7 +378,7 @@ class FFBluetoothService {
   Completer<void>? _multiConnectCompleter;
 
   Future<void> connectToDevice(
-    BluetoothDevice device, {
+    FFBluetoothDevice device, {
     bool shouldShowError = true,
     bool shouldChangeNowDisplayingStatus = false,
     bool? autoConnect,
@@ -554,11 +546,11 @@ class FFBluetoothService {
   }
 
   Future<BluetoothDeviceStatus?> fetchBluetoothDeviceStatus(
-    BluetoothDevice device,
+    BaseDevice device,
   ) async {
     try {
       final res = await injector<CanvasClientServiceV2>()
-          .getBluetoothDeviceStatus(device.toFFBluetoothDevice());
+          .getBluetoothDeviceStatus(device);
       _bluetoothDeviceStatus.value = res;
       return res;
     } catch (e) {

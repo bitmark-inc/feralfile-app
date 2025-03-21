@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
@@ -365,7 +364,7 @@ class TvCastServiceImpl extends BaseTvCastService {
 class BluetoothCastService extends BaseTvCastService {
   BluetoothCastService(this._device);
 
-  final BluetoothDevice _device;
+  final FFBluetoothDevice _device;
 
   @override
   Future<Map<String, dynamic>> _sendData(
