@@ -76,6 +76,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     }
 
     final deviceName = data[1];
+    log.info('[CheckBluetoothState] getDeviceName: $deviceName');
     return deviceName;
   }
 

@@ -92,6 +92,10 @@
                 android:name="io.flutter.embedding.android.SplashScreenDrawable"
                 android:resource="@drawable/launch_background" />
 
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="false" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -167,6 +171,10 @@
                     android:scheme="https" />
                 <data
                     android:host="feralfile-app-alternate.app.link"
+                    android:scheme="https" />
+
+                <data
+                    android:host="link.feralfile.com"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
