@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +47,7 @@ extension ProductDetailsExt on ProductDetails {
                 ),
               ],
             )),
-        if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) ...[
+        ...[
           const SizedBox(height: 8),
           Text(
             textAlign: TextAlign.center,
@@ -60,15 +58,5 @@ extension ProductDetailsExt on ProductDetails {
         ],
       ],
     );
-  }
-
-  String get renewPolicyText {
-    final price = this.price;
-    String text = 'auto_renews_unless_cancelled'
-        .tr(namedArgs: {'price': '${price}/${period.name}'});
-    if (Platform.isAndroid && currencyCode == _indiaCurrencyCode) {
-      text += '\n\n' + 'renew_policy_india'.tr();
-    }
-    return text;
   }
 }
