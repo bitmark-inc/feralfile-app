@@ -179,7 +179,6 @@ class FFBluetoothService {
     }
     _castingBluetoothDevice = device;
     fetchBluetoothDeviceStatus(device);
-    BluetoothDeviceHelper.saveLastConnectedDevice(device);
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {
