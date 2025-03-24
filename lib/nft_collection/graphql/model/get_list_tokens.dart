@@ -28,7 +28,7 @@ class QueryListTokensRequest {
     this.lastUpdatedAt,
     this.offset = 0,
     this.size = indexerTokensPageSize,
-    this.burnedIncluded = false,
+    this.burnedIncluded = true,
   });
 
   final List<String> owners;

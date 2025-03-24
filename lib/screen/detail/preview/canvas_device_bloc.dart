@@ -23,7 +23,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:web3dart/json_rpc.dart';
 
 abstract class CanvasDeviceEvent {}
 
@@ -139,28 +138,23 @@ class CanvasDeviceState {
     required this.devices,
     Map<String, CheckDeviceStatusReply>? canvasDeviceStatus,
     Map<String, BaseDevice>? lastSelectedActiveDeviceMap,
-    this.rpcError,
   })  : canvasDeviceStatus = canvasDeviceStatus ?? {},
         lastSelectedActiveDeviceMap = lastSelectedActiveDeviceMap ?? {};
+
   final List<BaseDevice> devices;
   final Map<String, CheckDeviceStatusReply> canvasDeviceStatus;
   final Map<String, BaseDevice> lastSelectedActiveDeviceMap;
-
-  // final String sceneId;
-  final RPCError? rpcError;
 
   CanvasDeviceState copyWith({
     List<BaseDevice>? devices,
     Map<String, CheckDeviceStatusReply>? controllingDeviceStatus,
     Map<String, BaseDevice>? lastActiveDevice,
-    RPCError? rpcError,
   }) =>
       CanvasDeviceState(
         devices: devices ?? this.devices,
         canvasDeviceStatus: controllingDeviceStatus ?? canvasDeviceStatus,
         lastSelectedActiveDeviceMap:
             lastActiveDevice ?? lastSelectedActiveDeviceMap,
-        rpcError: rpcError ?? this.rpcError,
       );
 
   CanvasDeviceState updateOnCast({

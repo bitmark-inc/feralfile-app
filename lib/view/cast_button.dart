@@ -65,9 +65,6 @@ class FFCastButtonState extends State<FFCastButton> {
         if (!hasDevice) {
           return const SizedBox.shrink();
         }
-        final castingDevice =
-            state.lastSelectedActiveDeviceForKey(widget.displayKey);
-        final isCasting = castingDevice != null;
         return BlocBuilder<SubscriptionBloc, SubscriptionState>(
           builder: (context, subscriptionState) {
             final isSubscribed = subscriptionState.isSubscribed;
@@ -79,7 +76,6 @@ class FFCastButtonState extends State<FFCastButton> {
                 try {
                   widget.onTap?.call();
                   await onTap(context, isSubscribed);
-                  // _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
                 } catch (e) {
                   log.info('Error while casting: $e');
                   unawaited(
@@ -102,7 +98,7 @@ class FFCastButtonState extends State<FFCastButton> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 9).copyWith(
                       left: 16,
-                      right: (isCasting || _isProcessing) ? 9 : 16,
+                      right: (_isProcessing) ? 9 : 16,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,23 +121,12 @@ class FFCastButtonState extends State<FFCastButton> {
                             BlendMode.srcIn,
                           ),
                         ),
-                        if (isCasting || _isProcessing) ...[
+                        if (_isProcessing) ...[
                           const SizedBox(
                             width: 3,
                             height: 20,
                           ),
-                          if (_isProcessing)
-                            const ProcessingIndicator()
-                          else if (isCasting)
-                            Container(
-                              width: 4,
-                              height: 4,
-                              margin: const EdgeInsets.only(top: 1),
-                              decoration: const BoxDecoration(
-                                color: AppColor.primaryBlack,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
+                          if (_isProcessing) const ProcessingIndicator()
                         ],
                       ],
                     ),
