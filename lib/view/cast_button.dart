@@ -21,13 +21,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry/sentry.dart';
 
 class FFCastButton extends StatefulWidget {
-  final FutureOr<void> Function(BaseDevice device)? onDeviceSelected;
-  final String displayKey;
-  final String? text;
-  final String? type;
-  final bool shouldCheckSubscription;
-  final VoidCallback? onTap;
-
   const FFCastButton({
     required this.displayKey,
     this.type = '',
@@ -37,6 +30,13 @@ class FFCastButton extends StatefulWidget {
     this.shouldCheckSubscription = true,
     this.onTap,
   });
+
+  final FutureOr<void> Function(BaseDevice device)? onDeviceSelected;
+  final String displayKey;
+  final String? text;
+  final String? type;
+  final bool shouldCheckSubscription;
+  final VoidCallback? onTap;
 
   @override
   State<FFCastButton> createState() => FFCastButtonState();
@@ -98,7 +98,7 @@ class FFCastButtonState extends State<FFCastButton> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 9).copyWith(
                       left: 16,
-                      right: (_isProcessing) ? 9 : 16,
+                      right: _isProcessing ? 9 : 16,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +126,7 @@ class FFCastButtonState extends State<FFCastButton> {
                             width: 3,
                             height: 20,
                           ),
-                          if (_isProcessing) const ProcessingIndicator()
+                          if (_isProcessing) const ProcessingIndicator(),
                         ],
                       ],
                     ),
@@ -174,9 +174,8 @@ class FFCastButtonState extends State<FFCastButton> {
             if (status == IAPProductStatus.completed) {
               injector<SubscriptionBloc>().add(GetSubscriptionEvent());
               Navigator.pop(context);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                UIHelper.showUpgradedNotification();
-              });
+              Future.delayed(const Duration(milliseconds: 300),
+                  UIHelper.showUpgradedNotification);
             }
           },
           builder: (context, upgradeState) {

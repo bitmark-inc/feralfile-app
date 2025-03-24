@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -12,8 +14,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 
 class HomeWidgetService {
   HomeWidgetService() {
@@ -118,9 +118,8 @@ class HomeWidgetService {
   Future<Map<String, String>?> _formatDailyTokenData(
       DailyToken dailyToken) async {
     try {
-      final assetTokens = await injector<IndexerService>().getNftTokens(
-          QueryListTokensRequest(
-              ids: [dailyToken.indexId], burnedIncluded: true));
+      final assetTokens = await injector<IndexerService>()
+          .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
       if (assetTokens.isEmpty) {
         log.info(
             'No asset tokens found for daily token: ${dailyToken.indexId}');
