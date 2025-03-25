@@ -1358,9 +1358,9 @@ class UIHelper {
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (BuildContext context, int index) {
                 final option = options[index];
-                if (option.builder != null) {
-                  return option.builder!.call(context, option);
-                }
+                // if (option.builder != null) {
+                //   return option.builder!.call(context, option);
+                // }
                 return DrawerItem(
                   item: option,
                   color: AppColor.white,
@@ -1614,6 +1614,8 @@ class OptionItem {
   Widget? iconOnDisable;
   Widget Function(BuildContext context, OptionItem item)? builder;
   Widget? separator;
+  bool isSelected;
+  Widget? iconOnSelected;
 
   OptionItem({
     this.title,
@@ -1627,6 +1629,8 @@ class OptionItem {
     this.iconOnDisable,
     this.builder,
     this.separator,
+    this.isSelected = false,
+    this.iconOnSelected,
   });
 
   static OptionItem emptyOptionItem = OptionItem(title: '');

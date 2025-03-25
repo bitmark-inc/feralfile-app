@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -13,12 +14,15 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/exhibition_item.dart';
@@ -31,6 +35,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -85,6 +90,97 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     }
   }
 
+  void _showDisplaySettingShortcuts() {
+    final transparentTextTheme = Theme.of(context)
+        .textTheme
+        .ppMori400FFYellow14
+        .copyWith(color: Colors.transparent);
+    final options = [
+      OptionItem(
+        title: 'rotate'.tr().toLowerCase().capitalize(),
+        icon: SvgPicture.asset(
+          'assets/images/Reload.svg',
+          height: 24,
+        ),
+        onTap: () async {
+          final device = injector<FFBluetoothService>().castingBluetoothDevice;
+          if (device != null) {
+            await injector<CanvasClientServiceV2>().rotateCanvas(device);
+          }
+        },
+      ),
+      OptionItem(
+        title: 'fit'.tr(),
+        icon: ValueListenableBuilder(
+          valueListenable: injector<FFBluetoothService>().bluetoothDeviceStatus,
+          builder: (context, status, child) {
+            return SvgPicture.asset(
+              status?.artFraming == ArtFraming.fitToScreen
+                  ? 'assets/images/radio_btn_selected.svg'
+                  : 'assets/images/radio_btn_not_selected.svg',
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColor.white,
+                BlendMode.srcIn,
+              ),
+            );
+          },
+        ),
+        onTap: () async {
+          final device = injector<FFBluetoothService>().castingBluetoothDevice;
+          if (device != null) {
+            await injector<CanvasClientServiceV2>()
+                .updateArtFraming(device, ArtFraming.fitToScreen);
+          }
+        },
+      ),
+      OptionItem(
+        title: 'fill'.tr(),
+        icon: ValueListenableBuilder(
+          valueListenable: injector<FFBluetoothService>().bluetoothDeviceStatus,
+          builder: (context, status, child) {
+            return SvgPicture.asset(
+              status?.artFraming == ArtFraming.cropToFill
+                  ? 'assets/images/radio_btn_selected.svg'
+                  : 'assets/images/radio_btn_not_selected.svg',
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColor.white,
+                BlendMode.srcIn,
+              ),
+            );
+          },
+        ),
+        onTap: () async {
+          final device = injector<FFBluetoothService>().castingBluetoothDevice;
+          if (device != null) {
+            await injector<CanvasClientServiceV2>()
+                .updateArtFraming(device, ArtFraming.cropToFill);
+          }
+        },
+      ),
+      OptionItem(
+        builder: (context, option) {
+          return PrimaryButton(
+            onTap: () async {
+              final device =
+                  injector<FFBluetoothService>().castingBluetoothDevice;
+              Navigator.of(context).popAndPushNamed(
+                  AppRouter.bluetoothConnectedDeviceConfig,
+                  arguments: device);
+            },
+            color: Colors.transparent,
+            textColor: Colors.white,
+            borderColor: Colors.white,
+            text: 'Configure Device',
+          );
+        },
+      ),
+      OptionItem()
+    ];
+    unawaited(UIHelper.showDrawerAction(context, options: options));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +191,17 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
         },
         title: 'now_displaying'.tr(),
         isWhite: false,
+        action: () {
+          _showDisplaySettingShortcuts();
+        },
+        icon: SvgPicture.asset(
+          'assets/images/more_circle.svg',
+          width: 22,
+          colorFilter: const ColorFilter.mode(
+            AppColor.white,
+            BlendMode.srcIn,
+          ),
+        ),
       ),
       backgroundColor: AppColor.primaryBlack,
       body: _body(context),

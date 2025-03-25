@@ -15,6 +15,7 @@ class PrimaryButton extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? elevatedPadding;
   final double borderRadius;
+  final Color? borderColor;
 
   const PrimaryButton({
     super.key,
@@ -30,6 +31,7 @@ class PrimaryButton extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(vertical: 13),
     this.elevatedPadding,
     this.borderRadius = 32,
+    this.borderColor,
   });
 
   @override
@@ -48,6 +50,7 @@ class PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: disabledColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
+            side: BorderSide(color: borderColor ?? Colors.transparent),
           ),
         ),
         onPressed: enabled ? onTap : null,
@@ -165,6 +168,7 @@ class PrimaryAsyncButton extends StatefulWidget {
   final double? width;
   final bool enabled;
   final String? processingText;
+  final Color? borderColor;
 
   const PrimaryAsyncButton(
       {super.key,
@@ -173,7 +177,8 @@ class PrimaryAsyncButton extends StatefulWidget {
       this.text,
       this.width,
       this.enabled = true,
-      this.processingText});
+      this.processingText,
+      this.borderColor});
 
   @override
   State<PrimaryAsyncButton> createState() => _PrimaryAsyncButtonState();
@@ -207,6 +212,7 @@ class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
         width: widget.width,
         enabled: widget.enabled && !_isProcessing,
         isProcessing: _isProcessing,
+        borderColor: widget.borderColor,
       );
 }
 

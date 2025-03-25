@@ -6,6 +6,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -40,8 +42,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -1466,25 +1466,27 @@ class _DrawerItemState extends State<DrawerItem> {
           vertical: 16,
           horizontal: 13,
         ),
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              SizedBox(
-                width: 30,
-                child: Center(
-                  child: icon,
-                ),
+        child: item.builder != null
+            ? item.builder!(context, item)
+            : Row(
+                children: [
+                  if (icon != null) ...[
+                    SizedBox(
+                      width: 30,
+                      child: Center(
+                        child: icon,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 34,
+                    ),
+                  ],
+                  Text(
+                    item.title ?? '',
+                    style: titleStyle,
+                  ),
+                ],
               ),
-              const SizedBox(
-                width: 34,
-              ),
-            ],
-            Text(
-              item.title ?? '',
-              style: titleStyle,
-            ),
-          ],
-        ),
       ),
     );
     return GestureDetector(
