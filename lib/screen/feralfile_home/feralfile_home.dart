@@ -137,7 +137,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     return FFCastButton(
       displayKey: displayKey,
       onDeviceSelected: (device) async {
-        final duration = speedValues.values.first.inMilliseconds;
+        final duration = speedValues.values.first;
         final listPlayArtwork = tokenIDs
             .map(
               (e) => PlayArtworkV2(

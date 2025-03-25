@@ -12,6 +12,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -257,7 +258,8 @@ class _PlaylistControlState extends State<PlaylistControl> {
               color: AppColor.primaryBlack,
             ),
             child: ArtworkDurationControl(
-              duration: state.castingSpeed(widget.displayKey),
+              duration: state.castingSpeed(widget.displayKey) ??
+                  speedValues.values.first,
               displayKey: widget.displayKey,
             ),
           )
@@ -308,9 +310,9 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
 class ArtworkDurationControl extends StatefulWidget {
   const ArtworkDurationControl(
-      {required this.displayKey, super.key, this.duration});
+      {required this.displayKey, super.key, required this.duration});
 
-  final Duration? duration;
+  final Duration duration;
   final String displayKey;
 
   @override
@@ -321,9 +323,12 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
   late FocusNode dayFocusNode;
   late FocusNode hourFocusNode;
   late FocusNode minFocusNode;
-  late TextEditingController dayTextController;
-  late TextEditingController hourTextController;
-  late TextEditingController minTextController;
+  TextEditingController dayTextController = TextEditingController();
+  TextEditingController hourTextController = TextEditingController();
+  TextEditingController minTextController = TextEditingController();
+  late KeyboardVisibilityController keyboardController;
+  StreamSubscription<bool>? _keyboardSubscription;
+
   late bool isAnyFieldFocused = false;
   final _durationSubject = PublishSubject<Duration>();
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
@@ -332,40 +337,45 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
   @override
   void initState() {
     super.initState();
+    initDurationController(widget.duration);
+    initDurationFocusNode();
+    initKeyboardController();
+  }
 
+  void initDurationFocusNode() {
     dayFocusNode = FocusNode();
     hourFocusNode = FocusNode();
     minFocusNode = FocusNode();
 
-    int? day;
-    int? hour;
-    int? min;
+    dayFocusNode.addListener(_onFocusChanged);
+    hourFocusNode.addListener(_onFocusChanged);
+    minFocusNode.addListener(_onFocusChanged);
+  }
 
-    if (widget.duration != null) {
-      day = widget.duration!.inDays;
-      hour = widget.duration!.inHours % 24;
-      min = widget.duration!.inMinutes % 60;
-    }
+  void initDurationController(Duration duration) {
+    int day;
+    int hour;
+    int min;
 
-    dayTextController =
-        TextEditingController(text: day?.toString().padLeft(2, '0'));
-    hourTextController =
-        TextEditingController(text: hour?.toString().padLeft(2, '0'));
-    minTextController =
-        TextEditingController(text: min?.toString().padLeft(2, '0'));
+    day = duration.inDays;
+    hour = duration.inHours % 24;
+    min = duration.inMinutes % 60;
 
-    dayFocusNode.addListener(_focusChanged);
-    hourFocusNode.addListener(_focusChanged);
-    minFocusNode.addListener(_focusChanged);
+    dayTextController.text = day.toString().padLeft(2, '0');
+    hourTextController.text = hour.toString().padLeft(2, '0');
+    minTextController.text = min.toString().padLeft(2, '0');
+  }
 
-    _durationSubject.stream
-        .debounceTime(const Duration(milliseconds: 1000))
-        .listen((duration) {
-      _durationChanged(duration);
+  void initKeyboardController() {
+    keyboardController = KeyboardVisibilityController();
+    _keyboardSubscription = keyboardController.onChange.listen((visible) {
+      if (!visible) {
+        _onDurationSubmitted();
+      }
     });
   }
 
-  void _focusChanged() {
+  void _onFocusChanged() {
     setState(() {
       isAnyFieldFocused = dayFocusNode.hasFocus ||
           hourFocusNode.hasFocus ||
@@ -381,22 +391,22 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
     dayTextController.dispose();
     hourTextController.dispose();
     minTextController.dispose();
-    _timer?.cancel();
-    await _durationSubject.close();
+    _keyboardSubscription?.cancel();
     super.dispose();
+    await _durationSubject.close();
   }
 
-  void _durationChanged(Duration duration) {
+  void _changeDurationWithDebounce(Duration duration) {
     _timer?.cancel();
     _timer = Timer(
       const Duration(milliseconds: 300),
       () {
-        changeSpeed(duration);
+        _changeSpeed(duration);
       },
     );
   }
 
-  void changeSpeed(Duration duration) {
+  void _changeSpeed(Duration duration) {
     final lastSelectedCanvasDevice = _canvasDeviceBloc.state
         .lastSelectedActiveDeviceForKey(widget.displayKey);
     if (lastSelectedCanvasDevice == null) {
@@ -416,36 +426,62 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
         lastSelectedCanvasDevice, playArtworkWithNewDuration));
   }
 
+  void _revertToOldDuration() {
+    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+        .lastSelectedActiveDeviceForKey(widget.displayKey);
+    if (lastSelectedCanvasDevice == null) {
+      return;
+    }
+    final canvasStatus =
+        _canvasDeviceBloc.state.statusOf(lastSelectedCanvasDevice);
+    if (canvasStatus == null) {
+      return;
+    }
+    final playArtworks = canvasStatus.artworks;
+    if (playArtworks.isEmpty) {
+      return;
+    }
+    final duration = playArtworks.first.duration;
+    initDurationController(duration);
+  }
+
+  void _onDurationSubmitted() {
+    final duration = Duration(
+      days: int.tryParse(dayTextController.text) ?? 0,
+      hours: int.tryParse(hourTextController.text) ?? 0,
+      minutes: int.tryParse(minTextController.text) ?? 0,
+    );
+    // if duration is valid, reset to new duration
+    if (duration.inMilliseconds > 0) {
+      _changeDurationWithDebounce(duration);
+    }
+    // if duration is zero, reset to old duration
+    if (duration.inMilliseconds == 0) {
+      _revertToOldDuration();
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _durationWidget(
-              suffixText: 'Days',
-              focusNode: dayFocusNode,
-              textController: dayTextController,
-              onValueChanged: (value) {
-                _durationSubject.add(
-                  Duration(
-                    days: value,
-                    hours: int.tryParse(hourTextController.text) ?? 0,
-                    minutes: int.tryParse(minTextController.text) ?? 0,
-                  ),
-                );
-              }),
+            suffixText: 'Days',
+            focusNode: dayFocusNode,
+            textController: dayTextController,
+            onValueChanged: (value) {
+              final dayFormatted = value.toString().padLeft(2, '0');
+              dayTextController.text = dayFormatted;
+            },
+          ),
           _durationWidget(
               suffixText: 'Hours',
               maxValue: 23,
               focusNode: hourFocusNode,
               textController: hourTextController,
               onValueChanged: (value) {
-                _durationSubject.add(
-                  Duration(
-                    days: int.tryParse(dayTextController.text) ?? 0,
-                    hours: value,
-                    minutes: int.tryParse(minTextController.text) ?? 0,
-                  ),
-                );
+                final hourFormatted = value.toString().padLeft(2, '0');
+                hourTextController.text = hourFormatted;
               }),
           _durationWidget(
               suffixText: 'Mins',
@@ -453,13 +489,8 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
               focusNode: minFocusNode,
               textController: minTextController,
               onValueChanged: (value) {
-                _durationSubject.add(
-                  Duration(
-                    days: int.tryParse(dayTextController.text) ?? 0,
-                    hours: int.tryParse(hourTextController.text) ?? 0,
-                    minutes: value,
-                  ),
-                );
+                final minuteFormatted = value.toString().padLeft(2, '0');
+                minTextController.text = minuteFormatted;
               }),
         ],
       );
@@ -467,6 +498,7 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
   Widget _durationWidget({
     required String suffixText,
     required Function(int value) onValueChanged,
+    Function(int value)? onSubmitted,
     required FocusNode focusNode,
     required TextEditingController textController,
     int? maxValue,
@@ -506,6 +538,9 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
         onChanged: (value) {
           onValueChanged(int.tryParse(value) ?? 0);
         },
+        onSubmitted: (value) {
+          onSubmitted?.call(int.tryParse(value) ?? 0);
+        },
       ),
     );
   }
@@ -520,6 +555,6 @@ extension PlayArtworkExt on PlayArtworkV2 {
       PlayArtworkV2(
         token: token ?? this.token,
         artwork: artwork ?? this.artwork,
-        duration: duration?.inMilliseconds ?? this.duration,
+        duration: duration ?? this.duration,
       );
 }

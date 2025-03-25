@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
@@ -574,7 +575,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     final device = injector<FFBluetoothService>().castingBluetoothDevice;
     if (device != null) {
       unawaited(injector<FFBluetoothService>().connectToDevice(device));
+      if (device.isConnected) {
+        unawaited(NowDisplayingManager().updateDisplayingNow());
+      }
     }
+
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     _triggerShowAnnouncement();
   }

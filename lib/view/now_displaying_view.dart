@@ -351,7 +351,7 @@ class TokenNowDisplayingView extends StatelessWidget {
                 children: [
                   if (artistTitle != null)
                     TextSpan(
-                      text: assetToken.artistTitle,
+                      text: artistTitle,
                       style: theme.textTheme.ppMori400Black14.copyWith(
                         decoration: TextDecoration.underline,
                         decorationColor: AppColor.primaryBlack,
