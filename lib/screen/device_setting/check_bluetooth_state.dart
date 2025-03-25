@@ -122,14 +122,28 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 16),
-          Text(
-            'Bluetooth is required for setup. Please turn it on to continue.',
-            style: Theme.of(context)
-                .textTheme
-                .ppMori700White24
-                .copyWith(fontSize: 40),
+          Expanded(
+            child: Center(
+              child: Text(
+                'Bluetooth is required for setup. Please turn it on to continue.',
+                style: Theme.of(context)
+                    .textTheme
+                    .ppMori700White24
+                    .copyWith(fontSize: 40),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
+          PrimaryButton(
+            text: 'Turn on Bluetooth',
+            onTap: () {
+              injector<NavigationService>().openBluetoothSettings();
+            },
+            color: Colors.transparent,
+            borderColor: AppColor.white,
+            textColor: AppColor.white,
+          ),
+          const SizedBox(height: 40),
         ],
       ),
     );
