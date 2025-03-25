@@ -36,7 +36,7 @@ const DEEP_LINKS = [
   'https://autonomy.io',
   'https://au.bitmark.com',
   ...Constants.branchDeepLinks,
-  'feralfile://',
+  ...Constants.bluetoothConnectDeepLinks,
 ];
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
