@@ -325,16 +325,16 @@ class PlayArtworkV2 {
         artwork: json['artwork'] != null
             ? CastArtwork.fromJson(json['artwork'] as Map<String, dynamic>)
             : null,
-        duration: json['duration'] as int,
+        duration: Duration(milliseconds: json['duration'] as int),
       );
   CastAssetToken? token;
   CastArtwork? artwork;
-  int duration;
+  Duration duration;
 
   Map<String, dynamic> toJson() => {
         if (token != null) 'token': token?.toJson(),
         if (artwork != null) 'artwork': artwork!.toJson(),
-        'duration': duration,
+        'duration': duration.inMilliseconds,
       };
 }
 
@@ -592,12 +592,10 @@ class UpdateDurationRequest implements Request {
 class UpdateDurationReply extends Reply {
   UpdateDurationReply({
     required this.artworks,
-    this.startTime,
   });
 
   factory UpdateDurationReply.fromJson(Map<String, dynamic> json) =>
       UpdateDurationReply(
-        startTime: int.tryParse(json['startTime'] as String),
         artworks: List<PlayArtworkV2>.from(
           (json['artworks'] as List).map(
             (x) => PlayArtworkV2.fromJson(
@@ -606,12 +604,10 @@ class UpdateDurationReply extends Reply {
           ),
         ),
       );
-  int? startTime;
   List<PlayArtworkV2> artworks;
 
   @override
   Map<String, dynamic> toJson() => {
-        'startTime': startTime,
         'artworks': artworks.map((artwork) => artwork.toJson()).toList(),
       };
 }

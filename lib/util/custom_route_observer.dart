@@ -26,7 +26,6 @@ final listRouteShouldnotShowNowDisplaying = [
   AppRouter.bluetoothConnectedDeviceConfig,
   AppRouter.bluetoothDevicePortalPage,
   AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
-  AppRouter.configureDevice,
   AppRouter.sendWifiCredentialPage,
   AppRouter.scanWifiNetworkPage,
 ];

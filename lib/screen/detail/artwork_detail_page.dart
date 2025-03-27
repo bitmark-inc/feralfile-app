@@ -284,7 +284,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 onDeviceSelected: (device) async {
                                   final artwork = PlayArtworkV2(
                                     token: CastAssetToken(id: asset.id),
-                                    duration: 0,
+                                    duration: Duration.zero,
                                   );
                                   final completer = Completer<void>();
                                   _canvasDeviceBloc.add(

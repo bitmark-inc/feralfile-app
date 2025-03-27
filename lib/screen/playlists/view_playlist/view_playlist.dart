@@ -248,7 +248,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 log.info('playList is empty');
                 return;
               }
-              final duration = speedValues.values.first.inMilliseconds;
+              final duration = speedValues.values.first;
               final listPlayArtwork = listTokenIds
                   .map((e) => PlayArtworkV2(
                       token: CastAssetToken(id: e), duration: duration))

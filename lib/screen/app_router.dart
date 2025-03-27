@@ -39,7 +39,6 @@ import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/check_bluetooth_state.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/now_displaying_page.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
@@ -157,7 +156,6 @@ class AppRouter {
   static const bluetoothDevicePortalPage = 'bluetooth_device_portal_page';
   static const scanWifiNetworkPage = 'scan_wifi_network_page';
   static const sendWifiCredentialPage = 'send_wifi_credential_page';
-  static const configureDevice = 'configure_device';
   static const nowDisplayingPage = 'now_displaying_page';
   static const bluetoothConnectedDeviceConfig =
       'bluetooth_connected_device_config';
@@ -745,14 +743,6 @@ class AppRouter {
           ),
         );
 
-      case configureDevice:
-        final device = settings.arguments! as FFBluetoothDevice;
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => ConfigureDevice(
-            device: device,
-          ),
-        );
       case nowDisplayingPage:
         return PageTransition(
           type: PageTransitionType.fade,
@@ -780,11 +770,12 @@ class AppRouter {
         );
 
       case bluetoothConnectedDeviceConfig:
-        final device = settings.arguments! as FFBluetoothDevice;
+        final payload =
+            settings.arguments! as BluetoothConnectedDeviceConfigPayload;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BluetoothConnectedDeviceConfig(
-            device: device,
+            payload: payload,
           ),
         );
 

@@ -188,12 +188,8 @@ class CanvasDeviceState {
     final lastActiveDevice = lastSelectedActiveDeviceForKey(key);
     final lastActiveDeviceStatus =
         canvasDeviceStatus[lastActiveDevice?.deviceId];
-    final durationInMilisecond =
-        lastActiveDeviceStatus?.artworks.firstOrNull?.duration;
-    if (durationInMilisecond != null) {
-      return Duration(milliseconds: durationInMilisecond);
-    }
-    return null;
+    final duration = lastActiveDeviceStatus?.artworks.firstOrNull?.duration;
+    return duration;
   }
 
   CheckDeviceStatusReply? statusOf(BaseDevice device) =>
@@ -305,6 +301,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final newState = state.copyWith(controllingDeviceStatus: newStatus);
       emit(newState);
       unawaited(NowDisplayingManager().updateDisplayingNow());
+      await injector<FFBluetoothService>()
+          .fetchBluetoothDeviceStatus(event.device);
     });
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
@@ -555,12 +553,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
-        await _canvasClientServiceV2.resumeCasting(device);
         final currentDeviceStatus = state.canvasDeviceStatus[device.deviceId];
         final status = currentDeviceStatus == null
             ? await _canvasClientServiceV2.getDeviceCastingStatus(device)
             : currentDeviceStatus.copyWith(isPaused: false);
-        await _canvasClientServiceV2.pauseCasting(device);
+        await _canvasClientServiceV2.resumeCasting(device);
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         emit(
@@ -602,7 +599,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         emit(
           state.copyWith(controllingDeviceStatus: controllingDeviceStatus),
         );
-      } catch (_) {}
+      } catch (e) {
+        log.info('CanvasDeviceBloc: error while update duration: $e');
+      }
     });
   }
 

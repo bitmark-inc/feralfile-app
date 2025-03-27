@@ -81,7 +81,9 @@ class FFBluetoothService {
                 connectionPriorityRequest: ConnectionPriority.high);
           }
           await device.discoverCharacteristics();
-          _connectCompleter?.complete();
+          if (_connectCompleter?.isCompleted == false) {
+            _connectCompleter?.complete();
+          }
           _connectCompleter = null;
           // after connected, fetch device status
           final status =
@@ -98,14 +100,16 @@ class FFBluetoothService {
               },
             ),
           );
-        } catch (e) {
+        } catch (e, s) {
           log.warning('Failed to discover characteristics: $e');
           unawaited(
             Sentry.captureException(
               'Failed to discover characteristics: $e',
+              stackTrace: s,
             ),
           );
           _connectCompleter?.completeError(e);
+          _connectCompleter = null;
         }
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
@@ -275,7 +279,7 @@ class FFBluetoothService {
     } catch (e) {
       BluetoothNotificationService().unsubscribe(replyId, cb);
       unawaited(Sentry.captureException(e));
-      log.info('[sendCommand] Error sending command: $e');
+      log.info('[sendCommand] Error sending command $command: $e');
       rethrow;
     }
   }
@@ -397,6 +401,7 @@ class FFBluetoothService {
         NowDisplayingManager().addStatus(ConnectSuccess(device));
       }
       _multiConnectCompleter?.complete();
+      _multiConnectCompleter = null;
     }).catchError((Object e) {
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectFailed(device, e));
@@ -405,6 +410,7 @@ class FFBluetoothService {
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
 
       _multiConnectCompleter?.completeError(e);
+      _multiConnectCompleter = null;
     });
     return _multiConnectCompleter?.future;
   }
@@ -442,6 +448,9 @@ class FFBluetoothService {
       if (!autoConnect) {
         await device.disconnect();
       }
+      if (_connectCompleter?.isCompleted == false) {
+        log.info('Already connecting to device: ${device.remoteId.str}');
+      }
       _connectCompleter = Completer<void>();
       log.info('Connecting to device: ${device.remoteId.str}');
       try {
@@ -463,11 +472,11 @@ class FFBluetoothService {
         }
         rethrow;
       }
-
+      // Wait for connection to complete
       if (device.isConnected) {
         _connectCompleter?.complete();
+        _connectCompleter = null;
       } else {
-        // Wait for connection to complete
         await _connectCompleter?.future.timeout(
           const Duration(seconds: 10),
           onTimeout: () {

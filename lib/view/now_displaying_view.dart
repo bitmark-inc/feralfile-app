@@ -111,6 +111,10 @@ class _NowDisplayingState extends State<NowDisplaying> {
     nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
       (status) {
+        if (nowDisplayingStatus is NowDisplayingSuccess &&
+            status is ConnectSuccess) {
+          return;
+        }
         if (mounted) {
           setState(
             () {
@@ -351,7 +355,7 @@ class TokenNowDisplayingView extends StatelessWidget {
                 children: [
                   if (artistTitle != null)
                     TextSpan(
-                      text: assetToken.artistTitle,
+                      text: artistTitle,
                       style: theme.textTheme.ppMori400Black14.copyWith(
                         decoration: TextDecoration.underline,
                         decorationColor: AppColor.primaryBlack,
