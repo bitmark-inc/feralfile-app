@@ -64,9 +64,11 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarBrightness: Brightness.light,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.light,
+      ),
+    );
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
@@ -82,9 +84,11 @@ class _SettingsPageState extends State<SettingsPage>
   void didPopNext() {
     super.didPopNext();
 
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarBrightness: Brightness.light,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.light,
+      ),
+    );
     unawaited(injector<SettingsDataService>().backupDeviceSettings());
   }
 
@@ -146,9 +150,11 @@ class _SettingsPageState extends State<SettingsPage>
                         final connectedDevice = injector<FFBluetoothService>()
                             .castingBluetoothDevice;
                         await Navigator.of(context).pushNamed(
-                            AppRouter.bluetoothConnectedDeviceConfig,
-                            arguments: BluetoothConnectedDeviceConfigPayload(
-                                device: connectedDevice!));
+                          AppRouter.bluetoothConnectedDeviceConfig,
+                          arguments: BluetoothConnectedDeviceConfigPayload(
+                            device: connectedDevice!,
+                          ),
+                        );
                       },
                     ),
                   addOnlyDivider(),
@@ -175,22 +181,24 @@ class _SettingsPageState extends State<SettingsPage>
                       titleBuilder: (context) {
                         final theme = Theme.of(context);
                         return RichText(
-                            text: TextSpan(
-                          style: theme.textTheme.ppMori400Black16,
-                          children: [
-                            TextSpan(
-                              text: 'membership'.tr(),
-                            ),
-                            const TextSpan(text: ' '),
-                            TextSpan(
-                              text:
-                                  state.isSubscribed ? 'Premium' : 'Essential',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                          text: TextSpan(
+                            style: theme.textTheme.ppMori400Black16,
+                            children: [
+                              TextSpan(
+                                text: 'membership'.tr(),
                               ),
-                            ),
-                          ],
-                        ));
+                              const TextSpan(text: ' '),
+                              TextSpan(
+                                text: state.isSubscribed
+                                    ? 'Premium'
+                                    : 'Essential',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                       icon:
                           SvgPicture.asset('assets/images/icon_membership.svg'),
@@ -304,33 +312,34 @@ class _SettingsPageState extends State<SettingsPage>
         const SizedBox(height: 24),
         if (_packageInfo != null)
           GestureDetector(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  border: Border.all(color: AppColor.auGrey),
-                ),
-                child: Text(
-                  'version_'.tr(
-                    namedArgs: {
-                      'version': _packageInfo!.version,
-                      'buildNumber': _packageInfo!.buildNumber
-                    },
-                  ),
-                  key: const Key('version'),
-                  style: theme.textTheme.ppMori400Grey14,
-                ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(color: AppColor.auGrey),
               ),
-              onTap: () async {
-                await injector<VersionService>().showReleaseNotes();
-              }),
+              child: Text(
+                'version_'.tr(
+                  namedArgs: {
+                    'version': _packageInfo!.version,
+                    'buildNumber': _packageInfo!.buildNumber,
+                  },
+                ),
+                key: const Key('version'),
+                style: theme.textTheme.ppMori400Grey14,
+              ),
+            ),
+            onTap: () async {
+              await injector<VersionService>().showReleaseNotes();
+            },
+          ),
         const SizedBox(height: 10),
         StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             final isLatestVersion = compareVersion(
-                    _versionCheck?.packageVersion ?? '',
-                    _versionCheck?.storeVersion ?? '') >=
+                  _versionCheck?.packageVersion ?? '',
+                  _versionCheck?.storeVersion ?? '',
+                ) >=
                 0;
             return GestureDetector(
               onTap: () async {
@@ -342,7 +351,7 @@ class _SettingsPageState extends State<SettingsPage>
                       args: [
                         _versionCheck?.storeVersion ??
                             'the_latest_version'.tr(),
-                        _packageInfo?.version ?? ''
+                        _packageInfo?.version ?? '',
                       ],
                     ),
                     isDismissible: true,
@@ -362,11 +371,12 @@ class _SettingsPageState extends State<SettingsPage>
                   : Text(
                       'update_to_the_latest_version'.tr(),
                       style: theme.textTheme.linkStyle14.copyWith(
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppTheme.ppMori,
-                          decorationColor: AppColor.disabledColor,
-                          color: AppColor.disabledColor,
-                          shadows: [const Shadow()]),
+                        fontWeight: FontWeight.w400,
+                        fontFamily: AppTheme.ppMori,
+                        decorationColor: AppColor.disabledColor,
+                        color: AppColor.disabledColor,
+                        shadows: [const Shadow()],
+                      ),
                     ),
             );
           },

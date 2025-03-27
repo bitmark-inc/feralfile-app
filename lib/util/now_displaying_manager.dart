@@ -34,15 +34,15 @@ class NowDisplayingManager {
 
   void addStatus(NowDisplayingStatus status) {
     log.info('NowDisplayingManager: $status');
-    this.nowDisplayingStatus = status;
+    nowDisplayingStatus = status;
     _streamController.add(status);
     _onDisconnectTimer?.cancel();
     if (status is ConnectFailed) {
-      _onDisconnectTimer = Timer(Duration(seconds: 5), () {
+      _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
         shouldShowNowDisplayingOnDisconnect.value = false;
       });
     } else if (status is ConnectionLostAndReconnecting) {
-      _onDisconnectTimer = Timer(Duration(seconds: 10), () {
+      _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
         shouldShowNowDisplayingOnDisconnect.value = false;
         injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       });
@@ -65,8 +65,9 @@ class NowDisplayingManager {
         status = await _getStatus(device);
       } catch (e) {
         log.info(
-            'NowDisplayingManager: updateDisplayingNow error: $e, retrying');
-        await Future.delayed(Duration(seconds: 5));
+          'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
+        );
+        await Future.delayed(const Duration(seconds: 5));
         if (device.isConnected) {
           status = await _getStatus(device);
         }
@@ -156,10 +157,12 @@ class NowDisplayingManager {
         },
       ),
     );
-    final res =
-        await completer.future.timeout(Duration(seconds: 5), onTimeout: () {
-      throw TimeoutException('Timeout getting Now Displaying');
-    });
+    final res = await completer.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        throw TimeoutException('Timeout getting Now Displaying');
+      },
+    );
     return res;
   }
 }

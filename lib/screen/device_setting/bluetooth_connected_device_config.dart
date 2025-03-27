@@ -182,7 +182,8 @@ class BluetoothConnectedDeviceConfigState
     final device = widget.payload.device;
     if (!device.isConnected) {
       log.info(
-        '[BluetoothConnectedDeviceConfig] _pullingDeviceInfo: Device is not connected',
+        '[BluetoothConnectedDeviceConfig] '
+        '_pullingDeviceInfo: Device is not connected',
       );
       return;
     }
@@ -836,7 +837,8 @@ class BluetoothConnectedDeviceConfigState
       await injector<CanvasClientServiceV2>().enableMetricsStreaming(device);
 
       // Subscribe to the metrics stream
-      _metricsStreamSubscription?.cancel(); // Cancel any existing subscription
+      await _metricsStreamSubscription
+          ?.cancel(); // Cancel any existing subscription
       _metricsStreamSubscription = injector<FFBluetoothService>()
           .deviceRealtimeMetricsStream
           .listen(_updateMetricsFromStream);
@@ -849,7 +851,7 @@ class BluetoothConnectedDeviceConfigState
   Future<void> _disableMetricsStreaming() async {
     try {
       // Cancel the stream subscription
-      _metricsStreamSubscription?.cancel();
+      await _metricsStreamSubscription?.cancel();
       _metricsStreamSubscription = null;
 
       final device = widget.payload.device;

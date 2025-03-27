@@ -5,14 +5,11 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 extension ProductDetailsExt on ProductDetails {
-  static const _indiaCurrencyCode = 'INR';
-
   SKSubscriptionPeriodUnit get period => SKSubscriptionPeriodUnit.year;
 
   Widget renewPolicyWidget(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         RichText(
           textAlign: TextAlign.center,
@@ -21,7 +18,7 @@ extension ProductDetailsExt on ProductDetails {
             children: [
               TextSpan(
                 text: 'auto_renews_unless_cancelled'
-                    .tr(namedArgs: {'price': '$price'}),
+                    .tr(namedArgs: {'price': price}),
               ),
             ],
           ),
@@ -53,14 +50,14 @@ extension ProductDetailsExt on ProductDetails {
                             style: theme.textTheme.ppMori400Black12
                                 .copyWith(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
+                          const TextSpan(
                             text: ' Automatic renewal is ',
                           ),
-                          TextSpan(
+                          const TextSpan(
                             text: 'not available',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
+                          const TextSpan(
                             text:
                                 ' for subscriptions above ₹15,000. Subscribers in India must manually renew their subscription each year through their Google Play account.',
                           ),
@@ -79,21 +76,22 @@ extension ProductDetailsExt on ProductDetails {
                 children: [
                   Expanded(
                     child: RichText(
-                        maxLines: 3,
-                        text: TextSpan(
-                          style: theme.textTheme.ppMori400Black12,
-                          children: [
-                            TextSpan(
-                              text: 'All other regions:',
-                              style: theme.textTheme.ppMori400Black12
-                                  .copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  ' Your subscription automatically renews each year unless canceled.',
-                            ),
-                          ],
-                        )),
+                      maxLines: 3,
+                      text: TextSpan(
+                        style: theme.textTheme.ppMori400Black12,
+                        children: [
+                          TextSpan(
+                            text: 'All other regions:',
+                            style: theme.textTheme.ppMori400Black12
+                                .copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const TextSpan(
+                            text:
+                                ' Your subscription automatically renews each year unless canceled.',
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -102,23 +100,27 @@ extension ProductDetailsExt on ProductDetails {
         ),
         const SizedBox(height: 8),
         RichText(
-            text: TextSpan(
-          style: theme.textTheme.ppMori400Black12,
-          children: [
-            TextSpan(
-                text: 'Note:', style: TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(
-              text: ' A subscription is ',
-            ),
-            TextSpan(
+          text: TextSpan(
+            style: theme.textTheme.ppMori400Black12,
+            children: const [
+              TextSpan(
+                text: 'Note:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: ' A subscription is ',
+              ),
+              TextSpan(
                 text: 'not required',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(
-              text:
-                  ' to use the basic features of this app. Premium features require a subscription.',
-            ),
-          ],
-        )),
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text:
+                    ' to use the basic features of this app. Premium features require a subscription.',
+              ),
+            ],
+          ),
+        ),
         ...[],
       ],
     );

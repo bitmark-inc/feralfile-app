@@ -58,7 +58,8 @@ class StreamDrawerItem extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.only(
-                    right: isControlling ? (rotateIconSize + 25 + 10) : 0),
+                  right: isControlling ? (rotateIconSize + 25 + 10) : 0,
+                ),
                 child: InkWell(
                   splashFactory: InkSparkle.splashFactory,
                   highlightColor: Colors.transparent,
@@ -104,7 +105,7 @@ class StreamDrawerItem extends StatelessWidget {
                   top: 0,
                   bottom: 0,
                   right: ResponsiveLayout.padding,
-                  child: Container(
+                  child: ColoredBox(
                     color: AppColor.primaryBlack,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +125,7 @@ class StreamDrawerItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                )
+                ),
             ],
           ),
         ),
@@ -132,8 +133,11 @@ class StreamDrawerItem extends StatelessWidget {
 }
 
 class PlaylistControl extends StatefulWidget {
-  const PlaylistControl(
-      {required this.displayKey, super.key, this.viewingArtworkBuilder});
+  const PlaylistControl({
+    required this.displayKey,
+    super.key,
+    this.viewingArtworkBuilder,
+  });
 
   final String displayKey;
   final Widget Function(BuildContext context, CanvasDeviceState state)?
@@ -168,22 +172,23 @@ class _PlaylistControlState extends State<PlaylistControl> {
           _controllingDevice =
               state.lastSelectedActiveDeviceForKey(widget.displayKey);
           return Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: AppColor.auGreyBackground,
-              ),
-              child: Column(
-                children: [
-                  if (widget.viewingArtworkBuilder != null) ...[
-                    widget.viewingArtworkBuilder!.call(context, state),
-                    const SizedBox(height: 15),
-                  ],
-                  _buildPlayControls(context, state),
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: AppColor.auGreyBackground,
+            ),
+            child: Column(
+              children: [
+                if (widget.viewingArtworkBuilder != null) ...[
+                  widget.viewingArtworkBuilder!.call(context, state),
                   const SizedBox(height: 15),
-                  _buildSpeedControl(context, state),
                 ],
-              ));
+                _buildPlayControls(context, state),
+                const SizedBox(height: 15),
+                _buildSpeedControl(context, state),
+              ],
+            ),
+          );
         },
       );
 
@@ -220,24 +225,27 @@ class _PlaylistControlState extends State<PlaylistControl> {
     return Row(
       children: [
         _buildPlayButton(
-            icon: 'assets/images/chevron_left_icon.svg',
-            onTap: () => {
-                  onPrevious(context),
-                }),
+          icon: 'assets/images/chevron_left_icon.svg',
+          onTap: () => {
+            onPrevious(context),
+          },
+        ),
         const SizedBox(width: 15),
         _buildPlayButton(
-            icon: isPlaying
-                ? 'assets/images/stream_pause_icon.svg'
-                : 'assets/images/stream_play_icon.svg',
-            onTap: () => {
-                  onPauseOrResume(context),
-                }),
+          icon: isPlaying
+              ? 'assets/images/stream_pause_icon.svg'
+              : 'assets/images/stream_play_icon.svg',
+          onTap: () => {
+            onPauseOrResume(context),
+          },
+        ),
         const SizedBox(width: 15),
         _buildPlayButton(
-            icon: 'assets/images/chevron_right_icon.svg',
-            onTap: () => {
-                  onNext(context),
-                }),
+          icon: 'assets/images/chevron_right_icon.svg',
+          onTap: () => {
+            onNext(context),
+          },
+        ),
       ],
     );
   }
@@ -262,7 +270,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                   speedValues.values.first,
               displayKey: widget.displayKey,
             ),
-          )
+          ),
         ],
       );
 
@@ -309,8 +317,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
 }
 
 class ArtworkDurationControl extends StatefulWidget {
-  const ArtworkDurationControl(
-      {required this.displayKey, super.key, required this.duration});
+  const ArtworkDurationControl({
+    required this.displayKey,
+    required this.duration,
+    super.key,
+  });
 
   final Duration duration;
   final String displayKey;
@@ -391,8 +402,8 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
     dayTextController.dispose();
     hourTextController.dispose();
     minTextController.dispose();
-    _keyboardSubscription?.cancel();
     super.dispose();
+    await _keyboardSubscription?.cancel();
     await _durationSubject.close();
   }
 
@@ -419,11 +430,17 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
     }
     final playArtworks = canvasStatus.artworks;
     final playArtworkWithNewDuration = playArtworks
-        .map((e) =>
-            e.copy(duration: Duration(milliseconds: duration.inMilliseconds)))
+        .map(
+          (e) =>
+              e.copy(duration: Duration(milliseconds: duration.inMilliseconds)),
+        )
         .toList();
-    _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(
-        lastSelectedCanvasDevice, playArtworkWithNewDuration));
+    _canvasDeviceBloc.add(
+      CanvasDeviceUpdateDurationEvent(
+        lastSelectedCanvasDevice,
+        playArtworkWithNewDuration,
+      ),
+    );
   }
 
   void _revertToOldDuration() {
@@ -475,32 +492,34 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
             },
           ),
           _durationWidget(
-              suffixText: 'Hours',
-              maxValue: 23,
-              focusNode: hourFocusNode,
-              textController: hourTextController,
-              onValueChanged: (value) {
-                final hourFormatted = value.toString().padLeft(2, '0');
-                hourTextController.text = hourFormatted;
-              }),
+            suffixText: 'Hours',
+            maxValue: 23,
+            focusNode: hourFocusNode,
+            textController: hourTextController,
+            onValueChanged: (value) {
+              final hourFormatted = value.toString().padLeft(2, '0');
+              hourTextController.text = hourFormatted;
+            },
+          ),
           _durationWidget(
-              suffixText: 'Mins',
-              maxValue: 59,
-              focusNode: minFocusNode,
-              textController: minTextController,
-              onValueChanged: (value) {
-                final minuteFormatted = value.toString().padLeft(2, '0');
-                minTextController.text = minuteFormatted;
-              }),
+            suffixText: 'Mins',
+            maxValue: 59,
+            focusNode: minFocusNode,
+            textController: minTextController,
+            onValueChanged: (value) {
+              final minuteFormatted = value.toString().padLeft(2, '0');
+              minTextController.text = minuteFormatted;
+            },
+          ),
         ],
       );
 
   Widget _durationWidget({
     required String suffixText,
     required Function(int value) onValueChanged,
-    Function(int value)? onSubmitted,
     required FocusNode focusNode,
     required TextEditingController textController,
+    Function(int value)? onSubmitted,
     int? maxValue,
   }) {
     final textStyle = isAnyFieldFocused && !focusNode.hasFocus

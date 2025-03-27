@@ -24,17 +24,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class HandleBluetoothDeviceScanDeeplinkScreenPayload {
-  HandleBluetoothDeviceScanDeeplinkScreenPayload(
-      {required this.deeplink, this.onFinish});
+  HandleBluetoothDeviceScanDeeplinkScreenPayload({
+    required this.deeplink,
+    this.onFinish,
+  });
 
   final String deeplink;
   final Function? onFinish;
 }
 
 class HandleBluetoothDeviceScanDeeplinkScreen extends StatefulWidget {
-  const HandleBluetoothDeviceScanDeeplinkScreen(
-      {Key? key, required this.payload})
-      : super(key: key);
+  const HandleBluetoothDeviceScanDeeplinkScreen({
+    required this.payload,
+    super.key,
+  });
+
   final HandleBluetoothDeviceScanDeeplinkScreenPayload payload;
 
   @override
@@ -60,8 +64,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     super.initState();
     _deeplink = widget.payload.deeplink;
     if (bloc.state.bluetoothAdapterState == BluetoothAdapterState.on) {
-      _handleBluetoothConnectDeeplink(context, _deeplink,
-          onFinish: widget.payload.onFinish);
+      _handleBluetoothConnectDeeplink(
+        context,
+        _deeplink,
+        onFinish: widget.payload.onFinish,
+      );
     }
   }
 
@@ -84,37 +91,41 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: getDarkEmptyAppBar(),
-        backgroundColor: AppColor.primaryBlack,
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: BlocConsumer<BluetoothConnectBloc, BluetoothConnectState>(
-            bloc: injector<BluetoothConnectBloc>(),
-            builder: (context, state) {
-              final isBluetoothEnabled =
-                  state.bluetoothAdapterState == BluetoothAdapterState.on;
-              if (!isBluetoothEnabled) {
-                return bluetoothNotAvailable(context);
-              }
+      appBar: getDarkEmptyAppBar(),
+      backgroundColor: AppColor.primaryBlack,
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: BlocConsumer<BluetoothConnectBloc, BluetoothConnectState>(
+          bloc: injector<BluetoothConnectBloc>(),
+          builder: (context, state) {
+            final isBluetoothEnabled =
+                state.bluetoothAdapterState == BluetoothAdapterState.on;
+            if (!isBluetoothEnabled) {
+              return bluetoothNotAvailable(context);
+            }
 
-              if (_isScanning) {
-                return scanning(context);
-              }
+            if (_isScanning) {
+              return scanning(context);
+            }
 
-              if (_resultDevice == null) {
-                return deviceNotFound(context);
-              }
+            if (_resultDevice == null) {
+              return deviceNotFound(context);
+            }
 
-              return Container();
-            },
-            listener: (context, state) {
-              if (state.bluetoothAdapterState == BluetoothAdapterState.on) {
-                _handleBluetoothConnectDeeplink(context, _deeplink,
-                    onFinish: widget.payload.onFinish);
-              }
-            },
-          ),
-        ));
+            return Container();
+          },
+          listener: (context, state) {
+            if (state.bluetoothAdapterState == BluetoothAdapterState.on) {
+              _handleBluetoothConnectDeeplink(
+                context,
+                _deeplink,
+                onFinish: widget.payload.onFinish,
+              );
+            }
+          },
+        ),
+      ),
+    );
   }
 
   Widget bluetoothNotAvailable(BuildContext context) {
@@ -171,8 +182,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           PrimaryButton(
             text: 'Try again',
             onTap: () {
-              _handleBluetoothConnectDeeplink(context, _deeplink,
-                  onFinish: widget.payload.onFinish);
+              _handleBluetoothConnectDeeplink(
+                context,
+                _deeplink,
+                onFinish: widget.payload.onFinish,
+              );
             },
           ),
         ],
@@ -181,8 +195,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
   }
 
   Future<void> _handleBluetoothConnectDeeplink(
-      BuildContext context, String link,
-      {Function? onFinish}) async {
+    BuildContext context,
+    String link, {
+    Function? onFinish,
+  }) async {
     final deviceName = getDeviceName(link);
     FFBluetoothDevice? resultDevice;
     if (_isScanning) {
@@ -192,7 +208,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       _isScanning = true;
     });
     await injector<FFBluetoothService>().startScan(
-      timeout: Duration(seconds: 10),
+      timeout: const Duration(seconds: 10),
       forceScan: true,
       onData: (results) {
         final devices = results.map((e) => e.device).toList();
@@ -225,20 +241,26 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       unawaited(injector<ConfigurationService>().setBetaTester(true));
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
       // go to setting wifi page
-      final shouldOpenDeviceSetting = await injector<NavigationService>()
-          .navigateTo(AppRouter.bluetoothDevicePortalPage,
-              arguments: resultDevice);
+      final shouldOpenDeviceSetting =
+          await injector<NavigationService>().navigateTo(
+        AppRouter.bluetoothDevicePortalPage,
+        arguments: resultDevice,
+      );
 
       // after setting wifi, go to device setting page
       if (shouldOpenDeviceSetting is bool && shouldOpenDeviceSetting) {
         await injector<NavigationService>().navigateTo(
-            AppRouter.bluetoothConnectedDeviceConfig,
-            arguments: BluetoothConnectedDeviceConfigPayload(
-                device: resultDevice!, isFromOnboarding: true));
+          AppRouter.bluetoothConnectedDeviceConfig,
+          arguments: BluetoothConnectedDeviceConfigPayload(
+            device: resultDevice!,
+            isFromOnboarding: true,
+          ),
+        );
 
         // add device to canvas
         await BluetoothDeviceHelper.addDevice(
-            resultDevice!.toFFBluetoothDevice());
+          resultDevice!.toFFBluetoothDevice(),
+        );
         injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       }
       try {
