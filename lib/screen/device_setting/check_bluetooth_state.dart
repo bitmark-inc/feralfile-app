@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -230,8 +231,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
 
       // after setting wifi, go to device setting page
       if (shouldOpenDeviceSetting is bool && shouldOpenDeviceSetting) {
-        await injector<NavigationService>()
-            .navigateTo(AppRouter.configureDevice, arguments: resultDevice);
+        await injector<NavigationService>().navigateTo(
+            AppRouter.bluetoothConnectedDeviceConfig,
+            arguments: BluetoothConnectedDeviceConfigPayload(
+                device: resultDevice!, isFromOnboarding: true));
 
         // add device to canvas
         await BluetoothDeviceHelper.addDevice(

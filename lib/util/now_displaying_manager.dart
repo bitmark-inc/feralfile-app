@@ -59,10 +59,13 @@ class NowDisplayingManager {
       if (device == null) {
         return;
       }
+
       CheckDeviceStatusReply? status;
       try {
         status = await _getStatus(device);
       } catch (e) {
+        log.info(
+            'NowDisplayingManager: updateDisplayingNow error: $e, retrying');
         await Future.delayed(Duration(seconds: 5));
         if (device.isConnected) {
           status = await _getStatus(device);
@@ -72,6 +75,7 @@ class NowDisplayingManager {
         if (device.isConnected) {
           throw Exception('Failed to get Now Displaying');
         } else {
+          log.info('[NowDisplayingManager] Device is not connected');
           return;
         }
       }
@@ -82,6 +86,7 @@ class NowDisplayingManager {
       nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
       addStatus(nowDisplayingStatus!);
     } catch (e) {
+      log.info('NowDisplayingManager: updateDisplayingNow error: $e');
       if (addStatusOnError) {
         addStatus(NowDisplayingError(e));
       }

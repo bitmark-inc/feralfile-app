@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -146,7 +147,8 @@ class _SettingsPageState extends State<SettingsPage>
                             .castingBluetoothDevice;
                         await Navigator.of(context).pushNamed(
                             AppRouter.bluetoothConnectedDeviceConfig,
-                            arguments: connectedDevice);
+                            arguments: BluetoothConnectedDeviceConfigPayload(
+                                device: connectedDevice!));
                       },
                     ),
                   addOnlyDivider(),

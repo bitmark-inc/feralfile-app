@@ -197,7 +197,7 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _sendData(
       _getBody(request),
-      timeout: const Duration(seconds: 10),
+      timeout: const Duration(seconds: 15),
       shouldShowError: false,
     );
     return GetBluetoothDeviceStatusReply.fromJson(result);

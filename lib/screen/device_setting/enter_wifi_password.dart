@@ -42,8 +42,16 @@ class SendWifiCredentialsPage extends StatefulWidget {
 }
 
 class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
-  final TextEditingController passwordController =
-      TextEditingController(text: kDebugMode ? r'btmrkrckt@)@$' : '');
+  late String _password;
+
+  late final TextEditingController passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _password = kDebugMode ? r'btmrkrckt@)@$' : '';
+    passwordController = TextEditingController(text: _password);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +94,11 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                           style: Theme.of(context).textTheme.ppMori400White14,
                           hintText: 'password'.tr(),
                           defaultObscure: false,
+                          onChanged: (value) {
+                            setState(() {
+                              _password = value;
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -97,6 +110,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                 left: 0,
                 right: 0,
                 child: PrimaryAsyncButton(
+                  enabled: _password.isNotEmpty,
                   onTap: () async {
                     final ssid = widget.payload.wifiAccessPoint.ssid;
                     final password = passwordController.text.trim();

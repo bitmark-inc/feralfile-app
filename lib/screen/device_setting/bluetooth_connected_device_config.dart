@@ -11,10 +11,12 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -22,15 +24,64 @@ import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class BluetoothConnectedDeviceConfig extends StatefulWidget {
-  const BluetoothConnectedDeviceConfig({required this.device, super.key});
+enum ScreenOrientation {
+  landscape,
+  landscapeReverse,
+  portrait,
+  portraitReverse;
+
+  String get name {
+    switch (this) {
+      case ScreenOrientation.landscape:
+        return 'landscape';
+      case ScreenOrientation.landscapeReverse:
+        return 'landscapeReverse';
+      case ScreenOrientation.portrait:
+        return 'portrait';
+      case ScreenOrientation.portraitReverse:
+        return 'portraitReverse';
+    }
+  }
+
+  static ScreenOrientation fromString(String value) {
+    switch (value) {
+      case 'landscape':
+      case 'normal':
+        return ScreenOrientation.landscape;
+      case 'landscapeReverse':
+      case 'inverted':
+        return ScreenOrientation.landscapeReverse;
+      case 'portrait':
+      case 'left':
+        return ScreenOrientation.portrait;
+      case 'portraitReverse':
+      case 'right':
+        return ScreenOrientation.portraitReverse;
+      default:
+        throw ArgumentError('Invalid screen orientation: $value');
+    }
+  }
+}
+
+class BluetoothConnectedDeviceConfigPayload {
+  BluetoothConnectedDeviceConfigPayload({
+    required this.device,
+    this.isFromOnboarding = false,
+  });
 
   final FFBluetoothDevice device;
+
+  final bool isFromOnboarding;
+}
+
+class BluetoothConnectedDeviceConfig extends StatefulWidget {
+  const BluetoothConnectedDeviceConfig({required this.payload, super.key});
+
+  final BluetoothConnectedDeviceConfigPayload payload;
 
   @override
   State<BluetoothConnectedDeviceConfig> createState() =>
@@ -46,6 +97,9 @@ class BluetoothConnectedDeviceConfigState
   BluetoothDeviceStatus? status;
   Timer? _connectionStatusTimer;
   bool _isBLEDeviceConnected = false;
+
+  Timer? _pullingDeviceInfoTimer;
+  NotificationCallback? cb;
 
   // Add performance metrics tracking
   final List<FlSpot> _cpuPoints = [];
@@ -65,15 +119,17 @@ class BluetoothConnectedDeviceConfigState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    final device = widget.payload.device;
+
     status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
     injector<FFBluetoothService>()
         .bluetoothDeviceStatus
-        .addListener(_statusListener);
+        .addListener(_bluetoothDeviceStatusListener);
 
-    injector<FFBluetoothService>().fetchBluetoothDeviceStatus(widget.device);
+    injector<FFBluetoothService>().fetchBluetoothDeviceStatus(device);
 
     // Start polling connection status
-    _startConnectionStatusPolling();
+    _startBluetoothConnectionStatusPolling();
 
     // Enable metrics streaming when the screen opens
     _enableMetricsStreaming();
@@ -82,18 +138,18 @@ class BluetoothConnectedDeviceConfigState
     _startPerformanceMetricsUpdates();
   }
 
-  void _startConnectionStatusPolling() {
+  void _startBluetoothConnectionStatusPolling() {
     // Check initial connection status
-    _updateConnectionStatus();
+    _updateBluetoothConnectionStatus();
 
     // Set up timer to poll every second
     _connectionStatusTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateConnectionStatus();
+      _updateBluetoothConnectionStatus();
     });
   }
 
-  void _updateConnectionStatus() {
-    final ffDevice = widget.device;
+  void _updateBluetoothConnectionStatus() {
+    final ffDevice = widget.payload.device;
     final isConnected = ffDevice.isConnected;
 
     if (_isBLEDeviceConnected != isConnected) {
@@ -101,16 +157,57 @@ class BluetoothConnectedDeviceConfigState
         _isBLEDeviceConnected = isConnected;
       });
     }
+    if (isConnected) {
+      _pullingDeviceInfo();
+    } else {
+      _cancelPullingDeviceInfo();
+    }
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {}
+  void afterFirstLayout(BuildContext context) {
+    _pullingDeviceInfo();
+    _listenForCanvasCastRequestReply();
+  }
 
-  void _statusListener() {
-    final status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
-    setState(() {
-      this.status = status;
+  void _listenForCanvasCastRequestReply() {
+    cb = (data) async {
+      log.info(' Received data: $data');
+      _pullingDeviceInfo();
+    };
+    BluetoothNotificationService().subscribe(wifiConnectionTopic, cb!);
+  }
+
+  void _pullingDeviceInfo() {
+    final device = widget.payload.device;
+    if (!device.isConnected) {
+      log.info(
+        '[BluetoothConnectedDeviceConfig] _pullingDeviceInfo: Device is not connected',
+      );
+      return;
+    }
+    _pullingDeviceInfoTimer?.cancel();
+    _pullingDeviceInfoTimer =
+        Timer.periodic(const Duration(seconds: 2), (timer) async {
+      final deviceStatus = await injector<FFBluetoothService>()
+          .fetchBluetoothDeviceStatus(device);
+      if (deviceStatus?.isConnectedToWifi == true) {
+        timer.cancel();
+      }
     });
+  }
+
+  void _cancelPullingDeviceInfo() {
+    _pullingDeviceInfoTimer?.cancel();
+  }
+
+  void _bluetoothDeviceStatusListener() {
+    final status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+    if (mounted) {
+      setState(() {
+        this.status = status;
+      });
+    }
   }
 
   @override
@@ -126,12 +223,17 @@ class BluetoothConnectedDeviceConfigState
     _metricsStreamSubscription?.cancel();
     injector<FFBluetoothService>()
         .bluetoothDeviceStatus
-        .removeListener(_statusListener);
+        .removeListener(_bluetoothDeviceStatusListener);
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
 
     // Disable metrics streaming when leaving the screen
     _disableMetricsStreaming();
+
+    if (cb != null) {
+      BluetoothNotificationService().unsubscribe(wifiConnectionTopic, cb!);
+    }
+    _cancelPullingDeviceInfo();
 
     super.dispose();
   }
@@ -150,6 +252,9 @@ class BluetoothConnectedDeviceConfigState
     super.didPopNext();
     // Re-enable metrics streaming when returning to this screen
     _enableMetricsStreaming();
+
+    injector<FFBluetoothService>()
+        .fetchBluetoothDeviceStatus(widget.payload.device);
   }
 
   @override
@@ -169,12 +274,29 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _body(BuildContext context) {
-    return _deviceConfig(context);
+    return Stack(
+      children: [
+        _deviceConfig(context),
+        if (widget.payload.isFromOnboarding)
+          Positioned(
+            bottom: 15,
+            left: 0,
+            right: 0,
+            child: PrimaryAsyncButton(
+              onTap: () async {
+                Navigator.of(context).pop();
+                unawaited(NowDisplayingManager().updateDisplayingNow());
+              },
+              enabled: status?.isConnectedToWifi ?? false,
+              text: 'finish'.tr(),
+              color: AppColor.white,
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _deviceConfig(BuildContext context) {
-    final theme = Theme.of(context);
-    final device = widget.device;
     return Padding(
       padding: EdgeInsets.zero,
       child: CustomScrollView(
@@ -184,16 +306,30 @@ class BluetoothConnectedDeviceConfigState
               height: MediaQuery.paddingOf(context).top + 32,
             ),
           ),
-          if (kDebugMode)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: Text(
-                  'Device: ${device.name} - ${device.remoteId.str}',
-                  style: theme.textTheme.ppMori400White14,
-                ),
+          if (widget.payload.isFromOnboarding &&
+              !(status?.isConnectedToWifi ?? false)) ...[
+            const SliverToBoxAdapter(
+              child: SizedBox(
+                height: 20,
               ),
             ),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Waiting for Portal to connect to the internet',
+                    style: Theme.of(context).textTheme.ppMori400White14,
+                  ),
+                ],
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(
+                height: 20,
+              ),
+            ),
+          ],
           SliverToBoxAdapter(
             child: Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -336,7 +472,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _displayOrientation(BuildContext context) {
-    final blDevice = widget.device;
+    final blDevice = widget.payload.device;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -350,6 +486,9 @@ class BluetoothConnectedDeviceConfigState
         PrimaryAsyncButton(
           text: 'rotate'.tr(),
           color: AppColor.white,
+          enabled: _isBLEDeviceConnected &&
+              (!widget.payload.isFromOnboarding ||
+                  status?.isConnectedToWifi == true),
           onTap: () async {
             await injector<CanvasClientServiceV2>().rotateCanvas(blDevice);
             // update orientation
@@ -360,7 +499,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _canvasSetting(BuildContext context) {
-    final blDevice = widget.device;
+    final blDevice = widget.payload.device;
     final defaultArtFramingIndex =
         (status?.artFraming == ArtFraming.cropToFill) ? 1 : 0;
     return Column(
@@ -373,7 +512,7 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 30),
         SelectDeviceConfigView(
           selectedIndex: defaultArtFramingIndex,
-          isEnable: _isBLEDeviceConnected,
+          isEnable: _isBLEDeviceConnected && status?.isConnectedToWifi == true,
           items: [
             DeviceConfigItem(
               title: 'fit'.tr(),
@@ -423,7 +562,7 @@ class BluetoothConnectedDeviceConfigState
             injector<NavigationService>().navigateTo(
               AppRouter.scanWifiNetworkPage,
               arguments: ScanWifiNetworkPagePayload(
-                widget.device,
+                widget.payload.device,
                 onWifiSelected,
               ),
             );
@@ -434,7 +573,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
-    final blDevice = widget.device;
+    final blDevice = widget.payload.device;
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
@@ -455,8 +594,8 @@ class BluetoothConnectedDeviceConfigState
     final isUpToDate =
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
-    final deviceId = widget.device.name;
-    final ipAddress = status?.ipAddress ?? 'Not connected to WiFi';
+    final deviceId = widget.payload.device.name;
+    final ipAddress = status?.ipAddress;
     final connectedWifi = status?.connectedWifi;
 
     return Column(
@@ -505,7 +644,7 @@ class BluetoothConnectedDeviceConfigState
                   else
                     InkWell(
                       onTap: () async {
-                        final device = widget.device;
+                        final device = widget.payload.device;
                         await injector<FFBluetoothService>()
                             .connectToDevice(device);
                       },
@@ -601,8 +740,34 @@ class BluetoothConnectedDeviceConfigState
                 ),
               ],
 
+              if (status != null)
+                if (!status!.isConnectedToWifi) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'WiFi Network:',
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Not connected',
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ] else // Connected WiFi
+                if (connectedWifi != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'WiFi Network:',
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    connectedWifi,
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ],
+
               // IP Address
-              ...[
+              if (ipAddress != null && ipAddress.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
                   'IP Address:',
@@ -641,20 +806,6 @@ class BluetoothConnectedDeviceConfigState
                   ],
                 ),
               ],
-
-              // Connected WiFi
-              if (connectedWifi != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Device WiFi Network:',
-                  style: theme.textTheme.ppMori400Grey14,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  connectedWifi,
-                  style: theme.textTheme.ppMori400White14,
-                ),
-              ],
             ],
           ),
         ),
@@ -666,7 +817,7 @@ class BluetoothConnectedDeviceConfigState
             text: 'Update to latest version v.$latestVersion',
             color: AppColor.white,
             onTap: () async {
-              final device = widget.device;
+              final device = widget.payload.device;
               await injector<CanvasClientServiceV2>()
                   .updateToLatestVersion(device);
             },
@@ -680,7 +831,7 @@ class BluetoothConnectedDeviceConfigState
   // Enable metrics streaming from the device
   Future<void> _enableMetricsStreaming() async {
     try {
-      final device = widget.device;
+      final device = widget.payload.device;
       log.info('Enabling metrics streaming for device: ${device.name}');
       await injector<CanvasClientServiceV2>().enableMetricsStreaming(device);
 
@@ -701,7 +852,7 @@ class BluetoothConnectedDeviceConfigState
       _metricsStreamSubscription?.cancel();
       _metricsStreamSubscription = null;
 
-      final device = widget.device;
+      final device = widget.payload.device;
       log.info('Disabling metrics streaming for device: ${device.name}');
       await injector<CanvasClientServiceV2>().disableMetricsStreaming(device);
     } catch (e) {
@@ -838,7 +989,6 @@ class BluetoothConnectedDeviceConfigState
                   ),
                 ),
                 lineTouchData: LineTouchData(
-                  enabled: true,
                   touchCallback:
                       (FlTouchEvent event, LineTouchResponse? touchResponse) {
                     if (event is FlTapDownEvent) {
@@ -1043,7 +1193,6 @@ class BluetoothConnectedDeviceConfigState
                   topTitles: const AxisTitles(),
                 ),
                 lineTouchData: LineTouchData(
-                  enabled: true,
                   touchCallback:
                       (FlTouchEvent event, LineTouchResponse? touchResponse) {
                     if (event is FlTapDownEvent) {

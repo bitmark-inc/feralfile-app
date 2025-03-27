@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 
 class BluetoothDeviceStatus {
   final String version;
