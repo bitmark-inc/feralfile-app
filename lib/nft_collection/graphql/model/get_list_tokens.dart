@@ -28,8 +28,7 @@ class QueryListTokensRequest {
     this.lastUpdatedAt,
     this.offset = 0,
     this.size = indexerTokensPageSize,
-    this.burnedIncluded = false,
-  });
+  }) : burnedIncluded = ids.any((id) => id.startsWith('bmk'));
 
   final List<String> owners;
   final List<String> ids;
