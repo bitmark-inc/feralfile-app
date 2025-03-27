@@ -743,14 +743,6 @@ class AppRouter {
           ),
         );
 
-      // case configureDevice:
-      //   final device = settings.arguments! as FFBluetoothDevice;
-      //   return CupertinoPageRoute(
-      //     settings: settings,
-      //     builder: (context) => ConfigureDevice(
-      //       device: device,
-      //     ),
-      //   );
       case nowDisplayingPage:
         return PageTransition(
           type: PageTransitionType.fade,
