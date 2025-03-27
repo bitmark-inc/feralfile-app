@@ -111,6 +111,10 @@ class _NowDisplayingState extends State<NowDisplaying> {
     nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
       (status) {
+        if (nowDisplayingStatus is NowDisplayingSuccess &&
+            status is ConnectSuccess) {
+          return;
+        }
         if (mounted) {
           setState(
             () {

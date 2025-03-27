@@ -307,6 +307,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final newState = state.copyWith(controllingDeviceStatus: newStatus);
       emit(newState);
       unawaited(NowDisplayingManager().updateDisplayingNow());
+      await injector<FFBluetoothService>()
+          .fetchBluetoothDeviceStatus(event.device);
     });
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
