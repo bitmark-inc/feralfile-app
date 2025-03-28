@@ -29,6 +29,8 @@ final listRouteShouldnotShowNowDisplaying = [
   AppRouter.configureDevice,
   AppRouter.sendWifiCredentialPage,
   AppRouter.scanWifiNetworkPage,
+  AppRouter.viewExistingAddressPage,
+  AppRouter.nameLinkedAccountPage,
 ];
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
