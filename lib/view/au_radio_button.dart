@@ -29,13 +29,13 @@ class AuRadio<T> extends StatelessWidget {
         },
         child: (value == groupValue)
             ? SvgPicture.asset(
-                'assets/images/radio_true.svg',
+                'assets/images/radio_selected.svg',
                 colorFilter: color != null
                     ? ColorFilter.mode(color!, BlendMode.srcIn)
                     : null,
               )
             : SvgPicture.asset(
-                'assets/images/radio_false.svg',
+                'assets/images/radio_unselected.svg',
                 colorFilter: color != null
                     ? ColorFilter.mode(color!, BlendMode.srcIn)
                     : null,
