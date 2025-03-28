@@ -204,7 +204,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     // download user data
     await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(_registerPushNotifications());
-    unawaited(injector<DeeplinkService>().setup());
+    startHandleDeeplinkCompleter.complete();
     log.info('[_fetchRuntimeCache] end');
     unawaited(metricClient.identity());
     // count open app

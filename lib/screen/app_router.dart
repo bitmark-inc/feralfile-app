@@ -83,6 +83,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -163,6 +164,7 @@ class AppRouter {
       'handle_bluetooth_device_scan_deeplink_screen';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    log.info('[onGenerateRoute] Route: ${settings.name}');
     final accountsBloc = injector<AccountsBloc>();
     final walletDetailBloc = injector<WalletDetailBloc>();
 

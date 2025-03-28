@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -122,6 +123,10 @@ void main() async {
 
 Future<void> runFeralFileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  log.info(
+      "Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}");
+
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
 
@@ -212,6 +217,7 @@ Future<void> _setupApp() async {
   await setupInjector();
   unawaited(_setupWorkManager());
   unawaited(_connectToBluetoothDevice());
+  unawaited(injector<DeeplinkService>().setup());
   runApp(
     SDTFScope(
       child: EasyLocalization(

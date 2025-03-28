@@ -38,6 +38,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+Completer<void> startHandleDeeplinkCompleter = Completer<void>();
+
 abstract class DeeplinkService {
   Future<void> setup();
 
@@ -105,6 +107,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         log.info('[DeeplinkService] deeplink $link is handling');
         return;
       }
+      await startHandleDeeplinkCompleter.future;
+
       _deepLinkHandlingMap[link] = true;
       final handlerType = DeepLinkHandlerType.fromString(link);
 
