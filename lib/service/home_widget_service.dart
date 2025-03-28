@@ -27,6 +27,10 @@ class HomeWidgetService {
 
   Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
+
+    // Please note that you should call this
+    // after you have setup the AppGroupId for iOS
+    await HomeWidget.registerInteractivityCallback(interactiveCallback);
   }
 
   Future<bool> isWidgetAdded() async {
@@ -185,4 +189,10 @@ class HomeWidgetService {
 
     return null;
   }
+}
+
+@pragma('vm:entry-point')
+Future<void> interactiveCallback(Uri? uri) async {
+  // We check the host of the uri to determine which action should be triggered.
+  log.info('[Daily Widget] interactiveCallback: $uri');
 }

@@ -1,19 +1,18 @@
 package com.bitmark.autonomy_flutter
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.widget.RemoteViews
 import com.bitmark.autonomywallet.MainActivity
-import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,11 +44,22 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetId: Int
     ) {
         // Ensure PendingIntent is always recreated
-        val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
+//        val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
+//            context,
+//            MainActivity::class.java,
+//            Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
+//        )
+
+        val clickIntent = Intent(context, WidgetClickReceiver::class.java).apply {
+            action = "app.feralfile.WIDGET_CLICK"
+        }
+        val openAppPendingIntent = PendingIntent.getBroadcast(
             context,
-            MainActivity::class.java,
-            Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
+            0,
+            clickIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
 
         // Set up the layout for the widget
         val views = RemoteViews(context.packageName, R.layout.feralfile_daily)

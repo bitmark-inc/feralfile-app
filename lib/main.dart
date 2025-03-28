@@ -130,7 +130,7 @@ Future<void> runFeralFileApp() async {
   await FlutterDownloader.initialize();
   await Hive.initFlutter();
   _registerHiveAdapter();
-  ObjectBox.create();
+  await ObjectBox.create();
 
   FlutterDownloader.registerCallback(downloadCallback);
   try {

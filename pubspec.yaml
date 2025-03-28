@@ -94,7 +94,6 @@ dependencies:
   markdown: ^7.1.1
   easy_localization: ^3.0.1
   in_app_review: ^2.0.4
-  flutter_branch_sdk: ^8.2.0
   flutter_rating_bar: ^4.0.1
   auto_size_text: ^3.0.0
   uri: ^1.0.0

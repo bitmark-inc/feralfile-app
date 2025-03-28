@@ -126,13 +126,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         case DeepLinkHandlerType.homeWidget:
           await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.bluetoothConnect:
-          await _handleBluetoothConnectDeeplink(link,
-              onFinish: onFinishDeeplink);
+          await _handleBluetoothConnectDeeplink(link);
         case DeepLinkHandlerType.unknown:
           unawaited(_navigationService.showUnknownLink());
       }
-      if (handlerType != DeepLinkHandlerType.branch &&
-          handlerType != DeepLinkHandlerType.bluetoothConnect) {
+      if (handlerType != DeepLinkHandlerType.branch) {
         await onFinishDeeplink.call();
       }
       // this function is called in onFinishDeeplink, so we don't need to call it here
@@ -205,7 +203,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
       arguments: HandleBluetoothDeviceScanDeeplinkScreenPayload(
         deeplink: link,
-        onFinish: onFinish,
+        onFinish: () {},
       ),
     );
   }
