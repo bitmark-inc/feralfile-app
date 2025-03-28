@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -1341,9 +1342,12 @@ class UIHelper {
 
   static Future<void> showDrawerAction(
     BuildContext context, {
+    String? title,
     required List<OptionItem> options,
   }) async {
+    final theme = Theme.of(context);
     final bottomSheetKey = GlobalKey();
+
     await showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1373,21 +1377,30 @@ class UIHelper {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                  minWidth: 44,
-                  minHeight: 44,
-                ),
-                icon: const Icon(
-                  AuIcon.close,
-                  size: 18,
-                  color: AppColor.white,
-                ),
+            Padding(
+              padding: const EdgeInsets.only(left: 13),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title ?? '',
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    constraints: const BoxConstraints(
+                      maxWidth: 44,
+                      maxHeight: 44,
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
+                    icon: const Icon(
+                      AuIcon.close,
+                      size: 18,
+                      color: AppColor.white,
+                    ),
+                  ),
+                ],
               ),
             ),
             ListView.separated(
