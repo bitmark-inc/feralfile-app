@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
@@ -855,7 +856,7 @@ class NavigationService {
     _browser.openUrl(googleChatSpaceUrl);
   }
 
-  void showDeviceSettings(BuildContext context) {
+  Future<void> showDeviceSettings(BuildContext context) async {
     final options = [
       OptionItem(
         title: 'Rotate',
@@ -894,10 +895,16 @@ class NavigationService {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
         navigatorKey.currentContext != null) {
+      if (CustomRouteObserver.bottomSheetVisibility.value) {
+        Navigator.pop(navigatorKey.currentContext!);
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      }
+
       unawaited(
         UIHelper.showDrawerAction(
           navigatorKey.currentContext!,
           options: options,
+          title: 'device_settings'.tr(),
         ),
       );
     }
