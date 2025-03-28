@@ -153,12 +153,10 @@ class HomeWidgetService {
       }
 
       String? base64MediumIcon;
-      if (['video', 'software'].contains(medium)) {
-        final data =
-            await rootBundle.load('assets/images/widget_medium_icon.png');
-        final List<int> bytes = data.buffer.asUint8List();
-        base64MediumIcon = base64Encode(bytes);
-      }
+      final iconData =
+          await rootBundle.load('assets/images/widget_medium_icon.png');
+      final List<int> bytes = iconData.buffer.asUint8List();
+      base64MediumIcon = base64Encode(bytes);
 
       final dateKey = DateFormat('yyyy-MM-dd').format(dailyToken.displayTime);
 
