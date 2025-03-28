@@ -33,9 +33,9 @@ final listRouteShouldnotShowNowDisplaying = [
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
   static Route<dynamic>? currentRoute;
 
-  static bool _onIgnoreBackLayerPopUp = false;
+  static final bottomSheetVisibility = ValueNotifier<bool>(false);
 
-  static bool get onIgnoreBackLayerPopUp => _onIgnoreBackLayerPopUp;
+  static bool get onIgnoreBackLayerPopUp => bottomSheetVisibility.value;
 
   Timer? _timer;
 
@@ -66,9 +66,11 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    log.info('didPush: ${route.settings.name}');
+
     /// this must be put before super.didPush
     if (route.settings.name == UIHelper.ignoreBackLayerPopUpRouteName) {
-      _onIgnoreBackLayerPopUp = true;
+      bottomSheetVisibility.value = true;
     }
     super.didPush(route, previousRoute);
 
@@ -78,13 +80,14 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    log.info('didPop: ${route.settings.name}');
     super.didPop(route, previousRoute);
     currentRoute = previousRoute;
     onCurrentRouteChanged();
 
     /// this must be put after super.didPop
     if (route.settings.name == UIHelper.ignoreBackLayerPopUpRouteName) {
-      _onIgnoreBackLayerPopUp = false;
+      bottomSheetVisibility.value = false;
     }
   }
 
