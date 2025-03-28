@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
@@ -52,6 +53,8 @@ class FeralfileDaily : AppWidgetProvider() {
 
         val clickIntent = Intent(context, WidgetClickReceiver::class.java).apply {
             action = "app.feralfile.WIDGET_CLICK"
+            data =
+                Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
         }
         val openAppPendingIntent = PendingIntent.getBroadcast(
             context,

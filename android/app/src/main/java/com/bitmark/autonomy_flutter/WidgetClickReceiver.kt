@@ -10,6 +10,7 @@ class WidgetClickReceiver : BroadcastReceiver() {
         if (intent?.action == "app.feralfile.WIDGET_CLICK") {
             val launchIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                data = intent.data
             }
             context?.startActivity(launchIntent)
         }
