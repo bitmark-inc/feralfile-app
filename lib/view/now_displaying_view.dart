@@ -501,6 +501,18 @@ class NowDisplayingView extends StatelessWidget {
               ],
             ),
           ),
+          IconButton(
+            onPressed: () =>
+                injector<NavigationService>().showDeviceSettings(context),
+            icon: SvgPicture.asset(
+              'assets/images/more_circle.svg',
+              width: 22,
+              colorFilter: const ColorFilter.mode(
+                AppColor.primaryBlack,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
         ],
       ),
     );

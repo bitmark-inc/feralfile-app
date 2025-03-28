@@ -83,6 +83,7 @@ class UIHelper {
     log.info('[UIHelper] showDialog: $title');
     currentDialogTitle = title;
     final theme = Theme.of(context);
+    final bottomSheetKey = GlobalKey();
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -107,8 +108,20 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
       builder: (context) => Container(
+        key: bottomSheetKey,
         color: Colors.transparent,
         child: ClipPath(
           clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
@@ -519,7 +532,7 @@ class UIHelper {
     FeedbackType? feedback = FeedbackType.selection,
   }) async {
     final theme = Theme.of(context);
-
+    final bottomSheetKey = GlobalKey();
     if (autoDismissAfter > 0) {
       Future.delayed(
         Duration(seconds: autoDismissAfter),
@@ -543,7 +556,18 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
       builder: (context) => ClipPath(
         clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
         child: Container(
@@ -1319,6 +1343,7 @@ class UIHelper {
     BuildContext context, {
     required List<OptionItem> options,
   }) async {
+    final bottomSheetKey = GlobalKey();
     await showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1330,8 +1355,20 @@ class UIHelper {
       ),
       barrierColor: Colors.black.withOpacity(0.5),
       isScrollControlled: true,
-      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
-      builder: (context) => Container(
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
+      builder: (context) => ColoredBox(
+        key: bottomSheetKey,
         color: AppColor.auGreyBackground,
         child: Column(
           mainAxisSize: MainAxisSize.min,

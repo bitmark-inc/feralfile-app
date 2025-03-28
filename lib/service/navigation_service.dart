@@ -41,6 +41,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
@@ -852,5 +853,53 @@ class NavigationService {
 
   void openGoogleChatSpace() {
     _browser.openUrl(googleChatSpaceUrl);
+  }
+
+  void showDeviceSettings(BuildContext context) {
+    final options = [
+      OptionItem(
+        title: 'Rotate',
+        icon: SvgPicture.asset(
+          'assets/images/icon_rotate_white.svg',
+        ),
+        onTap: () {
+          // Handle rotate
+        },
+      ),
+      OptionItem(
+        title: 'Fit',
+        icon: SvgPicture.asset(
+          'assets/images/radio_selected.svg',
+        ),
+        onTap: () {
+          // Handle fit
+        },
+      ),
+      OptionItem(
+        title: 'Fill',
+        icon: SvgPicture.asset(
+          'assets/images/radio_unselected.svg',
+        ),
+        onTap: () {
+          // Handle fill
+        },
+      ),
+      OptionItem(
+        title: 'Configure Device',
+        onTap: () {
+          // Handle configure device
+        },
+      ),
+    ];
+    if (navigatorKey.currentState != null &&
+        navigatorKey.currentState!.mounted == true &&
+        navigatorKey.currentContext != null) {
+      unawaited(
+        UIHelper.showDrawerAction(
+          navigatorKey.currentContext!,
+          options: options,
+        ),
+      );
+    }
   }
 }

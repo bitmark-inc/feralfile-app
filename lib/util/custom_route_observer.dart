@@ -34,6 +34,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
   static Route<dynamic>? currentRoute;
 
   static final bottomSheetVisibility = ValueNotifier<bool>(false);
+  static final bottomSheetHeight = ValueNotifier<double>(0);
 
   static bool get onIgnoreBackLayerPopUp => bottomSheetVisibility.value;
 
@@ -66,11 +67,18 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    log.info('didPush: ${route.settings.name}');
-
     /// this must be put before super.didPush
-    if (route.settings.name == UIHelper.ignoreBackLayerPopUpRouteName) {
-      bottomSheetVisibility.value = true;
+    if (route is ModalBottomSheetRoute) {
+      final key = (route.settings.arguments as Map<String, dynamic>?)?['key']
+          as GlobalKey?;
+      if (key != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final box = key.currentContext!.findRenderObject() as RenderBox?;
+          if (box != null) {
+            bottomSheetHeight.value = box.size.height;
+          }
+        });
+      }
     }
     super.didPush(route, previousRoute);
 
@@ -80,14 +88,14 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    log.info('didPop: ${route.settings.name}');
     super.didPop(route, previousRoute);
     currentRoute = previousRoute;
     onCurrentRouteChanged();
 
     /// this must be put after super.didPop
-    if (route.settings.name == UIHelper.ignoreBackLayerPopUpRouteName) {
+    if (route is ModalBottomSheetRoute) {
       bottomSheetVisibility.value = false;
+      bottomSheetHeight.value = 0;
     }
   }
 
