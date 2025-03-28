@@ -69,18 +69,18 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    /// this must be put before super.didPush
     if (route is ModalBottomSheetRoute) {
       final key = (route.settings.arguments as Map<String, dynamic>?)?['key']
           as GlobalKey?;
       if (key != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          final box = key.currentContext!.findRenderObject() as RenderBox?;
+          final box = key.currentContext?.findRenderObject() as RenderBox?;
           if (box != null) {
             bottomSheetHeight.value = box.size.height;
           }
         });
       }
+      bottomSheetVisibility.value = true;
     }
     super.didPush(route, previousRoute);
 
