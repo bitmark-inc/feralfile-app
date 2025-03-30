@@ -2,7 +2,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -11,6 +10,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/display_settings_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -339,6 +339,7 @@ class TokenNowDisplayingView extends StatelessWidget {
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
         return NowDisplayingView(
+          tokenID: assetToken.id,
           thumbnailBuilder: (context) {
             return AspectRatio(
               aspectRatio: 1,
@@ -407,9 +408,12 @@ class NowDisplayingExhibitionView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final exhibition = exhibitionDisplaying.exhibition;
-    final artwork = exhibitionDisplaying.artwork;
+    final artwork = exhibitionDisplaying.artwork?.copyWith(
+        series: exhibitionDisplaying.artwork?.series
+            ?.copyWith(exhibition: exhibition));
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     return NowDisplayingView(
+      tokenID: artwork?.indexerTokenId ?? '',
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
@@ -461,11 +465,24 @@ class NowDisplayingView extends StatelessWidget {
   const NowDisplayingView({
     required this.thumbnailBuilder,
     required this.titleBuilder,
+    required this.tokenID,
     super.key,
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final String tokenID;
+
+  void openDeviceSettings(BuildContext context) {
+    final displaySetting = injector<DisplaySettingsService>().getDisplaySettings(
+      tokenID,
+    );
+
+    injector<NavigationService>().showDeviceSettings(
+      context,
+      displaySetting,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -502,18 +519,18 @@ class NowDisplayingView extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () => injector<NavigationService>()
-                .showDeviceSettings(context, DisplaySettings.defaultSettings),
-            icon: SvgPicture.asset(
-              'assets/images/more_circle.svg',
-              width: 22,
-              colorFilter: const ColorFilter.mode(
-                AppColor.primaryBlack,
-                BlendMode.srcIn,
+          if (tokenID.isNotEmpty)
+            IconButton(
+              onPressed: () => openDeviceSettings(context),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
