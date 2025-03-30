@@ -4,10 +4,9 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-final listRouteShouldnotShowNowDisplaying = [
+final listRouteShouldNotShowNowDisplaying = [
   AppRouter.scanQRPage,
   AppRouter.settingsPage,
   AppRouter.subscriptionPage,
@@ -49,7 +48,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
           routeName == UIHelper.ignoreBackLayerPopUpRouteName) {
         return;
       }
-      if (listRouteShouldnotShowNowDisplaying.contains(routeName)) {
+      if (listRouteShouldNotShowNowDisplaying.contains(routeName)) {
         _timer?.cancel();
         _timer = Timer.periodic(Duration(milliseconds: 50), (_) {
           _timer?.cancel();
