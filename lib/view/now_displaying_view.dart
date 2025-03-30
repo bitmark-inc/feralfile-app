@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -502,8 +503,8 @@ class NowDisplayingView extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () =>
-                injector<NavigationService>().showDeviceSettings(context),
+            onPressed: () => injector<NavigationService>()
+                .showDeviceSettings(context, DisplaySettings.defaultSettings),
             icon: SvgPicture.asset(
               'assets/images/more_circle.svg',
               width: 22,

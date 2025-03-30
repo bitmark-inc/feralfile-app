@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -34,6 +35,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/how_to_install_daily_widget_build.dart';
+import 'package:autonomy_flutter/view/now_display_setting.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -856,42 +858,10 @@ class NavigationService {
     _browser.openUrl(googleChatSpaceUrl);
   }
 
-  Future<void> showDeviceSettings(BuildContext context) async {
-    final options = [
-      OptionItem(
-        title: 'Rotate',
-        icon: SvgPicture.asset(
-          'assets/images/icon_rotate_white.svg',
-        ),
-        onTap: () {
-          // Handle rotate
-        },
-      ),
-      OptionItem(
-        title: 'Fit',
-        icon: SvgPicture.asset(
-          'assets/images/radio_selected.svg',
-        ),
-        onTap: () {
-          // Handle fit
-        },
-      ),
-      OptionItem(
-        title: 'Fill',
-        icon: SvgPicture.asset(
-          'assets/images/radio_unselected.svg',
-        ),
-        onTap: () {
-          // Handle fill
-        },
-      ),
-      OptionItem(
-        title: 'Configure Device',
-        onTap: () {
-          // Handle configure device
-        },
-      ),
-    ];
+  Future<void> showDeviceSettings(
+    BuildContext context,
+    DisplaySettings settings,
+  ) async {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -901,9 +871,9 @@ class NavigationService {
       }
 
       unawaited(
-        UIHelper.showDrawerAction(
+        UIHelper.showRawDialog(
           navigatorKey.currentContext!,
-          options: options,
+          NowDisplaySettingView(settings: settings),
           title: 'device_settings'.tr(),
         ),
       );

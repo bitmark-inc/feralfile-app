@@ -411,12 +411,15 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = true,
+    bool closeable = true,
     bool isRoundCorner = true,
+    String? title,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
   }) async {
     final theme = Theme.of(context);
+    final bottomSheetKey = GlobalKey();
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -429,7 +432,7 @@ class UIHelper {
       Vibrate.feedback(feedback);
     }
 
-    return await showModalBottomSheet<dynamic>(
+    return showModalBottomSheet<dynamic>(
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,
@@ -441,7 +444,20 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
+      builder: (context) => ColoredBox(
+        key: bottomSheetKey,
         color: Colors.transparent,
         child: ClipPath(
           clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
@@ -454,12 +470,39 @@ class UIHelper {
                     )
                   : null,
             ),
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 32),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (closeable) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 13),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            title ?? '',
+                            style: theme.textTheme.ppMori700White14,
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            constraints: const BoxConstraints(
+                              maxWidth: 44,
+                              maxHeight: 44,
+                              minWidth: 44,
+                              minHeight: 44,
+                            ),
+                            icon: const Icon(
+                              AuIcon.close,
+                              size: 18,
+                              color: AppColor.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   content,
                 ],
               ),
@@ -1384,7 +1427,7 @@ class UIHelper {
                 children: [
                   Text(
                     title ?? '',
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori700White14,
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
