@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
-// import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/display_settings_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -54,13 +54,13 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
         }
 
         try {
-          // await injector<CanvasClientServiceV2>().updateDisplaySettings(
-          //   connectedDevice!,
-          //   DisplaySettings(
-          //     tokenId: widget.settings.tokenId,
-          //     viewMode: mode,
-          //   ),
-          // );
+          await injector<CanvasClientServiceV2>().updateDisplaySettings(
+            connectedDevice!,
+            DisplaySettings(
+              tokenId: widget.settings.tokenId,
+              viewMode: mode,
+            ),
+          );
 
           await injector<DisplaySettingsService>().updateDisplaySetting(
             widget.settings.copyWith(viewMode: mode),
@@ -94,19 +94,18 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
           }
 
           try {
-            // await injector<CanvasClientServiceV2>().updateDisplaySettings(
-            //   connectedDevice!,
-            //   DisplaySettings(
-            //     tokenId: widget.settings.tokenId,
-            //     rotationAngle: (widget.settings.rotationAngle ?? 0) + 90,
-            //   ),
-            // );
-
-            await injector<DisplaySettingsService>().updateDisplaySetting(
-              widget.settings.copyWith(
+            await injector<CanvasClientServiceV2>().updateDisplaySettings(
+              connectedDevice!,
+              DisplaySettings(
+                tokenId: widget.settings.tokenId,
                 rotationAngle: (widget.settings.rotationAngle ?? 0) + 90,
               ),
             );
+
+            await injector<DisplaySettingsService>()
+                .updateDisplaySetting(widget.settings.copyWith(
+              rotationAngle: (widget.settings.rotationAngle ?? 0) + 90,
+            ));
           } catch (e) {
             log.warning('NowDisplaySetting: updateDisplaySettings error: $e');
           }
@@ -138,9 +137,6 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
               ),
             ),
           );
-        },
-        onTap: () {
-          // Handle configure device
         },
       ),
     ];
