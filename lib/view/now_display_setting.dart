@@ -24,12 +24,14 @@ class NowDisplaySettingView extends StatefulWidget {
 
 class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming viewMode;
+  late int rotationAngle;
   late FFBluetoothDevice? connectedDevice;
 
   @override
   void initState() {
     super.initState();
     viewMode = widget.settings.viewMode ?? ArtFraming.fitToScreen;
+    rotationAngle = widget.settings.rotationAngle ?? 0;
     connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
   }
 
@@ -94,18 +96,24 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
           }
 
           try {
+            final newAngle = rotationAngle + 90;
             await injector<CanvasClientServiceV2>().updateDisplaySettings(
               connectedDevice!,
               DisplaySettings(
                 tokenId: widget.settings.tokenId,
-                rotationAngle: (widget.settings.rotationAngle ?? 0) + 90,
+                rotationAngle: newAngle,
               ),
             );
 
-            await injector<DisplaySettingsService>()
-                .updateDisplaySetting(widget.settings.copyWith(
-              rotationAngle: (widget.settings.rotationAngle ?? 0) + 90,
-            ));
+            await injector<DisplaySettingsService>().updateDisplaySetting(
+              widget.settings.copyWith(
+                rotationAngle: newAngle,
+              ),
+            );
+
+            setState(() {
+              rotationAngle = newAngle;
+            });
           } catch (e) {
             log.warning('NowDisplaySetting: updateDisplaySettings error: $e');
           }
