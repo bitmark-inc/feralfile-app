@@ -88,8 +88,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
       data[_keyDevicePasscodeEnabled] as bool? ?? false,
     );
 
-    await _configurationService
-        .setNotificationEnabled(data[_keyNotificationEnabled] as bool? ?? true);
+    await _configurationService.setNotificationEnabled(
+        data[_keyNotificationEnabled] as bool? ?? false);
 
     await _configurationService.updateTempStorageHiddenTokenIDs(
       (data[_keyHiddenMainnetTokenIDs] as List<dynamic>?)
