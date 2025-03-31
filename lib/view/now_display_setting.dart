@@ -31,7 +31,7 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   @override
   void initState() {
     super.initState();
-    settings = injector<DisplaySettingsService>().getDisplaySettings(
+    settings = injector<DisplaySettingsService>().getNowDisplaySettings(
       widget.tokenId,
     );
     viewMode = settings.viewMode ?? ArtFraming.fitToScreen;
@@ -68,7 +68,7 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
             ),
           );
 
-          await injector<DisplaySettingsService>().updateDisplaySetting(
+          await injector<DisplaySettingsService>().updateNowDisplaySetting(
             settings.copyWith(viewMode: mode),
           );
 
@@ -109,7 +109,7 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
               ),
             );
 
-            await injector<DisplaySettingsService>().updateDisplaySetting(
+            await injector<DisplaySettingsService>().updateNowDisplaySetting(
               settings.copyWith(
                 rotationAngle: newAngle,
               ),

@@ -167,6 +167,14 @@ abstract class ConfigurationService {
   Future<void> setArtworkDisplaySettings(
     DisplaySettings settings,
   );
+
+  DisplaySettings? getNowDisplaySettings();
+
+  Future<void> setNowDisplaySettings(
+    DisplaySettings settings,
+  );
+
+  Future<void> deleteNowDisplaySettings();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -258,6 +266,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String PILOT_VERSION = 'pilot_version';
 
   static const String KEY_ARTWORK_DISPLAY_SETTINGS = 'artwork_display_settings';
+
+  static const String KEY_NOW_DISPLAY_SETTINGS = 'now_display_settings';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -663,6 +673,31 @@ class ConfigurationServiceImpl implements ConfigurationService {
       '${KEY_ARTWORK_DISPLAY_SETTINGS}_${settings.tokenId}',
       jsonEncode(settings.toJson()),
     );
+  }
+
+  @override
+  DisplaySettings? getNowDisplaySettings() {
+    final settings = _preferences.getString(KEY_NOW_DISPLAY_SETTINGS);
+    if (settings == null) {
+      return null;
+    }
+
+    return DisplaySettings.fromJson(
+      jsonDecode(settings) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<void> setNowDisplaySettings(DisplaySettings settings) async {
+    await _preferences.setString(
+      KEY_NOW_DISPLAY_SETTINGS,
+      jsonEncode(settings.toJson()),
+    );
+  }
+
+  @override
+  Future<void> deleteNowDisplaySettings() async {
+    await _preferences.remove(KEY_NOW_DISPLAY_SETTINGS);
   }
 }
 

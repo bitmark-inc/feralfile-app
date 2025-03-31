@@ -52,4 +52,42 @@ class DisplaySettingsService {
           .updateDisplaySetting(displaySetting),
     );
   }
+
+  DisplaySettings getNowDisplaySettings(String tokenId) {
+    try {
+      final nowDisplaySettings = _configurationService.getNowDisplaySettings();
+      if (nowDisplaySettings != null) {
+        return nowDisplaySettings;
+      }
+
+      final deviceStatus =
+          injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+      return DisplaySettings(
+        tokenId: tokenId,
+        viewMode: (deviceStatus?.artFraming == ArtFraming.cropToFill)
+            ? ArtFraming.cropToFill
+            : ArtFraming.fitToScreen,
+        rotationAngle: 0,
+      );
+    } catch (e) {
+      return DisplaySettings.defaultSettings(tokenId);
+    }
+  }
+
+  Future<void> updateNowDisplaySetting(
+    DisplaySettings displaySetting,
+  ) async {
+    await _configurationService.setNowDisplaySettings(displaySetting);
+    unawaited(
+      _cloudObject.artworkSettingsCloudObject
+          .updateNowDisplaySetting(displaySetting),
+    );
+  }
+
+  Future<void> deleteNowDisplaySetting() async {
+    await _configurationService.deleteNowDisplaySettings();
+    unawaited(
+      _cloudObject.artworkSettingsCloudObject.deleteNowDisplaySetting(),
+    );
+  }
 }

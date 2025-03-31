@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/model/display_settings.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 
 class DisplaySettingsCloudObject {
   DisplaySettingsCloudObject(this._accountSettingsDB);
@@ -24,5 +25,22 @@ class DisplaySettingsCloudObject {
     DisplaySettings displaySetting,
   ) async {
     await _accountSettingsDB.write([displaySetting.toKeyValue]);
+  }
+
+  Future<void> updateNowDisplaySetting(
+    DisplaySettings displaySetting,
+  ) async {
+    await _accountSettingsDB.write([
+      {
+        'key': ConfigurationServiceImpl.KEY_NOW_DISPLAY_SETTINGS,
+        'value': displaySetting.value,
+      }
+    ]);
+  }
+
+  Future<void> deleteNowDisplaySetting() async {
+    await _accountSettingsDB.delete([
+      ConfigurationServiceImpl.KEY_NOW_DISPLAY_SETTINGS,
+    ]);
   }
 }
