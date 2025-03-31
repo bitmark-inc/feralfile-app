@@ -204,7 +204,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<DisplaySettingsService>(
-    () => DisplaySettingsService(injector()),
+    () => DisplaySettingsService(injector(), injector()),
   );
 
   injector.registerLazySingleton<KeychainService>(KeychainService.new);
