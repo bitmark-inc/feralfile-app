@@ -341,9 +341,7 @@ class CanvasClientServiceV2 {
     DisplaySettings displaySettings,
   ) async {
     final stub = _getStub(device);
-    final request = UpdateDisplaySettingsRequest(
-      displaySettings: displaySettings,
-    );
+    final request = UpdateDisplaySettingsRequest(displaySettings: displaySettings);
     final response = await stub.updateDisplaySettings(request);
     log.info(
       'CanvasClientService: Update Display Settings Success: response $response',

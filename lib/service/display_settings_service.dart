@@ -12,18 +12,16 @@ import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 
 class DisplaySettingsService {
-  DisplaySettingsService(this._cloudObject, this._configurationService);
+  DisplaySettingsService(this._cloudObject);
 
   final CloudManager _cloudObject;
-  final ConfigurationService _configurationService;
 
   DisplaySettings getDisplaySettings(String tokenId) {
     try {
       final userSettings =
-          _configurationService.getArtworkDisplaySettings(tokenId);
+          _cloudObject.artworkSettingsCloudObject.getDisplaySetting(tokenId);
 
       if (userSettings != null) {
         return userSettings;
@@ -46,10 +44,7 @@ class DisplaySettingsService {
   Future<void> updateDisplaySetting(
     DisplaySettings displaySetting,
   ) async {
-    await _configurationService.setArtworkDisplaySettings(displaySetting);
-    unawaited(
-      _cloudObject.artworkSettingsCloudObject
-          .updateDisplaySetting(displaySetting),
-    );
+    await _cloudObject.artworkSettingsCloudObject
+        .updateDisplaySetting(displaySetting);
   }
 }

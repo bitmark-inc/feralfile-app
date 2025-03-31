@@ -109,6 +109,7 @@ class CloudManager {
     unawaited(injector<SettingsDataService>().restoreSettingsData());
     await Future.wait([
       _walletAddressObject.download(),
+      _artworkSettingsCloudObject.db.download(),
     ]);
     log.info('[CloudManager] downloadAll done');
   }

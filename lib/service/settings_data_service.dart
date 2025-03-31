@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -65,9 +64,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     await Future.wait([
       _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
       _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
-      _cloudObject.artworkSettingsCloudObject.db.download(),
     ]);
-
     final data = <String, dynamic>{}
       ..addAll(
         _cloudObject.deviceSettingsDB.allInstance
@@ -81,12 +78,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     log.info('[SettingsDataService] restore $data');
 
     await _saveSettingToConfig(data);
-
-    final displaySettingsData = _cloudObject
-        .artworkSettingsCloudObject.db.allInstance
-        .map((key, value) => MapEntry(key, jsonDecode(value)));
-
-    await _saveArtworkDisplaySettingsToConfig(displaySettingsData);
   }
 
   Future<void> _saveSettingToConfig(Map<String, dynamic> data) async {
@@ -118,18 +109,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
           .setPlaylists(legacyPlaylists);
       await _cloudObject.deviceSettingsDB.delete([_keyPlaylists]);
     }
-  }
-
-  Future<void> _saveArtworkDisplaySettingsToConfig(
-    Map<String, dynamic> data,
-  ) async {
-    await Future.wait(
-      data.entries.map(
-        (entry) => _configurationService.setArtworkDisplaySettings(
-          DisplaySettings.fromJson(entry.value as Map<String, dynamic>),
-        ),
-      ),
-    );
   }
 
   @override
