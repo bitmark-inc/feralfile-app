@@ -15,8 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class NowDisplaySettingView extends StatefulWidget {
-  const NowDisplaySettingView({required this.settings, super.key});
-  final DisplaySettings settings;
+  const NowDisplaySettingView({required this.tokenId, super.key});
+  final String tokenId;
 
   @override
   State<NowDisplaySettingView> createState() => _NowDisplaySettingViewState();
@@ -26,12 +26,16 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming viewMode;
   late int rotationAngle;
   late FFBluetoothDevice? connectedDevice;
+  late DisplaySettings settings;
 
   @override
   void initState() {
     super.initState();
-    viewMode = widget.settings.viewMode ?? ArtFraming.fitToScreen;
-    rotationAngle = widget.settings.rotationAngle ?? 0;
+    settings = injector<DisplaySettingsService>().getDisplaySettings(
+      widget.tokenId,
+    );
+    viewMode = settings.viewMode ?? ArtFraming.fitToScreen;
+    rotationAngle = settings.rotationAngle ?? 0;
     connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
   }
 
@@ -59,13 +63,13 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
           await injector<CanvasClientServiceV2>().updateDisplaySettings(
             connectedDevice!,
             DisplaySettings(
-              tokenId: widget.settings.tokenId,
+              tokenId: widget.tokenId,
               viewMode: mode,
             ),
           );
 
           await injector<DisplaySettingsService>().updateDisplaySetting(
-            widget.settings.copyWith(viewMode: mode),
+            settings.copyWith(viewMode: mode),
           );
 
           setState(() {
@@ -100,13 +104,13 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
             await injector<CanvasClientServiceV2>().updateDisplaySettings(
               connectedDevice!,
               DisplaySettings(
-                tokenId: widget.settings.tokenId,
+                tokenId: widget.tokenId,
                 rotationAngle: newAngle,
               ),
             );
 
             await injector<DisplaySettingsService>().updateDisplaySetting(
-              widget.settings.copyWith(
+              settings.copyWith(
                 rotationAngle: newAngle,
               ),
             );

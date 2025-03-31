@@ -66,6 +66,7 @@ class UIHelper {
   static final metricClient = injector.get<MetricClientService>();
   static const String ignoreBackLayerPopUpRouteName = 'popUp.ignoreBackLayer';
   static const String homeMenu = 'homeMenu';
+  static const String artDisplaySettingModal = 'artDisplaySettingModal';
 
   static Future<dynamic> showDialog(
     BuildContext context,
@@ -417,6 +418,7 @@ class UIHelper {
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
+    String? name,
   }) async {
     final theme = Theme.of(context);
     final bottomSheetKey = GlobalKey();
@@ -445,7 +447,7 @@ class UIHelper {
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
       routeSettings: RouteSettings(
-        name: ignoreBackLayerPopUpRouteName,
+        name: name ?? ignoreBackLayerPopUpRouteName,
         arguments: {
           'key': bottomSheetKey,
         },
@@ -460,7 +462,7 @@ class UIHelper {
         key: bottomSheetKey,
         color: Colors.transparent,
         child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          clipper: isRoundCorner ? AutonomyTopRightRectangleClipper() : null,
           child: Container(
             decoration: BoxDecoration(
               color: backgroundColor ?? theme.auGreyBackground,

@@ -473,17 +473,6 @@ class NowDisplayingView extends StatelessWidget {
   final Widget Function(BuildContext) titleBuilder;
   final String tokenID;
 
-  void openDeviceSettings(BuildContext context) {
-    final displaySetting = injector<DisplaySettingsService>().getDisplaySettings(
-      tokenID,
-    );
-
-    injector<NavigationService>().showDeviceSettings(
-      context,
-      displaySetting,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -521,7 +510,9 @@ class NowDisplayingView extends StatelessWidget {
           ),
           if (tokenID.isNotEmpty)
             IconButton(
-              onPressed: () => openDeviceSettings(context),
+              onPressed: () => injector<NavigationService>().showDeviceSettings(
+                tokenID,
+              ),
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,

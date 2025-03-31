@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -44,7 +43,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
@@ -859,8 +857,7 @@ class NavigationService {
   }
 
   Future<void> showDeviceSettings(
-    BuildContext context,
-    DisplaySettings settings,
+    String tokenID,
   ) async {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
@@ -873,10 +870,24 @@ class NavigationService {
       unawaited(
         UIHelper.showRawDialog(
           navigatorKey.currentContext!,
-          NowDisplaySettingView(settings: settings),
+          NowDisplaySettingView(tokenId: tokenID),
           title: 'device_settings'.tr(),
+          name: UIHelper.artDisplaySettingModal,
+          isRoundCorner: false,
         ),
       );
+    }
+  }
+
+  void hideDeviceSettings() {
+    if (navigatorKey.currentState != null &&
+        navigatorKey.currentState!.mounted == true &&
+        navigatorKey.currentContext != null) {
+      final currentRoute = CustomRouteObserver.currentRoute;
+      if (currentRoute != null &&
+          currentRoute.settings.name == UIHelper.artDisplaySettingModal) {
+        Navigator.pop(navigatorKey.currentContext!);
+      }
     }
   }
 }
