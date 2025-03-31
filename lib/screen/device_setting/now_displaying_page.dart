@@ -93,11 +93,13 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
         assetToken.id,
         assetToken.owner,
       );
-      context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
-            artworkIdentity,
-            withArtwork: true,
-            useIndexer: true,
-          ));
+      context.read<ArtworkDetailBloc>().add(
+            ArtworkDetailGetInfoEvent(
+              artworkIdentity,
+              withArtwork: true,
+              useIndexer: true,
+            ),
+          );
     }
   }
 
@@ -107,7 +109,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
       return object.assetToken!.id;
     } else if (object.dailiesWorkState != null) {
       return object.dailiesWorkState!.assetTokens.firstOrNull?.id;
-    } else if (object.exhibitionDisplaying != null) {
+    } else if (object.exhibitionDisplaying?.artwork != null) {
       final artwork = object.exhibitionDisplaying!.artwork!.copyWith(
         series: object.exhibitionDisplaying!.artwork!.series!.copyWith(
           exhibition: object.exhibitionDisplaying!.exhibition,

@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/display_settings_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -409,8 +408,9 @@ class NowDisplayingExhibitionView extends StatelessWidget {
     final theme = Theme.of(context);
     final exhibition = exhibitionDisplaying.exhibition;
     final artwork = exhibitionDisplaying.artwork?.copyWith(
-        series: exhibitionDisplaying.artwork?.series
-            ?.copyWith(exhibition: exhibition));
+      series: exhibitionDisplaying.artwork?.series
+          ?.copyWith(exhibition: exhibition),
+    );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     return NowDisplayingView(
       tokenID: artwork?.indexerTokenId ?? '',

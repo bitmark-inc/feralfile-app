@@ -662,7 +662,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     return DisplaySettings.fromJson(
-        jsonDecode(settings) as Map<String, dynamic>);
+      jsonDecode(settings) as Map<String, dynamic>,
+    );
   }
 
   @override

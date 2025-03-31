@@ -63,8 +63,10 @@ class CloudManager {
     _playlistCloudObject = PlaylistCloudObject(playlistAccountSettingsDB);
 
     /// artwork settings
-    final artworkSettingsAccountSettingsDB = AccountSettingsDBImpl(injector(),
-        [_flavor, _commonKeyPrefix, _db, _artworkSettingsKeyPrefix].join('.'));
+    final artworkSettingsAccountSettingsDB = AccountSettingsDBImpl(
+      injector(),
+      [_flavor, _commonKeyPrefix, _db, _artworkSettingsKeyPrefix].join('.'),
+    );
     _artworkSettingsCloudObject =
         DisplaySettingsCloudObject(artworkSettingsAccountSettingsDB);
   }

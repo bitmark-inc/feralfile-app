@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -1387,8 +1386,8 @@ class UIHelper {
 
   static Future<void> showDrawerAction(
     BuildContext context, {
-    String? title,
     required List<OptionItem> options,
+    String? title,
   }) async {
     final theme = Theme.of(context);
     final bottomSheetKey = GlobalKey();
