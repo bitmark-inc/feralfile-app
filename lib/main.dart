@@ -372,33 +372,41 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         child: Stack(
           children: [
             widget.child,
-            Positioned(
-              bottom: kStatusBarMarginBottom,
-              left: 10,
-              right: 10,
-              child: FadeTransition(
-                opacity: _animationController,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(
-                      0,
-                      kStatusBarMarginBottom / kNowDisplayingHeight,
-                    ),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: _animationController,
-                      curve: Curves.easeInOut,
+            ValueListenableBuilder(
+              valueListenable: CustomRouteObserver.bottomSheetHeight,
+              builder: (context, bottomSheetHeight, child) {
+                return AnimatedPositioned(
+                  duration: const Duration(milliseconds: 150),
+                  bottom: bottomSheetHeight > 0
+                      ? 10 + bottomSheetHeight
+                      : kStatusBarMarginBottom,
+                  left: 10,
+                  right: 10,
+                  child: FadeTransition(
+                    opacity: _animationController,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(
+                          0,
+                          kStatusBarMarginBottom / kNowDisplayingHeight,
+                        ),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: _animationController,
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                      child: IgnorePointer(
+                        ignoring: !_isVisible,
+                        child: NowDisplaying(
+                          key: GlobalKey(),
+                        ),
+                      ),
                     ),
                   ),
-                  child: IgnorePointer(
-                    ignoring: !_isVisible,
-                    child: NowDisplaying(
-                      key: GlobalKey(),
-                    ),
-                  ),
-                ),
-              ),
+                );
+              },
             ),
           ],
         ),

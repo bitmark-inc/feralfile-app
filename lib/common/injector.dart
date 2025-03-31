@@ -54,6 +54,7 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
+import 'package:autonomy_flutter/service/display_settings_service.dart';
 import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -200,6 +201,10 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<AddressService>(
     () => AddressService(injector(), injector()),
+  );
+
+  injector.registerLazySingleton<DisplaySettingsService>(
+    () => DisplaySettingsService(injector(), injector()),
   );
 
   injector.registerLazySingleton<KeychainService>(KeychainService.new);

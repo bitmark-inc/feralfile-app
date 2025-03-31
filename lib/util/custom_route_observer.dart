@@ -4,10 +4,9 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-final listRouteShouldnotShowNowDisplaying = [
+final listRouteShouldNotShowNowDisplaying = [
   AppRouter.scanQRPage,
   AppRouter.settingsPage,
   AppRouter.subscriptionPage,
@@ -28,14 +27,17 @@ final listRouteShouldnotShowNowDisplaying = [
   AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
   AppRouter.sendWifiCredentialPage,
   AppRouter.scanWifiNetworkPage,
+  AppRouter.viewExistingAddressPage,
+  AppRouter.nameLinkedAccountPage,
 ];
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
   static Route<dynamic>? currentRoute;
 
-  static bool _onIgnoreBackLayerPopUp = false;
+  static final bottomSheetVisibility = ValueNotifier<bool>(false);
+  static final bottomSheetHeight = ValueNotifier<double>(0);
 
-  static bool get onIgnoreBackLayerPopUp => _onIgnoreBackLayerPopUp;
+  static bool get onIgnoreBackLayerPopUp => bottomSheetVisibility.value;
 
   Timer? _timer;
 
@@ -43,10 +45,11 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
     if (currentRoute != null) {
       final routeName = currentRoute!.settings.name;
       if (routeName == null ||
-          routeName == UIHelper.ignoreBackLayerPopUpRouteName) {
+          routeName == UIHelper.ignoreBackLayerPopUpRouteName ||
+          routeName == UIHelper.artDisplaySettingModal) {
         return;
       }
-      if (listRouteShouldnotShowNowDisplaying.contains(routeName)) {
+      if (listRouteShouldNotShowNowDisplaying.contains(routeName)) {
         _timer?.cancel();
         _timer = Timer.periodic(Duration(milliseconds: 50), (_) {
           _timer?.cancel();
@@ -66,9 +69,18 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    /// this must be put before super.didPush
-    if (route.settings.name == UIHelper.ignoreBackLayerPopUpRouteName) {
-      _onIgnoreBackLayerPopUp = true;
+    if (route is ModalBottomSheetRoute) {
+      final key = (route.settings.arguments as Map<String, dynamic>?)?['key']
+          as GlobalKey?;
+      if (key != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final box = key.currentContext?.findRenderObject() as RenderBox?;
+          if (box != null) {
+            bottomSheetHeight.value = box.size.height;
+          }
+        });
+      }
+      bottomSheetVisibility.value = true;
     }
     super.didPush(route, previousRoute);
 
@@ -83,8 +95,9 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
     onCurrentRouteChanged();
 
     /// this must be put after super.didPop
-    if (route.settings.name == UIHelper.ignoreBackLayerPopUpRouteName) {
-      _onIgnoreBackLayerPopUp = false;
+    if (route is ModalBottomSheetRoute) {
+      bottomSheetVisibility.value = false;
+      bottomSheetHeight.value = 0;
     }
   }
 

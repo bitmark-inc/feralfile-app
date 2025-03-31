@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/list_extension.dart';
@@ -160,6 +161,20 @@ abstract class ConfigurationService {
   String? getPilotVersion();
 
   Future<void> setPilotVersion(String version);
+
+  DisplaySettings? getArtworkDisplaySettings(String tokenId);
+
+  Future<void> setArtworkDisplaySettings(
+    DisplaySettings settings,
+  );
+
+  DisplaySettings? getNowDisplaySettings();
+
+  Future<void> setNowDisplaySettings(
+    DisplaySettings settings,
+  );
+
+  Future<void> deleteNowDisplaySettings();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -249,6 +264,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_BETA_TESTER = 'beta_tester';
 
   static const String PILOT_VERSION = 'pilot_version';
+
+  static const String KEY_ARTWORK_DISPLAY_SETTINGS = 'artwork_display_settings';
+
+  static const String KEY_NOW_DISPLAY_SETTINGS = 'now_display_settings';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -632,6 +651,54 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setPilotVersion(String version) {
     return _preferences.setString(PILOT_VERSION, version);
+  }
+
+  @override
+  DisplaySettings? getArtworkDisplaySettings(String tokenId) {
+    final settings =
+        _preferences.getString('${KEY_ARTWORK_DISPLAY_SETTINGS}_$tokenId');
+    if (settings == null) {
+      return null;
+    }
+
+    return DisplaySettings.fromJson(
+      jsonDecode(settings) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<void> setArtworkDisplaySettings(
+    DisplaySettings settings,
+  ) async {
+    await _preferences.setString(
+      '${KEY_ARTWORK_DISPLAY_SETTINGS}_${settings.tokenId}',
+      jsonEncode(settings.toJson()),
+    );
+  }
+
+  @override
+  DisplaySettings? getNowDisplaySettings() {
+    final settings = _preferences.getString(KEY_NOW_DISPLAY_SETTINGS);
+    if (settings == null) {
+      return null;
+    }
+
+    return DisplaySettings.fromJson(
+      jsonDecode(settings) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<void> setNowDisplaySettings(DisplaySettings settings) async {
+    await _preferences.setString(
+      KEY_NOW_DISPLAY_SETTINGS,
+      jsonEncode(settings.toJson()),
+    );
+  }
+
+  @override
+  Future<void> deleteNowDisplaySettings() async {
+    await _preferences.remove(KEY_NOW_DISPLAY_SETTINGS);
   }
 }
 

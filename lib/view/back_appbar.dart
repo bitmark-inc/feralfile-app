@@ -67,14 +67,11 @@ AppBar getBackAppBar(BuildContext context, {
             minHeight: 44,
           ),
           onPressed: action,
-          icon: Padding(
-            padding: const EdgeInsets.all(5),
-            child: icon ??
-                Icon(
-                  Icons.more_horiz,
-                  color: primaryColor,
-                ),
-          ),
+          icon: icon ??
+              Icon(
+                Icons.more_horiz,
+                color: primaryColor,
+              ),
         )
       else
         const SizedBox(width: 44),

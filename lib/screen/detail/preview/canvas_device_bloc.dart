@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/display_settings_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
@@ -375,6 +376,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         );
       } catch (_) {
       } finally {
+        await injector<DisplaySettingsService>().deleteNowDisplaySetting();
         unawaited(NowDisplayingManager().updateDisplayingNow());
         await event.onDone?.call();
       }
@@ -417,6 +419,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         );
       } catch (_) {
       } finally {
+        await injector<DisplaySettingsService>().deleteNowDisplaySetting();
         unawaited(NowDisplayingManager().updateDisplayingNow());
         await event.onDone?.call();
       }
@@ -454,6 +457,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
               .updateOnCast(device: device, displayKey: displayKey)
               .copyWith(controllingDeviceStatus: newStatus),
         );
+        await injector<DisplaySettingsService>().deleteNowDisplaySetting();
         unawaited(NowDisplayingManager().updateDisplayingNow());
       } catch (_) {}
     });

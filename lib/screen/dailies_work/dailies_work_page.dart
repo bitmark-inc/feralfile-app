@@ -44,6 +44,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DailyWorkPage extends StatefulWidget {
@@ -468,13 +469,18 @@ class DailyWorkPageState extends State<DailyWorkPage>
               },
             ),
           ),
-          ValueListenableBuilder<bool>(
-            valueListenable: shouldShowNowDisplayingOnDisconnect,
-            builder: (context, shouldShow, _) {
+          MultiValueListenableBuilder(
+            valueListenables: [
+              shouldShowNowDisplayingOnDisconnect,
+              nowDisplayingVisibility,
+            ],
+            builder: (context, values, _) {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                height: shouldShow ? 100 + kNowDisplayingHeight - 16 : 100,
+                height: values.every((value) => value as bool)
+                    ? 100 + kNowDisplayingHeight - 16
+                    : 100,
               );
             },
           ),
