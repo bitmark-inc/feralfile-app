@@ -32,9 +32,10 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   try {
     final userId = injector<AuthService>().getUserId();
     await OneSignal.login(userId!);
-    await OneSignal.User.pushSubscription.optIn();
-
-    await injector<ConfigurationService>().setNotificationEnabled(true);
+    if ((injector<ConfigurationService>().isNotificationEnabled() &&
+        OneSignal.Notifications.permission)) {
+      await OneSignal.User.pushSubscription.optIn();
+    }
     return true;
   } catch (error) {
     unawaited(

@@ -203,7 +203,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
     // download user data
     await injector<CloudManager>().downloadAll(includePlaylists: true);
-    unawaited(_registerPushNotifications());
+    if (injector<ConfigurationService>().isNotificationEnabled()) {
+      unawaited(_registerPushNotifications());
+    }
     startHandleDeeplinkCompleter.complete();
     log.info('[_fetchRuntimeCache] end');
     unawaited(metricClient.identity());
