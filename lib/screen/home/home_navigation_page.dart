@@ -180,6 +180,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
+            title: 'test'.tr(),
+            icon: const Icon(
+              AuIcon.scan,
+            ),
+            onTap: () {
+              injector<NavigationService>().openArtistDisplaySetting();
+            },
+          ),
+          OptionItem(
             title: 'wallet'.tr(),
             icon: const Icon(
               AuIcon.wallet,

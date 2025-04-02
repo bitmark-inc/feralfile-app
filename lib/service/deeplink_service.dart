@@ -10,7 +10,6 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -21,6 +20,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/device_setting/check_bluetooth_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -45,7 +45,7 @@ abstract class DeeplinkService {
 
   void handleDeeplink(String? link, {Duration delay, Function? onFinished});
 
-  void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
+  // void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
 
   Future<void> handleReferralCode(String referralCode);
 }
@@ -123,20 +123,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       log.info('[DeeplinkService] handlerType $handlerType');
       switch (handlerType) {
-        case DeepLinkHandlerType.branch:
-          await _handleBranchDeeplink(link, onFinish: onFinishDeeplink);
-        case DeepLinkHandlerType.dAppConnect:
-          await _handleDappConnectDeeplink(link);
+        case DeepLinkHandlerType.navigation:
+          await _handleNavigationDeeplink(link);
         case DeepLinkHandlerType.homeWidget:
           await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.bluetoothConnect:
           await _handleBluetoothConnectDeeplink(link,
               onFinish: onFinishDeeplink);
+        case DeepLinkHandlerType.linkArtist:
+          await _handleLinkArtistDeeplink(link);
         case DeepLinkHandlerType.unknown:
           unawaited(_navigationService.showUnknownLink());
       }
-      if (handlerType != DeepLinkHandlerType.branch &&
-          handlerType != DeepLinkHandlerType.bluetoothConnect) {
+      if (handlerType != DeepLinkHandlerType.bluetoothConnect) {
         await onFinishDeeplink.call();
       }
       // this function is called in onFinishDeeplink, so we don't need to call it here
@@ -144,8 +143,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
   }
 
-  Future<bool> _handleDappConnectDeeplink(String link) async {
-    log.info('[DeeplinkService] _handleDappConnectDeeplink');
+  Future<bool> _handleNavigationDeeplink(String link) async {
+    log.info('[DeeplinkService] _handleNavigationDeeplink');
 
     final navigationPrefixes = [
       'feralfile://navigation/',
@@ -214,27 +213,47 @@ class DeeplinkServiceImpl extends DeeplinkService {
     );
   }
 
-  Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {
-    log.info('[DeeplinkService] _handleBranchDeeplink');
-    final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
+  // handler for link artist deeplink
+  Future<bool> _handleLinkArtistDeeplink(String link) async {
+    log.info('[DeeplinkService] _handleLinkArtistDeeplink');
+    final linkArtistPrefix = Constants.linkArtistDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingBranchDeepLinkPrefix != null) {
-      try {
-        final response =
-            await _branchApi.getParams(Environment.branchKey, link);
-        await handleBranchDeeplinkData(
-            response['data'] as Map<dynamic, dynamic>,
-            onFinish: onFinish);
-      } catch (e, s) {
-        unawaited(Sentry.captureException('Branch deeplink error: $e',
-            stackTrace: s));
-        log.info('[DeeplinkService] _handleBranchDeeplink error $e');
-        await _navigationService.showCannotResolveBranchLink();
-      }
-      return true;
+    if (linkArtistPrefix == null) {
+      log.info('[DeeplinkService] _handleLinkArtistDeeplink prefix not found');
+      return false;
     }
-    return false;
+    final token = link.replaceFirst(linkArtistPrefix, '').split('/')[1];
+    final res = await injector<AuthService>().linkArtist(token);
+    if (res) {
+      unawaited(_navigationService.showLinkArtistSuccess());
+    } else {
+      unawaited(_navigationService
+          .showLinkArtistFailed(Exception('Link artist failed')));
+    }
+    return res;
   }
+
+  // Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {
+  //   log.info('[DeeplinkService] _handleBranchDeeplink');
+  //   final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
+  //       .firstWhereOrNull((prefix) => link.startsWith(prefix));
+  //   if (callingBranchDeepLinkPrefix != null) {
+  //     try {
+  //       final response =
+  //           await _branchApi.getParams(Environment.branchKey, link);
+  //       await handleBranchDeeplinkData(
+  //           response['data'] as Map<dynamic, dynamic>,
+  //           onFinish: onFinish);
+  //     } catch (e, s) {
+  //       unawaited(Sentry.captureException('Branch deeplink error: $e',
+  //           stackTrace: s));
+  //       log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+  //       await _navigationService.showCannotResolveBranchLink();
+  //     }
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   // TODO: handle onFinish is only for feralfile_display.
   // Please handle for other cases if needed
@@ -419,21 +438,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
 }
 
 enum DeepLinkHandlerType {
-  branch,
-  dAppConnect,
+  navigation,
   homeWidget,
   bluetoothConnect,
+  linkArtist,
   unknown,
   ;
 
   static DeepLinkHandlerType fromString(String value) {
-    if (Constants.dAppConnectPrefixes
+    if (Constants.navigationPrefixes
         .any((prefix) => value.startsWith(prefix))) {
-      return DeepLinkHandlerType.dAppConnect;
-    }
-
-    if (Constants.branchDeepLinks.any((prefix) => value.startsWith(prefix))) {
-      return DeepLinkHandlerType.branch;
+      return DeepLinkHandlerType.navigation;
     }
 
     if (Constants.homeWidgetDeepLinks
@@ -445,6 +460,12 @@ enum DeepLinkHandlerType {
         .any((prefix) => value.startsWith(prefix))) {
       return DeepLinkHandlerType.bluetoothConnect;
     }
+
+    if (Constants.linkArtistDeepLinks
+        .any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.linkArtist;
+    }
+
     return DeepLinkHandlerType.unknown;
   }
 }

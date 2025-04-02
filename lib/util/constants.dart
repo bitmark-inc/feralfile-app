@@ -35,8 +35,8 @@ const DEEP_LINKS = [
   'autonomy://',
   'https://autonomy.io',
   'https://au.bitmark.com',
-  ...Constants.branchDeepLinks,
   ...Constants.bluetoothConnectDeepLinks,
+  ...Constants.linkArtistDeepLinks,
 ];
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
@@ -48,7 +48,7 @@ const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
 
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   '00370334-6151-4c04-b6be-dc09e325d57d',
-  '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
+  '3ee3e8a4-90dd-4843-8ec3-858e6bea1965',
 ];
 
 const cloudFlarePrefix = 'https://imagedelivery.net/';
@@ -168,7 +168,7 @@ const List<String> YOUTUBE_VARIANTS = [
 const MAGIC_NUMBER = 168;
 
 Future<bool> isAppCenterBuild() async {
-  final PackageInfo info = await PackageInfo.fromPlatform();
+  final info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
 }
 
@@ -278,13 +278,13 @@ extension PremiumFeatureExtension on PremiumFeature {
 }
 
 class ContextedAddress {
-  final CryptoType cryptoType;
-  final String address;
-
   ContextedAddress(
     this.cryptoType,
     this.address,
   );
+
+  final CryptoType cryptoType;
+  final String address;
 }
 
 enum CryptoType {
@@ -399,23 +399,12 @@ class Constants {
     'https://link.feralfile.com/device_connect',
   ];
 
-  static const branchDeepLinks = [
-    'https://autonomy-app.app.link',
-    'https://autonomy-app-alternate.app.link',
-    'https://link.autonomy.io',
-    'https://feralfile-app.app.link',
-    'https://feralfile-app-alternate.app.link',
-    'https://feralfile-app.test-app.link',
-    'https://feralfile-app-alternate.test-app.link',
-    'https://app.feralfile.com',
+  static const linkArtistDeepLinks = [
+    'https://link.feralfile.com/linkage_token',
   ];
 
   static const navigationPrefixes = [
     'feralfile://navigation/',
-  ];
-
-  static const dAppConnectPrefixes = [
-    ...navigationPrefixes,
   ];
 }
 
@@ -428,11 +417,7 @@ class LinkType {
   static const local = 'Local Deep Link';
   static const dAppConnect = 'Dapp Connect Deeplink';
   static const feralFile = 'FeralFile Deeplink';
-  static const branch = 'Branch Deeplink';
-  static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
-  static const walletConnect = 'Wallet Connect';
-  static const postcardPayToMint = 'Postcard Pay To Mint';
   static const undefined = 'Undefined';
 }
 

@@ -636,6 +636,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         context,
         options: [
           OptionItem(
+            title: 'Artist config'.tr(),
+            icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
+            onTap: () {
+              injector<NavigationService>().openArtistDisplaySetting();
+            },
+          ),
+          OptionItem(
             title: 'full_screen'.tr(),
             icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
             onTap: () {
