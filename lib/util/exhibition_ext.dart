@@ -288,7 +288,7 @@ extension ArtworkExt on Artwork {
     final chain = series!.exhibition!.mintBlockchain.toLowerCase();
     // normal case: tezos or ethereum chain
     if (['tezos', 'ethereum'].contains(chain)) {
-      final contract = series!.exhibition!.contracts!.firstWhereOrNull(
+      final contract = series!.exhibition!.contracts?.firstWhereOrNull(
         (e) => e.blockchainType == chain,
       );
       if (contract == null) {

@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
@@ -34,6 +35,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artist_display_setting.dart';
 import 'package:autonomy_flutter/view/how_to_install_daily_widget_build.dart';
+import 'package:autonomy_flutter/view/now_display_setting.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -940,5 +942,40 @@ class NavigationService {
       'User Already Has a Linked Artist',
       'This user already has a linked artist. If you need to link a new artist, please unlink the current one first.',
     );
+  }
+
+    Future<void> showDeviceSettings(
+    String tokenID,
+  ) async {
+    if (navigatorKey.currentState != null &&
+        navigatorKey.currentState!.mounted == true &&
+        navigatorKey.currentContext != null) {
+      if (CustomRouteObserver.bottomSheetVisibility.value) {
+        Navigator.pop(navigatorKey.currentContext!);
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      }
+
+      unawaited(
+        UIHelper.showRawDialog(
+          navigatorKey.currentContext!,
+          NowDisplaySettingView(tokenId: tokenID),
+          title: 'device_settings'.tr(),
+          name: UIHelper.artDisplaySettingModal,
+          isRoundCorner: false,
+        ),
+      );
+    }
+  }
+
+  void hideDeviceSettings() {
+    if (navigatorKey.currentState != null &&
+        navigatorKey.currentState!.mounted == true &&
+        navigatorKey.currentContext != null) {
+      final currentRoute = CustomRouteObserver.currentRoute;
+      if (currentRoute != null &&
+          currentRoute.settings.name == UIHelper.artDisplaySettingModal) {
+        Navigator.pop(navigatorKey.currentContext!);
+      }
+    }
   }
 }

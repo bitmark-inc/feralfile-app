@@ -3,6 +3,7 @@
 // ignore_for_file: avoid_unused_constructor_parameters
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
+import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +31,8 @@ enum CastCommand {
   scanWifi,
   enableMetricsStreaming,
   disableMetricsStreaming,
-  castDaily;
+  castDaily,
+  updateDisplaySettings;
 
   static CastCommand fromString(String command) {
     switch (command) {
@@ -82,6 +84,8 @@ enum CastCommand {
         return CastCommand.enableMetricsStreaming;
       case 'disableMetricsStreaming':
         return CastCommand.disableMetricsStreaming;
+      case 'updateDisplaySettings':
+        return CastCommand.updateDisplaySettings;
       default:
         throw ArgumentError('Unknown command: $command');
     }
@@ -137,6 +141,8 @@ enum CastCommand {
         return CastCommand.enableMetricsStreaming;
       case const (DisableMetricsStreamingRequest):
         return CastCommand.disableMetricsStreaming;
+      case const (UpdateDisplaySettingsRequest):
+        return CastCommand.updateDisplaySettings;
       default:
         throw Exception('Unknown request type');
     }
@@ -1078,4 +1084,19 @@ class DisableMetricsStreamingReply extends ReplyWithOK {
 
   factory DisableMetricsStreamingReply.fromJson(Map<String, dynamic> json) =>
       DisableMetricsStreamingReply(ok: json['ok'] as bool);
+}
+
+class UpdateDisplaySettingsRequest implements Request {
+  UpdateDisplaySettingsRequest({required this.displaySettings});
+  final DisplaySettings displaySettings;
+
+  @override
+  Map<String, dynamic> toJson() => displaySettings.toJson();
+}
+
+class UpdateDisplaySettingsReply extends ReplyWithOK {
+  UpdateDisplaySettingsReply({required super.ok});
+
+  factory UpdateDisplaySettingsReply.fromJson(Map<String, dynamic> json) =>
+      UpdateDisplaySettingsReply(ok: json['ok'] as bool);
 }

@@ -338,6 +338,7 @@ class TokenNowDisplayingView extends StatelessWidget {
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
         return NowDisplayingView(
+          tokenID: assetToken.id,
           thumbnailBuilder: (context) {
             return AspectRatio(
               aspectRatio: 1,
@@ -406,9 +407,13 @@ class NowDisplayingExhibitionView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final exhibition = exhibitionDisplaying.exhibition;
-    final artwork = exhibitionDisplaying.artwork;
+    final artwork = exhibitionDisplaying.artwork?.copyWith(
+      series: exhibitionDisplaying.artwork?.series
+          ?.copyWith(exhibition: exhibition),
+    );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     return NowDisplayingView(
+      tokenID: artwork?.indexerTokenId ?? '',
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
@@ -460,11 +465,13 @@ class NowDisplayingView extends StatelessWidget {
   const NowDisplayingView({
     required this.thumbnailBuilder,
     required this.titleBuilder,
+    required this.tokenID,
     super.key,
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final String tokenID;
 
   @override
   Widget build(BuildContext context) {
@@ -501,6 +508,20 @@ class NowDisplayingView extends StatelessWidget {
               ],
             ),
           ),
+          if (tokenID.isNotEmpty)
+            IconButton(
+              onPressed: () => injector<NavigationService>().showDeviceSettings(
+                tokenID,
+              ),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
         ],
       ),
     );
