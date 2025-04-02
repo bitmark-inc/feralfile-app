@@ -69,10 +69,10 @@ class ArtistDisplaySetting {
     return {
       'scaling': artFraming.name,
       'backgroundColor': backgroundColour.toHex(),
-      'marginLeft': margin.left,
-      'marginRight': margin.right,
-      'marginTop': margin.top,
-      'marginBottom': margin.bottom,
+      'marginLeft': margin.left / 100,
+      'marginRight': margin.right / 100,
+      'marginTop': margin.top / 100,
+      'marginBottom': margin.bottom / 100,
       'autoPlay': autoPlay,
       'looping': loop,
       'interactable': interactable,
@@ -230,11 +230,11 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
       }
 
       try {
-        final res = await injector<AuthService>()
+        await injector<AuthService>()
             .configureArtwork(listAssetIds, state.artistDisplaySetting);
 
         log.info(
-            'SaveArtistArtworkDisplaySettingEvent] save artist artwork display setting, resutl: $res');
+            'SaveArtistArtworkDisplaySettingEvent] saved artist artwork display setting');
         injector<NavigationService>().showArtistDisplaySettingSaved();
       } catch (e) {
         log.info(

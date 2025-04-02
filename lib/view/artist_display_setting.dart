@@ -265,7 +265,7 @@ class _ArtistDisplaySettingWidgetState
       {bool? isAutoPlay, bool? isLoop}) {
     final selectedIndex = isAutoPlay == true ? 0 : 1;
     final theme = Theme.of(context);
-    return ArtistSettingItemWidget(
+    return ArtistMultiSettingItemWidget(
       settingName: 'Playback',
       items: [
         DeviceConfigItem(
@@ -274,12 +274,18 @@ class _ArtistDisplaySettingWidgetState
           onSelected: () {
             _bloc.add(UpdateAutoPlayEvent(true));
           },
+          onUnselected: () {
+            _bloc.add(UpdateAutoPlayEvent(false));
+          },
         ),
         DeviceConfigItem(
           title: 'Loop',
           icon: Text('Loop', style: theme.textTheme.ppMori400Black12),
           onSelected: () {
             _bloc.add(UpdateLoopEvent(true));
+          },
+          onUnselected: () {
+            _bloc.add(UpdateLoopEvent(false));
           },
         ),
       ],
@@ -380,6 +386,87 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
                   _selectedIndex = index;
                 });
                 item.onSelected?.call();
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: isSelected ? AppColor.white : AppColor.disabledColor,
+                ),
+                child: Center(
+                  child: isSelected
+                      ? item.icon
+                      : (item.iconOnUnselected ?? item.icon),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class ArtistMultiSettingItemWidget extends StatefulWidget {
+  const ArtistMultiSettingItemWidget(
+      {super.key,
+      required this.items,
+      required this.selectedIndex,
+      required this.settingName});
+
+  final List<DeviceConfigItem> items;
+  final int selectedIndex;
+  final String settingName;
+
+  @override
+  State<ArtistMultiSettingItemWidget> createState() =>
+      _ArtistMultiSettingItemWidgetState();
+}
+
+class _ArtistMultiSettingItemWidgetState
+    extends State<ArtistMultiSettingItemWidget> {
+  late List<bool> _isSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    _isSelected = List.generate(
+        widget.items.length, (index) => index == widget.selectedIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text(widget.settingName, style: theme.textTheme.ppMori400White12),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 168.5 / 42),
+          itemCount: widget.items.length,
+          padding: EdgeInsets.zero,
+          itemBuilder: (context, index) {
+            final item = widget.items[index];
+            final isSelected = _isSelected[index];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isSelected[index] = !isSelected;
+                });
+                if (_isSelected[index]) {
+                  item.onSelected?.call();
+                } else {
+                  item.onUnselected?.call();
+                }
               },
               child: Container(
                 decoration: BoxDecoration(

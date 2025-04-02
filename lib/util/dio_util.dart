@@ -73,6 +73,11 @@ Dio baseDio(BaseOptions options) {
       if (error.statusCode == 404) {
         return false;
       }
+
+      // if (error.statusCode div 100 == 4) {
+      if (error.statusCode >= 400 && error.statusCode < 500) {
+        return false;
+      }
       return true;
     },
     ignoreRetryEvaluatorExceptions: true,

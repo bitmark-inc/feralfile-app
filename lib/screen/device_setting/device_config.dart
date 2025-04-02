@@ -12,6 +12,7 @@ class DeviceConfigItem {
     this.titleStyleOnUnselected,
     this.iconOnUnselected,
     this.onSelected,
+    this.onUnselected,
   });
 
   final String title;
@@ -21,6 +22,7 @@ class DeviceConfigItem {
   final Widget? iconOnUnselected;
 
   final FutureOr<void> Function()? onSelected;
+  final FutureOr<void> Function()? onUnselected;
 }
 
 class SelectDeviceConfigView extends StatefulWidget {

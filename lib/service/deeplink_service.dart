@@ -13,6 +13,7 @@ import 'package:app_links/app_links.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/playlist_activation.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
@@ -214,23 +215,39 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   // handler for link artist deeplink
-  Future<bool> _handleLinkArtistDeeplink(String link) async {
+  Future<void> _handleLinkArtistDeeplink(String link) async {
     log.info('[DeeplinkService] _handleLinkArtistDeeplink');
     final linkArtistPrefix = Constants.linkArtistDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (linkArtistPrefix == null) {
       log.info('[DeeplinkService] _handleLinkArtistDeeplink prefix not found');
-      return false;
+      return;
     }
     final token = link.replaceFirst(linkArtistPrefix, '').split('/')[1];
-    final res = await injector<AuthService>().linkArtist(token);
-    if (res) {
-      unawaited(_navigationService.showLinkArtistSuccess());
-    } else {
-      unawaited(_navigationService
-          .showLinkArtistFailed(Exception('Link artist failed')));
+    try {
+      final res = await injector<AuthService>().linkArtist(token);
+      if (res) {
+        unawaited(_navigationService.showLinkArtistSuccess());
+      } else {
+        unawaited(_navigationService
+            .showLinkArtistFailed(Exception('Link artist failed')));
+      }
+    } on DioException catch (e) {
+      if (e.error is FeralfileError) {
+        final error = e.error as FeralfileError;
+        if (error.isLinkArtistTokenNotFound) {
+          unawaited(_navigationService.showLinkArtistTokenNotFound());
+        } else if (error.isLinkArtistAddressAlreadyLinked) {
+          unawaited(_navigationService.showLinkArtistAddressAlreadyLinked());
+        } else if (error.isLinkArtistUserAlreadyLinked) {
+          unawaited(_navigationService.showLinkArtistAddressNotFound());
+        } else {
+          unawaited(_navigationService.showLinkArtistFailed(e));
+        }
+      }
+    } catch (e) {
+      unawaited(_navigationService.showLinkArtistFailed(e));
     }
-    return res;
   }
 
   // Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {

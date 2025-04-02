@@ -917,4 +917,28 @@ class NavigationService {
       );
     }
   }
+
+  Future<void>? showLinkArtistTokenNotFound() async {
+    await UIHelper.showInfoDialog(
+      context,
+      'Linking Token Expired',
+      '	The token for linking the artist has expired or is missing. Please generate a new token and try again.',
+    );
+  }
+
+  Future<void>? showLinkArtistAddressAlreadyLinked() {
+    return UIHelper.showInfoDialog(
+      context,
+      'Artist Already Linked to Another User',
+      'The artist is already linked to a different user via passkey. If you want to link this artist to a new user, please unlink the previous user first.',
+    );
+  }
+
+  Future<void>? showLinkArtistAddressNotFound() {
+    return UIHelper.showInfoDialog(
+      context,
+      'User Already Has a Linked Artist',
+      'This user already has a linked artist. If you need to link a new artist, please unlink the current one first.',
+    );
+  }
 }
