@@ -23,8 +23,7 @@ class NowDisplaySettingView extends StatefulWidget {
 }
 
 class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
-  late ArtFraming viewMode;
-  late int rotationAngle;
+  late ArtFraming selectedFitment;
   late FFBluetoothDevice? connectedDevice;
   late DisplaySettings settings;
 
@@ -34,46 +33,38 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
     settings = injector<DisplaySettingsService>().getNowDisplaySettings(
       widget.tokenId,
     );
-    viewMode = settings.viewMode ?? ArtFraming.fitToScreen;
-    rotationAngle = settings.rotationAngle ?? 0;
+    selectedFitment = settings.fitment ?? ArtFraming.fitToScreen;
     connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
   }
 
-  OptionItem viewModeOption(ArtFraming mode) {
+  OptionItem fitmentOption(ArtFraming fitment) {
     return OptionItem(
-      title: mode == ArtFraming.fitToScreen ? 'fit'.tr() : 'fill'.tr(),
+      title: fitment == ArtFraming.fitToScreen ? 'fit'.tr() : 'fill'.tr(),
       icon: SvgPicture.asset(
-        mode == viewMode
+        fitment == selectedFitment
             ? 'assets/images/radio_selected.svg'
             : 'assets/images/radio_unselected.svg',
       ),
       onTap: () async {
-        if (mode == viewMode) {
+        if (fitment == selectedFitment) {
           return;
         }
 
         if (connectedDevice == null) {
           log.warning(
-            'NowDisplaySetting: viewModeOption: connectedDevice is null',
+            'NowDisplaySetting: fitmentOption: connectedDevice is null',
           );
           return;
         }
 
         try {
-          await injector<CanvasClientServiceV2>().updateDisplaySettings(
+          await injector<CanvasClientServiceV2>().updateArtFraming(
             connectedDevice!,
-            DisplaySettings(
-              tokenId: widget.tokenId,
-              viewMode: mode,
-            ),
-          );
-
-          await injector<DisplaySettingsService>().updateNowDisplaySetting(
-            settings.copyWith(viewMode: mode),
+            fitment,
           );
 
           setState(() {
-            viewMode = mode;
+            selectedFitment = fitment;
           });
         } catch (e) {
           log.warning(
@@ -94,37 +85,21 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
         onTap: () async {
           if (connectedDevice == null) {
             log.warning(
-              'NowDisplaySetting: viewModeOption: connectedDevice is null',
+              'NowDisplaySetting: fitmentOption: connectedDevice is null',
             );
             return;
           }
 
           try {
-            final newAngle = rotationAngle + 90;
-            await injector<CanvasClientServiceV2>().updateDisplaySettings(
-              connectedDevice!,
-              DisplaySettings(
-                tokenId: widget.tokenId,
-                rotationAngle: newAngle,
-              ),
-            );
-
-            await injector<DisplaySettingsService>().updateNowDisplaySetting(
-              settings.copyWith(
-                rotationAngle: newAngle,
-              ),
-            );
-
-            setState(() {
-              rotationAngle = newAngle;
-            });
+            await injector<CanvasClientServiceV2>()
+                .rotateCanvas(connectedDevice!);
           } catch (e) {
             log.warning('NowDisplaySetting: updateDisplaySettings error: $e');
           }
         },
       ),
-      viewModeOption(ArtFraming.fitToScreen),
-      viewModeOption(ArtFraming.cropToFill),
+      fitmentOption(ArtFraming.fitToScreen),
+      fitmentOption(ArtFraming.cropToFill),
       OptionItem(
         builder: (context, item) {
           return GestureDetector(

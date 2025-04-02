@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:flutter/widgets.dart';
 
 class DisplaySettingsService {
   DisplaySettingsService(this._cloudObject, this._configurationService);
@@ -26,10 +27,10 @@ class DisplaySettingsService {
           injector<FFBluetoothService>().bluetoothDeviceStatus.value;
       return DisplaySettings(
         tokenId: tokenId,
-        viewMode: (deviceStatus?.artFraming == ArtFraming.cropToFill)
+        fitment: (deviceStatus?.artFraming == ArtFraming.cropToFill)
             ? ArtFraming.cropToFill
             : ArtFraming.fitToScreen,
-        rotationAngle: 0,
+        orientation: Orientation.portrait,
       );
     } catch (e) {
       return DisplaySettings.defaultSettings(tokenId);
@@ -57,10 +58,10 @@ class DisplaySettingsService {
           injector<FFBluetoothService>().bluetoothDeviceStatus.value;
       return DisplaySettings(
         tokenId: tokenId,
-        viewMode: (deviceStatus?.artFraming == ArtFraming.cropToFill)
+        fitment: (deviceStatus?.artFraming == ArtFraming.cropToFill)
             ? ArtFraming.cropToFill
             : ArtFraming.fitToScreen,
-        rotationAngle: 0,
+        orientation: Orientation.portrait,
       );
     } catch (e) {
       return DisplaySettings.defaultSettings(tokenId);

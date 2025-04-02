@@ -2,44 +2,46 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:flutter/widgets.dart';
 
 class DisplaySettings implements SettingObject {
   DisplaySettings({
     required this.tokenId,
-    this.viewMode,
-    this.rotationAngle,
+    this.fitment,
+    this.orientation,
   });
   const DisplaySettings.defaultSettings(this.tokenId)
-      : viewMode = ArtFraming.fitToScreen,
-        rotationAngle = 0;
+      : fitment = ArtFraming.fitToScreen,
+        orientation = Orientation.portrait;
 
   factory DisplaySettings.fromJson(Map<String, dynamic> json) =>
       DisplaySettings(
         tokenId: json['tokenId'] != null ? json['tokenId'] as String : '',
-        viewMode: json['viewMode'] != null &&
-                (json['viewMode'] as int) < ArtFraming.values.length
-            ? ArtFraming.values[json['viewMode'] as int]
+        fitment: json['fitment'] != null &&
+                (json['fitment'] as int) < ArtFraming.values.length
+            ? ArtFraming.values[json['fitment'] as int]
             : ArtFraming.fitToScreen,
-        rotationAngle: json['rotationAngle'] as int? ?? 0,
+        orientation:
+            json['orientation'] as Orientation? ?? Orientation.portrait,
       );
-  final ArtFraming? viewMode;
-  final int? rotationAngle;
+  final ArtFraming? fitment;
+  final Orientation? orientation;
   final String tokenId;
 
   DisplaySettings copyWith({
-    ArtFraming? viewMode,
-    int? rotationAngle,
+    ArtFraming? fitment,
+    Orientation? orientation,
   }) =>
       DisplaySettings(
         tokenId: tokenId,
-        viewMode: viewMode ?? this.viewMode,
-        rotationAngle: rotationAngle ?? this.rotationAngle,
+        fitment: fitment ?? this.fitment,
+        orientation: orientation ?? this.orientation,
       );
 
   Map<String, dynamic> toJson() => {
         'tokenId': tokenId,
-        if (viewMode != null) 'viewMode': viewMode!.index,
-        if (rotationAngle != null) 'rotationAngle': rotationAngle,
+        if (fitment != null) 'fitment': fitment!.index,
+        if (orientation != null) 'orientation': orientation!.index,
       };
 
   @override
