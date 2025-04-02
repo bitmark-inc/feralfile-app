@@ -167,6 +167,12 @@ abstract class FeralFileApi {
     List<String> relatedAlumniAccountIDs = const [],
     @Query('includeExhibition') bool includeExhibition = true,
   });
+
+  //api/series/3d56be3c-fa55-4a0d-8a36-f3ea1a1f0bb3/indexer-asset-ids
+  @GET('/api/series/{seriesId}/indexer-asset-ids')
+  Future<List<String>> getIndexerAssetIds({
+    @Path('seriesId') required String seriesId,
+  });
 }
 
 class ActionMessageResponse {

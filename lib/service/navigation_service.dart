@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artist_display_setting.dart';
 import 'package:autonomy_flutter/view/how_to_install_daily_widget_build.dart';
 import 'package:autonomy_flutter/view/now_display_setting.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -856,7 +857,70 @@ class NavigationService {
     _browser.openUrl(googleChatSpaceUrl);
   }
 
-  Future<void> showDeviceSettings(
+  Future<void> showLinkArtistSuccess() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+        context,
+        'link_artist_success'.tr(),
+        'link_artist_success_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
+    }
+  }
+
+  Future<void> showLinkArtistFailed(Object exception) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+        context,
+        'link_artist_failed'.tr(),
+        'link_artist_failed_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
+    }
+  }
+
+  void openArtistDisplaySetting({String? seriesId}) {
+    // show a dialog with ArtistDisplaySettingWidget
+    if (context.mounted) {
+      UIHelper.showCustomDialog(
+        context: context,
+        child: ArtistDisplaySettingWidget(
+          seriesId: seriesId,
+          artistDisplaySetting: null,
+          onSettingChanged: (ArtistDisplaySetting) {},
+        ),
+        isDismissible: true,
+      );
+    }
+  }
+
+  void showArtistDisplaySettingSaved() {
+    if (context.mounted) {
+      UIHelper.showInfoDialog(
+        context,
+        'artist_display_setting_saved'.tr(),
+        'artist_display_setting_saved_desc'.tr(),
+        isDismissible: true,
+      );
+    }
+  }
+
+  void showArtistDisplaySettingSaveFailed({required Object exception}) {
+    if (context.mounted) {
+      UIHelper.showInfoDialog(
+        context,
+        'artist_display_setting_save_failed'.tr(),
+        'artist_display_setting_save_failed_desc'.tr() + ' $exception',
+        isDismissible: true,
+      );
+    }
+  }
+
+    Future<void> showDeviceSettings(
     String tokenID,
   ) async {
     if (navigatorKey.currentState != null &&

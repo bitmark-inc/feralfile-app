@@ -127,6 +127,12 @@ class JWT {
     return claim['sub'] as String;
   }
 
+  List<String> get linkAddresses {
+    final claim = parseJwt(jwtToken);
+    final addresses = claim['linkedAddresses'] as List<dynamic>?;
+    return addresses?.cast<String>() ?? [];
+  }
+
   @override
   String toString() => jwtToken;
 

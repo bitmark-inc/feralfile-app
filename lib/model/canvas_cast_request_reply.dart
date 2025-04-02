@@ -898,6 +898,15 @@ enum ArtFraming {
     }
   }
 
+  String get name {
+    switch (this) {
+      case ArtFraming.fitToScreen:
+        return 'fit';
+      case ArtFraming.cropToFill:
+        return 'fill';
+    }
+  }
+
   static ArtFraming fromValue(int value) {
     switch (value) {
       case 0:
