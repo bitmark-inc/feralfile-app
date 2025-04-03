@@ -7,6 +7,7 @@ class DisplaySettings implements SettingObject {
   DisplaySettings({
     required this.tokenId,
     required this.setting,
+    this.fromArtist = false,
   });
 
   factory DisplaySettings.fromJson(Map<String, dynamic> json) =>
@@ -15,10 +16,12 @@ class DisplaySettings implements SettingObject {
         setting: ArtistDisplaySetting.fromJson(json),
       );
   final String tokenId;
+  final bool? fromArtist;
   final ArtistDisplaySetting setting;
 
   Map<String, dynamic> toJson() => {
         'tokenId': tokenId,
+        'fromArtist': fromArtist,
         ...setting.toJson(),
       };
 

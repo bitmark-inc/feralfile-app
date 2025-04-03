@@ -308,7 +308,10 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
 
     try {
       final displaySettings = DisplaySettings(
-          tokenId: state.tokenId, setting: state.artistDisplaySetting);
+        tokenId: state.tokenId,
+        setting: state.artistDisplaySetting,
+        fromArtist: true,
+      );
       await injector<CanvasClientServiceV2>().updateDisplaySettings(
         connectedDevice,
         displaySettings,
