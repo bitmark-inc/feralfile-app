@@ -29,6 +29,7 @@ final listRouteShouldNotShowNowDisplaying = [
   AppRouter.scanWifiNetworkPage,
   AppRouter.viewExistingAddressPage,
   AppRouter.nameLinkedAccountPage,
+  UIHelper.artistArtworkDisplaySettingModal,
 ];
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {

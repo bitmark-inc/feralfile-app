@@ -66,6 +66,8 @@ class UIHelper {
   static const String ignoreBackLayerPopUpRouteName = 'popUp.ignoreBackLayer';
   static const String homeMenu = 'homeMenu';
   static const String artDisplaySettingModal = 'artDisplaySettingModal';
+  static const String artistArtworkDisplaySettingModal =
+      'artistArtworkDisplaySettingModal';
 
   static Future<dynamic> showDialog(
     BuildContext context,
@@ -1515,11 +1517,12 @@ class UIHelper {
     Color? backgroundColor,
     EdgeInsets? padding,
     BorderRadius? borderRadius,
+    String? name,
   }) async {
     final theme = Theme.of(context);
     return showModalBottomSheet<T>(
       routeSettings: RouteSettings(
-        name: ignoreBackLayerPopUpRouteName,
+        name: name ?? ignoreBackLayerPopUpRouteName,
       ),
       context: context,
       isDismissible: isDismissible,

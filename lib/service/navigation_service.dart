@@ -886,7 +886,7 @@ class NavigationService {
   void openArtistDisplaySetting({String? seriesId, required String tokenId}) {
     // show a dialog with ArtistDisplaySettingWidget
     if (context.mounted) {
-      UIHelper.showCustomDialog(
+      UIHelper.showCustomDialog<void>(
         context: context,
         child: ArtistDisplaySettingWidget(
           tokenId: tokenId,
@@ -895,6 +895,7 @@ class NavigationService {
           onSettingChanged: (ArtistDisplaySetting) {},
         ),
         isDismissible: true,
+        name: UIHelper.artistArtworkDisplaySettingModal,
       );
     }
   }
