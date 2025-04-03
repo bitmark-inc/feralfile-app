@@ -33,20 +33,24 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   @override
   void initState() {
     super.initState();
+    initDeviceSettings();
+    connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
+  }
+
+  void initDeviceSettings() {
     settings = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
-    selectedFitment = settings?.artFraming ?? ArtFraming.fitToScreen;
+    selectedFitment = settings?.artFraming ?? ArtFraming.cropToFill;
     currentOrientation = [
-      ScreenOrientation.landscape,
-      ScreenOrientation.landscapeReverse,
+      ScreenOrientation.portrait,
+      ScreenOrientation.portraitReverse,
     ].contains(
       injector<FFBluetoothService>()
           .bluetoothDeviceStatus
           .value
           ?.screenRotation,
     )
-        ? ScreenOrientation.landscape
-        : ScreenOrientation.portrait;
-    connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
+        ? ScreenOrientation.portrait
+        : ScreenOrientation.landscape;
   }
 
   OptionItem fitmentOption(ArtFraming fitment) {
