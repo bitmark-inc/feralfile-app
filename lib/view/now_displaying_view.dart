@@ -340,7 +340,10 @@ class TokenNowDisplayingView extends StatelessWidget {
                 assetToken.artistTitle;
         return NowDisplayingView(
           onMoreTap: () {
-            injector<NavigationService>().showDeviceSettings();
+            injector<NavigationService>().showDeviceSettings(
+              tokenId: assetToken.id,
+              artistName: artistTitle,
+            );
           },
           thumbnailBuilder: (context) {
             return AspectRatio(
@@ -429,7 +432,10 @@ class NowDisplayingExhibitionView extends StatelessWidget {
                   );
                 }
               : () {
-                  injector<NavigationService>().showDeviceSettings();
+                  injector<NavigationService>().showDeviceSettings(
+                    tokenId: artwork?.indexerTokenId ?? '',
+                    artistName: artwork?.series?.artistAlumni?.alias,
+                  );
                 },
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');

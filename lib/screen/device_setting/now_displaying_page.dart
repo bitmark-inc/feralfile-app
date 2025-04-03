@@ -119,6 +119,24 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     return null;
   }
 
+  String? getArtistName(NowDisplayingStatus? nowDisplayingStatus) {
+    if (nowDisplayingStatus == null ||
+        nowDisplayingStatus is! NowDisplayingSuccess) {
+      return null;
+    }
+
+    final object = nowDisplayingStatus.object;
+    final assetToken =
+        object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
+    if (assetToken != null) {
+      return assetToken.artistName;
+    } else if (object.exhibitionDisplaying?.artwork != null) {
+      return object.exhibitionDisplaying!.artwork?.series?.artistAlumni?.alias;
+    }
+
+    return null;
+  }
+
   Artwork? getArtwork(NowDisplayingStatus? nowDisplayingStatus) {
     if (nowDisplayingStatus == null ||
         nowDisplayingStatus is! NowDisplayingSuccess) {
@@ -145,7 +163,8 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final tokenId = getTokenId(nowDisplayingStatus!);
+    final tokenId = getTokenId(nowDisplayingStatus);
+    final artistName = getArtistName(nowDisplayingStatus);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -164,15 +183,16 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
                 ),
               )
             : null,
-        action: this.isArtist
+        action: isArtist
             ? () {
                 injector<NavigationService>().openArtistDisplaySetting(
                   artwork: getArtwork(nowDisplayingStatus),
                 );
               }
-            : (tokenId != null)
-                ? () => injector<NavigationService>().showDeviceSettings()
-                : null,
+            : () => injector<NavigationService>().showDeviceSettings(
+                  tokenId: tokenId!,
+                  artistName: artistName,
+                ),
       ),
       backgroundColor: AppColor.primaryBlack,
       body: _body(context),

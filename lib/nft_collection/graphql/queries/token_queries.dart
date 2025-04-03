@@ -304,4 +304,26 @@ $offset: Int64! = 0,
 }
 ''';
 
+const String getTokenConfigurations = r'''
+  query getTokensConfigurations($tokenId: String!) {
+  tokens(ids: [$tokenId]) {
+    asset {
+      attributes {
+        configuration {
+          scaling
+          backgroundColor
+          marginLeft
+          marginRight
+          marginTop
+          marginBottom
+          autoPlay
+          looping
+          overridable
+        }
+      }
+    }
+  }
+}
+''';
+
 // query documents to query tokens by owners

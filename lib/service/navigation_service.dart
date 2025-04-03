@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -946,19 +947,25 @@ class NavigationService {
     );
   }
 
-  Future<void> showDeviceSettings() async {
+  Future<void> showDeviceSettings({
+    required String tokenId,
+    String? artistName,
+  }) async {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
         navigatorKey.currentContext != null) {
       if (CustomRouteObserver.bottomSheetVisibility.value) {
         Navigator.pop(navigatorKey.currentContext!);
-        await Future<void>.delayed(const Duration(milliseconds: 150));
       }
+
+      final tokenConfiguration =
+          await injector<IndexerService>().getTokenConfiguration(tokenId);
 
       unawaited(
         UIHelper.showRawDialog(
           navigatorKey.currentContext!,
-          const NowDisplaySettingView(),
+          NowDisplaySettingView(
+              tokenConfiguration: tokenConfiguration, artistName: artistName),
           title: 'device_settings'.tr(),
           name: UIHelper.artDisplaySettingModal,
           isRoundCorner: false,
