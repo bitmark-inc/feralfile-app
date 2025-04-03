@@ -129,9 +129,6 @@ const String getTokens = r'''
       indexID
       thumbnailID
       lastRefreshedTime
-      attributes {
-        scrollable
-      }
       metadata{
         project{
           origin{
@@ -189,7 +186,7 @@ const String getTokens = r'''
         }
       }
     }
-  
+
   }
 }
 ''';
