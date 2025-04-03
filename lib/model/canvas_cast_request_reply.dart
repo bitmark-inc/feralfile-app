@@ -941,7 +941,7 @@ class UpdateArtFramingRequest implements Request {
 
   @override
   Map<String, dynamic> toJson() => {
-        'frameConfig': artFraming.value,
+        'frameConfig': artFraming.name,
       };
 }
 
