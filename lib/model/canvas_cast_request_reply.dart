@@ -3,7 +3,7 @@
 // ignore_for_file: avoid_unused_constructor_parameters
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
+import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -1098,12 +1098,19 @@ class DisableMetricsStreamingReply extends ReplyWithOK {
 }
 
 class UpdateDisplaySettingsRequest implements Request {
-  UpdateDisplaySettingsRequest({required this.displaySettings});
+  UpdateDisplaySettingsRequest(
+      {required this.tokenId, required this.setting, this.isSaved = true});
 
-  final DisplaySettings displaySettings;
+  final String tokenId;
+  final ArtistDisplaySetting setting;
+  final bool isSaved;
 
   @override
-  Map<String, dynamic> toJson() => displaySettings.toJson();
+  Map<String, dynamic> toJson() => {
+        'isSaved': isSaved,
+        ...setting.toJson(),
+        'tokenId': tokenId,
+      };
 }
 
 class UpdateDisplaySettingsReply extends ReplyWithOK {

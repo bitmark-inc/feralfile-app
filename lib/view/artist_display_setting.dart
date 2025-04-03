@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/color_picker.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -19,17 +24,16 @@ import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 
 class ArtistDisplaySettingWidget extends StatefulWidget {
-  ArtistDisplaySettingWidget(
-      {super.key,
-      required this.tokenId,
-      required this.seriesId,
-      required this.artistDisplaySetting,
-      required this.onSettingChanged});
+  const ArtistDisplaySettingWidget({
+    required this.artwork,
+    required this.artistDisplaySetting,
+    required this.onSettingChanged,
+    super.key,
+  });
 
   final ArtistDisplaySetting? artistDisplaySetting;
   final void Function(ArtistDisplaySetting)? onSettingChanged;
-  final String? seriesId;
-  final String tokenId;
+  final Artwork? artwork;
 
   @override
   _ArtistDisplaySettingWidgetState createState() =>
@@ -43,9 +47,14 @@ class _ArtistDisplaySettingWidgetState
   @override
   void initState() {
     super.initState();
-    _bloc = ArtistArtworkDisplaySettingBloc(tokenId: widget.tokenId);
-    _bloc.add(InitArtistArtworkDisplaySettingEvent(
-        widget.artistDisplaySetting ?? ArtistDisplaySetting()));
+    _bloc = ArtistArtworkDisplaySettingBloc(
+      tokenId: widget.artwork?.indexerTokenId ?? '',
+    );
+    _bloc.add(
+      InitArtistArtworkDisplaySettingEvent(
+        widget.artistDisplaySetting ?? ArtistDisplaySetting(),
+      ),
+    );
   }
 
   @override
@@ -60,86 +69,105 @@ class _ArtistDisplaySettingWidgetState
                 state.artistDisplaySetting.artFraming == ArtFraming.fitToScreen;
             final shouldShowBackgroundColour =
                 state.artistDisplaySetting.artFraming == ArtFraming.fitToScreen;
-            final shouldShowPlayback = true;
-            final shouldShowInteractable = true;
+            final shouldShowPlayback = widget.artwork?.series?.isVideo ?? false;
+            final shouldShowInteractable =
+                widget.artwork?.series?.isGenerative ?? false;
             return Padding(
               padding: MediaQuery.of(context).viewInsets,
               child: Stack(
                 children: [
-                  CustomScrollView(shrinkWrap: true, slivers: [
-                    SliverToBoxAdapter(
-                      child: _header(context),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: Divider(
-                          height: 16.0,
+                  CustomScrollView(
+                    shrinkWrap: true,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: _header(context),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: Divider(
+                          height: 16,
                           color: AppColor.primaryBlack,
-                          thickness: 2),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 8.0),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _orientationSetting(context,
-                          value: state.artistDisplaySetting.screenOrientation),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16.0),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _artFramingSetting(context,
-                          value: state.artistDisplaySetting.artFraming),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16.0),
-                    ),
-                    if (shouldShowBackgroundColour) ...[
-                      SliverToBoxAdapter(
-                        child: _backgroundColourSetting(context,
-                            value: state.artistDisplaySetting.backgroundColour),
+                          thickness: 2,
+                        ),
                       ),
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 16.0),
+                        child: SizedBox(height: 8),
                       ),
-                    ],
-                    if (shouldShowMargin) ...[
                       SliverToBoxAdapter(
-                        child: _marginSetting(context,
-                            value: state.artistDisplaySetting.margin),
+                        child: _orientationSetting(
+                          context,
+                          value: state.artistDisplaySetting.screenOrientation,
+                        ),
                       ),
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 16.0),
+                        child: SizedBox(height: 16),
                       ),
-                    ],
-                    if (shouldShowPlayback) ...[
                       SliverToBoxAdapter(
-                        child: _playbackSetting(context,
+                        child: _artFramingSetting(
+                          context,
+                          value: state.artistDisplaySetting.artFraming,
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 16),
+                      ),
+                      if (shouldShowBackgroundColour) ...[
+                        SliverToBoxAdapter(
+                          child: _backgroundColourSetting(
+                            context,
+                            value: state.artistDisplaySetting.backgroundColour,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 16),
+                        ),
+                      ],
+                      if (shouldShowMargin) ...[
+                        SliverToBoxAdapter(
+                          child: _marginSetting(
+                            context,
+                            value: state.artistDisplaySetting.margin,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 16),
+                        ),
+                      ],
+                      if (shouldShowPlayback) ...[
+                        SliverToBoxAdapter(
+                          child: _playbackSetting(
+                            context,
                             isAutoPlay: state.artistDisplaySetting.autoPlay,
-                            isLoop: state.artistDisplaySetting.loop),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 16.0),
-                      ),
-                    ],
-                    if (shouldShowInteractable) ...[
+                            isLoop: state.artistDisplaySetting.loop,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 16),
+                        ),
+                      ],
+                      if (shouldShowInteractable) ...[
+                        SliverToBoxAdapter(
+                          child: _interactableSetting(
+                            context,
+                            value: state.artistDisplaySetting.interactable,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 16),
+                        ),
+                      ],
                       SliverToBoxAdapter(
-                        child: _interactableSetting(context,
-                            value: state.artistDisplaySetting.interactable),
+                        child: _viewerOverrideSetting(
+                          context,
+                          value: state.artistDisplaySetting.overridable,
+                        ),
                       ),
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 16.0),
+                        child: SizedBox(height: 100),
                       ),
                     ],
-                    SliverToBoxAdapter(
-                      child: _viewerOverrideSetting(context,
-                          value: state.artistDisplaySetting.overridable),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 60),
-                    )
-                  ]),
+                  ),
                   Positioned(
-                    bottom: 0,
+                    bottom: 20,
                     left: 0,
                     right: 0,
                     child: _saveButton(context),
@@ -157,11 +185,25 @@ class _ArtistDisplaySettingWidgetState
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: PrimaryAsyncButton(
-        color: Colors.amber,
+        color: Colors.transparent,
         text: 'Save',
-        onTap: () {
+        textColor: AppColor.white,
+        borderColor: AppColor.white,
+        onTap: () async {
+          final completer = Completer<void>();
           _bloc.add(
-              SaveArtistArtworkDisplaySettingEvent(seriesId: widget.seriesId));
+            SaveArtistArtworkDisplaySettingEvent(
+              seriesId: widget.artwork?.seriesID,
+              onSuccess: () {
+                completer.complete();
+              },
+              onError: (error) {
+                log.info('Error saving display setting: $error');
+                completer.complete();
+              },
+            ),
+          );
+          await completer.future;
         },
       ),
     );
@@ -173,14 +215,14 @@ class _ArtistDisplaySettingWidgetState
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: Text(
               'Artist Display Setting',
               style: theme.textTheme.ppMori700White14,
             ),
           ),
         ),
-        const SizedBox(width: 8.0),
+        const SizedBox(width: 8),
         GestureDetector(
           onTap: () {
             Navigator.of(context).pop();
@@ -196,21 +238,22 @@ class _ArtistDisplaySettingWidgetState
   }
 
   Widget _orientationSetting(BuildContext context, {ScreenOrientation? value}) {
-    final selectedIndex = value == ScreenOrientation.landscape ? 1 : 0;
+    final selectedIndex = value == ScreenOrientation.portrait ? 1 : 0;
     return ArtistSettingItemWidget(
       settingName: 'Orientation',
       items: [
-        DeviceConfigItem(
-            title: 'Portrait',
-            icon: SvgPicture.asset('assets/images/Rec_portrait.svg'),
-            onSelected: () {
-              _bloc.add(UpdateOrientationEvent(ScreenOrientation.portrait));
-            }),
         DeviceConfigItem(
           title: 'Landscape',
           icon: SvgPicture.asset('assets/images/Rec_landscape.svg'),
           onSelected: () {
             _bloc.add(UpdateOrientationEvent(ScreenOrientation.landscape));
+          },
+        ),
+        DeviceConfigItem(
+          title: 'Portrait',
+          icon: SvgPicture.asset('assets/images/Rec_portrait.svg'),
+          onSelected: () {
+            _bloc.add(UpdateOrientationEvent(ScreenOrientation.portrait));
           },
         ),
       ],
@@ -225,18 +268,26 @@ class _ArtistDisplaySettingWidgetState
       items: [
         DeviceConfigItem(
           title: 'Fill',
-          icon: SvgPicture.asset('assets/images/Rec_landscape.svg',
-              colorFilter: const ColorFilter.mode(
-                  AppColor.primaryBlack, BlendMode.srcIn)),
+          icon: SvgPicture.asset(
+            'assets/images/Rec_landscape.svg',
+            colorFilter: const ColorFilter.mode(
+              AppColor.primaryBlack,
+              BlendMode.srcIn,
+            ),
+          ),
           onSelected: () {
             _bloc.add(UpdateArtFramingEvent(ArtFraming.cropToFill));
           },
         ),
         DeviceConfigItem(
           title: 'Fit',
-          icon: SvgPicture.asset('assets/images/Rec_landscape.svg',
-              colorFilter: const ColorFilter.mode(
-                  AppColor.primaryBlack, BlendMode.srcIn)),
+          icon: SvgPicture.asset(
+            'assets/images/fitment.svg',
+            colorFilter: const ColorFilter.mode(
+              AppColor.primaryBlack,
+              BlendMode.srcIn,
+            ),
+          ),
           onSelected: () {
             _bloc.add(UpdateArtFramingEvent(ArtFraming.fitToScreen));
           },
@@ -280,8 +331,11 @@ class _ArtistDisplaySettingWidgetState
     );
   }
 
-  Widget _playbackSetting(BuildContext context,
-      {bool? isAutoPlay, bool? isLoop}) {
+  Widget _playbackSetting(
+    BuildContext context, {
+    bool? isAutoPlay,
+    bool? isLoop,
+  }) {
     final selectedIndex = isAutoPlay == true ? 0 : 1;
     final theme = Theme.of(context);
     return ArtistMultiSettingItemWidget(
@@ -348,11 +402,12 @@ class _ArtistDisplaySettingWidgetState
 }
 
 class ArtistSettingItemWidget extends StatefulWidget {
-  const ArtistSettingItemWidget(
-      {super.key,
-      required this.items,
-      required this.selectedIndex,
-      required this.settingName});
+  const ArtistSettingItemWidget({
+    required this.items,
+    required this.selectedIndex,
+    required this.settingName,
+    super.key,
+  });
 
   final List<DeviceConfigItem> items;
   final int selectedIndex;
@@ -382,19 +437,20 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
         Row(
           children: [
             Text(widget.settingName, style: theme.textTheme.ppMori400White12),
-            const SizedBox(width: 8.0),
+            const SizedBox(width: 8),
             Text(selectedItem.title, style: theme.textTheme.ppMori400Grey12),
           ],
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 8),
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 168.5 / 42),
+            crossAxisCount: 2,
+            mainAxisSpacing: 15,
+            crossAxisSpacing: 15,
+            childAspectRatio: 168.5 / 42,
+          ),
           itemCount: widget.items.length,
           padding: EdgeInsets.zero,
           itemBuilder: (context, index) {
@@ -409,7 +465,7 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(8),
                   color: isSelected ? AppColor.white : AppColor.disabledColor,
                 ),
                 child: Center(
@@ -427,11 +483,12 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
 }
 
 class ArtistMultiSettingItemWidget extends StatefulWidget {
-  const ArtistMultiSettingItemWidget(
-      {super.key,
-      required this.items,
-      required this.selectedIndex,
-      required this.settingName});
+  const ArtistMultiSettingItemWidget({
+    required this.items,
+    required this.selectedIndex,
+    required this.settingName,
+    super.key,
+  });
 
   final List<DeviceConfigItem> items;
   final int selectedIndex;
@@ -450,7 +507,9 @@ class _ArtistMultiSettingItemWidgetState
   void initState() {
     super.initState();
     _isSelected = List.generate(
-        widget.items.length, (index) => index == widget.selectedIndex);
+      widget.items.length,
+      (index) => index == widget.selectedIndex,
+    );
   }
 
   @override
@@ -463,15 +522,16 @@ class _ArtistMultiSettingItemWidgetState
             Text(widget.settingName, style: theme.textTheme.ppMori400White12),
           ],
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 8),
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 168.5 / 42),
+            crossAxisCount: 2,
+            mainAxisSpacing: 15,
+            crossAxisSpacing: 15,
+            childAspectRatio: 168.5 / 42,
+          ),
           itemCount: widget.items.length,
           padding: EdgeInsets.zero,
           itemBuilder: (context, index) {
@@ -490,7 +550,7 @@ class _ArtistMultiSettingItemWidgetState
               },
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(8),
                   color: isSelected ? AppColor.white : AppColor.disabledColor,
                 ),
                 child: Center(
@@ -508,8 +568,11 @@ class _ArtistMultiSettingItemWidgetState
 }
 
 class ColorSettingWidget extends StatefulWidget {
-  const ColorSettingWidget(
-      {super.key, required this.onColorChanged, required this.initialColor});
+  const ColorSettingWidget({
+    required this.onColorChanged,
+    required this.initialColor,
+    super.key,
+  });
 
   final Color initialColor;
 
@@ -545,46 +608,49 @@ class _ColorSettingWidgetState extends State<ColorSettingWidget> {
         Row(
           children: [
             Expanded(
-              child: Text('Background Color',
-                  style: Theme.of(context).textTheme.ppMori400White12),
+              child: Text(
+                'Background Color',
+                style: Theme.of(context).textTheme.ppMori400White12,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: GestureDetector(
                 onTap: () async {
                   final color = await UIHelper.showCustomDialog<Color>(
-                      context: context,
-                      child: ColorPickerView(
-                        initialColor: _selectedColor,
-                        onColorChanged: (color) {
-                          setState(() {
-                            _selectedColor = color;
-                            _controller.text = color.toHex();
-                          });
-                          widget.onColorChanged(_selectedColor);
-                        },
-                      ));
+                    context: context,
+                    child: ColorPickerView(
+                      initialColor: _selectedColor,
+                      onColorChanged: (color) {
+                        setState(() {
+                          _selectedColor = color;
+                          _controller.text = color.toHex();
+                        });
+                        widget.onColorChanged(_selectedColor);
+                      },
+                    ),
+                  );
                   log.info('Color: $color');
                 },
                 child: AspectRatio(
                   aspectRatio: 168.5 / 42,
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(8),
                       color: _selectedColor,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 16.0),
-            Expanded(child: _colorTextField(context, _selectedColor))
+            const SizedBox(width: 16),
+            Expanded(child: _colorTextField(context, _selectedColor)),
           ],
-        )
+        ),
       ],
     );
   }
@@ -595,20 +661,31 @@ class _ColorSettingWidgetState extends State<ColorSettingWidget> {
       decoration: InputDecoration(
         filled: true,
         fillColor: AppColor.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
       ),
       textAlign: TextAlign.center,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^#?[0-9A-Fa-f]{0,6}$')),
+        // Allows # at start + max 6 hex chars
+        // LengthLimitingTextInputFormatter(7),
+        // Ensures # + 6 characters max
+      ],
       style: Theme.of(context).textTheme.ppMori400Black12,
       onSubmitted: (value) {
-        final color = ColorExt.fromHex(value);
-        setState(() {
-          _selectedColor = color;
-        });
-        widget.onColorChanged(color);
+        try {
+          final color = ColorExt.fromHex(value);
+          setState(() {
+            _selectedColor = color;
+          });
+          widget.onColorChanged(color);
+        } catch (e) {
+          log.info('Invalid color format: $value');
+          // Handle invalid color format
+        }
       },
     );
   }
@@ -619,24 +696,26 @@ extension ColorExt on Color {
   // example: Colors.white.toHex() => '#FFFFFF'
 
   String toHex() {
-    return '#${value.toRadixString(16).substring(2).toUpperCase()}';
+    return '#${(value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 
   // Convert a hex string to a color
   // example: Color.fromHex('#FFFFFF') => Colors.white
   static Color fromHex(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 6 || hex.length == 7) buffer.write('ff');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
+    final hexWithoutHash = hex.replaceFirst('#', '');
+    final formattedHex = hexWithoutHash.padRight(6, '0');
+    return Color(int.parse(formattedHex.padLeft(8, 'F'), radix: 16));
   }
 }
 
 enum MarginType { left, top, right, bottom }
 
 class MarginSettingWidget extends StatefulWidget {
-  const MarginSettingWidget(
-      {super.key, required this.onMarginChanged, required this.initialMargin});
+  const MarginSettingWidget({
+    required this.onMarginChanged,
+    required this.initialMargin,
+    super.key,
+  });
 
   final EdgeInsets initialMargin;
 
@@ -692,18 +771,26 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
   }
 
   final icons = [
-    SvgPicture.asset('assets/images/margin_left.svg',
-        colorFilter:
-            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
-    SvgPicture.asset('assets/images/margin_top.svg',
-        colorFilter:
-            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
-    SvgPicture.asset('assets/images/margin_right.svg',
-        colorFilter:
-            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
-    SvgPicture.asset('assets/images/margin_bottom.svg',
-        colorFilter:
-            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
+    SvgPicture.asset(
+      'assets/images/margin_left.svg',
+      colorFilter:
+          const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+    ),
+    SvgPicture.asset(
+      'assets/images/margin_top.svg',
+      colorFilter:
+          const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+    ),
+    SvgPicture.asset(
+      'assets/images/margin_right.svg',
+      colorFilter:
+          const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+    ),
+    SvgPicture.asset(
+      'assets/images/margin_bottom.svg',
+      colorFilter:
+          const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+    ),
   ];
 
   @override
@@ -724,20 +811,23 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
         Row(
           children: [
             Expanded(
-              child: Text('Margin',
-                  style: Theme.of(context).textTheme.ppMori400White12),
+              child: Text(
+                'Margin',
+                style: Theme.of(context).textTheme.ppMori400White12,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 8),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 79.25 / 42),
+            crossAxisCount: 4,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 79.25 / 42,
+          ),
           itemCount: 4,
           itemBuilder: (BuildContext context, int index) {
             final icon = icons[index];
@@ -745,7 +835,7 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
               onTap: () {},
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(8),
                   color: AppColor.white,
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -763,9 +853,9 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
                           filled: true,
                           fillColor: AppColor.white,
                           contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8.0),
+                              const EdgeInsets.symmetric(horizontal: 8),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
+                            borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
                           ),
                         ),
@@ -777,14 +867,14 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.ppMori400Black12,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
             );
           },
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 8),
         _slider(context),
       ],
     );
@@ -827,10 +917,10 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
   Widget _slider(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(8),
         color: AppColor.white,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
       child: FFHorizontalSlider(
         value: getMarginValue(),
         min: -100,
@@ -845,19 +935,20 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
 }
 
 class FFHorizontalSlider extends StatefulWidget {
-  const FFHorizontalSlider(
-      {super.key,
-      required this.min,
-      required this.max,
-      required this.value,
-      required this.interval,
-      required this.onChanged});
+  const FFHorizontalSlider({
+    required this.min,
+    required this.max,
+    required this.value,
+    required this.interval,
+    required this.onChanged,
+    super.key,
+  });
 
   final double min;
   final double max;
   final double value;
   final double interval;
-  final Function(double) onChanged;
+  final void Function(double) onChanged;
 
   @override
   _FFHorizontalSliderState createState() => _FFHorizontalSliderState();
@@ -882,14 +973,15 @@ class _FFHorizontalSliderState extends State<FFHorizontalSlider> {
   Widget build(BuildContext context) {
     return SfSliderTheme(
       data: const SfSliderThemeData(
-          activeTrackHeight: 2,
-          inactiveTrackHeight: 2,
-          tickSize: Size(2, 24),
-          tickOffset: Offset(0, -12),
-          activeTickColor: AppColor.primaryBlack,
-          inactiveTickColor: AppColor.primaryBlack,
-          overlayColor: Colors.green,
-          overlayRadius: 0),
+        activeTrackHeight: 2,
+        inactiveTrackHeight: 2,
+        tickSize: Size(2, 24),
+        tickOffset: Offset(0, -12),
+        activeTickColor: AppColor.primaryBlack,
+        inactiveTickColor: AppColor.primaryBlack,
+        overlayColor: Colors.green,
+        overlayRadius: 0,
+      ),
       child: SfSlider(
         value: _value,
         min: widget.min,

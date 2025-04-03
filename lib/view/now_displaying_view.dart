@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -339,9 +340,7 @@ class TokenNowDisplayingView extends StatelessWidget {
                 assetToken.artistTitle;
         return NowDisplayingView(
           onMoreTap: () {
-            injector<NavigationService>().showDeviceSettings(
-              assetToken.id,
-            );
+            injector<NavigationService>().showDeviceSettings();
           },
           thumbnailBuilder: (context) {
             return AspectRatio(
@@ -416,14 +415,22 @@ class NowDisplayingExhibitionView extends StatelessWidget {
           ?.copyWith(exhibition: exhibition),
     );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
+    final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
+    final isUserArtist = artistAddresses == null
+        ? false
+        : injector<AuthService>().isLinkArtist(artistAddresses);
     return NowDisplayingView(
       onMoreTap: artwork?.indexerTokenId == null
           ? null
-          : () {
-              injector<NavigationService>().showDeviceSettings(
-                artwork!.indexerTokenId!,
-              );
-            },
+          : isUserArtist
+              ? () {
+                  injector<NavigationService>().openArtistDisplaySetting(
+                    artwork: artwork!,
+                  );
+                }
+              : () {
+                  injector<NavigationService>().showDeviceSettings();
+                },
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },

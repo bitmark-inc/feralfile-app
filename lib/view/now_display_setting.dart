@@ -17,8 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class NowDisplaySettingView extends StatefulWidget {
-  const NowDisplaySettingView({required this.tokenId, super.key});
-  final String tokenId;
+  const NowDisplaySettingView({super.key});
 
   @override
   State<NowDisplaySettingView> createState() => _NowDisplaySettingViewState();

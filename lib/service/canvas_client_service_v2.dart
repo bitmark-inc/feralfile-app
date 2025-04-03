@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -336,13 +336,14 @@ class CanvasClientServiceV2 {
     );
   }
 
-  Future<void> updateDisplaySettings(
-    BaseDevice device,
-    DisplaySettings displaySettings,
-  ) async {
+  Future<void> updateDisplaySettings(BaseDevice device,
+      ArtistDisplaySetting displaySettings, final String tokenId,
+      {bool isSaved = false}) async {
     final stub = _getStub(device);
     final request = UpdateDisplaySettingsRequest(
-      displaySettings: displaySettings,
+      setting: displaySettings,
+      tokenId: tokenId,
+      isSaved: isSaved,
     );
     final response = await stub.updateDisplaySettings(request);
     log.info(

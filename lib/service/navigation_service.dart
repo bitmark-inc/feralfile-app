@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -883,14 +884,13 @@ class NavigationService {
     }
   }
 
-  void openArtistDisplaySetting({String? seriesId, required String tokenId}) {
+  Future<void> openArtistDisplaySetting({Artwork? artwork}) async {
     // show a dialog with ArtistDisplaySettingWidget
     if (context.mounted) {
       UIHelper.showCustomDialog<void>(
         context: context,
         child: ArtistDisplaySettingWidget(
-          tokenId: tokenId,
-          seriesId: seriesId,
+          artwork: artwork,
           artistDisplaySetting: null,
           onSettingChanged: (ArtistDisplaySetting) {},
         ),
@@ -904,8 +904,8 @@ class NavigationService {
     if (context.mounted) {
       UIHelper.showInfoDialog(
         context,
-        'artist_display_setting_saved'.tr(),
-        'artist_display_setting_saved_desc'.tr(),
+        'Artwork Settings Updated',
+        'Your artwork settings have been successfully saved.',
         isDismissible: true,
       );
     }
@@ -915,8 +915,8 @@ class NavigationService {
     if (context.mounted) {
       UIHelper.showInfoDialog(
         context,
-        'artist_display_setting_save_failed'.tr(),
-        'artist_display_setting_save_failed_desc'.tr() + ' $exception',
+        'Failed to Save Artwork Settings',
+        'Unable to save the artwork settings. '.tr() + ' $exception',
         isDismissible: true,
       );
     }
@@ -946,9 +946,7 @@ class NavigationService {
     );
   }
 
-  Future<void> showDeviceSettings(
-    String tokenID,
-  ) async {
+  Future<void> showDeviceSettings() async {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -960,7 +958,7 @@ class NavigationService {
       unawaited(
         UIHelper.showRawDialog(
           navigatorKey.currentContext!,
-          NowDisplaySettingView(tokenId: tokenID),
+          const NowDisplaySettingView(),
           title: 'device_settings'.tr(),
           name: UIHelper.artDisplaySettingModal,
           isRoundCorner: false,

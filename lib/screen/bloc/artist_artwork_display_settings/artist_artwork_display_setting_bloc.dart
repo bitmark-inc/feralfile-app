@@ -1,7 +1,8 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -14,6 +15,17 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ArtistDisplaySetting {
+  ArtistDisplaySetting({
+    this.screenOrientation = ScreenOrientation.portrait,
+    this.artFraming = ArtFraming.cropToFill,
+    this.backgroundColour = AppColor.primaryBlack,
+    this.margin = EdgeInsets.zero,
+    this.autoPlay = true,
+    this.loop = true,
+    this.interactable = true,
+    this.overridable = true,
+  });
+
   // fromJson
   factory ArtistDisplaySetting.fromJson(Map<String, dynamic> json) {
     return ArtistDisplaySetting(
@@ -33,17 +45,6 @@ class ArtistDisplaySetting {
       overridable: json['overridable'] as bool,
     );
   }
-
-  ArtistDisplaySetting({
-    this.screenOrientation = ScreenOrientation.portrait,
-    this.artFraming = ArtFraming.fitToScreen,
-    this.backgroundColour = AppColor.primaryBlack,
-    this.margin = const EdgeInsets.all(0.0),
-    this.autoPlay = true,
-    this.loop = true,
-    this.interactable = true,
-    this.overridable = true,
-  });
 
   final ScreenOrientation screenOrientation;
   final ArtFraming artFraming;
@@ -185,8 +186,11 @@ class UpdateOverridableEvent extends ArtistArtworkDisplaySettingEvent {
 
 class SaveArtistArtworkDisplaySettingEvent
     extends ArtistArtworkDisplaySettingEvent {
-  SaveArtistArtworkDisplaySettingEvent(
-      {this.seriesId, this.onSuccess, this.onError});
+  SaveArtistArtworkDisplaySettingEvent({
+    this.seriesId,
+    this.onSuccess,
+    this.onError,
+  });
 
   final String? seriesId;
   final void Function()? onSuccess;
@@ -196,12 +200,19 @@ class SaveArtistArtworkDisplaySettingEvent
 class ArtistArtworkDisplaySettingBloc extends AuBloc<
     ArtistArtworkDisplaySettingEvent, ArtistArtworkDisplaySettingState> {
   ArtistArtworkDisplaySettingBloc({required String tokenId})
-      : super(ArtistArtworkDisplaySettingState(
-            tokenId: tokenId, artistDisplaySetting: ArtistDisplaySetting())) {
+      : super(
+          ArtistArtworkDisplaySettingState(
+            tokenId: tokenId,
+            artistDisplaySetting: ArtistDisplaySetting(),
+          ),
+        ) {
     on<InitArtistArtworkDisplaySettingEvent>((event, emit) {
-      emit(ArtistArtworkDisplaySettingState(
+      emit(
+        ArtistArtworkDisplaySettingState(
           tokenId: state.tokenId,
-          artistDisplaySetting: event.artistDisplaySetting));
+          artistDisplaySetting: event.artistDisplaySetting,
+        ),
+      );
       updateToDevice();
     });
 
@@ -209,8 +220,12 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
       final newSetting = state.artistDisplaySetting.copyWith(
         screenOrientation: event.screenOrientation,
       );
-      emit(ArtistArtworkDisplaySettingState(
-          tokenId: state.tokenId, artistDisplaySetting: newSetting));
+      emit(
+        ArtistArtworkDisplaySettingState(
+          tokenId: state.tokenId,
+          artistDisplaySetting: newSetting,
+        ),
+      );
       updateToDevice();
     });
 
@@ -285,18 +300,31 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
             .configureArtwork(listAssetIds, state.artistDisplaySetting);
 
         log.info(
-            'SaveArtistArtworkDisplaySettingEvent] saved artist artwork display setting');
+          'SaveArtistArtworkDisplaySettingEvent] saved artist artwork display setting',
+        );
         injector<NavigationService>().showArtistDisplaySettingSaved();
+        event.onSuccess?.call();
       } catch (e) {
         log.info(
-            'SaveArtistArtworkDisplaySettingEvent] save artist artwork display setting, error: $e');
+          'SaveArtistArtworkDisplaySettingEvent] save artist artwork display setting, error: $e',
+        );
+        event.onError?.call(e);
         injector<NavigationService>()
             .showArtistDisplaySettingSaveFailed(exception: e);
       }
     });
   }
 
-  Future<void> updateToDevice() async {
+  Timer? _timer;
+
+  Future<void> updateToDevice({bool isSaved = false}) async {
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 100), () {
+      _updateToDevice(isSaved: isSaved);
+    });
+  }
+
+  Future<void> _updateToDevice({bool isSaved = false}) async {
     final connectedDevice =
         injector<FFBluetoothService>().castingBluetoothDevice;
     if (connectedDevice == null) {
@@ -307,14 +335,11 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     }
 
     try {
-      final displaySettings = DisplaySettings(
-        tokenId: state.tokenId,
-        setting: state.artistDisplaySetting,
-        fromArtist: true,
-      );
       await injector<CanvasClientServiceV2>().updateDisplaySettings(
         connectedDevice,
-        displaySettings,
+        state.artistDisplaySetting,
+        state.tokenId,
+        isSaved: isSaved,
       );
     } catch (e) {
       log.warning('ArtistArtworkDisplaySettingBloc: updateToDevice error: $e');

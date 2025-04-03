@@ -190,7 +190,9 @@ class _FFColorPickerState extends State<FFColorPicker> {
   }
 
   void onColorChanging(HSVColor color) {
-    setState(() => currentHsvColor = color);
+    if (mounted) {
+      setState(() => currentHsvColor = color);
+    }
     final rgbColor = currentHsvColor.toColor();
     colorControllers[0].text = rgbColor.red.toString();
     colorControllers[1].text = rgbColor.green.toString();
