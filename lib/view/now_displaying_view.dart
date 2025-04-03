@@ -338,7 +338,11 @@ class TokenNowDisplayingView extends StatelessWidget {
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
         return NowDisplayingView(
-          tokenID: assetToken.id,
+          onMoreTap: () {
+            injector<NavigationService>().showDeviceSettings(
+              assetToken.id,
+            );
+          },
           thumbnailBuilder: (context) {
             return AspectRatio(
               aspectRatio: 1,
@@ -413,7 +417,13 @@ class NowDisplayingExhibitionView extends StatelessWidget {
     );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     return NowDisplayingView(
-      tokenID: artwork?.indexerTokenId ?? '',
+      onMoreTap: artwork?.indexerTokenId == null
+          ? null
+          : () {
+              injector<NavigationService>().showDeviceSettings(
+                artwork!.indexerTokenId!,
+              );
+            },
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
@@ -465,13 +475,13 @@ class NowDisplayingView extends StatelessWidget {
   const NowDisplayingView({
     required this.thumbnailBuilder,
     required this.titleBuilder,
-    required this.tokenID,
+    this.onMoreTap,
     super.key,
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
-  final String tokenID;
+  final void Function()? onMoreTap;
 
   @override
   Widget build(BuildContext context) {
@@ -508,11 +518,9 @@ class NowDisplayingView extends StatelessWidget {
               ],
             ),
           ),
-          if (tokenID.isNotEmpty)
+          if (onMoreTap != null)
             IconButton(
-              onPressed: () => injector<NavigationService>().showDeviceSettings(
-                tokenID,
-              ),
+              onPressed: onMoreTap,
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,

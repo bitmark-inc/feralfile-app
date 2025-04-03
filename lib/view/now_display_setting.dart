@@ -1,11 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/display_settings_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -25,15 +24,13 @@ class NowDisplaySettingView extends StatefulWidget {
 class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming selectedFitment;
   late FFBluetoothDevice? connectedDevice;
-  late DisplaySettings settings;
+  late BluetoothDeviceStatus? settings;
 
   @override
   void initState() {
     super.initState();
-    settings = injector<DisplaySettingsService>().getNowDisplaySettings(
-      widget.tokenId,
-    );
-    selectedFitment = settings.fitment ?? ArtFraming.fitToScreen;
+    settings = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+    selectedFitment = settings?.artFraming ?? ArtFraming.fitToScreen;
     connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
   }
 

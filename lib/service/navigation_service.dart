@@ -883,12 +883,13 @@ class NavigationService {
     }
   }
 
-  void openArtistDisplaySetting({String? seriesId}) {
+  void openArtistDisplaySetting({String? seriesId, required String tokenId}) {
     // show a dialog with ArtistDisplaySettingWidget
     if (context.mounted) {
       UIHelper.showCustomDialog(
         context: context,
         child: ArtistDisplaySettingWidget(
+          tokenId: tokenId,
           seriesId: seriesId,
           artistDisplaySetting: null,
           onSettingChanged: (ArtistDisplaySetting) {},
@@ -944,7 +945,7 @@ class NavigationService {
     );
   }
 
-    Future<void> showDeviceSettings(
+  Future<void> showDeviceSettings(
     String tokenID,
   ) async {
     if (navigatorKey.currentState != null &&

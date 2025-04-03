@@ -907,6 +907,17 @@ enum ArtFraming {
     }
   }
 
+  static ArtFraming fromString(String framing) {
+    switch (framing) {
+      case 'fit':
+        return ArtFraming.fitToScreen;
+      case 'fill':
+        return ArtFraming.cropToFill;
+      default:
+        throw ArgumentError('Unknown framing: $framing');
+    }
+  }
+
   static ArtFraming fromValue(int value) {
     switch (value) {
       case 0:
@@ -1088,6 +1099,7 @@ class DisableMetricsStreamingReply extends ReplyWithOK {
 
 class UpdateDisplaySettingsRequest implements Request {
   UpdateDisplaySettingsRequest({required this.displaySettings});
+
   final DisplaySettings displaySettings;
 
   @override

@@ -1,47 +1,25 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:flutter/widgets.dart';
+import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 
 class DisplaySettings implements SettingObject {
   DisplaySettings({
     required this.tokenId,
-    this.fitment,
-    this.orientation,
+    required this.setting,
   });
-  const DisplaySettings.defaultSettings(this.tokenId)
-      : fitment = ArtFraming.fitToScreen,
-        orientation = Orientation.portrait;
 
   factory DisplaySettings.fromJson(Map<String, dynamic> json) =>
       DisplaySettings(
         tokenId: json['tokenId'] != null ? json['tokenId'] as String : '',
-        fitment: json['fitment'] != null &&
-                (json['fitment'] as int) < ArtFraming.values.length
-            ? ArtFraming.values[json['fitment'] as int]
-            : ArtFraming.fitToScreen,
-        orientation:
-            json['orientation'] as Orientation? ?? Orientation.portrait,
+        setting: ArtistDisplaySetting.fromJson(json),
       );
-  final ArtFraming? fitment;
-  final Orientation? orientation;
   final String tokenId;
-
-  DisplaySettings copyWith({
-    ArtFraming? fitment,
-    Orientation? orientation,
-  }) =>
-      DisplaySettings(
-        tokenId: tokenId,
-        fitment: fitment ?? this.fitment,
-        orientation: orientation ?? this.orientation,
-      );
+  final ArtistDisplaySetting setting;
 
   Map<String, dynamic> toJson() => {
         'tokenId': tokenId,
-        if (fitment != null) 'fitment': fitment!.index,
-        if (orientation != null) 'orientation': orientation!.index,
+        ...setting.toJson(),
       };
 
   @override

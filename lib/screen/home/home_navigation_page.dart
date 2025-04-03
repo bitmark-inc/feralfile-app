@@ -185,7 +185,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.scan,
             ),
             onTap: () {
-              injector<NavigationService>().openArtistDisplaySetting();
+              injector<NavigationService>()
+                  .openArtistDisplaySetting(tokenId: '');
             },
           ),
           OptionItem(

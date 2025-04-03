@@ -3,11 +3,14 @@ import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/art
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/range_input_formatter.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/color_picker.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -18,6 +21,7 @@ import 'package:syncfusion_flutter_sliders/sliders.dart';
 class ArtistDisplaySettingWidget extends StatefulWidget {
   ArtistDisplaySettingWidget(
       {super.key,
+      required this.tokenId,
       required this.seriesId,
       required this.artistDisplaySetting,
       required this.onSettingChanged});
@@ -25,6 +29,7 @@ class ArtistDisplaySettingWidget extends StatefulWidget {
   final ArtistDisplaySetting? artistDisplaySetting;
   final void Function(ArtistDisplaySetting)? onSettingChanged;
   final String? seriesId;
+  final String tokenId;
 
   @override
   _ArtistDisplaySettingWidgetState createState() =>
@@ -38,7 +43,7 @@ class _ArtistDisplaySettingWidgetState
   @override
   void initState() {
     super.initState();
-    _bloc = ArtistArtworkDisplaySettingBloc();
+    _bloc = ArtistArtworkDisplaySettingBloc(tokenId: widget.tokenId);
     _bloc.add(InitArtistArtworkDisplaySettingEvent(
         widget.artistDisplaySetting ?? ArtistDisplaySetting()));
   }
@@ -51,6 +56,12 @@ class _ArtistDisplaySettingWidgetState
       builder: (context, state) {
         return KeyboardVisibilityBuilder(
           builder: (context, isKeyboardVisible) {
+            final shouldShowMargin =
+                state.artistDisplaySetting.artFraming == ArtFraming.fitToScreen;
+            final shouldShowBackgroundColour =
+                state.artistDisplaySetting.artFraming == ArtFraming.fitToScreen;
+            final shouldShowPlayback = true;
+            final shouldShowInteractable = true;
             return Padding(
               padding: MediaQuery.of(context).viewInsets,
               child: Stack(
@@ -82,38 +93,46 @@ class _ArtistDisplaySettingWidgetState
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 16.0),
                     ),
-                    SliverToBoxAdapter(
-                      child: _backgroundColourSetting(context,
-                          value: state.artistDisplaySetting.backgroundColour),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16.0),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _marginSetting(context,
-                          value: state.artistDisplaySetting.margin),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16.0),
-                    ),
+                    if (shouldShowBackgroundColour) ...[
+                      SliverToBoxAdapter(
+                        child: _backgroundColourSetting(context,
+                            value: state.artistDisplaySetting.backgroundColour),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 16.0),
+                      ),
+                    ],
+                    if (shouldShowMargin) ...[
+                      SliverToBoxAdapter(
+                        child: _marginSetting(context,
+                            value: state.artistDisplaySetting.margin),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 16.0),
+                      ),
+                    ],
+                    if (shouldShowPlayback) ...[
+                      SliverToBoxAdapter(
+                        child: _playbackSetting(context,
+                            isAutoPlay: state.artistDisplaySetting.autoPlay,
+                            isLoop: state.artistDisplaySetting.loop),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 16.0),
+                      ),
+                    ],
+                    if (shouldShowInteractable) ...[
+                      SliverToBoxAdapter(
+                        child: _interactableSetting(context,
+                            value: state.artistDisplaySetting.interactable),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 16.0),
+                      ),
+                    ],
                     SliverToBoxAdapter(
                       child: _viewerOverrideSetting(context,
                           value: state.artistDisplaySetting.overridable),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16.0),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _playbackSetting(context,
-                          isAutoPlay: state.artistDisplaySetting.autoPlay,
-                          isLoop: state.artistDisplaySetting.loop),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16.0),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _interactableSetting(context,
-                          value: state.artistDisplaySetting.interactable),
                     ),
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 60),
@@ -357,6 +376,7 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedItem = widget.items[_selectedIndex];
+
     return Column(
       children: [
         Row(
@@ -612,6 +632,8 @@ extension ColorExt on Color {
   }
 }
 
+enum MarginType { left, top, right, bottom }
+
 class MarginSettingWidget extends StatefulWidget {
   const MarginSettingWidget(
       {super.key, required this.onMarginChanged, required this.initialMargin});
@@ -626,12 +648,73 @@ class MarginSettingWidget extends StatefulWidget {
 
 class _MarginSettingWidgetState extends State<MarginSettingWidget> {
   late EdgeInsets _selectedMargin;
-  int _selectedIndex = 0;
+
+  late final List<InputTextFieldController> marginControllers;
+  late final List<FocusNode> marginFocusNodes;
 
   @override
   void initState() {
     super.initState();
     _selectedMargin = widget.initialMargin;
+    marginControllers = List.generate(4, (index) => InputTextFieldController());
+    marginControllers[MarginType.left.index].text =
+        '${_selectedMargin.left.toInt()}%';
+    marginControllers[MarginType.top.index].text =
+        '${_selectedMargin.top.toInt()}%';
+    marginControllers[MarginType.right.index].text =
+        '${_selectedMargin.right.toInt()}%';
+    marginControllers[MarginType.bottom.index].text =
+        '${_selectedMargin.bottom.toInt()}%';
+
+    marginFocusNodes = List.generate(4, (index) => FocusNode());
+    marginFocusNodes.mapIndexed((index, element) {
+      element.addListener(() {
+        if (!element.hasFocus) {
+          final value = marginControllers[index].text;
+          final marginValue = double.tryParse(value) ?? 0;
+          if (index == MarginType.left.index ||
+              index == MarginType.right.index) {
+            final newMargin = EdgeInsets.only(
+              left: marginValue,
+              right: marginValue,
+            );
+            _onMarginChanged(newMargin);
+          } else {
+            final newMargin = EdgeInsets.only(
+              top: marginValue,
+              bottom: marginValue,
+            );
+            _onMarginChanged(newMargin);
+          }
+        }
+      });
+    }).toList();
+  }
+
+  final icons = [
+    SvgPicture.asset('assets/images/margin_left.svg',
+        colorFilter:
+            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
+    SvgPicture.asset('assets/images/margin_top.svg',
+        colorFilter:
+            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
+    SvgPicture.asset('assets/images/margin_right.svg',
+        colorFilter:
+            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
+    SvgPicture.asset('assets/images/margin_bottom.svg',
+        colorFilter:
+            const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn)),
+  ];
+
+  @override
+  void dispose() {
+    for (var controller in marginControllers) {
+      controller.dispose();
+    }
+    for (var focusNode in marginFocusNodes) {
+      focusNode.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -657,24 +740,45 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
               childAspectRatio: 79.25 / 42),
           itemCount: 4,
           itemBuilder: (BuildContext context, int index) {
-            final isSelected = _selectedIndex == index;
-            final marginValue = getMarginValue(index);
+            final icon = icons[index];
             return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
+              onTap: () {},
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
-                  color: isSelected ? AppColor.white : AppColor.disabledColor,
+                  color: AppColor.white,
                 ),
-                child: Center(
-                  child: Text(
-                    '${marginValue.toInt()}%',
-                    style: Theme.of(context).textTheme.ppMori400Black12,
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(flex: 4, child: icon),
+                    Expanded(
+                      flex: 6,
+                      child: TextField(
+                        controller: marginControllers[index],
+                        focusNode: marginFocusNodes[index],
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: AppColor.white,
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 8.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          RangeTextInputFormatter(min: 0, max: 100),
+                        ],
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.ppMori400Black12,
+                      ),
+                    )
+                  ],
                 ),
               ),
             );
@@ -686,39 +790,38 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
     );
   }
 
-  double getMarginValue(int index) {
-    switch (index) {
-      case 0:
-        return _selectedMargin.left;
-      case 1:
-        return _selectedMargin.top;
-      case 2:
-        return _selectedMargin.right;
-      case 3:
-        return _selectedMargin.bottom;
-      default:
-        return 0;
+  double getMarginValue() {
+    if (_selectedMargin.top != 0) {
+      return _selectedMargin.top * (-1);
     }
+    return _selectedMargin.left;
   }
 
-  void setMarginValue(int index, double value) {
+  void setMarginValue(double value) {
     EdgeInsets margin = _selectedMargin;
-    switch (index) {
-      case 0:
-        margin = margin.copyWith(left: value);
-      case 1:
-        margin = margin.copyWith(top: value);
-      case 2:
-        margin = margin.copyWith(right: value);
-      case 3:
-        margin = margin.copyWith(bottom: value);
-      default:
-        break;
+    if (value > 0) {
+      final le = value.abs();
+      margin = EdgeInsets.only(left: le, right: le);
+    } else {
+      final le = value.abs();
+      margin = EdgeInsets.only(top: le, bottom: le);
     }
-    widget.onMarginChanged(margin);
+    _onMarginChanged(margin);
+  }
+
+  void _onMarginChanged(EdgeInsets value) {
     setState(() {
-      _selectedMargin = margin;
+      _selectedMargin = value;
     });
+    marginControllers[MarginType.left.index].text =
+        '${_selectedMargin.left.toInt()}%';
+    marginControllers[MarginType.top.index].text =
+        '${_selectedMargin.top.toInt()}%';
+    marginControllers[MarginType.right.index].text =
+        '${_selectedMargin.right.toInt()}%';
+    marginControllers[MarginType.bottom.index].text =
+        '${_selectedMargin.bottom.toInt()}%';
+    widget.onMarginChanged(_selectedMargin);
   }
 
   Widget _slider(BuildContext context) {
@@ -729,12 +832,12 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16.0),
       child: FFHorizontalSlider(
-        value: getMarginValue(_selectedIndex),
-        min: 0,
+        value: getMarginValue(),
+        min: -100,
         max: 100,
-        interval: 50,
+        interval: 100,
         onChanged: (value) {
-          setMarginValue(_selectedIndex, value);
+          setMarginValue(value);
         },
       ),
     );
@@ -791,7 +894,7 @@ class _FFHorizontalSliderState extends State<FFHorizontalSlider> {
         value: _value,
         min: widget.min,
         max: widget.max,
-        interval: 50,
+        interval: widget.interval,
         // showTicks: true,
         activeColor: AppColor.primaryBlack,
         inactiveColor: AppColor.primaryBlack,

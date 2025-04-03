@@ -368,8 +368,9 @@ class _FeralFileArtworkPreviewPageState
             title: 'setting artwork'.tr(),
             icon: SvgPicture.asset('assets/images/cast_icon.svg'),
             onTap: () {
-              injector<NavigationService>()
-                  .openArtistDisplaySetting(seriesId: artwork.seriesID);
+              injector<NavigationService>().openArtistDisplaySetting(
+                  seriesId: artwork.seriesID,
+                  tokenId: artwork.indexerTokenId ?? artwork.seriesID);
             },
           ),
         if (isCastingThisArtwork)

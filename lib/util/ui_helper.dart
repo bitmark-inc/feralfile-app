@@ -1518,6 +1518,9 @@ class UIHelper {
   }) async {
     final theme = Theme.of(context);
     return showModalBottomSheet<T>(
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+      ),
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,

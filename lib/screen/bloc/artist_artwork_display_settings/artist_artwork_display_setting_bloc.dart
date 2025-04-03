@@ -1,8 +1,11 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/display_settings.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -11,6 +14,26 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ArtistDisplaySetting {
+  // fromJson
+  factory ArtistDisplaySetting.fromJson(Map<String, dynamic> json) {
+    return ArtistDisplaySetting(
+      screenOrientation:
+          ScreenOrientation.fromString(json['orientation'] as String),
+      artFraming: ArtFraming.fromString(json['scaling'] as String),
+      backgroundColour: ColorExt.fromHex(json['backgroundColor'] as String),
+      margin: EdgeInsets.only(
+        left: (json['marginLeft'] as double) * 100,
+        right: (json['marginRight'] as double) * 100,
+        top: (json['marginTop'] as double) * 100,
+        bottom: (json['marginBottom'] as double) * 100,
+      ),
+      autoPlay: json['autoPlay'] as bool,
+      loop: json['looping'] as bool,
+      interactable: json['interactable'] as bool,
+      overridable: json['overridable'] as bool,
+    );
+  }
+
   ArtistDisplaySetting({
     this.screenOrientation = ScreenOrientation.portrait,
     this.artFraming = ArtFraming.fitToScreen,
@@ -67,6 +90,7 @@ class ArtistDisplaySetting {
 // }
   Map<String, dynamic> toJson() {
     return {
+      'orientation': screenOrientation.name,
       'scaling': artFraming.name,
       'backgroundColor': backgroundColour.toHex(),
       'marginLeft': margin.left / 100,
@@ -84,9 +108,22 @@ class ArtistDisplaySetting {
 class ArtistArtworkDisplaySettingState {
   ArtistArtworkDisplaySettingState({
     required this.artistDisplaySetting,
+    required this.tokenId,
   });
 
+  final String tokenId;
   final ArtistDisplaySetting artistDisplaySetting;
+
+  // copyWith
+  ArtistArtworkDisplaySettingState copyWith({
+    ArtistDisplaySetting? artistDisplaySetting,
+    String? tokenId,
+  }) {
+    return ArtistArtworkDisplaySettingState(
+      artistDisplaySetting: artistDisplaySetting ?? this.artistDisplaySetting,
+      tokenId: tokenId ?? this.tokenId,
+    );
+  }
 }
 
 class ArtistArtworkDisplaySettingEvent {}
@@ -148,75 +185,89 @@ class UpdateOverridableEvent extends ArtistArtworkDisplaySettingEvent {
 
 class SaveArtistArtworkDisplaySettingEvent
     extends ArtistArtworkDisplaySettingEvent {
-  SaveArtistArtworkDisplaySettingEvent({this.seriesId});
+  SaveArtistArtworkDisplaySettingEvent(
+      {this.seriesId, this.onSuccess, this.onError});
 
   final String? seriesId;
+  final void Function()? onSuccess;
+  final void Function(Object exception)? onError;
 }
 
 class ArtistArtworkDisplaySettingBloc extends AuBloc<
     ArtistArtworkDisplaySettingEvent, ArtistArtworkDisplaySettingState> {
-  ArtistArtworkDisplaySettingBloc()
+  ArtistArtworkDisplaySettingBloc({required String tokenId})
       : super(ArtistArtworkDisplaySettingState(
-            artistDisplaySetting: ArtistDisplaySetting())) {
+            tokenId: tokenId, artistDisplaySetting: ArtistDisplaySetting())) {
     on<InitArtistArtworkDisplaySettingEvent>((event, emit) {
       emit(ArtistArtworkDisplaySettingState(
+          tokenId: state.tokenId,
           artistDisplaySetting: event.artistDisplaySetting));
+      updateToDevice();
     });
 
     on<UpdateOrientationEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         screenOrientation: event.screenOrientation,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(ArtistArtworkDisplaySettingState(
+          tokenId: state.tokenId, artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateArtFramingEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         artFraming: event.artFraming,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateBackgroundColourEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         backgroundColour: event.backgroundColour,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateMarginEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         margin: event.margin,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateAutoPlayEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         autoPlay: event.autoPlay,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateLoopEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         loop: event.loop,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateInteractableEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         interactable: event.interactable,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<UpdateOverridableEvent>((event, emit) {
       final newSetting = state.artistDisplaySetting.copyWith(
         overridable: event.overridable,
       );
-      emit(ArtistArtworkDisplaySettingState(artistDisplaySetting: newSetting));
+      emit(state.copyWith(artistDisplaySetting: newSetting));
+      updateToDevice();
     });
 
     on<SaveArtistArtworkDisplaySettingEvent>((event, emit) async {
@@ -243,5 +294,27 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
             .showArtistDisplaySettingSaveFailed(exception: e);
       }
     });
+  }
+
+  Future<void> updateToDevice() async {
+    final connectedDevice =
+        injector<FFBluetoothService>().castingBluetoothDevice;
+    if (connectedDevice == null) {
+      log.warning(
+        'ArtistArtworkDisplaySettingBloc: updateToDevice: connectedDevice is null',
+      );
+      return;
+    }
+
+    try {
+      final displaySettings = DisplaySettings(
+          tokenId: state.tokenId, setting: state.artistDisplaySetting);
+      await injector<CanvasClientServiceV2>().updateDisplaySettings(
+        connectedDevice,
+        displaySettings,
+      );
+    } catch (e) {
+      log.warning('ArtistArtworkDisplaySettingBloc: updateToDevice error: $e');
+    }
   }
 }
