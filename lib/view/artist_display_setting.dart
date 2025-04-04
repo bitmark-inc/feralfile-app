@@ -324,6 +324,7 @@ class _ArtistDisplaySettingWidgetState
     final theme = Theme.of(context);
     return ArtistSettingItemWidget(
       settingName: 'Viewer Override',
+      shouldShowSelectedLabel: false,
       items: [
         DeviceConfigItem(
           title: 'Yes',
@@ -384,6 +385,7 @@ class _ArtistDisplaySettingWidgetState
     final selectedIndex = value == true ? 0 : 1;
     return ArtistSettingItemWidget(
       settingName: 'Interactable',
+      shouldShowSelectedLabel: false,
       items: [
         DeviceConfigItem(
           title: 'Enabled',
@@ -415,16 +417,17 @@ class _ArtistDisplaySettingWidgetState
 }
 
 class ArtistSettingItemWidget extends StatefulWidget {
-  const ArtistSettingItemWidget({
-    required this.items,
-    required this.selectedIndex,
-    required this.settingName,
-    super.key,
-  });
+  const ArtistSettingItemWidget(
+      {required this.items,
+      required this.selectedIndex,
+      required this.settingName,
+      super.key,
+      this.shouldShowSelectedLabel = true});
 
   final List<DeviceConfigItem> items;
   final int selectedIndex;
   final String settingName;
+  final bool shouldShowSelectedLabel;
 
   @override
   _ArtistSettingItemWidgetState createState() =>
@@ -457,7 +460,8 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
           children: [
             Text(widget.settingName, style: theme.textTheme.ppMori400White12),
             const SizedBox(width: 8),
-            Text(selectedItem.title, style: theme.textTheme.ppMori400Grey12),
+            if (widget.shouldShowSelectedLabel)
+              Text(selectedItem.title, style: theme.textTheme.ppMori400Grey12),
           ],
         ),
         const SizedBox(height: 8),
