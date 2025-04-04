@@ -335,6 +335,7 @@ const String getTokenConfigurations = r'''
     asset {
       attributes {
         configuration {
+          orientation
           scaling
           backgroundColor
           marginLeft
@@ -343,6 +344,7 @@ const String getTokenConfigurations = r'''
           marginBottom
           autoPlay
           looping
+          interactable
           overridable
         }
       }
