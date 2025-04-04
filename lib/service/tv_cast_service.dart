@@ -77,6 +77,10 @@ abstract class TvCastService {
   Future<DisableMetricsStreamingReply> disableMetricsStreaming(
     DisableMetricsStreamingRequest request,
   );
+
+  Future<ShowPairingQRCodeReply> showPairingQRCode(
+    ShowPairingQRCodeRequest request,
+  );
 }
 
 abstract class BaseTvCastService implements TvCastService {
@@ -301,6 +305,14 @@ abstract class BaseTvCastService implements TvCastService {
       log.warning('Failed to disable metrics streaming: $e');
       rethrow;
     }
+  }
+
+  @override
+  Future<ShowPairingQRCodeReply> showPairingQRCode(
+    ShowPairingQRCodeRequest request,
+  ) async {
+    final result = await _sendData(_getBody(request));
+    return ShowPairingQRCodeReply.fromJson(result);
   }
 }
 

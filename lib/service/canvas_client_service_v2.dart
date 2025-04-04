@@ -451,4 +451,24 @@ class CanvasClientServiceV2 {
       return false;
     }
   }
+
+  Future<bool> showPairingQRCode(BaseDevice device, bool show) async {
+    try {
+      final stub = _getStub(device);
+      final request = ShowPairingQRCodeRequest(show: show);
+      final response = await stub.showPairingQRCode(request);
+      log.info(
+        'CanvasClientService: Show Pairing QR Code ${response.success}',
+      );
+      return response.success;
+    } catch (e) {
+      log.info('CanvasClientService: showPairingQRCode error: $e');
+      unawaited(
+        Sentry.captureException(
+          'CanvasClientService: showPairingQRCode error: $e',
+        ),
+      );
+      return false;
+    }
+  }
 }

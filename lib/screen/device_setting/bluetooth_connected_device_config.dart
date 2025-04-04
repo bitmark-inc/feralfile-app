@@ -114,6 +114,8 @@ class BluetoothConnectedDeviceConfigState
 
   StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
 
+  bool _isShowingQRCode = false;
+
   @override
   void initState() {
     super.initState();
@@ -769,42 +771,25 @@ class BluetoothConnectedDeviceConfigState
 
               // IP Address
               if (ipAddress != null && ipAddress.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Text(
-                  'IP Address:',
-                  style: theme.textTheme.ppMori400Grey14,
+                  'IP Address: $ipAddress',
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        ipAddress,
-                        style: theme.textTheme.ppMori400White14,
-                      ),
-                    ),
-                    if (status?.isConnectedToWifi == true)
-                      InkWell(
-                        onTap: () {
-                          final url = 'http://$ipAddress:8080/logs.html';
-                          injector<NavigationService>().openUrl(Uri.parse(url));
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.feralFileLightBlue,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'View device logs',
-                            style: theme.textTheme.ppMori400White12,
-                          ),
-                        ),
-                      ),
-                  ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _isShowingQRCode = !_isShowingQRCode;
+                    });
+
+                    final device = widget.payload.device;
+                    injector<CanvasClientServiceV2>()
+                        .showPairingQRCode(device, _isShowingQRCode);
+                  },
+                  child: Text(_isShowingQRCode
+                      ? 'Hide QR Code'
+                      : 'Show Pairing QR Code'),
                 ),
               ],
             ],
