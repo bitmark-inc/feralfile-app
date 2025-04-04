@@ -428,6 +428,12 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant ArtistSettingItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _selectedIndex = widget.selectedIndex;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedItem = widget.items[_selectedIndex];

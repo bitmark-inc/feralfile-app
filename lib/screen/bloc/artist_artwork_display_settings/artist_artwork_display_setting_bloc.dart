@@ -77,18 +77,6 @@ class ArtistDisplaySetting {
     );
   }
 
-// toJson with format {
-//   "scaling" : "fit|fill",
-//   "backgroundColor": "#000000",
-//   "marginLeft" : 0.1,
-//   "marginRight" : 0.1,
-//   "marginTop" : 0.1,
-//   "marginBottom" : 0.1,
-//   "autoPlay" : false,
-//   "looping" : false,
-//   "interactable" : true,
-//   "overridable" : false
-// }
   Map<String, dynamic> toJson() {
     return {
       'orientation': screenOrientation.name,
@@ -203,7 +191,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
       : super(
           ArtistArtworkDisplaySettingState(
             tokenId: tokenId,
-            artistDisplaySetting: ArtistDisplaySetting(),
+            artistDisplaySetting: null,
           ),
         ) {
     on<InitArtistArtworkDisplaySettingEvent>((event, emit) {
@@ -319,7 +307,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
 
   Future<void> updateToDevice({bool isSaved = false}) async {
     _timer?.cancel();
-    _timer = Timer(const Duration(milliseconds: 100), () {
+    _timer = Timer(const Duration(milliseconds: 5), () {
       _updateToDevice(isSaved: isSaved);
     });
   }

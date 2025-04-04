@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -365,8 +366,11 @@ class _FeralFileArtworkPreviewPageState
             }),
         if (isUserArtist)
           OptionItem(
-            title: 'setting artwork'.tr(),
-            icon: SvgPicture.asset('assets/images/cast_icon.svg'),
+            title: 'Artist Display Settings',
+            icon: const Icon(
+              AuIcon.settings,
+              color: AppColor.white,
+            ),
             onTap: () {
               injector<NavigationService>().openArtistDisplaySetting(
                 artwork: artwork,
