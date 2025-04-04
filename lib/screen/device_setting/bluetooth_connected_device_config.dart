@@ -15,8 +15,10 @@ import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -590,6 +592,25 @@ class BluetoothConnectedDeviceConfigState
         .navigateTo(AppRouter.sendWifiCredentialPage, arguments: payload);
   }
 
+  Widget _deviceInfoItem(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Expanded(
+            child: Text(
+          title,
+          style: theme.textTheme.ppMori400Grey14,
+        )),
+        const SizedBox(width: 8),
+        Expanded(child: child)
+      ],
+    );
+  }
+
   Widget _deviceInfo(BuildContext context) {
     final version = status?.version;
     final installedVersion = status?.installedVersion ?? version;
@@ -597,9 +618,17 @@ class BluetoothConnectedDeviceConfigState
     final isUpToDate =
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
-    final deviceId = widget.payload.device.name;
+    final device = widget.payload.device;
+    final deviceId = device.name;
     final ipAddress = status?.ipAddress;
     final connectedWifi = status?.connectedWifi;
+    final isNetworkConnected = status?.isConnectedToWifi ?? false;
+
+    final divider = addDivider(
+      height: 16,
+      color: AppColor.primaryBlack,
+      thickness: 1,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -621,175 +650,138 @@ class BluetoothConnectedDeviceConfigState
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Connection Status
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: _isBLEDeviceConnected ? Colors.green : Colors.red,
-                      shape: BoxShape.circle,
+              // connection status
+              _deviceInfoItem(
+                context,
+                title: 'Connection Status:',
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color:
+                            _isBLEDeviceConnected ? Colors.green : Colors.red,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
+                    const SizedBox(width: 8),
+                    Text(
                       _isBLEDeviceConnected
                           ? 'Connected'
                           : 'Device not connected',
                       style: theme.textTheme.ppMori400White14,
                     ),
-                  ),
-                  if (_isBLEDeviceConnected)
-                    const SizedBox()
-                  else
-                    InkWell(
-                      onTap: () async {
-                        final device = widget.payload.device;
-                        await injector<FFBluetoothService>()
-                            .connectToDevice(device);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColor.feralFileMediumGrey,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Connect',
-                          style: theme.textTheme.ppMori400White12,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Device ID
-              Text(
-                'Device ID:',
-                style: theme.textTheme.ppMori400Grey14,
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      deviceId,
-                      style: theme.textTheme.ppMori400White14,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: deviceId));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Device ID copied to clipboard'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColor.feralFileMediumGrey,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Copy',
-                        style: theme.textTheme.ppMori400White12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Version Information
-              if (installedVersion != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Software Version:',
-                  style: theme.textTheme.ppMori400Grey14,
+                  ],
                 ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: installedVersion,
+              ),
+              divider,
+
+              // Device Id
+
+              _deviceInfoItem(
+                context,
+                title: 'Device ID:',
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        deviceId,
                         style: theme.textTheme.ppMori400White14,
                       ),
-                      if (isUpToDate)
-                        TextSpan(
-                          text: ' - Up to date',
-                          style: theme.textTheme.ppMori400Grey14,
-                        )
-                      else
-                        TextSpan(
-                          text: ' - Update available',
-                          style: theme.textTheme.ppMori400Grey14,
-                        ),
-                    ],
+                    ),
+                    _copyButton(
+                      context,
+                      deviceId,
+                    ),
+                  ],
+                ),
+              ),
+              divider,
+              // software version
+              _deviceInfoItem(
+                context,
+                title: 'Software Version',
+                child: RichText(
+                    text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: installedVersion ?? 'Unknown',
+                      style: theme.textTheme.ppMori400White14,
+                    ),
+                    if (isUpToDate)
+                      TextSpan(
+                        text: ' - Up to date',
+                        style: theme.textTheme.ppMori400Grey14,
+                      )
+                    else
+                      TextSpan(
+                        text: ' - Update available',
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                  ],
+                )),
+              ),
+              divider,
+              //IP Address
+              if (ipAddress != null && ipAddress.isNotEmpty) ...[
+                _deviceInfoItem(
+                  context,
+                  title: 'IP Address:',
+                  child: Text(
+                    ipAddress,
+                    style: theme.textTheme.ppMori400White14,
                   ),
                 ),
+                divider,
               ],
 
-              if (status != null)
-                if (!status!.isConnectedToWifi) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    'WiFi Network:',
-                    style: theme.textTheme.ppMori400Grey14,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Not connected',
+              // WiFi Network
+              // Check if the device is connected to WiFi
+              // If not connected, show "Not connected" message
+              // If connected, show the connected WiFi name
+              if (status != null) ...[
+                _deviceInfoItem(
+                  context,
+                  title: 'Device Wifi Network',
+                  child: Text(
+                    isNetworkConnected ? connectedWifi ?? '-' : '-',
                     style: theme.textTheme.ppMori400White14,
                   ),
-                ] else // Connected WiFi
-                if (connectedWifi != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    'WiFi Network:',
-                    style: theme.textTheme.ppMori400Grey14,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    connectedWifi,
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                ],
-
-              // IP Address
-              if (ipAddress != null && ipAddress.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'IP Address: $ipAddress',
-                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
+                divider,
+              ],
+              if (device.isConnected) ...[
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
+                PrimaryAsyncButton(
+                  text: _isShowingQRCode
+                      ? 'Hide QR Code'
+                      : 'Show Pairing QR Code',
+                  color: AppColor.white,
+                  onTap: () async {
+                    final device = widget.payload.device;
+                    await injector<CanvasClientServiceV2>()
+                        .showPairingQRCode(device, _isShowingQRCode);
                     setState(() {
                       _isShowingQRCode = !_isShowingQRCode;
                     });
-
-                    final device = widget.payload.device;
-                    injector<CanvasClientServiceV2>()
-                        .showPairingQRCode(device, _isShowingQRCode);
                   },
-                  child: Text(_isShowingQRCode
-                      ? 'Hide QR Code'
-                      : 'Show Pairing QR Code'),
+                ),
+              ],
+
+              // Update Button
+              if (device.isConnected && !isUpToDate) ...[
+                const SizedBox(height: 16),
+                PrimaryAsyncButton(
+                  text: 'Update to latest version v.$latestVersion',
+                  color: AppColor.white,
+                  onTap: () async {
+                    final device = widget.payload.device;
+                    await injector<CanvasClientServiceV2>()
+                        .updateToLatestVersion(device);
+                  },
                 ),
               ],
             ],
@@ -811,6 +803,28 @@ class BluetoothConnectedDeviceConfigState
         ],
         const SizedBox(height: 30),
       ],
+    );
+  }
+
+  Widget _copyButton(BuildContext context, String deviceId) {
+    return GestureDetector(
+      onTap: () {
+        showSimpleNotificationToast(
+            key: const Key('deviceID'),
+            content: 'Device Id copied to clipboard');
+        unawaited(
+          Clipboard.setData(ClipboardData(text: deviceId)),
+        );
+      },
+      child: SvgPicture.asset(
+        'assets/images/copy.svg',
+        height: 16,
+        width: 16,
+        colorFilter: const ColorFilter.mode(
+          AppColor.white,
+          BlendMode.srcIn,
+        ),
+      ),
     );
   }
 
