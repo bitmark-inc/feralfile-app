@@ -8,10 +8,10 @@
 
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
-import 'package:floor_annotation/floor_annotation.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
+import 'package:collection/collection.dart';
+import 'package:floor_annotation/floor_annotation.dart';
 
 @Entity(
   primaryKeys: [

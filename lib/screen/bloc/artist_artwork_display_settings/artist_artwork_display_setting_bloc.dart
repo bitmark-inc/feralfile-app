@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -16,7 +18,7 @@ import 'package:flutter/material.dart';
 
 class ArtistDisplaySetting {
   ArtistDisplaySetting({
-    this.screenOrientation = ScreenOrientation.portrait,
+    this.screenOrientation = ScreenOrientation.landscape,
     this.artFraming = ArtFraming.cropToFill,
     this.backgroundColour = AppColor.primaryBlack,
     this.margin = EdgeInsets.zero,
@@ -34,10 +36,10 @@ class ArtistDisplaySetting {
       artFraming: ArtFraming.fromString(json['scaling'] as String),
       backgroundColour: ColorExt.fromHex(json['backgroundColor'] as String),
       margin: EdgeInsets.only(
-        left: (json['marginLeft'] as double) * 100,
-        right: (json['marginRight'] as double) * 100,
-        top: (json['marginTop'] as double) * 100,
-        bottom: (json['marginBottom'] as double) * 100,
+        left: (double.parse(json['marginLeft'].toString())) * 100,
+        right: (double.parse(json['marginRight'].toString())) * 100,
+        top: (double.parse(json['marginTop'].toString())) * 100,
+        bottom: (double.parse(json['marginBottom'].toString())) * 100,
       ),
       autoPlay: json['autoPlay'] as bool,
       loop: json['looping'] as bool,
@@ -101,7 +103,7 @@ class ArtistArtworkDisplaySettingState {
   });
 
   final String tokenId;
-  final ArtistDisplaySetting artistDisplaySetting;
+  final ArtistDisplaySetting? artistDisplaySetting;
 
   // copyWith
   ArtistArtworkDisplaySettingState copyWith({
@@ -119,9 +121,9 @@ class ArtistArtworkDisplaySettingEvent {}
 
 class InitArtistArtworkDisplaySettingEvent
     extends ArtistArtworkDisplaySettingEvent {
-  InitArtistArtworkDisplaySettingEvent(this.artistDisplaySetting);
+  InitArtistArtworkDisplaySettingEvent({this.artistDisplaySetting});
 
-  final ArtistDisplaySetting artistDisplaySetting;
+  final ArtistDisplaySetting? artistDisplaySetting;
 }
 
 class UpdateOrientationEvent extends ArtistArtworkDisplaySettingEvent {
@@ -194,18 +196,41 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
             artistDisplaySetting: null,
           ),
         ) {
-    on<InitArtistArtworkDisplaySettingEvent>((event, emit) {
-      emit(
-        ArtistArtworkDisplaySettingState(
-          tokenId: state.tokenId,
-          artistDisplaySetting: event.artistDisplaySetting,
-        ),
-      );
-      updateToDevice();
+    on<InitArtistArtworkDisplaySettingEvent>((event, emit) async {
+      if (event.artistDisplaySetting != null) {
+        emit(
+          state.copyWith(
+            artistDisplaySetting: event.artistDisplaySetting,
+          ),
+        );
+      } else {
+        // refresh the setting from device
+        emit(
+          ArtistArtworkDisplaySettingState(
+            tokenId: state.tokenId,
+            artistDisplaySetting: null,
+          ),
+        );
+        final request = QueryListTokensRequest(
+          ids: [state.tokenId],
+        );
+        final assetToken =
+            await injector<IndexerService>().getNftTokens(request);
+        final setting =
+            assetToken.firstOrNull?.attributes?.artistDisplaySetting ??
+                ArtistDisplaySetting();
+
+        emit(
+          state.copyWith(
+            artistDisplaySetting: setting,
+          ),
+        );
+      }
+      unawaited(updateToDevice());
     });
 
     on<UpdateOrientationEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         screenOrientation: event.screenOrientation,
       );
       emit(
@@ -218,7 +243,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateArtFramingEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         artFraming: event.artFraming,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -226,7 +251,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateBackgroundColourEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         backgroundColour: event.backgroundColour,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -234,7 +259,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateMarginEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         margin: event.margin,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -242,7 +267,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateAutoPlayEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         autoPlay: event.autoPlay,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -250,7 +275,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateLoopEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         loop: event.loop,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -258,7 +283,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateInteractableEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         interactable: event.interactable,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -266,7 +291,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateOverridableEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting.copyWith(
+      final newSetting = state.artistDisplaySetting?.copyWith(
         overridable: event.overridable,
       );
       emit(state.copyWith(artistDisplaySetting: newSetting));
@@ -274,6 +299,14 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<SaveArtistArtworkDisplaySettingEvent>((event, emit) async {
+      if (state.artistDisplaySetting == null) {
+        log.warning(
+          'SaveArtistArtworkDisplaySettingEvent] artist display setting is null',
+        );
+        event.onError?.call(Exception('artist display setting is null'));
+        return;
+      }
+
       final listAssetIds = <String>[];
 
       final seriesId = event.seriesId;
@@ -285,7 +318,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
 
       try {
         await injector<AuthService>()
-            .configureArtwork(listAssetIds, state.artistDisplaySetting);
+            .configureArtwork(listAssetIds, state.artistDisplaySetting!);
 
         log.info(
           'SaveArtistArtworkDisplaySettingEvent] saved artist artwork display setting',
@@ -325,7 +358,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     try {
       await injector<CanvasClientServiceV2>().updateDisplaySettings(
         connectedDevice,
-        state.artistDisplaySetting,
+        state.artistDisplaySetting!,
         state.tokenId,
         isSaved: isSaved,
       );

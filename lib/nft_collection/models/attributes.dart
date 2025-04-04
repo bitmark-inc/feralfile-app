@@ -2,24 +2,24 @@ import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/art
 
 class Attributes {
   Attributes({
-    this.configuration,
+    required this.artistDisplaySetting,
   });
 
   factory Attributes.fromJson(Map<String, dynamic> map) {
     return Attributes(
-      configuration: map['configuration'] != null
-          ? ArtistDisplaySetting.fromJson(
-              Map<String, dynamic>.from(map['configuration'] as Map),
-            )
-          : null,
+      artistDisplaySetting: map['configuration'] == null
+          ? null
+          : ArtistDisplaySetting.fromJson(
+              map['configuration'] as Map<String, dynamic>,
+            ),
     );
   }
 
-  ArtistDisplaySetting? configuration;
+  final ArtistDisplaySetting? artistDisplaySetting;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'configuration': configuration?.toJson(),
+      'configuration': artistDisplaySetting?.toJson(),
     };
   }
 }

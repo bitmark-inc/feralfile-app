@@ -129,6 +129,21 @@ const String getTokens = r'''
       indexID
       thumbnailID
       lastRefreshedTime
+      attributes{
+        configuration {
+          orientation
+          scaling
+          backgroundColor
+          marginLeft
+          marginRight
+          marginTop
+          marginBottom
+          autoPlay
+          looping
+          interactable
+          overridable
+        }
+      }
       metadata{
         project{
           origin{
@@ -240,6 +255,19 @@ $offset: Int64! = 0,
       indexID
       thumbnailID
       lastRefreshedTime
+      attributes{
+        configuration {
+          scaling
+          backgroundColor
+          marginLeft
+          marginRight
+          marginTop
+          marginBottom
+          autoPlay
+          looping
+          overridable
+        }
+      }
       metadata{
         project{
           origin{

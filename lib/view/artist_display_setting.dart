@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
@@ -52,7 +54,7 @@ class _ArtistDisplaySettingWidgetState
     );
     _bloc.add(
       InitArtistArtworkDisplaySettingEvent(
-        widget.artistDisplaySetting ?? ArtistDisplaySetting(),
+        artistDisplaySetting: widget.artistDisplaySetting,
       ),
     );
   }
@@ -65,10 +67,11 @@ class _ArtistDisplaySettingWidgetState
       builder: (context, state) {
         return KeyboardVisibilityBuilder(
           builder: (context, isKeyboardVisible) {
-            final shouldShowMargin =
-                state.artistDisplaySetting.artFraming == ArtFraming.fitToScreen;
+            final shouldShowMargin = state.artistDisplaySetting?.artFraming ==
+                ArtFraming.fitToScreen;
             final shouldShowBackgroundColour =
-                state.artistDisplaySetting.artFraming == ArtFraming.fitToScreen;
+                state.artistDisplaySetting?.artFraming ==
+                    ArtFraming.fitToScreen;
             final shouldShowPlayback = widget.artwork?.series?.isVideo ?? false;
             final shouldShowInteractable =
                 widget.artwork?.series?.isGenerative ?? false;
@@ -95,7 +98,7 @@ class _ArtistDisplaySettingWidgetState
                       SliverToBoxAdapter(
                         child: _orientationSetting(
                           context,
-                          value: state.artistDisplaySetting.screenOrientation,
+                          value: state.artistDisplaySetting?.screenOrientation,
                         ),
                       ),
                       const SliverToBoxAdapter(
@@ -104,7 +107,7 @@ class _ArtistDisplaySettingWidgetState
                       SliverToBoxAdapter(
                         child: _artFramingSetting(
                           context,
-                          value: state.artistDisplaySetting.artFraming,
+                          value: state.artistDisplaySetting?.artFraming,
                         ),
                       ),
                       const SliverToBoxAdapter(
@@ -114,7 +117,7 @@ class _ArtistDisplaySettingWidgetState
                         SliverToBoxAdapter(
                           child: _backgroundColourSetting(
                             context,
-                            value: state.artistDisplaySetting.backgroundColour,
+                            value: state.artistDisplaySetting?.backgroundColour,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -125,7 +128,7 @@ class _ArtistDisplaySettingWidgetState
                         SliverToBoxAdapter(
                           child: _marginSetting(
                             context,
-                            value: state.artistDisplaySetting.margin,
+                            value: state.artistDisplaySetting?.margin,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -136,8 +139,8 @@ class _ArtistDisplaySettingWidgetState
                         SliverToBoxAdapter(
                           child: _playbackSetting(
                             context,
-                            isAutoPlay: state.artistDisplaySetting.autoPlay,
-                            isLoop: state.artistDisplaySetting.loop,
+                            isAutoPlay: state.artistDisplaySetting?.autoPlay,
+                            isLoop: state.artistDisplaySetting?.loop,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -148,7 +151,7 @@ class _ArtistDisplaySettingWidgetState
                         SliverToBoxAdapter(
                           child: _interactableSetting(
                             context,
-                            value: state.artistDisplaySetting.interactable,
+                            value: state.artistDisplaySetting?.interactable,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -158,7 +161,7 @@ class _ArtistDisplaySettingWidgetState
                       SliverToBoxAdapter(
                         child: _viewerOverrideSetting(
                           context,
-                          value: state.artistDisplaySetting.overridable,
+                          value: state.artistDisplaySetting?.overridable,
                         ),
                       ),
                       const SliverToBoxAdapter(
@@ -172,6 +175,15 @@ class _ArtistDisplaySettingWidgetState
                     right: 0,
                     child: _saveButton(context),
                   ),
+                  if (state.artistDisplaySetting == null)
+                    Positioned.fill(
+                      child: Center(
+                        child: LoadingWidget(
+                          backgroundColor:
+                              AppColor.primaryBlack.withOpacity(0.9),
+                        ),
+                      ),
+                    )
                 ],
               ),
             );
@@ -212,6 +224,7 @@ class _ArtistDisplaySettingWidgetState
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Padding(
@@ -227,10 +240,10 @@ class _ArtistDisplaySettingWidgetState
           onTap: () {
             Navigator.of(context).pop();
           },
-          child: SvgPicture.asset(
-            'assets/images/circle_close.svg',
-            width: 22,
-            height: 22,
+          child: Icon(
+            AuIcon.close,
+            color: AppColor.white,
+            size: 24,
           ),
         ),
       ],

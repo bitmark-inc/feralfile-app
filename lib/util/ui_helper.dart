@@ -1533,6 +1533,12 @@ class UIHelper {
             ? double.infinity
             : Constants.maxWidthModalTablet,
       ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 500),
+        reverseDuration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) => Container(
