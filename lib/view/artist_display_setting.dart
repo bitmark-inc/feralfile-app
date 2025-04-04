@@ -942,9 +942,9 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
       child: FFHorizontalSlider(
         value: getMarginValue(),
-        min: -100,
-        max: 100,
-        interval: 100,
+        min: -50,
+        max: 50,
+        interval: 50,
         onChanged: (value) {
           setMarginValue(value);
         },
