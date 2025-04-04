@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_collection.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_token_configurations.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/identity.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/queries/collection_queries.dart';
@@ -81,9 +82,9 @@ class IndexerService {
       return null;
     }
 
-    final data = QueryListTokensResponse.fromJson(
+    final data = QueryListTokenConfigurationsResponse.fromJson(
       Map<String, dynamic>.from(response as Map),
     );
-    return data.tokens.firstOrNull?.attributes?.configuration;
+    return data.tokenConfigurations.firstOrNull;
   }
 }
