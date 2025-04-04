@@ -50,8 +50,6 @@ class AssetTokenDao {
         swapped: row['swapped'] == null ? null : (row['swapped'] as int) != 0,
         burned: row['burned'] == null ? null : (row['burned'] as int) != 0,
         pending: row['pending'] == null ? null : (row['pending'] as int) != 0,
-        scrollable:
-            row['scrollable'] == null ? null : (row['scrollable'] as int) != 0,
         lastActivityTime:
             _dateTimeConverter.decode(row['lastActivityTime'] as int),
         lastRefreshedTime:

@@ -34,7 +34,7 @@ type Provenance {
 }
 
 type AssetAttributes {
-	scrollable:	Boolean!
+	configuration: ArtistDisplaySetting
 }
 
 type Asset {
@@ -240,9 +240,6 @@ $offset: Int64! = 0,
       indexID
       thumbnailID
       lastRefreshedTime
-      attributes {
-        scrollable
-      }
       metadata{
         project{
           origin{
