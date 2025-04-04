@@ -182,7 +182,12 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
 
   Widget _artistPreferenceNote() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 13),
+      margin: EdgeInsets.fromLTRB(
+        13,
+        0,
+        13,
+        overridable ? 0 : 40,
+      ),
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
         color: AppColor.feralFileLightBlue,
