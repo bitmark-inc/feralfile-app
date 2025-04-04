@@ -296,10 +296,6 @@ class _ArtistDisplaySettingWidgetState
           title: 'Fit',
           icon: SvgPicture.asset(
             'assets/images/fitment.svg',
-            colorFilter: const ColorFilter.mode(
-              AppColor.primaryBlack,
-              BlendMode.srcIn,
-            ),
           ),
           onSelected: () {
             _bloc.add(UpdateArtFramingEvent(ArtFraming.fitToScreen));
