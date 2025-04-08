@@ -118,9 +118,8 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                     try {
                       // Check if the device is connected
                       if (!device.isConnected) {
-                        await injector<FFBluetoothService>().connectToDevice(
-                            device,
-                            shouldChangeNowDisplayingStatus: true);
+                        await injector<FFBluetoothService>()
+                            .connectToDevice(device);
                       }
                       final isSuccess = await injector<FFBluetoothService>()
                           .sendWifiCredentials(

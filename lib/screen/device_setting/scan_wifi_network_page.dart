@@ -66,8 +66,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
       _isScanning = true;
     });
     try {
-      await injector<FFBluetoothService>()
-          .connectToDevice(device, shouldChangeNowDisplayingStatus: true);
+      await injector<FFBluetoothService>().connectToDevice(device);
     } catch (e) {
       setState(() {
         _isScanning = false;

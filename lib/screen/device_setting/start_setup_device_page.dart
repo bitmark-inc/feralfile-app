@@ -6,9 +6,12 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -107,14 +110,48 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 left: 0,
                 right: 0,
                 child: PrimaryAsyncButton(
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      AppRouter.scanWifiNetworkPage,
-                      arguments: ScanWifiNetworkPagePayload(
-                        widget.device.toFFBluetoothDevice(),
-                        onWifiSelected,
-                      ),
-                    );
+                  onTap: () async {
+                    final device = widget.device;
+
+                    await injector<FFBluetoothService>()
+                        .connectToDevice(device);
+
+                    final deviceStatus = await injector<CanvasClientServiceV2>()
+                        .getBluetoothDeviceStatus(device);
+
+                    if (deviceStatus.isConnectedToWifi) {
+                      unawaited(UIHelper.showDialog(
+                        context,
+                        'The Portal is All Set',
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+                              style:
+                                  Theme.of(context).textTheme.ppMori400White14,
+                            ),
+                            const SizedBox(height: 16),
+                            PrimaryButton(
+                              onTap: () {
+                                injector<NavigationService>().popUntil(
+                                    AppRouter.bluetoothDevicePortalPage);
+                                injector<NavigationService>()
+                                    .goBack(result: false);
+                              },
+                              text: 'Go to Settings',
+                            ),
+                          ],
+                        ),
+                      ));
+                    } else
+                      unawaited(Navigator.of(context).pushNamed(
+                        AppRouter.scanWifiNetworkPage,
+                        arguments: ScanWifiNetworkPagePayload(
+                          widget.device.toFFBluetoothDevice(),
+                          onWifiSelected,
+                        ),
+                      ));
                   },
                   color: AppColor.white,
                   text: 'start_device_setup'.tr(),
