@@ -18,6 +18,7 @@ class ImportantNoteView extends StatelessWidget {
   final Color? backgroundColor;
   final TextStyle? titleStyle;
   final TextStyle? noteStyle;
+  final Color? borderColor;
 
   const ImportantNoteView({
     required this.note,
@@ -26,6 +27,7 @@ class ImportantNoteView extends StatelessWidget {
     this.backgroundColor,
     this.titleStyle,
     this.noteStyle,
+    this.borderColor,
   });
 
   @override
@@ -34,6 +36,10 @@ class ImportantNoteView extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColor.feralFileHighlight,
+        border: Border.all(
+          color: borderColor ?? backgroundColor ?? AppColor.feralFileHighlight,
+          width: 1,
+        ),
         borderRadius: const BorderRadius.all(Radius.circular(5)),
       ),
       padding: const EdgeInsets.all(15),
