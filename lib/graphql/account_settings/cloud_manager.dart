@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object/display_setting_cloud_object.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -24,8 +23,6 @@ class CloudManager {
   late final AccountSettingsDB _userSettingsDB;
 
   late final PlaylistCloudObject _playlistCloudObject;
-
-  late final DisplaySettingsCloudObject _artworkSettingsCloudObject;
 
   CloudManager() {
     unawaited(_init());
@@ -61,14 +58,6 @@ class CloudManager {
     final playlistAccountSettingsDB = AccountSettingsDBImpl(injector(),
         [_flavor, _commonKeyPrefix, _db, _playlistKeyPrefix].join('.'));
     _playlistCloudObject = PlaylistCloudObject(playlistAccountSettingsDB);
-
-    /// artwork settings
-    final artworkSettingsAccountSettingsDB = AccountSettingsDBImpl(
-      injector(),
-      [_flavor, _commonKeyPrefix, _db, _artworkSettingsKeyPrefix].join('.'),
-    );
-    _artworkSettingsCloudObject =
-        DisplaySettingsCloudObject(artworkSettingsAccountSettingsDB);
   }
 
   // this will be shared across all physical devices
@@ -89,9 +78,6 @@ class CloudManager {
   // this for saving playlist data
   static const _playlistKeyPrefix = 'playlist';
 
-  // this for saving artwork settings
-  static const _artworkSettingsKeyPrefix = 'artwork_settings';
-
   WalletAddressCloudObject get addressObject => _walletAddressObject;
 
   AccountSettingsDB get deviceSettingsDB => _deviceSettingsDB;
@@ -99,9 +85,6 @@ class CloudManager {
   AccountSettingsDB get userSettingsDB => _userSettingsDB;
 
   PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
-
-  DisplaySettingsCloudObject get artworkSettingsCloudObject =>
-      _artworkSettingsCloudObject;
 
   Future<void> downloadAll({bool includePlaylists = false}) async {
     log.info('[CloudManager] downloadAll');
@@ -120,7 +103,6 @@ class CloudManager {
     _deviceSettingsDB.clearCache();
     _userSettingsDB.clearCache();
     _playlistCloudObject.db.clearCache();
-    _artworkSettingsCloudObject.db.clearCache();
   }
 
   Future<void> deleteAll() async {
