@@ -6,11 +6,13 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/wifi_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
 class WifiPoint {
@@ -39,6 +41,8 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
     with RouteAware {
   List<WifiPoint>? _accessPoints;
   StreamSubscription<List<WiFiAccessPoint>>? _subscription;
+  final TextEditingController _ssidController = TextEditingController();
+  bool _shouldEnableConnectButton = false;
 
   bool _isScanning = false;
 
@@ -129,83 +133,195 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
       body: SafeArea(
         child: Padding(
           padding: ResponsiveLayout.pageEdgeInsets,
-          child: CustomScrollView(
-            slivers: [
-              const SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 100,
-                ),
-              ),
-              if (_isScanning) ...[
-                SliverToBoxAdapter(
-                  child: Text(
-                    'Getting WiFi networks from Portal. Please wait a moment...',
-                    style: Theme.of(context).textTheme.ppMori400White14,
+          child: KeyboardVisibilityBuilder(
+            builder: (context, isKeyboardVisible) {
+              return CustomScrollView(
+                slivers: [
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 30,
+                    ),
                   ),
-                ),
-                SliverToBoxAdapter(child: const SizedBox(height: 24))
-              ],
-              if (!_isScanning) ...[
-                if (_accessPoints == null)
-                  SliverToBoxAdapter(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.payload.device.isConnected)
-                        Text(
-                          'Cannot get available networks from Portal',
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        )
-                      else ...[
-                        Text(
-                          'Cannot connect to Portal',
-                          style: Theme.of(context).textTheme.ppMori400White14,
+                  if (_isScanning) ...[
+                    SliverToBoxAdapter(
+                      child: Text(
+                        'Getting WiFi networks from Portal. Please wait a moment...',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                  ] else ...[
+                    if (_accessPoints == null)
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (widget.payload.device.isConnected) ...[
+                              Text(
+                                'Cannot get available networks from Portal',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori700White14,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'There might be an issue with the WiFi module on your Portal. Please try restarting your Portal and scan again.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400White14,
+                              ),
+                            ] else ...[
+                              Text(
+                                'Unable to Connect to Portal',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori700White14,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Connection to the Portal could not be established',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400White14,
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
+                      )
+                    else if (_accessPoints!.isEmpty)
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'No wifi networks found by Portal',
+                              style:
+                                  Theme.of(context).textTheme.ppMori700White14,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'There might be an issue with the WiFi module on your Portal. Please try restarting your Portal and scan again.',
+                              style:
+                                  Theme.of(context).textTheme.ppMori400White14,
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (_accessPoints == null || _accessPoints!.isEmpty)
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            PrimaryButton(
+                              onTap: () async {
+                                await _startScan();
+                              },
+                              text: 'retry'.tr(),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                  ...[
+                    if (_accessPoints?.isNotEmpty ?? false)
+                      SliverToBoxAdapter(child: _listWifiView(context)),
+                    if ((!_isScanning ||
+                            (_accessPoints?.isNotEmpty ?? false)) &&
+                        widget.payload.device.isConnected) ...[
+                      SliverToBoxAdapter(
+                        child: _enterWifiManuallyView(context),
+                      ),
                     ],
-                  ))
-                else if (_accessPoints!.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'No wifi networks found by Portal',
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'There might be an issue with the WiFi module on your Portal. Please try restarting your Portal and scan again.',
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
-                      ],
+                  ],
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 40,
                     ),
                   ),
-                if (_accessPoints == null || _accessPoints!.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 40),
-                        PrimaryButton(
-                          onTap: () async {
-                            await _startScan();
-                          },
-                          text: 'retry'.tr(),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-              ...[
-                ..._accessPoints?.map(
-                      (e) => SliverToBoxAdapter(child: itemBuilder(context, e)),
-                    ) ??
-                    [],
-              ],
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _listWifiView(BuildContext context) {
+    return Column(
+      children: [
+        ImportantNoteView(
+          note:
+              '''To avoid overloading the BLE connection, only the strongest nearby Wi-Fi network is shown. If your network isn't listed, try moving the device closer to your Wi-Fi router, or connect manually.''',
+          title: 'Showing Strongest Networks Only',
+          backgroundColor: AppColor.primaryBlack,
+          borderColor: AppColor.white,
+          noteStyle: Theme.of(context).textTheme.ppMori400White14,
+          titleStyle: Theme.of(context).textTheme.ppMori700White14,
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        ..._accessPoints?.map(
+              (e) => itemBuilder(context, e),
+            ) ??
+            [],
+      ],
+    );
+  }
+
+  Widget _enterWifiManuallyView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Text(
+          'Or enter your Wi-Fi name (SSID) below to connect manually.',
+          style: Theme.of(context).textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _ssidController,
+          decoration: InputDecoration(
+            // border radius 10
+            hintText: 'Enter wifi network',
+            hintStyle: Theme.of(context).textTheme.ppMori400White14,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            fillColor: AppColor.auGreyBackground,
+            focusColor: AppColor.auGreyBackground,
+            filled: true,
+            constraints: const BoxConstraints(minHeight: 60),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 24,
+              horizontal: 16,
+            ),
+          ),
+          style: Theme.of(context).textTheme.ppMori400White14,
+          onChanged: (value) {
+            if (mounted) {
+              setState(() {
+                _shouldEnableConnectButton = value.trim().isNotEmpty;
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+        PrimaryButton(
+          enabled: _shouldEnableConnectButton,
+          onTap: () async {
+            final ssid = _ssidController.text.trim();
+            if (ssid.isEmpty) {
+              return;
+            }
+            await widget.payload.onNetworkSelected(WifiPoint(ssid));
+          },
+          text: 'Connect',
+        ),
+      ],
     );
   }
 

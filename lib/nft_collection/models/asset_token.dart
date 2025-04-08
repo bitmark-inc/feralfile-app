@@ -38,7 +38,6 @@ class AssetToken {
     this.asset,
     this.pending,
     this.isManual,
-    this.scrollable,
     this.originTokenInfoId,
   });
 
@@ -206,7 +205,6 @@ class AssetToken {
   bool? burned;
   bool? pending;
   bool? isManual;
-  bool? scrollable;
   String? originTokenInfoId;
   bool? ipfsPinned;
 

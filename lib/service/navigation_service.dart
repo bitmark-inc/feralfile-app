@@ -10,11 +10,13 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -25,6 +27,7 @@ import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
@@ -32,7 +35,9 @@ import 'package:autonomy_flutter/util/gesture_constrain_widget.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artist_display_setting.dart';
 import 'package:autonomy_flutter/view/how_to_install_daily_widget_build.dart';
+import 'package:autonomy_flutter/view/now_display_setting.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -852,5 +857,132 @@ class NavigationService {
 
   void openGoogleChatSpace() {
     _browser.openUrl(googleChatSpaceUrl);
+  }
+
+  Future<void> showLinkArtistSuccess() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+        context,
+        'link_artist_success'.tr(),
+        'link_artist_success_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
+    }
+  }
+
+  Future<void> showLinkArtistFailed(Object exception) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+        context,
+        'link_artist_failed'.tr(),
+        'link_artist_failed_desc'.tr(),
+        onClose: () => UIHelper.hideInfoDialog(context),
+        isDismissible: true,
+      );
+    }
+  }
+
+  Future<void> openArtistDisplaySetting({Artwork? artwork}) async {
+    // show a dialog with ArtistDisplaySettingWidget
+    if (context.mounted) {
+      UIHelper.showCustomDialog<void>(
+        context: context,
+        child: ArtistDisplaySettingWidget(
+          artwork: artwork,
+          artistDisplaySetting: null,
+          onSettingChanged: (ArtistDisplaySetting) {},
+        ),
+        isDismissible: true,
+        name: UIHelper.artistArtworkDisplaySettingModal,
+      );
+    }
+  }
+
+  void showArtistDisplaySettingSaved() {
+    if (context.mounted) {
+      UIHelper.showInfoDialog(
+        context,
+        'Artwork Settings Updated',
+        'Your artwork settings have been successfully saved.',
+        isDismissible: true,
+      );
+    }
+  }
+
+  void showArtistDisplaySettingSaveFailed({required Object exception}) {
+    if (context.mounted) {
+      UIHelper.showInfoDialog(
+        context,
+        'Failed to Save Artwork Settings',
+        'Unable to save the artwork settings. '.tr() + ' $exception',
+        isDismissible: true,
+      );
+    }
+  }
+
+  Future<void>? showLinkArtistTokenNotFound() async {
+    await UIHelper.showInfoDialog(
+      context,
+      'Linking Token Expired',
+      '	The token for linking the artist has expired or is missing. Please generate a new token and try again.',
+    );
+  }
+
+  Future<void>? showLinkArtistAddressAlreadyLinked() {
+    return UIHelper.showInfoDialog(
+      context,
+      'Artist Already Linked to Another User',
+      'The artist is already linked to a different user via passkey. If you want to link this artist to a new user, please unlink the previous user first.',
+    );
+  }
+
+  Future<void>? showLinkArtistAddressNotFound() {
+    return UIHelper.showInfoDialog(
+      context,
+      'User Already Has a Linked Artist',
+      'This user already has a linked artist. If you need to link a new artist, please unlink the current one first.',
+    );
+  }
+
+  Future<void> showDeviceSettings({
+    required String tokenId,
+    String? artistName,
+  }) async {
+    if (navigatorKey.currentState != null &&
+        navigatorKey.currentState!.mounted == true &&
+        navigatorKey.currentContext != null) {
+      if (CustomRouteObserver.bottomSheetVisibility.value) {
+        Navigator.pop(navigatorKey.currentContext!);
+      }
+
+      final tokenConfiguration =
+          await injector<IndexerService>().getTokenConfiguration(tokenId);
+
+      unawaited(
+        UIHelper.showRawDialog(
+          navigatorKey.currentContext!,
+          NowDisplaySettingView(
+              tokenConfiguration: tokenConfiguration, artistName: artistName),
+          title: 'device_settings'.tr(),
+          name: UIHelper.artDisplaySettingModal,
+          isRoundCorner: false,
+        ),
+      );
+    }
+  }
+
+  void hideDeviceSettings() {
+    if (navigatorKey.currentState != null &&
+        navigatorKey.currentState!.mounted == true &&
+        navigatorKey.currentContext != null) {
+      final currentRoute = CustomRouteObserver.currentRoute;
+      if (currentRoute != null &&
+          currentRoute.settings.name == UIHelper.artDisplaySettingModal) {
+        Navigator.pop(navigatorKey.currentContext!);
+      }
+    }
   }
 }

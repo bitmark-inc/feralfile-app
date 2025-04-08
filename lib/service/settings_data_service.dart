@@ -65,6 +65,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
       _cloudObject.deviceSettingsDB.download(keys: _deviceSettingsKeys),
       _cloudObject.userSettingsDB.download(keys: _userSettingsKeys),
     ]);
+
     final data = <String, dynamic>{}
       ..addAll(
         _cloudObject.deviceSettingsDB.allInstance

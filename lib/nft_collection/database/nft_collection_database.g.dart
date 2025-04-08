@@ -91,7 +91,7 @@ class _$NftCollectionDatabase extends NftCollectionDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Token` (`id` TEXT NOT NULL, `tokenId` TEXT, `blockchain` TEXT NOT NULL, `fungible` INTEGER, `contractType` TEXT, `contractAddress` TEXT, `edition` INTEGER NOT NULL, `editionName` TEXT, `mintedAt` INTEGER, `balance` INTEGER, `owner` TEXT NOT NULL, `owners` TEXT NOT NULL, `source` TEXT, `swapped` INTEGER, `burned` INTEGER, `lastActivityTime` INTEGER NOT NULL, `lastRefreshedTime` INTEGER NOT NULL, `ipfsPinned` INTEGER, `scrollable` INTEGER, `pending` INTEGER, `isDebugged` INTEGER, `initialSaleModel` TEXT, `originTokenInfoId` TEXT, `indexID` TEXT, PRIMARY KEY (`id`, `owner`))');
+            'CREATE TABLE IF NOT EXISTS `Token` (`id` TEXT NOT NULL, `tokenId` TEXT, `blockchain` TEXT NOT NULL, `fungible` INTEGER, `contractType` TEXT, `contractAddress` TEXT, `edition` INTEGER NOT NULL, `editionName` TEXT, `mintedAt` INTEGER, `balance` INTEGER, `owner` TEXT NOT NULL, `owners` TEXT NOT NULL, `source` TEXT, `swapped` INTEGER, `burned` INTEGER, `lastActivityTime` INTEGER NOT NULL, `lastRefreshedTime` INTEGER NOT NULL, `ipfsPinned` INTEGER, `pending` INTEGER, `isDebugged` INTEGER, `initialSaleModel` TEXT, `originTokenInfoId` TEXT, `indexID` TEXT, PRIMARY KEY (`id`, `owner`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Asset` (`indexID` TEXT, `thumbnailID` TEXT, `lastRefreshedTime` INTEGER, `artistID` TEXT, `artistName` TEXT, `artistURL` TEXT, `artists` TEXT, `assetID` TEXT, `title` TEXT, `description` TEXT, `mimeType` TEXT, `medium` TEXT, `maxEdition` INTEGER, `source` TEXT, `sourceURL` TEXT, `previewURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `assetData` TEXT, `assetURL` TEXT, `isFeralfileFrame` INTEGER, `initialSaleModel` TEXT, `originalFileURL` TEXT, `artworkMetadata` TEXT, PRIMARY KEY (`indexID`))');
         await database.execute(
@@ -164,9 +164,6 @@ class _$TokenDao extends TokenDao {
                   'ipfsPinned': item.ipfsPinned == null
                       ? null
                       : (item.ipfsPinned! ? 1 : 0),
-                  'scrollable': item.scrollable == null
-                      ? null
-                      : (item.scrollable! ? 1 : 0),
                   'pending':
                       item.pending == null ? null : (item.pending! ? 1 : 0),
                   'isDebugged': item.isDebugged == null
@@ -248,9 +245,6 @@ class _$TokenDao extends TokenDao {
             ipfsPinned: row['ipfsPinned'] == null
                 ? null
                 : (row['ipfsPinned'] as int) != 0,
-            scrollable: row['scrollable'] == null
-                ? null
-                : (row['scrollable'] as int) != 0,
             pending:
                 row['pending'] == null ? null : (row['pending'] as int) != 0,
             initialSaleModel: row['initialSaleModel'] as String?,
@@ -290,9 +284,6 @@ class _$TokenDao extends TokenDao {
             ipfsPinned: row['ipfsPinned'] == null
                 ? null
                 : (row['ipfsPinned'] as int) != 0,
-            scrollable: row['scrollable'] == null
-                ? null
-                : (row['scrollable'] as int) != 0,
             pending:
                 row['pending'] == null ? null : (row['pending'] as int) != 0,
             initialSaleModel: row['initialSaleModel'] as String?,

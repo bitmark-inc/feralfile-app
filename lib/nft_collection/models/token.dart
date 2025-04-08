@@ -8,10 +8,10 @@
 
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
-import 'package:floor_annotation/floor_annotation.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
+import 'package:collection/collection.dart';
+import 'package:floor_annotation/floor_annotation.dart';
 
 @Entity(
   primaryKeys: [
@@ -44,7 +44,6 @@ class Token {
   DateTime lastRefreshedTime;
   bool? ipfsPinned;
 
-  bool? scrollable;
   bool? pending;
   bool? isDebugged;
   String? initialSaleModel;
@@ -71,7 +70,6 @@ class Token {
     this.burned,
     this.provenances,
     this.ipfsPinned,
-    this.scrollable,
     this.pending,
     this.initialSaleModel,
     this.originTokenInfoId,
@@ -101,7 +99,6 @@ class Token {
         ipfsPinned: assetToken.ipfsPinned,
         originTokenInfoId: assetToken.originTokenInfo?.firstOrNull?.id,
         pending: assetToken.pending ?? false,
-        scrollable: assetToken.attributes?.scrollable,
         tokenId: assetToken.tokenId,
         isDebugged: assetToken.isManual ?? false,
         indexID:

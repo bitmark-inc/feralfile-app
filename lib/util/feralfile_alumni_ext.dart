@@ -63,17 +63,17 @@ extension AlumniAccountExt on AlumniAccount {
     return 'https://twitter.com/$twitterID';
   }
 
-  List<String?> get addressesList {
+  List<String> get addressesList {
     final addresses = this.addresses;
     if (addresses == null) {
       return [];
     }
-
-    return [
-      addresses.bitmark,
+    final list = <String?>[
       addresses.ethereum,
       addresses.tezos,
+      // addresses.bitmark,
     ];
+    return list.whereNotNull().toList();
   }
 
   List<String> get allRelatedAccountIDs {

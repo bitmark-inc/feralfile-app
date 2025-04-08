@@ -1,40 +1,25 @@
+import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
+
 class Attributes {
   Attributes({
-    this.scrollable,
+    required this.artistDisplaySetting,
   });
 
   factory Attributes.fromJson(Map<String, dynamic> map) {
     return Attributes(
-      scrollable: map['scrollable'] != null ? map['scrollable'] as bool : null,
+      artistDisplaySetting: map['configuration'] == null
+          ? null
+          : ArtistDisplaySetting.fromJson(
+              map['configuration'] as Map<String, dynamic>,
+            ),
     );
   }
 
-  bool? scrollable;
-
-  Attributes copyWith({
-    bool? scrollable,
-  }) {
-    return Attributes(
-      scrollable: scrollable ?? this.scrollable,
-    );
-  }
+  final ArtistDisplaySetting? artistDisplaySetting;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'scrollable': scrollable,
+      'configuration': artistDisplaySetting?.toJson(),
     };
   }
-
-  @override
-  String toString() => 'Attributes(scrollable: $scrollable)';
-
-  @override
-  bool operator ==(covariant Attributes other) {
-    if (identical(this, other)) return true;
-
-    return other.scrollable == scrollable;
-  }
-
-  @override
-  int get hashCode => scrollable.hashCode;
 }

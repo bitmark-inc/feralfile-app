@@ -62,4 +62,11 @@ abstract class IAPApi {
 
   @GET('/apis/memberships/subscriptions/active')
   Future<dynamic> getCustomActiveSubscription();
+
+  @POST('/apis/users/addresses/link')
+  Future<void> linkArtist(@Body() Map<String, dynamic> body);
+
+  @PATCH('/apis/users/devices/artwork-configurations')
+  Future<dynamic> updateArtworkConfigurations(
+      @Body() Map<String, dynamic> body);
 }

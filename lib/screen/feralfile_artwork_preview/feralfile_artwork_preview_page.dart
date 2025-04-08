@@ -9,8 +9,12 @@ import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -345,6 +349,10 @@ class _FeralFileArtworkPreviewPageState
     if (!context.mounted) {
       return;
     }
+    final artistAddresses = artwork.series?.artistAlumni?.addressesList;
+    final isUserArtist = artistAddresses == null
+        ? false
+        : injector<AuthService>().isLinkArtist(artistAddresses);
     _focusNode.unfocus();
     unawaited(UIHelper.showDrawerAction(
       context,
@@ -356,6 +364,19 @@ class _FeralFileArtworkPreviewPageState
               Navigator.of(context).pop();
               _setFullScreen();
             }),
+        if (isUserArtist)
+          OptionItem(
+            title: 'Artist Display Settings',
+            icon: const Icon(
+              AuIcon.settings,
+              color: AppColor.white,
+            ),
+            onTap: () {
+              injector<NavigationService>().openArtistDisplaySetting(
+                artwork: artwork,
+              );
+            },
+          ),
         if (isCastingThisArtwork)
           OptionItem(
             title: 'interact'.tr(),

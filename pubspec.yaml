@@ -137,6 +137,8 @@ dependencies:
   timezone: ^0.10.0
   multi_value_listenable_builder: ^0.0.2
   flutter_timezone: ^4.1.0
+  flutter_colorpicker: ^1.1.0
+  syncfusion_flutter_sliders: ^29.1.33
 
 dev_dependencies:
   bloc_test: ^9.1.7

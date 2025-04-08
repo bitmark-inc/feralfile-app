@@ -29,3 +29,30 @@ extension DioExceptionExt on DioException {
     return false;
   }
 }
+
+enum FeralFileErrorCode {
+  // 1001 : token not found (expired)
+  linkArtistTokenNotFound(1001),
+  // 3006: the addresses have been linked to another accounts(users)
+  linkArtistAddressAlreadyLinked(3006),
+  // 3007: This user is having linked addresses already
+  linkArtistUserAlreadyLinked(3007);
+
+  final int code;
+
+  const FeralFileErrorCode(this.code);
+}
+
+extension FeralfileErrorExt on FeralfileError {
+  bool get isLinkArtistTokenNotFound {
+    return code == FeralFileErrorCode.linkArtistTokenNotFound.code;
+  }
+
+  bool get isLinkArtistAddressAlreadyLinked {
+    return code == FeralFileErrorCode.linkArtistAddressAlreadyLinked.code;
+  }
+
+  bool get isLinkArtistUserAlreadyLinked {
+    return code == FeralFileErrorCode.linkArtistUserAlreadyLinked.code;
+  }
+}

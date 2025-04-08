@@ -34,7 +34,7 @@ type Provenance {
 }
 
 type AssetAttributes {
-	scrollable:	Boolean!
+	configuration: ArtistDisplaySetting
 }
 
 type Asset {
@@ -129,8 +129,20 @@ const String getTokens = r'''
       indexID
       thumbnailID
       lastRefreshedTime
-      attributes {
-        scrollable
+      attributes{
+        configuration {
+          orientation
+          scaling
+          backgroundColor
+          marginLeft
+          marginRight
+          marginTop
+          marginBottom
+          autoPlay
+          looping
+          interactable
+          overridable
+        }
       }
       metadata{
         project{
@@ -189,7 +201,7 @@ const String getTokens = r'''
         }
       }
     }
-  
+
   }
 }
 ''';
@@ -243,8 +255,18 @@ $offset: Int64! = 0,
       indexID
       thumbnailID
       lastRefreshedTime
-      attributes {
-        scrollable
+      attributes{
+        configuration {
+          scaling
+          backgroundColor
+          marginLeft
+          marginRight
+          marginTop
+          marginBottom
+          autoPlay
+          looping
+          overridable
+        }
       }
       metadata{
         project{
@@ -300,6 +322,30 @@ $offset: Int64! = 0,
             assetURL
             artworkMetadata
           }
+        }
+      }
+    }
+  }
+}
+''';
+
+const String getTokenConfigurations = r'''
+  query getTokensConfigurations($tokenId: String!) {
+  tokens(ids: [$tokenId]) {
+    asset {
+      attributes {
+        configuration {
+          orientation
+          scaling
+          backgroundColor
+          marginLeft
+          marginRight
+          marginTop
+          marginBottom
+          autoPlay
+          looping
+          interactable
+          overridable
         }
       }
     }

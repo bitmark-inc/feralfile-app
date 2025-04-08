@@ -3,6 +3,7 @@
 // ignore_for_file: avoid_unused_constructor_parameters
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
+import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,8 @@ enum CastCommand {
   disableMetricsStreaming,
   showPairingQRCode,
   castDaily;
+  castDaily,
+  updateDisplaySettings;
 
   static CastCommand fromString(String command) {
     switch (command) {
@@ -85,6 +88,8 @@ enum CastCommand {
         return CastCommand.disableMetricsStreaming;
       case 'showPairingQRCode':
         return CastCommand.showPairingQRCode;
+      case 'updateDisplaySettings':
+        return CastCommand.updateDisplaySettings;
       default:
         throw ArgumentError('Unknown command: $command');
     }
@@ -142,6 +147,8 @@ enum CastCommand {
         return CastCommand.disableMetricsStreaming;
       case const (ShowPairingQRCodeRequest):
         return CastCommand.showPairingQRCode;
+      case const (UpdateDisplaySettingsRequest):
+        return CastCommand.updateDisplaySettings;
       default:
         throw Exception('Unknown request type');
     }
@@ -897,6 +904,26 @@ enum ArtFraming {
     }
   }
 
+  String get name {
+    switch (this) {
+      case ArtFraming.fitToScreen:
+        return 'fit';
+      case ArtFraming.cropToFill:
+        return 'fill';
+    }
+  }
+
+  static ArtFraming fromString(String framing) {
+    switch (framing) {
+      case 'fit':
+        return ArtFraming.fitToScreen;
+      case 'fill':
+        return ArtFraming.cropToFill;
+      default:
+        throw ArgumentError('Unknown framing: $framing');
+    }
+  }
+
   static ArtFraming fromValue(int value) {
     switch (value) {
       case 0:
@@ -1109,4 +1136,25 @@ class ShowPairingQRCodeReply extends Reply {
         'success': success,
         'error': error,
       };
+class UpdateDisplaySettingsRequest implements Request {
+  UpdateDisplaySettingsRequest(
+      {required this.tokenId, required this.setting, this.isSaved = true});
+
+  final String tokenId;
+  final ArtistDisplaySetting setting;
+  final bool isSaved;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'isSaved': isSaved,
+        ...setting.toJson(),
+        'tokenId': tokenId,
+      };
+}
+
+class UpdateDisplaySettingsReply extends ReplyWithOK {
+  UpdateDisplaySettingsReply({required super.ok});
+
+  factory UpdateDisplaySettingsReply.fromJson(Map<String, dynamic> json) =>
+      UpdateDisplaySettingsReply(ok: json['ok'] as bool);
 }
