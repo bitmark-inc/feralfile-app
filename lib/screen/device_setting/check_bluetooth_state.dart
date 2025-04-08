@@ -248,12 +248,12 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       );
 
       // after setting wifi, go to device setting page
-      if (shouldOpenDeviceSetting is bool && shouldOpenDeviceSetting) {
+      if (shouldOpenDeviceSetting is bool) {
         await injector<NavigationService>().navigateTo(
           AppRouter.bluetoothConnectedDeviceConfig,
           arguments: BluetoothConnectedDeviceConfigPayload(
             device: resultDevice!,
-            isFromOnboarding: true,
+            isFromOnboarding: shouldOpenDeviceSetting,
           ),
         );
 

@@ -31,6 +31,8 @@ enum CastCommand {
   scanWifi,
   enableMetricsStreaming,
   disableMetricsStreaming,
+  showPairingQRCode,
+  castDaily;
   castDaily,
   updateDisplaySettings;
 
@@ -84,6 +86,8 @@ enum CastCommand {
         return CastCommand.enableMetricsStreaming;
       case 'disableMetricsStreaming':
         return CastCommand.disableMetricsStreaming;
+      case 'showPairingQRCode':
+        return CastCommand.showPairingQRCode;
       case 'updateDisplaySettings':
         return CastCommand.updateDisplaySettings;
       default:
@@ -141,6 +145,8 @@ enum CastCommand {
         return CastCommand.enableMetricsStreaming;
       case const (DisableMetricsStreamingRequest):
         return CastCommand.disableMetricsStreaming;
+      case const (ShowPairingQRCodeRequest):
+        return CastCommand.showPairingQRCode;
       case const (UpdateDisplaySettingsRequest):
         return CastCommand.updateDisplaySettings;
       default:
@@ -1097,6 +1103,39 @@ class DisableMetricsStreamingReply extends ReplyWithOK {
       DisableMetricsStreamingReply(ok: json['ok'] as bool);
 }
 
+// Class representing ShowPairingQRCodeRequest message
+class ShowPairingQRCodeRequest implements Request {
+  ShowPairingQRCodeRequest({required this.show});
+
+  factory ShowPairingQRCodeRequest.fromJson(Map<String, dynamic> json) =>
+      ShowPairingQRCodeRequest(
+        show: json['show'] as bool,
+      );
+  final bool show;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'show': show,
+      };
+}
+
+// Class representing ShowPairingQRCodeReply message
+class ShowPairingQRCodeReply extends Reply {
+  ShowPairingQRCodeReply({required this.success, this.error});
+
+  factory ShowPairingQRCodeReply.fromJson(Map<String, dynamic> json) =>
+      ShowPairingQRCodeReply(
+        success: json['success'] as bool,
+        error: json['error'] as String?,
+      );
+  final bool success;
+  final String? error;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'success': success,
+        'error': error,
+      };
 class UpdateDisplaySettingsRequest implements Request {
   UpdateDisplaySettingsRequest(
       {required this.tokenId, required this.setting, this.isSaved = true});
