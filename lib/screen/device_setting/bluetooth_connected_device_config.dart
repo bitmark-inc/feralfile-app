@@ -633,9 +633,28 @@ class BluetoothConnectedDeviceConfigState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Device Information',
-          style: theme.textTheme.ppMori400White14,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Device Information',
+                style: theme.textTheme.ppMori400White14,
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (device.isDisconnected)
+              GestureDetector(
+                onTap: () {
+                  injector<FFBluetoothService>().connectToDevice(device);
+                },
+                child: Text(
+                  'Tap to connect',
+                  style: theme.textTheme.ppMori400White14.copyWith(
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              )
+          ],
         ),
         const SizedBox(height: 16),
 
@@ -667,11 +686,13 @@ class BluetoothConnectedDeviceConfigState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      _isBLEDeviceConnected
-                          ? 'Connected'
-                          : 'Device not connected',
-                      style: theme.textTheme.ppMori400White14,
+                    Expanded(
+                      child: Text(
+                        _isBLEDeviceConnected
+                            ? 'Connected'
+                            : 'Device not connected',
+                        style: theme.textTheme.ppMori400White14,
+                      ),
                     ),
                   ],
                 ),
@@ -689,7 +710,10 @@ class BluetoothConnectedDeviceConfigState
                     Expanded(
                       child: Text(
                         deviceId,
-                        style: theme.textTheme.ppMori400White14,
+                        style: theme.textTheme.ppMori400White14.copyWith(
+                            color: device.isConnected
+                                ? AppColor.white
+                                : AppColor.disabledColor),
                       ),
                     ),
                     _copyButton(
@@ -706,20 +730,26 @@ class BluetoothConnectedDeviceConfigState
                 title: 'Software Version',
                 child: RichText(
                     text: TextSpan(
+                  style: theme.textTheme.ppMori400White14.copyWith(
+                    color: device.isConnected
+                        ? AppColor.white
+                        : AppColor.disabledColor,
+                  ),
                   children: [
                     TextSpan(
                       text: installedVersion ?? 'Unknown',
-                      style: theme.textTheme.ppMori400White14,
                     ),
                     if (isUpToDate)
-                      TextSpan(
+                      const TextSpan(
                         text: ' - Up to date',
-                        style: theme.textTheme.ppMori400Grey14,
+                        style: TextStyle(color: AppColor.disabledColor),
                       )
                     else
-                      TextSpan(
+                      const TextSpan(
                         text: ' - Update available',
-                        style: theme.textTheme.ppMori400Grey14,
+                        style: TextStyle(
+                          color: AppColor.disabledColor,
+                        ),
                       ),
                   ],
                 )),
@@ -732,7 +762,11 @@ class BluetoothConnectedDeviceConfigState
                   title: 'IP Address:',
                   child: Text(
                     ipAddress,
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      color: device.isConnected
+                          ? AppColor.white
+                          : AppColor.disabledColor,
+                    ),
                   ),
                 ),
                 divider,
@@ -748,10 +782,13 @@ class BluetoothConnectedDeviceConfigState
                   title: 'Device Wifi Network',
                   child: Text(
                     isNetworkConnected ? connectedWifi ?? '-' : '-',
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      color: device.isConnected
+                          ? AppColor.white
+                          : AppColor.disabledColor,
+                    ),
                   ),
                 ),
-                divider,
               ],
               if (device.isConnected) ...[
                 const SizedBox(height: 16),
@@ -763,7 +800,7 @@ class BluetoothConnectedDeviceConfigState
                   onTap: () async {
                     final device = widget.payload.device;
                     await injector<CanvasClientServiceV2>()
-                        .showPairingQRCode(device, _isShowingQRCode);
+                        .showPairingQRCode(device, !_isShowingQRCode);
                     setState(() {
                       _isShowingQRCode = !_isShowingQRCode;
                     });

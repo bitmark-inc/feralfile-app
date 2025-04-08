@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -119,6 +120,30 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                         .getBluetoothDeviceStatus(device);
 
                     if (deviceStatus.isConnectedToWifi) {
+                      unawaited(UIHelper.showDialog(
+                        context,
+                        'The Portal is All Set',
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+                              style:
+                                  Theme.of(context).textTheme.ppMori400White14,
+                            ),
+                            const SizedBox(height: 16),
+                            PrimaryButton(
+                              onTap: () {
+                                injector<NavigationService>().popUntil(
+                                    AppRouter.bluetoothDevicePortalPage);
+                                injector<NavigationService>()
+                                    .goBack(result: false);
+                              },
+                              text: 'Go to Settings',
+                            ),
+                          ],
+                        ),
+                      ));
                     } else
                       unawaited(Navigator.of(context).pushNamed(
                         AppRouter.scanWifiNetworkPage,
