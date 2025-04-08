@@ -16,6 +16,8 @@ extension FFSeriesExt on FFSeries {
   bool get isGenerative =>
       GenerativeMediumTypes.values.any((element) => element.value == medium);
 
+  bool get isVideo => medium == 'video';
+
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
   bool get isSingle =>

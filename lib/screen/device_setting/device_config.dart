@@ -12,6 +12,7 @@ class DeviceConfigItem {
     this.titleStyleOnUnselected,
     this.iconOnUnselected,
     this.onSelected,
+    this.onUnselected,
   });
 
   final String title;
@@ -21,6 +22,7 @@ class DeviceConfigItem {
   final Widget? iconOnUnselected;
 
   final FutureOr<void> Function()? onSelected;
+  final FutureOr<void> Function()? onUnselected;
 }
 
 class SelectDeviceConfigView extends StatefulWidget {
@@ -29,11 +31,14 @@ class SelectDeviceConfigView extends StatefulWidget {
     required this.selectedIndex,
     super.key,
     this.isEnable = true,
+    this.itemCustomBuilder,
   });
 
   final List<DeviceConfigItem> items;
   final int selectedIndex;
   final bool isEnable;
+  final Widget Function(DeviceConfigItem item, bool isSelected)?
+      itemCustomBuilder;
 
   @override
   State<SelectDeviceConfigView> createState() => SelectItemState();
@@ -70,6 +75,9 @@ class SelectItemState extends State<SelectDeviceConfigView> {
       itemBuilder: (context, index) {
         final item = widget.items[index];
         final isSelected = _selectedIndex == index && widget.isEnable;
+        if (widget.itemCustomBuilder != null) {
+          return widget.itemCustomBuilder!(item, isSelected);
+        }
         final activeTitleStyle =
             item.titleStyle ?? Theme.of(context).textTheme.ppMori400White14;
         final deactiveTitleStyle =

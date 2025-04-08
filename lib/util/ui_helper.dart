@@ -65,6 +65,9 @@ class UIHelper {
   static final metricClient = injector.get<MetricClientService>();
   static const String ignoreBackLayerPopUpRouteName = 'popUp.ignoreBackLayer';
   static const String homeMenu = 'homeMenu';
+  static const String artDisplaySettingModal = 'artDisplaySettingModal';
+  static const String artistArtworkDisplaySettingModal =
+      'artistArtworkDisplaySettingModal';
 
   static Future<dynamic> showDialog(
     BuildContext context,
@@ -83,6 +86,7 @@ class UIHelper {
     log.info('[UIHelper] showDialog: $title');
     currentDialogTitle = title;
     final theme = Theme.of(context);
+    final bottomSheetKey = GlobalKey();
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -107,8 +111,20 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
       builder: (context) => Container(
+        key: bottomSheetKey,
         color: Colors.transparent,
         child: ClipPath(
           clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
@@ -397,12 +413,16 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = true,
+    bool closeable = true,
     bool isRoundCorner = true,
+    String? title,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
+    String? name,
   }) async {
     final theme = Theme.of(context);
+    final bottomSheetKey = GlobalKey();
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -415,7 +435,7 @@ class UIHelper {
       Vibrate.feedback(feedback);
     }
 
-    return await showModalBottomSheet<dynamic>(
+    return showModalBottomSheet<dynamic>(
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,
@@ -427,10 +447,23 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
+      routeSettings: RouteSettings(
+        name: name ?? ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
+      builder: (context) => ColoredBox(
+        key: bottomSheetKey,
         color: Colors.transparent,
         child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          clipper: isRoundCorner ? AutonomyTopRightRectangleClipper() : null,
           child: Container(
             decoration: BoxDecoration(
               color: backgroundColor ?? theme.auGreyBackground,
@@ -440,12 +473,39 @@ class UIHelper {
                     )
                   : null,
             ),
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 32),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (closeable) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 13),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            title ?? '',
+                            style: theme.textTheme.ppMori700White14,
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            constraints: const BoxConstraints(
+                              maxWidth: 44,
+                              maxHeight: 44,
+                              minWidth: 44,
+                              minHeight: 44,
+                            ),
+                            icon: const Icon(
+                              AuIcon.close,
+                              size: 18,
+                              color: AppColor.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   content,
                 ],
               ),
@@ -519,7 +579,7 @@ class UIHelper {
     FeedbackType? feedback = FeedbackType.selection,
   }) async {
     final theme = Theme.of(context);
-
+    final bottomSheetKey = GlobalKey();
     if (autoDismissAfter > 0) {
       Future.delayed(
         Duration(seconds: autoDismissAfter),
@@ -543,7 +603,18 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
       builder: (context) => ClipPath(
         clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
         child: Container(
@@ -1318,7 +1389,11 @@ class UIHelper {
   static Future<void> showDrawerAction(
     BuildContext context, {
     required List<OptionItem> options,
+    String? title,
   }) async {
+    final theme = Theme.of(context);
+    final bottomSheetKey = GlobalKey();
+
     await showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1330,27 +1405,48 @@ class UIHelper {
       ),
       barrierColor: Colors.black.withOpacity(0.5),
       isScrollControlled: true,
-      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
-      builder: (context) => Container(
+      routeSettings: RouteSettings(
+        name: ignoreBackLayerPopUpRouteName,
+        arguments: {
+          'key': bottomSheetKey,
+        },
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 150),
+        reverseDuration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
+      ),
+      builder: (context) => ColoredBox(
+        key: bottomSheetKey,
         color: AppColor.auGreyBackground,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                  minWidth: 44,
-                  minHeight: 44,
-                ),
-                icon: const Icon(
-                  AuIcon.close,
-                  size: 18,
-                  color: AppColor.white,
-                ),
+            Padding(
+              padding: const EdgeInsets.only(left: 13),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title ?? '',
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    constraints: const BoxConstraints(
+                      maxWidth: 44,
+                      maxHeight: 44,
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
+                    icon: const Icon(
+                      AuIcon.close,
+                      size: 18,
+                      color: AppColor.white,
+                    ),
+                  ),
+                ],
               ),
             ),
             ListView.separated(
@@ -1421,9 +1517,13 @@ class UIHelper {
     Color? backgroundColor,
     EdgeInsets? padding,
     BorderRadius? borderRadius,
+    String? name,
   }) async {
     final theme = Theme.of(context);
     return showModalBottomSheet<T>(
+      routeSettings: RouteSettings(
+        name: name ?? ignoreBackLayerPopUpRouteName,
+      ),
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,
@@ -1432,6 +1532,12 @@ class UIHelper {
         maxWidth: ResponsiveLayout.isMobile
             ? double.infinity
             : Constants.maxWidthModalTablet,
+      ),
+      sheetAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 500),
+        reverseDuration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeOutQuart,
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),

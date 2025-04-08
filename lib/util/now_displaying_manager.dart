@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
@@ -50,6 +51,7 @@ class NowDisplayingManager {
       shouldShowNowDisplayingOnDisconnect.value = true;
     }
     nowDisplayingVisibility.value = true;
+    injector<NavigationService>().hideDeviceSettings();
   }
 
   Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {

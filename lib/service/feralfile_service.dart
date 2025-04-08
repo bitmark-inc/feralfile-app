@@ -225,6 +225,8 @@ abstract class FeralFileService {
     bool unique = true,
     bool excludedFF = true,
   });
+
+  Future<List<String>> getIndexerAssetIdsFromSeries(String seriesId);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -887,6 +889,12 @@ class FeralFileServiceImpl extends FeralFileService {
       unique: unique,
       excludedFF: excludedFF,
     );
+    return res;
+  }
+
+  @override
+  Future<List<String>> getIndexerAssetIdsFromSeries(String seriesId) async {
+    final res = await _feralFileApi.getIndexerAssetIds(seriesId: seriesId);
     return res;
   }
 }

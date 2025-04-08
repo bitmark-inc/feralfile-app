@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -338,6 +339,12 @@ class TokenNowDisplayingView extends StatelessWidget {
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
         return NowDisplayingView(
+          onMoreTap: () {
+            injector<NavigationService>().showDeviceSettings(
+              tokenId: assetToken.id,
+              artistName: artistTitle,
+            );
+          },
           thumbnailBuilder: (context) {
             return AspectRatio(
               aspectRatio: 1,
@@ -406,9 +413,30 @@ class NowDisplayingExhibitionView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final exhibition = exhibitionDisplaying.exhibition;
-    final artwork = exhibitionDisplaying.artwork;
+    final artwork = exhibitionDisplaying.artwork?.copyWith(
+      series: exhibitionDisplaying.artwork?.series
+          ?.copyWith(exhibition: exhibition),
+    );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
+    final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
+    final isUserArtist = artistAddresses == null
+        ? false
+        : injector<AuthService>().isLinkArtist(artistAddresses);
     return NowDisplayingView(
+      onMoreTap: artwork?.indexerTokenId == null
+          ? null
+          : isUserArtist
+              ? () {
+                  injector<NavigationService>().openArtistDisplaySetting(
+                    artwork: artwork!,
+                  );
+                }
+              : () {
+                  injector<NavigationService>().showDeviceSettings(
+                    tokenId: artwork?.indexerTokenId ?? '',
+                    artistName: artwork?.series?.artistAlumni?.alias,
+                  );
+                },
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
@@ -460,11 +488,13 @@ class NowDisplayingView extends StatelessWidget {
   const NowDisplayingView({
     required this.thumbnailBuilder,
     required this.titleBuilder,
+    this.onMoreTap,
     super.key,
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final void Function()? onMoreTap;
 
   @override
   Widget build(BuildContext context) {
@@ -501,6 +531,18 @@ class NowDisplayingView extends StatelessWidget {
               ],
             ),
           ),
+          if (onMoreTap != null)
+            IconButton(
+              onPressed: onMoreTap,
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
         ],
       ),
     );
