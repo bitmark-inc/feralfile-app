@@ -151,8 +151,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
                       ),
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                  ],
-                  if (!_isScanning) ...[
+                  ] else ...[
                     if (_accessPoints == null)
                       SliverToBoxAdapter(
                         child: Column(
@@ -227,92 +226,12 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
                   ],
                   ...[
                     if (_accessPoints?.isNotEmpty ?? false)
-                      SliverToBoxAdapter(
-                        child: ImportantNoteView(
-                          note:
-                              '''To avoid overloading the BLE connection, only the strongest nearby Wi-Fi network is shown. If your network isn't listed, try moving the device closer to your Wi-Fi router, or connect manually.''',
-                          title: 'Showing Strongest Networks Only',
-                          backgroundColor: AppColor.primaryBlack,
-                          borderColor: AppColor.white,
-                          noteStyle:
-                              Theme.of(context).textTheme.ppMori400White14,
-                          titleStyle:
-                              Theme.of(context).textTheme.ppMori700White14,
-                        ),
-                      ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 16,
-                      ),
-                    ),
-                    ..._accessPoints?.map(
-                          (e) => SliverToBoxAdapter(
-                            child: itemBuilder(context, e),
-                          ),
-                        ) ??
-                        [],
+                      SliverToBoxAdapter(child: _listWifiView(context)),
                     if ((!_isScanning ||
                             (_accessPoints?.isNotEmpty ?? false)) &&
                         widget.payload.device.isConnected) ...[
                       SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 24),
-                            Text(
-                              'Or enter your Wi-Fi name (SSID) below to connect manually.',
-                              style:
-                                  Theme.of(context).textTheme.ppMori400White14,
-                            ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: _ssidController,
-                              decoration: InputDecoration(
-                                // border radius 10
-                                hintText: 'Enter wifi network',
-                                hintStyle: Theme.of(context)
-                                    .textTheme
-                                    .ppMori400White14,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide.none,
-                                ),
-                                fillColor: AppColor.auGreyBackground,
-                                focusColor: AppColor.auGreyBackground,
-                                filled: true,
-                                constraints:
-                                    const BoxConstraints(minHeight: 60),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 24,
-                                  horizontal: 16,
-                                ),
-                              ),
-                              style:
-                                  Theme.of(context).textTheme.ppMori400White14,
-                              onChanged: (value) {
-                                if (mounted) {
-                                  setState(() {
-                                    _shouldEnableConnectButton =
-                                        value.trim().isNotEmpty;
-                                  });
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            PrimaryButton(
-                              enabled: _shouldEnableConnectButton,
-                              onTap: () async {
-                                final ssid = _ssidController.text.trim();
-                                if (ssid.isEmpty) {
-                                  return;
-                                }
-                                await widget.payload
-                                    .onNetworkSelected(WifiPoint(ssid));
-                              },
-                              text: 'Connect',
-                            ),
-                          ],
-                        ),
+                        child: _enterWifiManuallyView(context),
                       ),
                     ],
                   ],
@@ -327,6 +246,83 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _listWifiView(BuildContext context) {
+    return Column(
+      children: [
+        ImportantNoteView(
+          note:
+              '''To avoid overloading the BLE connection, only the strongest nearby Wi-Fi network is shown. If your network isn't listed, try moving the device closer to your Wi-Fi router, or connect manually.''',
+          title: 'Showing Strongest Networks Only',
+          backgroundColor: AppColor.primaryBlack,
+          borderColor: AppColor.white,
+          noteStyle: Theme.of(context).textTheme.ppMori400White14,
+          titleStyle: Theme.of(context).textTheme.ppMori700White14,
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        ..._accessPoints?.map(
+              (e) => itemBuilder(context, e),
+            ) ??
+            [],
+      ],
+    );
+  }
+
+  Widget _enterWifiManuallyView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Text(
+          'Or enter your Wi-Fi name (SSID) below to connect manually.',
+          style: Theme.of(context).textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _ssidController,
+          decoration: InputDecoration(
+            // border radius 10
+            hintText: 'Enter wifi network',
+            hintStyle: Theme.of(context).textTheme.ppMori400White14,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            fillColor: AppColor.auGreyBackground,
+            focusColor: AppColor.auGreyBackground,
+            filled: true,
+            constraints: const BoxConstraints(minHeight: 60),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 24,
+              horizontal: 16,
+            ),
+          ),
+          style: Theme.of(context).textTheme.ppMori400White14,
+          onChanged: (value) {
+            if (mounted) {
+              setState(() {
+                _shouldEnableConnectButton = value.trim().isNotEmpty;
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+        PrimaryButton(
+          enabled: _shouldEnableConnectButton,
+          onTap: () async {
+            final ssid = _ssidController.text.trim();
+            if (ssid.isEmpty) {
+              return;
+            }
+            await widget.payload.onNetworkSelected(WifiPoint(ssid));
+          },
+          text: 'Connect',
+        ),
+      ],
     );
   }
 
