@@ -32,7 +32,6 @@ enum CastCommand {
   enableMetricsStreaming,
   disableMetricsStreaming,
   showPairingQRCode,
-  castDaily;
   castDaily,
   updateDisplaySettings;
 
@@ -1136,6 +1135,8 @@ class ShowPairingQRCodeReply extends Reply {
         'success': success,
         'error': error,
       };
+}
+
 class UpdateDisplaySettingsRequest implements Request {
   UpdateDisplaySettingsRequest(
       {required this.tokenId, required this.setting, this.isSaved = true});
