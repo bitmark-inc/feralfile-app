@@ -33,7 +33,8 @@ enum CastCommand {
   disableMetricsStreaming,
   showPairingQRCode,
   castDaily,
-  updateDisplaySettings;
+  updateDisplaySettings,
+  shutdown;
 
   static CastCommand fromString(String command) {
     switch (command) {
@@ -89,6 +90,8 @@ enum CastCommand {
         return CastCommand.showPairingQRCode;
       case 'updateDisplaySettings':
         return CastCommand.updateDisplaySettings;
+      case 'shutdown':
+        return CastCommand.shutdown;
       default:
         throw ArgumentError('Unknown command: $command');
     }
@@ -148,6 +151,8 @@ enum CastCommand {
         return CastCommand.showPairingQRCode;
       case const (UpdateDisplaySettingsRequest):
         return CastCommand.updateDisplaySettings;
+      case const (SafeShutdownRequest):
+        return CastCommand.shutdown;
       default:
         throw Exception('Unknown request type');
     }
@@ -1158,4 +1163,14 @@ class UpdateDisplaySettingsReply extends ReplyWithOK {
 
   factory UpdateDisplaySettingsReply.fromJson(Map<String, dynamic> json) =>
       UpdateDisplaySettingsReply(ok: json['ok'] as bool);
+}
+
+class SafeShutdownRequest implements Request {
+  SafeShutdownRequest();
+
+  factory SafeShutdownRequest.fromJson(Map<String, dynamic> json) =>
+      SafeShutdownRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
 }

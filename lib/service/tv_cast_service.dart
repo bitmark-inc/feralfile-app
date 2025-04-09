@@ -85,6 +85,10 @@ abstract class TvCastService {
   Future<ShowPairingQRCodeReply> showPairingQRCode(
     ShowPairingQRCodeRequest request,
   );
+
+  Future<void> safeShutdown(
+    SafeShutdownRequest request,
+  );
 }
 
 abstract class BaseTvCastService implements TvCastService {
@@ -325,6 +329,16 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _sendData(_getBody(request));
     return ShowPairingQRCodeReply.fromJson(result);
+  }
+
+  @override
+  Future<void> safeShutdown(SafeShutdownRequest request) async {
+    try {
+      await _sendData(_getBody(request));
+    } catch (e) {
+      log.warning('Failed to perform safe shutdown: $e');
+      rethrow;
+    }
   }
 }
 
