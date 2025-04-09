@@ -275,8 +275,8 @@ class _ArtistDisplaySettingWidgetState
   Widget _backgroundColourSetting(BuildContext context, {Color? value}) {
     return ColorSettingWidget(
       initialColor: value ?? AppColor.primaryBlack,
-      onColorChanged: (color) {
-        _bloc.add(UpdateBackgroundColourEvent(color));
+      onColorChanged: (color, isSelected) {
+        _bloc.add(UpdateBackgroundColourEvent(color, isSelected));
       },
     );
   }
@@ -312,7 +312,13 @@ class _ArtistDisplaySettingWidgetState
     bool? isAutoPlay,
     bool? isLoop,
   }) {
-    final selectedIndex = isAutoPlay == true ? 0 : 1;
+    final selectedItems = <int>[];
+    if (isAutoPlay == true) {
+      selectedItems.add(0);
+    }
+    if (isLoop == true) {
+      selectedItems.add(1);
+    }
     final theme = Theme.of(context);
     return ArtistMultiSettingItemWidget(
       settingName: 'Playback',
@@ -338,7 +344,7 @@ class _ArtistDisplaySettingWidgetState
           },
         ),
       ],
-      selectedIndex: selectedIndex,
+      selectedItems: selectedItems,
     );
   }
 
@@ -470,13 +476,13 @@ class _ArtistSettingItemWidgetState extends State<ArtistSettingItemWidget> {
 class ArtistMultiSettingItemWidget extends StatefulWidget {
   const ArtistMultiSettingItemWidget({
     required this.items,
-    required this.selectedIndex,
+    required this.selectedItems,
     required this.settingName,
     super.key,
   });
 
   final List<DeviceConfigItem> items;
-  final int selectedIndex;
+  final List<int> selectedItems;
   final String settingName;
 
   @override
@@ -493,7 +499,16 @@ class _ArtistMultiSettingItemWidgetState
     super.initState();
     _isSelected = List.generate(
       widget.items.length,
-      (index) => index == widget.selectedIndex,
+      (index) => widget.selectedItems.contains(index),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant ArtistMultiSettingItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _isSelected = List.generate(
+      widget.items.length,
+      (index) => widget.selectedItems.contains(index),
     );
   }
 
@@ -561,7 +576,7 @@ class ColorSettingWidget extends StatefulWidget {
 
   final Color initialColor;
 
-  final void Function(Color color) onColorChanged;
+  final void Function(Color color, bool isSelected) onColorChanged;
 
   @override
   _ColorSettingWidgetState createState() => _ColorSettingWidgetState();
@@ -611,14 +626,19 @@ class _ColorSettingWidgetState extends State<ColorSettingWidget> {
                     child: ColorPickerView(
                       initialColor: _selectedColor,
                       onColorChanged: (color) {
-                        setState(() {
-                          _selectedColor = color;
-                          _controller.text = color.toHex();
-                        });
-                        widget.onColorChanged(_selectedColor);
+                        widget.onColorChanged(color, false);
                       },
                     ),
                   );
+                  if (color != null) {
+                    setState(() {
+                      _selectedColor = color;
+                      _controller.text = color.toHex();
+                    });
+                    widget.onColorChanged(color, true);
+                  } else {
+                    widget.onColorChanged(_selectedColor, true);
+                  }
                   log.info('Color: $color');
                 },
                 child: AspectRatio(
@@ -666,7 +686,7 @@ class _ColorSettingWidgetState extends State<ColorSettingWidget> {
           setState(() {
             _selectedColor = color;
           });
-          widget.onColorChanged(color);
+          widget.onColorChanged(color, true);
         } catch (e) {
           log.info('Invalid color format: $value');
           // Handle invalid color format
@@ -873,7 +893,7 @@ class _MarginSettingWidgetState extends State<MarginSettingWidget> {
   }
 
   void setMarginValue(double value) {
-    EdgeInsets margin = _selectedMargin;
+    var margin = _selectedMargin;
     if (value > 0) {
       final le = value.abs();
       margin = EdgeInsets.only(left: le, right: le);

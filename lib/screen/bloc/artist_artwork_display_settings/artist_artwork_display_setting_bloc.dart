@@ -125,9 +125,10 @@ class UpdateArtFramingEvent extends ArtistArtworkDisplaySettingEvent {
 }
 
 class UpdateBackgroundColourEvent extends ArtistArtworkDisplaySettingEvent {
-  UpdateBackgroundColourEvent(this.backgroundColour);
+  UpdateBackgroundColourEvent(this.backgroundColour, this.isSelected);
 
   final Color backgroundColour;
+  final bool isSelected;
 }
 
 class UpdateMarginEvent extends ArtistArtworkDisplaySettingEvent {
@@ -224,10 +225,13 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
     });
 
     on<UpdateBackgroundColourEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting?.copyWith(
-        backgroundColour: event.backgroundColour,
-      );
-      emit(state.copyWith(artistDisplaySetting: newSetting));
+      if (event.isSelected) {
+        final newSetting = state.artistDisplaySetting?.copyWith(
+          backgroundColour: event.backgroundColour,
+        );
+
+        emit(state.copyWith(artistDisplaySetting: newSetting));
+      }
       updateToDevice();
     });
 

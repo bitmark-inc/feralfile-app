@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,7 @@ class _ColorPickerViewState extends State<ColorPickerView> {
                 const SizedBox(width: 8.0),
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).pop(_selectedColor);
+                    Navigator.of(context).pop();
                   },
                   child: const Icon(
                     AuIcon.close,
@@ -91,6 +92,9 @@ class _ColorPickerViewState extends State<ColorPickerView> {
               displayThumbColor: true,
               colorHistory: _historyColors,
               onColorChanged: (color) {
+                if (!mounted) {
+                  return;
+                }
                 setState(() {
                   _selectedColor = color;
                 });
@@ -293,6 +297,18 @@ class _FFColorPickerState extends State<FFColorPicker> {
     );
   }
 
+  Widget _selectButton(BuildContext context) {
+    return PrimaryAsyncButton(
+      onTap: () {
+        Navigator.of(context).pop(currentHsvColor.toColor());
+      },
+      text: 'Set Background Color',
+      color: Colors.transparent,
+      borderColor: AppColor.white,
+      textColor: AppColor.white,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -302,7 +318,11 @@ class _FFColorPickerState extends State<FFColorPicker> {
         const SizedBox(height: 12.0),
         _colorInfo(context, currentHsvColor.toColor()),
         const SizedBox(height: 24.0),
-        _recentColor(context, widget.colorHistory ?? []),
+        if (widget.colorHistory?.isNotEmpty == true) ...[
+          _recentColor(context, widget.colorHistory ?? []),
+          const SizedBox(height: 24.0),
+        ],
+        _selectButton(context),
         const SizedBox(height: 20.0),
       ],
     );
