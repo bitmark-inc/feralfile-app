@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -90,15 +89,6 @@ class _ArtistDisplaySettingWidgetState
                           height: 16,
                           color: AppColor.primaryBlack,
                           thickness: 2,
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 8),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _orientationSetting(
-                          context,
-                          value: state.artistDisplaySetting?.screenOrientation,
                         ),
                       ),
                       const SliverToBoxAdapter(
@@ -247,30 +237,6 @@ class _ArtistDisplaySettingWidgetState
           ),
         ),
       ],
-    );
-  }
-
-  Widget _orientationSetting(BuildContext context, {ScreenOrientation? value}) {
-    final selectedIndex = value == ScreenOrientation.portrait ? 1 : 0;
-    return ArtistSettingItemWidget(
-      settingName: 'Orientation',
-      items: [
-        DeviceConfigItem(
-          title: 'Landscape',
-          icon: SvgPicture.asset('assets/images/Rec_landscape.svg'),
-          onSelected: () {
-            _bloc.add(UpdateOrientationEvent(ScreenOrientation.landscape));
-          },
-        ),
-        DeviceConfigItem(
-          title: 'Portrait',
-          icon: SvgPicture.asset('assets/images/Rec_portrait.svg'),
-          onSelected: () {
-            _bloc.add(UpdateOrientationEvent(ScreenOrientation.portrait));
-          },
-        ),
-      ],
-      selectedIndex: selectedIndex,
     );
   }
 

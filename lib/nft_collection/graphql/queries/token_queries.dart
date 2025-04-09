@@ -131,7 +131,6 @@ const String getTokens = r'''
       lastRefreshedTime
       attributes{
         configuration {
-          orientation
           scaling
           backgroundColor
           marginLeft
@@ -335,7 +334,6 @@ const String getTokenConfigurations = r'''
     asset {
       attributes {
         configuration {
-          orientation
           scaling
           backgroundColor
           marginLeft

@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -18,7 +17,6 @@ import 'package:flutter/material.dart';
 
 class ArtistDisplaySetting {
   ArtistDisplaySetting({
-    this.screenOrientation = ScreenOrientation.landscape,
     this.artFraming = ArtFraming.cropToFill,
     this.backgroundColour = AppColor.primaryBlack,
     this.margin = EdgeInsets.zero,
@@ -31,8 +29,6 @@ class ArtistDisplaySetting {
   // fromJson
   factory ArtistDisplaySetting.fromJson(Map<String, dynamic> json) {
     return ArtistDisplaySetting(
-      screenOrientation:
-          ScreenOrientation.fromString(json['orientation'] as String),
       artFraming: ArtFraming.fromString(json['scaling'] as String),
       backgroundColour: ColorExt.fromHex(json['backgroundColor'] as String),
       margin: EdgeInsets.only(
@@ -48,7 +44,6 @@ class ArtistDisplaySetting {
     );
   }
 
-  final ScreenOrientation screenOrientation;
   final ArtFraming artFraming;
   final Color backgroundColour;
   final EdgeInsets margin; // margin in percentage
@@ -58,7 +53,6 @@ class ArtistDisplaySetting {
   final bool overridable;
 
   ArtistDisplaySetting copyWith({
-    ScreenOrientation? screenOrientation,
     ArtFraming? artFraming,
     Color? backgroundColour,
     EdgeInsets? margin,
@@ -68,7 +62,6 @@ class ArtistDisplaySetting {
     bool? overridable,
   }) {
     return ArtistDisplaySetting(
-      screenOrientation: screenOrientation ?? this.screenOrientation,
       artFraming: artFraming ?? this.artFraming,
       backgroundColour: backgroundColour ?? this.backgroundColour,
       margin: margin ?? this.margin,
@@ -81,7 +74,6 @@ class ArtistDisplaySetting {
 
   Map<String, dynamic> toJson() {
     return {
-      'orientation': screenOrientation.name,
       'scaling': artFraming.name,
       'backgroundColor': backgroundColour.toHex(),
       'marginLeft': margin.left / 100,
@@ -124,12 +116,6 @@ class InitArtistArtworkDisplaySettingEvent
   InitArtistArtworkDisplaySettingEvent({this.artistDisplaySetting});
 
   final ArtistDisplaySetting? artistDisplaySetting;
-}
-
-class UpdateOrientationEvent extends ArtistArtworkDisplaySettingEvent {
-  UpdateOrientationEvent(this.screenOrientation);
-
-  final ScreenOrientation screenOrientation;
 }
 
 class UpdateArtFramingEvent extends ArtistArtworkDisplaySettingEvent {
@@ -227,19 +213,6 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
         );
       }
       unawaited(updateToDevice());
-    });
-
-    on<UpdateOrientationEvent>((event, emit) {
-      final newSetting = state.artistDisplaySetting?.copyWith(
-        screenOrientation: event.screenOrientation,
-      );
-      emit(
-        ArtistArtworkDisplaySettingState(
-          tokenId: state.tokenId,
-          artistDisplaySetting: newSetting,
-        ),
-      );
-      updateToDevice();
     });
 
     on<UpdateArtFramingEvent>((event, emit) {
