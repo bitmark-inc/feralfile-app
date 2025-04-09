@@ -450,6 +450,7 @@ class FFBluetoothService {
       }
       if (_connectCompleter?.isCompleted == false) {
         log.info('Already connecting to device: ${device.remoteId.str}');
+        return _connectCompleter?.future;
       }
       _connectCompleter = Completer<void>();
       log.info('Connecting to device: ${device.remoteId.str}');
@@ -473,7 +474,7 @@ class FFBluetoothService {
         rethrow;
       }
       // Wait for connection to complete
-      if (device.isConnected) {
+      if (autoConnect && device.isConnected) {
         _connectCompleter?.complete();
         _connectCompleter = null;
       } else {
@@ -509,6 +510,7 @@ class FFBluetoothService {
           }
           throw e;
         });
+        log.info('Connected to device: ${device.remoteId.str}');
       }
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
