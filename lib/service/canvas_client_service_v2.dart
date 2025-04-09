@@ -416,16 +416,6 @@ class CanvasClientServiceV2 {
       dragOffsets.clear();
       unawaited(_sendDrag(devices, offsets));
     }
-    // if (_timer == null || !_timer!.isActive) {
-    //   _timer = Timer(const Duration(milliseconds: 30), () {
-    //     for (final device in devices) {
-    //       final stub = _getStub(device);
-    //       final dragRequest = DragGestureRequest(cursorOffsets: dragOffsets);
-    //       stub.drag(dragRequest);
-    //     }
-    //     dragOffsets.clear();
-    //   });
-    // }
   }
 
   Future<bool> enableMetricsStreaming(BaseDevice device) async {
@@ -482,6 +472,23 @@ class CanvasClientServiceV2 {
       unawaited(
         Sentry.captureException(
           'CanvasClientService: showPairingQRCode error: $e',
+        ),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> safeShutdown(BaseDevice device) async {
+    try {
+      final stub = _getStub(device);
+      final request = SafeShutdownRequest();
+      await stub.safeShutdown(request);
+      return true;
+    } catch (e) {
+      log.info('CanvasClientService: safeShutdown error: $e');
+      unawaited(
+        Sentry.captureException(
+          'CanvasClientService: safeShutdown error: $e',
         ),
       );
       return false;

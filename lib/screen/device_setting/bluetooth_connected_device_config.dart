@@ -307,9 +307,10 @@ class BluetoothConnectedDeviceConfigState
                             textColor: AppColor.white,
                             borderColor: AppColor.white,
                             color: Colors.transparent,
-                            onTap: () {
-                              // injector<FFBluetoothService>()
-                              //     .disconnectFromDevice(widget.payload.device);
+                            onTap: () async {
+                              final device = widget.payload.device;
+                              await injector<CanvasClientServiceV2>()
+                                  .safeShutdown(device);
                               injector<NavigationService>().goBack();
                             },
                           ),
