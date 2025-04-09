@@ -266,67 +266,73 @@ class BluetoothConnectedDeviceConfigState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: () {
-        injector<NavigationService>().goBack();
-      }, title: 'configure_device'.tr(), isWhite: false, actions: [
-        if (_isBLEDeviceConnected)
-          GestureDetector(
-            onTap: () {
-              UIHelper.showCenterDialog(
-                context,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Power Off',
-                      style: Theme.of(context).textTheme.ppMori700White16,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Are you sure you want to power off the device?',
-                      style: Theme.of(context).textTheme.ppMori400White14,
-                    ),
-                    const SizedBox(height: 36),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryAsyncButton(
-                            text: 'cancel'.tr(),
-                            textColor: AppColor.white,
-                            color: Colors.transparent,
-                            borderColor: AppColor.white,
-                            onTap: () {
-                              injector<NavigationService>().goBack();
-                            },
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          injector<NavigationService>().goBack();
+        },
+        title: 'configure_device'.tr(),
+        isWhite: false,
+        actions: [
+          if (_isBLEDeviceConnected)
+            GestureDetector(
+              onTap: () {
+                UIHelper.showCenterDialog(
+                  context,
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Power Off',
+                        style: Theme.of(context).textTheme.ppMori700White16,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Are you sure you want to power off the device?',
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      const SizedBox(height: 36),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PrimaryAsyncButton(
+                              text: 'cancel'.tr(),
+                              textColor: AppColor.white,
+                              color: Colors.transparent,
+                              borderColor: AppColor.white,
+                              onTap: () {
+                                injector<NavigationService>().goBack();
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: PrimaryAsyncButton(
-                            text: 'OK',
-                            textColor: AppColor.white,
-                            borderColor: AppColor.white,
-                            color: Colors.transparent,
-                            onTap: () async {
-                              final device = widget.payload.device;
-                              await injector<CanvasClientServiceV2>()
-                                  .safeShutdown(device);
-                              injector<NavigationService>().goBack();
-                            },
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: PrimaryAsyncButton(
+                              text: 'OK',
+                              textColor: AppColor.white,
+                              borderColor: AppColor.white,
+                              color: Colors.transparent,
+                              onTap: () async {
+                                final device = widget.payload.device;
+                                await injector<CanvasClientServiceV2>()
+                                    .safeShutdown(device);
+                                injector<NavigationService>().goBack();
+                              },
+                            ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              );
-            },
-            child: Icon(
-              Icons.power_settings_new,
-              size: 24,
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Icon(
+                Icons.power_settings_new,
+                size: 24,
+              ),
             ),
-          )
-      ]),
+        ],
+      ),
       backgroundColor: AppColor.primaryBlack,
       body: SafeArea(child: _body(context)),
     );
@@ -655,12 +661,13 @@ class BluetoothConnectedDeviceConfigState
     return Row(
       children: [
         Expanded(
-            child: Text(
-          title,
-          style: theme.textTheme.ppMori400Grey14,
-        )),
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+          ),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: child)
+        Expanded(child: child),
       ],
     );
   }
@@ -707,7 +714,7 @@ class BluetoothConnectedDeviceConfigState
                     decoration: TextDecoration.underline,
                   ),
                 ),
-              )
+              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -765,9 +772,10 @@ class BluetoothConnectedDeviceConfigState
                       child: Text(
                         deviceId,
                         style: theme.textTheme.ppMori400White14.copyWith(
-                            color: device.isConnected
-                                ? AppColor.white
-                                : AppColor.disabledColor),
+                          color: device.isConnected
+                              ? AppColor.white
+                              : AppColor.disabledColor,
+                        ),
                       ),
                     ),
                     _copyButton(
@@ -783,30 +791,31 @@ class BluetoothConnectedDeviceConfigState
                 context,
                 title: 'Software Version',
                 child: RichText(
-                    text: TextSpan(
-                  style: theme.textTheme.ppMori400White14.copyWith(
-                    color: device.isConnected
-                        ? AppColor.white
-                        : AppColor.disabledColor,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: installedVersion ?? '-',
+                  text: TextSpan(
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      color: device.isConnected
+                          ? AppColor.white
+                          : AppColor.disabledColor,
                     ),
-                    if (isUpToDate)
-                      const TextSpan(
-                        text: ' - Up to date',
-                        style: TextStyle(color: AppColor.disabledColor),
-                      )
-                    else
-                      const TextSpan(
-                        text: ' - Update available',
-                        style: TextStyle(
-                          color: AppColor.disabledColor,
-                        ),
+                    children: [
+                      TextSpan(
+                        text: installedVersion ?? '-',
                       ),
-                  ],
-                )),
+                      if (isUpToDate)
+                        const TextSpan(
+                          text: ' - Up to date',
+                          style: TextStyle(color: AppColor.disabledColor),
+                        )
+                      else
+                        const TextSpan(
+                          text: ' - Update available',
+                          style: TextStyle(
+                            color: AppColor.disabledColor,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
               divider,
               //IP Address
@@ -901,8 +910,9 @@ class BluetoothConnectedDeviceConfigState
     return GestureDetector(
       onTap: () {
         showSimpleNotificationToast(
-            key: const Key('deviceID'),
-            content: 'Device Id copied to clipboard');
+          key: const Key('deviceID'),
+          content: 'Device Id copied to clipboard',
+        );
         unawaited(
           Clipboard.setData(ClipboardData(text: deviceId)),
         );
