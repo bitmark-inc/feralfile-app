@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -68,6 +70,33 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
     ].contains(orientation);
   }
 
+  Future<void> _updateFitment(ArtFraming fitment) async {
+    if (fitment == selectedFitment) {
+      return;
+    }
+
+    if (connectedDevice == null) {
+      log.warning(
+        'NowDisplaySetting: fitmentOption: connectedDevice is null',
+      );
+      return;
+    }
+
+    try {
+      unawaited(injector<CanvasClientServiceV2>().updateArtFraming(
+        connectedDevice!,
+        fitment,
+      ));
+      setState(() {
+        selectedFitment = fitment;
+      });
+    } catch (e) {
+      log.warning(
+        'NowDisplaySetting: updateDisplaySettings error: $e',
+      );
+    }
+  }
+
   OptionItem fitmentOption(ArtFraming fitment) {
     return OptionItem(
       title: fitment == ArtFraming.fitToScreen ? 'fit'.tr() : 'fill'.tr(),
@@ -77,31 +106,7 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
             : 'assets/images/radio_unselected.svg',
       ),
       onTap: () async {
-        if (fitment == selectedFitment) {
-          return;
-        }
-
-        if (connectedDevice == null) {
-          log.warning(
-            'NowDisplaySetting: fitmentOption: connectedDevice is null',
-          );
-          return;
-        }
-
-        try {
-          await injector<CanvasClientServiceV2>().updateArtFraming(
-            connectedDevice!,
-            fitment,
-          );
-
-          setState(() {
-            selectedFitment = fitment;
-          });
-        } catch (e) {
-          log.warning(
-            'NowDisplaySetting: updateDisplaySettings error: $e',
-          );
-        }
+        await _updateFitment(fitment);
       },
     );
   }
@@ -110,7 +115,14 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
     return OptionItem(
       builder: (context, item) {
         return GestureDetector(
-          onTap: () {},
+          onTap: () async {
+            final tokenConfig = widget.tokenConfiguration;
+            if (tokenConfig == null) {
+              return;
+            }
+            final fitment = tokenConfig.artFraming;
+            await _updateFitment(fitment);
+          },
           child: Container(
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(10),
@@ -153,16 +165,6 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
                       currentOrientation == ScreenOrientation.portrait
                           ? ScreenOrientation.landscape
                           : ScreenOrientation.portrait;
-
-                  // await injector<CanvasClientServiceV2>().updateDisplaySettings(
-                  //   connectedDevice!,
-                  //   DisplaySettings(
-                  //     tokenId: widget.tokenId,
-                  //     setting: ArtistDisplaySetting(
-                  //       screenOrientation: newOrientation,
-                  //     ),
-                  //   ),
-                  // );
                   setState(() {
                     currentOrientation = newOrientation;
                   });
@@ -175,7 +177,9 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
             ),
             fitmentOption(ArtFraming.fitToScreen),
             fitmentOption(ArtFraming.cropToFill),
-            restoreSettingsOption(),
+            if (widget.tokenConfiguration != null && overridable)
+              restoreSettingsOption(),
+            OptionItem.emptyOptionItem,
           ]
         : [];
   }
@@ -232,6 +236,9 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
     if (connectedDevice == null) {
       return const SizedBox.shrink();
     }
+    final shouldShowArtistPreferenceNote = widget.tokenConfiguration != null;
+    final itemCount =
+        _settingOptions().length + (shouldShowArtistPreferenceNote ? 1 : 0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -240,11 +247,12 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (BuildContext context, int index) {
-            if (index == 0) {
+            if (index == 0 && shouldShowArtistPreferenceNote) {
               return _artistPreferenceNote();
             }
 
-            final option = _settingOptions()[index - 1];
+            final option = _settingOptions()[
+                index - (shouldShowArtistPreferenceNote ? 1 : 0)];
             if (option.builder != null) {
               return option.builder!.call(context, option);
             }
@@ -253,14 +261,16 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
               color: AppColor.white,
             );
           },
-          itemCount: _settingOptions().length + 1,
-          separatorBuilder: (context, index) => index == 0
-              ? const SizedBox()
-              : const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: AppColor.primaryBlack,
-                ),
+          itemCount: itemCount,
+          separatorBuilder: (context, index) =>
+              (index == 0 && shouldShowArtistPreferenceNote ||
+                      index == itemCount - 1)
+                  ? const SizedBox()
+                  : const Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: AppColor.primaryBlack,
+                    ),
         ),
       ],
     );
