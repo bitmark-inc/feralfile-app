@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -265,14 +266,66 @@ class BluetoothConnectedDeviceConfigState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          injector<NavigationService>().goBack();
-        },
-        title: 'configure_device'.tr(),
-        isWhite: false,
-      ),
+      appBar: getBackAppBar(context, onBack: () {
+        injector<NavigationService>().goBack();
+      }, title: 'configure_device'.tr(), isWhite: false, actions: [
+        if (_isBLEDeviceConnected)
+          GestureDetector(
+            onTap: () {
+              UIHelper.showCenterDialog(
+                context,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Power Off',
+                      style: Theme.of(context).textTheme.ppMori700White16,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Are you sure you want to power off the device?',
+                      style: Theme.of(context).textTheme.ppMori400White14,
+                    ),
+                    const SizedBox(height: 36),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryAsyncButton(
+                            text: 'cancel'.tr(),
+                            textColor: AppColor.white,
+                            color: Colors.transparent,
+                            borderColor: AppColor.white,
+                            onTap: () {
+                              injector<NavigationService>().goBack();
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: PrimaryAsyncButton(
+                            text: 'OK',
+                            textColor: AppColor.white,
+                            borderColor: AppColor.white,
+                            color: Colors.transparent,
+                            onTap: () {
+                              // injector<FFBluetoothService>()
+                              //     .disconnectFromDevice(widget.payload.device);
+                              injector<NavigationService>().goBack();
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              );
+            },
+            child: Icon(
+              Icons.power_settings_new,
+              size: 24,
+            ),
+          )
+      ]),
       backgroundColor: AppColor.primaryBlack,
       body: SafeArea(child: _body(context)),
     );
@@ -737,7 +790,7 @@ class BluetoothConnectedDeviceConfigState
                   ),
                   children: [
                     TextSpan(
-                      text: installedVersion ?? 'Unknown',
+                      text: installedVersion ?? '-',
                     ),
                     if (isUpToDate)
                       const TextSpan(
