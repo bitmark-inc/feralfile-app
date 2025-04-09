@@ -225,13 +225,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
     final token = link.replaceFirst(linkArtistPrefix, '').split('/')[1];
     try {
-      final res = await injector<AuthService>().linkArtist(token);
-      if (res) {
-        unawaited(_navigationService.showLinkArtistSuccess());
-      } else {
-        unawaited(_navigationService
-            .showLinkArtistFailed(Exception('Link artist failed')));
-      }
+      await injector<AuthService>().linkArtist(token);
+      unawaited(_navigationService.showLinkArtistSuccess());
     } on DioException catch (e) {
       if (e.error is FeralfileError) {
         final error = e.error as FeralfileError;

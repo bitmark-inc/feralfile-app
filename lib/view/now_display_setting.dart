@@ -20,6 +20,7 @@ class NowDisplaySettingView extends StatefulWidget {
     this.tokenConfiguration,
     super.key,
   });
+
   final String? artistName;
   final ArtistDisplaySetting? tokenConfiguration;
 
@@ -49,17 +50,15 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
       selectedFitment = deviceSettings?.artFraming ??
           widget.tokenConfiguration?.artFraming ??
           ArtFraming.cropToFill;
-      currentOrientation = _isPortraitOrientation(
-        deviceSettings?.screenRotation ??
-            widget.tokenConfiguration?.screenOrientation,
-      )
-          ? ScreenOrientation.portrait
-          : ScreenOrientation.landscape;
     } else {
       // Use artist's settings when not overridable
       selectedFitment = widget.tokenConfiguration!.artFraming;
-      currentOrientation = widget.tokenConfiguration!.screenOrientation;
     }
+    currentOrientation = _isPortraitOrientation(
+      deviceSettings?.screenRotation,
+    )
+        ? ScreenOrientation.portrait
+        : ScreenOrientation.landscape;
   }
 
   bool _isPortraitOrientation(ScreenOrientation? orientation) {
@@ -169,7 +168,8 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
                   });
                 } catch (e) {
                   log.warning(
-                      'NowDisplaySetting: updateDisplaySettings error: $e');
+                    'NowDisplaySetting: updateDisplaySettings error: $e',
+                  );
                 }
               },
             ),

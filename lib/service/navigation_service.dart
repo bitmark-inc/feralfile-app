@@ -205,7 +205,6 @@ class NavigationService {
             ))
           ],
         ),
-        isDismissible: true,
       );
 
       await Future.delayed(const Duration(seconds: 1), () {
@@ -250,7 +249,6 @@ class NavigationService {
         'taking_too_long'.tr(),
         'if_take_too_long'.tr(),
         closeButton: 'cancel'.tr(),
-        isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
           hideInfoDialog();
@@ -267,7 +265,6 @@ class NavigationService {
         'can_not_connect_to_tv'.tr(),
         'can_not_connect_to_tv_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -293,7 +290,6 @@ class NavigationService {
         'unknown_link'.tr(),
         'unknown_link_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -306,7 +302,6 @@ class NavigationService {
         'can_not_resolve_branch_link'.tr(),
         'can_not_resolve_branch_link_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -319,7 +314,6 @@ class NavigationService {
         'can_not_get_gift_code'.tr(),
         'can_not_get_gift_code_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -332,7 +326,6 @@ class NavigationService {
         'fail_to_redeem_membership'.tr(),
         'fail_to_redeem_membership_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -345,7 +338,6 @@ class NavigationService {
         'fail_to_redeem_membership'.tr(),
         'redeem_code_used_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -358,7 +350,6 @@ class NavigationService {
         'fail_to_redeem_membership'.tr(),
         'premium_user_can_not_claim'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -371,7 +362,6 @@ class NavigationService {
         'redeem_membership_success'.tr(),
         'redeem_membership_success_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -556,7 +546,6 @@ class NavigationService {
         'error'.tr(),
         'Error while reading ${keys.join(', ')}',
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -867,7 +856,6 @@ class NavigationService {
         'link_artist_success'.tr(),
         'link_artist_success_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -878,9 +866,10 @@ class NavigationService {
       await UIHelper.showInfoDialog(
         context,
         'link_artist_failed'.tr(),
-        'link_artist_failed_desc'.tr(),
+        'link_artist_failed_desc'.tr(namedArgs: {
+          'error': exception.toString(),
+        }),
         onClose: () => UIHelper.hideInfoDialog(context),
-        isDismissible: true,
       );
     }
   }
@@ -907,7 +896,6 @@ class NavigationService {
         context,
         'Artwork Settings Updated',
         'Your artwork settings have been successfully saved.',
-        isDismissible: true,
       );
     }
   }
@@ -918,7 +906,6 @@ class NavigationService {
         context,
         'Failed to Save Artwork Settings',
         'Unable to save the artwork settings. '.tr() + ' $exception',
-        isDismissible: true,
       );
     }
   }

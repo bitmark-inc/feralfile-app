@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothManager {
@@ -22,11 +23,13 @@ class BluetoothManager {
   static final _engineeringCharacteristic = <String, BluetoothCharacteristic>{};
 
   static void setCommandCharacteristic(BluetoothCharacteristic characteristic) {
+    log.info('Setting command characteristic: ${characteristic.uuid}');
     _commandCharacteristic[characteristic.remoteId.str] = characteristic;
   }
 
   static void setWifiConnectCharacteristic(
       BluetoothCharacteristic characteristic) {
+    log.info('Setting Wi-Fi connect characteristic: ${characteristic.uuid}');
     _wifiConnectCharacteristic[characteristic.remoteId.str] = characteristic;
   }
 
@@ -35,8 +38,15 @@ class BluetoothManager {
     _engineeringCharacteristic[characteristic.remoteId.str] = characteristic;
   }
 
-  static BluetoothCharacteristic? getCommandCharacteristic(String remoteId) =>
-      _commandCharacteristic[remoteId];
+  static BluetoothCharacteristic? getCommandCharacteristic(String remoteId) {
+    final char = _commandCharacteristic[remoteId];
+    if (char == null) {
+      log.warning('Command characteristic not found for remoteId: $remoteId');
+    } else {
+      log.info('Command characteristic found for remoteId: $remoteId');
+    }
+    return char;
+  }
 
   static BluetoothCharacteristic? getWifiConnectCharacteristic(
           String remoteId) =>
