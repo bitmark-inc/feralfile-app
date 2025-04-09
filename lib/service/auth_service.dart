@@ -184,11 +184,10 @@ class AuthService {
     await _authApi.registerReferralCode(body);
   }
 
-  Future<bool> linkArtist(String token) async {
+  Future<void> linkArtist(String token) async {
     final res = await _authApi.linkArtist({'token': token});
     // after link artist, we need to refresh the jwt
     await refreshJWT();
-    return true;
   }
 
   bool isLinkArtist(List<String> addresses) {
