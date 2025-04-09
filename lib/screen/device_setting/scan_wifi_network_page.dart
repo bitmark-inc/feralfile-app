@@ -253,7 +253,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
       children: [
         ImportantNoteView(
           note:
-              '''To avoid overloading the BLE connection, only the strongest nearby Wi-Fi network is shown. If your network isn't listed, try moving the device closer to your Wi-Fi router, or connect manually.''',
+              '''To avoid overloading the BLE connection, only the strongest nearby Wi-Fi networks are shown. If your network isn't listed, try moving the device closer to your Wi-Fi router, or connect manually.''',
           title: 'Showing Strongest Networks Only',
           backgroundColor: AppColor.primaryBlack,
           borderColor: AppColor.white,
