@@ -113,6 +113,11 @@ class FFBluetoothService {
         }
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
+        if (_connectCompleter?.isCompleted == false) {
+          _connectCompleter?.completeError(
+            'Device disconnected reason: ${device.disconnectReason}',
+          );
+        }
         NowDisplayingManager().addStatus(
             ConnectionLostAndReconnecting(device.toFFBluetoothDevice()));
       }

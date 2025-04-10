@@ -610,6 +610,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _wifiConfig(BuildContext context) {
+    final isEnabled = _isBLEDeviceConnected;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -618,20 +619,32 @@ class BluetoothConnectedDeviceConfigState
             children: [
               Text(
                 'configure_wifi'.tr(),
-                style: Theme.of(context).textTheme.ppMori400White14,
+                style: Theme.of(context).textTheme.ppMori400White14.copyWith(
+                      color:
+                          isEnabled ? AppColor.white : AppColor.disabledColor,
+                    ),
               ),
             ],
           ),
+          forwardIcon: SvgPicture.asset(
+            'assets/images/iconForward.svg',
+            colorFilter: ColorFilter.mode(
+              isEnabled ? AppColor.white : AppColor.disabledColor,
+              BlendMode.srcIn,
+            ),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 20),
-          onTap: () {
-            injector<NavigationService>().navigateTo(
-              AppRouter.scanWifiNetworkPage,
-              arguments: ScanWifiNetworkPagePayload(
-                widget.payload.device,
-                onWifiSelected,
-              ),
-            );
-          },
+          onTap: isEnabled
+              ? () {
+                  injector<NavigationService>().navigateTo(
+                    AppRouter.scanWifiNetworkPage,
+                    arguments: ScanWifiNetworkPagePayload(
+                      widget.payload.device,
+                      onWifiSelected,
+                    ),
+                  );
+                }
+              : null,
         ),
       ],
     );
