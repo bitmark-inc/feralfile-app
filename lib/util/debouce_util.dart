@@ -3,7 +3,9 @@ import 'dart:async';
 Map<String, bool> _blocking = {};
 
 FutureOr<T> withDebounce<T>(FutureOr<T> Function() func,
-    {String key = 'click', int debounceTime = 500}) {
+    {String? key, int debounceTime = 500}) {
+  // generate a unique key if not provided
+  key ??= DateTime.now().millisecondsSinceEpoch.toString();
   if (_blocking[key] == true) {
     throw StateError('Debounced action is blocked for key: $key');
   }

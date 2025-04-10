@@ -21,6 +21,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Dio feralFileDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(FeralfileAuthInterceptor());
+  dio.interceptors.add(FeralfileErrorHandlerInterceptor());
   return dio;
 }
 

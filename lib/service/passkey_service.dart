@@ -1,13 +1,20 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
@@ -20,13 +27,16 @@ abstract class PasskeyService {
 
   Future<AuthenticateResponseType> logInInitiate();
 
-  Future<JWT> logInFinalize(AuthenticateResponseType authenticateResponse);
+  Future<JWT> logInFinalize(AuthenticateResponseType authenticateResponse,
+      bool createUserIfNotExists);
 
   Future<void> registerInitiate();
 
   Future<JWT> registerFinalize();
 
   Future<JWT> requestJwt();
+
+  Future<String> generatePasskeyDisplayName();
 
   ValueNotifier<bool> get isShowingLoginDialog;
 
@@ -137,13 +147,19 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<JWT> logInFinalize(
-    AuthenticateResponseType authenticateResponse,
-  ) async {
+  Future<JWT> logInFinalize(AuthenticateResponseType authenticateResponse,
+      bool createUserIfNotExists) async {
     try {
-      log.info('Login finalize');
-      final response =
-          await _userApi.logInFinalize(authenticateResponse.toFFJson());
+      log.info('Login finalize, createUserIfNotExists: $createUserIfNotExists');
+      final body = <String, dynamic>{
+        ...authenticateResponse.toJson(),
+      };
+
+      if (createUserIfNotExists) {
+        body['createUserIfNotExists'] = createUserIfNotExists;
+      }
+
+      final response = await _userApi.logInFinalize(body);
       log.info('Login finalize done, set auth token');
       await _authService.setAuthToken(response);
       log.info('Login finalize done');
@@ -159,7 +175,10 @@ class PasskeyServiceImpl implements PasskeyService {
   Future<void> registerInitiate() async {
     try {
       log.info('Register initiate');
-      final registerRequest = await _initializeServerRegistration();
+      final displayName = await generatePasskeyDisplayName();
+      log.info('Generated passkey display name: $displayName');
+      final registerRequest =
+          await _initializeServerRegistration(displayName: displayName);
       _registerResponse = await _passkeyAuthenticator.register(registerRequest);
       log.info('Register initiate done, register response: $_registerResponse');
     } catch (e) {
@@ -169,8 +188,13 @@ class PasskeyServiceImpl implements PasskeyService {
     }
   }
 
-  Future<RegisterRequestType> _initializeServerRegistration() async {
-    final response = await _userApi.registerInitialize();
+  Future<RegisterRequestType> _initializeServerRegistration(
+      {String? displayName}) async {
+    final body = <String, dynamic>{};
+    if (displayName != null) {
+      body['displayName'] = displayName;
+    }
+    final response = await _userApi.registerInitialize(body);
     final pubKey = response.credentialCreationOption.publicKey;
     if (pubKey.authenticatorSelection == null) {
       throw Exception('Authenticator selection is not set');
@@ -207,11 +231,51 @@ class PasskeyServiceImpl implements PasskeyService {
     log.info('[PasskeyService] Request JWT');
     final localResponse = await logInInitiate();
     log.info('[PasskeyService] Log in initiated');
-    final jwt = await logInFinalize(localResponse);
-    log
-      ..info('[PasskeyService] Log in finalized')
-      ..info('[PasskeyService] return JWT done');
-    return jwt;
+    try {
+      final jwt = await logInFinalize(localResponse, false);
+      log
+        ..info('[PasskeyService] Log in finalized')
+        ..info('[PasskeyService] return JWT done');
+      return jwt;
+    } on DioException catch (e) {
+      final error = e.error;
+      if (error is FeralfileError && error.isPasskeyUserNotExist) {
+        final showCreateIfNotExist = await injector<NavigationService>()
+            .showCreateNewAccountWithExistingPasskey();
+        if (!showCreateIfNotExist) {
+          rethrow;
+        }
+        final jwt = await logInFinalize(localResponse, true);
+        log.info('[PasskeyService] Log in finalized with create user');
+        log.info('[PasskeyService] return JWT done');
+        return jwt;
+      }
+      log.info('[PasskeyService] Failed to log in finalize: $e');
+      unawaited(Sentry.captureException(e));
+      rethrow;
+    } catch (e) {
+      log.info('[PasskeyService] Failed to log in finalize: $e');
+      unawaited(Sentry.captureException(e));
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> generatePasskeyDisplayName() async {
+    final deviceName = injector<DeviceInfoService>().deviceName;
+    final random = Random();
+
+    const chars = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    final randomChars =
+        List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
+
+    final now = DateTime.now().toUtc();
+    final formattedTime = DateFormat('yyyyMMddHHmmss').format(now);
+
+    final displayName = '$deviceName-$randomChars-$formattedTime';
+
+    log.info('[PasskeyService] Generated passkey display name: $displayName');
+    return displayName;
   }
 }
 

@@ -36,7 +36,8 @@ enum FeralFileErrorCode {
   // 3006: the addresses have been linked to another accounts(users)
   linkArtistAddressAlreadyLinked(3006),
   // 3007: This user is having linked addresses already
-  linkArtistUserAlreadyLinked(3007);
+  linkArtistUserAlreadyLinked(3007),
+  passkeyUserNotExist(3008);
 
   final int code;
 
@@ -54,5 +55,9 @@ extension FeralfileErrorExt on FeralfileError {
 
   bool get isLinkArtistUserAlreadyLinked {
     return code == FeralFileErrorCode.linkArtistUserAlreadyLinked.code;
+  }
+
+  bool get isPasskeyUserNotExist {
+    return code == FeralFileErrorCode.passkeyUserNotExist.code;
   }
 }

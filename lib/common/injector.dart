@@ -176,6 +176,7 @@ Future<void> setupInjector() async {
   final authenticatedDio =
       baseDio(dioOptions); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
+  authenticatedDio.interceptors.add(FeralfileErrorHandlerInterceptor());
   authenticatedDio.interceptors.add(MetricsInterceptor());
 
   final authenticatedDioWithTimeout5sec = baseDio(
@@ -186,6 +187,8 @@ Future<void> setupInjector() async {
   );
 
   authenticatedDioWithTimeout5sec.interceptors.add(AutonomyAuthInterceptor());
+  authenticatedDioWithTimeout5sec.interceptors
+      .add(FeralfileErrorHandlerInterceptor());
   authenticatedDioWithTimeout5sec.interceptors.add(MetricsInterceptor());
 
   injector.registerLazySingleton<NetworkService>(NetworkService.new);
@@ -216,8 +219,11 @@ Future<void> setupInjector() async {
     instanceName: iapApiTimeout5secInstanceName,
   );
 
+  final userApiDio = baseDio(dioOptions);
+  userApiDio.interceptors.add(FeralfileErrorHandlerInterceptor());
+
   injector.registerLazySingleton(
-    () => UserApi(dio, baseUrl: Environment.autonomyAuthURL),
+    () => UserApi(userApiDio, baseUrl: Environment.autonomyAuthURL),
   );
 
   injector.registerLazySingleton<UserInteractivityService>(

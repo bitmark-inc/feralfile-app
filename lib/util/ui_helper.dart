@@ -1243,7 +1243,7 @@ class UIHelper {
     BuildContext context, {
     required Widget content,
   }) async {
-    UIHelper.hideInfoDialog(context);
+    // UIHelper.hideInfoDialog(context);
     final theme = Theme.of(context);
     return await showCupertinoModalPopup(
       context: context,
