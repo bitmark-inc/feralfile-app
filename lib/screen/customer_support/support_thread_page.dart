@@ -9,6 +9,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
@@ -322,16 +323,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     // Lấy native log
     try {
-      final nativeLogContent = await NativeLogReader.getLogContent();
-      final nativeLogBytes = utf8.encode(nativeLogContent);
-      var nativeLogCombinedBytes = nativeLogBytes;
-      if (nativeLogCombinedBytes.length > fileMaxSize) {
-        nativeLogCombinedBytes = nativeLogCombinedBytes
-            .sublist(nativeLogCombinedBytes.length - fileMaxSize);
+      if (Platform.isAndroid) {
+        final nativeLogContent = await NativeLogReader.getLogContent();
+        final nativeLogBytes = utf8.encode(nativeLogContent);
+        var nativeLogCombinedBytes = nativeLogBytes;
+        if (nativeLogCombinedBytes.length > fileMaxSize) {
+          nativeLogCombinedBytes = nativeLogCombinedBytes
+              .sublist(nativeLogCombinedBytes.length - fileMaxSize);
+        }
+        final nativeLogFilename =
+            'native_${nativeLogCombinedBytes.length}_${DateTime
+            .now()
+            .microsecondsSinceEpoch}.logs';
+        _debugLogs.add(Pair(nativeLogFilename, nativeLogCombinedBytes));
       }
-      final nativeLogFilename =
-          'native_${nativeLogCombinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs';
-      _debugLogs.add(Pair(nativeLogFilename, nativeLogCombinedBytes));
     } catch (e) {
       log_util.log.severe('Failed to get native log: $e');
     }
