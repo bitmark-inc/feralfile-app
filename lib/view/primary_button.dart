@@ -191,10 +191,19 @@ class PrimaryAsyncButton extends StatefulWidget {
 class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
   bool _isProcessing = false;
 
+  late final String randomKey;
+
+  @override
+  void initState() {
+    super.initState();
+    randomKey = DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
   @override
   Widget build(BuildContext context) => PrimaryButton(
         onTap: () {
           withDebounce(
+            key: randomKey,
             () async {
               setState(() {
                 _isProcessing = true;

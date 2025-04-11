@@ -28,6 +28,8 @@ class MainActivity : FlutterFragmentActivity() {
         private lateinit var client: BlockstoreClient
     }
 
+    private val CHANNEL = "com.feralfile.wallet/log"
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         FileLogger.init(applicationContext)
@@ -42,6 +44,26 @@ class MainActivity : FlutterFragmentActivity() {
         systemChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "exportMnemonicForAllPersonaUUIDs" -> exportMnemonicForAllPersonaUUIDs(result)
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CHANNEL
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getLogContent" -> {
+                    try {
+                        val logContent = FileLogger.getLogContent()
+                        result.success(logContent)
+                    } catch (e: Exception) {
+                        result.error("UNAVAILABLE", "Could not get log content", e.toString())
+                    }
+                }
+
+                else -> {
+                    result.notImplemented()
+                }
             }
         }
     }

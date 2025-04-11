@@ -14,7 +14,7 @@ extension RegisterResponseTypeExt on RegisterResponseType {
 }
 
 extension AuthenticateResponseTypeExt on AuthenticateResponseType {
-  Map<String, dynamic> toFFJson() => {
+  Map<String, dynamic> toRequest() => {
         'id': id,
         'rawId': rawId,
         'type': PasskeyService.authenticationType,

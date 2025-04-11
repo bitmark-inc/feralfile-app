@@ -5,10 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:sentry/sentry_io.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:path/path.dart';
+import 'package:sentry/sentry_io.dart';
 
 Future<String> reportSentry(Map payload) async {
   SentryId sentryId;
@@ -41,5 +41,6 @@ Future _addAttachment(Scope scope) async {
   final logFilePath = (await getLogFile()).path;
   final attachment =
       IoSentryAttachment.fromPath(logFilePath, filename: basename(logFilePath));
+
   scope.addAttachment(attachment);
 }

@@ -18,7 +18,9 @@ abstract class UserApi {
   factory UserApi(Dio dio, {String baseUrl}) = _UserApi;
 
   @POST('/apis/users/passkeys/registration/initialize')
-  Future<CredentialCreationOptionResponse> registerInitialize();
+  Future<CredentialCreationOptionResponse> registerInitialize(
+    @Body() Map<String, dynamic> body,
+  );
 
   @POST('/apis/users/passkeys/registration/finalize')
   Future<JWT> registerFinalize(@Body() Map<String, dynamic> body);

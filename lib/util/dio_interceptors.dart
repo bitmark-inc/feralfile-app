@@ -175,26 +175,6 @@ class AutonomyAuthInterceptor extends Interceptor {
 
     return handler.next(options);
   }
-
-  @override
-  Future<void> onError(
-    DioException err,
-    ErrorInterceptorHandler handler,
-  ) async {
-    try {
-      final errorResponse = err.response;
-      final data = errorResponse?.data;
-      if (data is Map<String, dynamic> && data.containsKey('error')) {
-        final error = FeralfileError.fromJson(
-            Map<String, dynamic>.from(data['error'] as Map));
-        err = err.copyWith(error: error);
-      }
-    } catch (e) {
-      log.info('Can not parse error response: ${err.response?.data}');
-    } finally {
-      handler.next(err);
-    }
-  }
 }
 
 class CustomerSupportInterceptor extends Interceptor {
@@ -267,7 +247,9 @@ class FeralfileAuthInterceptor extends Interceptor {
     }
     handler.next(options);
   }
+}
 
+class FeralfileErrorHandlerInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     var exp = err;
@@ -280,15 +262,7 @@ class FeralfileAuthInterceptor extends Interceptor {
       );
     } catch (e) {
       log.info(
-        '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}',
-      );
-      unawaited(
-        showErrorDialogFromException(
-          ErrorBindingException(
-            message: 'ff_error_binding_message'.tr(),
-            originalException: err,
-          ),
-        ),
+        '[FeralfileErrorHandlerInterceptor] Can not parse . ${err.response?.data}',
       );
     } finally {
       handler.next(exp);

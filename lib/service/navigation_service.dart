@@ -972,4 +972,49 @@ class NavigationService {
       }
     }
   }
+
+  Future<bool> showCreateNewAccountWithExistingPasskey() async {
+    final res = await UIHelper.showCenterDialog(
+      context,
+      showHideOtherDialog: false,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome back! It looks like you’re starting fresh. Would you like to create a new account using this passkey?',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 36),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'cancel'.tr(),
+                  textColor: AppColor.white,
+                  color: Colors.transparent,
+                  borderColor: AppColor.white,
+                  onTap: () {
+                    injector<NavigationService>().goBack(result: false);
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'OK',
+                  textColor: AppColor.white,
+                  borderColor: AppColor.white,
+                  color: Colors.transparent,
+                  onTap: () async {
+                    injector<NavigationService>().goBack(result: true);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    return (res is bool) ? res : false;
+  }
 }
