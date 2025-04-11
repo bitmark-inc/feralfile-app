@@ -976,6 +976,7 @@ class NavigationService {
   Future<bool> showCreateNewAccountWithExistingPasskey() async {
     final res = await UIHelper.showCenterDialog(
       context,
+      showHideOtherDialog: false,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

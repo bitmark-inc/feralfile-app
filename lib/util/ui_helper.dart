@@ -1242,8 +1242,11 @@ class UIHelper {
   static Future<dynamic> showCenterDialog(
     BuildContext context, {
     required Widget content,
+    bool showHideOtherDialog = true,
   }) async {
-    // UIHelper.hideInfoDialog(context);
+    if (showHideOtherDialog) {
+      UIHelper.hideInfoDialog(context);
+    }
     final theme = Theme.of(context);
     return await showCupertinoModalPopup(
       context: context,
