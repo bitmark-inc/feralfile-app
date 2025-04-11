@@ -25,6 +25,9 @@ abstract class PubdocAPI {
 
   @GET('/configs/app.json')
   Future<String> getConfigs();
+
+  @GET('/app/apple_model_identifier.json')
+  Future<String> getAppleModelIdentifier();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {

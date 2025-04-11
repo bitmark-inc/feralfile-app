@@ -152,7 +152,8 @@ class PasskeyServiceImpl implements PasskeyService {
     try {
       log.info('Login finalize, createUserIfNotExists: $createUserIfNotExists');
       final body = <String, dynamic>{
-        ...authenticateResponse.toJson(),
+        // we are using a custom json method to convert the response
+        ...authenticateResponse.toRequest(),
       };
 
       if (createUserIfNotExists) {
@@ -270,7 +271,7 @@ class PasskeyServiceImpl implements PasskeyService {
         List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
 
     final now = DateTime.now().toUtc();
-    final formattedTime = DateFormat('yyyyMMddHHmmss').format(now);
+    final formattedTime = DateFormat('yyyyMMddHHmm').format(now);
 
     final displayName = '$deviceName-$randomChars-$formattedTime';
 
