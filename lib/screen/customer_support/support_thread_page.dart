@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/jwt.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
+import 'package:autonomy_flutter/util/native_log_reader.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -151,7 +152,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _status = '';
   bool _isRated = false;
   bool _isFileAttached = false;
-  Pair<String, List<int>>? _debugLog;
+  List<Pair<String, List<int>>> _debugLogs = [];
   late TextEditingController _textEditingController;
 
   late Object _forceAccountsViewRedraw;
@@ -316,17 +317,43 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     Navigator.of(context).pop();
 
     const fileMaxSize = 1024 * 1024;
-    final file = await log_util.getLogFile();
-    final bytes = await file.readAsBytes();
-    var combinedBytes = bytes;
-    if (combinedBytes.length > fileMaxSize) {
-      combinedBytes = combinedBytes.sublist(combinedBytes.length - fileMaxSize);
+
+    _debugLogs.clear();
+
+    // Lấy native log
+    try {
+      final nativeLogContent = await NativeLogReader.getLogContent();
+      final nativeLogBytes = utf8.encode(nativeLogContent);
+      var nativeLogCombinedBytes = nativeLogBytes;
+      if (nativeLogCombinedBytes.length > fileMaxSize) {
+        nativeLogCombinedBytes = nativeLogCombinedBytes
+            .sublist(nativeLogCombinedBytes.length - fileMaxSize);
+      }
+      final nativeLogFilename =
+          'native_${nativeLogCombinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs';
+      _debugLogs.add(Pair(nativeLogFilename, nativeLogCombinedBytes));
+    } catch (e) {
+      log_util.log.severe('Failed to get native log: $e');
     }
-    final filename =
-        '${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs';
-    _debugLog = Pair(filename, combinedBytes);
+
+    // Lấy Flutter log
+    try {
+      final file = await log_util.getLogFile();
+      final bytes = await file.readAsBytes();
+      var combinedBytes = bytes;
+      if (combinedBytes.length > fileMaxSize) {
+        combinedBytes =
+            combinedBytes.sublist(combinedBytes.length - fileMaxSize);
+      }
+      final filename =
+          'flutter_${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs';
+      _debugLogs.add(Pair(filename, combinedBytes));
+    } catch (e) {
+      log_util.log.severe('Failed to get Flutter log: $e');
+    }
+
     setState(() {
-      _isFileAttached = true;
+      _isFileAttached = _debugLogs.isNotEmpty;
     });
   }
 
@@ -488,50 +515,53 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       );
 
   Widget debugLogView() {
-    if (_debugLog == null) {
+    if (_debugLogs.isEmpty) {
       return const SizedBox();
     }
-    final debugLog = _debugLog!;
     final theme = Theme.of(context);
-    final fileSize = debugLog.second.length;
-    final fileSizeInMB = fileSize / (1024 * 1024);
-    return Container(
-      color: AppColor.auGreyBackground,
-      padding: const EdgeInsets.fromLTRB(25, 5, 25, 5),
-      child: Row(
-        children: [
-          Text(
-            debugLog.first.split('_').last,
-            style: theme.primaryTextTheme.ppMori400White14
-                .copyWith(color: AppColor.feralFileHighlight),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            '(${fileSizeInMB.toStringAsFixed(2)} MB)',
-            style: theme.primaryTextTheme.ppMori400White14
-                .copyWith(color: AppColor.auQuickSilver),
-          ),
-          const Spacer(),
-          Semantics(
-            label: 'Remove debug log',
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isFileAttached = false;
-                  _debugLog = null;
-                });
-              },
-              child: SvgPicture.asset(
-                'assets/images/iconClose.svg',
-                width: 20,
-                height: 20,
-                colorFilter:
-                    const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+    return Column(
+      children: _debugLogs.map((debugLog) {
+        final fileSize = debugLog.second.length;
+        final fileSizeInMB = fileSize / (1024 * 1024);
+        return Container(
+          color: AppColor.auGreyBackground,
+          padding: const EdgeInsets.fromLTRB(25, 5, 25, 5),
+          child: Row(
+            children: [
+              Text(
+                debugLog.first.split('_').last,
+                style: theme.primaryTextTheme.ppMori400White14
+                    .copyWith(color: AppColor.feralFileHighlight),
               ),
-            ),
+              const SizedBox(width: 5),
+              Text(
+                '(${fileSizeInMB.toStringAsFixed(2)} MB)',
+                style: theme.primaryTextTheme.ppMori400White14
+                    .copyWith(color: AppColor.auQuickSilver),
+              ),
+              const Spacer(),
+              Semantics(
+                label: 'Remove debug log',
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _debugLogs.remove(debugLog);
+                      _isFileAttached = _debugLogs.isNotEmpty;
+                    });
+                  },
+                  child: SvgPicture.asset(
+                    'assets/images/iconClose.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter:
+                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      }).toList(),
     );
   }
 
@@ -938,24 +968,30 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future<void> _addAppLogs(types.PartialText message) async {
-    if (_debugLog == null) {
+    if (_debugLogs.isEmpty) {
       return;
     }
-    final filename = _debugLog!.first;
-    final combinedBytes = _debugLog!.second;
 
-    final localPath =
-        await _customerSupportService.storeFile(filename, combinedBytes);
+    final attachments = await Future.wait(
+      _debugLogs.map((debugLog) async {
+        final filename = debugLog.first;
+        final combinedBytes = debugLog.second;
+        final localPath =
+            await _customerSupportService.storeFile(filename, combinedBytes);
+        return LocalAttachment(fileName: filename, path: localPath);
+      }),
+    );
 
     await _submit(
       CSMessageType.postLogs.rawValue,
       DraftCustomerSupportData(
         text: message.text,
-        attachments: [LocalAttachment(fileName: filename, path: localPath)],
+        attachments: attachments,
       ),
     );
     setState(() {
       _isFileAttached = false;
+      _debugLogs.clear();
     });
   }
 

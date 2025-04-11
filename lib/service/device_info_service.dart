@@ -74,7 +74,7 @@ class DeviceInfoService {
 
   String get deviceName {
     if (Platform.isAndroid) {
-      return _deviceVendor + ' ' + _deviceModel;
+      return '$_deviceVendor $_deviceModel';
     } else {
       return _mapIphoneIdentifierToModel(_deviceModel);
     }
