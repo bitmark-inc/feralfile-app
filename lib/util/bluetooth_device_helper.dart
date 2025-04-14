@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/common/database.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 class BluetoothDeviceHelper {
@@ -17,6 +19,7 @@ class BluetoothDeviceHelper {
   ) async {
     await _pairedDevicesBox.removeAllAsync();
     await _pairedDevicesBox.putAsync(device);
+    injector<FFBluetoothService>().castingBluetoothDevice = device;
   }
 
   static Future<void> removeDevice(String remoteId) async {
