@@ -23,9 +23,6 @@ abstract class PubdocAPI {
   @GET('/app/release_notes/{app}/changelog.md')
   Future<String> getReleaseNotesContent(@Path('app') String app);
 
-  @GET('/configs/app.json')
-  Future<String> getConfigs();
-
   @GET('/app/apple_model_identifier.json')
   Future<String> getAppleModelIdentifier();
 }
