@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
@@ -14,7 +13,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/passkey_utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
@@ -36,7 +34,7 @@ abstract class PasskeyService {
 
   Future<JWT> requestJwt();
 
-  Future<String> generatePasskeyDisplayName();
+  String generatePasskeyAlias();
 
   ValueNotifier<bool> get isShowingLoginDialog;
 
@@ -176,10 +174,9 @@ class PasskeyServiceImpl implements PasskeyService {
   Future<void> registerInitiate() async {
     try {
       log.info('Register initiate');
-      final displayName = await generatePasskeyDisplayName();
-      log.info('Generated passkey display name: $displayName');
-      final registerRequest =
-          await _initializeServerRegistration(displayName: displayName);
+      final alias = generatePasskeyAlias();
+      log.info('Generated passkey display name: $alias');
+      final registerRequest = await _initializeServerRegistration(alias: alias);
       _registerResponse = await _passkeyAuthenticator.register(registerRequest);
       log.info('Register initiate done, register response: $_registerResponse');
     } catch (e) {
@@ -190,10 +187,10 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   Future<RegisterRequestType> _initializeServerRegistration(
-      {String? displayName}) async {
+      {String? alias}) async {
     final body = <String, dynamic>{};
-    if (displayName != null) {
-      body['displayName'] = displayName;
+    if (alias != null) {
+      body['alias'] = alias;
     }
     final response = await _userApi.registerInitialize(body);
     final pubKey = response.credentialCreationOption.publicKey;
@@ -262,21 +259,9 @@ class PasskeyServiceImpl implements PasskeyService {
   }
 
   @override
-  Future<String> generatePasskeyDisplayName() async {
+  String generatePasskeyAlias() {
     final deviceName = injector<DeviceInfoService>().deviceName;
-    final random = Random();
-
-    const chars = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    final randomChars =
-        List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
-
-    final now = DateTime.now().toUtc();
-    final formattedTime = DateFormat('yyyyMMddHHmm').format(now);
-
-    final displayName = '$deviceName-$randomChars-$formattedTime';
-
-    log.info('[PasskeyService] Generated passkey display name: $displayName');
-    return displayName;
+    return deviceName;
   }
 }
 
