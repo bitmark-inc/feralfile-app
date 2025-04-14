@@ -332,16 +332,13 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               .sublist(nativeLogCombinedBytes.length - fileMaxSize);
         }
         final nativeLogFilename =
-            'native_${nativeLogCombinedBytes.length}_${DateTime
-            .now()
-            .microsecondsSinceEpoch}.logs';
+            'native_${nativeLogCombinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs';
         _debugLogs.add(Pair(nativeLogFilename, nativeLogCombinedBytes));
       }
     } catch (e) {
       log_util.log.severe('Failed to get native log: $e');
     }
 
-    // Lấy Flutter log
     try {
       final file = await log_util.getLogFile();
       final bytes = await file.readAsBytes();
