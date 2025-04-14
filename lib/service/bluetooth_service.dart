@@ -392,7 +392,10 @@ class FFBluetoothService {
     bool? autoConnect,
   }) async {
     if (_multiConnectCompleter?.isCompleted == false) {
-      log.info('Already connecting to device: ${device.remoteId.str}');
+      log.info(
+        '''
+[connectToDevice] Already connecting to device: ${device.remoteId.str}''',
+      );
       return _multiConnectCompleter?.future;
     }
 
@@ -402,6 +405,7 @@ class FFBluetoothService {
     }
 
     _connectDevice(device, shouldShowError: shouldShowError).then((_) {
+      log.info('Connected to device: ${device.remoteId.str}');
       if (shouldChangeNowDisplayingStatus) {
         NowDisplayingManager().addStatus(ConnectSuccess(device));
       }
@@ -431,13 +435,16 @@ class FFBluetoothService {
     bool shouldShowError = true,
     bool? autoConnect,
   }) async {
+    log.info('_connectDevice');
     try {
       if (!(autoConnect ?? false)) {
+        log.info('[_connectDevice] _connect with autoConnect is false');
         await _connect(device,
             shouldShowError: shouldShowError, autoConnect: false);
       }
     } catch (e) {}
     if (autoConnect ?? true) {
+      log.info('[_connectDevice] _connect with autoConnect is true');
       await _connect(device, shouldShowError: shouldShowError);
     }
   }
@@ -451,14 +458,19 @@ class FFBluetoothService {
     if (device.isDisconnected ||
         (autoConnect && !device.isAutoConnectEnabled)) {
       if (!autoConnect) {
+        log.info('Disconnecting from device: ${device.remoteId.str}');
         await device.disconnect();
+        log.info('[_connect] device.disconnect() finished');
       }
+
       if (_connectCompleter?.isCompleted == false) {
-        log.info('Already connecting to device: ${device.remoteId.str}');
+        log.info(
+          '[connect] Already connecting to device: ${device.remoteId.str}',
+        );
         return _connectCompleter?.future;
       }
       _connectCompleter = Completer<void>();
-      log.info('Connecting to device: ${device.remoteId.str}');
+      log.info('[connect] Connecting to device: ${device.remoteId.str}');
       try {
         await device.connect(
           timeout: const Duration(seconds: 10),
@@ -476,13 +488,25 @@ class FFBluetoothService {
             ),
           );
         }
+        _connectCompleter = null;
         rethrow;
       }
+
+      log.info(
+        '''
+[_connect] Wait for connection to complete, autoConnect = $autoConnect, device.isConnected = ${device.isConnected}
+''',
+      );
       // Wait for connection to complete
       if (autoConnect && device.isConnected) {
         _connectCompleter?.complete();
         _connectCompleter = null;
       } else {
+        if (_connectCompleter == null) {
+          log.info('[_connect] _connectCompleter is null');
+          return;
+        }
+
         await _connectCompleter?.future.timeout(
           const Duration(seconds: 10),
           onTimeout: () {
