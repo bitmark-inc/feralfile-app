@@ -11,7 +11,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
-import android.util.Log
 import android.widget.RemoteViews
 import com.bitmark.autonomywallet.MainActivity
 import es.antonborri.home_widget.HomeWidgetPlugin
@@ -20,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import timber.log.Timber
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -33,8 +31,11 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        FileLogger.log(
+            "FeralfileDaily",
+            "onUpdate called for widgets: ${appWidgetIds.joinToString()}"
+        )
         for (appWidgetId in appWidgetIds) {
-            Log.d("FeralfileDaily", "onUpdate $appWidgetId")
             updateWidget(context, appWidgetManager, appWidgetId)
         }
     }
@@ -44,6 +45,7 @@ class FeralfileDaily : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
+        FileLogger.log("FeralfileDaily", "Updating widget: $appWidgetId")
         // Ensure PendingIntent is always recreated
 //        val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
 //            context,
@@ -60,7 +62,7 @@ class FeralfileDaily : AppWidgetProvider() {
             context,
             0,
             clickIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
 
@@ -86,19 +88,22 @@ class FeralfileDaily : AppWidgetProvider() {
     override fun onEnabled(context: Context) {
         // Enter relevant functionality for when the first widget is created
         // print log
-        Timber.tag("FeralfileDaily").d("FeralfileDaily onEnabled")
+        FileLogger.log("FeralfileDaily", "FeralfileDaily onEnabled")
     }
 
     override fun onDisabled(context: Context) {
         // Enter relevant functionality for when the last widget is disabled
         // print log
-        Timber.tag("FeralfileDaily").d("FeralfileDaily onDisabled")
+        FileLogger.log("FeralfileDaily", "FeralfileDaily onDisabled")
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        Timber.tag("FeralfileDaily").d("FeralfileDaily onReceive %s", intent.action)
+        FileLogger.log(
+            "FeralfileDaily",
+            "FeralfileDaily onReceive ${intent.action} with data ${intent.data}"
+        )
 
         when (intent.action) {
             "com.bitmark.autonomy_flutter.OPEN_APP" -> {
@@ -128,7 +133,7 @@ class FeralfileDaily : AppWidgetProvider() {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
 
         // Handle theme update
-        Timber.tag("FeralfileDaily").d("Theme or configuration change detected")
+        FileLogger.log("FeralfileDaily", "Theme or configuration change detected")
         updateWidget(
             context,
             appWidgetManager,
@@ -188,6 +193,11 @@ internal fun updateAppWidget(
 
     // Update the widget with the new views
     appWidgetManager.updateAppWidget(appWidgetId, views)
+    // Log the update
+    FileLogger.log(
+        "FeralfileDaily",
+        "Widget updated with title: ${dailyInfo.title}, artist: ${dailyInfo.artistName}"
+    )
 }
 
 data class DailyInfo(
@@ -215,7 +225,7 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
 
     // Retrieve JSON string for the current date
     val jsonString = widgetData.getString(currentDateKey, null)
-
+    FileLogger.log("FeralfileDaily", "JSON data for date $currentDateKey: $jsonString")
     if (jsonString != null) {
         try {
             // Parse JSON string
@@ -234,6 +244,10 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
             )
         } catch (e: Exception) {
             e.printStackTrace()
+            FileLogger.log(
+                "FeralfileDaily",
+                "Error parsing JSON data for date $currentDateKey: ${e.message}"
+            )
             return getDefaultDailyInfo()
         }
     }

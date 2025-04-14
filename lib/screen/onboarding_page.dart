@@ -206,7 +206,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (injector<ConfigurationService>().isNotificationEnabled()) {
       unawaited(_registerPushNotifications());
     }
-    startHandleDeeplinkCompleter.complete();
+    if (!startHandleDeeplinkCompleter.isCompleted) {
+      startHandleDeeplinkCompleter.complete();
+    }
     log.info('[_fetchRuntimeCache] end');
     unawaited(metricClient.identity());
     // count open app
