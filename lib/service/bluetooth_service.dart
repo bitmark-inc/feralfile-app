@@ -391,11 +391,11 @@ class FFBluetoothService {
     bool shouldChangeNowDisplayingStatus = false,
     bool? autoConnect,
   }) async {
-    log.info(
-        'connectToDevice: _multiConnectCompleter?.isCompleted == false: ${_multiConnectCompleter?.isCompleted == false}');
     if (_multiConnectCompleter?.isCompleted == false) {
       log.info(
-          '[connectToDevice] Already connecting to device: ${device.remoteId.str}');
+        '''
+[connectToDevice] Already connecting to device: ${device.remoteId.str}''',
+      );
       return _multiConnectCompleter?.future;
     }
 
@@ -465,7 +465,8 @@ class FFBluetoothService {
 
       if (_connectCompleter?.isCompleted == false) {
         log.info(
-            '[connect] Already connecting to device: ${device.remoteId.str}');
+          '[connect] Already connecting to device: ${device.remoteId.str}',
+        );
         return _connectCompleter?.future;
       }
       _connectCompleter = Completer<void>();
@@ -492,7 +493,10 @@ class FFBluetoothService {
       }
 
       log.info(
-          '[_connect] Wait for connection to complete, autoConnect = $autoConnect, device.isConnected = ${device.isConnected}');
+        '''
+[_connect] Wait for connection to complete, autoConnect = $autoConnect, device.isConnected = ${device.isConnected}
+''',
+      );
       // Wait for connection to complete
       if (autoConnect && device.isConnected) {
         _connectCompleter?.complete();
