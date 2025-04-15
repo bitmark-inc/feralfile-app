@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 
 abstract class AnnouncementService {
@@ -182,6 +183,11 @@ class AnnouncementServiceImpl implements AnnouncementService {
   }
 
   void _updateBadger(int count) {
+    if (!OneSignal.Notifications.permission) {
+      // we dont ask for notification permission
+      log.info('[_updateBadger] Notification permission is not granted');
+      return;
+    }
     if (count > 0) {
       unawaited(FlutterAppBadger.updateBadgeCount(count));
     } else {
