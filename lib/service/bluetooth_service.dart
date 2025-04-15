@@ -28,6 +28,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
 
 const displayingCommand = [
@@ -61,6 +62,8 @@ class FFBluetoothService {
 
   Stream<DeviceRealtimeMetrics> get deviceRealtimeMetricsStream =>
       _deviceRealtimeMetricsController.stream;
+
+  bool _listeningForAdapterState = false;
 
   void startListen() {
     log.info('Start listening to bluetooth events');
@@ -148,6 +151,17 @@ class FFBluetoothService {
     FlutterBluePlus.logs.listen((event) {
       log.info('[FlutterBluePlus]: $event');
     });
+    if (await Permission.bluetooth.isGranted ||
+        castingBluetoothDevice != null) {
+      await listenForAdapterState();
+    }
+  }
+
+  Future<void> listenForAdapterState() async {
+    if (_listeningForAdapterState) {
+      return;
+    }
+    _listeningForAdapterState = true;
     if (!(await FlutterBluePlus.isSupported)) {
       log.info('Bluetooth is not supported');
       injector<BluetoothConnectBloc>().add(
@@ -157,6 +171,9 @@ class FFBluetoothService {
       );
       return;
     }
+    final stateNow = FlutterBluePlus.adapterStateNow;
+    injector<BluetoothConnectBloc>()
+        .add(BluetoothConnectEventUpdateBluetoothState(stateNow));
     FlutterBluePlus.adapterState.listen((BluetoothAdapterState bluetoothState) {
       _bluetoothAdapterState = bluetoothState;
       injector<BluetoothConnectBloc>()
@@ -555,6 +572,7 @@ class FFBluetoothService {
     if (!injector<AuthService>().isBetaTester() && !forceScan) {
       return;
     }
+    await listenForAdapterState();
     StreamSubscription<List<ScanResult>>? scanSubscription;
     scanSubscription = FlutterBluePlus.onScanResults.listen(
       (results) async {

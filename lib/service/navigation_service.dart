@@ -150,10 +150,12 @@ class NavigationService {
   Future<void> openBluetoothSettings() async {
     if (Platform.isAndroid) {
       final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
-      await settings.bluetooth();
+      // can not go to bluetooth settings, so we go to application settings
+      // from here, user can go to bluetooth settings
+      await settings.applicationDetails();
     } else {
       final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
-      await settings.bluetooth();
+      await settings.appSettings();
     }
   }
 
