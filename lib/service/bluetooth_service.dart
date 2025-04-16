@@ -111,7 +111,9 @@ class FFBluetoothService {
               stackTrace: s,
             ),
           );
-          _connectCompleter?.completeError(e);
+          if (_connectCompleter?.isCompleted == false) {
+            _connectCompleter?.completeError(e);
+          }
           _connectCompleter = null;
         }
       } else if (state == BluetoothConnectionState.disconnected) {
@@ -569,36 +571,44 @@ class FFBluetoothService {
     FutureOr<void> Function(dynamic)? onError,
     bool forceScan = false,
   }) async {
-    if (!injector<AuthService>().isBetaTester() && !forceScan) {
-      return;
-    }
-    await listenForAdapterState();
-    StreamSubscription<List<ScanResult>>? scanSubscription;
-    scanSubscription = FlutterBluePlus.onScanResults.listen(
-      (results) async {
-        final shouldStopScan = await onData?.call(results);
-        if (shouldStopScan == true) {
-          FlutterBluePlus.stopScan();
-        }
-      },
-      onError: (error) {
-        onError?.call(error);
-        scanSubscription?.cancel();
-      },
-    );
+    try {
+      if (!injector<AuthService>().isBetaTester() && !forceScan) {
+        return;
+      }
+      await listenForAdapterState();
 
-    FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
-    log.info('BluetoothConnectEventScan startScan');
-    await FlutterBluePlus.startScan(
-      timeout: timeout, // Updated to 60 seconds
-      androidUsesFineLocation: true,
-      withServices: [
-        Guid(injector<FFBluetoothService>().serviceUuid),
-      ],
-    );
-    // wait for scan to complete
-    while (FlutterBluePlus.isScanningNow) {
-      await Future.delayed(const Duration(milliseconds: 1000));
+      StreamSubscription<List<ScanResult>>? scanSubscription;
+      scanSubscription = FlutterBluePlus.onScanResults.listen(
+        (results) async {
+          final shouldStopScan = await onData?.call(results);
+          if (shouldStopScan == true) {
+            FlutterBluePlus.stopScan();
+          }
+        },
+        onError: (error) {
+          onError?.call(error);
+          scanSubscription?.cancel();
+        },
+      );
+
+      FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
+      log.info('BluetoothConnectEventScan startScan');
+      await FlutterBluePlus.startScan(
+        timeout: timeout, // Updated to 60 seconds
+        withServices: [
+          Guid(injector<FFBluetoothService>().serviceUuid),
+        ],
+      );
+      // wait for scan to complete
+      while (FlutterBluePlus.isScanningNow) {
+        await Future.delayed(const Duration(milliseconds: 1000));
+      }
+    } catch (e) {
+      log.warning('Failed to start scan: $e');
+      onError?.call(e);
+    } finally {
+      log.info('BluetoothConnectEventScan stopScan');
+      await FlutterBluePlus.stopScan();
     }
   }
 
