@@ -2,9 +2,9 @@ package com.bitmark.autonomy_flutter
 
 import android.content.Context
 import timber.log.Timber
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
-import java.io.BufferedReader
 import java.io.FileReader
 import java.io.FileWriter
 
@@ -51,35 +51,26 @@ class FileLogger(context: Context) {
 
     private fun checkAndRotateLog() {
         val tempFile = File(_fileLogger.parent, "app.log.temp")
-        
-        // Đọc file log hiện tại và chỉ giữ lại MAX_LINES_TO_KEEP dòng cuối cùng
-        val lines = mutableListOf<String>()
+        val linesToKeep = ArrayDeque<String>(MAX_LINES_TO_KEEP)
+
+        // Read the log file line by line and keep only the last MAX_LINES_TO_KEEP lines
         BufferedReader(FileReader(_fileLogger)).use { reader ->
             var line: String?
             while (reader.readLine().also { line = it } != null) {
-                lines.add(line!!)
+                if (linesToKeep.size == MAX_LINES_TO_KEEP) {
+                    linesToKeep.removeFirst()
+                }
+                linesToKeep.addLast(line!!)
             }
         }
-        
-        // Nếu số dòng vượt quá giới hạn, thực hiện xoay vòng
-        if (lines.size > MAX_LINES_TO_KEEP) {
-            // Giữ lại MAX_LINES_TO_KEEP dòng cuối cùng
-            val linesToKeep = lines.subList(lines.size - MAX_LINES_TO_KEEP, lines.size)
-            
-            // Thêm thông báo về việc xoay vòng log
-            val now = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
-                .format(java.util.Date())
-            linesToKeep.add(0, "[$now] FileLogger: Log file rotated. Kept last $MAX_LINES_TO_KEEP lines.")
-            
-            // Ghi các dòng đã chọn vào file tạm
-            FileWriter(tempFile).use { writer ->
-                linesToKeep.forEach { line ->
-                    writer.write("$line\n")
-                }
-            }
-            
-            // Xóa file log cũ và đổi tên file tạm thành file log mới
-            _fileLogger.delete()
+
+        // Write the retained lines to the temporary file
+        FileWriter(tempFile).use { writer ->
+            linesToKeep.forEach { writer.write("$it\n") }
+        }
+
+        // Replace the old log file with the new one
+        if (_fileLogger.delete()) {
             tempFile.renameTo(_fileLogger)
         }
     }
@@ -87,7 +78,7 @@ class FileLogger(context: Context) {
     private fun log(tag: String, message: String) {
         if (_fileLogger.canWrite()) {
             checkAndRotateLog()
-            
+
             val now =
                 java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
                     .format(java.util.Date())
