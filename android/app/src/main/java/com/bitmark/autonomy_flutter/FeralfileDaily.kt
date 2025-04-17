@@ -7,7 +7,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
@@ -55,14 +54,17 @@ class FeralfileDaily : AppWidgetProvider() {
 
         val clickIntent = Intent(context, WidgetClickReceiver::class.java).apply {
             action = "app.feralfile.WIDGET_CLICK"
-            data =
-                Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
+            // TODO: Uncomment this line to set the data for the intent
+            // This is the data that will be passed to the MainActivity when the widget is clicked
+            // i am commenting this line for testing if the widget click works
+//            data =
+//                Uri.parse("home-widget://message?message=dailyWidgetClicked&widget=daily&homeWidget")
         }
         val openAppPendingIntent = PendingIntent.getBroadcast(
             context,
             0,
             clickIntent,
-            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
 
