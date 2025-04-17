@@ -12,7 +12,8 @@ class FileLogger(context: Context) {
 
     companion object {
         private var INSTANCE: FileLogger? = null
-        private const val MAX_LINES_TO_KEEP = 1000 // Số dòng log tối đa cần giữ lại
+        val MAX_FILE_SIZE = 1024 * 1024 // Maximum file size in bytes (e.g., 1 MB)
+
 
         fun init(context: Context) = INSTANCE ?: FileLogger(context).also { INSTANCE = it }
 
@@ -50,17 +51,27 @@ class FileLogger(context: Context) {
     }
 
     private fun checkAndRotateLog() {
-        val tempFile = File(_fileLogger.parent, "app.log.temp")
-        val linesToKeep = ArrayDeque<String>(MAX_LINES_TO_KEEP)
+        if (_fileLogger.length() <= MAX_FILE_SIZE) return
 
-        // Read the log file line by line and keep only the last MAX_LINES_TO_KEEP lines
+        val tempFile = File(_fileLogger.parent, "app.log.temp")
+        val linesToKeep = ArrayDeque<String>()
+        var currentSize = 0L
+
+        // Read the log file line by line and keep only the lines that fit within the size limit
         BufferedReader(FileReader(_fileLogger)).use { reader ->
             var line: String?
             while (reader.readLine().also { line = it } != null) {
-                if (linesToKeep.size == MAX_LINES_TO_KEEP) {
-                    linesToKeep.removeFirst()
-                }
+                val lineSize = line!!.toByteArray().size.toLong()
+
+                // Add the line and update the size
                 linesToKeep.addLast(line!!)
+                currentSize += lineSize
+
+                // Remove oldest lines if size exceeds MAX_FILE_SIZE
+                while (currentSize > MAX_FILE_SIZE && linesToKeep.isNotEmpty()) {
+                    val removedLine = linesToKeep.removeFirst()
+                    currentSize -= removedLine.toByteArray().size
+                }
             }
         }
 
@@ -83,8 +94,10 @@ class FileLogger(context: Context) {
                 java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
                     .format(java.util.Date())
             Timber.tag(tag).d(message)
+            val trimmedMessage =
+                if (message.length > 1000) message.take(1000) + "...[truncated]" else message
             FileOutputStream(_fileLogger, true).apply {
-                write("[$now] $tag: $message\n".encodeToByteArray())
+                write("[$now] $tag: $trimmedMessage\n".encodeToByteArray())
                 flush()
                 close()
             }

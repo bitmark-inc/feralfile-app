@@ -225,7 +225,6 @@ private fun getStoredDailyInfo(context: Context): DailyInfo {
 
     // Retrieve JSON string for the current date
     val jsonString = widgetData.getString(currentDateKey, null)
-    FileLogger.log("FeralfileDaily", "JSON data for date $currentDateKey: $jsonString")
     if (jsonString != null) {
         try {
             // Parse JSON string
