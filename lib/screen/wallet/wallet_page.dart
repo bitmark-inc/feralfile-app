@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/channel_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -56,17 +57,22 @@ class _WalletPageState extends State<WalletPage>
       }
     });
 
-    _scrollController.addListener(() {
-      if (_scrollController.offset > 10) {
-        setState(() {
-          _showRecoveryPhraseWarning = false;
-        });
-      } else if (_scrollController.offset < 2) {
-        setState(() {
-          _showRecoveryPhraseWarning = true;
-        });
-      }
-    });
+    _showRecoveryPhraseWarning =
+        !injector<ConfigurationService>().getDidShowRecoveryPhraseWarning();
+
+    if (_showRecoveryPhraseWarning) {
+      _scrollController.addListener(() {
+        if (_scrollController.offset > 10) {
+          setState(() {
+            _showRecoveryPhraseWarning = false;
+          });
+        } else if (_scrollController.offset < 2) {
+          setState(() {
+            _showRecoveryPhraseWarning = true;
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -203,9 +209,22 @@ class _WalletPageState extends State<WalletPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'important_update'.tr(),
-                      style: Theme.of(context).textTheme.ppMori700Black16,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'important_update'.tr(),
+                          style: Theme.of(context).textTheme.ppMori700Black16,
+                        ),
+                        GestureDetector(
+                          onTap: () => _hideRecoveryPhraseWarning(context),
+                          child: SvgPicture.asset(
+                            'assets/images/close.svg',
+                            width: 18,
+                            height: 18,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     RichText(
@@ -248,6 +267,13 @@ class _WalletPageState extends State<WalletPage>
         );
       },
     );
+  }
+
+  void _hideRecoveryPhraseWarning(BuildContext context) {
+    setState(() {
+      _showRecoveryPhraseWarning = false;
+    });
+    injector<ConfigurationService>().setDidShowRecoveryPhraseWarning(true);
   }
 }
 

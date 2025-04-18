@@ -160,6 +160,10 @@ abstract class ConfigurationService {
   String? getPilotVersion();
 
   Future<void> setPilotVersion(String version);
+
+  bool getDidShowRecoveryPhraseWarning();
+
+  Future<void> setDidShowRecoveryPhraseWarning(bool value);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -249,6 +253,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_BETA_TESTER = 'beta_tester';
 
   static const String PILOT_VERSION = 'pilot_version';
+
+  static const String KEY_DID_SHOW_RECOVERY_PHRASE_WARNING =
+      'did_show_recovery_phrase_warning';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -632,6 +639,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setPilotVersion(String version) {
     return _preferences.setString(PILOT_VERSION, version);
+  }
+
+  @override
+  bool getDidShowRecoveryPhraseWarning() =>
+      _preferences.getBool(KEY_DID_SHOW_RECOVERY_PHRASE_WARNING) ?? false;
+
+  @override
+  Future<void> setDidShowRecoveryPhraseWarning(bool value) async {
+    await _preferences.setBool(KEY_DID_SHOW_RECOVERY_PHRASE_WARNING, value);
   }
 }
 
