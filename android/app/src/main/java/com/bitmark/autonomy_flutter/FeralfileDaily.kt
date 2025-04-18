@@ -54,6 +54,7 @@ class FeralfileDaily : AppWidgetProvider() {
 
         val clickIntent = Intent(context, WidgetClickReceiver::class.java).apply {
             action = "app.feralfile.WIDGET_CLICK"
+            setPackage(context.packageName)
             // TODO: Uncomment this line to set the data for the intent
             // This is the data that will be passed to the MainActivity when the widget is clicked
             // i am commenting this line for testing if the widget click works
