@@ -233,10 +233,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   void initState() {
     super.initState();
-    // since we moved to use bonsoir service,
-    // we don't need to wait for canvas service to init
-    injector<FFBluetoothService>().init();
-
     Future.delayed(const Duration(seconds: 2), () {
       if (!_configurationService.didShowLiveWithArt()) {
         log.info('Show live with art intro');

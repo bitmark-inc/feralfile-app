@@ -7,14 +7,22 @@ import com.bitmark.autonomywallet.MainActivity
 
 class WidgetClickReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        FileLogger.log("WidgetClickReceiver", "Received intent: ${intent?.action}")
+        FileLogger.log(
+            "WidgetClickReceiver",
+            "Received intent: ${intent?.action}, data: ${intent?.data}"
+        )
         if (intent?.action == "app.feralfile.WIDGET_CLICK") {
             FileLogger.log("WidgetClickReceiver", "Opening app...")
             val launchIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 data = intent.data
             }
-            context?.startActivity(launchIntent)
+            try {
+                context?.startActivity(launchIntent)
+            } catch (e: Exception) {
+                FileLogger.log("WidgetClickReceiver", "Error starting activity: ${e.message}")
+            }
         }
     }
 }

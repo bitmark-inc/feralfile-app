@@ -11,8 +11,6 @@
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -38,7 +36,7 @@
         android:roundIcon="${appIconRound}"
         tools:replace="android:label,allowBackup">
         <receiver
-            android:name=".FeralfileDaily"
+            android:name="com.bitmark.autonomy_flutter.FeralfileDaily"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -51,7 +49,7 @@
 
 
         <receiver
-            android:name=".WidgetClickReceiver"
+            android:name="com.bitmark.autonomy_flutter.WidgetClickReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="app.feralfile.WIDGET_CLICK" />

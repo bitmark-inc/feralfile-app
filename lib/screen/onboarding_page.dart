@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -123,6 +124,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       await injector<DeviceInfoService>().init();
       await injector<AuthService>().init();
       await injector<MetricClientService>().initService();
+      await injector<FFBluetoothService>().init();
 
       unawaited(
         injector<RemoteConfigService>().loadConfigs().then(
