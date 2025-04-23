@@ -150,10 +150,12 @@ class NavigationService {
   Future<void> openBluetoothSettings() async {
     if (Platform.isAndroid) {
       final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
-      await settings.bluetooth();
+      // can not go to bluetooth settings, so we go to application settings
+      // from here, user can go to bluetooth settings
+      await settings.applicationDetails();
     } else {
       final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
-      await settings.bluetooth();
+      await settings.appSettings();
     }
   }
 
@@ -179,30 +181,31 @@ class NavigationService {
             ),
             const SizedBox(height: 24),
             RichText(
-                text: TextSpan(
-              style: theme.textTheme.ppMori400White14,
-              children: <TextSpan>[
-                TextSpan(
-                  text: '${'if_issue_persist'.tr()} ',
-                ),
-                TextSpan(
-                  text: 'feralfile@support.com'.tr(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
+              text: TextSpan(
+                style: theme.textTheme.ppMori400White14,
+                children: <TextSpan>[
+                  TextSpan(
+                    text: '${'if_issue_persist'.tr()} ',
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      log.info('send email to feralfile@support.com');
-                      const href = 'mailto:support@feralfile.com';
-                      launchUrlString(href);
-                    },
-                ),
-                TextSpan(
-                  text: ' ${'for_assistance'.tr()}',
-                ),
-              ],
-            ))
+                  TextSpan(
+                    text: 'feralfile@support.com'.tr(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        log.info('send email to feralfile@support.com');
+                        const href = 'mailto:support@feralfile.com';
+                        launchUrlString(href);
+                      },
+                  ),
+                  TextSpan(
+                    text: ' ${'for_assistance'.tr()}',
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       );
@@ -250,9 +253,7 @@ class NavigationService {
         'if_take_too_long'.tr(),
         closeButton: 'cancel'.tr(),
         autoDismissAfter: 20,
-        onClose: () {
-          hideInfoDialog();
-        },
+        onClose: hideInfoDialog,
       );
     }
   }
@@ -270,7 +271,9 @@ class NavigationService {
   }
 
   Future<void> showCannotConnectToBluetoothDevice(
-      BluetoothDevice device, Object? error) async {
+    BluetoothDevice device,
+    Object? error,
+  ) async {
     // if (navigatorKey.currentContext != null &&
     //     navigatorKey.currentState?.mounted == true) {
     //   await UIHelper.showInfoDialog(
@@ -796,7 +799,8 @@ class NavigationService {
                       navigateTo(
                         AppRouter.supportThreadPage,
                         arguments: NewIssuePayload(
-                            reportIssueType: ReportIssueType.Bug),
+                          reportIssueType: ReportIssueType.Bug,
+                        ),
                       );
                     },
                   ),
@@ -812,8 +816,9 @@ class NavigationService {
     );
   }
 
-  Future<JWT?> showRefreshJwtFailedDialog(
-      {required Future<JWT> Function() onRetry}) async {
+  Future<JWT?> showRefreshJwtFailedDialog({
+    required Future<JWT> Function() onRetry,
+  }) async {
     log.info('showRefreshJwtFailedDialog');
     final res = await UIHelper.showCustomDialog<JWT>(
       context: context,
@@ -822,11 +827,15 @@ class NavigationService {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('session_expired'.tr(),
-                style: Theme.of(context).textTheme.ppMori700White24),
+            Text(
+              'session_expired'.tr(),
+              style: Theme.of(context).textTheme.ppMori700White24,
+            ),
             const SizedBox(height: 20),
-            Text('session_expired_desc'.tr(),
-                style: Theme.of(context).textTheme.ppMori400White14),
+            Text(
+              'session_expired_desc'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
             const SizedBox(height: 20),
             PrimaryButton(
               text: 'sign_in'.tr(),
@@ -866,9 +875,11 @@ class NavigationService {
       await UIHelper.showInfoDialog(
         context,
         'link_artist_failed'.tr(),
-        'link_artist_failed_desc'.tr(namedArgs: {
-          'error': exception.toString(),
-        }),
+        'link_artist_failed_desc'.tr(
+          namedArgs: {
+            'error': exception.toString(),
+          },
+        ),
         onClose: () => UIHelper.hideInfoDialog(context),
       );
     }
@@ -952,7 +963,9 @@ class NavigationService {
         UIHelper.showRawDialog(
           navigatorKey.currentContext!,
           NowDisplaySettingView(
-              tokenConfiguration: tokenConfiguration, artistName: artistName),
+            tokenConfiguration: tokenConfiguration,
+            artistName: artistName,
+          ),
           title: 'device_settings'.tr(),
           name: UIHelper.artDisplaySettingModal,
           isRoundCorner: false,

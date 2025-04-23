@@ -165,7 +165,6 @@ class PasskeyServiceImpl implements PasskeyService {
       return response;
     } catch (e, s) {
       log.info('Failed to login finalize: $e');
-      unawaited(Sentry.captureException(e, stackTrace: s));
       rethrow;
     }
   }
