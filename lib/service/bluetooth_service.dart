@@ -141,6 +141,17 @@ class FFBluetoothService {
           BluetoothNotificationService().handleNotification(value, device);
         } else if (characteristic.isEngineeringCharacteristic) {
           _handleEngineeringData(value);
+        } else if (characteristic.isWifiConnectCharacteristic) {
+          final data = BluetoothNotificationService().getDataFromRawData(value);
+          if (data.length < 2) {
+            log.warning('Invalid data received: $data');
+            return;
+          }
+          final topicId = data.first;
+          final locationId = data[1];
+          final sendWifiCredentialResponse = SendWifiCredentialResponse(
+              topicId: topicId, locationId: locationId);
+          _sendWifiCredentialsCompleter?.complete(sendWifiCredentialResponse);
         }
       },
       onError: (e) {
@@ -332,38 +343,20 @@ class FFBluetoothService {
     await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
   }
 
-  Future<void> scanWifi({
-    required BluetoothDevice device,
-    required Duration timeout,
-    required FutureOr<void> Function(Map<String, bool>) onResultScan,
-    FutureOr<bool> Function(Map<String, bool>)? shouldStopScan,
-  }) async {}
-
-  Future<bool> sendWifiCredentials({
+  // _sendWifiCredentials
+  Future<bool> _sendWifiCredentials({
     required FFBluetoothDevice device,
     required String ssid,
     required String password,
   }) async {
     if (device.isDisconnected) {
-      log.info('[sendWifi] Device is disconnected');
-      unawaited(
-        injector<NavigationService>().showCannotConnectToBluetoothDevice(
-          device,
-          'Device is disconnected',
-        ),
-      );
+      return false;
     }
     final wifiConnectChar = device.wifiConnectCharacteristic;
     // Check if the wifi connect characteristic is available
     if (wifiConnectChar == null) {
       log.warning('Wi-Fi connect characteristic not found');
       throw Exception('Wi-Fi connect characteristic not found');
-    }
-    try {
-      await setTimezone(device);
-    } catch (e) {
-      unawaited(Sentry.captureException('Failed to set timezone: $e'));
-      log.warning('Failed to set timezone: $e');
     }
 
     // Convert SSID and password to ASCII bytes
@@ -396,6 +389,68 @@ class FFBluetoothService {
       log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
       return false;
     }
+  }
+
+  Completer<SendWifiCredentialResponse>? _sendWifiCredentialsCompleter;
+
+  Future<bool> sendWifiCredentials({
+    required FFBluetoothDevice device,
+    required String ssid,
+    required String password,
+  }) async {
+    if (device.isDisconnected) {
+      log.info('[sendWifi] Device is disconnected');
+      unawaited(
+        injector<NavigationService>().showCannotConnectToBluetoothDevice(
+          device,
+          'Device is disconnected',
+        ),
+      );
+      return false;
+    }
+
+    if (_sendWifiCredentialsCompleter?.isCompleted == false) {
+      log.info(
+        '[sendWifi] Already sending Wi-Fi credentials to device: ${device.remoteId.str}',
+      );
+      return false;
+    }
+
+    final res = await _sendWifiCredentials(
+      device: device,
+      ssid: ssid,
+      password: password,
+    );
+
+    if (res == false) {
+      log.info('[sendWifi] Failed to send Wi-Fi credentials');
+      return false;
+    }
+
+    final response = await _sendWifiCredentialsCompleter?.future.timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        log.warning('Timeout waiting for Wi-Fi credentials to be sent');
+        throw TimeoutException('Timeout waiting for Wi-Fi credentials');
+      },
+    ).catchError((Object e) {
+      log.warning('Error sending Wi-Fi credentials: $e');
+      unawaited(Sentry.captureException(e));
+      throw e;
+    });
+
+    if (response == null) {
+      log.info('[sendWifi] No response received');
+      return false;
+    }
+
+    // Update device with topicId and locationId
+    device = device.copyWith(
+      topicId: response.topicId,
+      locationId: response.locationId,
+    );
+
+    return true;
   }
 
   // completer for connectToDevice
@@ -682,44 +737,48 @@ class FFBluetoothService {
   }
 
   // Add method to start monitoring system metrics
-  Future<void> startSystemMetricsMonitoring(BluetoothDevice device) async {
-    try {
-      final engineeringChar = device.engineeringCharacteristic;
-      if (engineeringChar == null) {
-        log.warning('Engineering characteristic not found');
-        return;
-      }
-
-      await engineeringChar.setNotifyValue(true);
-      log.info('System metrics monitoring started');
-    } catch (e) {
-      log.warning('Failed to start system metrics monitoring: $e');
-      unawaited(
-        Sentry.captureException(
-          'Failed to start system metrics monitoring: $e',
-        ),
-      );
-    }
+  Future<void> startSystemMetricsMonitoring(BaseDevice device) async {
+    return;
+    // TODO: Implement this method
+    // try {
+    //   final engineeringChar = device.engineeringCharacteristic;
+    //   if (engineeringChar == null) {
+    //     log.warning('Engineering characteristic not found');
+    //     return;
+    //   }
+    //
+    //   await engineeringChar.setNotifyValue(true);
+    //   log.info('System metrics monitoring started');
+    // } catch (e) {
+    //   log.warning('Failed to start system metrics monitoring: $e');
+    //   unawaited(
+    //     Sentry.captureException(
+    //       'Failed to start system metrics monitoring: $e',
+    //     ),
+    //   );
+    // }
   }
 
   // Add method to stop monitoring system metrics
-  Future<void> stopSystemMetricsMonitoring(BluetoothDevice device) async {
-    try {
-      final engineeringChar = device.engineeringCharacteristic;
-      if (engineeringChar == null) {
-        log.warning('Engineering characteristic not found');
-        return;
-      }
-      await engineeringChar.setNotifyValue(false);
-      log.info('System metrics monitoring stopped');
-    } catch (e) {
-      log.warning('Failed to stop system metrics monitoring: $e');
-      unawaited(
-        Sentry.captureException(
-          'Failed to stop system metrics monitoring: $e',
-        ),
-      );
-    }
+  Future<void> stopSystemMetricsMonitoring(BaseDevice device) async {
+    return;
+    // TODO: Implement this method
+    // try {
+    //   final engineeringChar = device.engineeringCharacteristic;
+    //   if (engineeringChar == null) {
+    //     log.warning('Engineering characteristic not found');
+    //     return;
+    //   }
+    //   await engineeringChar.setNotifyValue(false);
+    //   log.info('System metrics monitoring stopped');
+    // } catch (e) {
+    //   log.warning('Failed to stop system metrics monitoring: $e');
+    //   unawaited(
+    //     Sentry.captureException(
+    //       'Failed to stop system metrics monitoring: $e',
+    //     ),
+    //   );
+    // }
   }
 
   void dispose() {
@@ -902,4 +961,14 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
     BluetoothNotificationService().subscribe(ackReplyId, cb);
     return cb;
   }
+}
+
+class SendWifiCredentialResponse {
+  const SendWifiCredentialResponse({
+    required this.topicId,
+    required this.locationId,
+  });
+
+  final String topicId;
+  final String locationId;
 }

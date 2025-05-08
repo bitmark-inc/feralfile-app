@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -567,14 +566,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(injector<VersionService>().checkForUpdate());
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
-
-    final device = injector<FFBluetoothService>().castingBluetoothDevice;
-    if (device != null) {
-      unawaited(injector<FFBluetoothService>().connectToDevice(device));
-      if (device.isConnected) {
-        unawaited(NowDisplayingManager().updateDisplayingNow());
-      }
-    }
+    unawaited(NowDisplayingManager().updateDisplayingNow());
 
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     _triggerShowAnnouncement();

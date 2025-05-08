@@ -39,6 +39,24 @@ class BluetoothNotificationService {
     }
   }
 
+  // get data from raw data
+  // i have a byte array, in varint format, now i want to get all the data into a list
+  List<String> getDataFromRawData(List<int> data) {
+    final reader = ByteDataReader(data);
+    final result = <String>[];
+    try {
+      while (reader.hasMoreData()) {
+        final length = reader.readVarint();
+        final bytes = reader.read(length);
+        final string = utf8.decode(bytes);
+        result.add(string);
+      }
+    } catch (e) {
+      log.info('[BluetoothNotification] Error processing raw data: $e');
+    }
+    return result;
+  }
+
   // Handle incoming notification data
   void handleNotification(List<int> data, BluetoothDevice device) {
     try {
@@ -112,5 +130,9 @@ class ByteDataReader {
     final result = _data.sublist(_position, _position + length);
     _position += length;
     return result;
+  }
+
+  bool hasMoreData() {
+    return _position < _data.length;
   }
 }

@@ -11,6 +11,7 @@ class WifiHelper {
     required FutureOr<void> Function(Map<String, bool> result) onResultScan,
     FutureOr<bool> Function(Map<String, bool> result)? shouldStop,
   }) async {
+    return;
     final startTime = DateTime.now();
     final delay = Duration(seconds: 2);
     while (DateTime.now().difference(startTime) < timeout) {

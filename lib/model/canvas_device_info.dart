@@ -29,7 +29,9 @@ class CanvasDevice implements BaseDevice {
       );
   @override
   final String deviceId; //hardware id
+  @override
   final String locationId; // location id
+  @override
   final String topicId; // topic id
   @override
   final String name;
@@ -90,9 +92,18 @@ class DeviceInfo {
 }
 
 abstract class BaseDevice {
+  const BaseDevice({
+    required this.locationId,
+    required this.topicId,
+  });
+
   String get deviceId;
 
   String get name;
+
+  final String locationId;
+
+  final String topicId;
 }
 
 @Entity()
@@ -100,6 +111,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   FFBluetoothDevice({
     required this.name,
     required String remoteID,
+    required this.locationId,
+    required this.topicId,
   }) : super.fromId(remoteID);
 
   // fromJson
@@ -107,6 +120,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
+        locationId: json['locationId'] as String,
+        topicId: json['topicId'] as String,
       );
 
   @Id()
@@ -120,10 +135,17 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   @override
   String get deviceId => remoteId.str;
 
+  @override
+  final String locationId; // location id
+  @override
+  final String topicId; // topic id
+
   // toJson
   Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
+        'locationId': locationId,
+        'topicId': topicId,
       };
 
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
@@ -136,8 +158,24 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     return FFBluetoothDevice(
       name: device.advName,
       remoteID: device.remoteId.str,
+      locationId: '',
+      topicId: '',
     );
   }
+
+  //copy with
+  FFBluetoothDevice copyWith({
+    String? name,
+    String? remoteID,
+    String? locationId,
+    String? topicId,
+  }) =>
+      FFBluetoothDevice(
+        name: name ?? this.name,
+        remoteID: remoteID ?? this.remoteID,
+        locationId: locationId ?? this.locationId,
+        topicId: topicId ?? this.topicId,
+      );
 
   @override
   bool operator ==(Object other) {

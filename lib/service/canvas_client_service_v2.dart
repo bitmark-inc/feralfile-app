@@ -44,11 +44,8 @@ class CanvasClientServiceV2 {
         platform: _platform,
       );
 
-  TvCastServiceImpl _getTvCastStub(CanvasDevice device) =>
+  TvCastServiceImpl _getTvCastStub(BaseDevice device) =>
       TvCastServiceImpl(_tvCastApi, device);
-
-  BluetoothCastService _getBluetoothStub(FFBluetoothDevice device) =>
-      BluetoothCastService(device);
 
   TvCastService _getStub(
     BaseDevice device,
@@ -56,7 +53,7 @@ class CanvasClientServiceV2 {
     if (device is CanvasDevice) {
       return _getTvCastStub(device);
     } else if (device is FFBluetoothDevice) {
-      return _getBluetoothStub(device);
+      return _getTvCastStub(device);
     } else {
       throw Exception('Unknown device type');
     }
