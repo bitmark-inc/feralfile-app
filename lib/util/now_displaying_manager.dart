@@ -69,18 +69,9 @@ class NowDisplayingManager {
         log.info(
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
         );
-        await Future.delayed(const Duration(seconds: 5));
-        if (device.isConnected) {
-          status = await _getStatus(device);
-        }
       }
       if (status == null) {
-        if (device.isConnected) {
-          throw Exception('Failed to get Now Displaying');
-        } else {
-          log.info('[NowDisplayingManager] Device is not connected');
-          return;
-        }
+        throw Exception('Failed to get Now Displaying');
       }
       final nowDisplaying = await getNowDisplayingObject(status);
       if (nowDisplaying == null) {
