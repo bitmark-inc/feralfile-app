@@ -106,9 +106,71 @@ abstract class BaseTvCastService implements TvCastService {
     CheckDeviceStatusRequest request, {
     bool shouldShowError = true,
   }) async {
-    final result =
-        await _sendData(_getBody(request), shouldShowError: shouldShowError);
-    return CheckDeviceStatusReply.fromJson(result);
+    // return CheckDeviceStatusReply(artworks: []);
+    try {
+      final result =
+          await _sendData(_getBody(request), shouldShowError: shouldShowError);
+      return _mapStatusReply(result);
+    } catch (e) {
+      log.info('Failed to get device status: $e');
+      return CheckDeviceStatusReply(
+        artworks: [],
+        connectedDevice: null,
+      );
+    }
+  }
+
+  CheckDeviceStatusReply _mapStatusReply(
+    Map<String, dynamic> result,
+  ) {
+    final state = result['state'];
+    DeviceInfoV2? connectedDevice;
+    final connectedDeviceJson = state['device'];
+    if (connectedDeviceJson != null) {
+      final deviceName = connectedDeviceJson['name'] as String;
+      final deviceId = connectedDeviceJson['id'] as String;
+      connectedDevice = DeviceInfoV2(
+        deviceId: deviceId,
+        deviceName: deviceName,
+        platform: null,
+      );
+    }
+    if (state['command'] == null) {
+      return CheckDeviceStatusReply(
+        artworks: [],
+        connectedDevice: connectedDevice,
+      );
+    }
+    final commandJson = Map<String, dynamic>.from(state['command'] as Map);
+    final commandString = commandJson['Command'] as String;
+    final command = CastCommand.fromString(commandString);
+    log.info('[_mapStatusReply] command: $commandString');
+    switch (command) {
+      case CastCommand.castListArtwork:
+        final request = CastListArtworkRequest.fromJson(commandJson);
+        return CheckDeviceStatusReply(
+          artworks: request.artworks,
+          connectedDevice: connectedDevice,
+        );
+      case CastCommand.castDaily:
+        return CheckDeviceStatusReply(
+          artworks: [],
+          connectedDevice: connectedDevice,
+          displayKey: CastDailyWorkRequest.displayKey,
+        );
+      case CastCommand.castExhibition:
+        final request = CastExhibitionRequest.fromJson(commandJson);
+        return CheckDeviceStatusReply(
+          artworks: [],
+          connectedDevice: connectedDevice,
+          exhibitionId: request.exhibitionId,
+          catalog: request.catalog,
+          catalogId: request.catalogId,
+        );
+      default:
+        return CheckDeviceStatusReply(
+            artworks: [], connectedDevice: connectedDevice);
+    }
   }
 
   @override
@@ -203,6 +265,7 @@ abstract class BaseTvCastService implements TvCastService {
       timeout: const Duration(seconds: 15),
       shouldShowError: false,
     );
+
     return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 

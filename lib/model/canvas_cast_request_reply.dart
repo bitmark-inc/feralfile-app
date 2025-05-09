@@ -217,12 +217,12 @@ class DeviceInfoV2 {
       );
   String deviceId;
   String deviceName;
-  DevicePlatform platform;
+  DevicePlatform? platform;
 
   Map<String, dynamic> toJson() => {
         'device_id': deviceId,
         'device_name': deviceName,
-        'platform': platform.index,
+        'platform': platform?.index,
       };
 }
 

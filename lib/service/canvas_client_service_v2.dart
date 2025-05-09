@@ -233,7 +233,7 @@ class CanvasClientServiceV2 {
   ) async {
     final canConnect = await connectToDevice(device);
     if (!canConnect) {
-      return false;
+      // return false;
     }
     final stub = _getStub(device);
     final response = await stub.castDailyWork(castRequest);

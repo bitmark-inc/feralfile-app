@@ -676,6 +676,7 @@ class FFBluetoothService {
     BaseDevice device,
   ) async {
     try {
+      return null;
       final res = await injector<CanvasClientServiceV2>()
           .getBluetoothDeviceStatus(device);
       _bluetoothDeviceStatus.value = res;
