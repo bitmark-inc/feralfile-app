@@ -84,7 +84,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
       device: device.toFFBluetoothDevice(),
       timeout: timeout,
       onResultScan: (result) {
-        final accessPoints = result.keys.map(WifiPoint.new).toList();
+        final accessPoints = result.map(WifiPoint.new).toList();
         if (mounted) {
           setState(() {
             _accessPoints = _filterUniqueSSIDs(accessPoints);

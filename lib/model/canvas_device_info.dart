@@ -194,9 +194,6 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     return FFBluetoothDevice.fromBluetoothDevice(this);
   }
 
-  BluetoothCharacteristic? get commandCharacteristic =>
-      BluetoothManager.getCommandCharacteristic(remoteId.str);
-
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
 
@@ -233,22 +230,14 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         unawaited(Sentry.captureMessage('Command service not found'));
         return;
       }
-      final commandChar = commandService.characteristics.firstWhere(
-          (characteristic) => characteristic.isCommandCharacteristic);
       final wifiConnectChar = commandService.characteristics.firstWhere(
         (characteristic) => characteristic.isWifiConnectCharacteristic,
       );
-      final engineeringChar = commandService.characteristics.firstWhere(
-        (characteristic) => characteristic.isEngineeringCharacteristic,
-      );
 
       // Set the command and wifi connect characteristics
-      BluetoothManager.setCommandCharacteristic(commandChar);
       BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
-      BluetoothManager.setEngineeringCharacteristic(engineeringChar);
 
-      log.info('Command char properties: ${commandChar.properties}');
-      if (!commandChar.properties.notify) {
+      if (!wifiConnectChar.properties.notify) {
         log.warning('Command characteristic does not support notifications!');
         unawaited(
           Sentry.captureMessage(
@@ -260,7 +249,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
       }
 
       try {
-        await commandChar.setNotifyValue(true);
+        await wifiConnectChar.setNotifyValue(true);
         log.info('Successfully enabled notifications for command char');
       } catch (e) {
         log.warning('Failed to enable notifications for command char: $e');

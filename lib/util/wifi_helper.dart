@@ -2,27 +2,27 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 
 class WifiHelper {
   static Future<void> scanWifiNetwork({
-    required BaseDevice device,
+    required FFBluetoothDevice device,
     required Duration timeout,
-    required FutureOr<void> Function(Map<String, bool> result) onResultScan,
-    FutureOr<bool> Function(Map<String, bool> result)? shouldStop,
+    required FutureOr<void> Function(List<String> result) onResultScan,
+    FutureOr<bool> Function(List<String> result)? shouldStop,
   }) async {
-    return;
     final startTime = DateTime.now();
     final delay = Duration(seconds: 2);
     while (DateTime.now().difference(startTime) < timeout) {
       await Future.delayed(delay);
       try {
-        final result = await injector<CanvasClientServiceV2>().scanWifi(device);
+        final result = await injector<FFBluetoothService>().scanWifi(device);
         onResultScan.call(result);
         final shouldStopScan = await shouldStop?.call(result) ?? false;
         if (shouldStopScan) {
           break;
         }
+        break;
       } catch (e) {
         print('Error scanning Wi-Fi: $e');
       }

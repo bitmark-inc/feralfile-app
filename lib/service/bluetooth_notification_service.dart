@@ -1,13 +1,9 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-typedef NotificationCallback = void Function(Map<String, dynamic> data);
+typedef NotificationCallback = void Function(List<String> data);
 
 final statusChangeTopic = 'statusChanged';
 final wifiConnectionTopic = 'wifi_connection';
@@ -33,6 +29,7 @@ class BluetoothNotificationService {
 
   // Unsubscribe from a specific topic
   void unsubscribe(String topic, NotificationCallback callback) {
+    log.info('[BluetoothNotification] Unsubscribing from topic: $topic');
     _subscribers[topic]?.remove(callback);
     if (_subscribers[topic]?.isEmpty ?? false) {
       _subscribers.remove(topic);
@@ -60,41 +57,17 @@ class BluetoothNotificationService {
   // Handle incoming notification data
   void handleNotification(List<int> data, BluetoothDevice device) {
     try {
-      // Create a ByteData view of the notification data
-      final reader = ByteDataReader(data);
+      final list = getDataFromRawData(data);
+      // log all item in list using log.info in one line
+      log.info('[BluetoothNotification] Notification data: ${list.join(', ')}');
 
-      // Read first varint for topic length
-      final topicLength = reader.readVarint();
-
-      // Read topic string
-      final topicBytes = reader.read(topicLength);
-      final topic = utf8.decode(topicBytes);
-
-      // Read second varint for JSON data length
-      final jsonLength = reader.readVarint();
-
-      // Read JSON data
-      final jsonBytes = reader.read(jsonLength);
-      final jsonString = utf8.decode(jsonBytes);
-      // Parse JSON data
-      final Map<String, dynamic> jsonData =
-          json.decode(jsonString) as Map<String, dynamic>;
-
-      log.info(
-          '[BluetoothNotification] Received notification - Topic: $topic, Data: $jsonData');
-
-      if (statusChangeTopic == topic) {
-        final statusChange = CheckDeviceStatusReply.fromJson(jsonData);
-        final bloc = injector<CanvasDeviceBloc>();
-        bloc.add(CanvasDeviceStatusChangedEvent(
-            device.toFFBluetoothDevice(), statusChange));
-      }
+      final topic = list[0];
 
       final callbacks = _subscribers[topic]?.toList();
       // Notify subscribers
       callbacks?.forEach((callback) {
         try {
-          callback(jsonData);
+          callback(list.sublist(1));
         } catch (e, s) {
           log.info('[BluetoothNotification] Error processing notification: $e');
         }

@@ -28,7 +28,6 @@ enum CastCommand {
   updateToLatestVersion,
   tapGesture,
   dragGesture,
-  scanWifi,
   enableMetricsStreaming,
   disableMetricsStreaming,
   showPairingQRCode,
@@ -68,8 +67,6 @@ enum CastCommand {
         return CastCommand.sendLog;
       case 'getVersion':
         return CastCommand.getVersion;
-      case 'scanWifi':
-        return CastCommand.scanWifi;
       case 'getBluetoothDeviceStatus':
         return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
@@ -127,8 +124,6 @@ enum CastCommand {
         return CastCommand.rotate;
       case const (GetVersionRequest):
         return CastCommand.getVersion;
-      case const (ScanWifiRequest):
-        return CastCommand.scanWifi;
       case const (GetBluetoothDeviceStatusRequest):
         return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
@@ -777,28 +772,6 @@ class GetVersionReply extends Reply {
   Map<String, dynamic> toJson() => {
         'version': version,
       };
-}
-
-class ScanWifiRequest implements Request {
-  ScanWifiRequest({required this.timeout});
-
-  factory ScanWifiRequest.fromJson(Map<String, dynamic> json) =>
-      ScanWifiRequest(timeout: json['timeout'] as int);
-  final int timeout;
-
-  @override
-  Map<String, dynamic> toJson() => {'timeout': timeout};
-}
-
-class ScanWifiReply extends Reply {
-  ScanWifiReply({required this.result});
-
-  factory ScanWifiReply.fromJson(Map<String, dynamic> json) =>
-      ScanWifiReply(result: Map<String, bool>.from(json['result'] as Map));
-  final Map<String, bool> result;
-
-  @override
-  Map<String, dynamic> toJson() => {'result': result};
 }
 
 extension OrientationExtension on Orientation {

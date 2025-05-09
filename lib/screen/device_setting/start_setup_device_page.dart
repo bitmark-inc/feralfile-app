@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
@@ -116,10 +117,15 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                     await injector<FFBluetoothService>()
                         .connectToDevice(device);
 
-                    final deviceStatus = await injector<CanvasClientServiceV2>()
-                        .getBluetoothDeviceStatus(device);
+                    BluetoothDeviceStatus? deviceStatus;
+                    try {
+                      deviceStatus = await injector<CanvasClientServiceV2>()
+                          .getBluetoothDeviceStatus(device);
+                    } catch (e) {
+                      log.info('Error getting device status: $e');
+                    }
 
-                    if (deviceStatus.isConnectedToWifi) {
+                    if (deviceStatus?.isConnectedToWifi ?? false) {
                       unawaited(UIHelper.showDialog(
                         context,
                         'The Portal is All Set',

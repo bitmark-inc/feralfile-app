@@ -160,7 +160,7 @@ class CanvasClientServiceV2 {
     try {
       final canConnect = await connectToDevice(device);
       if (!canConnect) {
-        return false;
+        // return false;
       }
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest(artworks: artworks);
@@ -220,7 +220,7 @@ class CanvasClientServiceV2 {
   ) async {
     final canConnect = await connectToDevice(device);
     if (!canConnect) {
-      return false;
+      // return false;
     }
     final stub = _getStub(device);
     final response = await stub.castExhibition(castRequest);
@@ -303,13 +303,6 @@ class CanvasClientServiceV2 {
     final response = await stub.getVersion(request);
     log.info('CanvasClientService: Get Version Success ${response.version}');
     return response.version;
-  }
-
-  Future<Map<String, bool>> scanWifi(BaseDevice device) async {
-    final stub = _getStub(device);
-    final request = ScanWifiRequest(timeout: 1);
-    final response = await stub.scanWifi(request);
-    return response.result;
   }
 
   Future<BluetoothDeviceStatus> getBluetoothDeviceStatus(

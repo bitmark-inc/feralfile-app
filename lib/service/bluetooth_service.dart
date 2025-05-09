@@ -52,6 +52,58 @@ const updateDeviceStatusCommand = [
   CastCommand.updateToLatestVersion,
 ];
 
+enum BluetoothCommand {
+  sendWifiCredentials,
+  scanWifi;
+
+  String get name {
+    switch (this) {
+      case BluetoothCommand.sendWifiCredentials:
+        return 'connect_wifi';
+      case BluetoothCommand.scanWifi:
+        return 'scan_wifi';
+    }
+  }
+
+  NotificationCallback _scanWifiCallback(
+      Completer<ScanWifiResponse> completer) {
+    return (data) {
+      completer.complete(ScanWifiResponse(result: data));
+    };
+  }
+
+  NotificationCallback _sendWifiCredentialsCallback(
+      Completer<SendWifiCredentialResponse> completer) {
+    return (data) {
+      final locationId = data[0];
+      final topicId = data[1];
+      completer.complete(SendWifiCredentialResponse(
+        topicId: topicId,
+        locationId: locationId,
+      ));
+    };
+  }
+
+  Completer<dynamic> generateCompleter() {
+    switch (this) {
+      case BluetoothCommand.sendWifiCredentials:
+        return Completer<SendWifiCredentialResponse>();
+      case BluetoothCommand.scanWifi:
+        return Completer<ScanWifiResponse>();
+    }
+  }
+
+  NotificationCallback notificationCallback(Completer<dynamic> completer) {
+    switch (this) {
+      case BluetoothCommand.sendWifiCredentials:
+        return _sendWifiCredentialsCallback(
+            completer as Completer<SendWifiCredentialResponse>);
+      case BluetoothCommand.scanWifi:
+        return _scanWifiCallback(completer as Completer<ScanWifiResponse>);
+    }
+  }
+}
+
 class FFBluetoothService {
   FFBluetoothService();
 
@@ -79,9 +131,9 @@ class FFBluetoothService {
       if (state == BluetoothConnectionState.connected) {
         try {
           if (Platform.isAndroid) {
-            await device.requestMtu(512);
-            await device.requestConnectionPriority(
-                connectionPriorityRequest: ConnectionPriority.high);
+            // await device.requestMtu(512);
+            // await device.requestConnectionPriority(
+            //     connectionPriorityRequest: ConnectionPriority.high);
           }
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {
@@ -137,21 +189,10 @@ class FFBluetoothService {
         final characteristic = event.characteristic;
         final device = event.device;
         final value = event.value;
-        if (characteristic.isCommandCharacteristic) {
+        if (characteristic.isWifiConnectCharacteristic) {
           BluetoothNotificationService().handleNotification(value, device);
         } else if (characteristic.isEngineeringCharacteristic) {
           _handleEngineeringData(value);
-        } else if (characteristic.isWifiConnectCharacteristic) {
-          final data = BluetoothNotificationService().getDataFromRawData(value);
-          if (data.length < 2) {
-            log.warning('Invalid data received: $data');
-            return;
-          }
-          final topicId = data.first;
-          final locationId = data[1];
-          final sendWifiCredentialResponse = SendWifiCredentialResponse(
-              topicId: topicId, locationId: locationId);
-          _sendWifiCredentialsCompleter?.complete(sendWifiCredentialResponse);
         }
       },
       onError: (e) {
@@ -241,17 +282,14 @@ class FFBluetoothService {
   // For scanning
   final String serviceUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
 
-  // command characteristic
-  String commandCharUuid = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-
   // wifi connect characteristic
   String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-  Future<Map<String, dynamic>> sendCommand({
+  Future<dynamic> sendCommand({
     required FFBluetoothDevice device,
-    required String command,
+    required BluetoothCommand command,
     required Map<String, dynamic> request,
-    Duration? timeout,
+    Duration timeout = const Duration(seconds: 10),
     bool shouldShowError = true,
   }) async {
     log.info(
@@ -274,27 +312,30 @@ class FFBluetoothService {
       List.generate(4, (_) => Random().nextInt(26) + 97),
     );
 
-    final byteBuilder = _buildCommandMessage(command, request, replyId);
+    final byteBuilder = _buildCommandMessage(command.name, request, replyId);
 
-    final completer = Completer<Map<String, dynamic>>();
-    final cb = getCommandNotificationCallback(replyId, completer);
+    final completer = command.generateCompleter();
+    // final cb = getCommandNotificationCallback(replyId, completer);
+    final cb = command.notificationCallback(completer);
     BluetoothNotificationService().subscribe(replyId, cb);
-
+    log.info(
+      '[sendCommand] Subscribed to replyId: $replyId',
+    );
     try {
       final bytes = byteBuilder.takeBytes();
 
-      final commandCharacteristic = device.commandCharacteristic;
-      if (commandCharacteristic == null) {
+      final wifiChar = device.wifiConnectCharacteristic;
+      if (wifiChar == null) {
         log.warning('Command characteristic not found');
         unawaited(Sentry.captureMessage('Command characteristic not found'));
         throw Exception('Command characteristic not found');
       }
 
-      await commandCharacteristic.writeWithRetry(bytes);
+      await wifiChar.writeWithRetry(bytes);
 
       // Wait for reply with timeout
       final res = await completer.future.timeout(
-        timeout ?? const Duration(seconds: 2),
+        timeout,
         onTimeout: () {
           Sentry.captureMessage(
             '[sendCommand] Timeout waiting for reply: $replyId',
@@ -302,19 +343,20 @@ class FFBluetoothService {
           throw TimeoutException('Timeout  waiting for reply $replyId');
         },
       );
-      if (displayingCommand
-          .any((element) => element == CastCommand.fromString(command))) {
-        castingBluetoothDevice = device;
-      }
-      if (updateDeviceStatusCommand
-          .any((element) => element == CastCommand.fromString(command))) {
-        unawaited(fetchBluetoothDeviceStatus(device));
-      }
+      // if (displayingCommand
+      //     .any((element) => element == CastCommand.fromString(command))) {
+      //   castingBluetoothDevice = device;
+      // }
+      // if (updateDeviceStatusCommand
+      //     .any((element) => element == CastCommand.fromString(command))) {
+      //   unawaited(fetchBluetoothDeviceStatus(device));
+      // }
       return res;
     } catch (e) {
       BluetoothNotificationService().unsubscribe(replyId, cb);
       unawaited(Sentry.captureException(e));
-      log.info('[sendCommand] Error sending command $command: $e');
+      log.info(
+          '[sendCommand] Error sending command $command(replyId is $replyId): $e');
       rethrow;
     }
   }
@@ -325,17 +367,27 @@ class FFBluetoothService {
     String replyId,
   ) {
     final commandBytes = ascii.encode(command);
-    final bodyString = json.encode(request);
-    final bodyBytes = ascii.encode(bodyString);
     final replyIdBytes = ascii.encode(replyId);
 
-    return BytesBuilder()
-      ..writeVarint(command.length)
+    // Prepare the BytesBuilder to collect all data
+    final builder = BytesBuilder()
+      ..writeVarint(commandBytes.length)
       ..add(commandBytes)
-      ..writeVarint(bodyBytes.length)
-      ..add(bodyBytes)
       ..writeVarint(replyIdBytes.length)
       ..add(replyIdBytes);
+
+    // Loop through the request map and handle each key-value pair
+    for (final entry in request.entries) {
+      final value = entry.value;
+
+      final valueBytes = ascii.encode(value.toString());
+
+      builder
+        ..writeVarint(valueBytes.length)
+        ..add(valueBytes);
+    }
+
+    return builder;
   }
 
   Future<void> setTimezone(FFBluetoothDevice device) async {
@@ -343,55 +395,24 @@ class FFBluetoothService {
     await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
   }
 
-  // _sendWifiCredentials
-  Future<bool> _sendWifiCredentials({
-    required FFBluetoothDevice device,
-    required String ssid,
-    required String password,
-  }) async {
-    if (device.isDisconnected) {
-      return false;
-    }
-    final wifiConnectChar = device.wifiConnectCharacteristic;
-    // Check if the wifi connect characteristic is available
-    if (wifiConnectChar == null) {
-      log.warning('Wi-Fi connect characteristic not found');
-      throw Exception('Wi-Fi connect characteristic not found');
+  Future<List<String>> scanWifi(FFBluetoothDevice device) async {
+    const request = ScanWifiRequest();
+    final res = await sendCommand(
+        device: device,
+        command: BluetoothCommand.scanWifi,
+        request: request.toJson());
+
+    if (res is! ScanWifiResponse) {
+      log.warning('Failed to scan Wi-Fi');
+      throw Exception('Failed to scan Wi-Fi');
     }
 
-    // Convert SSID and password to ASCII bytes
-    final ssidBytes = ascii.encode(ssid);
-    final passwordBytes = ascii.encode(password);
-
-    // Create a BytesBuilder to construct the message
-    final builder = BytesBuilder()
-      // Write SSID length as varint
-      ..writeVarint(ssidBytes.length)
-      // Write SSID bytes
-      ..add(ssidBytes)
-
-      // Write password length as varint
-      ..writeVarint(passwordBytes.length)
-      // Write password bytes
-      ..add(passwordBytes);
-
-    // Write the data to the characteristic
-    final bytes = builder.takeBytes();
-    final bytesInHex = bytes.map((e) => e.toRadixString(16)).join(' ');
-
-    log.info('[sendWifiCredentials] Sending bytes: $bytesInHex');
-    try {
-      await wifiConnectChar.write(bytes);
-      log.info('[sendWifiCredentials] Wi-Fi credentials sent');
-      return true;
-    } catch (e) {
-      unawaited(Sentry.captureException(e));
-      log.info('[sendWifiCredentials] Error sending Wi-Fi credentials: $e');
-      return false;
-    }
+    final scanWifiResponse = res;
+    final wifiList = scanWifiResponse.result;
+    return wifiList;
   }
 
-  Completer<SendWifiCredentialResponse>? _sendWifiCredentialsCompleter;
+  // _sendWifiCredentials
 
   Future<bool> sendWifiCredentials({
     required FFBluetoothDevice device,
@@ -409,45 +430,28 @@ class FFBluetoothService {
       return false;
     }
 
-    if (_sendWifiCredentialsCompleter?.isCompleted == false) {
-      log.info(
-        '[sendWifi] Already sending Wi-Fi credentials to device: ${device.remoteId.str}',
-      );
-      return false;
-    }
-
-    final res = await _sendWifiCredentials(
+    final res = await sendCommand(
       device: device,
-      ssid: ssid,
-      password: password,
+      command: BluetoothCommand.sendWifiCredentials,
+      request: SendWifiCredentialRequest(
+        ssid: ssid,
+        password: password,
+      ).toJson(),
+      timeout: const Duration(seconds: 30),
     );
 
-    if (res == false) {
-      log.info('[sendWifi] Failed to send Wi-Fi credentials');
+    if (res is! SendWifiCredentialResponse) {
+      log.warning('Failed to send Wi-Fi credentials');
+      unawaited(Sentry.captureMessage('Failed to send Wi-Fi credentials'));
       return false;
     }
 
-    final response = await _sendWifiCredentialsCompleter?.future.timeout(
-      const Duration(seconds: 15),
-      onTimeout: () {
-        log.warning('Timeout waiting for Wi-Fi credentials to be sent');
-        throw TimeoutException('Timeout waiting for Wi-Fi credentials');
-      },
-    ).catchError((Object e) {
-      log.warning('Error sending Wi-Fi credentials: $e');
-      unawaited(Sentry.captureException(e));
-      throw e;
-    });
-
-    if (response == null) {
-      log.info('[sendWifi] No response received');
-      return false;
-    }
+    final sendWifiCredentialResponse = res;
 
     // Update device with topicId and locationId
     device = device.copyWith(
-      topicId: response.topicId,
-      locationId: response.locationId,
+      topicId: sendWifiCredentialResponse.topicId,
+      locationId: sendWifiCredentialResponse.locationId,
     );
 
     return true;
@@ -632,6 +636,7 @@ class FFBluetoothService {
       }
       await listenForAdapterState();
 
+      onData?.call([]);
       StreamSubscription<List<ScanResult>>? scanSubscription;
       scanSubscription = FlutterBluePlus.onScanResults.listen(
         (results) async {
@@ -684,43 +689,43 @@ class FFBluetoothService {
   // Map to store chunksfor each response
   final Map<String, List<ChunkInfo>> chunks = {};
 
-  NotificationCallback getCommandNotificationCallback(
-      String replyId, Completer<Map<String, dynamic>> responseCompleter) {
-    late NotificationCallback cb;
-    cb = (Map<String, dynamic> data) {
-      log.info('[sendCommand] Received data: $data');
-      final isChunkData = data.containsKey('i') &&
-          data.containsKey('d') &&
-          data.containsKey('t');
-
-      if (isChunkData) {
-        chunks[replyId] ??= [];
-        final chunkInfo = ChunkInfo.fromData(data);
-        log.info('[sendCommand] Received chunk: $chunkInfo');
-        chunks[replyId]!.add(chunkInfo);
-
-        if (chunks[replyId]!.length == chunkInfo.total) {
-          chunks[replyId]!.sort((a, b) => a.index.compareTo(b.index));
-          final allChunkData = chunks[replyId]!
-              .map((chunk) => chunk.data)
-              .expand((data) => data)
-              .toList();
-
-          final responseString = utf8.decode(allChunkData);
-          final response = json.decode(responseString) as Map<String, dynamic>;
-          log.info('[sendCommand] Received full response: $response');
-
-          responseCompleter.complete(response);
-          BluetoothNotificationService().unsubscribe(replyId, cb);
-          chunks.remove(replyId);
-        }
-      } else {
-        responseCompleter.complete(data);
-        BluetoothNotificationService().unsubscribe(replyId, cb);
-      }
-    };
-    return cb;
-  }
+  // NotificationCallback getCommandNotificationCallback(
+  //     String replyId, Completer<Map<String, dynamic>> responseCompleter) {
+  //   late NotificationCallback cb;
+  //   cb = (Map<String, dynamic> data) {
+  //     log.info('[sendCommand] Received data: $data');
+  //     final isChunkData = data.containsKey('i') &&
+  //         data.containsKey('d') &&
+  //         data.containsKey('t');
+  //
+  //     if (isChunkData) {
+  //       chunks[replyId] ??= [];
+  //       final chunkInfo = ChunkInfo.fromData(data);
+  //       log.info('[sendCommand] Received chunk: $chunkInfo');
+  //       chunks[replyId]!.add(chunkInfo);
+  //
+  //       if (chunks[replyId]!.length == chunkInfo.total) {
+  //         chunks[replyId]!.sort((a, b) => a.index.compareTo(b.index));
+  //         final allChunkData = chunks[replyId]!
+  //             .map((chunk) => chunk.data)
+  //             .expand((data) => data)
+  //             .toList();
+  //
+  //         final responseString = utf8.decode(allChunkData);
+  //         final response = json.decode(responseString) as Map<String, dynamic>;
+  //         log.info('[sendCommand] Received full response: $response');
+  //
+  //         responseCompleter.complete(response);
+  //         BluetoothNotificationService().unsubscribe(replyId, cb);
+  //         chunks.remove(replyId);
+  //       }
+  //     } else {
+  //       responseCompleter.complete(data);
+  //       BluetoothNotificationService().unsubscribe(replyId, cb);
+  //     }
+  //   };
+  //   return cb;
+  // }
 
   // Add method to handle engineering data
   void _handleEngineeringData(List<int> data) {
@@ -787,10 +792,6 @@ class FFBluetoothService {
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
-  bool get isCommandCharacteristic {
-    return uuid.toString() == BluetoothManager.commandCharUuid;
-  }
-
   bool get isWifiConnectCharacteristic {
     return uuid.toString() == BluetoothManager.wifiConnectCharUuid;
   }
@@ -854,7 +855,7 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
 
   Future<void> writeWithRetry(List<int> value) async {
     try {
-      await writeChunk(value);
+      await write(value);
     } on PlatformException catch (e) {
       log
         ..info('[writeWithRetry] Error writing chunk: $e')
@@ -862,7 +863,7 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
       final device = this.device;
       if (device.isConnected) {
         await device.discoverCharacteristics();
-        await writeChunk(value);
+        await write(value);
       }
     }
   }
@@ -947,19 +948,36 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
   }) {
     late NotificationCallback cb;
     cb = (data) {
-      final chunkIndex = data['chunkIndex'] as int;
-      if (chunkIndex >= 0 &&
-          chunkIndex < chunkCompleters.length &&
-          !chunkCompleters[chunkIndex].isCompleted) {
-        log.info('[sendCommand] Completing chunk $chunkIndex');
-        chunkCompleters[chunkIndex].complete();
-      }
-      if (chunkCompleters.every((completer) => completer.isCompleted)) {
-        BluetoothNotificationService().unsubscribe(ackReplyId, cb);
-      }
+      // final chunkIndex = data['chunkIndex'] as int;
+      // if (chunkIndex >= 0 &&
+      //     chunkIndex < chunkCompleters.length &&
+      //     !chunkCompleters[chunkIndex].isCompleted) {
+      //   log.info('[sendCommand] Completing chunk $chunkIndex');
+      //   chunkCompleters[chunkIndex].complete();
+      // }
+      // if (chunkCompleters.every((completer) => completer.isCompleted)) {
+      //   BluetoothNotificationService().unsubscribe(ackReplyId, cb);
+      // }
     };
     BluetoothNotificationService().subscribe(ackReplyId, cb);
     return cb;
+  }
+}
+
+class SendWifiCredentialRequest {
+  const SendWifiCredentialRequest({
+    required this.ssid,
+    required this.password,
+  });
+
+  final String ssid;
+  final String password;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ssid': ssid,
+      'password': password,
+    };
   }
 }
 
@@ -971,4 +989,20 @@ class SendWifiCredentialResponse {
 
   final String topicId;
   final String locationId;
+}
+
+class ScanWifiRequest {
+  const ScanWifiRequest();
+
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class ScanWifiResponse {
+  const ScanWifiResponse({
+    required this.result,
+  });
+
+  final List<String> result;
 }

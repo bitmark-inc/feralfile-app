@@ -245,7 +245,6 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         _resultDevice = resultDevice;
       });
     }
-
     if (resultDevice != null) {
       if (context.mounted) {
         Navigator.of(context).pop();

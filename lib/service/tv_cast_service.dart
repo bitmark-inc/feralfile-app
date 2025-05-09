@@ -46,8 +46,6 @@ abstract class TvCastService {
     GetVersionRequest request,
   );
 
-  Future<ScanWifiReply> scanWifi(ScanWifiRequest request);
-
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   );
@@ -194,13 +192,6 @@ abstract class BaseTvCastService implements TvCastService {
   Future<GetVersionReply> getVersion(GetVersionRequest request) async {
     final result = await _sendData(_getBody(request));
     return GetVersionReply.fromJson(result);
-  }
-
-  @override
-  Future<ScanWifiReply> scanWifi(ScanWifiRequest request) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 10));
-    return ScanWifiReply.fromJson(result);
   }
 
   @override
@@ -379,7 +370,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   @override
   Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
-    bool shouldShowError = true,
+    bool shouldShowError = false,
     Duration? timeout,
   }) async {
     try {
