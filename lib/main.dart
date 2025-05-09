@@ -194,19 +194,6 @@ Future<void> _startBackgroundUpdate() async {
   );
 }
 
-Future<void> _connectToBluetoothDevice() async {
-  try {
-    final bluetoothDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
-    if (bluetoothDevice != null) {
-      await injector<FFBluetoothService>().connectToDevice(bluetoothDevice,
-          shouldShowError: false, shouldChangeNowDisplayingStatus: true);
-    }
-  } catch (e) {
-    log.info('Error in connecting to connected device: $e');
-  }
-}
-
 Future<void> _setupApp() async {
   try {
     await setupLogger();
@@ -216,7 +203,6 @@ Future<void> _setupApp() async {
   }
   await setupInjector();
   unawaited(_setupWorkManager());
-  unawaited(_connectToBluetoothDevice());
   unawaited(injector<DeeplinkService>().setup());
   runApp(
     SDTFScope(

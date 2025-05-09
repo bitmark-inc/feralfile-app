@@ -46,8 +46,6 @@ abstract class TvCastService {
     GetVersionRequest request,
   );
 
-  Future<ScanWifiReply> scanWifi(ScanWifiRequest request);
-
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   );
@@ -108,9 +106,71 @@ abstract class BaseTvCastService implements TvCastService {
     CheckDeviceStatusRequest request, {
     bool shouldShowError = true,
   }) async {
-    final result =
-        await _sendData(_getBody(request), shouldShowError: shouldShowError);
-    return CheckDeviceStatusReply.fromJson(result);
+    // return CheckDeviceStatusReply(artworks: []);
+    try {
+      final result =
+          await _sendData(_getBody(request), shouldShowError: shouldShowError);
+      return _mapStatusReply(result);
+    } catch (e) {
+      log.info('Failed to get device status: $e');
+      return CheckDeviceStatusReply(
+        artworks: [],
+        connectedDevice: null,
+      );
+    }
+  }
+
+  CheckDeviceStatusReply _mapStatusReply(
+    Map<String, dynamic> result,
+  ) {
+    final state = result['state'];
+    DeviceInfoV2? connectedDevice;
+    final connectedDeviceJson = state['device'];
+    if (connectedDeviceJson != null) {
+      final deviceName = connectedDeviceJson['name'] as String;
+      final deviceId = connectedDeviceJson['id'] as String;
+      connectedDevice = DeviceInfoV2(
+        deviceId: deviceId,
+        deviceName: deviceName,
+        platform: null,
+      );
+    }
+    if (state['command'] == null) {
+      return CheckDeviceStatusReply(
+        artworks: [],
+        connectedDevice: connectedDevice,
+      );
+    }
+    final commandJson = Map<String, dynamic>.from(state['command'] as Map);
+    final commandString = commandJson['Command'] as String;
+    final command = CastCommand.fromString(commandString);
+    log.info('[_mapStatusReply] command: $commandString');
+    switch (command) {
+      case CastCommand.castListArtwork:
+        final request = CastListArtworkRequest.fromJson(commandJson);
+        return CheckDeviceStatusReply(
+          artworks: request.artworks,
+          connectedDevice: connectedDevice,
+        );
+      case CastCommand.castDaily:
+        return CheckDeviceStatusReply(
+          artworks: [],
+          connectedDevice: connectedDevice,
+          displayKey: CastDailyWorkRequest.displayKey,
+        );
+      case CastCommand.castExhibition:
+        final request = CastExhibitionRequest.fromJson(commandJson);
+        return CheckDeviceStatusReply(
+          artworks: [],
+          connectedDevice: connectedDevice,
+          exhibitionId: request.exhibitionId,
+          catalog: request.catalog,
+          catalogId: request.catalogId,
+        );
+      default:
+        return CheckDeviceStatusReply(
+            artworks: [], connectedDevice: connectedDevice);
+    }
   }
 
   @override
@@ -197,13 +257,6 @@ abstract class BaseTvCastService implements TvCastService {
   }
 
   @override
-  Future<ScanWifiReply> scanWifi(ScanWifiRequest request) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 10));
-    return ScanWifiReply.fromJson(result);
-  }
-
-  @override
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   ) async {
@@ -212,6 +265,7 @@ abstract class BaseTvCastService implements TvCastService {
       timeout: const Duration(seconds: 15),
       shouldShowError: false,
     );
+
     return GetBluetoothDeviceStatusReply.fromJson(result);
   }
 
@@ -288,8 +342,8 @@ abstract class BaseTvCastService implements TvCastService {
       log.info('Enabling metrics streaming');
 
       // Start monitoring system metrics if it's a Bluetooth device
-      if (this is BluetoothCastService) {
-        final bluetoothDevice = (this as BluetoothCastService)._device;
+      if (this is TvCastServiceImpl) {
+        final bluetoothDevice = (this as TvCastServiceImpl)._device;
         await injector<FFBluetoothService>()
             .startSystemMetricsMonitoring(bluetoothDevice);
       }
@@ -310,8 +364,8 @@ abstract class BaseTvCastService implements TvCastService {
       log.info('Disabling metrics streaming');
 
       // Stop monitoring system metrics if it's a Bluetooth device
-      if (this is BluetoothCastService) {
-        final bluetoothDevice = (this as BluetoothCastService)._device;
+      if (this is TvCastServiceImpl) {
+        final bluetoothDevice = (this as TvCastServiceImpl)._device;
         await injector<FFBluetoothService>()
             .stopSystemMetricsMonitoring(bluetoothDevice);
       }
@@ -346,7 +400,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   TvCastServiceImpl(this._api, this._device);
 
   final TvCastApi _api;
-  final CanvasDevice _device;
+  final BaseDevice _device;
 
   void _handleError(Object error) {
     final context = injector<NavigationService>().context;
@@ -379,7 +433,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   @override
   Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
-    bool shouldShowError = true,
+    bool shouldShowError = false,
     Duration? timeout,
   }) async {
     try {
@@ -394,40 +448,6 @@ class TvCastServiceImpl extends BaseTvCastService {
       if (shouldShowError) {
         _handleError(e);
       }
-      rethrow;
-    }
-  }
-}
-
-class BluetoothCastService extends BaseTvCastService {
-  BluetoothCastService(this._device);
-
-  final FFBluetoothDevice _device;
-
-  @override
-  Future<Map<String, dynamic>> _sendData(
-    Map<String, dynamic> body, {
-    bool shouldShowError = true,
-    Duration? timeout,
-  }) async {
-    final command = body['command'] as String;
-    final request = Map<String, dynamic>.from(body['request'] as Map);
-    try {
-      final res = await injector<FFBluetoothService>().sendCommand(
-        device: _device,
-        command: command,
-        request: request,
-        timeout: timeout,
-        shouldShowError: shouldShowError,
-      );
-      log.info('[BluetoothCastService] sendCommand $command');
-      return res;
-    } catch (e) {
-      unawaited(
-        Sentry.captureException(
-          '[BluetoothCastService] sendCommand $command failed with error:  $e',
-        ),
-      );
       rethrow;
     }
   }

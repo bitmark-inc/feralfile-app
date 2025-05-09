@@ -352,7 +352,7 @@ class BluetoothConnectedDeviceConfigState
                 Navigator.of(context).pop();
                 unawaited(NowDisplayingManager().updateDisplayingNow());
               },
-              enabled: status?.isConnectedToWifi ?? false,
+              enabled: true, //status?.isConnectedToWifi ?? false,
               text: 'finish'.tr(),
               color: AppColor.white,
             ),

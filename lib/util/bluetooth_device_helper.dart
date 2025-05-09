@@ -9,6 +9,13 @@ class BluetoothDeviceHelper {
       ObjectBox.bluetoothPairedDevicesBox;
 
   static List<FFBluetoothDevice> get pairedDevices {
+    // return [
+    //   FFBluetoothDevice(
+    //       name: "Test FF-X1",
+    //       remoteID: "remoteId",
+    //       locationId: "4JGWU8NcvkcAQDOqaZgPuvnrT6G79G",
+    //       topicId: "5OLqEpgWvBVYiWKR26gy7oMCxK0P3N")
+    // ];
     final devices = _pairedDevicesBox.getAll();
     return devices.toSet().toList();
   }

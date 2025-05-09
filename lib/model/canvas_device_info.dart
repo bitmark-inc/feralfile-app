@@ -29,7 +29,9 @@ class CanvasDevice implements BaseDevice {
       );
   @override
   final String deviceId; //hardware id
+  @override
   final String locationId; // location id
+  @override
   final String topicId; // topic id
   @override
   final String name;
@@ -90,9 +92,18 @@ class DeviceInfo {
 }
 
 abstract class BaseDevice {
+  const BaseDevice({
+    required this.locationId,
+    required this.topicId,
+  });
+
   String get deviceId;
 
   String get name;
+
+  final String locationId;
+
+  final String topicId;
 }
 
 @Entity()
@@ -100,6 +111,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   FFBluetoothDevice({
     required this.name,
     required String remoteID,
+    required this.locationId,
+    required this.topicId,
   }) : super.fromId(remoteID);
 
   // fromJson
@@ -107,6 +120,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
+        locationId: json['locationId'] as String,
+        topicId: json['topicId'] as String,
       );
 
   @Id()
@@ -120,10 +135,17 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   @override
   String get deviceId => remoteId.str;
 
+  @override
+  String locationId; // location id
+  @override
+  String topicId; // topic id
+
   // toJson
   Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
+        'locationId': locationId,
+        'topicId': topicId,
       };
 
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
@@ -136,8 +158,24 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     return FFBluetoothDevice(
       name: device.advName,
       remoteID: device.remoteId.str,
+      locationId: '',
+      topicId: '',
     );
   }
+
+  //copy with
+  FFBluetoothDevice copyWith({
+    String? name,
+    String? remoteID,
+    String? locationId,
+    String? topicId,
+  }) =>
+      FFBluetoothDevice(
+        name: name ?? this.name,
+        remoteID: remoteID ?? this.remoteID,
+        locationId: locationId ?? this.locationId,
+        topicId: topicId ?? this.topicId,
+      );
 
   @override
   bool operator ==(Object other) {
@@ -156,9 +194,6 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     return FFBluetoothDevice.fromBluetoothDevice(this);
   }
 
-  BluetoothCharacteristic? get commandCharacteristic =>
-      BluetoothManager.getCommandCharacteristic(remoteId.str);
-
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
 
@@ -168,7 +203,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
   Future<void> discoverCharacteristics() async {
     try {
       log.info('Discovering characteristics for device: ${remoteId.str}');
-
+      await Future.delayed(const Duration(seconds: 1));
       final discoveredServices = await discoverServices();
       final services = <BluetoothService>[]
         ..clear()
@@ -195,22 +230,14 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         unawaited(Sentry.captureMessage('Command service not found'));
         return;
       }
-      final commandChar = commandService.characteristics.firstWhere(
-          (characteristic) => characteristic.isCommandCharacteristic);
       final wifiConnectChar = commandService.characteristics.firstWhere(
         (characteristic) => characteristic.isWifiConnectCharacteristic,
       );
-      final engineeringChar = commandService.characteristics.firstWhere(
-        (characteristic) => characteristic.isEngineeringCharacteristic,
-      );
 
       // Set the command and wifi connect characteristics
-      BluetoothManager.setCommandCharacteristic(commandChar);
       BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
-      BluetoothManager.setEngineeringCharacteristic(engineeringChar);
 
-      log.info('Command char properties: ${commandChar.properties}');
-      if (!commandChar.properties.notify) {
+      if (!wifiConnectChar.properties.notify) {
         log.warning('Command characteristic does not support notifications!');
         unawaited(
           Sentry.captureMessage(
@@ -222,7 +249,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
       }
 
       try {
-        await commandChar.setNotifyValue(true);
+        await wifiConnectChar.setNotifyValue(true);
         log.info('Successfully enabled notifications for command char');
       } catch (e) {
         log.warning('Failed to enable notifications for command char: $e');

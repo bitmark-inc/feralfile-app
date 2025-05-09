@@ -245,7 +245,6 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         _resultDevice = resultDevice;
       });
     }
-
     if (resultDevice != null) {
       if (context.mounted) {
         Navigator.of(context).pop();
@@ -271,7 +270,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
 
         // add device to canvas
         await BluetoothDeviceHelper.addDevice(
-          resultDevice!.toFFBluetoothDevice(),
+          resultDevice!,
         );
         injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       }
