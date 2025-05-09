@@ -136,9 +136,9 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   String get deviceId => remoteId.str;
 
   @override
-  final String locationId; // location id
+  String locationId; // location id
   @override
-  final String topicId; // topic id
+  String topicId; // topic id
 
   // toJson
   Map<String, dynamic> toJson() => {
@@ -203,7 +203,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
   Future<void> discoverCharacteristics() async {
     try {
       log.info('Discovering characteristics for device: ${remoteId.str}');
-
+      await Future.delayed(const Duration(seconds: 1));
       final discoveredServices = await discoverServices();
       final services = <BluetoothService>[]
         ..clear()

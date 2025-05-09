@@ -26,7 +26,6 @@ import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
@@ -352,8 +351,8 @@ class FFBluetoothService {
       //   unawaited(fetchBluetoothDeviceStatus(device));
       // }
       return res;
-    } catch (e) {
-      BluetoothNotificationService().unsubscribe(replyId, cb);
+    } catch (e, s) {
+      // BluetoothNotificationService().unsubscribe(replyId, cb);
       unawaited(Sentry.captureException(e));
       log.info(
           '[sendCommand] Error sending command $command(replyId is $replyId): $e');
@@ -449,11 +448,8 @@ class FFBluetoothService {
     final sendWifiCredentialResponse = res;
 
     // Update device with topicId and locationId
-    device = device.copyWith(
-      topicId: sendWifiCredentialResponse.topicId,
-      locationId: sendWifiCredentialResponse.locationId,
-    );
-
+    device.topicId = sendWifiCredentialResponse.topicId;
+    device.locationId = sendWifiCredentialResponse.locationId;
     return true;
   }
 
@@ -857,10 +853,13 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
   Future<void> writeWithRetry(List<int> value) async {
     try {
       await write(value);
-    } on PlatformException catch (e) {
-      log
-        ..info('[writeWithRetry] Error writing chunk: $e')
-        ..info('[writeWithRetry] Retrying...');
+    } catch (e) {
+      // log
+      //   ..info('[writeWithRetry] Error writing chunk: $e')
+      //   ..info('[writeWithRetry] Retrying...');
+      if (e is FlutterBluePlusException && e.code == 14) {
+        return;
+      }
       final device = this.device;
       if (device.isConnected) {
         await device.discoverCharacteristics();

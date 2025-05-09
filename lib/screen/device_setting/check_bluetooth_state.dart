@@ -270,7 +270,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
 
         // add device to canvas
         await BluetoothDeviceHelper.addDevice(
-          resultDevice!.toFFBluetoothDevice(),
+          resultDevice!,
         );
         injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       }
