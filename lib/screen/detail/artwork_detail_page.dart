@@ -26,12 +26,12 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
@@ -621,8 +621,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   ) async {
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-    final connectedDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
+    final connectedDevice = BluetoothDeviceHelper().castingBluetoothDevice;
     final isCasting = connectedDevice != null;
     final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
@@ -652,7 +651,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 final castingDevice = canvasDeviceState
                     .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
                 final bluetoothConnectedDevice =
-                    injector<FFBluetoothService>().castingBluetoothDevice;
+                    BluetoothDeviceHelper().castingBluetoothDevice;
                 if (castingDevice != null || bluetoothConnectedDevice != null) {
                   unawaited(
                     Navigator.of(context).pushNamed(

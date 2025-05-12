@@ -17,11 +17,11 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -300,8 +300,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 
   void _updateAnimationBasedOnDisplayState() {
-    final hasDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice != null;
+    final hasDevice = BluetoothDeviceHelper().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value;
