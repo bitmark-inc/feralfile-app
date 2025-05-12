@@ -14,11 +14,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 class SendWifiCredentialsPagePayload {
   final WifiPoint wifiAccessPoint;
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
   final Function? onSubmitted;
 
   SendWifiCredentialsPagePayload({
@@ -114,7 +115,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                   onTap: () async {
                     final ssid = widget.payload.wifiAccessPoint.ssid;
                     final password = passwordController.text.trim();
-                    final device = widget.payload.device;
+                    final device = widget.payload.device.toFFBluetoothDevice();
                     try {
                       // Check if the device is connected
                       if (!device.isConnected) {
@@ -123,13 +124,12 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                       }
                       final isSuccess = await injector<FFBluetoothService>()
                           .sendWifiCredentials(
-                        device: widget.payload.device,
+                        device: device,
                         ssid: ssid,
                         password: password,
                       );
                       if (!isSuccess) {
-                        throw FailedToConnectToWifiException(
-                            ssid, widget.payload.device);
+                        throw FailedToConnectToWifiException(ssid, device);
                       }
                       widget.payload.onSubmitted?.call();
                     } on FailedToConnectToWifiException catch (e) {

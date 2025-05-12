@@ -18,9 +18,9 @@ import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -374,7 +374,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           // after send support message, we should also trigger send log from FF device
           try {
             final castingDevice =
-                injector<FFBluetoothService>().castingBluetoothDevice;
+                BluetoothDeviceHelper().castingBluetoothDevice;
             if (castingDevice != null) {
               await injector<CanvasClientServiceV2>()
                   .sendLog(castingDevice, data.text);

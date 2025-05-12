@@ -24,8 +24,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
@@ -53,7 +51,9 @@ const updateDeviceStatusCommand = [
 
 enum BluetoothCommand {
   sendWifiCredentials,
-  scanWifi;
+  scanWifi,
+  // get locationId and topicId
+  getInfo;
 
   String get name {
     switch (this) {
@@ -61,6 +61,8 @@ enum BluetoothCommand {
         return 'connect_wifi';
       case BluetoothCommand.scanWifi:
         return 'scan_wifi';
+      case BluetoothCommand.getInfo:
+        return 'get_info';
     }
   }
 
@@ -88,6 +90,7 @@ enum BluetoothCommand {
       case BluetoothCommand.sendWifiCredentials:
         return Completer<SendWifiCredentialResponse>();
       case BluetoothCommand.scanWifi:
+      case BluetoothCommand.getInfo:
         return Completer<ScanWifiResponse>();
     }
   }
@@ -98,6 +101,7 @@ enum BluetoothCommand {
         return _sendWifiCredentialsCallback(
             completer as Completer<SendWifiCredentialResponse>);
       case BluetoothCommand.scanWifi:
+      case BluetoothCommand.getInfo:
         return _scanWifiCallback(completer as Completer<ScanWifiResponse>);
     }
   }
@@ -205,7 +209,7 @@ class FFBluetoothService {
       log.info('[FlutterBluePlus]: $event');
     });
     if (await Permission.bluetooth.isGranted ||
-        castingBluetoothDevice != null) {
+        BluetoothDeviceHelper().castingBluetoothDevice != null) {
       await listenForAdapterState();
     }
   }
@@ -234,43 +238,43 @@ class FFBluetoothService {
     });
   }
 
-  // connected device
-  FFBluetoothDevice? _castingBluetoothDevice;
-  final ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
-      ValueNotifier(null);
-
-  ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
-    if (_bluetoothDeviceStatus.value == null &&
-        castingBluetoothDevice != null) {
-      fetchBluetoothDeviceStatus(castingBluetoothDevice!);
-    }
-    return _bluetoothDeviceStatus;
-  }
-
-  set castingBluetoothDevice(FFBluetoothDevice? device) {
-    if (device == null) {
-      _castingBluetoothDevice = null;
-      Sentry.captureException('Set Casting device value to null');
-      return;
-    }
-    if (device.deviceId == _castingBluetoothDevice?.deviceId) {
-      return;
-    }
-    _castingBluetoothDevice = device;
-    fetchBluetoothDeviceStatus(device);
-  }
-
-  FFBluetoothDevice? get castingBluetoothDevice {
-    if (_castingBluetoothDevice != null) {
-      return _castingBluetoothDevice;
-    }
-
-    final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
-    if (device != null) {
-      castingBluetoothDevice = device;
-    }
-    return _castingBluetoothDevice;
-  }
+  // // connected device
+  // FFBluetoothDevice? _castingBluetoothDevice;
+  // final ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
+  //     ValueNotifier(null);
+  //
+  // ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
+  //   if (_bluetoothDeviceStatus.value == null &&
+  //       castingBluetoothDevice != null) {
+  //     fetchBluetoothDeviceStatus(castingBluetoothDevice!);
+  //   }
+  //   return _bluetoothDeviceStatus;
+  // }
+  //
+  // set castingBluetoothDevice(FFBluetoothDevice? device) {
+  //   if (device == null) {
+  //     _castingBluetoothDevice = null;
+  //     Sentry.captureException('Set Casting device value to null');
+  //     return;
+  //   }
+  //   if (device.deviceId == _castingBluetoothDevice?.deviceId) {
+  //     return;
+  //   }
+  //   _castingBluetoothDevice = device;
+  //   fetchBluetoothDeviceStatus(device);
+  // }
+  //
+  // FFBluetoothDevice? get castingBluetoothDevice {
+  //   if (_castingBluetoothDevice != null) {
+  //     return _castingBluetoothDevice;
+  //   }
+  //
+  //   final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
+  //   if (device != null) {
+  //     castingBluetoothDevice = device;
+  //   }
+  //   return _castingBluetoothDevice;
+  // }
 
   BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
 
@@ -411,8 +415,6 @@ class FFBluetoothService {
     return wifiList;
   }
 
-  // _sendWifiCredentials
-
   Future<bool> sendWifiCredentials({
     required FFBluetoothDevice device,
     required String ssid,
@@ -451,6 +453,23 @@ class FFBluetoothService {
     device.topicId = sendWifiCredentialResponse.topicId;
     device.locationId = sendWifiCredentialResponse.locationId;
     return true;
+  }
+
+  // get locationId and topicId
+  Future<SendWifiCredentialResponse> getInfo(FFBluetoothDevice device) async {
+    final res = await sendCommand(
+      device: device,
+      command: BluetoothCommand.getInfo,
+      request: {},
+    );
+
+    if (res is! SendWifiCredentialResponse) {
+      log.warning('Failed to get locationId and topicId');
+      unawaited(Sentry.captureMessage('Failed to get locationId and topicId'));
+      throw Exception('Failed to get locationId and topicId');
+    }
+
+    return res;
   }
 
   // completer for connectToDevice
@@ -673,10 +692,10 @@ class FFBluetoothService {
   ) async {
     try {
       return null;
-      final res = await injector<CanvasClientServiceV2>()
-          .getBluetoothDeviceStatus(device);
-      _bluetoothDeviceStatus.value = res;
-      return res;
+      // final res = await injector<CanvasClientServiceV2>()
+      //     .getBluetoothDeviceStatus(device);
+      // _bluetoothDeviceStatus.value = res;
+      // return res;
     } catch (e) {
       log.warning('Failed to get device status: $e');
       return null;

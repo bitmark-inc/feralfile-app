@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -126,8 +127,8 @@ class BluetoothConnectedDeviceConfigState
 
     final device = widget.payload.device;
 
-    status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
-    injector<FFBluetoothService>()
+    status = BluetoothDeviceHelper().bluetoothDeviceStatus.value;
+    BluetoothDeviceHelper()
         .bluetoothDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
 
@@ -208,7 +209,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   void _bluetoothDeviceStatusListener() {
-    final status = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+    final status = BluetoothDeviceHelper().bluetoothDeviceStatus.value;
     if (mounted) {
       setState(() {
         this.status = status;
@@ -227,7 +228,7 @@ class BluetoothConnectedDeviceConfigState
     _connectionStatusTimer?.cancel();
     _metricsUpdateTimer?.cancel();
     _metricsStreamSubscription?.cancel();
-    injector<FFBluetoothService>()
+    BluetoothDeviceHelper()
         .bluetoothDeviceStatus
         .removeListener(_bluetoothDeviceStatusListener);
     WidgetsBinding.instance.removeObserver(this);

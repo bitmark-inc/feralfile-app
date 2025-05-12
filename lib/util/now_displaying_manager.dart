@@ -10,9 +10,9 @@ import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
@@ -57,7 +57,7 @@ class NowDisplayingManager {
   Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {
     try {
       log.info('NowDisplayingManager: updateDisplayingNow');
-      final device = injector<FFBluetoothService>().castingBluetoothDevice;
+      final device = BluetoothDeviceHelper().castingBluetoothDevice;
       if (device == null) {
         return;
       }

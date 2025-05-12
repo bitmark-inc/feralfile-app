@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -20,12 +18,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class BluetoothDevicePortalPage extends StatefulWidget {
   const BluetoothDevicePortalPage({required this.device, super.key});
 
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
 
   @override
   State<BluetoothDevicePortalPage> createState() =>
@@ -112,20 +111,22 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 right: 0,
                 child: PrimaryAsyncButton(
                   onTap: () async {
-                    final device = widget.device;
+                    final device = widget.device.toFFBluetoothDevice();
 
                     await injector<FFBluetoothService>()
                         .connectToDevice(device);
-
-                    BluetoothDeviceStatus? deviceStatus;
+                    SendWifiCredentialResponse? response;
                     try {
-                      deviceStatus = await injector<CanvasClientServiceV2>()
-                          .getBluetoothDeviceStatus(device);
+                      response =
+                          await injector<FFBluetoothService>().getInfo(device);
                     } catch (e) {
-                      log.info('Error getting device status: $e');
+                      log.warning(
+                        'BluetoothDevicePortalPage: getInfo error: $e',
+                      );
                     }
 
-                    if (deviceStatus?.isConnectedToWifi ?? false) {
+                    if ((response?.locationId.isNotEmpty ?? false) &&
+                        (response?.topicId.isNotEmpty ?? false)) {
                       unawaited(UIHelper.showDialog(
                         context,
                         'The Portal is All Set',

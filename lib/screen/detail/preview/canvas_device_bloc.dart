@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -229,7 +230,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
           controllingDeviceStatus = deviceStatuses.controllingDevices;
 
-          devices.removeWhere((element) => !(element is FFBluetoothDevice));
+          devices.removeWhere((element) => element is! FFBluetoothDevice);
 
           final newState = state.copyWith(
             devices: devices,
@@ -604,8 +605,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
 
   List<BaseDevice> getDevices() {
-    final connectedDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
+    final connectedDevice = BluetoothDeviceHelper().castingBluetoothDevice;
     final isConnectedDeviceAvailable = connectedDevice != null;
 
     if (!isConnectedDeviceAvailable) {
