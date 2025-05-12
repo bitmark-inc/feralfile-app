@@ -14,11 +14,9 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -28,12 +26,10 @@ import 'package:sentry/sentry.dart';
 
 class CanvasClientServiceV2 {
   CanvasClientServiceV2(
-    this._db,
     this._deviceInfoService,
     this._tvCastApi,
   );
 
-  final HiveStoreObjectService<CanvasDevice> _db;
   final DeviceInfoService _deviceInfoService;
   final TvCastApi _tvCastApi;
   final dragOffsets = <CursorOffset>[];
@@ -50,9 +46,7 @@ class CanvasClientServiceV2 {
   TvCastService _getStub(
     BaseDevice device,
   ) {
-    if (device is CanvasDevice) {
-      return _getTvCastStub(device);
-    } else if (device is FFBluetoothDevice) {
+    if (device is FFBluetoothDevice) {
       return _getTvCastStub(device);
     } else {
       throw Exception('Unknown device type');
@@ -88,20 +82,6 @@ class CanvasClientServiceV2 {
     } else {
       return DevicePlatform.other;
     }
-  }
-
-  Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> addQrDevice(
-    CanvasDevice device,
-  ) async {
-    final deviceStatus = await getDeviceStatus(device);
-    if (deviceStatus != null) {
-      await _db.save(device, device.deviceId);
-      await connectToDevice(device);
-      log.info('CanvasClientService: Added device to db ${device.name}');
-      injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-      return Pair(deviceStatus.first as CanvasDevice, deviceStatus.second);
-    }
-    return null;
   }
 
   Future<void> _mergeUser(
@@ -326,9 +306,12 @@ class CanvasClientServiceV2 {
     );
   }
 
-  Future<void> updateDisplaySettings(BaseDevice device,
-      ArtistDisplaySetting displaySettings, final String tokenId,
-      {bool isSaved = false}) async {
+  Future<void> updateDisplaySettings(
+    BaseDevice device,
+    ArtistDisplaySetting displaySettings,
+    final String tokenId, {
+    bool isSaved = false,
+  }) async {
     final stub = _getStub(device);
     final request = UpdateDisplaySettingsRequest(
       setting: displaySettings,

@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -46,7 +45,7 @@ class CanvasDeviceGetStatusEvent extends CanvasDeviceEvent {
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
   CanvasDeviceAppendDeviceEvent(this.device);
 
-  final CanvasDevice device;
+  final BaseDevice device;
 }
 
 class CanvasDeviceStatusChangedEvent extends CanvasDeviceEvent {
@@ -217,7 +216,7 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   // constructor
-  CanvasDeviceBloc(this._canvasClientServiceV2, this._db)
+  CanvasDeviceBloc(this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
@@ -603,10 +602,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   }
 
   final CanvasClientServiceV2 _canvasClientServiceV2;
-  final HiveStoreObjectService<CanvasDevice> _db;
 
   List<BaseDevice> getDevices() {
-    final rawDevices = <CanvasDevice>[];
     final connectedDevice =
         injector<FFBluetoothService>().castingBluetoothDevice;
     final isConnectedDeviceAvailable = connectedDevice != null;
@@ -619,7 +616,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     final blDevices =
         isConnectedDeviceAvailable ? [connectedDevice] : <FFBluetoothDevice>[];
     final devices = <BaseDevice>[
-      ...rawDevices,
       ...blDevices,
     ];
     return devices;

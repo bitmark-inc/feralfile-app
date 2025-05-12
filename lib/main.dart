@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
-import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -125,7 +124,8 @@ Future<void> runFeralFileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   log.info(
-      "Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}");
+    'Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}',
+  );
 
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
@@ -166,9 +166,7 @@ Future<void> runFeralFileApp() async {
 }
 
 void _registerHiveAdapter() {
-  Hive
-    ..registerAdapter(CanvasDeviceAdapter())
-    ..registerAdapter(AnnouncementLocalAdapter());
+  Hive.registerAdapter(AnnouncementLocalAdapter());
 }
 
 Future<void> _setupWorkManager() async {

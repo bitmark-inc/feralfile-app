@@ -9,67 +9,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:sentry/sentry.dart';
 
-class CanvasDevice implements BaseDevice {
-  // device name
-
-  // constructor
-  CanvasDevice({
-    required this.deviceId,
-    required this.locationId,
-    required this.topicId,
-    required this.name,
-  });
-
-  //fromJson method
-  factory CanvasDevice.fromJson(Map<String, dynamic> json) => CanvasDevice(
-        deviceId: json['deviceId'] as String,
-        locationId: json['locationId'] as String,
-        topicId: json['topicId'] as String,
-        name: json['name'] as String,
-      );
-  @override
-  final String deviceId; //hardware id
-  @override
-  final String locationId; // location id
-  @override
-  final String topicId; // topic id
-  @override
-  final String name;
-
-  // toJson
-  Map<String, dynamic> toJson() => {
-        'deviceId': deviceId,
-        'locationId': locationId,
-        'topicId': topicId,
-        'name': name,
-      };
-
-  // copyWith
-  CanvasDevice copyWith({
-    String? deviceId,
-    String? locationId,
-    String? topicId,
-    String? name,
-  }) =>
-      CanvasDevice(
-        deviceId: deviceId ?? this.deviceId,
-        locationId: locationId ?? this.locationId,
-        topicId: topicId ?? this.topicId,
-        name: name ?? this.name,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is CanvasDevice && deviceId == other.deviceId;
-  }
-
-  @override
-  int get hashCode => deviceId.hashCode;
-}
-
 class DeviceInfo {
   DeviceInfo({
     required this.deviceId,
