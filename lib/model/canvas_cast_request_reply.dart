@@ -33,7 +33,8 @@ enum CastCommand {
   showPairingQRCode,
   castDaily,
   updateDisplaySettings,
-  shutdown;
+  shutdown,
+  deviceMetrics;
 
   static CastCommand fromString(String command) {
     switch (command) {
@@ -89,6 +90,8 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case 'shutdown':
         return CastCommand.shutdown;
+      case 'deviceMetrics':
+        return CastCommand.deviceMetrics;
       default:
         throw ArgumentError('Unknown command: $command');
     }
@@ -148,6 +151,8 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case const (SafeShutdownRequest):
         return CastCommand.shutdown;
+      case const (DeviceRealtimeMetrics):
+        return CastCommand.deviceMetrics;
       default:
         throw Exception('Unknown request type');
     }
@@ -1146,4 +1151,76 @@ class SafeShutdownRequest implements Request {
 
   @override
   Map<String, dynamic> toJson() => {};
+}
+
+class DeviceRealtimeMetrics {
+  DeviceRealtimeMetrics({
+    this.cpuUsage,
+    this.gpuUsage,
+    this.memoryUsage,
+    this.cpuTemperature,
+    this.gpuTemperature,
+    this.screenWidth,
+    this.screenHeight,
+    this.uptimeSeconds,
+    this.timestamp,
+  });
+
+  factory DeviceRealtimeMetrics.fromJson(Map<String, dynamic> json) =>
+      DeviceRealtimeMetrics(
+        cpuUsage: json['cpuUsage'] as double?,
+        gpuUsage: json['gpuUsage'] as double?,
+        memoryUsage: json['memoryUsage'] as double?,
+        cpuTemperature: json['cpuTemperature'] as double?,
+        gpuTemperature: json['gpuTemperature'] as double?,
+        screenWidth: json['screenWidth'] as int?,
+        screenHeight: json['screenHeight'] as int?,
+        uptimeSeconds: json['uptimeSeconds'] as int?,
+        timestamp: json['timestamp'] as int?,
+      );
+  final double? cpuUsage;
+  final double? gpuUsage;
+  final double? memoryUsage;
+  final double? cpuTemperature;
+  final double? gpuTemperature;
+  final int? screenWidth;
+  final int? screenHeight;
+  final int? uptimeSeconds;
+  final int? timestamp;
+
+  Map<String, dynamic> toJson() => {
+        'cpuUsage': cpuUsage,
+        'gpuUsage': gpuUsage,
+        'memoryUsage': memoryUsage,
+        'cpuTemperature': cpuTemperature,
+        'gpuTemperature': gpuTemperature,
+        'screenWidth': screenWidth,
+        'screenHeight': screenHeight,
+        'uptimeSeconds': uptimeSeconds,
+        'timestamp': timestamp,
+      };
+}
+
+class DeviceRealtimeMetricsRequest implements Request {
+  DeviceRealtimeMetricsRequest();
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class DeviceRealtimeMetricsReply extends Reply {
+  DeviceRealtimeMetricsReply({required this.metrics});
+
+  factory DeviceRealtimeMetricsReply.fromJson(Map<String, dynamic> json) =>
+      DeviceRealtimeMetricsReply(
+        metrics: DeviceRealtimeMetrics.fromJson(
+          json['metrics'] as Map<String, dynamic>,
+        ),
+      );
+  final DeviceRealtimeMetrics metrics;
+
+  @override
+  Map<String, dynamic> toJson() => metrics.toJson();
 }

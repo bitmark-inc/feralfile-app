@@ -5,7 +5,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/generated/protos/system_metrics.pb.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
@@ -139,14 +138,6 @@ enum BluetoothCommand {
 
 class FFBluetoothService {
   FFBluetoothService();
-
-  // Add a stream controller for system metrics
-  final StreamController<DeviceRealtimeMetrics>
-      _deviceRealtimeMetricsController =
-      StreamController<DeviceRealtimeMetrics>.broadcast();
-
-  Stream<DeviceRealtimeMetrics> get deviceRealtimeMetricsStream =>
-      _deviceRealtimeMetricsController.stream;
 
   bool _listeningForAdapterState = false;
 
@@ -683,49 +674,45 @@ class FFBluetoothService {
   // Map to store chunksfor each response
   final Map<String, List<ChunkInfo>> chunks = {};
 
-  // NotificationCallback getCommandNotificationCallback(
-  //     String replyId, Completer<Map<String, dynamic>> responseCompleter) {
-  //   late NotificationCallback cb;
-  //   cb = (Map<String, dynamic> data) {
-  //     log.info('[sendCommand] Received data: $data');
-  //     final isChunkData = data.containsKey('i') &&
-  //         data.containsKey('d') &&
-  //         data.containsKey('t');
-  //
-  //     if (isChunkData) {
-  //       chunks[replyId] ??= [];
-  //       final chunkInfo = ChunkInfo.fromData(data);
-  //       log.info('[sendCommand] Received chunk: $chunkInfo');
-  //       chunks[replyId]!.add(chunkInfo);
-  //
-  //       if (chunks[replyId]!.length == chunkInfo.total) {
-  //         chunks[replyId]!.sort((a, b) => a.index.compareTo(b.index));
-  //         final allChunkData = chunks[replyId]!
-  //             .map((chunk) => chunk.data)
-  //             .expand((data) => data)
-  //             .toList();
-  //
-  //         final responseString = utf8.decode(allChunkData);
-  //         final response = json.decode(responseString) as Map<String, dynamic>;
-  //         log.info('[sendCommand] Received full response: $response');
-  //
-  //         responseCompleter.complete(response);
-  //         BluetoothNotificationService().unsubscribe(replyId, cb);
-  //         chunks.remove(replyId);
-  //       }
-  //     } else {
-  //       responseCompleter.complete(data);
-  //       BluetoothNotificationService().unsubscribe(replyId, cb);
-  //     }
-  //   };
-  //   return cb;
-  // }
+// NotificationCallback getCommandNotificationCallback(
+//     String replyId, Completer<Map<String, dynamic>> responseCompleter) {
+//   late NotificationCallback cb;
+//   cb = (Map<String, dynamic> data) {
+//     log.info('[sendCommand] Received data: $data');
+//     final isChunkData = data.containsKey('i') &&
+//         data.containsKey('d') &&
+//         data.containsKey('t');
+//
+//     if (isChunkData) {
+//       chunks[replyId] ??= [];
+//       final chunkInfo = ChunkInfo.fromData(data);
+//       log.info('[sendCommand] Received chunk: $chunkInfo');
+//       chunks[replyId]!.add(chunkInfo);
+//
+//       if (chunks[replyId]!.length == chunkInfo.total) {
+//         chunks[replyId]!.sort((a, b) => a.index.compareTo(b.index));
+//         final allChunkData = chunks[replyId]!
+//             .map((chunk) => chunk.data)
+//             .expand((data) => data)
+//             .toList();
+//
+//         final responseString = utf8.decode(allChunkData);
+//         final response = json.decode(responseString) as Map<String, dynamic>;
+//         log.info('[sendCommand] Received full response: $response');
+//
+//         responseCompleter.complete(response);
+//         BluetoothNotificationService().unsubscribe(replyId, cb);
+//         chunks.remove(replyId);
+//       }
+//     } else {
+//       responseCompleter.complete(data);
+//       BluetoothNotificationService().unsubscribe(replyId, cb);
+//     }
+//   };
+//   return cb;
+// }
 
-  // Add method to handle engineering data
-
-  void dispose() {
-    _deviceRealtimeMetricsController.close();
-  }
+// Add method to handle engineering data
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {

@@ -427,4 +427,13 @@ class CanvasClientServiceV2 {
       return false;
     }
   }
+
+  Future<DeviceRealtimeMetrics> getDeviceRealtimeMetrics(
+    BaseDevice device,
+  ) async {
+    final stub = _getStub(device);
+    final request = DeviceRealtimeMetricsRequest();
+    final response = await stub.deviceMetrics(request);
+    return response.metrics;
+  }
 }

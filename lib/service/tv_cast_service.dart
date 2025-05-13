@@ -78,6 +78,10 @@ abstract class TvCastService {
   Future<void> safeShutdown(
     SafeShutdownRequest request,
   );
+
+  Future<DeviceRealtimeMetricsReply> deviceMetrics(
+    DeviceRealtimeMetricsRequest request,
+  );
 }
 
 abstract class BaseTvCastService implements TvCastService {
@@ -339,6 +343,19 @@ abstract class BaseTvCastService implements TvCastService {
       await _sendData(_getBody(request));
     } catch (e) {
       log.warning('Failed to perform safe shutdown: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DeviceRealtimeMetricsReply> deviceMetrics(
+    DeviceRealtimeMetricsRequest request,
+  ) async {
+    try {
+      final result = await _sendData(_getBody(request));
+      return DeviceRealtimeMetricsReply.fromJson(result);
+    } catch (e) {
+      log.info('Failed to get device metrics: $e');
       rethrow;
     }
   }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/generated/protos/system_metrics.pb.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -16,6 +15,7 @@ import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -111,7 +111,7 @@ class BluetoothConnectedDeviceConfigState
   final List<FlSpot> _gpuPoints = [];
   Timer? _metricsUpdateTimer;
 
-  // final int _maxDataPoints = 20;
+  final int _maxDataPoints = 20;
 
   // Add temperature metrics tracking
   final List<FlSpot> _cpuTempPoints = [];
@@ -139,10 +139,7 @@ class BluetoothConnectedDeviceConfigState
     _startBluetoothConnectionStatusPolling();
 
     // Enable metrics streaming when the screen opens
-    // _enableMetricsStreaming();
-
-    // Start updating performance chart
-    // _startPerformanceMetricsUpdates();
+    _enableMetricsStreaming();
   }
 
   void _startBluetoothConnectionStatusPolling() {
@@ -236,7 +233,7 @@ class BluetoothConnectedDeviceConfigState
     routeObserver.unsubscribe(this);
 
     // Disable metrics streaming when leaving the screen
-    // _disableMetricsStreaming();
+    _stopMetricsStreaming();
 
     if (cb != null) {
       BluetoothNotificationService().unsubscribe(wifiConnectionTopic, cb!);
@@ -251,7 +248,7 @@ class BluetoothConnectedDeviceConfigState
     // Called when another route has been pushed on top of this one
     super.didPushNext();
     // Disable metrics streaming when navigating away
-    // _disableMetricsStreaming();
+    _stopMetricsStreaming();
   }
 
   @override
@@ -945,70 +942,71 @@ class BluetoothConnectedDeviceConfigState
   }
 
   // // Enable metrics streaming from the device
-  // Future<void> _enableMetricsStreaming() async {
-  //   try {
-  //     final device = widget.payload.device;
-  //     log.info('Enabling metrics streaming for device: ${device.name}');
-  //     await injector<CanvasClientServiceV2>().enableMetricsStreaming(device);
-  //
-  //     // Subscribe to the metrics stream
-  //     await _metricsStreamSubscription
-  //         ?.cancel(); // Cancel any existing subscription
-  //     _metricsStreamSubscription = injector<FFBluetoothService>()
-  //         .deviceRealtimeMetricsStream
-  //         .listen(_updateMetricsFromStream);
-  //   } catch (e) {
-  //     log.warning('Failed to enable metrics streaming: $e');
-  //   }
-  // }
-  //
+  Future<void> _enableMetricsStreaming() async {
+    try {
+      final device = widget.payload.device;
+      log.info('Enabling metrics streaming for device: ${device.name}');
+      DeviceRealtimeMetricHelper().startRealtimeMetrics(device: device);
+
+      // Subscribe to the metrics stream
+      await _metricsStreamSubscription
+          ?.cancel(); // Cancel any existing subscription
+      _metricsStreamSubscription = DeviceRealtimeMetricHelper()
+          .deviceRealtimeMetricsStream
+          .listen(_updateMetricsFromStream);
+    } catch (e) {
+      log.warning('Failed to enable metrics streaming: $e');
+    }
+  }
+
   // // Disable metrics streaming from the device
-  // Future<void> _disableMetricsStreaming() async {
-  //   try {
-  //     // Cancel the stream subscription
-  //     await _metricsStreamSubscription?.cancel();
-  //     _metricsStreamSubscription = null;
-  //
-  //     final device = widget.payload.device;
-  //     log.info('Disabling metrics streaming for device: ${device.name}');
-  //     await injector<CanvasClientServiceV2>().disableMetricsStreaming(device);
-  //   } catch (e) {
-  //     log.warning('Failed to disable metrics streaming: $e');
-  //   }
-  // }
+  Future<void> _stopMetricsStreaming() async {
+    try {
+      // Cancel the stream subscription
+      await _metricsStreamSubscription?.cancel();
+      _metricsStreamSubscription = null;
 
-  // void _startPerformanceMetricsUpdates() {
-  //   // We don't need this anymore as we're using the stream directly
-  //   _metricsUpdateTimer = Timer.periodic(...);
-  // }
+      final device = widget.payload.device;
+      log.info('Disabling metrics streaming for device: ${device.name}');
+      DeviceRealtimeMetricHelper().stopRealtimeMetrics();
+    } catch (e) {
+      log.warning('Failed to disable metrics streaming: $e');
+    }
+  }
 
-  // void _updateMetricsFromStream(DeviceRealtimeMetrics metrics) {
-  //   if (!mounted) return;
-  //
-  //   setState(() {
-  //     // Add new performance data points
-  //     _cpuPoints.add(FlSpot(metrics.timestamp.toDouble(), metrics.cpuUsage));
-  //     _memoryPoints
-  //         .add(FlSpot(metrics.timestamp.toDouble(), metrics.memoryUsage));
-  //     _gpuPoints
-  //         .add(FlSpot(metrics.timestamp.toDouble(), metrics.gpuUsage / 10));
-  //
-  //     // Add new temperature data points
-  //     _cpuTempPoints
-  //         .add(FlSpot(metrics.timestamp.toDouble(), metrics.cpuTemperature));
-  //     _gpuTempPoints
-  //         .add(FlSpot(metrics.timestamp.toDouble(), metrics.gpuTemperature));
-  //
-  //     // Remove old points if we exceed the limit
-  //     while (_cpuPoints.length > _maxDataPoints) {
-  //       _cpuPoints.removeAt(0);
-  //       _memoryPoints.removeAt(0);
-  //       _gpuPoints.removeAt(0);
-  //       _cpuTempPoints.removeAt(0);
-  //       _gpuTempPoints.removeAt(0);
-  //     }
-  //   });
-  // }
+  void _updateMetricsFromStream(DeviceRealtimeMetrics metrics) {
+    if (!mounted) return;
+
+    setState(() {
+      // Add new performance data points
+      final timestamp = metrics.timestamp?.toDouble() ??
+          DateTime.now().millisecondsSinceEpoch.toDouble();
+      if (metrics.cpuUsage != null) {
+        _cpuPoints.add(FlSpot(timestamp, metrics.cpuUsage!));
+      }
+      if (metrics.memoryUsage != null) {
+        _memoryPoints.add(FlSpot(timestamp, metrics.memoryUsage!));
+      }
+      if (metrics.gpuUsage != null) {
+        _gpuPoints.add(FlSpot(timestamp, metrics.gpuUsage! / 10));
+      }
+      if (metrics.cpuTemperature != null) {
+        _cpuTempPoints.add(FlSpot(timestamp, metrics.cpuTemperature!));
+      }
+      if (metrics.gpuTemperature != null) {
+        _gpuTempPoints.add(FlSpot(timestamp, metrics.gpuTemperature!));
+      }
+
+      // Remove old points if we exceed the limit
+      while (_cpuPoints.length > _maxDataPoints) {
+        _cpuPoints.removeAt(0);
+        _memoryPoints.removeAt(0);
+        _gpuPoints.removeAt(0);
+        _cpuTempPoints.removeAt(0);
+        _gpuTempPoints.removeAt(0);
+      }
+    });
+  }
 
   Widget _performanceMonitoring(BuildContext context) {
     final theme = Theme.of(context);
