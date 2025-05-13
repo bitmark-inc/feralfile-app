@@ -156,7 +156,7 @@ class FFBluetoothService {
       if (state == BluetoothConnectionState.connected) {
         try {
           if (Platform.isAndroid) {
-            // await device.requestMtu(512);
+            await device.requestMtu(512);
             // await device.requestConnectionPriority(
             //     connectionPriorityRequest: ConnectionPriority.high);
           }

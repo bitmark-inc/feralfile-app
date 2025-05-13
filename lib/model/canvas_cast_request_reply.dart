@@ -21,15 +21,12 @@ enum CastCommand {
   sendKeyboardEvent,
   rotate,
   sendLog,
-  getVersion,
   getBluetoothDeviceStatus,
   updateArtFraming,
   setTimezone,
   updateToLatestVersion,
   tapGesture,
   dragGesture,
-  enableMetricsStreaming,
-  disableMetricsStreaming,
   showPairingQRCode,
   castDaily,
   updateDisplaySettings,
@@ -66,8 +63,6 @@ enum CastCommand {
         return CastCommand.rotate;
       case 'sendLog':
         return CastCommand.sendLog;
-      case 'getVersion':
-        return CastCommand.getVersion;
       case 'getBluetoothDeviceStatus':
         return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
@@ -80,10 +75,6 @@ enum CastCommand {
         return CastCommand.tapGesture;
       case 'dragGesture':
         return CastCommand.dragGesture;
-      case 'enableMetricsStreaming':
-        return CastCommand.enableMetricsStreaming;
-      case 'disableMetricsStreaming':
-        return CastCommand.disableMetricsStreaming;
       case 'showPairingQRCode':
         return CastCommand.showPairingQRCode;
       case 'updateDisplaySettings':
@@ -125,8 +116,6 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case const (RotateRequest):
         return CastCommand.rotate;
-      case const (GetVersionRequest):
-        return CastCommand.getVersion;
       case const (GetBluetoothDeviceStatusRequest):
         return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
@@ -141,10 +130,6 @@ enum CastCommand {
         return CastCommand.tapGesture;
       case const (DragGestureRequest):
         return CastCommand.dragGesture;
-      case const (EnableMetricsStreamingRequest):
-        return CastCommand.enableMetricsStreaming;
-      case const (DisableMetricsStreamingRequest):
-        return CastCommand.disableMetricsStreaming;
       case const (ShowPairingQRCodeRequest):
         return CastCommand.showPairingQRCode;
       case const (UpdateDisplaySettingsRequest):
@@ -756,29 +741,6 @@ class SendLogReply extends ReplyWithOK {
       };
 }
 
-class GetVersionRequest implements Request {
-  GetVersionRequest();
-
-  factory GetVersionRequest.fromJson(Map<String, dynamic> json) =>
-      GetVersionRequest();
-
-  @override
-  Map<String, dynamic> toJson() => {};
-}
-
-class GetVersionReply extends Reply {
-  GetVersionReply({required this.version});
-
-  factory GetVersionReply.fromJson(Map<String, dynamic> json) =>
-      GetVersionReply(version: json['version'] as String);
-  final String version;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'version': version,
-      };
-}
-
 extension OrientationExtension on Orientation {
   String get name {
     switch (this) {
@@ -827,18 +789,18 @@ class GetBluetoothDeviceStatusReply extends Reply {
 }
 
 class SetTimezoneRequest implements Request {
+  factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
+      SetTimezoneRequest(
+        timezone: json['timeZone'] as String,
+        time: _dateTimeFormatter.parse(json['time'] as String),
+      );
+
   SetTimezoneRequest({required this.timezone, DateTime? time})
       : time = time ?? DateTime.now();
 
   // datetime formatter in YYYY-MM-DD HH:MM:SS format
   static final DateFormat _dateTimeFormatter =
       DateFormat('yyyy-MM-dd HH:mm:ss');
-
-  factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
-      SetTimezoneRequest(
-        timezone: json['timeZone'] as String,
-        time: _dateTimeFormatter.parse(json['time'] as String),
-      );
   final String timezone;
   final DateTime time;
 
@@ -1121,8 +1083,11 @@ class ShowPairingQRCodeReply extends Reply {
 }
 
 class UpdateDisplaySettingsRequest implements Request {
-  UpdateDisplaySettingsRequest(
-      {required this.tokenId, required this.setting, this.isSaved = true});
+  UpdateDisplaySettingsRequest({
+    required this.tokenId,
+    required this.setting,
+    this.isSaved = true,
+  });
 
   final String tokenId;
   final ArtistDisplaySetting setting;

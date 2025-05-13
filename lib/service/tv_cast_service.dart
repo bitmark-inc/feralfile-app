@@ -41,10 +41,6 @@ abstract class TvCastService {
 
   Future<SendLogReply> getSupport(SendLogRequest request);
 
-  Future<GetVersionReply> getVersion(
-    GetVersionRequest request,
-  );
-
   Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
     GetBluetoothDeviceStatusRequest request,
   );
@@ -244,12 +240,6 @@ abstract class BaseTvCastService implements TvCastService {
   Future<SendLogReply> getSupport(SendLogRequest request) async {
     final result = await _sendData(_getBody(request));
     return SendLogReply.fromJson(result);
-  }
-
-  @override
-  Future<GetVersionReply> getVersion(GetVersionRequest request) async {
-    final result = await _sendData(_getBody(request));
-    return GetVersionReply.fromJson(result);
   }
 
   @override
