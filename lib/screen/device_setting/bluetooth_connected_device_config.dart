@@ -133,7 +133,7 @@ class BluetoothConnectedDeviceConfigState
         .bluetoothDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
 
-    injector<FFBluetoothService>().fetchBluetoothDeviceStatus(device);
+    BluetoothDeviceHelper().fetchBluetoothDeviceStatus(device);
 
     // Start polling connection status
     _startBluetoothConnectionStatusPolling();
@@ -194,8 +194,8 @@ class BluetoothConnectedDeviceConfigState
     _pullingDeviceInfoTimer?.cancel();
     _pullingDeviceInfoTimer =
         Timer.periodic(const Duration(seconds: 2), (timer) async {
-      final deviceStatus = await injector<FFBluetoothService>()
-          .fetchBluetoothDeviceStatus(device);
+      final deviceStatus =
+          await BluetoothDeviceHelper().fetchBluetoothDeviceStatus(device);
       if (deviceStatus?.isConnectedToWifi == true) {
         timer.cancel();
       }
@@ -258,8 +258,7 @@ class BluetoothConnectedDeviceConfigState
     // Re-enable metrics streaming when returning to this screen
     // _enableMetricsStreaming();
 
-    injector<FFBluetoothService>()
-        .fetchBluetoothDeviceStatus(widget.payload.device);
+    BluetoothDeviceHelper().fetchBluetoothDeviceStatus(widget.payload.device);
   }
 
   @override

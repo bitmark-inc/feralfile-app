@@ -5,7 +5,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/chunk.dart';
@@ -13,12 +12,14 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
+import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -354,10 +355,10 @@ class FFBluetoothService {
     return builder;
   }
 
-  // Future<void> setTimezone(BluetoothDevice device) async {
-  //   final timezone = await TimezoneHelper.getTimeZone();
-  //   await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
-  // }
+  Future<void> setTimezone(BaseDevice device) async {
+    final timezone = await TimezoneHelper.getTimeZone();
+    await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
+  }
 
   Future<List<String>> scanWifi(BluetoothDevice device) async {
     const request = ScanWifiRequest();
@@ -653,21 +654,6 @@ class FFBluetoothService {
     } finally {
       log.info('BluetoothConnectEventScan stopScan');
       await FlutterBluePlus.stopScan();
-    }
-  }
-
-  Future<BluetoothDeviceStatus?> fetchBluetoothDeviceStatus(
-    BaseDevice device,
-  ) async {
-    try {
-      return null;
-      // final res = await injector<CanvasClientServiceV2>()
-      //     .getBluetoothDeviceStatus(device);
-      // _bluetoothDeviceStatus.value = res;
-      // return res;
-    } catch (e) {
-      log.warning('Failed to get device status: $e');
-      return null;
     }
   }
 

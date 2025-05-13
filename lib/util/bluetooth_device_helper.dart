@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
@@ -48,7 +48,7 @@ class BluetoothDeviceHelper {
   ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
     if (_bluetoothDeviceStatus.value == null &&
         castingBluetoothDevice != null) {
-      _fetchBluetoothDeviceStatus(castingBluetoothDevice!);
+      fetchBluetoothDeviceStatus(castingBluetoothDevice!);
     }
     return _bluetoothDeviceStatus;
   }
@@ -63,19 +63,25 @@ class BluetoothDeviceHelper {
       return;
     }
     _castingBluetoothDevice = device;
-    _fetchBluetoothDeviceStatus(device);
+    fetchBluetoothDeviceStatus(device);
   }
 
-  Future<void> _fetchBluetoothDeviceStatus(FFBluetoothDevice device) async {
+  Future<BluetoothDeviceStatus?> fetchBluetoothDeviceStatus(
+      BaseDevice device) async {
     try {
-      final status = await injector<FFBluetoothService>()
-          .fetchBluetoothDeviceStatus(device);
+      final status = await injector<CanvasClientServiceV2>()
+          .getBluetoothDeviceStatus(device);
       _bluetoothDeviceStatus.value = status;
+      return status;
     } catch (e, stackTrace) {
       Sentry.captureException(
         e,
         stackTrace: stackTrace,
       );
+      log.info(
+        'BluetoothDeviceHelper.fetchBluetoothDeviceStatus: error $e',
+      );
+      return null;
     }
   }
 
