@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/wifi_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -12,6 +11,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
@@ -25,7 +25,7 @@ class ScanWifiNetworkPagePayload {
   ScanWifiNetworkPagePayload(this.device, this.onNetworkSelected);
 
   final FutureOr<void> Function(WifiPoint wifiAccessPoint) onNetworkSelected;
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
 }
 
 class ScanWifiNetworkPage extends StatefulWidget {
@@ -81,7 +81,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
 
     // check platform support and necessary requirements
     await WifiHelper.scanWifiNetwork(
-      device: device.toFFBluetoothDevice(),
+      device: device,
       timeout: timeout,
       onResultScan: (result) {
         final accessPoints = result.map(WifiPoint.new).toList();

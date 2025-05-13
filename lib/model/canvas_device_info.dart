@@ -103,6 +103,23 @@ extension BluetoothDeviceExtension on BluetoothDevice {
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
 
+  String get getName {
+    final savedName = BluetoothDeviceHelper.pairedDevices
+        .firstWhereOrNull(
+          (e) => e.remoteID == remoteId.str,
+        )
+        ?.name;
+    if (savedName != null) {
+      return savedName;
+    }
+
+    final name = advName;
+    if (name.isNotEmpty) {
+      return name;
+    }
+    return 'FF-X1';
+  }
+
   Future<void> discoverCharacteristics() async {
     try {
       log.info('Discovering characteristics for device: ${remoteId.str}');

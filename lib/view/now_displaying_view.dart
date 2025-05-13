@@ -22,6 +22,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 
 const double kNowDisplayingHeight = 60;
@@ -32,26 +33,26 @@ abstract class NowDisplayingStatus {}
 class ConnectingToDevice implements NowDisplayingStatus {
   ConnectingToDevice(this.device);
 
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
 }
 
 class ConnectSuccess implements NowDisplayingStatus {
   ConnectSuccess(this.device);
 
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
 }
 
 class ConnectFailed implements NowDisplayingStatus {
   ConnectFailed(this.device, this.error);
 
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
   final Object error;
 }
 
 class ConnectionLostAndReconnecting implements NowDisplayingStatus {
   ConnectionLostAndReconnecting(this.device);
 
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
 }
 
 // Now displaying
@@ -174,7 +175,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   ) {
     final device = (status as ConnectingToDevice).device;
     final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
+        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Connecting to $deviceName',
     );
@@ -183,7 +184,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectSuccess).device;
     final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
+        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Connected to $deviceName',
     );
@@ -192,7 +193,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
     final device = (status as ConnectFailed).device;
     final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
+        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Unable to connect to $deviceName. Check connection.',
     );
@@ -204,7 +205,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
   ) {
     final device = (status as ConnectionLostAndReconnecting).device;
     final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
+        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
       status: 'Connection to $deviceName lost, Attempting to reconnect...',
     );
@@ -428,7 +429,7 @@ class NowDisplayingExhibitionView extends StatelessWidget {
           : isUserArtist
               ? () {
                   injector<NavigationService>().openArtistDisplaySetting(
-                    artwork: artwork!,
+                    artwork: artwork,
                   );
                 }
               : () {

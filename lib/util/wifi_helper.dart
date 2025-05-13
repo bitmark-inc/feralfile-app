@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class WifiHelper {
   static Future<void> scanWifiNetwork({
-    required FFBluetoothDevice device,
+    required BluetoothDevice device,
     required Duration timeout,
     required FutureOr<void> Function(List<String> result) onResultScan,
     FutureOr<bool> Function(List<String> result)? shouldStop,

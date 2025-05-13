@@ -112,11 +112,11 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 right: 0,
                 child: PrimaryAsyncButton(
                   onTap: () async {
-                    final device = widget.device.toFFBluetoothDevice();
+                    final device = widget.device;
 
                     await injector<FFBluetoothService>()
                         .connectToDevice(device);
-                    SendWifiCredentialResponse? response;
+                    GetBluetoothDeviceInfoResponse? response;
                     try {
                       response =
                           await injector<FFBluetoothService>().getInfo(device);
@@ -126,44 +126,53 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                       );
                     }
 
-                    if ((response?.locationId.isNotEmpty ?? false) &&
-                        (response?.topicId.isNotEmpty ?? false)) {
-                      unawaited(UIHelper.showDialog(
-                        context,
-                        'The Portal is All Set',
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Your device is already set up and connected. You can head to settings to make changes or check the status.',
-                              style:
-                                  Theme.of(context).textTheme.ppMori400White14,
-                            ),
-                            const SizedBox(height: 16),
-                            PrimaryButton(
-                              onTap: () {
-                                injector<NavigationService>().popUntil(
-                                    AppRouter.bluetoothDevicePortalPage);
-                                final ffBluetoothDevice = widget.device
-                                    .toFFBluetoothDevice(
-                                        locationId: response!.locationId,
-                                        topicId: response.topicId);
-                                injector<NavigationService>().goBack(
-                                    result: Pair(ffBluetoothDevice, false));
-                              },
-                              text: 'Go to Settings',
-                            ),
-                          ],
+                    if ((response?.locationId?.isNotEmpty ?? false) &&
+                        (response?.topicId?.isNotEmpty ?? false)) {
+                      unawaited(
+                        UIHelper.showDialog(
+                          context,
+                          'The Portal is All Set',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400White14,
+                              ),
+                              const SizedBox(height: 16),
+                              PrimaryButton(
+                                onTap: () {
+                                  injector<NavigationService>().popUntil(
+                                    AppRouter.bluetoothDevicePortalPage,
+                                  );
+                                  final ffBluetoothDevice =
+                                      widget.device.toFFBluetoothDevice(
+                                    locationId: response!.locationId,
+                                    topicId: response.topicId,
+                                  );
+                                  injector<NavigationService>().goBack(
+                                    result: Pair(ffBluetoothDevice, false),
+                                  );
+                                },
+                                text: 'Go to Settings',
+                              ),
+                            ],
+                          ),
                         ),
-                      ));
-                    } else
-                      unawaited(Navigator.of(context).pushNamed(
-                        AppRouter.scanWifiNetworkPage,
-                        arguments: ScanWifiNetworkPagePayload(
-                          widget.device.toFFBluetoothDevice(),
-                          onWifiSelected,
+                      );
+                    } else {
+                      unawaited(
+                        Navigator.of(context).pushNamed(
+                          AppRouter.scanWifiNetworkPage,
+                          arguments: ScanWifiNetworkPagePayload(
+                            device,
+                            onWifiSelected,
+                          ),
                         ),
-                      ));
+                      );
+                    }
                   },
                   color: AppColor.white,
                   text: 'start_device_setup'.tr(),

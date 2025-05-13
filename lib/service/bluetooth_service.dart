@@ -12,17 +12,14 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/chunk.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
-import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -67,21 +64,47 @@ enum BluetoothCommand {
   }
 
   NotificationCallback _scanWifiCallback(
-      Completer<ScanWifiResponse> completer) {
+    Completer<ScanWifiResponse> completer,
+  ) {
     return (data) {
       completer.complete(ScanWifiResponse(result: data));
     };
   }
 
   NotificationCallback _sendWifiCredentialsCallback(
-      Completer<SendWifiCredentialResponse> completer) {
+    Completer<SendWifiCredentialResponse> completer,
+  ) {
     return (data) {
       final locationId = data[0];
       final topicId = data[1];
-      completer.complete(SendWifiCredentialResponse(
-        topicId: topicId,
-        locationId: locationId,
-      ));
+      completer.complete(
+        SendWifiCredentialResponse(
+          topicId: topicId,
+          locationId: locationId,
+        ),
+      );
+    };
+  }
+
+  NotificationCallback _getInfoCallback(
+    Completer<GetBluetoothDeviceInfoResponse> completer,
+  ) {
+    return (data) {
+      GetBluetoothDeviceInfoResponse getInfoResponse;
+      if (data.length < 2) {
+        getInfoResponse = const GetBluetoothDeviceInfoResponse(
+          topicId: null,
+          locationId: null,
+        );
+      } else {
+        final locationId = data[0];
+        final topicId = data[1];
+        getInfoResponse = GetBluetoothDeviceInfoResponse(
+          topicId: topicId,
+          locationId: locationId,
+        );
+      }
+      completer.complete(getInfoResponse);
     };
   }
 
@@ -90,8 +113,9 @@ enum BluetoothCommand {
       case BluetoothCommand.sendWifiCredentials:
         return Completer<SendWifiCredentialResponse>();
       case BluetoothCommand.scanWifi:
-      case BluetoothCommand.getInfo:
         return Completer<ScanWifiResponse>();
+      case BluetoothCommand.getInfo:
+        return Completer<GetBluetoothDeviceInfoResponse>();
     }
   }
 
@@ -99,10 +123,16 @@ enum BluetoothCommand {
     switch (this) {
       case BluetoothCommand.sendWifiCredentials:
         return _sendWifiCredentialsCallback(
-            completer as Completer<SendWifiCredentialResponse>);
+          completer as Completer<SendWifiCredentialResponse>,
+        );
       case BluetoothCommand.scanWifi:
+        return _scanWifiCallback(
+          completer as Completer<ScanWifiResponse>,
+        );
       case BluetoothCommand.getInfo:
-        return _scanWifiCallback(completer as Completer<ScanWifiResponse>);
+        return _getInfoCallback(
+          completer as Completer<GetBluetoothDeviceInfoResponse>,
+        );
     }
   }
 }
@@ -143,21 +173,7 @@ class FFBluetoothService {
             _connectCompleter?.complete();
           }
           _connectCompleter = null;
-          // after connected, fetch device status
-          final status =
-              await fetchBluetoothDeviceStatus(device.toFFBluetoothDevice());
-          NowDisplayingManager()
-              .addStatus(ConnectSuccess(device.toFFBluetoothDevice()));
-
-          injector<CanvasDeviceBloc>().add(
-            CanvasDeviceGetDevicesEvent(
-              onDoneCallback: () {
-                if (status?.isConnectedToWifi ?? false) {
-                  NowDisplayingManager().updateDisplayingNow();
-                }
-              },
-            ),
-          );
+          NowDisplayingManager().addStatus(ConnectSuccess(device));
         } catch (e, s) {
           log.warning('Failed to discover characteristics: $e');
           unawaited(
@@ -179,7 +195,8 @@ class FFBluetoothService {
           );
         }
         NowDisplayingManager().addStatus(
-            ConnectionLostAndReconnecting(device.toFFBluetoothDevice()));
+          ConnectionLostAndReconnecting(device),
+        );
       }
     });
 
@@ -196,7 +213,7 @@ class FFBluetoothService {
           BluetoothNotificationService().handleNotification(value, device);
         }
       },
-      onError: (e) {
+      onError: (Object e) {
         log.warning('Error receiving characteristic: $e');
       },
     );
@@ -309,9 +326,10 @@ class FFBluetoothService {
       return res;
     } catch (e, s) {
       // BluetoothNotificationService().unsubscribe(replyId, cb);
-      unawaited(Sentry.captureException(e));
+      unawaited(Sentry.captureException(e, stackTrace: s));
       log.info(
-          '[sendCommand] Error sending command $command(replyId is $replyId): $e');
+        '[sendCommand] Error sending command $command(replyId is $replyId): $e',
+      );
       rethrow;
     }
   }
@@ -345,17 +363,18 @@ class FFBluetoothService {
     return builder;
   }
 
-  Future<void> setTimezone(FFBluetoothDevice device) async {
-    final timezone = await TimezoneHelper.getTimeZone();
-    await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
-  }
+  // Future<void> setTimezone(BluetoothDevice device) async {
+  //   final timezone = await TimezoneHelper.getTimeZone();
+  //   await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
+  // }
 
-  Future<List<String>> scanWifi(FFBluetoothDevice device) async {
+  Future<List<String>> scanWifi(BluetoothDevice device) async {
     const request = ScanWifiRequest();
     final res = await sendCommand(
-        device: device,
-        command: BluetoothCommand.scanWifi,
-        request: request.toJson());
+      device: device,
+      command: BluetoothCommand.scanWifi,
+      request: request.toJson(),
+    );
 
     if (res is! ScanWifiResponse) {
       log.warning('Failed to scan Wi-Fi');
@@ -402,22 +421,24 @@ class FFBluetoothService {
     final sendWifiCredentialResponse = res;
 
     final ffBluetoothDevice = device.toFFBluetoothDevice(
-        topicId: sendWifiCredentialResponse.topicId,
-        locationId: sendWifiCredentialResponse.locationId);
+      topicId: sendWifiCredentialResponse.topicId,
+      locationId: sendWifiCredentialResponse.locationId,
+    );
 
     // Update device with topicId and locationId
     return ffBluetoothDevice;
   }
 
   // get locationId and topicId
-  Future<SendWifiCredentialResponse> getInfo(FFBluetoothDevice device) async {
+  Future<GetBluetoothDeviceInfoResponse> getInfo(BluetoothDevice device) async {
+    const request = GetBluetoothDeviceInfoRequest();
     final res = await sendCommand(
       device: device,
       command: BluetoothCommand.getInfo,
-      request: {},
+      request: request.toJson(),
     );
 
-    if (res is! SendWifiCredentialResponse) {
+    if (res is! GetBluetoothDeviceInfoResponse) {
       log.warning('Failed to get locationId and topicId');
       unawaited(Sentry.captureMessage('Failed to get locationId and topicId'));
       throw Exception('Failed to get locationId and topicId');
@@ -433,7 +454,7 @@ class FFBluetoothService {
   Completer<void>? _multiConnectCompleter;
 
   Future<void> connectToDevice(
-    FFBluetoothDevice device, {
+    BluetoothDevice device, {
     bool shouldShowError = true,
     bool shouldChangeNowDisplayingStatus = false,
     bool? autoConnect,
@@ -486,10 +507,13 @@ class FFBluetoothService {
     try {
       if (!(autoConnect ?? false)) {
         log.info('[_connectDevice] _connect with autoConnect is false');
-        await _connect(device,
-            shouldShowError: shouldShowError, autoConnect: false);
+        await _connect(
+          device,
+          shouldShowError: shouldShowError,
+          autoConnect: false,
+        );
       }
-    } catch (e) {}
+    } catch (_) {}
     if (autoConnect ?? true) {
       log.info('[_connectDevice] _connect with autoConnect is true');
       await _connect(device, shouldShowError: shouldShowError);
@@ -614,7 +638,7 @@ class FFBluetoothService {
             FlutterBluePlus.stopScan();
           }
         },
-        onError: (error) {
+        onError: (Object error) {
           onError?.call(error);
           scanSubscription?.cancel();
         },
@@ -917,4 +941,22 @@ class ScanWifiResponse {
   });
 
   final List<String> result;
+}
+
+class GetBluetoothDeviceInfoRequest {
+  const GetBluetoothDeviceInfoRequest();
+
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class GetBluetoothDeviceInfoResponse {
+  const GetBluetoothDeviceInfoResponse({
+    required this.topicId,
+    required this.locationId,
+  });
+
+  final String? topicId;
+  final String? locationId;
 }
