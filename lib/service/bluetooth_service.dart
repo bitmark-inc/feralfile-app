@@ -194,8 +194,6 @@ class FFBluetoothService {
         final value = event.value;
         if (characteristic.isWifiConnectCharacteristic) {
           BluetoothNotificationService().handleNotification(value, device);
-        } else if (characteristic.isEngineeringCharacteristic) {
-          _handleEngineeringData(value);
         }
       },
       onError: (e) {
@@ -238,58 +236,12 @@ class FFBluetoothService {
     });
   }
 
-  // // connected device
-  // FFBluetoothDevice? _castingBluetoothDevice;
-  // final ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
-  //     ValueNotifier(null);
-  //
-  // ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
-  //   if (_bluetoothDeviceStatus.value == null &&
-  //       castingBluetoothDevice != null) {
-  //     fetchBluetoothDeviceStatus(castingBluetoothDevice!);
-  //   }
-  //   return _bluetoothDeviceStatus;
-  // }
-  //
-  // set castingBluetoothDevice(FFBluetoothDevice? device) {
-  //   if (device == null) {
-  //     _castingBluetoothDevice = null;
-  //     Sentry.captureException('Set Casting device value to null');
-  //     return;
-  //   }
-  //   if (device.deviceId == _castingBluetoothDevice?.deviceId) {
-  //     return;
-  //   }
-  //   _castingBluetoothDevice = device;
-  //   fetchBluetoothDeviceStatus(device);
-  // }
-  //
-  // FFBluetoothDevice? get castingBluetoothDevice {
-  //   if (_castingBluetoothDevice != null) {
-  //     return _castingBluetoothDevice;
-  //   }
-  //
-  //   final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
-  //   if (device != null) {
-  //     castingBluetoothDevice = device;
-  //   }
-  //   return _castingBluetoothDevice;
-  // }
-
   BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
 
   bool get isBluetoothOn => _bluetoothAdapterState == BluetoothAdapterState.on;
 
-  final String advertisingUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
-
-  // For scanning
-  final String serviceUuid = 'f7826da6-4fa2-4e98-8024-bc5b71e0893e';
-
-  // wifi connect characteristic
-  String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-
   Future<dynamic> sendCommand({
-    required FFBluetoothDevice device,
+    required BluetoothDevice device,
     required BluetoothCommand command,
     required Map<String, dynamic> request,
     Duration timeout = const Duration(seconds: 10),
@@ -415,8 +367,8 @@ class FFBluetoothService {
     return wifiList;
   }
 
-  Future<bool> sendWifiCredentials({
-    required FFBluetoothDevice device,
+  Future<FFBluetoothDevice?> sendWifiCredentials({
+    required BluetoothDevice device,
     required String ssid,
     required String password,
   }) async {
@@ -428,7 +380,7 @@ class FFBluetoothService {
           'Device is disconnected',
         ),
       );
-      return false;
+      return null;
     }
 
     final res = await sendCommand(
@@ -444,15 +396,17 @@ class FFBluetoothService {
     if (res is! SendWifiCredentialResponse) {
       log.warning('Failed to send Wi-Fi credentials');
       unawaited(Sentry.captureMessage('Failed to send Wi-Fi credentials'));
-      return false;
+      return null;
     }
 
     final sendWifiCredentialResponse = res;
 
+    final ffBluetoothDevice = device.toFFBluetoothDevice(
+        topicId: sendWifiCredentialResponse.topicId,
+        locationId: sendWifiCredentialResponse.locationId);
+
     // Update device with topicId and locationId
-    device.topicId = sendWifiCredentialResponse.topicId;
-    device.locationId = sendWifiCredentialResponse.locationId;
-    return true;
+    return ffBluetoothDevice;
   }
 
   // get locationId and topicId
@@ -671,7 +625,7 @@ class FFBluetoothService {
       await FlutterBluePlus.startScan(
         timeout: timeout, // Updated to 60 seconds
         withServices: [
-          Guid(injector<FFBluetoothService>().serviceUuid),
+          Guid(BluetoothManager.serviceUuid),
         ],
       );
       // wait for scan to complete
@@ -744,63 +698,6 @@ class FFBluetoothService {
   // }
 
   // Add method to handle engineering data
-  void _handleEngineeringData(List<int> data) {
-    try {
-      final metrics = DeviceRealtimeMetrics.fromBuffer(data);
-      _deviceRealtimeMetricsController.add(metrics);
-      log.fine(
-          'Received system metrics: CPU: ${metrics.cpuUsage.toStringAsFixed(2)}%, '
-          'Memory: ${metrics.memoryUsage.toStringAsFixed(2)}%, '
-          'CPU Temp: ${metrics.cpuTemperature.toStringAsFixed(1)}°C');
-    } catch (e) {
-      log.warning('Failed to parse engineering data: $e');
-    }
-  }
-
-  // Add method to start monitoring system metrics
-  Future<void> startSystemMetricsMonitoring(BaseDevice device) async {
-    return;
-    // TODO: Implement this method
-    // try {
-    //   final engineeringChar = device.engineeringCharacteristic;
-    //   if (engineeringChar == null) {
-    //     log.warning('Engineering characteristic not found');
-    //     return;
-    //   }
-    //
-    //   await engineeringChar.setNotifyValue(true);
-    //   log.info('System metrics monitoring started');
-    // } catch (e) {
-    //   log.warning('Failed to start system metrics monitoring: $e');
-    //   unawaited(
-    //     Sentry.captureException(
-    //       'Failed to start system metrics monitoring: $e',
-    //     ),
-    //   );
-    // }
-  }
-
-  // Add method to stop monitoring system metrics
-  Future<void> stopSystemMetricsMonitoring(BaseDevice device) async {
-    return;
-    // TODO: Implement this method
-    // try {
-    //   final engineeringChar = device.engineeringCharacteristic;
-    //   if (engineeringChar == null) {
-    //     log.warning('Engineering characteristic not found');
-    //     return;
-    //   }
-    //   await engineeringChar.setNotifyValue(false);
-    //   log.info('System metrics monitoring stopped');
-    // } catch (e) {
-    //   log.warning('Failed to stop system metrics monitoring: $e');
-    //   unawaited(
-    //     Sentry.captureException(
-    //       'Failed to stop system metrics monitoring: $e',
-    //     ),
-    //   );
-    // }
-  }
 
   void dispose() {
     _deviceRealtimeMetricsController.close();
@@ -810,10 +707,6 @@ class FFBluetoothService {
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
   bool get isWifiConnectCharacteristic {
     return uuid.toString() == BluetoothManager.wifiConnectCharUuid;
-  }
-
-  bool get isEngineeringCharacteristic {
-    return uuid.toString() == BluetoothManager.engineeringCharUuid;
   }
 
   int _getMaxPayloadSize(BluetoothDevice device) {

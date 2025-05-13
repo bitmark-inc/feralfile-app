@@ -9,27 +9,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:sentry/sentry.dart';
 
-class DeviceInfo {
-  DeviceInfo({
-    required this.deviceId,
-    required this.deviceName,
-  });
-
-  // Factory constructor to create an instance from JSON
-  factory DeviceInfo.fromJson(Map<String, dynamic> json) => DeviceInfo(
-        deviceId: json['device_id'] as String,
-        deviceName: json['device_name'] as String,
-      );
-  String deviceId;
-  String deviceName;
-
-  // Method to convert an instance to JSON
-  Map<String, dynamic> toJson() => {
-        'device_id': deviceId,
-        'device_name': deviceName,
-      };
-}
-
 abstract class BaseDevice {
   const BaseDevice({
     required this.locationId,
@@ -75,9 +54,9 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   String get deviceId => remoteId.str;
 
   @override
-  String locationId; // location id
+  final String locationId; // location id
   @override
-  String topicId; // topic id
+  final String topicId; // topic id
 
   // toJson
   Map<String, dynamic> toJson() => {
@@ -87,7 +66,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
         'topicId': topicId,
       };
 
-  static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
+  static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device,
+      {String? locationId, String? topicId}) {
     final savedDevice = BluetoothDeviceHelper.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
@@ -97,24 +77,10 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     return FFBluetoothDevice(
       name: device.advName,
       remoteID: device.remoteId.str,
-      locationId: '',
-      topicId: '',
+      locationId: locationId ?? '',
+      topicId: topicId ?? '',
     );
   }
-
-  //copy with
-  FFBluetoothDevice copyWith({
-    String? name,
-    String? remoteID,
-    String? locationId,
-    String? topicId,
-  }) =>
-      FFBluetoothDevice(
-        name: name ?? this.name,
-        remoteID: remoteID ?? this.remoteID,
-        locationId: locationId ?? this.locationId,
-        topicId: topicId ?? this.topicId,
-      );
 
   @override
   bool operator ==(Object other) {
@@ -129,15 +95,13 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 }
 
 extension BluetoothDeviceExtension on BluetoothDevice {
-  FFBluetoothDevice toFFBluetoothDevice() {
-    return FFBluetoothDevice.fromBluetoothDevice(this);
+  FFBluetoothDevice toFFBluetoothDevice({String? locationId, String? topicId}) {
+    return FFBluetoothDevice.fromBluetoothDevice(this,
+        locationId: locationId, topicId: topicId);
   }
 
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
-
-  BluetoothCharacteristic? get engineeringCharacteristic =>
-      BluetoothManager.getEngineeringCharacteristic(remoteId.str);
 
   Future<void> discoverCharacteristics() async {
     try {
@@ -184,7 +148,8 @@ extension BluetoothDeviceExtension on BluetoothDevice {
           ),
         );
         throw Exception(
-            'Command characteristic does not support notifications');
+          'Command characteristic does not support notifications',
+        );
       }
 
       try {
@@ -193,7 +158,8 @@ extension BluetoothDeviceExtension on BluetoothDevice {
       } catch (e) {
         log.warning('Failed to enable notifications for command char: $e');
         unawaited(
-            Sentry.captureException('Failed to enable notifications: $e'));
+          Sentry.captureException('Failed to enable notifications: $e'),
+        );
         rethrow;
       }
     } catch (e) {

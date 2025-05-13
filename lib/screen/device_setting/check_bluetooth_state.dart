@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -212,7 +212,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     Function? onFinish,
   }) async {
     final deviceName = getDeviceName(link);
-    FFBluetoothDevice? resultDevice;
+    BluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
     }
@@ -227,7 +227,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
-          resultDevice = device.toFFBluetoothDevice();
+          resultDevice = device;
           return true;
         }
         return false;
@@ -252,27 +252,25 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       unawaited(injector<ConfigurationService>().setBetaTester(true));
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
       // go to setting wifi page
-      final shouldOpenDeviceSetting =
-          await injector<NavigationService>().navigateTo(
+      final res = await injector<NavigationService>().navigateTo(
         AppRouter.bluetoothDevicePortalPage,
         arguments: resultDevice,
       );
 
       // after setting wifi, go to device setting page
-      if (shouldOpenDeviceSetting is bool) {
-        await injector<NavigationService>().navigateTo(
+      if (res is Pair<FFBluetoothDevice, bool>) {
+        unawaited(injector<NavigationService>().navigateTo(
           AppRouter.bluetoothConnectedDeviceConfig,
           arguments: BluetoothConnectedDeviceConfigPayload(
-            device: resultDevice!,
-            isFromOnboarding: shouldOpenDeviceSetting,
+            device: res.first,
+            isFromOnboarding: res.second,
           ),
-        );
+        ));
 
         // add device to canvas
         await BluetoothDeviceHelper.addDevice(
-          resultDevice!,
+          res.first,
         );
-        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       }
       try {
         await onFinish?.call();

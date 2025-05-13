@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
@@ -72,14 +71,6 @@ abstract class TvCastService {
 
   Future<GestureReply> drag(DragGestureRequest request);
 
-  Future<EnableMetricsStreamingReply> enableMetricsStreaming(
-    EnableMetricsStreamingRequest request,
-  );
-
-  Future<DisableMetricsStreamingReply> disableMetricsStreaming(
-    DisableMetricsStreamingRequest request,
-  );
-
   Future<ShowPairingQRCodeReply> showPairingQRCode(
     ShowPairingQRCodeRequest request,
   );
@@ -115,7 +106,6 @@ abstract class BaseTvCastService implements TvCastService {
       log.info('Failed to get device status: $e');
       return CheckDeviceStatusReply(
         artworks: [],
-        connectedDevice: null,
       );
     }
   }
@@ -169,7 +159,9 @@ abstract class BaseTvCastService implements TvCastService {
         );
       default:
         return CheckDeviceStatusReply(
-            artworks: [], connectedDevice: connectedDevice);
+          artworks: [],
+          connectedDevice: connectedDevice,
+        );
     }
   }
 
@@ -331,50 +323,6 @@ abstract class BaseTvCastService implements TvCastService {
   Future<GestureReply> drag(DragGestureRequest request) async {
     final result = await _sendData(_getBody(request));
     return GestureReply.fromJson(result);
-  }
-
-  @override
-  Future<EnableMetricsStreamingReply> enableMetricsStreaming(
-    EnableMetricsStreamingRequest request,
-  ) async {
-    try {
-      final result = await _sendData(_getBody(request));
-      log.info('Enabling metrics streaming');
-
-      // Start monitoring system metrics if it's a Bluetooth device
-      if (this is TvCastServiceImpl) {
-        final bluetoothDevice = (this as TvCastServiceImpl)._device;
-        await injector<FFBluetoothService>()
-            .startSystemMetricsMonitoring(bluetoothDevice);
-      }
-
-      return EnableMetricsStreamingReply.fromJson(result);
-    } catch (e) {
-      log.warning('Failed to enable metrics streaming: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<DisableMetricsStreamingReply> disableMetricsStreaming(
-    DisableMetricsStreamingRequest request,
-  ) async {
-    try {
-      final result = await _sendData(_getBody(request));
-      log.info('Disabling metrics streaming');
-
-      // Stop monitoring system metrics if it's a Bluetooth device
-      if (this is TvCastServiceImpl) {
-        final bluetoothDevice = (this as TvCastServiceImpl)._device;
-        await injector<FFBluetoothService>()
-            .stopSystemMetricsMonitoring(bluetoothDevice);
-      }
-
-      return DisableMetricsStreamingReply.fromJson(result);
-    } catch (e) {
-      log.warning('Failed to disable metrics streaming: $e');
-      rethrow;
-    }
   }
 
   @override

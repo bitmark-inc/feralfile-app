@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
 
@@ -33,6 +34,9 @@ class BluetoothDeviceHelper {
     BluetoothDeviceHelper().castingBluetoothDevice = device;
     injector<CanvasDeviceBloc>().add(
       CanvasDeviceGetDevicesEvent(),
+    );
+    log.info(
+      'BluetoothDeviceHelper.addDevice: added ${device.toJson()}',
     );
   }
 

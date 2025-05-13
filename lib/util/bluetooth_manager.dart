@@ -8,13 +8,8 @@ class BluetoothManager {
 // wifi connect characteristic
   static String wifiConnectCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-  // Add this constant for the engineering mode characteristic UUID
-  static String engineeringCharUuid = '6e400004-b5a3-f393-e0a9-e50e24dcca9e';
-
 // characteristic to send Wi-Fi credentials to Peripheral
   static final _wifiConnectCharacteristic = <String, BluetoothCharacteristic>{};
-
-  static final _engineeringCharacteristic = <String, BluetoothCharacteristic>{};
 
   static void setWifiConnectCharacteristic(
       BluetoothCharacteristic characteristic) {
@@ -22,16 +17,7 @@ class BluetoothManager {
     _wifiConnectCharacteristic[characteristic.remoteId.str] = characteristic;
   }
 
-  static void setEngineeringCharacteristic(
-      BluetoothCharacteristic characteristic) {
-    _engineeringCharacteristic[characteristic.remoteId.str] = characteristic;
-  }
-
   static BluetoothCharacteristic? getWifiConnectCharacteristic(
           String remoteId) =>
       _wifiConnectCharacteristic[remoteId];
-
-  static BluetoothCharacteristic? getEngineeringCharacteristic(
-          String remoteId) =>
-      _engineeringCharacteristic[remoteId];
 }

@@ -20,7 +20,7 @@ import 'package:sentry/sentry.dart';
 class SendWifiCredentialsPagePayload {
   final WifiPoint wifiAccessPoint;
   final BluetoothDevice device;
-  final Function? onSubmitted;
+  final Function(FFBluetoothDevice)? onSubmitted;
 
   SendWifiCredentialsPagePayload({
     required this.wifiAccessPoint,
@@ -122,16 +122,17 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                         await injector<FFBluetoothService>()
                             .connectToDevice(device);
                       }
-                      final isSuccess = await injector<FFBluetoothService>()
-                          .sendWifiCredentials(
+                      final ffBluetoothDevice =
+                          await injector<FFBluetoothService>()
+                              .sendWifiCredentials(
                         device: device,
                         ssid: ssid,
                         password: password,
                       );
-                      if (!isSuccess) {
+                      if (ffBluetoothDevice == null) {
                         throw FailedToConnectToWifiException(ssid, device);
                       }
-                      widget.payload.onSubmitted?.call();
+                      widget.payload.onSubmitted?.call(ffBluetoothDevice);
                     } on FailedToConnectToWifiException catch (e) {
                       log.info('Failed to connect to wifi: $e');
                       unawaited(Sentry.captureException(

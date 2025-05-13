@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
@@ -143,8 +144,12 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                               onTap: () {
                                 injector<NavigationService>().popUntil(
                                     AppRouter.bluetoothDevicePortalPage);
-                                injector<NavigationService>()
-                                    .goBack(result: false);
+                                final ffBluetoothDevice = widget.device
+                                    .toFFBluetoothDevice(
+                                        locationId: response!.locationId,
+                                        topicId: response.topicId);
+                                injector<NavigationService>().goBack(
+                                    result: Pair(ffBluetoothDevice, false));
                               },
                               text: 'Go to Settings',
                             ),
@@ -176,10 +181,10 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
       device: widget.device,
-      onSubmitted: () {
+      onSubmitted: (FFBluetoothDevice device) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothDevicePortalPage);
-        injector<NavigationService>().goBack(result: true);
+        injector<NavigationService>().goBack(result: Pair(device, true));
       },
     );
     injector<NavigationService>()
