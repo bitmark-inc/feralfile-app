@@ -215,7 +215,7 @@ class FFBluetoothService {
       log.info('[FlutterBluePlus]: $event');
     });
     if (await Permission.bluetooth.isGranted ||
-        BluetoothDeviceHelper().castingBluetoothDevice != null) {
+        BluetoothDeviceManager().castingBluetoothDevice != null) {
       await listenForAdapterState();
     }
   }

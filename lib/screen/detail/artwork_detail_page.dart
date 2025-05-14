@@ -621,7 +621,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   ) async {
     final castingDevice =
         canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
-    final connectedDevice = BluetoothDeviceHelper().castingBluetoothDevice;
+    final connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
     final isCasting = connectedDevice != null;
     final hasLocalAddress = await asset.hasLocalAddress();
     if (!context.mounted) {
@@ -651,7 +651,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 final castingDevice = canvasDeviceState
                     .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
                 final bluetoothConnectedDevice =
-                    BluetoothDeviceHelper().castingBluetoothDevice;
+                    BluetoothDeviceManager().castingBluetoothDevice;
                 if (castingDevice != null || bluetoothConnectedDevice != null) {
                   unawaited(
                     Navigator.of(context).pushNamed(

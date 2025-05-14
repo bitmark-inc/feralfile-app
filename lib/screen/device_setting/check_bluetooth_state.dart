@@ -268,7 +268,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         ));
 
         // add device to canvas
-        await BluetoothDeviceHelper.addDevice(
+        await BluetoothDeviceManager.addDevice(
           res.first,
         );
       }

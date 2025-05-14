@@ -128,12 +128,12 @@ class BluetoothConnectedDeviceConfigState
 
     final device = widget.payload.device;
 
-    status = BluetoothDeviceHelper().bluetoothDeviceStatus.value;
-    BluetoothDeviceHelper()
+    status = BluetoothDeviceManager().bluetoothDeviceStatus.value;
+    BluetoothDeviceManager()
         .bluetoothDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
 
-    BluetoothDeviceHelper().fetchBluetoothDeviceStatus(device);
+    BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
 
     // Start polling connection status
     _startBluetoothConnectionStatusPolling();
@@ -195,7 +195,7 @@ class BluetoothConnectedDeviceConfigState
     _pullingDeviceInfoTimer =
         Timer.periodic(const Duration(seconds: 2), (timer) async {
       final deviceStatus =
-          await BluetoothDeviceHelper().fetchBluetoothDeviceStatus(device);
+          await BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
       if (deviceStatus?.isConnectedToWifi == true) {
         timer.cancel();
       }
@@ -207,7 +207,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   void _bluetoothDeviceStatusListener() {
-    final status = BluetoothDeviceHelper().bluetoothDeviceStatus.value;
+    final status = BluetoothDeviceManager().bluetoothDeviceStatus.value;
     if (mounted) {
       setState(() {
         this.status = status;
@@ -226,7 +226,7 @@ class BluetoothConnectedDeviceConfigState
     _connectionStatusTimer?.cancel();
     _metricsUpdateTimer?.cancel();
     _metricsStreamSubscription?.cancel();
-    BluetoothDeviceHelper()
+    BluetoothDeviceManager()
         .bluetoothDeviceStatus
         .removeListener(_bluetoothDeviceStatusListener);
     WidgetsBinding.instance.removeObserver(this);
@@ -258,7 +258,7 @@ class BluetoothConnectedDeviceConfigState
     // Re-enable metrics streaming when returning to this screen
     // _enableMetricsStreaming();
 
-    BluetoothDeviceHelper().fetchBluetoothDeviceStatus(widget.payload.device);
+    BluetoothDeviceManager().fetchBluetoothDeviceStatus(widget.payload.device);
   }
 
   @override

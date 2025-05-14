@@ -329,7 +329,7 @@ class CanvasClientServiceV2 {
       'CanvasClientService: Update To Latest Version Success: response ${response.toJson()}',
     );
     if (device is FFBluetoothDevice) {
-      await BluetoothDeviceHelper().fetchBluetoothDeviceStatus(device);
+      await BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
     }
   }
 

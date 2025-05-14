@@ -323,7 +323,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
   }
 
   Future<void> _updateToDevice({bool isSaved = false}) async {
-    final connectedDevice = BluetoothDeviceHelper().castingBluetoothDevice;
+    final connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
     if (connectedDevice == null) {
       log.warning(
         'ArtistArtworkDisplaySettingBloc: updateToDevice: connectedDevice is null',

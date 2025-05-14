@@ -296,7 +296,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final newState = state.copyWith(controllingDeviceStatus: newStatus);
       emit(newState);
       unawaited(NowDisplayingManager().updateDisplayingNow());
-      await BluetoothDeviceHelper().fetchBluetoothDeviceStatus(event.device);
+      await BluetoothDeviceManager().fetchBluetoothDeviceStatus(event.device);
     });
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
@@ -602,7 +602,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
 
   List<BaseDevice> getDevices() {
-    final connectedDevice = BluetoothDeviceHelper().castingBluetoothDevice;
+    final connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
     final isConnectedDeviceAvailable = connectedDevice != null;
 
     if (!isConnectedDeviceAvailable) {

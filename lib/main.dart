@@ -300,7 +300,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 
   void _updateAnimationBasedOnDisplayState() {
-    final hasDevice = BluetoothDeviceHelper().castingBluetoothDevice != null;
+    final hasDevice = BluetoothDeviceManager().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value;

@@ -9,21 +9,28 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
 
-class BluetoothDeviceHelper {
+class BluetoothDeviceManager {
   // make singleton
 
-  BluetoothDeviceHelper._();
+  BluetoothDeviceManager._();
 
-  static final BluetoothDeviceHelper _instance = BluetoothDeviceHelper._();
+  static final BluetoothDeviceManager _instance = BluetoothDeviceManager._();
 
-  factory BluetoothDeviceHelper() => _instance;
+  factory BluetoothDeviceManager() => _instance;
 
   static Box<FFBluetoothDevice> get _pairedDevicesBox =>
       ObjectBox.bluetoothPairedDevicesBox;
 
   static List<FFBluetoothDevice> get pairedDevices {
     final devices = _pairedDevicesBox.getAll();
-    return devices.toSet().toList();
+    return devices
+        .toSet()
+        .toList()
+        .where(
+          (device) =>
+              device.locationId.isNotEmpty && device.deviceId.isNotEmpty,
+        )
+        .toList();
   }
 
   static Future<void> addDevice(
@@ -31,7 +38,7 @@ class BluetoothDeviceHelper {
   ) async {
     await _pairedDevicesBox.removeAllAsync();
     await _pairedDevicesBox.putAsync(device);
-    BluetoothDeviceHelper().castingBluetoothDevice = device;
+    BluetoothDeviceManager().castingBluetoothDevice = device;
     injector<CanvasDeviceBloc>().add(
       CanvasDeviceGetDevicesEvent(),
     );
@@ -66,6 +73,18 @@ class BluetoothDeviceHelper {
     fetchBluetoothDeviceStatus(device);
   }
 
+  FFBluetoothDevice? get castingBluetoothDevice {
+    if (_castingBluetoothDevice != null) {
+      return _castingBluetoothDevice;
+    }
+
+    final device = BluetoothDeviceManager.pairedDevices.firstOrNull;
+    if (device != null) {
+      castingBluetoothDevice = device;
+    }
+    return _castingBluetoothDevice;
+  }
+
   Future<BluetoothDeviceStatus?> fetchBluetoothDeviceStatus(
       BaseDevice device) async {
     try {
@@ -83,17 +102,5 @@ class BluetoothDeviceHelper {
       );
       return null;
     }
-  }
-
-  FFBluetoothDevice? get castingBluetoothDevice {
-    if (_castingBluetoothDevice != null) {
-      return _castingBluetoothDevice;
-    }
-
-    final device = BluetoothDeviceHelper.pairedDevices.firstOrNull;
-    if (device != null) {
-      castingBluetoothDevice = device;
-    }
-    return _castingBluetoothDevice;
   }
 }

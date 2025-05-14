@@ -374,7 +374,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           // after send support message, we should also trigger send log from FF device
           try {
             final castingDevice =
-                BluetoothDeviceHelper().castingBluetoothDevice;
+                BluetoothDeviceManager().castingBluetoothDevice;
             if (castingDevice != null) {
               await injector<CanvasClientServiceV2>()
                   .sendLog(castingDevice, data.text);

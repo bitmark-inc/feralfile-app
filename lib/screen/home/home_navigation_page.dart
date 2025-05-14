@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
-import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -558,8 +557,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
-    final locale = Localizations.localeOf(context);
-    unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await injector<CloudManager>().downloadAll(includePlaylists: true);

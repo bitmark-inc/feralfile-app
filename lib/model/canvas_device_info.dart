@@ -68,7 +68,7 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device,
       {String? locationId, String? topicId}) {
-    final savedDevice = BluetoothDeviceHelper.pairedDevices.firstWhereOrNull(
+    final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
     if (savedDevice != null) {
@@ -104,7 +104,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
 
   String get getName {
-    final savedName = BluetoothDeviceHelper.pairedDevices
+    final savedName = BluetoothDeviceManager.pairedDevices
         .firstWhereOrNull(
           (e) => e.remoteID == remoteId.str,
         )

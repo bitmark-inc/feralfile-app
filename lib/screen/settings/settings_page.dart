@@ -141,13 +141,13 @@ class _SettingsPageState extends State<SettingsPage>
               Column(
                 children: [
                   if (injector<AuthService>().isBetaTester() &&
-                      BluetoothDeviceHelper().castingBluetoothDevice != null)
+                      BluetoothDeviceManager().castingBluetoothDevice != null)
                     _settingItem(
                       title: 'Portal (FF-X1) Alpha Pilot',
                       icon: const Icon(AuIcon.add),
                       onTap: () async {
                         final connectedDevice =
-                            BluetoothDeviceHelper().castingBluetoothDevice;
+                            BluetoothDeviceManager().castingBluetoothDevice;
                         await Navigator.of(context).pushNamed(
                           AppRouter.bluetoothConnectedDeviceConfig,
                           arguments: BluetoothConnectedDeviceConfigPayload(

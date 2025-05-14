@@ -57,7 +57,7 @@ class NowDisplayingManager {
   Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {
     try {
       log.info('NowDisplayingManager: updateDisplayingNow');
-      final device = BluetoothDeviceHelper().castingBluetoothDevice;
+      final device = BluetoothDeviceManager().castingBluetoothDevice;
       if (device == null) {
         return;
       }
@@ -157,5 +157,22 @@ class NowDisplayingManager {
       },
     );
     return res;
+  }
+
+  Timer? _statusPullTimer;
+
+  void startStatusPull() {
+    _statusPullTimer?.cancel();
+    _statusPullTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (timer) async {
+        await updateDisplayingNow(addStatusOnError: false);
+      },
+    );
+  }
+
+  void stopStatusPull() {
+    _statusPullTimer?.cancel();
+    _statusPullTimer = null;
   }
 }

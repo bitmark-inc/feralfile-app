@@ -41,12 +41,12 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   void initState() {
     super.initState();
     initDisplaySettings();
-    connectedDevice = BluetoothDeviceHelper().castingBluetoothDevice;
+    connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
   }
 
   void initDisplaySettings() {
     overridable = widget.tokenConfiguration?.overridable ?? true;
-    deviceSettings = BluetoothDeviceHelper().bluetoothDeviceStatus.value;
+    deviceSettings = BluetoothDeviceManager().bluetoothDeviceStatus.value;
 
     if (overridable) {
       selectedFitment = deviceSettings?.artFraming ??
