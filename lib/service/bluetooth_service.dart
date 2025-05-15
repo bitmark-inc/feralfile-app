@@ -61,7 +61,7 @@ enum BluetoothCommand {
       case BluetoothCommand.getInfo:
         return 'get_info';
       case BluetoothCommand.setTimezone:
-        return 'set_timezone';
+        return 'set_time';
     }
   }
 

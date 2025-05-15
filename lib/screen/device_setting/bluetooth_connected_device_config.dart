@@ -684,7 +684,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceInfo(BuildContext context) {
-    final version = status?.version;
+    final version = status?.installedVersion;
     final installedVersion = status?.installedVersion ?? version;
     final latestVersion = status?.latestVersion;
     final isUpToDate =

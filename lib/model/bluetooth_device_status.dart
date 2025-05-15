@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_devic
 
 class BluetoothDeviceStatus {
   BluetoothDeviceStatus({
-    required this.version,
     required this.screenRotation,
     this.ipAddress,
     this.connectedWifi,
@@ -15,7 +14,6 @@ class BluetoothDeviceStatus {
 
   factory BluetoothDeviceStatus.fromJson(Map<String, dynamic> json) {
     return BluetoothDeviceStatus(
-      version: json['version'] as String,
       ipAddress: json['ipAddress'] as String?,
       connectedWifi: json['connectedWifi'] as String?,
       isConnectedToWifi: json['isConnectedToWifi'] as bool? ?? false,
@@ -29,7 +27,6 @@ class BluetoothDeviceStatus {
     );
   }
 
-  final String version;
   final String? ipAddress;
   final String? connectedWifi;
   final ScreenOrientation screenRotation;
@@ -40,7 +37,6 @@ class BluetoothDeviceStatus {
 
   Map<String, dynamic> toJson() {
     return {
-      'version': version,
       'ipAddress': ipAddress,
       'connectedWifi': connectedWifi,
       'screenRotation': screenRotation.name,

@@ -71,14 +71,11 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
-    if (savedDevice != null) {
-      return savedDevice;
-    }
     return FFBluetoothDevice(
-      name: device.advName,
+      name: device.getName,
       remoteID: device.remoteId.str,
-      locationId: locationId ?? '',
-      topicId: topicId ?? '',
+      locationId: locationId ?? savedDevice?.locationId ?? '',
+      topicId: topicId ?? savedDevice?.topicId ?? '',
     );
   }
 
