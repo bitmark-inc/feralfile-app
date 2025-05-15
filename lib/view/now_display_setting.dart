@@ -51,7 +51,7 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
     if (overridable) {
       selectedFitment = deviceSettings?.artFraming ??
           widget.tokenConfiguration?.artFraming ??
-          ArtFraming.cropToFill;
+          ArtFraming.fitToScreen;
     } else {
       // Use artist's settings when not overridable
       selectedFitment = widget.tokenConfiguration!.artFraming;
