@@ -101,7 +101,8 @@ abstract class BaseTvCastService implements TvCastService {
     try {
       final result =
           await _sendData(_getBody(request), shouldShowError: shouldShowError);
-      return _mapStatusReply(result);
+      // return _mapStatusReply(result);
+      return CheckDeviceStatusReply.fromJson(result);
     } catch (e) {
       log.info('Failed to get device status: $e');
       return CheckDeviceStatusReply(
