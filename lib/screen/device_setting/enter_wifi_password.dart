@@ -122,6 +122,20 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                         await injector<FFBluetoothService>()
                             .connectToDevice(bleDevice);
                       }
+
+                      // set Timezone
+                      try {
+                        await injector<FFBluetoothService>()
+                            .setTimezone(bleDevice);
+                      } catch (e) {
+                        log.info('Failed to set timezone: $e');
+                        unawaited(
+                          Sentry.captureException(
+                            'Failed to set timezone: $e',
+                          ),
+                        );
+                      }
+
                       final ffBluetoothDevice =
                           await injector<FFBluetoothService>()
                               .sendWifiCredentials(

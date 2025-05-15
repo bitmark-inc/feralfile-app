@@ -53,8 +53,6 @@ abstract class TvCastService {
     UpdateDisplaySettingsRequest request,
   );
 
-  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request);
-
   Future<UpdateToLatestVersionReply> updateToLatestVersion(
     UpdateToLatestVersionRequest request,
   );
@@ -270,12 +268,6 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _sendData(_getBody(request));
     return UpdateDisplaySettingsReply.fromJson(result);
-  }
-
-  @override
-  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request) async {
-    final result = await _sendData(_getBody(request));
-    return SetTimezoneReply.fromJson(result);
   }
 
   @override

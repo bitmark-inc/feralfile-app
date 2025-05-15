@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
@@ -20,6 +19,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
@@ -49,7 +49,8 @@ enum BluetoothCommand {
   sendWifiCredentials,
   scanWifi,
   // get locationId and topicId
-  getInfo;
+  getInfo,
+  setTimezone;
 
   String get name {
     switch (this) {
@@ -59,6 +60,8 @@ enum BluetoothCommand {
         return 'scan_wifi';
       case BluetoothCommand.getInfo:
         return 'get_info';
+      case BluetoothCommand.setTimezone:
+        return 'set_timezone';
     }
   }
 
@@ -107,7 +110,16 @@ enum BluetoothCommand {
     };
   }
 
-  Completer<dynamic> generateCompleter() {
+  // cb for setTimezone
+  NotificationCallback _setTimezoneCallback(
+    Completer<SetTimezoneReply> completer,
+  ) {
+    return (data) {
+      completer.complete(SetTimezoneReply());
+    };
+  }
+
+  Completer<BluetoothResponse> generateCompleter() {
     switch (this) {
       case BluetoothCommand.sendWifiCredentials:
         return Completer<SendWifiCredentialResponse>();
@@ -115,10 +127,13 @@ enum BluetoothCommand {
         return Completer<ScanWifiResponse>();
       case BluetoothCommand.getInfo:
         return Completer<GetBluetoothDeviceInfoResponse>();
+      case BluetoothCommand.setTimezone:
+        return Completer<SetTimezoneReply>();
     }
   }
 
-  NotificationCallback notificationCallback(Completer<dynamic> completer) {
+  NotificationCallback notificationCallback(
+      Completer<BluetoothResponse> completer) {
     switch (this) {
       case BluetoothCommand.sendWifiCredentials:
         return _sendWifiCredentialsCallback(
@@ -131,6 +146,10 @@ enum BluetoothCommand {
       case BluetoothCommand.getInfo:
         return _getInfoCallback(
           completer as Completer<GetBluetoothDeviceInfoResponse>,
+        );
+      case BluetoothCommand.setTimezone:
+        return _setTimezoneCallback(
+          completer as Completer<SetTimezoneReply>,
         );
     }
   }
@@ -156,8 +175,6 @@ class FFBluetoothService {
         try {
           if (Platform.isAndroid) {
             await device.requestMtu(512);
-            // await device.requestConnectionPriority(
-            //     connectionPriorityRequest: ConnectionPriority.high);
           }
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {
@@ -248,7 +265,7 @@ class FFBluetoothService {
 
   bool get isBluetoothOn => _bluetoothAdapterState == BluetoothAdapterState.on;
 
-  Future<dynamic> sendCommand({
+  Future<BluetoothResponse> sendCommand({
     required BluetoothDevice device,
     required BluetoothCommand command,
     required Map<String, dynamic> request,
@@ -278,7 +295,6 @@ class FFBluetoothService {
     final byteBuilder = _buildCommandMessage(command.name, request, replyId);
 
     final completer = command.generateCompleter();
-    // final cb = getCommandNotificationCallback(replyId, completer);
     final cb = command.notificationCallback(completer);
     BluetoothNotificationService().subscribe(replyId, cb);
     log.info(
@@ -354,9 +370,18 @@ class FFBluetoothService {
     return builder;
   }
 
-  Future<void> setTimezone(BaseDevice device) async {
+  Future<void> setTimezone(BluetoothDevice device) async {
     final timezone = await TimezoneHelper.getTimeZone();
-    await injector<CanvasClientServiceV2>().setTimezone(device, timezone);
+    log.info('[setTimezone] timezone: $timezone');
+    final res = await sendCommand(
+      device: device,
+      command: BluetoothCommand.getInfo,
+      request: SetTimezoneRequest(timezone: timezone).toJson(),
+      timeout: const Duration(seconds: 5),
+    );
+    log.info(
+      '[setTimezone] set timezone to $timezone for device: ${device.remoteId.str} with res: $res',
+    );
   }
 
   Future<List<String>> scanWifi(BluetoothDevice device) async {
@@ -411,9 +436,17 @@ class FFBluetoothService {
 
     final sendWifiCredentialResponse = res;
 
+    log.info(
+      '[sendWifi] sendWifiCredentials success. LocationId: ${sendWifiCredentialResponse.locationId}, topicId: ${sendWifiCredentialResponse.topicId}',
+    );
+
     final ffBluetoothDevice = device.toFFBluetoothDevice(
       topicId: sendWifiCredentialResponse.topicId,
       locationId: sendWifiCredentialResponse.locationId,
+    );
+
+    log.info(
+      '[sendWifi] sendWifiCredentials success. FFBluetoothDevice: ${ffBluetoothDevice.toJson()}',
     );
 
     // Update device with topicId and locationId
@@ -618,6 +651,7 @@ class FFBluetoothService {
       if (!injector<AuthService>().isBetaTester() && !forceScan) {
         return;
       }
+
       await listenForAdapterState();
 
       onData?.call([]);
@@ -688,7 +722,15 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
   }
 }
 
-class SendWifiCredentialRequest {
+abstract class BluetoothRequest {
+  const BluetoothRequest();
+}
+
+abstract class BluetoothResponse {
+  const BluetoothResponse();
+}
+
+class SendWifiCredentialRequest extends BluetoothRequest {
   const SendWifiCredentialRequest({
     required this.ssid,
     required this.password,
@@ -705,7 +747,7 @@ class SendWifiCredentialRequest {
   }
 }
 
-class SendWifiCredentialResponse {
+class SendWifiCredentialResponse extends BluetoothResponse {
   const SendWifiCredentialResponse({
     required this.topicId,
     required this.locationId,
@@ -715,7 +757,7 @@ class SendWifiCredentialResponse {
   final String locationId;
 }
 
-class ScanWifiRequest {
+class ScanWifiRequest extends BluetoothRequest {
   const ScanWifiRequest();
 
   Map<String, dynamic> toJson() {
@@ -723,7 +765,7 @@ class ScanWifiRequest {
   }
 }
 
-class ScanWifiResponse {
+class ScanWifiResponse extends BluetoothResponse {
   const ScanWifiResponse({
     required this.result,
   });
@@ -731,7 +773,7 @@ class ScanWifiResponse {
   final List<String> result;
 }
 
-class GetBluetoothDeviceInfoRequest {
+class GetBluetoothDeviceInfoRequest extends BluetoothRequest {
   const GetBluetoothDeviceInfoRequest();
 
   Map<String, dynamic> toJson() {
@@ -739,7 +781,7 @@ class GetBluetoothDeviceInfoRequest {
   }
 }
 
-class GetBluetoothDeviceInfoResponse {
+class GetBluetoothDeviceInfoResponse extends BluetoothResponse {
   const GetBluetoothDeviceInfoResponse({
     required this.topicId,
     required this.locationId,
@@ -747,4 +789,28 @@ class GetBluetoothDeviceInfoResponse {
 
   final String? topicId;
   final String? locationId;
+}
+
+class SetTimezoneRequest implements BluetoothRequest {
+  SetTimezoneRequest({required this.timezone, DateTime? time})
+      : time = time ?? DateTime.now();
+
+  // datetime formatter in YYYY-MM-DD HH:MM:SS format
+  static final DateFormat _dateTimeFormatter =
+      DateFormat('yyyy-MM-dd HH:mm:ss');
+
+  final String timezone;
+  final DateTime time;
+
+  Map<String, dynamic> toJson() => {
+        'timezone': timezone,
+        'time': _dateTimeFormatter.format(time),
+      };
+}
+
+class SetTimezoneReply extends BluetoothResponse {
+  SetTimezoneReply();
+
+  factory SetTimezoneReply.fromJson(Map<String, dynamic> _) =>
+      SetTimezoneReply();
 }

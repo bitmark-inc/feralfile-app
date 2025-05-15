@@ -314,13 +314,6 @@ class CanvasClientServiceV2 {
     );
   }
 
-  Future<void> setTimezone(BaseDevice device, String timezone) async {
-    final stub = _getStub(device);
-    final request = SetTimezoneRequest(timezone: timezone);
-    final response = await stub.setTimezone(request);
-    log.info('CanvasClientService: Set Timezone Success: response $response');
-  }
-
   Future<void> updateToLatestVersion(BaseDevice device) async {
     final stub = _getStub(device);
     final request = UpdateToLatestVersionRequest();

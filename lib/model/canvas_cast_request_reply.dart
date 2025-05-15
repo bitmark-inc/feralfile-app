@@ -4,7 +4,6 @@
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -23,7 +22,6 @@ enum CastCommand {
   sendLog,
   getBluetoothDeviceStatus,
   updateArtFraming,
-  setTimezone,
   updateToLatestVersion,
   tapGesture,
   dragGesture,
@@ -67,8 +65,6 @@ enum CastCommand {
         return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
         return CastCommand.updateArtFraming;
-      case 'setTimezone':
-        return CastCommand.setTimezone;
       case 'updateToLatestVersion':
         return CastCommand.updateToLatestVersion;
       case 'tapGesture':
@@ -120,8 +116,6 @@ enum CastCommand {
         return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
         return CastCommand.updateArtFraming;
-      case const (SetTimezoneRequest):
-        return CastCommand.setTimezone;
       case const (UpdateToLatestVersionRequest):
         return CastCommand.updateToLatestVersion;
       case const (SendLogRequest):
@@ -786,36 +780,6 @@ class GetBluetoothDeviceStatusReply extends Reply {
 
   @override
   Map<String, dynamic> toJson() => deviceStatus.toJson();
-}
-
-class SetTimezoneRequest implements Request {
-  factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
-      SetTimezoneRequest(
-        timezone: json['timeZone'] as String,
-        time: _dateTimeFormatter.parse(json['time'] as String),
-      );
-
-  SetTimezoneRequest({required this.timezone, DateTime? time})
-      : time = time ?? DateTime.now();
-
-  // datetime formatter in YYYY-MM-DD HH:MM:SS format
-  static final DateFormat _dateTimeFormatter =
-      DateFormat('yyyy-MM-dd HH:mm:ss');
-  final String timezone;
-  final DateTime time;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'timezone': timezone,
-        'time': _dateTimeFormatter.format(time),
-      };
-}
-
-class SetTimezoneReply extends Reply {
-  SetTimezoneReply();
-
-  factory SetTimezoneReply.fromJson(Map<String, dynamic> json) =>
-      SetTimezoneReply();
 }
 
 class UpdateToLatestVersionRequest implements Request {
