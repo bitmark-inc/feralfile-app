@@ -81,13 +81,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     if (prefix == null) {
       return [];
     }
-    final data = link.replaceFirst(prefix, '').substring(1).split('|');
-    if (data.length < 2) {
-      return [];
-    }
-    data.removeWhere(
-      (element) => element.isEmpty,
-    );
+    final data = link.replaceFirst(prefix, '').substring(1).split('|')
+      ..removeWhere(
+        (element) => element.isEmpty,
+      );
     return data;
   }
 
