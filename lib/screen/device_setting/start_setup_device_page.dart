@@ -112,46 +112,17 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 child: PrimaryAsyncButton(
                   onTap: () async {
                     final device = widget.device;
-
                     await injector<FFBluetoothService>()
                         .connectToDevice(device);
-                    GetBluetoothDeviceInfoResponse? response;
-                    try {
-                      response =
-                          await injector<FFBluetoothService>().getInfo(device);
-                    } catch (e) {
-                      log.warning(
-                        'BluetoothDevicePortalPage: getInfo error: $e',
-                      );
-                    }
-
-                    if ((response?.locationId?.isNotEmpty ?? false) &&
-                        (response?.topicId?.isNotEmpty ?? false)) {
-                      unawaited(injector<NavigationService>()
-                          .showThePortalIsSet(widget.device, () {
-                        injector<NavigationService>().popUntil(
-                          AppRouter.bluetoothDevicePortalPage,
-                        );
-                        final ffBluetoothDevice =
-                            widget.device.toFFBluetoothDevice(
-                          locationId: response!.locationId,
-                          topicId: response.topicId,
-                        );
-                        injector<NavigationService>().goBack(
-                          result: Pair(ffBluetoothDevice, false),
-                        );
-                      }));
-                    } else {
-                      unawaited(
-                        Navigator.of(context).pushNamed(
-                          AppRouter.scanWifiNetworkPage,
-                          arguments: ScanWifiNetworkPagePayload(
-                            device,
-                            onWifiSelected,
-                          ),
+                    unawaited(
+                      Navigator.of(context).pushNamed(
+                        AppRouter.scanWifiNetworkPage,
+                        arguments: ScanWifiNetworkPagePayload(
+                          device,
+                          onWifiSelected,
                         ),
-                      );
-                    }
+                      ),
+                    );
                   },
                   color: AppColor.white,
                   text: 'start_device_setup'.tr(),

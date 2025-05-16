@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -267,11 +268,15 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           ),
           true,
         );
+        // Hide QR code on device
+        unawaited(injector<CanvasClientServiceV2>()
+            .showPairingQRCode(res.first, false));
       } else {
         final r = await injector<NavigationService>().navigateTo(
           AppRouter.bluetoothDevicePortalPage,
           arguments: resultDevice,
         );
+        res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
       }
 
       // after setting wifi, go to device setting page

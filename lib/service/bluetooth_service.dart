@@ -48,8 +48,6 @@ const updateDeviceStatusCommand = [
 enum BluetoothCommand {
   sendWifiCredentials,
   scanWifi,
-  // get locationId and topicId
-  getInfo,
   setTimezone;
 
   String get name {
@@ -58,8 +56,6 @@ enum BluetoothCommand {
         return 'connect_wifi';
       case BluetoothCommand.scanWifi:
         return 'scan_wifi';
-      case BluetoothCommand.getInfo:
-        return 'get_info';
       case BluetoothCommand.setTimezone:
         return 'set_time';
     }
@@ -88,28 +84,6 @@ enum BluetoothCommand {
     };
   }
 
-  NotificationCallback _getInfoCallback(
-    Completer<GetBluetoothDeviceInfoResponse> completer,
-  ) {
-    return (data) {
-      GetBluetoothDeviceInfoResponse getInfoResponse;
-      if (data.length < 2) {
-        getInfoResponse = const GetBluetoothDeviceInfoResponse(
-          topicId: null,
-          locationId: null,
-        );
-      } else {
-        final locationId = data[0];
-        final topicId = data[1];
-        getInfoResponse = GetBluetoothDeviceInfoResponse(
-          topicId: topicId,
-          locationId: locationId,
-        );
-      }
-      completer.complete(getInfoResponse);
-    };
-  }
-
   // cb for setTimezone
   NotificationCallback _setTimezoneCallback(
     Completer<SetTimezoneReply> completer,
@@ -125,8 +99,6 @@ enum BluetoothCommand {
         return Completer<SendWifiCredentialResponse>();
       case BluetoothCommand.scanWifi:
         return Completer<ScanWifiResponse>();
-      case BluetoothCommand.getInfo:
-        return Completer<GetBluetoothDeviceInfoResponse>();
       case BluetoothCommand.setTimezone:
         return Completer<SetTimezoneReply>();
     }
@@ -142,10 +114,6 @@ enum BluetoothCommand {
       case BluetoothCommand.scanWifi:
         return _scanWifiCallback(
           completer as Completer<ScanWifiResponse>,
-        );
-      case BluetoothCommand.getInfo:
-        return _getInfoCallback(
-          completer as Completer<GetBluetoothDeviceInfoResponse>,
         );
       case BluetoothCommand.setTimezone:
         return _setTimezoneCallback(
@@ -453,24 +421,6 @@ class FFBluetoothService {
     return ffBluetoothDevice;
   }
 
-  // get locationId and topicId
-  Future<GetBluetoothDeviceInfoResponse> getInfo(BluetoothDevice device) async {
-    const request = GetBluetoothDeviceInfoRequest();
-    final res = await sendCommand(
-      device: device,
-      command: BluetoothCommand.getInfo,
-      request: request.toJson(),
-    );
-
-    if (res is! GetBluetoothDeviceInfoResponse) {
-      log.warning('Failed to get locationId and topicId');
-      unawaited(Sentry.captureMessage('Failed to get locationId and topicId'));
-      throw Exception('Failed to get locationId and topicId');
-    }
-
-    return res;
-  }
-
   // completer for connectToDevice
   Completer<void>? _connectCompleter;
 
@@ -771,24 +721,6 @@ class ScanWifiResponse extends BluetoothResponse {
   });
 
   final List<String> result;
-}
-
-class GetBluetoothDeviceInfoRequest extends BluetoothRequest {
-  const GetBluetoothDeviceInfoRequest();
-
-  Map<String, dynamic> toJson() {
-    return {};
-  }
-}
-
-class GetBluetoothDeviceInfoResponse extends BluetoothResponse {
-  const GetBluetoothDeviceInfoResponse({
-    required this.topicId,
-    required this.locationId,
-  });
-
-  final String? topicId;
-  final String? locationId;
 }
 
 class SetTimezoneRequest implements BluetoothRequest {
