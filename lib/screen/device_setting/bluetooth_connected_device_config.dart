@@ -966,22 +966,22 @@ class BluetoothConnectedDeviceConfigState
 
     setState(() {
       // Add new performance data points
-      final timestamp = metrics.timestamp?.toDouble() ??
+      final timestamp = metrics.timestamp.toDouble() ??
           DateTime.now().millisecondsSinceEpoch.toDouble();
-      if (metrics.cpuUsage != null) {
-        _cpuPoints.add(FlSpot(timestamp, metrics.cpuUsage!));
+      if (metrics.cpu?.cpuUsage != null) {
+        _cpuPoints.add(FlSpot(timestamp, metrics!.cpu!.cpuUsage!));
       }
-      if (metrics.memoryUsage != null) {
-        _memoryPoints.add(FlSpot(timestamp, metrics.memoryUsage!));
+      if (metrics.memory?.memoryUsage != null) {
+        _memoryPoints.add(FlSpot(timestamp, metrics.memory!.memoryUsage!));
       }
-      if (metrics.gpuUsage != null) {
-        _gpuPoints.add(FlSpot(timestamp, metrics.gpuUsage! / 10));
+      if (metrics.gpu?.gpuUsage != null) {
+        _gpuPoints.add(FlSpot(timestamp, metrics.gpu!.gpuUsage! / 10));
       }
-      if (metrics.cpuTemperature != null) {
-        _cpuTempPoints.add(FlSpot(timestamp, metrics.cpuTemperature!));
+      if (metrics.cpu?.currentTemperature != null) {
+        _cpuTempPoints.add(FlSpot(timestamp, metrics.cpu!.currentTemperature!));
       }
-      if (metrics.gpuTemperature != null) {
-        _gpuTempPoints.add(FlSpot(timestamp, metrics.gpuTemperature!));
+      if (metrics.gpu?.currentTemperature != null) {
+        _gpuTempPoints.add(FlSpot(timestamp, metrics.gpu!.currentTemperature!));
       }
 
       // Remove old points if we exceed the limit
@@ -1232,8 +1232,8 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: usesFahrenheit ? 104 : 40,
-                // 40°C = 104°F
+                minY: usesFahrenheit ? 86 : 30,
+                // 30°C = 86°F
                 maxY: usesFahrenheit ? 212 : 100,
                 // 100°C = 212°F
                 minX: _cpuTempPoints.first.x,

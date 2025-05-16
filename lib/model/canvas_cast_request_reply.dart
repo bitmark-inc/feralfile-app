@@ -130,7 +130,7 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case const (SafeShutdownRequest):
         return CastCommand.shutdown;
-      case const (DeviceRealtimeMetrics):
+      case const (DeviceRealtimeMetricsRequest):
         return CastCommand.deviceMetrics;
       default:
         throw Exception('Unknown request type');
@@ -1084,49 +1084,176 @@ class SafeShutdownRequest implements Request {
 
 class DeviceRealtimeMetrics {
   DeviceRealtimeMetrics({
-    this.cpuUsage,
-    this.gpuUsage,
-    this.memoryUsage,
-    this.cpuTemperature,
-    this.gpuTemperature,
-    this.screenWidth,
-    this.screenHeight,
-    this.uptimeSeconds,
-    this.timestamp,
-  });
+    this.cpu,
+    this.gpu,
+    this.memory,
+    this.screen,
+    this.uptime,
+  }) : timestamp = DateTime.now().millisecondsSinceEpoch;
 
   factory DeviceRealtimeMetrics.fromJson(Map<String, dynamic> json) =>
       DeviceRealtimeMetrics(
-        cpuUsage: json['cpuUsage'] as double?,
-        gpuUsage: json['gpuUsage'] as double?,
-        memoryUsage: json['memoryUsage'] as double?,
-        cpuTemperature: json['cpuTemperature'] as double?,
-        gpuTemperature: json['gpuTemperature'] as double?,
-        screenWidth: json['screenWidth'] as int?,
-        screenHeight: json['screenHeight'] as int?,
-        uptimeSeconds: json['uptimeSeconds'] as int?,
-        timestamp: json['timestamp'] as int?,
+        cpu: json['cpu'] != null
+            ? DeviceCpu.fromJson(json['cpu'] as Map<String, dynamic>)
+            : null,
+        gpu: json['gpu'] != null
+            ? DeviceGpu.fromJson(json['gpu'] as Map<String, dynamic>)
+            : null,
+        memory: json['memory'] != null
+            ? DeviceMemory.fromJson(json['memory'] as Map<String, dynamic>)
+            : null,
+        screen: json['screen'] != null
+            ? DeviceScreen.fromJson(json['screen'] as Map<String, dynamic>)
+            : null,
+        uptime: json['uptime'] as double?,
       );
-  final double? cpuUsage;
-  final double? gpuUsage;
-  final double? memoryUsage;
-  final double? cpuTemperature;
-  final double? gpuTemperature;
-  final int? screenWidth;
-  final int? screenHeight;
-  final int? uptimeSeconds;
-  final int? timestamp;
 
   Map<String, dynamic> toJson() => {
-        'cpuUsage': cpuUsage,
-        'gpuUsage': gpuUsage,
-        'memoryUsage': memoryUsage,
-        'cpuTemperature': cpuTemperature,
-        'gpuTemperature': gpuTemperature,
-        'screenWidth': screenWidth,
-        'screenHeight': screenHeight,
-        'uptimeSeconds': uptimeSeconds,
-        'timestamp': timestamp,
+        'cpu': cpu?.toJson(),
+        'gpu': gpu?.toJson(),
+        'memory': memory?.toJson(),
+        'screen': screen?.toJson(),
+        'uptime': uptime,
+      };
+
+  final DeviceCpu? cpu;
+  final DeviceGpu? gpu;
+  final DeviceMemory? memory;
+  final DeviceScreen? screen;
+  final double? uptime;
+  final int timestamp;
+}
+
+class DeviceCpu {
+  DeviceCpu({
+    this.maxFrequency,
+    this.currentFrequency,
+    this.maxTemperature,
+    this.currentTemperature,
+  });
+
+  factory DeviceCpu.fromJson(Map<String, dynamic> json) => DeviceCpu(
+        maxFrequency: json['max_frequency'] == null
+            ? null
+            : double.parse(json['max_frequency'].toString()),
+        currentFrequency: json['current_frequency'] == null
+            ? null
+            : double.parse(json['current_frequency'].toString()),
+        maxTemperature: json['max_temperature'] == null
+            ? null
+            : double.parse(json['max_temperature'].toString()),
+        currentTemperature: json['current_temperature'] == null
+            ? null
+            : double.parse(json['current_temperature'].toString()),
+      );
+  final double? maxFrequency;
+  final double? currentFrequency;
+  final double? maxTemperature;
+  final double? currentTemperature;
+
+  Map<String, dynamic> toJson() => {
+        'max_frequency': maxFrequency,
+        'current_frequency': currentFrequency,
+        'max_temperature': maxTemperature,
+        'current_temperature': currentTemperature,
+      };
+
+  double? get cpuUsage {
+    if (currentFrequency != null && maxFrequency != null) {
+      return ((currentFrequency! / maxFrequency!) * 100);
+    }
+    return null;
+  }
+}
+
+class DeviceGpu {
+  DeviceGpu({
+    this.maxFrequency,
+    this.currentFrequency,
+    this.maxTemperature,
+    this.currentTemperature,
+  });
+
+  factory DeviceGpu.fromJson(Map<String, dynamic> json) => DeviceGpu(
+        maxFrequency: json['max_frequency'] == null
+            ? null
+            : double.parse(json['max_frequency'].toString()),
+        currentFrequency: json['current_frequency'] == null
+            ? null
+            : double.parse(json['current_frequency'].toString()),
+        maxTemperature: json['max_temperature'] == null
+            ? null
+            : double.parse(json['max_temperature'].toString()),
+        currentTemperature: json['current_temperature'] == null
+            ? null
+            : double.parse(json['current_temperature'].toString()),
+      );
+  final double? maxFrequency;
+  final double? currentFrequency;
+  final double? maxTemperature;
+  final double? currentTemperature;
+
+  Map<String, dynamic> toJson() => {
+        'max_frequency': maxFrequency,
+        'current_frequency': currentFrequency,
+        'max_temperature': maxTemperature,
+        'current_temperature': currentTemperature,
+      };
+
+  double? get gpuUsage {
+    if (currentFrequency != null && maxFrequency != null) {
+      return ((currentFrequency! / maxFrequency!) * 100);
+    }
+    return null;
+  }
+}
+
+class DeviceMemory {
+  DeviceMemory({
+    this.maxCapacity,
+    this.usedCapacity,
+  });
+
+  factory DeviceMemory.fromJson(Map<String, dynamic> json) => DeviceMemory(
+        maxCapacity: json['max_capacity'] == null
+            ? null
+            : double.parse(json['max_capacity'].toString()),
+        usedCapacity: json['used_capacity'] == null
+            ? null
+            : double.parse(json['used_capacity'].toString()),
+      );
+  final double? maxCapacity;
+  final double? usedCapacity;
+
+  Map<String, dynamic> toJson() => {
+        'max_capacity': maxCapacity,
+        'used_capacity': usedCapacity,
+      };
+
+  double? get memoryUsage {
+    if (maxCapacity != null && usedCapacity != null) {
+      return ((usedCapacity! / maxCapacity!) * 100);
+    }
+    return null;
+  }
+}
+
+class DeviceScreen {
+  DeviceScreen({
+    this.width,
+    this.height,
+  });
+
+  factory DeviceScreen.fromJson(Map<String, dynamic> json) => DeviceScreen(
+        width: json['width'] as int?,
+        height: json['height'] as int?,
+      );
+  final int? width;
+  final int? height;
+
+  Map<String, dynamic> toJson() => {
+        'width': width,
+        'height': height,
       };
 }
 
@@ -1145,7 +1272,7 @@ class DeviceRealtimeMetricsReply extends Reply {
   factory DeviceRealtimeMetricsReply.fromJson(Map<String, dynamic> json) =>
       DeviceRealtimeMetricsReply(
         metrics: DeviceRealtimeMetrics.fromJson(
-          json['metrics'] as Map<String, dynamic>,
+          json,
         ),
       );
   final DeviceRealtimeMetrics metrics;
