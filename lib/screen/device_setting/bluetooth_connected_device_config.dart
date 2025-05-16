@@ -7,11 +7,11 @@ import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -154,7 +154,10 @@ class BluetoothConnectedDeviceConfigState
 
   void _updateBluetoothConnectionStatus() {
     final ffDevice = widget.payload.device;
-    final isConnected = ffDevice.isConnected;
+    final isConnected = injector<CanvasDeviceBloc>()
+        .state
+        .activeDevices
+        .any((device) => device.deviceId == ffDevice.deviceId);
 
     if (_isBLEDeviceConnected != isConnected) {
       setState(() {
@@ -184,7 +187,7 @@ class BluetoothConnectedDeviceConfigState
 
   void _pullingDeviceInfo() {
     final device = widget.payload.device;
-    if (!device.isConnected) {
+    if (!_isBLEDeviceConnected) {
       log.info(
         '[BluetoothConnectedDeviceConfig] '
         '_pullingDeviceInfo: Device is not connected',
@@ -196,7 +199,7 @@ class BluetoothConnectedDeviceConfigState
         Timer.periodic(const Duration(seconds: 2), (timer) async {
       final deviceStatus =
           await BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
-      if (deviceStatus?.isConnectedToWifi == true) {
+      if (deviceStatus != null) {
         timer.cancel();
       }
     });
@@ -350,7 +353,6 @@ class BluetoothConnectedDeviceConfigState
                 Navigator.of(context).pop();
                 unawaited(NowDisplayingManager().updateDisplayingNow());
               },
-              enabled: true, //status?.isConnectedToWifi ?? false,
               text: 'finish'.tr(),
               color: AppColor.white,
             ),
@@ -699,7 +701,6 @@ class BluetoothConnectedDeviceConfigState
     final divider = addDivider(
       height: 16,
       color: AppColor.primaryBlack,
-      thickness: 1,
     );
 
     return Column(
@@ -713,19 +714,6 @@ class BluetoothConnectedDeviceConfigState
                 style: theme.textTheme.ppMori400White14,
               ),
             ),
-            const SizedBox(width: 8),
-            if (device.isDisconnected)
-              GestureDetector(
-                onTap: () {
-                  injector<FFBluetoothService>().connectToDevice(device);
-                },
-                child: Text(
-                  'Tap to connect',
-                  style: theme.textTheme.ppMori400White14.copyWith(
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -783,7 +771,7 @@ class BluetoothConnectedDeviceConfigState
                       child: Text(
                         deviceId,
                         style: theme.textTheme.ppMori400White14.copyWith(
-                          color: device.isConnected
+                          color: _isBLEDeviceConnected
                               ? AppColor.white
                               : AppColor.disabledColor,
                         ),
@@ -804,7 +792,7 @@ class BluetoothConnectedDeviceConfigState
                 child: RichText(
                   text: TextSpan(
                     style: theme.textTheme.ppMori400White14.copyWith(
-                      color: device.isConnected
+                      color: _isBLEDeviceConnected
                           ? AppColor.white
                           : AppColor.disabledColor,
                     ),
@@ -837,7 +825,7 @@ class BluetoothConnectedDeviceConfigState
                   child: Text(
                     ipAddress,
                     style: theme.textTheme.ppMori400White14.copyWith(
-                      color: device.isConnected
+                      color: _isBLEDeviceConnected
                           ? AppColor.white
                           : AppColor.disabledColor,
                     ),
@@ -857,14 +845,14 @@ class BluetoothConnectedDeviceConfigState
                   child: Text(
                     isNetworkConnected ? connectedWifi ?? '-' : '-',
                     style: theme.textTheme.ppMori400White14.copyWith(
-                      color: device.isConnected
+                      color: _isBLEDeviceConnected
                           ? AppColor.white
                           : AppColor.disabledColor,
                     ),
                   ),
                 ),
               ],
-              if (device.isConnected) ...[
+              if (_isBLEDeviceConnected) ...[
                 const SizedBox(height: 16),
                 PrimaryAsyncButton(
                   text: _isShowingQRCode
@@ -883,7 +871,7 @@ class BluetoothConnectedDeviceConfigState
               ],
 
               // Update Button
-              if (device.isConnected && !isUpToDate) ...[
+              if (_isBLEDeviceConnected && !isUpToDate) ...[
                 const SizedBox(height: 16),
                 PrimaryAsyncButton(
                   text: 'Update to latest version v.$latestVersion',

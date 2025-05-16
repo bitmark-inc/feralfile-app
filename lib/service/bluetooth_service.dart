@@ -375,7 +375,7 @@ class FFBluetoothService {
     log.info('[setTimezone] timezone: $timezone');
     final res = await sendCommand(
       device: device,
-      command: BluetoothCommand.getInfo,
+      command: BluetoothCommand.setTimezone,
       request: SetTimezoneRequest(timezone: timezone).toJson(),
       timeout: const Duration(seconds: 5),
     );

@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -128,40 +127,20 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
 
                     if ((response?.locationId?.isNotEmpty ?? false) &&
                         (response?.topicId?.isNotEmpty ?? false)) {
-                      unawaited(
-                        UIHelper.showDialog(
-                          context,
-                          'The Portal is All Set',
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Your device is already set up and connected. You can head to settings to make changes or check the status.',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .ppMori400White14,
-                              ),
-                              const SizedBox(height: 16),
-                              PrimaryButton(
-                                onTap: () {
-                                  injector<NavigationService>().popUntil(
-                                    AppRouter.bluetoothDevicePortalPage,
-                                  );
-                                  final ffBluetoothDevice =
-                                      widget.device.toFFBluetoothDevice(
-                                    locationId: response!.locationId,
-                                    topicId: response.topicId,
-                                  );
-                                  injector<NavigationService>().goBack(
-                                    result: Pair(ffBluetoothDevice, false),
-                                  );
-                                },
-                                text: 'Go to Settings',
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      unawaited(injector<NavigationService>()
+                          .showThePortalIsSet(widget.device, () {
+                        injector<NavigationService>().popUntil(
+                          AppRouter.bluetoothDevicePortalPage,
+                        );
+                        final ffBluetoothDevice =
+                            widget.device.toFFBluetoothDevice(
+                          locationId: response!.locationId,
+                          topicId: response.topicId,
+                        );
+                        injector<NavigationService>().goBack(
+                          result: Pair(ffBluetoothDevice, false),
+                        );
+                      }));
                     } else {
                       unawaited(
                         Navigator.of(context).pushNamed(

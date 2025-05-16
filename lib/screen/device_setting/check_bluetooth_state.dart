@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/nft_collection/utils/list_extentions.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
@@ -73,20 +74,20 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     injector<FFBluetoothService>().listenForAdapterState();
   }
 
-  String? getDeviceName(String link) {
+  List<String> getDataFromLink(String link) {
     final prefix = Constants.bluetoothConnectDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (prefix == null) {
-      return null;
+      return [];
     }
-    final data = link.replaceFirst(prefix, '').split('/');
+    final data = link.replaceFirst(prefix, '').substring(1).split('|');
     if (data.length < 2) {
-      return null;
+      return [];
     }
-
-    final deviceName = data[1];
-    log.info('[CheckBluetoothState] getDeviceName: $deviceName');
-    return deviceName;
+    data.removeWhere(
+      (element) => element.isEmpty,
+    );
+    return data;
   }
 
   @override
@@ -211,7 +212,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     String link, {
     Function? onFinish,
   }) async {
-    final deviceName = getDeviceName(link);
+    final data = getDataFromLink(link);
+    final deviceName = data.firstOrNull;
+
+    final locationId = data.atIndexOrNull(1);
+    final topicId = data.atIndexOrNull(2);
     BluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
@@ -252,10 +257,22 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       unawaited(injector<ConfigurationService>().setBetaTester(true));
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
       // go to setting wifi page
-      final res = await injector<NavigationService>().navigateTo(
-        AppRouter.bluetoothDevicePortalPage,
-        arguments: resultDevice,
-      );
+
+      Pair<FFBluetoothDevice, bool>? res;
+      if (locationId != null && topicId != null) {
+        res = Pair(
+          resultDevice!.toFFBluetoothDevice(
+            locationId: locationId,
+            topicId: topicId,
+          ),
+          true,
+        );
+      } else {
+        final r = await injector<NavigationService>().navigateTo(
+          AppRouter.bluetoothDevicePortalPage,
+          arguments: resultDevice,
+        );
+      }
 
       // after setting wifi, go to device setting page
       if (res is Pair<FFBluetoothDevice, bool>) {
