@@ -14,24 +14,25 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 class SendWifiCredentialsPagePayload {
-  final WifiPoint wifiAccessPoint;
-  final FFBluetoothDevice device;
-  final Function? onSubmitted;
-
-  SendWifiCredentialsPagePayload({
+  const SendWifiCredentialsPagePayload({
     required this.wifiAccessPoint,
     required this.device,
     this.onSubmitted,
   });
+
+  final WifiPoint wifiAccessPoint;
+  final BluetoothDevice device;
+  final FutureOr<void> Function(FFBluetoothDevice)? onSubmitted;
 }
 
 class SendWifiCredentialsPage extends StatefulWidget {
   const SendWifiCredentialsPage({
-    super.key,
     required this.payload,
+    super.key,
   });
 
   final SendWifiCredentialsPagePayload payload;
@@ -73,7 +74,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
             children: [
               CustomScrollView(
                 slivers: [
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: SizedBox(
                       height: 120,
                     ),
@@ -114,34 +115,52 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                   onTap: () async {
                     final ssid = widget.payload.wifiAccessPoint.ssid;
                     final password = passwordController.text.trim();
-                    final device = widget.payload.device;
+                    final bleDevice = widget.payload.device;
                     try {
                       // Check if the device is connected
-                      if (!device.isConnected) {
+                      if (!bleDevice.isConnected) {
                         await injector<FFBluetoothService>()
-                            .connectToDevice(device);
+                            .connectToDevice(bleDevice);
                       }
-                      final isSuccess = await injector<FFBluetoothService>()
-                          .sendWifiCredentials(
-                        device: widget.payload.device,
+
+                      // set Timezone
+                      try {
+                        await injector<FFBluetoothService>()
+                            .setTimezone(bleDevice);
+                      } catch (e) {
+                        log.info('Failed to set timezone: $e');
+                        unawaited(
+                          Sentry.captureException(
+                            'Failed to set timezone: $e',
+                          ),
+                        );
+                      }
+
+                      final ffBluetoothDevice =
+                          await injector<FFBluetoothService>()
+                              .sendWifiCredentials(
+                        device: bleDevice,
                         ssid: ssid,
                         password: password,
                       );
-                      if (!isSuccess) {
-                        throw FailedToConnectToWifiException(
-                            ssid, widget.payload.device);
+                      if (ffBluetoothDevice == null) {
+                        throw FailedToConnectToWifiException(ssid, bleDevice);
                       }
-                      widget.payload.onSubmitted?.call();
+                      widget.payload.onSubmitted?.call(ffBluetoothDevice);
                     } on FailedToConnectToWifiException catch (e) {
                       log.info('Failed to connect to wifi: $e');
-                      unawaited(Sentry.captureException(
-                        e,
-                      ));
-                      unawaited(UIHelper.showInfoDialog(
-                        context,
-                        'Failed to connect to wifi',
-                        'The Portal failed to connect to ${e.ssid}',
-                      ));
+                      unawaited(
+                        Sentry.captureException(
+                          e,
+                        ),
+                      );
+                      unawaited(
+                        UIHelper.showInfoDialog(
+                          context,
+                          'Failed to connect to wifi',
+                          'The Portal failed to connect to ${e.ssid}',
+                        ),
+                      );
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(
@@ -149,11 +168,13 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                           'Failed to send wifi credentials: $e',
                         ),
                       );
-                      unawaited(UIHelper.showInfoDialog(
-                        context,
-                        'Send wifi credentials failed',
-                        'Reason: $e',
-                      ));
+                      unawaited(
+                        UIHelper.showInfoDialog(
+                          context,
+                          'Send wifi credentials failed',
+                          'Reason: $e',
+                        ),
+                      );
                     }
                   },
                   color: AppColor.white,
@@ -172,8 +193,8 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
 
 class PasswordTextField extends StatefulWidget {
   const PasswordTextField({
-    super.key,
     required this.controller,
+    super.key,
     this.defaultObscure = true,
     this.style,
     this.hintText,

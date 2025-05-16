@@ -4,7 +4,6 @@
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -21,20 +20,16 @@ enum CastCommand {
   sendKeyboardEvent,
   rotate,
   sendLog,
-  getVersion,
   getBluetoothDeviceStatus,
   updateArtFraming,
-  setTimezone,
   updateToLatestVersion,
   tapGesture,
   dragGesture,
-  scanWifi,
-  enableMetricsStreaming,
-  disableMetricsStreaming,
   showPairingQRCode,
   castDaily,
   updateDisplaySettings,
-  shutdown;
+  shutdown,
+  deviceMetrics;
 
   static CastCommand fromString(String command) {
     switch (command) {
@@ -66,32 +61,24 @@ enum CastCommand {
         return CastCommand.rotate;
       case 'sendLog':
         return CastCommand.sendLog;
-      case 'getVersion':
-        return CastCommand.getVersion;
-      case 'scanWifi':
-        return CastCommand.scanWifi;
       case 'getBluetoothDeviceStatus':
         return CastCommand.getBluetoothDeviceStatus;
       case 'updateArtFraming':
         return CastCommand.updateArtFraming;
-      case 'setTimezone':
-        return CastCommand.setTimezone;
       case 'updateToLatestVersion':
         return CastCommand.updateToLatestVersion;
       case 'tapGesture':
         return CastCommand.tapGesture;
       case 'dragGesture':
         return CastCommand.dragGesture;
-      case 'enableMetricsStreaming':
-        return CastCommand.enableMetricsStreaming;
-      case 'disableMetricsStreaming':
-        return CastCommand.disableMetricsStreaming;
       case 'showPairingQRCode':
         return CastCommand.showPairingQRCode;
       case 'updateDisplaySettings':
         return CastCommand.updateDisplaySettings;
       case 'shutdown':
         return CastCommand.shutdown;
+      case 'deviceMetrics':
+        return CastCommand.deviceMetrics;
       default:
         throw ArgumentError('Unknown command: $command');
     }
@@ -125,16 +112,10 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case const (RotateRequest):
         return CastCommand.rotate;
-      case const (GetVersionRequest):
-        return CastCommand.getVersion;
-      case const (ScanWifiRequest):
-        return CastCommand.scanWifi;
       case const (GetBluetoothDeviceStatusRequest):
         return CastCommand.getBluetoothDeviceStatus;
       case const (UpdateArtFramingRequest):
         return CastCommand.updateArtFraming;
-      case const (SetTimezoneRequest):
-        return CastCommand.setTimezone;
       case const (UpdateToLatestVersionRequest):
         return CastCommand.updateToLatestVersion;
       case const (SendLogRequest):
@@ -143,16 +124,14 @@ enum CastCommand {
         return CastCommand.tapGesture;
       case const (DragGestureRequest):
         return CastCommand.dragGesture;
-      case const (EnableMetricsStreamingRequest):
-        return CastCommand.enableMetricsStreaming;
-      case const (DisableMetricsStreamingRequest):
-        return CastCommand.disableMetricsStreaming;
       case const (ShowPairingQRCodeRequest):
         return CastCommand.showPairingQRCode;
       case const (UpdateDisplaySettingsRequest):
         return CastCommand.updateDisplaySettings;
       case const (SafeShutdownRequest):
         return CastCommand.shutdown;
+      case const (DeviceRealtimeMetricsRequest):
+        return CastCommand.deviceMetrics;
       default:
         throw Exception('Unknown request type');
     }
@@ -222,12 +201,12 @@ class DeviceInfoV2 {
       );
   String deviceId;
   String deviceName;
-  DevicePlatform platform;
+  DevicePlatform? platform;
 
   Map<String, dynamic> toJson() => {
         'device_id': deviceId,
         'device_name': deviceName,
-        'platform': platform.index,
+        'platform': platform?.index,
       };
 }
 
@@ -756,51 +735,6 @@ class SendLogReply extends ReplyWithOK {
       };
 }
 
-class GetVersionRequest implements Request {
-  GetVersionRequest();
-
-  factory GetVersionRequest.fromJson(Map<String, dynamic> json) =>
-      GetVersionRequest();
-
-  @override
-  Map<String, dynamic> toJson() => {};
-}
-
-class GetVersionReply extends Reply {
-  GetVersionReply({required this.version});
-
-  factory GetVersionReply.fromJson(Map<String, dynamic> json) =>
-      GetVersionReply(version: json['version'] as String);
-  final String version;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'version': version,
-      };
-}
-
-class ScanWifiRequest implements Request {
-  ScanWifiRequest({required this.timeout});
-
-  factory ScanWifiRequest.fromJson(Map<String, dynamic> json) =>
-      ScanWifiRequest(timeout: json['timeout'] as int);
-  final int timeout;
-
-  @override
-  Map<String, dynamic> toJson() => {'timeout': timeout};
-}
-
-class ScanWifiReply extends Reply {
-  ScanWifiReply({required this.result});
-
-  factory ScanWifiReply.fromJson(Map<String, dynamic> json) =>
-      ScanWifiReply(result: Map<String, bool>.from(json['result'] as Map));
-  final Map<String, bool> result;
-
-  @override
-  Map<String, dynamic> toJson() => {'result': result};
-}
-
 extension OrientationExtension on Orientation {
   String get name {
     switch (this) {
@@ -846,36 +780,6 @@ class GetBluetoothDeviceStatusReply extends Reply {
 
   @override
   Map<String, dynamic> toJson() => deviceStatus.toJson();
-}
-
-class SetTimezoneRequest implements Request {
-  SetTimezoneRequest({required this.timezone, DateTime? time})
-      : time = time ?? DateTime.now();
-
-  // datetime formatter in YYYY-MM-DD HH:MM:SS format
-  static final DateFormat _dateTimeFormatter =
-      DateFormat('yyyy-MM-dd HH:mm:ss');
-
-  factory SetTimezoneRequest.fromJson(Map<String, dynamic> json) =>
-      SetTimezoneRequest(
-        timezone: json['timeZone'] as String,
-        time: _dateTimeFormatter.parse(json['time'] as String),
-      );
-  final String timezone;
-  final DateTime time;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'timezone': timezone,
-        'time': _dateTimeFormatter.format(time),
-      };
-}
-
-class SetTimezoneReply extends Reply {
-  SetTimezoneReply();
-
-  factory SetTimezoneReply.fromJson(Map<String, dynamic> json) =>
-      SetTimezoneReply();
 }
 
 class UpdateToLatestVersionRequest implements Request {
@@ -1143,8 +1047,11 @@ class ShowPairingQRCodeReply extends Reply {
 }
 
 class UpdateDisplaySettingsRequest implements Request {
-  UpdateDisplaySettingsRequest(
-      {required this.tokenId, required this.setting, this.isSaved = true});
+  UpdateDisplaySettingsRequest({
+    required this.tokenId,
+    required this.setting,
+    this.isSaved = true,
+  });
 
   final String tokenId;
   final ArtistDisplaySetting setting;
@@ -1173,4 +1080,203 @@ class SafeShutdownRequest implements Request {
 
   @override
   Map<String, dynamic> toJson() => {};
+}
+
+class DeviceRealtimeMetrics {
+  DeviceRealtimeMetrics({
+    this.cpu,
+    this.gpu,
+    this.memory,
+    this.screen,
+    this.uptime,
+  }) : timestamp = DateTime.now().millisecondsSinceEpoch;
+
+  factory DeviceRealtimeMetrics.fromJson(Map<String, dynamic> json) =>
+      DeviceRealtimeMetrics(
+        cpu: json['cpu'] != null
+            ? DeviceCpu.fromJson(json['cpu'] as Map<String, dynamic>)
+            : null,
+        gpu: json['gpu'] != null
+            ? DeviceGpu.fromJson(json['gpu'] as Map<String, dynamic>)
+            : null,
+        memory: json['memory'] != null
+            ? DeviceMemory.fromJson(json['memory'] as Map<String, dynamic>)
+            : null,
+        screen: json['screen'] != null
+            ? DeviceScreen.fromJson(json['screen'] as Map<String, dynamic>)
+            : null,
+        uptime: json['uptime'] as double?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'cpu': cpu?.toJson(),
+        'gpu': gpu?.toJson(),
+        'memory': memory?.toJson(),
+        'screen': screen?.toJson(),
+        'uptime': uptime,
+      };
+
+  final DeviceCpu? cpu;
+  final DeviceGpu? gpu;
+  final DeviceMemory? memory;
+  final DeviceScreen? screen;
+  final double? uptime;
+  final int timestamp;
+}
+
+class DeviceCpu {
+  DeviceCpu({
+    this.maxFrequency,
+    this.currentFrequency,
+    this.maxTemperature,
+    this.currentTemperature,
+  });
+
+  factory DeviceCpu.fromJson(Map<String, dynamic> json) => DeviceCpu(
+        maxFrequency: json['max_frequency'] == null
+            ? null
+            : double.parse(json['max_frequency'].toString()),
+        currentFrequency: json['current_frequency'] == null
+            ? null
+            : double.parse(json['current_frequency'].toString()),
+        maxTemperature: json['max_temperature'] == null
+            ? null
+            : double.parse(json['max_temperature'].toString()),
+        currentTemperature: json['current_temperature'] == null
+            ? null
+            : double.parse(json['current_temperature'].toString()),
+      );
+  final double? maxFrequency;
+  final double? currentFrequency;
+  final double? maxTemperature;
+  final double? currentTemperature;
+
+  Map<String, dynamic> toJson() => {
+        'max_frequency': maxFrequency,
+        'current_frequency': currentFrequency,
+        'max_temperature': maxTemperature,
+        'current_temperature': currentTemperature,
+      };
+
+  double? get cpuUsage {
+    if (currentFrequency != null && maxFrequency != null) {
+      return ((currentFrequency! / maxFrequency!) * 100);
+    }
+    return null;
+  }
+}
+
+class DeviceGpu {
+  DeviceGpu({
+    this.maxFrequency,
+    this.currentFrequency,
+    this.maxTemperature,
+    this.currentTemperature,
+  });
+
+  factory DeviceGpu.fromJson(Map<String, dynamic> json) => DeviceGpu(
+        maxFrequency: json['max_frequency'] == null
+            ? null
+            : double.parse(json['max_frequency'].toString()),
+        currentFrequency: json['current_frequency'] == null
+            ? null
+            : double.parse(json['current_frequency'].toString()),
+        maxTemperature: json['max_temperature'] == null
+            ? null
+            : double.parse(json['max_temperature'].toString()),
+        currentTemperature: json['current_temperature'] == null
+            ? null
+            : double.parse(json['current_temperature'].toString()),
+      );
+  final double? maxFrequency;
+  final double? currentFrequency;
+  final double? maxTemperature;
+  final double? currentTemperature;
+
+  Map<String, dynamic> toJson() => {
+        'max_frequency': maxFrequency,
+        'current_frequency': currentFrequency,
+        'max_temperature': maxTemperature,
+        'current_temperature': currentTemperature,
+      };
+
+  double? get gpuUsage {
+    if (currentFrequency != null && maxFrequency != null) {
+      return ((currentFrequency! / maxFrequency!) * 100);
+    }
+    return null;
+  }
+}
+
+class DeviceMemory {
+  DeviceMemory({
+    this.maxCapacity,
+    this.usedCapacity,
+  });
+
+  factory DeviceMemory.fromJson(Map<String, dynamic> json) => DeviceMemory(
+        maxCapacity: json['max_capacity'] == null
+            ? null
+            : double.parse(json['max_capacity'].toString()),
+        usedCapacity: json['used_capacity'] == null
+            ? null
+            : double.parse(json['used_capacity'].toString()),
+      );
+  final double? maxCapacity;
+  final double? usedCapacity;
+
+  Map<String, dynamic> toJson() => {
+        'max_capacity': maxCapacity,
+        'used_capacity': usedCapacity,
+      };
+
+  double? get memoryUsage {
+    if (maxCapacity != null && usedCapacity != null) {
+      return ((usedCapacity! / maxCapacity!) * 100);
+    }
+    return null;
+  }
+}
+
+class DeviceScreen {
+  DeviceScreen({
+    this.width,
+    this.height,
+  });
+
+  factory DeviceScreen.fromJson(Map<String, dynamic> json) => DeviceScreen(
+        width: json['width'] as int?,
+        height: json['height'] as int?,
+      );
+  final int? width;
+  final int? height;
+
+  Map<String, dynamic> toJson() => {
+        'width': width,
+        'height': height,
+      };
+}
+
+class DeviceRealtimeMetricsRequest implements Request {
+  DeviceRealtimeMetricsRequest();
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class DeviceRealtimeMetricsReply extends Reply {
+  DeviceRealtimeMetricsReply({required this.metrics});
+
+  factory DeviceRealtimeMetricsReply.fromJson(Map<String, dynamic> json) =>
+      DeviceRealtimeMetricsReply(
+        metrics: DeviceRealtimeMetrics.fromJson(
+          json,
+        ),
+      );
+  final DeviceRealtimeMetrics metrics;
+
+  @override
+  Map<String, dynamic> toJson() => metrics.toJson();
 }

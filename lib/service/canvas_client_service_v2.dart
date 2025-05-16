@@ -14,13 +14,11 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
@@ -28,12 +26,10 @@ import 'package:sentry/sentry.dart';
 
 class CanvasClientServiceV2 {
   CanvasClientServiceV2(
-    this._db,
     this._deviceInfoService,
     this._tvCastApi,
   );
 
-  final HiveStoreObjectService<CanvasDevice> _db;
   final DeviceInfoService _deviceInfoService;
   final TvCastApi _tvCastApi;
   final dragOffsets = <CursorOffset>[];
@@ -44,19 +40,14 @@ class CanvasClientServiceV2 {
         platform: _platform,
       );
 
-  TvCastServiceImpl _getTvCastStub(CanvasDevice device) =>
+  TvCastServiceImpl _getTvCastStub(BaseDevice device) =>
       TvCastServiceImpl(_tvCastApi, device);
-
-  BluetoothCastService _getBluetoothStub(FFBluetoothDevice device) =>
-      BluetoothCastService(device);
 
   TvCastService _getStub(
     BaseDevice device,
   ) {
-    if (device is CanvasDevice) {
+    if (device is FFBluetoothDevice) {
       return _getTvCastStub(device);
-    } else if (device is FFBluetoothDevice) {
-      return _getBluetoothStub(device);
     } else {
       throw Exception('Unknown device type');
     }
@@ -91,20 +82,6 @@ class CanvasClientServiceV2 {
     } else {
       return DevicePlatform.other;
     }
-  }
-
-  Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> addQrDevice(
-    CanvasDevice device,
-  ) async {
-    final deviceStatus = await getDeviceStatus(device);
-    if (deviceStatus != null) {
-      await _db.save(device, device.deviceId);
-      await connectToDevice(device);
-      log.info('CanvasClientService: Added device to db ${device.name}');
-      injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
-      return Pair(deviceStatus.first as CanvasDevice, deviceStatus.second);
-    }
-    return null;
   }
 
   Future<void> _mergeUser(
@@ -163,7 +140,7 @@ class CanvasClientServiceV2 {
     try {
       final canConnect = await connectToDevice(device);
       if (!canConnect) {
-        return false;
+        // return false;
       }
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest(artworks: artworks);
@@ -223,7 +200,7 @@ class CanvasClientServiceV2 {
   ) async {
     final canConnect = await connectToDevice(device);
     if (!canConnect) {
-      return false;
+      // return false;
     }
     final stub = _getStub(device);
     final response = await stub.castExhibition(castRequest);
@@ -236,7 +213,7 @@ class CanvasClientServiceV2 {
   ) async {
     final canConnect = await connectToDevice(device);
     if (!canConnect) {
-      return false;
+      // return false;
     }
     final stub = _getStub(device);
     final response = await stub.castDailyWork(castRequest);
@@ -298,23 +275,6 @@ class CanvasClientServiceV2 {
     log.info('CanvasClientService: Get Support Success ${response.ok}');
   }
 
-  Future<String> getVersion(
-    BaseDevice device,
-  ) async {
-    final stub = _getStub(device);
-    final request = GetVersionRequest();
-    final response = await stub.getVersion(request);
-    log.info('CanvasClientService: Get Version Success ${response.version}');
-    return response.version;
-  }
-
-  Future<Map<String, bool>> scanWifi(BaseDevice device) async {
-    final stub = _getStub(device);
-    final request = ScanWifiRequest(timeout: 1);
-    final response = await stub.scanWifi(request);
-    return response.result;
-  }
-
   Future<BluetoothDeviceStatus> getBluetoothDeviceStatus(
     BaseDevice device,
   ) async {
@@ -336,9 +296,12 @@ class CanvasClientServiceV2 {
     );
   }
 
-  Future<void> updateDisplaySettings(BaseDevice device,
-      ArtistDisplaySetting displaySettings, final String tokenId,
-      {bool isSaved = false}) async {
+  Future<void> updateDisplaySettings(
+    BaseDevice device,
+    ArtistDisplaySetting displaySettings,
+    final String tokenId, {
+    bool isSaved = false,
+  }) async {
     final stub = _getStub(device);
     final request = UpdateDisplaySettingsRequest(
       setting: displaySettings,
@@ -351,13 +314,6 @@ class CanvasClientServiceV2 {
     );
   }
 
-  Future<void> setTimezone(BaseDevice device, String timezone) async {
-    final stub = _getStub(device);
-    final request = SetTimezoneRequest(timezone: timezone);
-    final response = await stub.setTimezone(request);
-    log.info('CanvasClientService: Set Timezone Success: response $response');
-  }
-
   Future<void> updateToLatestVersion(BaseDevice device) async {
     final stub = _getStub(device);
     final request = UpdateToLatestVersionRequest();
@@ -366,7 +322,7 @@ class CanvasClientServiceV2 {
       'CanvasClientService: Update To Latest Version Success: response ${response.toJson()}',
     );
     if (device is FFBluetoothDevice) {
-      await injector<FFBluetoothService>().fetchBluetoothDeviceStatus(device);
+      await BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
     }
   }
 
@@ -418,46 +374,6 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<bool> enableMetricsStreaming(BaseDevice device) async {
-    try {
-      final stub = _getStub(device);
-      final request = EnableMetricsStreamingRequest();
-      final response = await stub.enableMetricsStreaming(request);
-      log.info(
-        'CanvasClientService: Enable Metrics Streaming Success ${response.ok}',
-      );
-      return response.ok;
-    } catch (e) {
-      log.info('CanvasClientService: enableMetricsStreaming error: $e');
-      unawaited(
-        Sentry.captureException(
-          'CanvasClientService: enableMetricsStreaming error: $e',
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> disableMetricsStreaming(BaseDevice device) async {
-    try {
-      final stub = _getStub(device);
-      final request = DisableMetricsStreamingRequest();
-      final response = await stub.disableMetricsStreaming(request);
-      log.info(
-        'CanvasClientService: Disable Metrics Streaming Success ${response.ok}',
-      );
-      return response.ok;
-    } catch (e) {
-      log.info('CanvasClientService: disableMetricsStreaming error: $e');
-      unawaited(
-        Sentry.captureException(
-          'CanvasClientService: disableMetricsStreaming error: $e',
-        ),
-      );
-      return false;
-    }
-  }
-
   Future<bool> showPairingQRCode(BaseDevice device, bool show) async {
     try {
       final stub = _getStub(device);
@@ -493,5 +409,14 @@ class CanvasClientServiceV2 {
       );
       return false;
     }
+  }
+
+  Future<DeviceRealtimeMetrics> getDeviceRealtimeMetrics(
+    BaseDevice device,
+  ) async {
+    final stub = _getStub(device);
+    final request = DeviceRealtimeMetricsRequest();
+    final response = await stub.deviceMetrics(request);
+    return response.metrics;
   }
 }

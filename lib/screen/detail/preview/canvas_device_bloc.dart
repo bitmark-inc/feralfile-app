@@ -8,13 +8,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -41,19 +39,6 @@ class CanvasDeviceGetStatusEvent extends CanvasDeviceEvent {
 
   final FutureOr<void> Function(CheckDeviceStatusReply? status)? onDoneCallback;
   final FutureOr<void> Function(Object error)? onErrorCallback;
-}
-
-class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
-  CanvasDeviceAppendDeviceEvent(this.device);
-
-  final CanvasDevice device;
-}
-
-class CanvasDeviceStatusChangedEvent extends CanvasDeviceEvent {
-  CanvasDeviceStatusChangedEvent(this.device, this.statusChange);
-
-  final BaseDevice device;
-  final CheckDeviceStatusReply statusChange;
 }
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
@@ -196,9 +181,6 @@ class CanvasDeviceState {
       canvasDeviceStatus[device.deviceId];
 
   bool isDeviceAlive(BaseDevice device) {
-    if (device is FFBluetoothDevice) {
-      return device.isConnected;
-    }
     final status = statusOf(device);
     return status != null;
   }
@@ -220,7 +202,7 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   // constructor
-  CanvasDeviceBloc(this._canvasClientServiceV2, this._db)
+  CanvasDeviceBloc(this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
@@ -233,7 +215,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
           controllingDeviceStatus = deviceStatuses.controllingDevices;
 
-          devices.removeWhere((element) => !(element is FFBluetoothDevice));
+          devices.removeWhere((element) => element is! FFBluetoothDevice);
 
           final newState = state.copyWith(
             devices: devices,
@@ -280,41 +262,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       //   const Duration(milliseconds: 500),
       // ),
     );
-
-    on<CanvasDeviceStatusChangedEvent>((event, emit) async {
-      final currentDeviceStatus =
-          state.canvasDeviceStatus[event.device.deviceId];
-      final statusChange = event.statusChange;
-      final newDeviceStatus = currentDeviceStatus?.copyWith(
-        artworks: statusChange.artworks,
-        index: statusChange.index,
-        isPaused: statusChange.isPaused,
-        connectedDevice: statusChange.connectedDevice,
-        exhibitionId: statusChange.exhibitionId,
-        catalogId: statusChange.catalogId,
-        catalog: statusChange.catalog,
-      );
-      final newStatus = state.canvasDeviceStatus;
-      if (newDeviceStatus != null) {
-        newStatus[event.device.deviceId] = newDeviceStatus;
-      }
-      final newState = state.copyWith(controllingDeviceStatus: newStatus);
-      emit(newState);
-      unawaited(NowDisplayingManager().updateDisplayingNow());
-      await injector<FFBluetoothService>()
-          .fetchBluetoothDeviceStatus(event.device);
-    });
-
-    on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
-      final newState = state.copyWith(
-        devices: state.devices
-          ..removeWhere(
-            (element) => element.deviceId == event.device.deviceId,
-          )
-          ..add(event.device),
-      );
-      emit(newState);
-    });
 
     on<CanvasDeviceRotateEvent>((event, emit) async {
       final device = event.device;
@@ -606,24 +553,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   }
 
   final CanvasClientServiceV2 _canvasClientServiceV2;
-  final HiveStoreObjectService<CanvasDevice> _db;
 
   List<BaseDevice> getDevices() {
-    final rawDevices = <CanvasDevice>[];
-    final connectedDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
-    final isConnectedDeviceAvailable = connectedDevice != null;
-
-    if (!isConnectedDeviceAvailable) {
-      log.info(
-        'CanvasClientService: Connected device ${connectedDevice?.remoteID} is not available',
-      );
-    }
-    final blDevices =
-        isConnectedDeviceAvailable ? [connectedDevice] : <FFBluetoothDevice>[];
+    final savedDevice = BluetoothDeviceManager.pairedDevices;
     final devices = <BaseDevice>[
-      ...rawDevices,
-      ...blDevices,
+      ...savedDevice,
     ];
     return devices;
   }

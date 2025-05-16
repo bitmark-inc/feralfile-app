@@ -10,9 +10,9 @@ import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
@@ -57,7 +57,7 @@ class NowDisplayingManager {
   Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {
     try {
       log.info('NowDisplayingManager: updateDisplayingNow');
-      final device = injector<FFBluetoothService>().castingBluetoothDevice;
+      final device = BluetoothDeviceManager().castingBluetoothDevice;
       if (device == null) {
         return;
       }
@@ -69,18 +69,9 @@ class NowDisplayingManager {
         log.info(
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
         );
-        await Future.delayed(const Duration(seconds: 5));
-        if (device.isConnected) {
-          status = await _getStatus(device);
-        }
       }
       if (status == null) {
-        if (device.isConnected) {
-          throw Exception('Failed to get Now Displaying');
-        } else {
-          log.info('[NowDisplayingManager] Device is not connected');
-          return;
-        }
+        throw Exception('Failed to get Now Displaying');
       }
       final nowDisplaying = await getNowDisplayingObject(status);
       if (nowDisplaying == null) {
@@ -166,5 +157,22 @@ class NowDisplayingManager {
       },
     );
     return res;
+  }
+
+  Timer? _statusPullTimer;
+
+  void startStatusPull() {
+    _statusPullTimer?.cancel();
+    _statusPullTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (timer) async {
+        await updateDisplayingNow(addStatusOnError: false);
+      },
+    );
+  }
+
+  void stopStatusPull() {
+    _statusPullTimer?.cancel();
+    _statusPullTimer = null;
   }
 }

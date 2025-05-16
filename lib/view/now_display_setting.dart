@@ -6,8 +6,8 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -41,17 +41,17 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   void initState() {
     super.initState();
     initDisplaySettings();
-    connectedDevice = injector<FFBluetoothService>().castingBluetoothDevice;
+    connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
   }
 
   void initDisplaySettings() {
     overridable = widget.tokenConfiguration?.overridable ?? true;
-    deviceSettings = injector<FFBluetoothService>().bluetoothDeviceStatus.value;
+    deviceSettings = BluetoothDeviceManager().bluetoothDeviceStatus.value;
 
     if (overridable) {
       selectedFitment = deviceSettings?.artFraming ??
           widget.tokenConfiguration?.artFraming ??
-          ArtFraming.cropToFill;
+          ArtFraming.fitToScreen;
     } else {
       // Use artist's settings when not overridable
       selectedFitment = widget.tokenConfiguration!.artFraming;
@@ -83,10 +83,12 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
     }
 
     try {
-      unawaited(injector<CanvasClientServiceV2>().updateArtFraming(
-        connectedDevice!,
-        fitment,
-      ));
+      unawaited(
+        injector<CanvasClientServiceV2>().updateArtFraming(
+          connectedDevice!,
+          fitment,
+        ),
+      );
       setState(() {
         selectedFitment = fitment;
       });

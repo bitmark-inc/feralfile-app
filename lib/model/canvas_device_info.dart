@@ -9,90 +9,19 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:sentry/sentry.dart';
 
-class CanvasDevice implements BaseDevice {
-  // device name
-
-  // constructor
-  CanvasDevice({
-    required this.deviceId,
+abstract class BaseDevice {
+  const BaseDevice({
     required this.locationId,
     required this.topicId,
-    required this.name,
   });
 
-  //fromJson method
-  factory CanvasDevice.fromJson(Map<String, dynamic> json) => CanvasDevice(
-        deviceId: json['deviceId'] as String,
-        locationId: json['locationId'] as String,
-        topicId: json['topicId'] as String,
-        name: json['name'] as String,
-      );
-  @override
-  final String deviceId; //hardware id
-  final String locationId; // location id
-  final String topicId; // topic id
-  @override
-  final String name;
-
-  // toJson
-  Map<String, dynamic> toJson() => {
-        'deviceId': deviceId,
-        'locationId': locationId,
-        'topicId': topicId,
-        'name': name,
-      };
-
-  // copyWith
-  CanvasDevice copyWith({
-    String? deviceId,
-    String? locationId,
-    String? topicId,
-    String? name,
-  }) =>
-      CanvasDevice(
-        deviceId: deviceId ?? this.deviceId,
-        locationId: locationId ?? this.locationId,
-        topicId: topicId ?? this.topicId,
-        name: name ?? this.name,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is CanvasDevice && deviceId == other.deviceId;
-  }
-
-  @override
-  int get hashCode => deviceId.hashCode;
-}
-
-class DeviceInfo {
-  DeviceInfo({
-    required this.deviceId,
-    required this.deviceName,
-  });
-
-  // Factory constructor to create an instance from JSON
-  factory DeviceInfo.fromJson(Map<String, dynamic> json) => DeviceInfo(
-        deviceId: json['device_id'] as String,
-        deviceName: json['device_name'] as String,
-      );
-  String deviceId;
-  String deviceName;
-
-  // Method to convert an instance to JSON
-  Map<String, dynamic> toJson() => {
-        'device_id': deviceId,
-        'device_name': deviceName,
-      };
-}
-
-abstract class BaseDevice {
   String get deviceId;
 
   String get name;
+
+  final String locationId;
+
+  final String topicId;
 }
 
 @Entity()
@@ -100,6 +29,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   FFBluetoothDevice({
     required this.name,
     required String remoteID,
+    required this.locationId,
+    required this.topicId,
   }) : super.fromId(remoteID);
 
   // fromJson
@@ -107,6 +38,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
+        locationId: json['locationId'] as String,
+        topicId: json['topicId'] as String,
       );
 
   @Id()
@@ -120,22 +53,29 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   @override
   String get deviceId => remoteId.str;
 
+  @override
+  final String locationId; // location id
+  @override
+  final String topicId; // topic id
+
   // toJson
   Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
+        'locationId': locationId,
+        'topicId': topicId,
       };
 
-  static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
-    final savedDevice = BluetoothDeviceHelper.pairedDevices.firstWhereOrNull(
+  static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device,
+      {String? locationId, String? topicId}) {
+    final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
-    if (savedDevice != null) {
-      return savedDevice;
-    }
     return FFBluetoothDevice(
-      name: device.advName,
+      name: device.getName,
       remoteID: device.remoteId.str,
+      locationId: locationId ?? savedDevice?.locationId ?? '',
+      topicId: topicId ?? savedDevice?.topicId ?? '',
     );
   }
 
@@ -152,23 +92,35 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 }
 
 extension BluetoothDeviceExtension on BluetoothDevice {
-  FFBluetoothDevice toFFBluetoothDevice() {
-    return FFBluetoothDevice.fromBluetoothDevice(this);
+  FFBluetoothDevice toFFBluetoothDevice({String? locationId, String? topicId}) {
+    return FFBluetoothDevice.fromBluetoothDevice(this,
+        locationId: locationId, topicId: topicId);
   }
-
-  BluetoothCharacteristic? get commandCharacteristic =>
-      BluetoothManager.getCommandCharacteristic(remoteId.str);
 
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
       BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
 
-  BluetoothCharacteristic? get engineeringCharacteristic =>
-      BluetoothManager.getEngineeringCharacteristic(remoteId.str);
+  String get getName {
+    final savedName = BluetoothDeviceManager.pairedDevices
+        .firstWhereOrNull(
+          (e) => e.remoteID == remoteId.str,
+        )
+        ?.name;
+    if (savedName != null) {
+      return savedName;
+    }
+
+    final name = advName;
+    if (name.isNotEmpty) {
+      return name;
+    }
+    return 'FF-X1';
+  }
 
   Future<void> discoverCharacteristics() async {
     try {
       log.info('Discovering characteristics for device: ${remoteId.str}');
-
+      await Future.delayed(const Duration(seconds: 1));
       final discoveredServices = await discoverServices();
       final services = <BluetoothService>[]
         ..clear()
@@ -195,22 +147,14 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         unawaited(Sentry.captureMessage('Command service not found'));
         return;
       }
-      final commandChar = commandService.characteristics.firstWhere(
-          (characteristic) => characteristic.isCommandCharacteristic);
       final wifiConnectChar = commandService.characteristics.firstWhere(
         (characteristic) => characteristic.isWifiConnectCharacteristic,
       );
-      final engineeringChar = commandService.characteristics.firstWhere(
-        (characteristic) => characteristic.isEngineeringCharacteristic,
-      );
 
       // Set the command and wifi connect characteristics
-      BluetoothManager.setCommandCharacteristic(commandChar);
       BluetoothManager.setWifiConnectCharacteristic(wifiConnectChar);
-      BluetoothManager.setEngineeringCharacteristic(engineeringChar);
 
-      log.info('Command char properties: ${commandChar.properties}');
-      if (!commandChar.properties.notify) {
+      if (!wifiConnectChar.properties.notify) {
         log.warning('Command characteristic does not support notifications!');
         unawaited(
           Sentry.captureMessage(
@@ -218,16 +162,18 @@ extension BluetoothDeviceExtension on BluetoothDevice {
           ),
         );
         throw Exception(
-            'Command characteristic does not support notifications');
+          'Command characteristic does not support notifications',
+        );
       }
 
       try {
-        await commandChar.setNotifyValue(true);
+        await wifiConnectChar.setNotifyValue(true);
         log.info('Successfully enabled notifications for command char');
       } catch (e) {
         log.warning('Failed to enable notifications for command char: $e');
         unawaited(
-            Sentry.captureException('Failed to enable notifications: $e'));
+          Sentry.captureException('Failed to enable notifications: $e'),
+        );
         rethrow;
       }
     } catch (e) {

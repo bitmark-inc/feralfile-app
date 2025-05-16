@@ -1030,4 +1030,29 @@ class NavigationService {
     );
     return (res is bool) ? res : false;
   }
+
+  Future<void> showThePortalIsSet(
+      BluetoothDevice device, Function? onTap) async {
+    return UIHelper.showDialog(
+      context,
+      'The Portal is All Set',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            onTap: () {
+              injector<NavigationService>().goBack();
+              onTap?.call();
+            },
+            text: 'Go to Settings',
+          ),
+        ],
+      ),
+    );
+  }
 }
