@@ -95,7 +95,6 @@ abstract class BaseTvCastService implements TvCastService {
     CheckDeviceStatusRequest request, {
     bool shouldShowError = true,
   }) async {
-    // return CheckDeviceStatusReply(artworks: []);
     try {
       final result =
           await _sendData(_getBody(request), shouldShowError: shouldShowError);
@@ -103,9 +102,7 @@ abstract class BaseTvCastService implements TvCastService {
       return CheckDeviceStatusReply.fromJson(result);
     } catch (e) {
       log.info('Failed to get device status: $e');
-      return CheckDeviceStatusReply(
-        artworks: [],
-      );
+      rethrow;
     }
   }
 
@@ -385,11 +382,22 @@ class TvCastServiceImpl extends BaseTvCastService {
     Duration? timeout,
   }) async {
     try {
-      final result = await _api.request(
+      final resultFuture = _api.request(
         locationId: _device.locationId,
         topicId: _device.topicId,
         body: body,
       );
+      final result = await resultFuture.timeout(
+        timeout ?? const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      ).catchError((Object error) {
+        if (error is TimeoutException) {
+          throw TimeoutException('Request timed out');
+        }
+        throw error;
+      });
       return (result['message'] as Map).cast<String, dynamic>();
     } catch (e) {
       unawaited(Sentry.captureException(e));

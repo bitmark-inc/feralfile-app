@@ -908,28 +908,20 @@ class CursorOffset {
   CursorOffset({
     required this.dx,
     required this.dy,
-    required this.coefficientX,
-    required this.coefficientY,
   });
 
   factory CursorOffset.fromJson(Map<String, dynamic> json) => CursorOffset(
         dx: json['dx'] as double,
         dy: json['dy'] as double,
-        coefficientX: json['coefficientX'] as double,
-        coefficientY: json['coefficientY'] as double,
       );
   final double dx;
   final double dy;
-  final double coefficientX;
-  final double coefficientY;
 
   Map<String, dynamic> toJson() => {
         'dx': // round to 2 decimal places
             double.parse(dx.toStringAsFixed(2)),
         'dy': // round to 2 decimal places
             double.parse(dy.toStringAsFixed(2)),
-        'coefficientX': double.parse(coefficientX.toStringAsFixed(6)),
-        'coefficientY': double.parse(coefficientY.toStringAsFixed(6)),
       };
 }
 

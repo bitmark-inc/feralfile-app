@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_exception.dart';
@@ -42,7 +43,8 @@ class SendWifiCredentialsPage extends StatefulWidget {
       SendWifiCredentialsPageState();
 }
 
-class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
+class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
+    with AfterLayoutMixin {
   late String _password;
 
   late final TextEditingController passwordController;
@@ -52,6 +54,21 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
     super.initState();
     _password = kDebugMode ? r'btmrkrckt@)@$' : '';
     passwordController = TextEditingController(text: _password);
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    // set Timezone
+    injector<FFBluetoothService>()
+        .setTimezone(widget.payload.device)
+        .catchError((Object e) {
+      log.info('Failed to set timezone: $e');
+      unawaited(
+        Sentry.captureException(
+          'Failed to set timezone: $e',
+        ),
+      );
+    });
   }
 
   @override
@@ -121,19 +138,6 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage> {
                       if (!bleDevice.isConnected) {
                         await injector<FFBluetoothService>()
                             .connectToDevice(bleDevice);
-                      }
-
-                      // set Timezone
-                      try {
-                        await injector<FFBluetoothService>()
-                            .setTimezone(bleDevice);
-                      } catch (e) {
-                        log.info('Failed to set timezone: $e');
-                        unawaited(
-                          Sentry.captureException(
-                            'Failed to set timezone: $e',
-                          ),
-                        );
                       }
 
                       final ffBluetoothDevice =

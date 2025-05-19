@@ -140,7 +140,7 @@ class CanvasClientServiceV2 {
     try {
       final canConnect = await connectToDevice(device);
       if (!canConnect) {
-        // return false;
+        return false;
       }
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest(artworks: artworks);
@@ -200,7 +200,7 @@ class CanvasClientServiceV2 {
   ) async {
     final canConnect = await connectToDevice(device);
     if (!canConnect) {
-      // return false;
+      return false;
     }
     final stub = _getStub(device);
     final response = await stub.castExhibition(castRequest);
@@ -213,7 +213,7 @@ class CanvasClientServiceV2 {
   ) async {
     final canConnect = await connectToDevice(device);
     if (!canConnect) {
-      // return false;
+      return false;
     }
     final stub = _getStub(device);
     final response = await stub.castDailyWork(castRequest);
@@ -234,9 +234,14 @@ class CanvasClientServiceV2 {
     BaseDevice device, {
     bool shouldShowError = true,
   }) async {
-    final status =
-        await getDeviceCastingStatus(device, shouldShowError: shouldShowError);
-    return Pair(device, status);
+    try {
+      final status = await getDeviceCastingStatus(device,
+          shouldShowError: shouldShowError);
+      return Pair(device, status);
+    } catch (e) {
+      log.info('CanvasClientService: getDeviceStatus error: $e');
+      return null;
+    }
   }
 
   Future<void> sendKeyBoard(List<BaseDevice> devices, int code) async {
@@ -299,7 +304,7 @@ class CanvasClientServiceV2 {
   Future<void> updateDisplaySettings(
     BaseDevice device,
     ArtistDisplaySetting displaySettings,
-    final String tokenId, {
+    String tokenId, {
     bool isSaved = false,
   }) async {
     final stub = _getStub(device);
@@ -357,13 +362,10 @@ class CanvasClientServiceV2 {
   Future<void> drag(
     List<BaseDevice> devices,
     Offset offset,
-    Size touchpadSize,
   ) async {
     final dragOffset = CursorOffset(
       dx: offset.dx,
       dy: offset.dy,
-      coefficientX: 1 / touchpadSize.width,
-      coefficientY: 1 / touchpadSize.height,
     );
 
     dragOffsets.add(dragOffset);
