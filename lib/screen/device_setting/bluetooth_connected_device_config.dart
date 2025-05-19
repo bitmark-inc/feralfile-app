@@ -117,6 +117,9 @@ class BluetoothConnectedDeviceConfigState
   final List<FlSpot> _cpuTempPoints = [];
   final List<FlSpot> _gpuTempPoints = [];
 
+  // Add FPS metrics tracking
+  final List<FlSpot> _fpsPoints = [];
+
   StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
 
   bool _isShowingQRCode = false;
@@ -478,6 +481,21 @@ class BluetoothConnectedDeviceConfigState
             child: Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: _temperatureMonitoring(context),
+            ),
+          ),
+
+          const SliverToBoxAdapter(
+            child: Divider(
+              color: AppColor.auGreyBackground,
+              thickness: 1,
+              height: 40,
+            ),
+          ),
+          // FPS monitoring section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _fpsMonitoring(context),
             ),
           ),
 
@@ -975,13 +993,17 @@ class BluetoothConnectedDeviceConfigState
         _memoryPoints.add(FlSpot(timestamp, metrics.memory!.memoryUsage!));
       }
       if (metrics.gpu?.gpuUsage != null) {
-        _gpuPoints.add(FlSpot(timestamp, metrics.gpu!.gpuUsage! / 10));
+        _gpuPoints.add(FlSpot(timestamp, metrics.gpu!.gpuUsage!));
       }
       if (metrics.cpu?.currentTemperature != null) {
         _cpuTempPoints.add(FlSpot(timestamp, metrics.cpu!.currentTemperature!));
       }
       if (metrics.gpu?.currentTemperature != null) {
         _gpuTempPoints.add(FlSpot(timestamp, metrics.gpu!.currentTemperature!));
+      }
+
+      if (metrics.screen?.refreshRate != null) {
+        _fpsPoints.add(FlSpot(timestamp, metrics.screen!.refreshRate!));
       }
 
       // Remove old points if we exceed the limit
@@ -1362,6 +1384,36 @@ class BluetoothConnectedDeviceConfigState
   // Helper method to convert Celsius to Fahrenheit
   double _celsiusToFahrenheit(double celsius) {
     return (celsius * 9 / 5) + 32;
+  }
+
+  // FPS monitoring
+  Widget _fpsMonitoring(BuildContext context) {
+    final theme = Theme.of(context);
+    final fpsValue = _fpsPoints.isNotEmpty ? _fpsPoints.last.y : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Screen Monitoring',
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+        // Current FPS value display
+        Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _metricDisplay('Refresh Rate', fpsValue, 'FPS', Colors.yellow),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _metricDisplay(String label, double? value, String unit, Color color) {

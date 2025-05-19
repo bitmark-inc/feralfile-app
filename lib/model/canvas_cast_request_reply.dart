@@ -2,6 +2,8 @@
 
 // ignore_for_file: avoid_unused_constructor_parameters
 
+import 'dart:math';
+
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:flutter/material.dart';
@@ -1081,7 +1083,8 @@ class DeviceRealtimeMetrics {
     this.memory,
     this.screen,
     this.uptime,
-  }) : timestamp = DateTime.now().millisecondsSinceEpoch;
+    int? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now().millisecondsSinceEpoch;
 
   factory DeviceRealtimeMetrics.fromJson(Map<String, dynamic> json) =>
       DeviceRealtimeMetrics(
@@ -1152,7 +1155,7 @@ class DeviceCpu {
 
   double? get cpuUsage {
     if (currentFrequency != null && maxFrequency != null) {
-      return ((currentFrequency! / maxFrequency!) * 100);
+      return min(((currentFrequency! / maxFrequency!) * 100), 100);
     }
     return null;
   }
@@ -1194,7 +1197,7 @@ class DeviceGpu {
 
   double? get gpuUsage {
     if (currentFrequency != null && maxFrequency != null) {
-      return ((currentFrequency! / maxFrequency!) * 100);
+      return min(((currentFrequency! / maxFrequency!) * 100), 100);
     }
     return null;
   }
@@ -1234,18 +1237,24 @@ class DeviceScreen {
   DeviceScreen({
     this.width,
     this.height,
+    this.refreshRate,
   });
 
   factory DeviceScreen.fromJson(Map<String, dynamic> json) => DeviceScreen(
         width: json['width'] as int?,
         height: json['height'] as int?,
+        refreshRate: json['refresh_rate'] == null
+            ? null
+            : double.parse(json['refresh_rate'].toString()),
       );
   final int? width;
   final int? height;
+  final double? refreshRate;
 
   Map<String, dynamic> toJson() => {
         'width': width,
         'height': height,
+        'refresh_rate': refreshRate,
       };
 }
 
