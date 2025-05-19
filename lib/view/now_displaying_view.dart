@@ -420,24 +420,21 @@ class NowDisplayingExhibitionView extends StatelessWidget {
     );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses == null
-        ? false
-        : injector<AuthService>().isLinkArtist(artistAddresses);
+    final isUserArtist = artistAddresses != null &&
+        injector<AuthService>().isLinkArtist(artistAddresses);
     return NowDisplayingView(
-      onMoreTap: artwork?.indexerTokenId == null
-          ? null
-          : isUserArtist
-              ? () {
-                  injector<NavigationService>().openArtistDisplaySetting(
-                    artwork: artwork,
-                  );
-                }
-              : () {
-                  injector<NavigationService>().showDeviceSettings(
-                    tokenId: artwork?.indexerTokenId ?? '',
-                    artistName: artwork?.series?.artistAlumni?.alias,
-                  );
-                },
+      onMoreTap: artwork?.indexerTokenId != null && isUserArtist
+          ? () {
+              injector<NavigationService>().openArtistDisplaySetting(
+                artwork: artwork,
+              );
+            }
+          : () {
+              injector<NavigationService>().showDeviceSettings(
+                tokenId: artwork?.indexerTokenId,
+                artistName: artwork?.series?.artistAlumni?.alias,
+              );
+            },
       thumbnailBuilder: (context) {
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },

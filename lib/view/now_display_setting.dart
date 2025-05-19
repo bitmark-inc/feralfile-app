@@ -19,12 +19,13 @@ class NowDisplaySettingView extends StatefulWidget {
   const NowDisplaySettingView({
     this.artistName,
     this.tokenConfiguration,
+    this.tokenId,
     super.key,
   });
 
   final String? artistName;
   final ArtistDisplaySetting? tokenConfiguration;
-
+  final String? tokenId;
   @override
   State<NowDisplaySettingView> createState() => _NowDisplaySettingViewState();
 }
@@ -33,12 +34,15 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming selectedFitment;
   late FFBluetoothDevice? connectedDevice;
   late BluetoothDeviceStatus? deviceSettings;
-  late bool overridable;
+  late bool overridable = true;
 
   @override
   void initState() {
     super.initState();
-    initDisplaySettings();
+    if (widget.tokenId != null) {
+      initDisplaySettings();
+    }
+
     connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
   }
 
@@ -156,10 +160,11 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
                 }
               },
             ),
-            fitmentOption(ArtFraming.fitToScreen),
-            fitmentOption(ArtFraming.cropToFill),
-            if (widget.tokenConfiguration != null && overridable)
-              restoreSettingsOption(),
+            if (widget.tokenId != null) ...[
+              fitmentOption(ArtFraming.fitToScreen),
+              fitmentOption(ArtFraming.cropToFill),
+              if (widget.tokenConfiguration != null) restoreSettingsOption(),
+            ],
             OptionItem.emptyOptionItem,
           ]
         : [];
