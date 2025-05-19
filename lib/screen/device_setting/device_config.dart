@@ -91,9 +91,8 @@ class SelectItemState extends State<SelectDeviceConfigView> {
             setState(() {
               _selectedIndex = index;
             });
-            if (item.onSelected != null) {
-              await item.onSelected!();
-            }
+
+            await item.onSelected?.call();
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

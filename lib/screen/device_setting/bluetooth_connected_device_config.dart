@@ -30,6 +30,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 enum ScreenOrientation {
@@ -134,6 +135,8 @@ class BluetoothConnectedDeviceConfigState
         .addListener(_bluetoothDeviceStatusListener);
 
     BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
+
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetStatusEvent(device));
 
     // Start polling connection status
     _startBluetoothConnectionStatusPolling();
@@ -491,7 +494,7 @@ class BluetoothConnectedDeviceConfigState
     );
   }
 
-  Widget _displayOrientationPreview(BluetoothDeviceStatus? status) {
+  Widget _displayOrientationPreview(ScreenOrientation? screenOrientation) {
     return Container(
       decoration: BoxDecoration(
         color: AppColor.auGreyBackground,
@@ -499,17 +502,18 @@ class BluetoothConnectedDeviceConfigState
       ),
       height: 200,
       child: Center(
-        child: _displayOrientationPreviewImage(status),
+        child: _displayOrientationPreviewImage(
+          screenOrientation,
+        ),
       ),
     );
   }
 
-  Widget _displayOrientationPreviewImage(BluetoothDeviceStatus? status) {
-    if (status == null) {
+  Widget _displayOrientationPreviewImage(ScreenOrientation? screenOrientation) {
+    if (screenOrientation == null) {
       return const SizedBox.shrink();
     }
-    final screenRotation = status.screenRotation;
-    switch (screenRotation) {
+    switch (screenOrientation) {
       case ScreenOrientation.landscape:
         return SvgPicture.asset('assets/images/landscape.svg', width: 150);
       case ScreenOrientation.landscapeReverse:
@@ -538,74 +542,97 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _displayOrientation(BuildContext context) {
     final blDevice = widget.payload.device;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'display_orientation'.tr(),
-          style: Theme.of(context).textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 16),
-        _displayOrientationPreview(status),
-        const SizedBox(height: 16),
-        PrimaryAsyncButton(
-          text: 'rotate'.tr(),
-          color: AppColor.white,
-          enabled: _isBLEDeviceConnected &&
-              (!widget.payload.isFromOnboarding ||
-                  status?.isConnectedToWifi == true),
-          onTap: () async {
-            await injector<CanvasClientServiceV2>().rotateCanvas(blDevice);
-            // update orientation
-          },
-        ),
-      ],
+    return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+      bloc: injector<CanvasDeviceBloc>(),
+      buildWhen: (previous, current) {
+        return previous.deviceDisplaySettingOf(blDevice)?.screenOrientation !=
+            current.deviceDisplaySettingOf(blDevice)?.screenOrientation;
+      },
+      builder: (context, state) {
+        final deviceState = state.statusOf(blDevice);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'display_orientation'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 16),
+            _displayOrientationPreview(
+              deviceState?.deviceSettings?.screenOrientation,
+            ),
+            const SizedBox(height: 16),
+            PrimaryAsyncButton(
+              text: 'rotate'.tr(),
+              color: AppColor.white,
+              enabled: deviceState != null,
+              onTap: () => injector<CanvasDeviceBloc>().add(
+                CanvasDeviceRotateEvent(
+                  blDevice,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _canvasSetting(BuildContext context) {
     final blDevice = widget.payload.device;
-    final defaultArtFramingIndex =
-        (status?.artFraming == ArtFraming.cropToFill) ? 1 : 0;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'canvas'.tr(),
-          style: Theme.of(context).textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 30),
-        SelectDeviceConfigView(
-          selectedIndex: defaultArtFramingIndex,
-          isEnable: _isBLEDeviceConnected && status?.isConnectedToWifi == true,
-          items: [
-            DeviceConfigItem(
-              title: 'fit'.tr(),
-              icon: Image.asset(
-                'assets/images/fit.png',
-                width: 100,
-                height: 100,
-              ),
-              onSelected: () {
-                injector<CanvasClientServiceV2>()
-                    .updateArtFraming(blDevice, ArtFraming.fitToScreen);
-              },
+    return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+      bloc: injector<CanvasDeviceBloc>(),
+      buildWhen: (previous, current) {
+        return previous.statusOf(blDevice)?.deviceSettings?.scaling !=
+            current.statusOf(blDevice)?.deviceSettings?.scaling;
+      },
+      builder: (context, state) {
+        final deviceState = state.statusOf(blDevice);
+        final artFramingIndex =
+            (deviceState?.deviceSettings?.scaling == ArtFraming.cropToFill)
+                ? 1
+                : 0;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'canvas'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
             ),
-            DeviceConfigItem(
-              title: 'fill'.tr(),
-              icon: Image.asset(
-                'assets/images/fill.png',
-                width: 100,
-                height: 100,
-              ),
-              onSelected: () {
-                injector<CanvasClientServiceV2>()
-                    .updateArtFraming(blDevice, ArtFraming.cropToFill);
-              },
+            const SizedBox(height: 30),
+            SelectDeviceConfigView(
+              selectedIndex: artFramingIndex,
+              isEnable: deviceState != null,
+              items: [
+                DeviceConfigItem(
+                  title: 'fit'.tr(),
+                  icon: Image.asset(
+                    'assets/images/fit.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                  onSelected: () {
+                    injector<CanvasClientServiceV2>()
+                        .updateArtFraming(blDevice, ArtFraming.fitToScreen);
+                  },
+                ),
+                DeviceConfigItem(
+                  title: 'fill'.tr(),
+                  icon: Image.asset(
+                    'assets/images/fill.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                  onSelected: () {
+                    injector<CanvasClientServiceV2>()
+                        .updateArtFraming(blDevice, ArtFraming.cropToFill);
+                  },
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 

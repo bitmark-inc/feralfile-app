@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device_display_setting.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -195,6 +196,11 @@ class CanvasDeviceState {
         ?.key;
     return devices.firstWhereOrNull((element) => element.deviceId == id);
   }
+
+  DeviceDisplaySetting? deviceDisplaySettingOf(BaseDevice device) {
+    final status = statusOf(device);
+    return status?.deviceSettings;
+  }
 }
 
 EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
@@ -266,10 +272,26 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceRotateEvent>((event, emit) async {
       final device = event.device;
       try {
-        await _canvasClientServiceV2.rotateCanvas(
+        final response = await _canvasClientServiceV2.rotateCanvas(
           device,
           clockwise: event.clockwise,
         );
+        if (response != null) {
+          final newStatusMap = Map<String, CheckDeviceStatusReply>.from(
+            state.canvasDeviceStatus,
+          );
+          final currentStatus = newStatusMap[device.deviceId];
+          if (currentStatus != null) {
+            newStatusMap[device.deviceId] = currentStatus.copyWith(
+              deviceSettings: currentStatus.deviceSettings?.copyWith(
+                screenOrientation: response,
+              ),
+            );
+          }
+
+          emit(state.copyWith(controllingDeviceStatus: newStatusMap));
+        }
+
         await event.onDoneCallback?.call();
       } catch (e, s) {
         log.info('CanvasDeviceBloc: error while rotate device: $e', s);
