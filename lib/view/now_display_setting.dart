@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -32,7 +31,6 @@ class NowDisplaySettingView extends StatefulWidget {
 
 class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming selectedFitment;
-  late ScreenOrientation currentOrientation;
   late FFBluetoothDevice? connectedDevice;
   late BluetoothDeviceStatus? deviceSettings;
   late bool overridable;
@@ -56,18 +54,6 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
       // Use artist's settings when not overridable
       selectedFitment = widget.tokenConfiguration!.artFraming;
     }
-    currentOrientation = _isPortraitOrientation(
-      deviceSettings?.screenRotation,
-    )
-        ? ScreenOrientation.portrait
-        : ScreenOrientation.landscape;
-  }
-
-  bool _isPortraitOrientation(ScreenOrientation? orientation) {
-    return [
-      ScreenOrientation.portrait,
-      ScreenOrientation.portraitReverse,
-    ].contains(orientation);
   }
 
   Future<void> _updateFitment(ArtFraming fitment) async {
@@ -163,13 +149,6 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
                 try {
                   await injector<CanvasClientServiceV2>()
                       .rotateCanvas(connectedDevice!);
-                  final newOrientation =
-                      currentOrientation == ScreenOrientation.portrait
-                          ? ScreenOrientation.landscape
-                          : ScreenOrientation.portrait;
-                  setState(() {
-                    currentOrientation = newOrientation;
-                  });
                 } catch (e) {
                   log.warning(
                     'NowDisplaySetting: updateDisplaySettings error: $e',
