@@ -54,6 +54,21 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
   final FutureOr<void> Function()? onDoneCallback;
 }
 
+class CanvasDeviceUpdateArtFramingEvent extends CanvasDeviceEvent {
+  CanvasDeviceUpdateArtFramingEvent(
+    this.device,
+    this.artFraming,
+    this.onErrorCallback,
+    this.onDoneCallback,
+  );
+
+  final BaseDevice device;
+  final ArtFraming artFraming;
+
+  final FutureOr<void> Function(Object error)? onErrorCallback;
+  final FutureOr<void> Function()? onDoneCallback;
+}
+
 /*
 * Version V2
 */
@@ -541,8 +556,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final device = event.device;
       final artworks = event.artwork;
       try {
-        final response =
-            await _canvasClientServiceV2.updateDuration(device, artworks);
+        await _canvasClientServiceV2.updateDuration(device, artworks);
         final currentDeviceState = state.devices.firstWhereOrNull(
           (element) => element.deviceId == device.deviceId,
         );
@@ -570,6 +584,35 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         );
       } catch (e) {
         log.info('CanvasDeviceBloc: error while update duration: $e');
+      }
+    });
+
+    on<CanvasDeviceUpdateArtFramingEvent>((event, emit) async {
+      final device = event.device;
+      final artFraming = event.artFraming;
+      try {
+        final ok =
+            await _canvasClientServiceV2.updateArtFraming(device, artFraming);
+        if (!ok) {
+          throw Exception('Failed to update art framing');
+        }
+
+        final newStatus = Map<String, CheckDeviceStatusReply>.from(
+          state.canvasDeviceStatus,
+        );
+        final currentStatus = newStatus[device.deviceId];
+        if (currentStatus != null) {
+          newStatus[device.deviceId] = currentStatus.copyWith(
+            deviceSettings: currentStatus.deviceSettings?.copyWith(
+              scaling: artFraming,
+            ),
+          );
+        }
+        emit(state.copyWith(controllingDeviceStatus: newStatus));
+        event.onDoneCallback?.call();
+      } catch (e) {
+        log.info('CanvasDeviceBloc: error while update art framing: $e');
+        event.onErrorCallback?.call(e);
       }
     });
   }

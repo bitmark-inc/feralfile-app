@@ -611,9 +611,17 @@ class BluetoothConnectedDeviceConfigState
                     width: 100,
                     height: 100,
                   ),
-                  onSelected: () {
-                    injector<CanvasClientServiceV2>()
-                        .updateArtFraming(blDevice, ArtFraming.fitToScreen);
+                  onSelected: () async {
+                    final completer = Completer<void>();
+                    injector<CanvasDeviceBloc>().add(
+                      CanvasDeviceUpdateArtFramingEvent(
+                        blDevice,
+                        ArtFraming.fitToScreen,
+                        completer.completeError,
+                        completer.complete,
+                      ),
+                    );
+                    await completer.future;
                   },
                 ),
                 DeviceConfigItem(
@@ -623,9 +631,17 @@ class BluetoothConnectedDeviceConfigState
                     width: 100,
                     height: 100,
                   ),
-                  onSelected: () {
-                    injector<CanvasClientServiceV2>()
-                        .updateArtFraming(blDevice, ArtFraming.cropToFill);
+                  onSelected: () async {
+                    final completer = Completer<void>();
+                    injector<CanvasDeviceBloc>().add(
+                      CanvasDeviceUpdateArtFramingEvent(
+                        blDevice,
+                        ArtFraming.cropToFill,
+                        completer.completeError,
+                        completer.complete,
+                      ),
+                    );
+                    await completer.future;
                   },
                 ),
               ],

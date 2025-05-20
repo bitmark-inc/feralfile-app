@@ -289,7 +289,7 @@ class CanvasClientServiceV2 {
     return response.deviceStatus;
   }
 
-  Future<void> updateArtFraming(
+  Future<bool> updateArtFraming(
     BaseDevice device,
     ArtFraming artFraming,
   ) async {
@@ -299,6 +299,7 @@ class CanvasClientServiceV2 {
     log.info(
       'CanvasClientService: Update Art Framing Success: response $response',
     );
+    return response.ok;
   }
 
   Future<void> updateDisplaySettings(

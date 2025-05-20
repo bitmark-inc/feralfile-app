@@ -874,11 +874,11 @@ class UpdateArtFramingRequest implements Request {
       };
 }
 
-class UpdateArtFramingReply extends Reply {
-  UpdateArtFramingReply();
+class UpdateArtFramingReply extends ReplyWithOK {
+  UpdateArtFramingReply({required super.ok});
 
   factory UpdateArtFramingReply.fromJson(Map<String, dynamic> json) =>
-      UpdateArtFramingReply();
+      UpdateArtFramingReply(ok: json['ok'] as bool);
 }
 
 class TapGestureRequest implements Request {
