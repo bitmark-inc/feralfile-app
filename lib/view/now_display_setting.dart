@@ -34,7 +34,7 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming selectedFitment;
   late FFBluetoothDevice? connectedDevice;
   late BluetoothDeviceStatus? deviceSettings;
-  late bool overridable = true;
+  bool overridable = true;
 
   @override
   void initState() {
