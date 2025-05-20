@@ -66,7 +66,7 @@ class BluetoothDeviceManager {
       Sentry.captureException('Set Casting device value to null');
       return;
     }
-    if (device.deviceId == _castingBluetoothDevice?.deviceId) {
+    if (device == _castingBluetoothDevice) {
       return;
     }
     _castingBluetoothDevice = device;
