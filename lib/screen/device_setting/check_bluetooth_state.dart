@@ -213,8 +213,8 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     final data = getDataFromLink(link);
     final deviceName = data.firstOrNull;
 
-    final locationId = data.atIndexOrNull(1);
-    final topicId = data.atIndexOrNull(2);
+    final locationId = data.atIndexOrNull(2);
+    final topicId = data.atIndexOrNull(1);
     BluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
@@ -265,6 +265,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           ),
           true,
         );
+        await injector<NavigationService>().showThePortalIsSet(res.first, null);
         // Hide QR code on device
         unawaited(injector<CanvasClientServiceV2>()
             .showPairingQRCode(res.first, false));
