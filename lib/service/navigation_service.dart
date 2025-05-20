@@ -946,7 +946,7 @@ class NavigationService {
   }
 
   Future<void> showDeviceSettings({
-    required String tokenId,
+    String? tokenId,
     String? artistName,
   }) async {
     if (navigatorKey.currentState != null &&
@@ -956,8 +956,9 @@ class NavigationService {
         Navigator.pop(navigatorKey.currentContext!);
       }
 
-      final tokenConfiguration =
-          await injector<IndexerService>().getTokenConfiguration(tokenId);
+      final tokenConfiguration = tokenId != null
+          ? await injector<IndexerService>().getTokenConfiguration(tokenId)
+          : null;
 
       unawaited(
         UIHelper.showRawDialog(
@@ -965,6 +966,7 @@ class NavigationService {
           NowDisplaySettingView(
             tokenConfiguration: tokenConfiguration,
             artistName: artistName,
+            tokenId: tokenId,
           ),
           title: 'device_settings'.tr(),
           name: UIHelper.artDisplaySettingModal,

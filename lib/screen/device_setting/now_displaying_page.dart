@@ -155,9 +155,8 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
       return false;
     }
     final artistAddresses = artwork.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses == null
-        ? false
-        : injector<AuthService>().isLinkArtist(artistAddresses);
+    final isUserArtist = artistAddresses != null &&
+        injector<AuthService>().isLinkArtist(artistAddresses);
     return isUserArtist;
   }
 
@@ -173,24 +172,20 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
         },
         title: 'now_displaying'.tr(),
         isWhite: false,
-        icon: tokenId != null
-            ? SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                width: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColor.white,
-                  BlendMode.srcIn,
-                ),
-              )
-            : null,
-        action: isArtist
-            ? () {
-                injector<NavigationService>().openArtistDisplaySetting(
+        icon: SvgPicture.asset(
+          'assets/images/more_circle.svg',
+          width: 22,
+          colorFilter: const ColorFilter.mode(
+            AppColor.white,
+            BlendMode.srcIn,
+          ),
+        ),
+        action: tokenId != null && isArtist
+            ? () => injector<NavigationService>().openArtistDisplaySetting(
                   artwork: getArtwork(nowDisplayingStatus),
-                );
-              }
+                )
             : () => injector<NavigationService>().showDeviceSettings(
-                  tokenId: tokenId!,
+                  tokenId: tokenId,
                   artistName: artistName,
                 ),
       ),

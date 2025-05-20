@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device_display_setting.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -50,6 +51,21 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
 
   final BaseDevice device;
   final bool clockwise;
+  final FutureOr<void> Function()? onDoneCallback;
+}
+
+class CanvasDeviceUpdateArtFramingEvent extends CanvasDeviceEvent {
+  CanvasDeviceUpdateArtFramingEvent(
+    this.device,
+    this.artFraming,
+    this.onErrorCallback,
+    this.onDoneCallback,
+  );
+
+  final BaseDevice device;
+  final ArtFraming artFraming;
+
+  final FutureOr<void> Function(Object error)? onErrorCallback;
   final FutureOr<void> Function()? onDoneCallback;
 }
 
@@ -195,6 +211,11 @@ class CanvasDeviceState {
         ?.key;
     return devices.firstWhereOrNull((element) => element.deviceId == id);
   }
+
+  DeviceDisplaySetting? deviceDisplaySettingOf(BaseDevice device) {
+    final status = statusOf(device);
+    return status?.deviceSettings;
+  }
 }
 
 EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
@@ -266,10 +287,26 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceRotateEvent>((event, emit) async {
       final device = event.device;
       try {
-        await _canvasClientServiceV2.rotateCanvas(
+        final response = await _canvasClientServiceV2.rotateCanvas(
           device,
           clockwise: event.clockwise,
         );
+        if (response != null) {
+          final newStatusMap = Map<String, CheckDeviceStatusReply>.from(
+            state.canvasDeviceStatus,
+          );
+          final currentStatus = newStatusMap[device.deviceId];
+          if (currentStatus != null) {
+            newStatusMap[device.deviceId] = currentStatus.copyWith(
+              deviceSettings: currentStatus.deviceSettings?.copyWith(
+                screenOrientation: response,
+              ),
+            );
+          }
+
+          emit(state.copyWith(controllingDeviceStatus: newStatusMap));
+        }
+
         await event.onDoneCallback?.call();
       } catch (e, s) {
         log.info('CanvasDeviceBloc: error while rotate device: $e', s);
@@ -519,8 +556,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final device = event.device;
       final artworks = event.artwork;
       try {
-        final response =
-            await _canvasClientServiceV2.updateDuration(device, artworks);
+        await _canvasClientServiceV2.updateDuration(device, artworks);
         final currentDeviceState = state.devices.firstWhereOrNull(
           (element) => element.deviceId == device.deviceId,
         );
@@ -548,6 +584,35 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         );
       } catch (e) {
         log.info('CanvasDeviceBloc: error while update duration: $e');
+      }
+    });
+
+    on<CanvasDeviceUpdateArtFramingEvent>((event, emit) async {
+      final device = event.device;
+      final artFraming = event.artFraming;
+      try {
+        final ok =
+            await _canvasClientServiceV2.updateArtFraming(device, artFraming);
+        if (!ok) {
+          throw Exception('Failed to update art framing');
+        }
+
+        final newStatus = Map<String, CheckDeviceStatusReply>.from(
+          state.canvasDeviceStatus,
+        );
+        final currentStatus = newStatus[device.deviceId];
+        if (currentStatus != null) {
+          newStatus[device.deviceId] = currentStatus.copyWith(
+            deviceSettings: currentStatus.deviceSettings?.copyWith(
+              scaling: artFraming,
+            ),
+          );
+        }
+        emit(state.copyWith(controllingDeviceStatus: newStatus));
+        event.onDoneCallback?.call();
+      } catch (e) {
+        log.info('CanvasDeviceBloc: error while update art framing: $e');
+        event.onErrorCallback?.call(e);
       }
     });
   }

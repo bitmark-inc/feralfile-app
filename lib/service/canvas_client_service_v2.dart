@@ -12,8 +12,10 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device_display_setting.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -258,7 +260,7 @@ class CanvasClientServiceV2 {
   }
 
   // function to rotate canvas
-  Future<void> rotateCanvas(
+  Future<ScreenOrientation?> rotateCanvas(
     BaseDevice device, {
     bool clockwise = false,
   }) async {
@@ -266,9 +268,12 @@ class CanvasClientServiceV2 {
     final rotateCanvasRequest = RotateRequest(clockwise: clockwise);
     try {
       final response = await stub.rotate(rotateCanvasRequest);
-      log.info('CanvasClientService: Rotate Canvas Success ${response.degree}');
+      log.info(
+          'CanvasClientService: Rotate Canvas Success ${response.orientation}');
+      return response.orientation;
     } catch (e) {
       log.info('CanvasClientService: Rotate Canvas Failed');
+      return null;
     }
   }
 
@@ -289,7 +294,7 @@ class CanvasClientServiceV2 {
     return response.deviceStatus;
   }
 
-  Future<void> updateArtFraming(
+  Future<bool> updateArtFraming(
     BaseDevice device,
     ArtFraming artFraming,
   ) async {
@@ -299,6 +304,7 @@ class CanvasClientServiceV2 {
     log.info(
       'CanvasClientService: Update Art Framing Success: response $response',
     );
+    return response.ok;
   }
 
   Future<void> updateDisplaySettings(

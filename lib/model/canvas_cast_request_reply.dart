@@ -5,7 +5,9 @@
 import 'dart:math';
 
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
+import 'package:autonomy_flutter/model/device_display_setting.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -382,6 +384,7 @@ class CheckDeviceStatusReply extends Reply {
     this.catalogId,
     this.catalog,
     this.displayKey,
+    this.deviceSettings,
   }) : isPaused = isPaused ?? false;
 
   factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
@@ -406,6 +409,11 @@ class CheckDeviceStatusReply extends Reply {
             ? null
             : ExhibitionCatalog.values[json['catalog'] as int],
         displayKey: json['displayKey'] as String?,
+        deviceSettings: json['deviceSettings'] != null
+            ? DeviceDisplaySetting.fromJson(
+                json['deviceSettings'] as Map<String, dynamic>,
+              )
+            : null,
       );
 
   int? get currentArtworkIndex {
@@ -423,6 +431,7 @@ class CheckDeviceStatusReply extends Reply {
   String? catalogId;
   ExhibitionCatalog? catalog;
   String? displayKey;
+  DeviceDisplaySetting? deviceSettings;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -434,6 +443,7 @@ class CheckDeviceStatusReply extends Reply {
         'catalogId': catalogId,
         'catalog': catalog?.index,
         'displayKey': displayKey,
+        'deviceSettings': deviceSettings?.toJson(),
       };
 
   // copyWith method
@@ -446,6 +456,7 @@ class CheckDeviceStatusReply extends Reply {
     String? catalogId,
     ExhibitionCatalog? catalog,
     String? displayKey,
+    DeviceDisplaySetting? deviceSettings,
   }) {
     return CheckDeviceStatusReply(
       artworks: artworks ?? this.artworks,
@@ -456,6 +467,7 @@ class CheckDeviceStatusReply extends Reply {
       catalogId: catalogId ?? this.catalogId,
       catalog: catalog ?? this.catalog,
       displayKey: displayKey ?? this.displayKey,
+      deviceSettings: deviceSettings ?? this.deviceSettings,
     );
   }
 }
@@ -697,14 +709,17 @@ class RotateRequest implements Request {
 }
 
 class RotateReply extends Reply {
-  RotateReply({required this.degree});
+  RotateReply({required this.orientation});
 
-  factory RotateReply.fromJson(Map<String, dynamic> json) =>
-      RotateReply(degree: json['degree'] as int);
-  final int degree;
+  factory RotateReply.fromJson(Map<String, dynamic> json) => RotateReply(
+        orientation: json['orientation'] != null
+            ? ScreenOrientation.fromString(json['orientation'] as String)
+            : null,
+      );
+  final ScreenOrientation? orientation;
 
   @override
-  Map<String, dynamic> toJson() => {'degree': degree};
+  Map<String, dynamic> toJson() => {'orientation': orientation};
 }
 
 class SendLogRequest implements Request {
@@ -861,11 +876,11 @@ class UpdateArtFramingRequest implements Request {
       };
 }
 
-class UpdateArtFramingReply extends Reply {
-  UpdateArtFramingReply();
+class UpdateArtFramingReply extends ReplyWithOK {
+  UpdateArtFramingReply({required super.ok});
 
   factory UpdateArtFramingReply.fromJson(Map<String, dynamic> json) =>
-      UpdateArtFramingReply();
+      UpdateArtFramingReply(ok: json['ok'] as bool);
 }
 
 class TapGestureRequest implements Request {
