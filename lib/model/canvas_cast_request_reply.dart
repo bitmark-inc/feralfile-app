@@ -1255,6 +1255,7 @@ class DeviceScreen {
     this.width,
     this.height,
     this.refreshRate,
+    this.fps,
   });
 
   factory DeviceScreen.fromJson(Map<String, dynamic> json) => DeviceScreen(
@@ -1263,15 +1264,18 @@ class DeviceScreen {
         refreshRate: json['refresh_rate'] == null
             ? null
             : double.parse(json['refresh_rate'].toString()),
+        fps: json['fps'] == null ? null : double.parse(json['fps'].toString()),
       );
   final int? width;
   final int? height;
   final double? refreshRate;
+  final double? fps;
 
   Map<String, dynamic> toJson() => {
         'width': width,
         'height': height,
         'refresh_rate': refreshRate,
+        'fps': fps,
       };
 }
 

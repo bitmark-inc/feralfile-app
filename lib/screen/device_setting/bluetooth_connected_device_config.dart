@@ -121,6 +121,8 @@ class BluetoothConnectedDeviceConfigState
   // Add FPS metrics tracking
   final List<FlSpot> _fpsPoints = [];
 
+  DeviceRealtimeMetrics? _latestMetrics;
+
   StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
 
   bool _isShowingQRCode = false;
@@ -861,18 +863,19 @@ class BluetoothConnectedDeviceConfigState
                       TextSpan(
                         text: installedVersion ?? '-',
                       ),
-                      if (isUpToDate)
-                        const TextSpan(
-                          text: ' - Up to date',
-                          style: TextStyle(color: AppColor.disabledColor),
-                        )
-                      else
-                        const TextSpan(
-                          text: ' - Update available',
-                          style: TextStyle(
-                            color: AppColor.disabledColor,
+                      if (installedVersion != null)
+                        if (isUpToDate)
+                          const TextSpan(
+                            text: ' - Up to date',
+                            style: TextStyle(color: AppColor.disabledColor),
+                          )
+                        else
+                          const TextSpan(
+                            text: ' - Update available',
+                            style: TextStyle(
+                              color: AppColor.disabledColor,
+                            ),
                           ),
-                        ),
                     ],
                   ),
                 ),
@@ -912,6 +915,39 @@ class BluetoothConnectedDeviceConfigState
                     ),
                   ),
                 ),
+                divider,
+              ],
+              if (_latestMetrics?.screen?.height != null &&
+                  _latestMetrics?.screen?.width != null) ...[
+                _deviceInfoItem(
+                  context,
+                  title: 'Screen Resolution',
+                  child: Text(
+                    '${_latestMetrics!.screen!.width} x ${_latestMetrics!.screen!.height}',
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      color: _isBLEDeviceConnected
+                          ? AppColor.white
+                          : AppColor.disabledColor,
+                    ),
+                  ),
+                ),
+                divider,
+              ],
+              // refresh rate
+              if (_latestMetrics?.screen?.refreshRate != null) ...[
+                _deviceInfoItem(
+                  context,
+                  title: 'Refresh Rate',
+                  child: Text(
+                    '${_latestMetrics!.screen!.refreshRate} Hz',
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      color: _isBLEDeviceConnected
+                          ? AppColor.white
+                          : AppColor.disabledColor,
+                    ),
+                  ),
+                ),
+                divider,
               ],
               if (_isBLEDeviceConnected) ...[
                 const SizedBox(height: 16),
@@ -1026,6 +1062,7 @@ class BluetoothConnectedDeviceConfigState
     if (!mounted) return;
 
     setState(() {
+      _latestMetrics = metrics;
       // Add new performance data points
       final timestamp = metrics.timestamp.toDouble();
       if (metrics.cpu?.cpuUsage != null) {
@@ -1044,8 +1081,8 @@ class BluetoothConnectedDeviceConfigState
         _gpuTempPoints.add(FlSpot(timestamp, metrics.gpu!.currentTemperature!));
       }
 
-      if (metrics.screen?.refreshRate != null) {
-        _fpsPoints.add(FlSpot(timestamp, metrics.screen!.refreshRate!));
+      if (metrics.screen?.fps != null) {
+        _fpsPoints.add(FlSpot(timestamp, metrics.screen!.fps!));
       }
 
       // Remove old points if we exceed the limit
@@ -1422,10 +1459,61 @@ class BluetoothConnectedDeviceConfigState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _metricDisplay('Refresh Rate', fpsValue, 'Hz', Colors.yellow),
+              _metricDisplay('FPS', fpsValue, '', Colors.yellow),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        // FPS chart
+        if (_fpsPoints.length > 1)
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: AppColor.auGreyBackground,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: 120,
+                minX: _fpsPoints.first.x,
+                maxX: _fpsPoints.last.x,
+                clipData: const FlClipData.all(),
+                gridData: FlGridData(
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (value) {
+                    return const FlLine(
+                      color: AppColor.feralFileMediumGrey,
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  _createLineData(_fpsPoints, Colors.yellow, 'FPS'),
+                ],
+                titlesData: FlTitlesData(
+                  bottomTitles: const AxisTitles(),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      interval: 30,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}',
+                          style: theme.textTheme.ppMori400White12,
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(),
+                  topTitles: const AxisTitles(),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
