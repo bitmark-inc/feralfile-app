@@ -67,13 +67,6 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error scanning wifi: ${data.errorCode}');
-        unawaited(Sentry.captureMessage(
-          'Error scanning wifi: ${data.errorCode}',
-        ));
-        completer.completeError(
-          Exception('Error scanning wifi: ${data.errorCode}'),
-        );
-        return;
       }
       final listSsid = data.data;
       completer.complete(ScanWifiResponse(result: listSsid));
@@ -86,11 +79,9 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending wifi credentials: ${data.errorCode}');
-        unawaited(Sentry.captureMessage(
-          'Error sending wifi credentials: ${data.errorCode}',
-        ));
+        final error = SendWifiCredentialError.fromErrorCode(data.errorCode);
         completer.completeError(
-          Exception('Error sending wifi credentials: ${data.errorCode}'),
+          error,
         );
         return;
       }
@@ -124,7 +115,8 @@ enum BluetoothCommand {
   }
 
   NotificationCallback notificationCallback(
-      Completer<BluetoothResponse> completer) {
+    Completer<BluetoothResponse> completer,
+  ) {
     switch (this) {
       case BluetoothCommand.sendWifiCredentials:
         return _sendWifiCredentialsCallback(
@@ -721,6 +713,42 @@ class SendWifiCredentialResponse extends BluetoothResponse {
   });
 
   final String topicId;
+}
+
+enum SendWifiCredentialErrorCode {
+  userEnterWrongPassword(1),
+  unknownError(-1);
+
+  const SendWifiCredentialErrorCode(this.code);
+
+  final int code;
+}
+
+class SendWifiCredentialError implements Exception {
+  SendWifiCredentialError(this.message);
+
+  final String message;
+
+  static SendWifiCredentialError fromErrorCode(int errorCode) {
+    final error = SendWifiCredentialErrorCode.values
+        .firstWhere((e) => e.code == errorCode);
+    switch (error) {
+      case SendWifiCredentialErrorCode.userEnterWrongPassword:
+        // user enter wrong password
+        return SendWifiCredentialError(
+            'Failed to connect to Wi-Fi. Please check your password and try again.');
+      default:
+        // A generic error
+        return SendWifiCredentialError(
+          'Unknown error occurred while sending wifi credentials. Error code: $errorCode',
+        );
+    }
+  }
+
+  // toString() {
+  String toString() {
+    return message;
+  }
 }
 
 class ScanWifiRequest extends BluetoothRequest {

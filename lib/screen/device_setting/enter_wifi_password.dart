@@ -176,7 +176,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                         UIHelper.showInfoDialog(
                           context,
                           'Send wifi credentials failed',
-                          'Reason: $e',
+                          '${e.toString()}',
                         ),
                       );
                     }
