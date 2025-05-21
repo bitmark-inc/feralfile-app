@@ -500,7 +500,7 @@ class FFBluetoothService {
     } catch (_) {}
     if (autoConnect ?? true) {
       log.info('[_connectDevice] _connect with autoConnect is true');
-      await _connect(device, shouldShowError: shouldShowError);
+      await _connect(device, shouldShowError: false);
     }
   }
 

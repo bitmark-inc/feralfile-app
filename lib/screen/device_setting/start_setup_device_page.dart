@@ -111,18 +111,22 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 right: 0,
                 child: PrimaryAsyncButton(
                   onTap: () async {
-                    final device = widget.device;
-                    await injector<FFBluetoothService>()
-                        .connectToDevice(device);
-                    unawaited(
-                      Navigator.of(context).pushNamed(
-                        AppRouter.scanWifiNetworkPage,
-                        arguments: ScanWifiNetworkPagePayload(
-                          device,
-                          onWifiSelected,
+                    try {
+                      final device = widget.device;
+                      await injector<FFBluetoothService>()
+                          .connectToDevice(device);
+                      unawaited(
+                        Navigator.of(context).pushNamed(
+                          AppRouter.scanWifiNetworkPage,
+                          arguments: ScanWifiNetworkPagePayload(
+                            device,
+                            onWifiSelected,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } catch (e) {
+                      log.info('Error connecting to device: $e');
+                    }
                   },
                   color: AppColor.white,
                   text: 'start_device_setup'.tr(),
