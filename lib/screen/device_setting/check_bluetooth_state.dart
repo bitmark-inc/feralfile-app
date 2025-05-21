@@ -83,7 +83,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     }
     final data = link.replaceFirst(prefix, '').substring(1).split('|')
       ..removeWhere(
-        (element) => element.isEmpty,
+            (element) => element.isEmpty,
       );
     return data;
   }
@@ -138,7 +138,8 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
             child: Center(
               child: Text(
                 'Bluetooth is required for setup. Please turn it on to continue.',
-                style: Theme.of(context)
+                style: Theme
+                    .of(context)
                     .textTheme
                     .ppMori700White24
                     .copyWith(fontSize: 40),
@@ -166,7 +167,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           const SizedBox(height: 16),
           Text(
             'Scanning for device...',
-            style: Theme.of(context).textTheme.ppMori700White16,
+            style: Theme
+                .of(context)
+                .textTheme
+                .ppMori700White16,
           ),
           const SizedBox(height: 16),
         ],
@@ -187,7 +191,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           const SizedBox(height: 16),
           Text(
             'Device not found',
-            style: Theme.of(context).textTheme.ppMori700White16,
+            style: Theme
+                .of(context)
+                .textTheme
+                .ppMori700White16,
           ),
           const SizedBox(height: 16),
           PrimaryButton(
@@ -205,16 +212,14 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     );
   }
 
-  Future<void> _handleBluetoothConnectDeeplink(
-    BuildContext context,
-    String link, {
-    Function? onFinish,
-  }) async {
+  Future<void> _handleBluetoothConnectDeeplink(BuildContext context,
+      String link, {
+        Function? onFinish,
+      }) async {
     final data = getDataFromLink(link);
     final deviceName = data.firstOrNull;
 
-    final locationId = data.atIndexOrNull(1);
-    final topicId = data.atIndexOrNull(2);
+    final topicId = data.atIndexOrNull(1);
     BluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
@@ -257,10 +262,9 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       // go to setting wifi page
 
       Pair<FFBluetoothDevice, bool>? res;
-      if (locationId != null && topicId != null) {
+      if (topicId != null) {
         res = Pair(
           resultDevice!.toFFBluetoothDevice(
-            locationId: locationId,
             topicId: topicId,
           ),
           true,

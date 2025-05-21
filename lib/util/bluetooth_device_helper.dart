@@ -27,8 +27,7 @@ class BluetoothDeviceManager {
         .toSet()
         .toList()
         .where(
-          (device) =>
-              device.locationId.isNotEmpty && device.deviceId.isNotEmpty,
+          (device) => device.deviceId.isNotEmpty,
         )
         .toList();
   }

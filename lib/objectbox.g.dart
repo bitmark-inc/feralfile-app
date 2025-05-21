@@ -132,11 +132,6 @@ final _entities = <obx_int.ModelEntity>[
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 8220924498347096201),
-            name: 'locationId',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
             id: const obx_int.IdUid(5, 1136402464830326995),
             name: 'topicId',
             type: 9,
@@ -192,7 +187,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         5605060947817876347,
         5469044788118803694,
         5908046236401052457,
-        8142450773936588127
+        8142450773936588127,
+        8220924498347096201
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -312,13 +308,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         objectToFB: (FFBluetoothDevice object, fb.Builder fbb) {
           final nameOffset = fbb.writeString(object.name);
           final remoteIDOffset = fbb.writeString(object.remoteID);
-          final locationIdOffset = fbb.writeString(object.locationId);
           final topicIdOffset = fbb.writeString(object.topicId);
           fbb.startTable(6);
           fbb.addInt64(0, object.objId);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, remoteIDOffset);
-          fbb.addOffset(3, locationIdOffset);
           fbb.addOffset(4, topicIdOffset);
           fbb.finish(fbb.endTable());
           return object.objId;
@@ -330,15 +324,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGet(buffer, rootOffset, 6, '');
           final remoteIDParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 8, '');
-          final locationIdParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
           final topicIdParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 12, '');
           final object = FFBluetoothDevice(
-              name: nameParam,
-              remoteID: remoteIDParam,
-              locationId: locationIdParam,
-              topicId: topicIdParam)
+              name: nameParam, remoteID: remoteIDParam, topicId: topicIdParam)
             ..objId =
                 const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
@@ -425,11 +414,7 @@ class FFBluetoothDevice_ {
   static final remoteID =
       obx.QueryStringProperty<FFBluetoothDevice>(_entities[2].properties[2]);
 
-  /// See [FFBluetoothDevice.locationId].
-  static final locationId =
-      obx.QueryStringProperty<FFBluetoothDevice>(_entities[2].properties[3]);
-
   /// See [FFBluetoothDevice.topicId].
   static final topicId =
-      obx.QueryStringProperty<FFBluetoothDevice>(_entities[2].properties[4]);
+      obx.QueryStringProperty<FFBluetoothDevice>(_entities[2].properties[3]);
 }

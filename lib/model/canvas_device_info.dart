@@ -11,15 +11,12 @@ import 'package:sentry/sentry.dart';
 
 abstract class BaseDevice {
   const BaseDevice({
-    required this.locationId,
     required this.topicId,
   });
 
   String get deviceId;
 
   String get name;
-
-  final String locationId;
 
   final String topicId;
 }
@@ -29,7 +26,6 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   FFBluetoothDevice({
     required this.name,
     required String remoteID,
-    required this.locationId,
     required this.topicId,
   }) : super.fromId(remoteID);
 
@@ -38,7 +34,6 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
-        locationId: json['locationId'] as String,
         topicId: json['topicId'] as String,
       );
 
@@ -54,27 +49,23 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   String get deviceId => remoteId.str;
 
   @override
-  final String locationId; // location id
-  @override
   final String topicId; // topic id
 
   // toJson
   Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
-        'locationId': locationId,
         'topicId': topicId,
       };
 
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device,
-      {String? locationId, String? topicId}) {
+      {String? topicId}) {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
     return FFBluetoothDevice(
       name: device.getName,
       remoteID: device.remoteId.str,
-      locationId: locationId ?? savedDevice?.locationId ?? '',
       topicId: topicId ?? savedDevice?.topicId ?? '',
     );
   }
@@ -86,7 +77,6 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
     }
     return other is FFBluetoothDevice &&
         other.remoteID == remoteID &&
-        other.locationId == locationId &&
         other.topicId == topicId;
   }
 
@@ -95,9 +85,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 }
 
 extension BluetoothDeviceExtension on BluetoothDevice {
-  FFBluetoothDevice toFFBluetoothDevice({String? locationId, String? topicId}) {
-    return FFBluetoothDevice.fromBluetoothDevice(this,
-        locationId: locationId, topicId: topicId);
+  FFBluetoothDevice toFFBluetoothDevice({String? topicId}) {
+    return FFBluetoothDevice.fromBluetoothDevice(this, topicId: topicId);
   }
 
   BluetoothCharacteristic? get wifiConnectCharacteristic =>

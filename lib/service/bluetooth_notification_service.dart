@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-typedef NotificationCallback = void Function(List<String> data);
+typedef NotificationCallback = void Function(RawData data);
 
 final statusChangeTopic = 'statusChanged';
 final wifiConnectionTopic = 'wifi_connection';
@@ -38,20 +38,36 @@ class BluetoothNotificationService {
 
   // get data from raw data
   // i have a byte array, in varint format, now i want to get all the data into a list
-  List<String> getDataFromRawData(List<int> data) {
-    final reader = ByteDataReader(data);
-    final result = <String>[];
+  RawData getDataFromRawData(List<int> bytes) {
+    final reader = ByteDataReader(bytes);
+    // read reply topic
+    final topicByte = reader.readNext();
+    final topic = utf8.decode(topicByte);
+
+    // read error code
+    final errorCode = reader.readNext().first;
+
+    final data = <String>[];
     try {
       while (reader.hasMoreData()) {
         final length = reader.readVarint();
         final bytes = reader.read(length);
-        final string = utf8.decode(bytes);
-        result.add(string);
+        try {
+          final string = utf8.decode(bytes);
+          data.add(string);
+        } catch (e) {
+          log.info('[BluetoothNotification] Error decoding bytes: $e');
+          continue;
+        }
       }
     } catch (e) {
       log.info('[BluetoothNotification] Error processing raw data: $e');
     }
-    return result;
+    return RawData(
+      topic: topic,
+      errorCode: errorCode,
+      data: data,
+    );
   }
 
   // Handle incoming notification data
@@ -59,16 +75,16 @@ class BluetoothNotificationService {
     try {
       final list = getDataFromRawData(data);
       // log all item in list using log.info in one line
-      log.info('[BluetoothNotification] Notification data: ${list.join(', ')}');
+      log.info('[BluetoothNotification] Notification data: ${list.toString()}');
 
-      final topic = list[0];
+      final topic = list.topic;
 
       final callbacks = _subscribers[topic]?.toList();
       // Notify subscribers
       callbacks?.forEach((callback) {
         try {
-          callback(list.sublist(1));
-        } catch (e, s) {
+          callback(list);
+        } catch (e) {
           log.info('[BluetoothNotification] Error processing notification: $e');
         }
       });
@@ -107,5 +123,29 @@ class ByteDataReader {
 
   bool hasMoreData() {
     return _position < _data.length;
+  }
+
+  List<int> readNext() {
+    final length = readVarint();
+    final bytes = read(length);
+    return bytes;
+  }
+}
+
+class RawData {
+  final String topic;
+  final int errorCode;
+  final List<String> data;
+
+  RawData({
+    required this.topic,
+    required this.errorCode,
+    required this.data,
+  });
+
+  // toString method
+  @override
+  String toString() {
+    return 'RawData(topic: $topic, errorCode: $errorCode, data: $data)';
   }
 }

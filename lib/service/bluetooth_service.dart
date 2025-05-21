@@ -65,7 +65,18 @@ enum BluetoothCommand {
     Completer<ScanWifiResponse> completer,
   ) {
     return (data) {
-      completer.complete(ScanWifiResponse(result: data));
+      if (data.errorCode != 0) {
+        log.warning('Error scanning wifi: ${data.errorCode}');
+        unawaited(Sentry.captureMessage(
+          'Error scanning wifi: ${data.errorCode}',
+        ));
+        completer.completeError(
+          Exception('Error scanning wifi: ${data.errorCode}'),
+        );
+        return;
+      }
+      final listSsid = data.data;
+      completer.complete(ScanWifiResponse(result: listSsid));
     };
   }
 
@@ -73,12 +84,20 @@ enum BluetoothCommand {
     Completer<SendWifiCredentialResponse> completer,
   ) {
     return (data) {
-      final locationId = data[0];
-      final topicId = data[1];
+      if (data.errorCode != 0) {
+        log.warning('Error sending wifi credentials: ${data.errorCode}');
+        unawaited(Sentry.captureMessage(
+          'Error sending wifi credentials: ${data.errorCode}',
+        ));
+        completer.completeError(
+          Exception('Error sending wifi credentials: ${data.errorCode}'),
+        );
+        return;
+      }
+      final topicId = data.data[0];
       completer.complete(
         SendWifiCredentialResponse(
           topicId: topicId,
-          locationId: locationId,
         ),
       );
     };
@@ -405,19 +424,18 @@ class FFBluetoothService {
     final sendWifiCredentialResponse = res;
 
     log.info(
-      '[sendWifi] sendWifiCredentials success. LocationId: ${sendWifiCredentialResponse.locationId}, topicId: ${sendWifiCredentialResponse.topicId}',
+      '[sendWifi] sendWifiCredentials success, topicId: ${sendWifiCredentialResponse.topicId}',
     );
 
     final ffBluetoothDevice = device.toFFBluetoothDevice(
       topicId: sendWifiCredentialResponse.topicId,
-      locationId: sendWifiCredentialResponse.locationId,
     );
 
     log.info(
       '[sendWifi] sendWifiCredentials success. FFBluetoothDevice: ${ffBluetoothDevice.toJson()}',
     );
 
-    // Update device with topicId and locationId
+    // Update device with topicId
     return ffBluetoothDevice;
   }
 
@@ -700,11 +718,9 @@ class SendWifiCredentialRequest extends BluetoothRequest {
 class SendWifiCredentialResponse extends BluetoothResponse {
   const SendWifiCredentialResponse({
     required this.topicId,
-    required this.locationId,
   });
 
   final String topicId;
-  final String locationId;
 }
 
 class ScanWifiRequest extends BluetoothRequest {

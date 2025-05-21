@@ -383,7 +383,6 @@ class TvCastServiceImpl extends BaseTvCastService {
   }) async {
     try {
       final resultFuture = _api.request(
-        locationId: _device.locationId,
         topicId: _device.topicId,
         body: body,
       );

@@ -20,13 +20,11 @@ class _TvCastApi implements TvCastApi {
 
   @override
   Future<dynamic> request({
-    required String locationId,
     required String topicId,
     required Map<String, dynamic> body,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'locationID': locationId,
       r'topicID': topicId,
     };
     final _headers = <String, dynamic>{};

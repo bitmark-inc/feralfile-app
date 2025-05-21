@@ -1115,7 +1115,9 @@ class DeviceRealtimeMetrics {
         screen: json['screen'] != null
             ? DeviceScreen.fromJson(json['screen'] as Map<String, dynamic>)
             : null,
-        uptime: json['uptime'] as double?,
+        uptime: json['uptime'] != null
+            ? double.parse(json['uptime'].toString())
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
