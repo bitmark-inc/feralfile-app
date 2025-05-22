@@ -9,7 +9,6 @@ abstract class TvCastApi {
 
   @GET('/api/cast')
   Future<dynamic> request({
-    @Query('locationID') required String locationId,
     @Query('topicID') required String topicId,
     @Body() required Map<String, dynamic> body,
   });

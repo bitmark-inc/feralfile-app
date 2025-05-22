@@ -6,10 +6,10 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/artist_display_setting.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -323,8 +323,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
   }
 
   Future<void> _updateToDevice({bool isSaved = false}) async {
-    final connectedDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
+    final connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
     if (connectedDevice == null) {
       log.warning(
         'ArtistArtworkDisplaySettingBloc: updateToDevice: connectedDevice is null',

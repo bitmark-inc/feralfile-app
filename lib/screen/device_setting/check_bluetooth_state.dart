@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/nft_collection/utils/list_extentions.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -73,20 +75,17 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     injector<FFBluetoothService>().listenForAdapterState();
   }
 
-  String? getDeviceName(String link) {
+  List<String> getDataFromLink(String link) {
     final prefix = Constants.bluetoothConnectDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (prefix == null) {
-      return null;
+      return [];
     }
-    final data = link.replaceFirst(prefix, '').split('/');
-    if (data.length < 2) {
-      return null;
-    }
-
-    final deviceName = data[1];
-    log.info('[CheckBluetoothState] getDeviceName: $deviceName');
-    return deviceName;
+    final data = link.replaceFirst(prefix, '').substring(1).split('|')
+      ..removeWhere(
+            (element) => element.isEmpty,
+      );
+    return data;
   }
 
   @override
@@ -139,7 +138,8 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
             child: Center(
               child: Text(
                 'Bluetooth is required for setup. Please turn it on to continue.',
-                style: Theme.of(context)
+                style: Theme
+                    .of(context)
                     .textTheme
                     .ppMori700White24
                     .copyWith(fontSize: 40),
@@ -167,7 +167,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           const SizedBox(height: 16),
           Text(
             'Scanning for device...',
-            style: Theme.of(context).textTheme.ppMori700White16,
+            style: Theme
+                .of(context)
+                .textTheme
+                .ppMori700White16,
           ),
           const SizedBox(height: 16),
         ],
@@ -188,7 +191,10 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           const SizedBox(height: 16),
           Text(
             'Device not found',
-            style: Theme.of(context).textTheme.ppMori700White16,
+            style: Theme
+                .of(context)
+                .textTheme
+                .ppMori700White16,
           ),
           const SizedBox(height: 16),
           PrimaryButton(
@@ -206,13 +212,15 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     );
   }
 
-  Future<void> _handleBluetoothConnectDeeplink(
-    BuildContext context,
-    String link, {
-    Function? onFinish,
-  }) async {
-    final deviceName = getDeviceName(link);
-    FFBluetoothDevice? resultDevice;
+  Future<void> _handleBluetoothConnectDeeplink(BuildContext context,
+      String link, {
+        Function? onFinish,
+      }) async {
+    final data = getDataFromLink(link);
+    final deviceName = data.firstOrNull;
+
+    final topicId = data.atIndexOrNull(1);
+    BluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
     }
@@ -227,7 +235,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
-          resultDevice = device.toFFBluetoothDevice();
+          resultDevice = device;
           return true;
         }
         return false;
@@ -245,7 +253,6 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         _resultDevice = resultDevice;
       });
     }
-
     if (resultDevice != null) {
       if (context.mounted) {
         Navigator.of(context).pop();
@@ -253,27 +260,41 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       unawaited(injector<ConfigurationService>().setBetaTester(true));
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
       // go to setting wifi page
-      final shouldOpenDeviceSetting =
-          await injector<NavigationService>().navigateTo(
-        AppRouter.bluetoothDevicePortalPage,
-        arguments: resultDevice,
-      );
+
+      Pair<FFBluetoothDevice, bool>? res;
+      if (topicId != null) {
+        res = Pair(
+          resultDevice!.toFFBluetoothDevice(
+            topicId: topicId,
+          ),
+          true,
+        );
+        await injector<NavigationService>().showThePortalIsSet(res.first, null);
+        // Hide QR code on device
+        unawaited(injector<CanvasClientServiceV2>()
+            .showPairingQRCode(res.first, false));
+      } else {
+        final r = await injector<NavigationService>().navigateTo(
+          AppRouter.bluetoothDevicePortalPage,
+          arguments: resultDevice,
+        );
+        res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
+      }
 
       // after setting wifi, go to device setting page
-      if (shouldOpenDeviceSetting is bool) {
-        await injector<NavigationService>().navigateTo(
+      if (res is Pair<FFBluetoothDevice, bool>) {
+        unawaited(injector<NavigationService>().navigateTo(
           AppRouter.bluetoothConnectedDeviceConfig,
           arguments: BluetoothConnectedDeviceConfigPayload(
-            device: resultDevice!,
-            isFromOnboarding: shouldOpenDeviceSetting,
+            device: res.first,
+            isFromOnboarding: res.second,
           ),
-        );
+        ));
 
         // add device to canvas
-        await BluetoothDeviceHelper.addDevice(
-          resultDevice!.toFFBluetoothDevice(),
+        await BluetoothDeviceManager.addDevice(
+          res.first,
         );
-        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       }
       try {
         await onFinish?.call();

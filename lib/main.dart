@@ -17,12 +17,11 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
-import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -125,7 +124,8 @@ Future<void> runFeralFileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   log.info(
-      "Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}");
+    'Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}',
+  );
 
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
@@ -166,9 +166,7 @@ Future<void> runFeralFileApp() async {
 }
 
 void _registerHiveAdapter() {
-  Hive
-    ..registerAdapter(CanvasDeviceAdapter())
-    ..registerAdapter(AnnouncementLocalAdapter());
+  Hive.registerAdapter(AnnouncementLocalAdapter());
 }
 
 Future<void> _setupWorkManager() async {
@@ -194,19 +192,6 @@ Future<void> _startBackgroundUpdate() async {
   );
 }
 
-Future<void> _connectToBluetoothDevice() async {
-  try {
-    final bluetoothDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
-    if (bluetoothDevice != null) {
-      await injector<FFBluetoothService>().connectToDevice(bluetoothDevice,
-          shouldShowError: false, shouldChangeNowDisplayingStatus: true);
-    }
-  } catch (e) {
-    log.info('Error in connecting to connected device: $e');
-  }
-}
-
 Future<void> _setupApp() async {
   try {
     await setupLogger();
@@ -216,7 +201,6 @@ Future<void> _setupApp() async {
   }
   await setupInjector();
   unawaited(_setupWorkManager());
-  unawaited(_connectToBluetoothDevice());
   unawaited(injector<DeeplinkService>().setup());
   runApp(
     SDTFScope(
@@ -316,8 +300,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 
   void _updateAnimationBasedOnDisplayState() {
-    final hasDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice != null;
+    final hasDevice = BluetoothDeviceManager().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value;

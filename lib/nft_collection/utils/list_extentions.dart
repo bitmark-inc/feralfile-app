@@ -10,3 +10,12 @@ extension Unique<E, Id> on List<E>? {
     return list;
   }
 }
+
+extension ListExtensions<T> on List<T>? {
+  T? atIndexOrNull(int index) {
+    if (this == null || index < 0 || index >= this!.length) {
+      return null;
+    }
+    return this![index];
+  }
+}
