@@ -83,7 +83,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     }
     final data = link.replaceFirst(prefix, '').substring(1).split('|')
       ..removeWhere(
-            (element) => element.isEmpty,
+        (element) => element.isEmpty,
       );
     return data;
   }
@@ -138,8 +138,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
             child: Center(
               child: Text(
                 'Bluetooth is required for setup. Please turn it on to continue.',
-                style: Theme
-                    .of(context)
+                style: Theme.of(context)
                     .textTheme
                     .ppMori700White24
                     .copyWith(fontSize: 40),
@@ -167,10 +166,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           const SizedBox(height: 16),
           Text(
             'Scanning for device...',
-            style: Theme
-                .of(context)
-                .textTheme
-                .ppMori700White16,
+            style: Theme.of(context).textTheme.ppMori700White16,
           ),
           const SizedBox(height: 16),
         ],
@@ -191,10 +187,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           const SizedBox(height: 16),
           Text(
             'Device not found',
-            style: Theme
-                .of(context)
-                .textTheme
-                .ppMori700White16,
+            style: Theme.of(context).textTheme.ppMori700White16,
           ),
           const SizedBox(height: 16),
           PrimaryButton(
@@ -212,14 +205,16 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     );
   }
 
-  Future<void> _handleBluetoothConnectDeeplink(BuildContext context,
-      String link, {
-        Function? onFinish,
-      }) async {
+  Future<void> _handleBluetoothConnectDeeplink(
+    BuildContext context,
+    String link, {
+    Function? onFinish,
+  }) async {
     final data = getDataFromLink(link);
     final deviceName = data.firstOrNull;
 
     final topicId = data.atIndexOrNull(1);
+    final isConnectedToInternet = data.atIndexOrNull(2) == 'true';
     BluetoothDevice? resultDevice;
     if (_isScanning) {
       return;
@@ -262,18 +257,31 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       // go to setting wifi page
 
       Pair<FFBluetoothDevice, bool>? res;
-      if (topicId != null) {
+      if (topicId != null && isConnectedToInternet == true) {
         res = Pair(
           resultDevice!.toFFBluetoothDevice(
             topicId: topicId,
           ),
           true,
         );
+        // add device to canvas
+        await BluetoothDeviceManager.addDevice(
+          res.first,
+        );
         await injector<NavigationService>().showThePortalIsSet(res.first, null);
         // Hide QR code on device
         unawaited(injector<CanvasClientServiceV2>()
             .showPairingQRCode(res.first, false));
       } else {
+        if (topicId != null) {
+          // add device to canvas
+          final device = resultDevice!.toFFBluetoothDevice(
+            topicId: topicId,
+          );
+          await BluetoothDeviceManager.addDevice(
+            device,
+          );
+        }
         final r = await injector<NavigationService>().navigateTo(
           AppRouter.bluetoothDevicePortalPage,
           arguments: resultDevice,
