@@ -182,15 +182,7 @@ class BluetoothConnectedDeviceConfigState
   @override
   void afterFirstLayout(BuildContext context) {
     _pullingDeviceInfo();
-    _listenForCanvasCastRequestReply();
-  }
-
-  void _listenForCanvasCastRequestReply() {
-    cb = (data) async {
-      log.info(' Received data: $data');
-      _pullingDeviceInfo();
-    };
-    BluetoothNotificationService().subscribe(wifiConnectionTopic, cb!);
+    _pullingStatus();
   }
 
   void _pullingDeviceInfo() {
@@ -215,6 +207,14 @@ class BluetoothConnectedDeviceConfigState
 
   void _cancelPullingDeviceInfo() {
     _pullingDeviceInfoTimer?.cancel();
+  }
+
+  void _pullingStatus() {
+    BluetoothDeviceManager().startStatusPull();
+  }
+
+  void _stopPullingStatus() {
+    BluetoothDeviceManager().stopStatusPull();
   }
 
   void _bluetoothDeviceStatusListener() {
@@ -245,11 +245,8 @@ class BluetoothConnectedDeviceConfigState
 
     // Disable metrics streaming when leaving the screen
     _stopMetricsStreaming();
-
-    if (cb != null) {
-      BluetoothNotificationService().unsubscribe(wifiConnectionTopic, cb!);
-    }
     _cancelPullingDeviceInfo();
+    _stopPullingStatus();
 
     super.dispose();
   }

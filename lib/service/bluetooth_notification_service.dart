@@ -6,7 +6,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 typedef NotificationCallback = void Function(RawData data);
 
 final statusChangeTopic = 'statusChanged';
-final wifiConnectionTopic = 'wifi_connection';
 final scanWifiTopic = 'scanWifi';
 
 class BluetoothNotificationService {

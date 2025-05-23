@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
@@ -101,5 +103,25 @@ class BluetoothDeviceManager {
       );
       return null;
     }
+  }
+
+  Timer? _statusPullTimer;
+
+  void startStatusPull() {
+    _statusPullTimer?.cancel();
+    _statusPullTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (timer) async {
+        injector<CanvasDeviceBloc>().add(
+          CanvasDeviceGetDevicesEvent(),
+        );
+        // await NowDisplayingManager().updateDisplayingNow(addStatusOnError: false);
+      },
+    );
+  }
+
+  void stopStatusPull() {
+    _statusPullTimer?.cancel();
+    _statusPullTimer = null;
   }
 }
