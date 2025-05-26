@@ -18,8 +18,6 @@ class BluetoothDeviceStatus {
     );
   }
 
-  // Deprecated
-
   final String? connectedWifi;
   final ScreenOrientation screenRotation;
   final String? installedVersion;
@@ -32,6 +30,20 @@ class BluetoothDeviceStatus {
       'installedVersion': installedVersion,
       'latestVersion': latestVersion,
     };
+  }
+
+  BluetoothDeviceStatus copyWith({
+    ScreenOrientation? screenRotation,
+    String? connectedWifi,
+    String? installedVersion,
+    String? latestVersion,
+  }) {
+    return BluetoothDeviceStatus(
+      screenRotation: screenRotation ?? this.screenRotation,
+      connectedWifi: connectedWifi ?? this.connectedWifi,
+      installedVersion: installedVersion ?? this.installedVersion,
+      latestVersion: latestVersion ?? this.latestVersion,
+    );
   }
 
   bool get isConnectedToWifi => connectedWifi != null;

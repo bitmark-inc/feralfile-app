@@ -575,11 +575,18 @@ class BluetoothConnectedDeviceConfigState
           text: 'rotate'.tr(),
           color: AppColor.white,
           enabled: status?.isConnectedToWifi ?? false,
-          onTap: () => injector<CanvasDeviceBloc>().add(
-            CanvasDeviceRotateEvent(
-              blDevice,
-            ),
-          ),
+          onTap: () async {
+            final response =
+                await injector<CanvasClientServiceV2>().rotateCanvas(blDevice);
+            if (response != null) {
+              final deviceStatus =
+                  BluetoothDeviceManager().bluetoothDeviceStatus.value;
+              if (deviceStatus != null) {
+                BluetoothDeviceManager().bluetoothDeviceStatus.value =
+                    deviceStatus.copyWith(screenRotation: response);
+              }
+            }
+          },
         ),
       ],
     );
