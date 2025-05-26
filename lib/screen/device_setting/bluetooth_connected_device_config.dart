@@ -376,8 +376,7 @@ class BluetoothConnectedDeviceConfigState
               height: MediaQuery.paddingOf(context).top + 32,
             ),
           ),
-          if (widget.payload.isFromOnboarding &&
-              !(status?.isConnectedToWifi ?? false)) ...[
+          if (widget.payload.isFromOnboarding && !_isBLEDeviceConnected) ...[
             const SliverToBoxAdapter(
               child: SizedBox(
                 height: 20,
@@ -574,7 +573,7 @@ class BluetoothConnectedDeviceConfigState
         PrimaryAsyncButton(
           text: 'rotate'.tr(),
           color: AppColor.white,
-          enabled: status?.isConnectedToWifi ?? false,
+          enabled: status != null,
           onTap: () async {
             final response =
                 await injector<CanvasClientServiceV2>().rotateCanvas(blDevice);
@@ -752,7 +751,6 @@ class BluetoothConnectedDeviceConfigState
     final device = widget.payload.device;
     final deviceId = device.name;
     final connectedWifi = status?.connectedWifi;
-    final isNetworkConnected = status?.isConnectedToWifi ?? false;
 
     final divider = addDivider(
       height: 16,
@@ -884,7 +882,7 @@ class BluetoothConnectedDeviceConfigState
                   context,
                   title: 'Device Wifi Network',
                   child: Text(
-                    isNetworkConnected ? connectedWifi ?? '-' : '-',
+                    connectedWifi ?? '-',
                     style: theme.textTheme.ppMori400White14.copyWith(
                       color: _isBLEDeviceConnected
                           ? AppColor.white

@@ -45,6 +45,4 @@ class BluetoothDeviceStatus {
       latestVersion: latestVersion ?? this.latestVersion,
     );
   }
-
-  bool get isConnectedToWifi => connectedWifi != null;
 }
