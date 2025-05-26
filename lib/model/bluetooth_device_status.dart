@@ -27,11 +27,13 @@ class BluetoothDeviceStatus {
     );
   }
 
+  // Deprecated
   final String? ipAddress;
-  final String? connectedWifi;
-  final ScreenOrientation screenRotation;
   final bool isConnectedToWifi;
   final ArtFraming artFraming;
+
+  final String? connectedWifi;
+  final ScreenOrientation screenRotation;
   final String? installedVersion;
   final String? latestVersion;
 

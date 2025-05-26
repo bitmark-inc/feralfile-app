@@ -91,7 +91,7 @@ class BluetoothDeviceManager {
       BaseDevice device) async {
     try {
       final status = await injector<CanvasClientServiceV2>()
-          .getBluetoothDeviceStatus(device);
+          .getDeviceStatus(device);
       _bluetoothDeviceStatus.value = status;
       return status;
     } catch (e, stackTrace) {

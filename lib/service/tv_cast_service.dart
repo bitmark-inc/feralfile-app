@@ -41,8 +41,8 @@ abstract class TvCastService {
 
   Future<SendLogReply> getSupport(SendLogRequest request);
 
-  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
-    GetBluetoothDeviceStatusRequest request,
+  Future<GetDeviceStatusReply> getDeviceStatus(
+    GetDeviceStatusRequest request,
   );
 
   Future<UpdateArtFramingReply> updateArtFraming(
@@ -239,8 +239,8 @@ abstract class BaseTvCastService implements TvCastService {
   }
 
   @override
-  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
-    GetBluetoothDeviceStatusRequest request,
+  Future<GetDeviceStatusReply> getDeviceStatus(
+    GetDeviceStatusRequest request,
   ) async {
     final result = await _sendData(
       _getBody(request),
@@ -248,7 +248,7 @@ abstract class BaseTvCastService implements TvCastService {
       shouldShowError: false,
     );
 
-    return GetBluetoothDeviceStatusReply.fromJson(result);
+    return GetDeviceStatusReply.fromJson(result);
   }
 
   @override

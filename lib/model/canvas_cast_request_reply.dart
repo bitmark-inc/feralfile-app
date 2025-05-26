@@ -24,7 +24,7 @@ enum CastCommand {
   sendKeyboardEvent,
   rotate,
   sendLog,
-  getBluetoothDeviceStatus,
+  getDeviceStatus,
   updateArtFraming,
   updateToLatestVersion,
   tapGesture,
@@ -65,8 +65,8 @@ enum CastCommand {
         return CastCommand.rotate;
       case 'sendLog':
         return CastCommand.sendLog;
-      case 'getBluetoothDeviceStatus':
-        return CastCommand.getBluetoothDeviceStatus;
+      case 'getDeviceStatus':
+        return CastCommand.getDeviceStatus;
       case 'updateArtFraming':
         return CastCommand.updateArtFraming;
       case 'updateToLatestVersion':
@@ -116,8 +116,8 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case const (RotateRequest):
         return CastCommand.rotate;
-      case const (GetBluetoothDeviceStatusRequest):
-        return CastCommand.getBluetoothDeviceStatus;
+      case const (GetDeviceStatusRequest):
+        return CastCommand.getDeviceStatus;
       case const (UpdateArtFramingRequest):
         return CastCommand.updateArtFraming;
       case const (UpdateToLatestVersionRequest):
@@ -774,21 +774,21 @@ extension OrientationExtension on Orientation {
   }
 }
 
-class GetBluetoothDeviceStatusRequest implements Request {
-  GetBluetoothDeviceStatusRequest();
+class GetDeviceStatusRequest implements Request {
+  GetDeviceStatusRequest();
 
-  factory GetBluetoothDeviceStatusRequest.fromJson(Map<String, dynamic> json) =>
-      GetBluetoothDeviceStatusRequest();
+  factory GetDeviceStatusRequest.fromJson(Map<String, dynamic> json) =>
+      GetDeviceStatusRequest();
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
-class GetBluetoothDeviceStatusReply extends Reply {
-  GetBluetoothDeviceStatusReply({required this.deviceStatus});
+class GetDeviceStatusReply extends Reply {
+  GetDeviceStatusReply({required this.deviceStatus});
 
-  factory GetBluetoothDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
-      GetBluetoothDeviceStatusReply(
+  factory GetDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
+      GetDeviceStatusReply(
         deviceStatus: BluetoothDeviceStatus.fromJson(
           json,
         ),

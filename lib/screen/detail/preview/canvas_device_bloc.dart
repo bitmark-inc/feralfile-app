@@ -644,7 +644,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     await Future.wait(
       devices.map((device) async {
         try {
-          final status = await _canvasClientServiceV2.getDeviceStatus(
+          final status = await _canvasClientServiceV2.getCastingStatus(
             device,
             shouldShowError: false,
           );
