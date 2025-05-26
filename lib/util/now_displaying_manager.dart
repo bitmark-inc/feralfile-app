@@ -138,24 +138,25 @@ class NowDisplayingManager {
   }
 
   Future<CheckDeviceStatusReply?> _getStatus(FFBluetoothDevice device) async {
-    final completer = Completer<CheckDeviceStatusReply?>();
-    injector<CanvasDeviceBloc>().add(
-      CanvasDeviceGetStatusEvent(
-        device,
-        onDoneCallback: (status) {
-          completer.complete(status);
-        },
-        onErrorCallback: (e) {
-          completer.completeError(e);
-        },
-      ),
-    );
-    final res = await completer.future.timeout(
-      const Duration(seconds: 5),
-      onTimeout: () {
-        throw TimeoutException('Timeout getting Now Displaying');
-      },
-    );
-    return res;
+    return injector<CanvasDeviceBloc>().state.statusOf(device);
+    // final completer = Completer<CheckDeviceStatusReply?>();
+    // injector<CanvasDeviceBloc>().add(
+    //   CanvasDeviceGetStatusEvent(
+    //     device,
+    //     onDoneCallback: (status) {
+    //       completer.complete(status);
+    //     },
+    //     onErrorCallback: (e) {
+    //       completer.completeError(e);
+    //     },
+    //   ),
+    // );
+    // final res = await completer.future.timeout(
+    //   const Duration(seconds: 5),
+    //   onTimeout: () {
+    //     throw TimeoutException('Timeout getting Now Displaying');
+    //   },
+    // );
+    // return res;
   }
 }

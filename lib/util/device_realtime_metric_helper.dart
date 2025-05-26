@@ -28,7 +28,7 @@ class DeviceRealtimeMetricHelper {
   void startRealtimeMetrics({required FFBluetoothDevice device}) {
     // Simulate real-time metrics generation
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
       final metrics = await injector<CanvasClientServiceV2>()
           .getDeviceRealtimeMetrics(device);
       _deviceRealtimeMetricsController.add(metrics);

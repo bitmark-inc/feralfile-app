@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -42,7 +44,8 @@ class FFCastButton extends StatefulWidget {
   State<FFCastButton> createState() => FFCastButtonState();
 }
 
-class FFCastButtonState extends State<FFCastButton> {
+class FFCastButtonState extends State<FFCastButton>
+    with AfterLayoutMixin<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _upgradesBloc = injector.get<UpgradesBloc>();
   bool _isProcessing = false;
@@ -53,6 +56,17 @@ class FFCastButtonState extends State<FFCastButton> {
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     injector<SubscriptionBloc>().add(GetSubscriptionEvent());
     _upgradesBloc.add(UpgradeQueryInfoEvent());
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    BluetoothDeviceManager().startStatusPull();
+  }
+
+  @override
+  void dispose() {
+    BluetoothDeviceManager().stopStatusPull();
+    super.dispose();
   }
 
   @override

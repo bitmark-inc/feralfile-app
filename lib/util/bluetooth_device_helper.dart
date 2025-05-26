@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
 
@@ -106,8 +107,10 @@ class BluetoothDeviceManager {
   }
 
   Timer? _statusPullTimer;
+  int _statusPullCount = 0;
 
   void startStatusPull() {
+    _statusPullCount += 1;
     _statusPullTimer?.cancel();
     _statusPullTimer = Timer.periodic(
       const Duration(seconds: 5),
@@ -115,12 +118,18 @@ class BluetoothDeviceManager {
         injector<CanvasDeviceBloc>().add(
           CanvasDeviceGetDevicesEvent(),
         );
-        // await NowDisplayingManager().updateDisplayingNow(addStatusOnError: false);
+        await NowDisplayingManager()
+            .updateDisplayingNow(addStatusOnError: false);
       },
     );
   }
 
-  void stopStatusPull() {
+  void stopStatusPull({bool force = false}) {
+    _statusPullCount -= 1;
+    if (_statusPullCount > 0 && !force) {
+      return;
+    }
+    _statusPullCount = 0;
     _statusPullTimer?.cancel();
     _statusPullTimer = null;
   }
