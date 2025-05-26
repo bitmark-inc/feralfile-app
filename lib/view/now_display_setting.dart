@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -33,7 +33,6 @@ class NowDisplaySettingView extends StatefulWidget {
 class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
   late ArtFraming selectedFitment;
   late FFBluetoothDevice? connectedDevice;
-  late BluetoothDeviceStatus? deviceSettings;
   bool overridable = true;
 
   @override
@@ -48,10 +47,11 @@ class _NowDisplaySettingViewState extends State<NowDisplaySettingView> {
 
   void initDisplaySettings() {
     overridable = widget.tokenConfiguration?.overridable ?? true;
-    deviceSettings = BluetoothDeviceManager().bluetoothDeviceStatus.value;
-
     if (overridable) {
-      selectedFitment = deviceSettings?.artFraming ??
+      final castingDevice = BluetoothDeviceManager().castingBluetoothDevice;
+      final deviceStatus =
+          injector<CanvasDeviceBloc>().state.statusOf(castingDevice!);
+      selectedFitment = deviceStatus?.deviceSettings?.scaling ??
           widget.tokenConfiguration?.artFraming ??
           ArtFraming.fitToScreen;
     } else {

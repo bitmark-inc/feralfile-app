@@ -559,39 +559,29 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _displayOrientation(BuildContext context) {
     final blDevice = widget.payload.device;
-    return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-      bloc: injector<CanvasDeviceBloc>(),
-      buildWhen: (previous, current) {
-        return previous.deviceDisplaySettingOf(blDevice)?.screenOrientation !=
-            current.deviceDisplaySettingOf(blDevice)?.screenOrientation;
-      },
-      builder: (context, state) {
-        final deviceState = state.statusOf(blDevice);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'display_orientation'.tr(),
-              style: Theme.of(context).textTheme.ppMori400White14,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'display_orientation'.tr(),
+          style: Theme.of(context).textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 16),
+        _displayOrientationPreview(
+          status?.screenRotation,
+        ),
+        const SizedBox(height: 16),
+        PrimaryAsyncButton(
+          text: 'rotate'.tr(),
+          color: AppColor.white,
+          enabled: status?.isConnectedToWifi ?? false,
+          onTap: () => injector<CanvasDeviceBloc>().add(
+            CanvasDeviceRotateEvent(
+              blDevice,
             ),
-            const SizedBox(height: 16),
-            _displayOrientationPreview(
-              deviceState?.deviceSettings?.screenOrientation,
-            ),
-            const SizedBox(height: 16),
-            PrimaryAsyncButton(
-              text: 'rotate'.tr(),
-              color: AppColor.white,
-              enabled: deviceState != null,
-              onTap: () => injector<CanvasDeviceBloc>().add(
-                CanvasDeviceRotateEvent(
-                  blDevice,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 
@@ -754,7 +744,6 @@ class BluetoothConnectedDeviceConfigState
     final theme = Theme.of(context);
     final device = widget.payload.device;
     final deviceId = device.name;
-    final ipAddress = status?.ipAddress;
     final connectedWifi = status?.connectedWifi;
     final isNetworkConnected = status?.isConnectedToWifi ?? false;
 
@@ -878,22 +867,6 @@ class BluetoothConnectedDeviceConfigState
                 ),
               ),
               divider,
-              //IP Address
-              if (ipAddress != null && ipAddress.isNotEmpty) ...[
-                _deviceInfoItem(
-                  context,
-                  title: 'IP Address:',
-                  child: Text(
-                    ipAddress,
-                    style: theme.textTheme.ppMori400White14.copyWith(
-                      color: _isBLEDeviceConnected
-                          ? AppColor.white
-                          : AppColor.disabledColor,
-                    ),
-                  ),
-                ),
-                divider,
-              ],
 
               // WiFi Network
               // Check if the device is connected to WiFi
