@@ -1,0 +1,55 @@
+name: widgetbook_workspace
+description: "Feral File Widgetbook Workspace"
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  widgetbook: ^3.14.1
+  widgetbook_annotation: ^3.5.0
+  autonomy_flutter:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  widgetbook_generator: ^3.13.0
+  build_runner: ^2.4.15
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/erc20-abi.json
+    - assets/erc721-abi.json
+    - assets/erc1155-abi.json
+    - assets/images/
+    - assets/translations/
+    - assets/videos/
+
+  fonts:
+    - family: PPMori
+      fonts:
+        - asset: assets/fonts/PPMori/PPMori-Regular.ttf
+        - asset: assets/fonts/PPMori/PPMori-Bold.ttf
+        - asset: assets/fonts/PPMori/PPMori-SemiBold.ttf
+
+    - family: AuIcon
+      fonts:
+        - asset: assets/fonts/AuIcon.ttf
+
+    - family: FFIcon
+      fonts:
+        - asset: assets/fonts/FFIcon.ttf
+
+    - family: MoMASans
+      fonts:
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold-Italic.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular-Italic.otf
