@@ -153,7 +153,7 @@ class FFBluetoothService {
       if (state == BluetoothConnectionState.connected) {
         try {
           if (Platform.isAndroid) {
-            await device.requestMtu(512);
+            // await device.requestMtu(512);
           }
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {

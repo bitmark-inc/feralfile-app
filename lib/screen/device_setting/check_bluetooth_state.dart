@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
@@ -225,13 +226,18 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     await injector<FFBluetoothService>().startScan(
       timeout: const Duration(seconds: 10),
       forceScan: true,
-      onData: (results) {
+      onData: (results) async {
+        log.info('Scanned devices: ${results.map((e) => e.device).toList()}');
         final devices = results.map((e) => e.device).toList();
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
           resultDevice = device;
           return true;
+        }
+        if (results.isNotEmpty) {
+          await UIHelper.showInfoDialog(context, "Device $deviceName not found",
+              "Scanned devices: ${results.map((e) => e.device.advName).join(', ')}");
         }
         return false;
       },

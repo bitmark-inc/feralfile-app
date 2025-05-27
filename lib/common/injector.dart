@@ -7,7 +7,6 @@
 
 // ignore_for_file: cascade_invocations
 
-import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -308,7 +307,7 @@ Future<void> setupInjector() async {
   );
   injector.registerLazySingleton<CustomerSupportService>(
     () => CustomerSupportServiceImpl(
-      ObjectBox.draftCustomerSupport,
+      DraftCustomerSupportStore(),
       CustomerSupportApi(
         customerSupportDio(
           dioOptions.copyWith(
@@ -321,6 +320,7 @@ Future<void> setupInjector() async {
       injector(),
     ),
   );
+  await injector<CustomerSupportService>().init();
 
   injector.registerLazySingleton<DomainService>(DomainServiceImpl.new);
 
@@ -413,8 +413,10 @@ Future<void> setupInjector() async {
   injector.registerFactory<PredefinedCollectionBloc>(
     PredefinedCollectionBloc.new,
   );
+  final identityStore = IndexerIdentityStore();
+  await identityStore.init('');
   injector.registerLazySingleton<IdentityBloc>(
-    () => IdentityBloc(ObjectBox.identityBox, injector()),
+    () => IdentityBloc(identityStore, injector()),
   );
 
   injector.registerLazySingleton<CanvasDeviceBloc>(

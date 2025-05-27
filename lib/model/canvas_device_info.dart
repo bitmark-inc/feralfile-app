@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:sentry/sentry.dart';
 
 abstract class BaseDevice {
@@ -21,8 +22,8 @@ abstract class BaseDevice {
   final String topicId;
 }
 
-@Entity()
-class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
+class FFBluetoothDevice extends BluetoothDevice
+    implements BaseDevice, SettingObject {
   FFBluetoothDevice({
     required this.name,
     required String remoteID,
@@ -37,9 +38,6 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
         topicId: json['topicId'] as String,
       );
 
-  @Id()
-  int objId = 0;
-
   @override
   final String name;
 
@@ -52,7 +50,8 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   final String topicId; // topic id
 
   // toJson
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'name': name,
         'remoteID': remoteID,
         'topicId': topicId,
@@ -61,7 +60,7 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device,
       {String? topicId}) {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
-      (e) => e.remoteID == device.remoteId.str,
+          (e) => e.remoteID == device.remoteId.str,
     );
     return FFBluetoothDevice(
       name: device.getName,
@@ -82,6 +81,19 @@ class FFBluetoothDevice extends BluetoothDevice implements BaseDevice {
 
   @override
   int get hashCode => super.hashCode;
+
+  @override
+  String get key => deviceId;
+
+  @override
+  Map<String, String> get toKeyValue =>
+      {
+        'key': key,
+        'value': value,
+      };
+
+  @override
+  String get value => jsonEncode(toJson());
 }
 
 extension BluetoothDeviceExtension on BluetoothDevice {
@@ -96,7 +108,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     final savedName = BluetoothDeviceManager.pairedDevices
         .firstWhereOrNull(
           (e) => e.remoteID == remoteId.str,
-        )
+    )
         ?.name;
     if (savedName != null) {
       return savedName;
@@ -119,7 +131,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         ..addAll(discoveredServices);
 
       final primaryService = services.firstWhereOrNull(
-        (service) => service.isPrimary,
+            (service) => service.isPrimary,
       );
 
       if (primaryService == null) {
@@ -132,7 +144,8 @@ extension BluetoothDeviceExtension on BluetoothDevice {
 
       // if the command and wifi connect characteristics are not found, try to find them
       final commandService = services.firstWhereOrNull(
-        (service) => service.uuid.toString() == BluetoothManager.serviceUuid,
+            (service) =>
+        service.uuid.toString() == BluetoothManager.serviceUuid,
       );
 
       if (commandService == null) {
@@ -140,7 +153,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         return;
       }
       final wifiConnectChar = commandService.characteristics.firstWhere(
-        (characteristic) => characteristic.isWifiConnectCharacteristic,
+            (characteristic) => characteristic.isWifiConnectCharacteristic,
       );
 
       // Set the command and wifi connect characteristics

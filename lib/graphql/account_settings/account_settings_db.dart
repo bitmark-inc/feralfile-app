@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/util/log.dart';
 
 enum OnConflict { override, skip }
 
-abstract class AccountSettingsDB {
+abstract class CloudDB {
   Future<void> download({List<String>? keys});
 
   Future<void> uploadCurrentCache();
@@ -36,11 +36,11 @@ abstract class AccountSettingsDB {
   void clearCache();
 }
 
-class AccountSettingsDBImpl implements AccountSettingsDB {
+class CloudDBImpl implements CloudDB {
   final AccountSettingsClient _client;
   final String _prefix;
 
-  AccountSettingsDBImpl(this._client, this._prefix);
+  CloudDBImpl(this._client, this._prefix);
 
   final Map<String, String> _caches = {};
 

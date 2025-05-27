@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -21,11 +22,15 @@ class BluetoothDeviceManager {
 
   factory BluetoothDeviceManager() => _instance;
 
-  static Box<FFBluetoothDevice> get _pairedDevicesBox =>
-      ObjectBox.bluetoothPairedDevicesBox;
+  static CloudDB get _ffDeviceDB => injector<CloudManager>().ffDeviceDB;
 
   static List<FFBluetoothDevice> get pairedDevices {
-    final devices = _pairedDevicesBox.getAll();
+    final rawData = _ffDeviceDB.values;
+    final devices = rawData
+        .map((e) =>
+            FFBluetoothDevice.fromJson(jsonDecode(e) as Map<String, dynamic>))
+        .toList()
+        .cast<FFBluetoothDevice>();
     return devices
         .toSet()
         .toList()
@@ -38,8 +43,8 @@ class BluetoothDeviceManager {
   static Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    await _pairedDevicesBox.removeAllAsync();
-    await _pairedDevicesBox.putAsync(device);
+    _ffDeviceDB.clearCache();
+    await _ffDeviceDB.write([device.toKeyValue]);
     BluetoothDeviceManager().castingBluetoothDevice = device;
     injector<CanvasDeviceBloc>().add(
       CanvasDeviceGetDevicesEvent(),
