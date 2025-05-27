@@ -114,7 +114,7 @@ class BluetoothDeviceManager {
   Timer? _statusPullTimer;
   int _statusPullCount = 0;
 
-  void startStatusPull() {
+  void startPullingCastingStatus() {
     _statusPullCount += 1;
     _statusPullTimer?.cancel();
     _statusPullTimer = Timer.periodic(
@@ -129,7 +129,7 @@ class BluetoothDeviceManager {
     );
   }
 
-  void stopStatusPull({bool force = false}) {
+  void stopPullingCastingStatus({bool force = false}) {
     _statusPullCount -= 1;
     if (_statusPullCount > 0 && !force) {
       return;

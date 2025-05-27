@@ -210,11 +210,11 @@ class BluetoothConnectedDeviceConfigState
   }
 
   void _pullingStatus() {
-    BluetoothDeviceManager().startStatusPull();
+    BluetoothDeviceManager().startPullingCastingStatus();
   }
 
   void _stopPullingStatus() {
-    BluetoothDeviceManager().stopStatusPull();
+    BluetoothDeviceManager().stopPullingCastingStatus();
   }
 
   void _bluetoothDeviceStatusListener() {
@@ -387,7 +387,7 @@ class BluetoothConnectedDeviceConfigState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Waiting for Portal to connect to the internet',
+                    'Waiting for Portal to be ready.',
                     style: Theme.of(context).textTheme.ppMori400White14,
                   ),
                 ],

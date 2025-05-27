@@ -60,12 +60,12 @@ class FFCastButtonState extends State<FFCastButton>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    BluetoothDeviceManager().startStatusPull();
+    BluetoothDeviceManager().startPullingCastingStatus();
   }
 
   @override
   void dispose() {
-    BluetoothDeviceManager().stopStatusPull();
+    BluetoothDeviceManager().stopPullingCastingStatus();
     super.dispose();
   }
 

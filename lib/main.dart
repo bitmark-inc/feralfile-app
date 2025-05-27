@@ -80,6 +80,7 @@ void main() async {
         (options) {
           options
             ..dsn = Environment.sentryDSN
+            ..debug = false
             ..enableAutoSessionTracking = true
             ..tracesSampleRate = 0.25
             ..attachStacktrace = true
