@@ -23,6 +23,8 @@ class _TouchPadState extends State<TouchPad> {
   final _canvasClient = injector<CanvasClientServiceV2>();
   final _touchPadKey = GlobalKey();
 
+  Offset? _lastPosition;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -37,9 +39,14 @@ class _TouchPadState extends State<TouchPad> {
               log.info('[Touchpad] onTap');
               await _canvasClient.tap(widget.devices);
             },
-            onPanStart: (panDetails) {},
+            onPanStart: (panDetails) {
+              log.info('[Touchpad] onPanStart: ${panDetails.localPosition}');
+              _lastPosition = panDetails.localPosition;
+            },
             onPanUpdate: (panDetails) {
-              Offset delta = panDetails.delta;
+              Offset delta = panDetails.localPosition -
+                  (_lastPosition ?? panDetails.localPosition);
+              _lastPosition = panDetails.localPosition;
               unawaited(_canvasClient.drag(widget.devices, delta));
             },
           ),
