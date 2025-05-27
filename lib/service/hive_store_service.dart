@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+abstract class HiveObject {
+  String get hiveId;
+}
+
 abstract class HiveStoreObjectService<T> {
   Future<void> init(String key);
 

@@ -1,16 +1,15 @@
-import 'package:objectbox/objectbox.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 
-@Entity()
-class IndexerIdentity {
+class IndexerIdentity implements HiveObject {
   IndexerIdentity(this.accountNumber, this.blockchain, this.name);
-  @Id()
-  int id = 0;
 
-  @Unique()
   String accountNumber;
   String blockchain;
   String name;
 
-  @Property(type: PropertyType.date)
   DateTime queriedAt = DateTime.now();
+
+  @override
+  String get hiveId =>
+      accountNumber; // ObjectBox requires an id, but we don't use it
 }

@@ -15,11 +15,11 @@ import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/draft_customer_support.dart';
-import 'package:autonomy_flutter/objectbox.g.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -31,18 +31,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class CustomerSupportUpdate {
-  DraftCustomerSupport draft;
-  PostedMessageResponse response;
-
   CustomerSupportUpdate({
     required this.draft,
     required this.response,
   });
+
+  DraftCustomerSupport draft;
+  PostedMessageResponse response;
 }
 
 abstract class CustomerSupportService {
   ValueNotifier<List<int>?>
       get numberOfIssuesInfo; // [numberOfIssues, numberOfUnreadIssues]
+
+  Future<void> init();
+
   ValueNotifier<int> get triggerReloadMessages;
 
   ValueNotifier<CustomerSupportUpdate?> get customerSupportUpdate;
@@ -72,12 +75,30 @@ abstract class CustomerSupportService {
   Future<void> removeErrorMessage(String uuid, {bool isDelete = false});
 
   void sendMessageFail(String uuid);
+
+  Future<void> clear();
+}
+
+class DraftCustomerSupportStore
+    extends HiveStoreObjectServiceImpl<DraftCustomerSupport> {
+  static const String _key = 'draft.customer_support';
+
+  @override
+  Future<void> init(String key) async {
+    await super.init(_key);
+  }
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
+  CustomerSupportServiceImpl(
+    this._draftCustomerSupportStore,
+    this._customerSupportApi,
+    this._configurationService,
+  );
+
 // 1 day.
 
-  final Box<DraftCustomerSupport> _draftCustomerSupportBox;
+  final DraftCustomerSupportStore _draftCustomerSupportStore;
   final CustomerSupportApi _customerSupportApi;
   final ConfigurationService _configurationService;
 
@@ -95,16 +116,15 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   Map<String, String> tempIssueIDMap = {};
 
-  CustomerSupportServiceImpl(
-    this._draftCustomerSupportBox,
-    this._customerSupportApi,
-    this._configurationService,
-  );
-
   bool _isProcessingDraftMessages = false;
 
   /// will add this after backend support
   static const _supportChatNotificationTypes = [];
+
+  @override
+  Future<void> init() async {
+    await _draftCustomerSupportStore.init('');
+  }
 
   Future<List<Issue>> _getIssues() async {
     final issues = <Issue>[];
@@ -112,7 +132,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       final jwt = await injector<AuthService>().getAuthToken();
       if (jwt != null) {
         final listIssues = await _customerSupportApi.getIssues(
-            token: 'Bearer ${jwt.jwtToken}');
+          token: 'Bearer ${jwt.jwtToken}',
+        );
         issues.addAll(listIssues);
       }
       final anonymousDeviceId = _configurationService.getAnonymousDeviceId();
@@ -129,9 +150,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       log.info('[CS-Service] getIssues error: $e');
       unawaited(Sentry.captureException(e));
     }
-    final drafts = await _draftCustomerSupportBox.getAllAsync();
+    final drafts = _draftCustomerSupportStore.getAll();
 
-    for (var draft in drafts) {
+    for (final draft in drafts) {
       if (draft.type != CSMessageType.createIssue.rawValue) {
         continue;
       }
@@ -162,11 +183,13 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       issues.add(draftIssue);
     }
 
-    for (var issue in issues) {
+    for (final issue in issues) {
       try {
-        final latestDraft = drafts.firstWhere((element) =>
-            element.issueID == issue.issueID &&
-            element.type != CSMessageType.createIssue.rawValue);
+        final latestDraft = drafts.firstWhere(
+          (element) =>
+              element.issueID == issue.issueID &&
+              element.type != CSMessageType.createIssue.rawValue,
+        );
 
         issue.draft = latestDraft;
       } catch (_) {
@@ -194,7 +217,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             issues.firstWhereOrNull((element) => element.issueID == issueId);
         if (issue != null) {
           final newIssue = issue.copyWith(
-              announcementContentId: element.announcementContentId);
+            announcementContentId: element.announcementContentId,
+          );
           final index = issues.indexOf(issue);
           issues
             ..removeAt(index)
@@ -225,11 +249,11 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   Future<IssueDetails> getDetails(String issueID) async =>
-      await _customerSupportApi.getDetails(issueID);
+      _customerSupportApi.getDetails(issueID);
 
   @override
   Future<dynamic> draftMessage(DraftCustomerSupport draft) async {
-    await _draftCustomerSupportBox.putAsync(draft);
+    await _draftCustomerSupportStore.save(draft, draft.hiveId);
     unawaited(processMessages());
   }
 
@@ -239,27 +263,25 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final id = uuid.substring(0, 36);
     errorMessages.remove(id);
     if (isDelete) {
-      final query = _draftCustomerSupportBox
-          .query(DraftCustomerSupport_.uuid.equals(id))
-          .build();
-      final msg = (await query.findAsync()).firstOrNull;
-      query.close();
+      final msg = _draftCustomerSupportStore.getAll().firstWhereOrNull(
+            (element) => element.uuid == id,
+          );
       if (msg != null) {
-        await _draftCustomerSupportBox.removeAsync(msg.id);
+        await _draftCustomerSupportStore.delete(msg.hiveId);
         if (msg.draftData.attachments != null &&
             msg.draftData.attachments!.isNotEmpty) {
-          var draftData = msg.draftData;
-          String name = uuid.substring(36);
+          final draftData = msg.draftData;
+          final name = uuid.substring(36);
           final fileToRemove = draftData.attachments!
               .firstWhereOrNull((element) => element.fileName.contains(name));
           if (draftData.attachments!.remove(fileToRemove)) {
             msg.data = jsonEncode(draftData);
-            await _draftCustomerSupportBox.putAsync(msg);
+            await _draftCustomerSupportStore.save(msg, msg.hiveId);
             errorMessages.add(id);
           }
           if (msg.type == CSMessageType.postLogs.rawValue &&
               fileToRemove != null) {
-            File file = File(fileToRemove.path);
+            final file = File(fileToRemove.path);
             unawaited(file.delete());
           }
         }
@@ -282,7 +304,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       return;
     }
     log.info('[CS-Service][start] processMessages');
-    final draftMsgsRaw = await _draftCustomerSupportBox.getAllAsync();
+    final draftMsgsRaw = _draftCustomerSupportStore.getAll();
     if (draftMsgsRaw.isEmpty) {
       return;
     }
@@ -301,20 +323,20 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         draftMsg.issueID.contains('TEMP')) {
       final newIssueID = tempIssueIDMap[draftMsg.issueID];
       if (newIssueID != null) {
-        final query = _draftCustomerSupportBox
-            .query(DraftCustomerSupport_.issueID.equals(draftMsg.issueID))
-            .build();
-        final draftsToUpdate = await query.findAsync();
-        for (var draft in draftsToUpdate) {
+        final draftsToUpdate = _draftCustomerSupportStore.getAll().where(
+              (element) => element.issueID == draftMsg.issueID,
+            );
+        for (final draft in draftsToUpdate) {
           draft.issueID = newIssueID;
-          await _draftCustomerSupportBox.putAsync(draft);
+          await _draftCustomerSupportStore.save(draft, draft.hiveId);
         }
-        query.close();
       } else {
-        if (!draftMsgsRaw.any((element) =>
-            (element.issueID == draftMsg.issueID) &&
-            (element.uuid != draftMsg.uuid))) {
-          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
+        if (!draftMsgsRaw.any(
+          (element) =>
+              (element.issueID == draftMsg.issueID) &&
+              (element.uuid != draftMsg.uuid),
+        )) {
+          await _draftCustomerSupportStore.delete(draftMsg.hiveId);
         } else {
           sendMessageFail(draftMsg.uuid);
         }
@@ -327,31 +349,34 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     // Parse data
     final data = DraftCustomerSupportData.fromJson(
-        jsonDecode(draftMsg.data) as Map<String, dynamic>);
+      jsonDecode(draftMsg.data) as Map<String, dynamic>,
+    );
     List<SendAttachment>? sendAttachments;
 
     try {
       if (data.attachments != null) {
-        sendAttachments =
-            await Future.wait(data.attachments!.map((element) async {
-          File file = File(element.path);
-          final bytes = await file.readAsBytes();
-          return SendAttachment(
-            data: base64Encode(bytes),
-            title: element.fileName,
-          );
-        }));
+        sendAttachments = await Future.wait(
+          data.attachments!.map((element) async {
+            final file = File(element.path);
+            final bytes = await file.readAsBytes();
+            return SendAttachment(
+              data: base64Encode(bytes),
+              title: element.fileName,
+            );
+          }),
+        );
       }
     } on FileSystemException catch (exception) {
       log.info('[CS-Service] can not find file in draftCustomerSupport');
       unawaited(Sentry.captureException(exception));
 
       // just delete draft because we can not do anything more
-      await _draftCustomerSupportBox.removeAsync(draftMsg.id);
+      await _draftCustomerSupportStore.delete(draftMsg.hiveId);
       unawaited(removeErrorMessage(draftMsg.uuid));
       _isProcessingDraftMessages = false;
       log.info(
-          '[CS-Service][end] processMessages delete invalid draftMesssage');
+        '[CS-Service][end] processMessages delete invalid draftMesssage',
+      );
       unawaited(processMessages());
       return;
     }
@@ -368,7 +393,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             artworkReportID: data.artworkReportID,
             customTags: [
               if (data.announcementContentId != null)
-                'announcement_${data.announcementContentId}'
+                'announcement_${data.announcementContentId}',
             ],
           );
           // after send support message, we should also trigger send log from FF device
@@ -383,35 +408,39 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           } catch (e) {
             log.info('[CS-Service] send log from FF Device failed: $e');
             unawaited(
-                Sentry.captureException('Send log from FF Device failed: $e'));
+              Sentry.captureException('Send log from FF Device failed: $e'),
+            );
           }
 
           if (data.announcementContentId != null) {
             injector<AnnouncementService>().linkAnnouncementToIssue(
-                data.announcementContentId!, result.issueID);
+              data.announcementContentId!,
+              result.issueID,
+            );
           }
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
-          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
+          await _draftCustomerSupportStore.delete(draftMsg.hiveId);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
 
         default:
           final result =
               await commentIssue(draftMsg.issueID, data.text, sendAttachments);
-          await _draftCustomerSupportBox.removeAsync(draftMsg.id);
+          await _draftCustomerSupportStore.delete(draftMsg.hiveId);
           customerSupportUpdate.value =
               CustomerSupportUpdate(draft: draftMsg, response: result);
-          break;
       }
 
       // Delete logs attachment so it doesn't waste device's storage
       if (draftMsg.type == CSMessageType.postLogs.rawValue &&
           data.attachments != null) {
         log.info('[CS-Service][start] processMessages delete temp logs file');
-        await Future.wait(data.attachments!.map((element) async {
-          File file = File(element.path);
-          unawaited(file.delete());
-        }));
+        await Future.wait(
+          data.attachments!.map((element) async {
+            final file = File(element.path);
+            unawaited(file.delete());
+          }),
+        );
       }
       unawaited(removeErrorMessage(draftMsg.uuid));
     } catch (exception) {
@@ -426,12 +455,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   Future<List<DraftCustomerSupport>> getDrafts(String issueID) async {
-    final query = _draftCustomerSupportBox
-        .query(DraftCustomerSupport_.issueID.equals(issueID))
-        .order(DraftCustomerSupport_.createdAt)
-        .build();
-    final results = await query.findAsync();
-    query.close();
+    final results = _draftCustomerSupportStore.getAll().where((element) {
+      return element.issueID == issueID;
+    }).toList();
     return results;
   }
 
@@ -450,7 +476,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
 
     // add tags
-    var tags = [...customTags, reportIssueType];
+    final tags = [...customTags, reportIssueType];
     if (Platform.isIOS) {
       tags.add('iOS');
     } else if (Platform.isAndroid) {
@@ -469,7 +495,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     mutedMessage += '**DeviceName**: ${deviceInfo.name}\n';
     mutedMessage += '**OSVersion**: ${deviceInfo.oSVersion}\n';
 
-    for (var mutedMsg in mutedText ?? []) {
+    for (final mutedMsg in mutedText ?? []) {
       mutedMessage += '$mutedMsg\n';
     }
 
@@ -490,32 +516,40 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
     final jwt = await injector<AuthService>().getAuthToken();
     if (jwt != null) {
-      return await _customerSupportApi.createIssue(payload,
-          token: 'Bearer ${jwt.jwtToken}');
+      return _customerSupportApi.createIssue(
+        payload,
+        token: 'Bearer ${jwt.jwtToken}',
+      );
     } else {
       final anonymousDeviceId = _configurationService.getAnonymousDeviceId() ??
           await _configurationService.createAnonymousDeviceId();
-      final issue = await _customerSupportApi.createAnonymousIssue(payload,
-          apiKey: Environment.supportApiKey, deviceId: anonymousDeviceId);
+      final issue = await _customerSupportApi.createAnonymousIssue(
+        payload,
+        apiKey: Environment.supportApiKey,
+        deviceId: anonymousDeviceId,
+      );
       await _configurationService.addAnonymousIssueId([issue.issueID]);
       return issue;
     }
   }
 
-  Future<PostedMessageResponse> commentIssue(String issueID, String? message,
-      List<SendAttachment>? attachments) async {
+  Future<PostedMessageResponse> commentIssue(
+    String issueID,
+    String? message,
+    List<SendAttachment>? attachments,
+  ) async {
     final payload = {
       'attachments': attachments ?? [],
       'message': message ?? '',
     };
 
-    return await _customerSupportApi.commentIssue(issueID, payload);
+    return _customerSupportApi.commentIssue(issueID, payload);
   }
 
   @override
   Future<String> getStoredDirectory() async {
-    Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
-    String appDocumentsPath = appDocumentsDirectory.path;
+    final appDocumentsDirectory = await getApplicationDocumentsDirectory();
+    final appDocumentsPath = appDocumentsDirectory.path;
     return '$appDocumentsPath/customer-support';
   }
 
@@ -523,9 +557,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future<String> storeFile(String filename, List<int> bytes) async {
     log.info('[start] storeFile $filename');
     final directory = await getStoredDirectory();
-    String filePath = '$directory/$filename'; // 3
+    final filePath = '$directory/$filename'; // 3
 
-    File file = File(filePath);
+    final file = File(filePath);
     await file.create(recursive: true);
     await file.writeAsBytes(bytes, flush: true);
     log.info('[done] storeFile $filename');
@@ -539,4 +573,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   Future<void> rateIssue(String issueID, int rating) async =>
       _customerSupportApi.rateIssue(issueID, rating);
+
+  @override
+  Future<void> clear() async {
+    await _draftCustomerSupportStore.clear();
+  }
 }

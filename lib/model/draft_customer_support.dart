@@ -7,8 +7,8 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:objectbox/objectbox.dart';
 
 part 'draft_customer_support.g.dart';
 
@@ -23,8 +23,7 @@ extension RawValue on CSMessageType {
   String get rawValue => toString().split('.').last;
 }
 
-@Entity()
-class DraftCustomerSupport {
+class DraftCustomerSupport implements HiveObject {
   DraftCustomerSupport({
     required this.uuid,
     required this.issueID,
@@ -36,17 +35,17 @@ class DraftCustomerSupport {
     this.rating = 0,
   });
 
-  @Id()
-  int id = 0;
   String uuid;
   String issueID;
   String type;
   String data; // jsonData
-  @Property(type: PropertyType.date)
   DateTime createdAt;
   String reportIssueType;
   String mutedMessages;
   int rating;
+
+  @override
+  String get hiveId => uuid; // ObjectBox requires an id, but we don't use it
 }
 
 extension Supporter on DraftCustomerSupport {
