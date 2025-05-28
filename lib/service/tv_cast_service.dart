@@ -96,8 +96,9 @@ abstract class BaseTvCastService implements TvCastService {
     bool shouldShowError = true,
   }) async {
     try {
-      final result =
-          await _sendData(_getBody(request), shouldShowError: shouldShowError);
+      final result = await _sendData(_getBody(request),
+          shouldShowError: shouldShowError,
+          timeout: const Duration(seconds: 10));
       // return _mapStatusReply(result);
       return CheckDeviceStatusReply.fromJson(result);
     } catch (e) {

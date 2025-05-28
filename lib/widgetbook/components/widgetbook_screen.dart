@@ -1,19 +1,12 @@
+// lib/widgetbook_screen.dart
+import 'package:autonomy_flutter/widgetbook/components/ff_cast_button.dart';
 import 'package:autonomy_flutter/widgetbook/components/header_view.dart';
 import 'package:autonomy_flutter/widgetbook/components/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
-import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
-import 'package:widgetbook_workspace/components/account_view.dart';
-import 'package:widgetbook_workspace/components/app_bar/back_app_bar.dart';
-import 'package:widgetbook_workspace/components/primary_button_component.dart';
 
-void main() {
-  runApp(const WidgetbookApp());
-}
-
-@widgetbook.App()
-class WidgetbookApp extends StatelessWidget {
-  const WidgetbookApp({super.key});
+class WidgetbookScreen extends StatelessWidget {
+  const WidgetbookScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -59,10 +52,7 @@ class WidgetbookApp extends StatelessWidget {
           children: [
             headerViewComponent,
             loadingWidgetComponent,
-            backAppBarComponent,
-            accountItemComponent,
-            primaryButtonComponent,
-            // ...directories,
+            ffCastButtonComponent,
           ],
         ),
       ],

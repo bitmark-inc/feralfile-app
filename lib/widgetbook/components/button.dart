@@ -6,5 +6,6 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 Widget buildCoolButtonUseCase(BuildContext context) {
   return PrimaryButton(
     text: "Hello World!",
+    color: Colors.red,
   );
 }

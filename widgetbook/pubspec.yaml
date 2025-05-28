@@ -11,6 +11,11 @@ dependencies:
     sdk: flutter
   widgetbook: ^3.14.1
   widgetbook_annotation: ^3.5.0
+  flutter_svg: ^2.0.7
+  feralfile_app_theme:
+    git:
+      url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
+      ref: 8d791a051a9b38791e82ac1582176d1b4e8e74fa
   autonomy_flutter:
     path: ../
 
@@ -20,6 +25,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   widgetbook_generator: ^3.13.0
   build_runner: ^2.4.15
+  golden_toolkit: ^0.15.0
 
 
 flutter:
