@@ -9,8 +9,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/device_display_setting.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/device_display_setting.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -621,7 +622,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
   List<BaseDevice> getDevices() {
     final savedDevice = BluetoothDeviceManager.pairedDevices;
-    final devices = <BaseDevice>[
+    final devices = [
       ...savedDevice,
     ];
     return devices;
@@ -630,10 +631,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   /// This method will get devices via mDNS and local db, for local db devices
   /// it will check the status of the device by calling grpc
   Future<List<Pair<BaseDevice, CheckDeviceStatusReply>>> scanDevices() async {
-    final devices = await getDevices();
+    final devices = getDevices();
     final pairDevices = await _getDeviceStatuses(devices);
     pairDevices.sort((a, b) => a.first.name.compareTo(b.first.name));
-
     return pairDevices;
   }
 

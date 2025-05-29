@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -56,10 +57,10 @@ class BluetoothDeviceManager {
 
   // connected device
   FFBluetoothDevice? _castingBluetoothDevice;
-  final ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
+  final ValueNotifier<DeviceStatus?> _bluetoothDeviceStatus =
       ValueNotifier(null);
 
-  ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
+  ValueNotifier<DeviceStatus?> get bluetoothDeviceStatus {
     if (_bluetoothDeviceStatus.value == null &&
         castingBluetoothDevice != null) {
       fetchBluetoothDeviceStatus(castingBluetoothDevice!);
@@ -92,11 +93,10 @@ class BluetoothDeviceManager {
     return _castingBluetoothDevice;
   }
 
-  Future<BluetoothDeviceStatus?> fetchBluetoothDeviceStatus(
-      BaseDevice device) async {
+  Future<DeviceStatus?> fetchBluetoothDeviceStatus(BaseDevice device) async {
     try {
-      final status = await injector<CanvasClientServiceV2>()
-          .getDeviceStatus(device);
+      final status =
+          await injector<CanvasClientServiceV2>().getDeviceStatus(device);
       _bluetoothDeviceStatus.value = status;
       return status;
     } catch (e, stackTrace) {

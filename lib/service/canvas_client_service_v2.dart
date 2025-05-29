@@ -9,9 +9,10 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
@@ -284,7 +285,7 @@ class CanvasClientServiceV2 {
     log.info('CanvasClientService: Get Support Success ${response.ok}');
   }
 
-  Future<BluetoothDeviceStatus> getDeviceStatus(
+  Future<DeviceStatus> getDeviceStatus(
     BaseDevice device,
   ) async {
     final stub = _getStub(device);

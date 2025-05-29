@@ -1,15 +1,15 @@
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 
-class BluetoothDeviceStatus {
-  BluetoothDeviceStatus({
+class DeviceStatus {
+  DeviceStatus({
     required this.screenRotation,
     this.connectedWifi,
     this.installedVersion,
     this.latestVersion,
   });
 
-  factory BluetoothDeviceStatus.fromJson(Map<String, dynamic> json) {
-    return BluetoothDeviceStatus(
+  factory DeviceStatus.fromJson(Map<String, dynamic> json) {
+    return DeviceStatus(
       connectedWifi: json['connectedWifi'] as String?,
       screenRotation:
           ScreenOrientation.fromString(json['screenRotation'] as String),
@@ -32,13 +32,13 @@ class BluetoothDeviceStatus {
     };
   }
 
-  BluetoothDeviceStatus copyWith({
+  DeviceStatus copyWith({
     ScreenOrientation? screenRotation,
     String? connectedWifi,
     String? installedVersion,
     String? latestVersion,
   }) {
-    return BluetoothDeviceStatus(
+    return DeviceStatus(
       screenRotation: screenRotation ?? this.screenRotation,
       connectedWifi: connectedWifi ?? this.connectedWifi,
       installedVersion: installedVersion ?? this.installedVersion,
