@@ -14,8 +14,8 @@ import 'package:dio/dio.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
-  Future<CheckDeviceStatusReply> status(
-    CheckDeviceStatusRequest request, {
+  Future<CheckCastingStatusReply> status(
+    CheckCastingStatusRequest request, {
     bool shouldShowError = true,
   });
 
@@ -91,8 +91,8 @@ abstract class BaseTvCastService implements TvCastService {
       RequestBody(request).toJson();
 
   @override
-  Future<CheckDeviceStatusReply> status(
-    CheckDeviceStatusRequest request, {
+  Future<CheckCastingStatusReply> status(
+    CheckCastingStatusRequest request, {
     bool shouldShowError = true,
   }) async {
     try {
@@ -100,14 +100,14 @@ abstract class BaseTvCastService implements TvCastService {
           shouldShowError: shouldShowError,
           timeout: const Duration(seconds: 10));
       // return _mapStatusReply(result);
-      return CheckDeviceStatusReply.fromJson(result);
+      return CheckCastingStatusReply.fromJson(result);
     } catch (e) {
       log.info('Failed to get device status: $e');
       rethrow;
     }
   }
 
-  CheckDeviceStatusReply _mapStatusReply(
+  CheckCastingStatusReply _mapStatusReply(
     Map<String, dynamic> result,
   ) {
     final state = result['state'];
@@ -123,7 +123,7 @@ abstract class BaseTvCastService implements TvCastService {
       );
     }
     if (state['command'] == null) {
-      return CheckDeviceStatusReply(
+      return CheckCastingStatusReply(
         artworks: [],
         connectedDevice: connectedDevice,
       );
@@ -135,19 +135,19 @@ abstract class BaseTvCastService implements TvCastService {
     switch (command) {
       case CastCommand.castListArtwork:
         final request = CastListArtworkRequest.fromJson(commandJson);
-        return CheckDeviceStatusReply(
+        return CheckCastingStatusReply(
           artworks: request.artworks,
           connectedDevice: connectedDevice,
         );
       case CastCommand.castDaily:
-        return CheckDeviceStatusReply(
+        return CheckCastingStatusReply(
           artworks: [],
           connectedDevice: connectedDevice,
           displayKey: CastDailyWorkRequest.displayKey,
         );
       case CastCommand.castExhibition:
         final request = CastExhibitionRequest.fromJson(commandJson);
-        return CheckDeviceStatusReply(
+        return CheckCastingStatusReply(
           artworks: [],
           connectedDevice: connectedDevice,
           exhibitionId: request.exhibitionId,
@@ -155,7 +155,7 @@ abstract class BaseTvCastService implements TvCastService {
           catalogId: request.catalogId,
         );
       default:
-        return CheckDeviceStatusReply(
+        return CheckCastingStatusReply(
           artworks: [],
           connectedDevice: connectedDevice,
         );

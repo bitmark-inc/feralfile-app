@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -132,15 +131,7 @@ class _NowDisplayingState extends State<NowDisplaying>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    BluetoothDeviceManager().startPullingCastingStatus();
-  }
-
-  @override
-  void dispose() {
-    BluetoothDeviceManager().stopPullingCastingStatus();
-    super.dispose();
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
@@ -539,7 +530,7 @@ class NowDisplayingView extends StatelessWidget {
                   style: theme.textTheme.ppMori400Black14,
                   overflow: TextOverflow.ellipsis,
                 ),
-                titleBuilder(context),
+                Expanded(child: titleBuilder(context)),
               ],
             ),
           ),

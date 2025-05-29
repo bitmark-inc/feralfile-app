@@ -33,6 +33,8 @@ abstract class CloudDB {
 
   Map<String, String> get allInstance;
 
+  Future<void> deleteAll();
+
   void clearCache();
 }
 
@@ -171,4 +173,10 @@ class CloudDBImpl implements CloudDB {
 
   @override
   String get migrateKey => _migrateKey;
+
+  @override
+  Future<void> deleteAll() async {
+    _caches.clear();
+    await _client.delete(vars: {'search': '$_prefix.'});
+  }
 }

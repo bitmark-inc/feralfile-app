@@ -371,7 +371,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
   Widget _viewingArtworkWidget(BuildContext context,
-      List<CompactedAssetToken> assetTokens, CheckDeviceStatusReply status) {
+      List<CompactedAssetToken> assetTokens, CheckCastingStatusReply status) {
     return const SizedBox();
     // return const NowDisplaying();
   }

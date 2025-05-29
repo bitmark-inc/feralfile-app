@@ -6,10 +6,10 @@ import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 extension ListDeviceStatusExtension
-    on List<Pair<BaseDevice, CheckDeviceStatusReply>> {
-  Map<String, CheckDeviceStatusReply> get controllingDevices {
+    on List<Pair<BaseDevice, CheckCastingStatusReply>> {
+  Map<String, CheckCastingStatusReply> get controllingDevices {
     final canvasClientServiceV2 = injector<CanvasClientServiceV2>();
-    final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
+    final Map<String, CheckCastingStatusReply> controllingDeviceStatus = {};
     final thisDevice = canvasClientServiceV2.clientDeviceInfo;
     for (final devicePair in this) {
       final status = devicePair.second;
@@ -25,7 +25,7 @@ extension ListDeviceStatusExtension
   }
 }
 
-extension DeviceStatusExtension on CheckDeviceStatusReply {
+extension DeviceStatusExtension on CheckCastingStatusReply {
   String? get playingArtworkKey {
     if (artworks.isEmpty && exhibitionId == null) {
       return null;

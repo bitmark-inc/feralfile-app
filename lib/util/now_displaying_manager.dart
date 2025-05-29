@@ -62,9 +62,9 @@ class NowDisplayingManager {
         return;
       }
 
-      CheckDeviceStatusReply? status;
+      CheckCastingStatusReply? status;
       try {
-        status = await _getStatus(device);
+        status = injector<CanvasDeviceBloc>().state.statusOf(device);
       } catch (e) {
         log.info(
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
@@ -88,7 +88,7 @@ class NowDisplayingManager {
   }
 
   Future<NowDisplayingObject?> getNowDisplayingObject(
-    CheckDeviceStatusReply status,
+    CheckCastingStatusReply status,
   ) async {
     if (status.exhibitionId != null) {
       final exhibitionId = status.exhibitionId!;
@@ -135,28 +135,5 @@ class NowDisplayingManager {
     final request = QueryListTokensRequest(ids: [tokenId]);
     final assetToken = await injector<IndexerService>().getNftTokens(request);
     return assetToken.isNotEmpty ? assetToken.first : null;
-  }
-
-  Future<CheckDeviceStatusReply?> _getStatus(FFBluetoothDevice device) async {
-    return injector<CanvasDeviceBloc>().state.statusOf(device);
-    // final completer = Completer<CheckDeviceStatusReply?>();
-    // injector<CanvasDeviceBloc>().add(
-    //   CanvasDeviceGetStatusEvent(
-    //     device,
-    //     onDoneCallback: (status) {
-    //       completer.complete(status);
-    //     },
-    //     onErrorCallback: (e) {
-    //       completer.completeError(e);
-    //     },
-    //   ),
-    // );
-    // final res = await completer.future.timeout(
-    //   const Duration(seconds: 5),
-    //   onTimeout: () {
-    //     throw TimeoutException('Timeout getting Now Displaying');
-    //   },
-    // );
-    // return res;
   }
 }

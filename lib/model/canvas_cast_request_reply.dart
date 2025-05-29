@@ -90,7 +90,7 @@ enum CastCommand {
 
   static CastCommand fromRequest(Request request) {
     switch (request.runtimeType) {
-      case const (CheckDeviceStatusRequest):
+      case const (CheckCastingStatusRequest):
         return CastCommand.checkStatus;
       case const (CastListArtworkRequest):
         return CastCommand.castListArtwork;
@@ -363,19 +363,19 @@ class CastListArtworkRequest implements Request {
 }
 
 // Class representing CheckDeviceStatusRequest message
-class CheckDeviceStatusRequest implements Request {
-  CheckDeviceStatusRequest();
+class CheckCastingStatusRequest implements Request {
+  CheckCastingStatusRequest();
 
-  factory CheckDeviceStatusRequest.fromJson(Map<String, dynamic> json) =>
-      CheckDeviceStatusRequest();
+  factory CheckCastingStatusRequest.fromJson(Map<String, dynamic> json) =>
+      CheckCastingStatusRequest();
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
 // Class representing CheckDeviceStatusReply message
-class CheckDeviceStatusReply extends Reply {
-  CheckDeviceStatusReply({
+class CheckCastingStatusReply extends Reply {
+  CheckCastingStatusReply({
     required this.artworks,
     this.index,
     bool? isPaused,
@@ -387,8 +387,8 @@ class CheckDeviceStatusReply extends Reply {
     this.deviceSettings,
   }) : isPaused = isPaused ?? false;
 
-  factory CheckDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
-      CheckDeviceStatusReply(
+  factory CheckCastingStatusReply.fromJson(Map<String, dynamic> json) =>
+      CheckCastingStatusReply(
         artworks: json['artworks'] == null
             ? []
             : List<PlayArtworkV2>.from(
@@ -447,7 +447,7 @@ class CheckDeviceStatusReply extends Reply {
       };
 
   // copyWith method
-  CheckDeviceStatusReply copyWith({
+  CheckCastingStatusReply copyWith({
     List<PlayArtworkV2>? artworks,
     int? index,
     bool? isPaused,
@@ -458,7 +458,7 @@ class CheckDeviceStatusReply extends Reply {
     String? displayKey,
     DeviceDisplaySetting? deviceSettings,
   }) {
-    return CheckDeviceStatusReply(
+    return CheckCastingStatusReply(
       artworks: artworks ?? this.artworks,
       index: index ?? this.index,
       isPaused: isPaused ?? this.isPaused,

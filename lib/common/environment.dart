@@ -109,6 +109,8 @@ class Environment {
 
   static String get tvCastApiUrl => _readKey('TV_CAST_API_URL', '');
 
+  static String get tvNotificationUrl => _readKey('TV_NOTIFICATION_URL', '');
+
   static String get tokenWebviewPrefix => _readKey('TOKEN_WEBVIEW_PREFIX', '');
 
   static String get indexerMainnetURL =>

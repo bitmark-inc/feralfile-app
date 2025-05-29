@@ -603,7 +603,7 @@ class FFBluetoothService {
 
   Future<void> startScan({
     Duration timeout = const Duration(seconds: 30),
-    FutureOr<bool> Function(List<ScanResult>)? onData,
+    FutureOr<bool> Function(List<BluetoothDevice>)? onData,
     FutureOr<void> Function(dynamic)? onError,
     bool forceScan = false,
   }) async {
@@ -614,11 +614,19 @@ class FFBluetoothService {
 
       await listenForAdapterState();
 
-      onData?.call([]);
+      final connectedDevices = FlutterBluePlus.connectedDevices;
+      final shouldStop = await onData?.call(connectedDevices);
+      if (shouldStop == true) {
+        log.info('BluetoothConnectEventScan startScan: already connected');
+        return;
+      }
       StreamSubscription<List<ScanResult>>? scanSubscription;
+
       scanSubscription = FlutterBluePlus.onScanResults.listen(
         (results) async {
-          final shouldStopScan = await onData?.call(results);
+          final devices = results.map((result) => result.device).toList();
+          final shouldStopScan = await onData
+              ?.call(devices..addAll(FlutterBluePlus.connectedDevices));
           if (shouldStopScan == true) {
             FlutterBluePlus.stopScan();
           }
@@ -717,6 +725,7 @@ class SendWifiCredentialResponse extends BluetoothResponse {
 
 enum SendWifiCredentialErrorCode {
   userEnterWrongPassword(1),
+  wifiConnectedButCannotReachServer(2),
   unknownError(-1);
 
   const SendWifiCredentialErrorCode(this.code);
@@ -737,6 +746,10 @@ class SendWifiCredentialError implements Exception {
         // user enter wrong password
         return SendWifiCredentialError(
             'Failed to connect to Wi-Fi. Please check your password and try again.');
+      case SendWifiCredentialErrorCode.wifiConnectedButCannotReachServer:
+        return SendWifiCredentialError(
+          'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
+        );
       default:
         // A generic error
         return SendWifiCredentialError(

@@ -35,7 +35,8 @@ class FFBluetoothDevice extends BluetoothDevice
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
-        topicId: json['topicId'] as String,
+        topicId: 'QaR5kUoijwrBSBkWDO5FkptTWNAZQzpP',
+        // json['topicId'] as String,
       );
 
   @override
@@ -50,8 +51,7 @@ class FFBluetoothDevice extends BluetoothDevice
   final String topicId; // topic id
 
   // toJson
-  Map<String, dynamic> toJson() =>
-      {
+  Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
         'topicId': topicId,
@@ -60,7 +60,7 @@ class FFBluetoothDevice extends BluetoothDevice
   static FFBluetoothDevice fromBluetoothDevice(BluetoothDevice device,
       {String? topicId}) {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
-          (e) => e.remoteID == device.remoteId.str,
+      (e) => e.remoteID == device.remoteId.str,
     );
     return FFBluetoothDevice(
       name: device.getName,
@@ -86,8 +86,7 @@ class FFBluetoothDevice extends BluetoothDevice
   String get key => deviceId;
 
   @override
-  Map<String, String> get toKeyValue =>
-      {
+  Map<String, String> get toKeyValue => {
         'key': key,
         'value': value,
       };
@@ -108,7 +107,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     final savedName = BluetoothDeviceManager.pairedDevices
         .firstWhereOrNull(
           (e) => e.remoteID == remoteId.str,
-    )
+        )
         ?.name;
     if (savedName != null) {
       return savedName;
@@ -131,7 +130,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         ..addAll(discoveredServices);
 
       final primaryService = services.firstWhereOrNull(
-            (service) => service.isPrimary,
+        (service) => service.isPrimary,
       );
 
       if (primaryService == null) {
@@ -144,8 +143,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
 
       // if the command and wifi connect characteristics are not found, try to find them
       final commandService = services.firstWhereOrNull(
-            (service) =>
-        service.uuid.toString() == BluetoothManager.serviceUuid,
+        (service) => service.uuid.toString() == BluetoothManager.serviceUuid,
       );
 
       if (commandService == null) {
@@ -153,7 +151,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
         return;
       }
       final wifiConnectChar = commandService.characteristics.firstWhere(
-            (characteristic) => characteristic.isWifiConnectCharacteristic,
+        (characteristic) => characteristic.isWifiConnectCharacteristic,
       );
 
       // Set the command and wifi connect characteristics

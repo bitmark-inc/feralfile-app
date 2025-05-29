@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -299,12 +298,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 
   void _updateAnimationBasedOnDisplayState() {
-    final hasDevice = BluetoothDeviceManager().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value;
     final isBetaTester = injector<AuthService>().isBetaTester();
-    if (shouldShow && hasDevice && isBetaTester) {
+    if (shouldShow && isBetaTester) {
       _animationController.forward();
       setState(() => _isVisible = true);
     } else {

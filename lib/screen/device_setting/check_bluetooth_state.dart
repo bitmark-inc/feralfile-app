@@ -227,8 +227,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       timeout: const Duration(seconds: 10),
       forceScan: true,
       onData: (results) async {
-        log.info('Scanned devices: ${results.map((e) => e.device).toList()}');
-        final devices = results.map((e) => e.device).toList();
+        final devices = results;
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
@@ -237,7 +236,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         }
         if (results.isNotEmpty) {
           await UIHelper.showInfoDialog(context, "Device $deviceName not found",
-              "Scanned devices: ${results.map((e) => e.device.advName).join(', ')}");
+              "Scanned devices: ${devices.map((e) => e.advName).join(', ')}");
         }
         return false;
       },
@@ -310,6 +309,8 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           res.first,
         );
       }
+
+      unawaited(_resultDevice?.disconnect());
       try {
         await onFinish?.call();
       } catch (e) {

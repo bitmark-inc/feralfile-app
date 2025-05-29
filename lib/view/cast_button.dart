@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -59,15 +58,7 @@ class FFCastButtonState extends State<FFCastButton>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    BluetoothDeviceManager().startPullingCastingStatus();
-  }
-
-  @override
-  void dispose() {
-    BluetoothDeviceManager().stopPullingCastingStatus();
-    super.dispose();
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
