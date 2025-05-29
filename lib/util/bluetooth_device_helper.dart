@@ -15,13 +15,12 @@ import 'package:flutter/material.dart';
 import 'package:sentry/sentry.dart';
 
 class BluetoothDeviceManager {
+  factory BluetoothDeviceManager() => _instance;
   // make singleton
 
   BluetoothDeviceManager._();
 
   static final BluetoothDeviceManager _instance = BluetoothDeviceManager._();
-
-  factory BluetoothDeviceManager() => _instance;
 
   static CloudDB get _ffDeviceDB => injector<CloudManager>().ffDeviceDB;
 
@@ -55,18 +54,19 @@ class BluetoothDeviceManager {
     );
   }
 
-  // connected device
-  FFBluetoothDevice? _castingBluetoothDevice;
-  final ValueNotifier<DeviceStatus?> _bluetoothDeviceStatus =
-      ValueNotifier(null);
+  // Casting device status
+  final ValueNotifier<DeviceStatus?> _castingDeviceStatus = ValueNotifier(null);
 
-  ValueNotifier<DeviceStatus?> get bluetoothDeviceStatus {
-    if (_bluetoothDeviceStatus.value == null &&
-        castingBluetoothDevice != null) {
-      fetchBluetoothDeviceStatus(castingBluetoothDevice!);
+  ValueNotifier<DeviceStatus?> get castingDeviceStatus {
+    if (_castingDeviceStatus.value == null && castingBluetoothDevice != null) {
+      fetchCastingDeviceStatus(castingBluetoothDevice!);
     }
-    return _bluetoothDeviceStatus;
+
+    return _castingDeviceStatus;
   }
+
+  // Casting device info
+  FFBluetoothDevice? _castingBluetoothDevice;
 
   set castingBluetoothDevice(FFBluetoothDevice? device) {
     if (device == null) {
@@ -74,11 +74,13 @@ class BluetoothDeviceManager {
       Sentry.captureException('Set Casting device value to null');
       return;
     }
+
     if (device == _castingBluetoothDevice) {
       return;
     }
+
     _castingBluetoothDevice = device;
-    fetchBluetoothDeviceStatus(device);
+    fetchCastingDeviceStatus(device);
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {
@@ -93,16 +95,20 @@ class BluetoothDeviceManager {
     return _castingBluetoothDevice;
   }
 
-  Future<DeviceStatus?> fetchBluetoothDeviceStatus(BaseDevice device) async {
+  Future<DeviceStatus?> fetchCastingDeviceStatus(
+    BaseDevice device,
+  ) async {
     try {
       final status =
           await injector<CanvasClientServiceV2>().getDeviceStatus(device);
-      _bluetoothDeviceStatus.value = status;
+      _castingDeviceStatus.value = status;
       return status;
     } catch (e, stackTrace) {
-      Sentry.captureException(
-        e,
-        stackTrace: stackTrace,
+      unawaited(
+        Sentry.captureException(
+          e,
+          stackTrace: stackTrace,
+        ),
       );
       log.info(
         'BluetoothDeviceHelper.fetchBluetoothDeviceStatus: error $e',

@@ -134,12 +134,12 @@ class BluetoothConnectedDeviceConfigState
 
     final device = widget.payload.device;
 
-    status = BluetoothDeviceManager().bluetoothDeviceStatus.value;
+    status = BluetoothDeviceManager().castingDeviceStatus.value;
     BluetoothDeviceManager()
-        .bluetoothDeviceStatus
+        .castingDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
 
-    BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
+    BluetoothDeviceManager().fetchCastingDeviceStatus(device);
 
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetStatusEvent(device));
 
@@ -198,7 +198,7 @@ class BluetoothConnectedDeviceConfigState
     _pullingDeviceInfoTimer =
         Timer.periodic(const Duration(seconds: 2), (timer) async {
       final deviceStatus =
-          await BluetoothDeviceManager().fetchBluetoothDeviceStatus(device);
+          await BluetoothDeviceManager().fetchCastingDeviceStatus(device);
       if (deviceStatus != null) {
         timer.cancel();
       }
@@ -218,7 +218,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   void _bluetoothDeviceStatusListener() {
-    final status = BluetoothDeviceManager().bluetoothDeviceStatus.value;
+    final status = BluetoothDeviceManager().castingDeviceStatus.value;
     if (mounted) {
       setState(() {
         this.status = status;
@@ -238,7 +238,7 @@ class BluetoothConnectedDeviceConfigState
     _metricsUpdateTimer?.cancel();
     _metricsStreamSubscription?.cancel();
     BluetoothDeviceManager()
-        .bluetoothDeviceStatus
+        .castingDeviceStatus
         .removeListener(_bluetoothDeviceStatusListener);
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
@@ -266,7 +266,7 @@ class BluetoothConnectedDeviceConfigState
     // Re-enable metrics streaming when returning to this screen
     // _enableMetricsStreaming();
 
-    BluetoothDeviceManager().fetchBluetoothDeviceStatus(widget.payload.device);
+    BluetoothDeviceManager().fetchCastingDeviceStatus(widget.payload.device);
   }
 
   @override
@@ -579,9 +579,9 @@ class BluetoothConnectedDeviceConfigState
                 await injector<CanvasClientServiceV2>().rotateCanvas(blDevice);
             if (response != null) {
               final deviceStatus =
-                  BluetoothDeviceManager().bluetoothDeviceStatus.value;
+                  BluetoothDeviceManager().castingDeviceStatus.value;
               if (deviceStatus != null) {
-                BluetoothDeviceManager().bluetoothDeviceStatus.value =
+                BluetoothDeviceManager().castingDeviceStatus.value =
                     deviceStatus.copyWith(screenRotation: response);
               }
             }
