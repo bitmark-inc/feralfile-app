@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
@@ -40,15 +39,14 @@ class NowDisplayingManager {
     _onDisconnectTimer?.cancel();
     if (status is ConnectFailed) {
       _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
+        // shouldShowNowDisplayingOnDisconnect.value = false;
       });
     } else if (status is ConnectionLostAndReconnecting) {
       _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
-        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+        // shouldShowNowDisplayingOnDisconnect.value = false;
       });
     } else if (status is NowDisplayingSuccess || status is ConnectSuccess) {
-      shouldShowNowDisplayingOnDisconnect.value = true;
+      // shouldShowNowDisplayingOnDisconnect.value = true;
     }
     nowDisplayingVisibility.value = true;
     injector<NavigationService>().hideDeviceSettings();
