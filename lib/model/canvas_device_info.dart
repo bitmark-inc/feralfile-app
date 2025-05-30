@@ -35,8 +35,7 @@ class FFBluetoothDevice extends BluetoothDevice
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
-        topicId: 'QaR5kUoijwrBSBkWDO5FkptTWNAZQzpP',
-        // json['topicId'] as String,
+        topicId: json['topicId'] as String,
       );
 
   @override
