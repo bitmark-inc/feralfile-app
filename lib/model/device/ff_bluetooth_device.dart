@@ -67,7 +67,7 @@ class FFBluetoothDevice extends BluetoothDevice
   int get hashCode => super.hashCode;
 
   @override
-  String get key => deviceId;
+  String get key => name;
 
   @override
   Map<String, String> get toKeyValue => {

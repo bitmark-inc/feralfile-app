@@ -43,7 +43,6 @@ class BluetoothDeviceManager {
   static Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    _ffDeviceDB.clearCache();
     await _ffDeviceDB.write([device.toKeyValue]);
     BluetoothDeviceManager().castingBluetoothDevice = device;
     injector<CanvasDeviceBloc>().add(
@@ -115,6 +114,12 @@ class BluetoothDeviceManager {
       );
       return null;
     }
+  }
+
+  Future<void> switchActiveDevice(
+    FFBluetoothDevice device,
+  ) async {
+    castingBluetoothDevice = device;
   }
 
   Timer? _statusPullTimer;

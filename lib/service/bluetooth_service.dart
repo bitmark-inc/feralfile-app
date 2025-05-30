@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -718,7 +719,7 @@ class SendWifiCredentialResponse extends BluetoothResponse {
 
 enum SendWifiCredentialErrorCode {
   userEnterWrongPassword(1),
-  unknownError(-1);
+  unknownError(255);
 
   const SendWifiCredentialErrorCode(this.code);
 
@@ -732,7 +733,7 @@ class SendWifiCredentialError implements Exception {
 
   static SendWifiCredentialError fromErrorCode(int errorCode) {
     final error = SendWifiCredentialErrorCode.values
-        .firstWhere((e) => e.code == errorCode);
+        .firstWhereOrNull((e) => e.code == errorCode);
     switch (error) {
       case SendWifiCredentialErrorCode.userEnterWrongPassword:
         // user enter wrong password

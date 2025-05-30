@@ -94,6 +94,11 @@ class CloudDBImpl implements CloudDB {
       settings.removeWhere(
           (element) => _caches.containsKey(_removePrefix(element['key']!)));
     }
+
+    if (settings.isEmpty) {
+      return;
+    }
+
     final settingsFullKeys = settings
         .map((e) => {'key': getFullKey(e['key']!), 'value': e['value']!})
         .toList();
