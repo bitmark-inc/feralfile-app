@@ -8,10 +8,10 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/device_display_setting.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/device_display_setting.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
@@ -139,7 +139,7 @@ class CanvasDeviceState {
     Map<String, CheckCastingStatusReply>? canvasDeviceStatus,
     Map<String, BaseDevice>? lastSelectedActiveDeviceMap,
     Map<String, bool>? deviceAliveMap,
-    Map<String, BluetoothDeviceStatus>? deviceInfoMap,
+    Map<String, DeviceStatus>? deviceInfoMap,
   })  : canvasDeviceStatus = canvasDeviceStatus ?? {},
         lastSelectedActiveDeviceMap = lastSelectedActiveDeviceMap ?? {},
         deviceAliveMap = deviceAliveMap ?? {},
@@ -148,13 +148,13 @@ class CanvasDeviceState {
   final Map<String, CheckCastingStatusReply> canvasDeviceStatus;
   final Map<String, BaseDevice> lastSelectedActiveDeviceMap;
   final Map<String, bool> deviceAliveMap;
-  final Map<String, BluetoothDeviceStatus> deviceInfoMap;
+  final Map<String, DeviceStatus> deviceInfoMap;
 
   CanvasDeviceState copyWith({
     Map<String, CheckCastingStatusReply>? controllingDeviceStatus,
     Map<String, BaseDevice>? lastActiveDevice,
     Map<String, bool>? deviceAliveMap,
-    Map<String, BluetoothDeviceStatus>? deviceInfoMap,
+    Map<String, DeviceStatus>? deviceInfoMap,
   }) =>
       CanvasDeviceState(
         canvasDeviceStatus: controllingDeviceStatus ?? canvasDeviceStatus,

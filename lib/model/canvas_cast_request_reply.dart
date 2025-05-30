@@ -4,8 +4,9 @@
 
 import 'dart:math';
 
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
-import 'package:autonomy_flutter/model/device_display_setting.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
+import 'package:autonomy_flutter/model/device/device_casting_info.dart';
+import 'package:autonomy_flutter/model/device/device_display_setting.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:flutter/material.dart';
@@ -789,11 +790,11 @@ class GetDeviceStatusReply extends Reply {
 
   factory GetDeviceStatusReply.fromJson(Map<String, dynamic> json) =>
       GetDeviceStatusReply(
-        deviceStatus: BluetoothDeviceStatus.fromJson(
+        deviceStatus: DeviceStatus.fromJson(
           json,
         ),
       );
-  final BluetoothDeviceStatus deviceStatus;
+  final DeviceStatus deviceStatus;
 
   @override
   Map<String, dynamic> toJson() => deviceStatus.toJson();

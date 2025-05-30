@@ -4,22 +4,22 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 class BluetoothDeviceManager {
+  factory BluetoothDeviceManager() => _instance;
   // make singleton
 
   BluetoothDeviceManager._();
 
   static final BluetoothDeviceManager _instance = BluetoothDeviceManager._();
-
-  factory BluetoothDeviceManager() => _instance;
 
   static CloudDB get _ffDeviceDB => injector<CloudManager>().ffDeviceDB;
 
@@ -39,35 +39,53 @@ class BluetoothDeviceManager {
         .toList();
   }
 
-  Future<void> deleteAllDevices() async {
-    await _ffDeviceDB.deleteAll();
-    _castingBluetoothDevice = null;
+  Future<void> resetDevice() async {
+    BluetoothDeviceManager().castingBluetoothDevice = null;
     await CanvasNotificationManager().disconnectAll();
   }
 
   Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    await deleteAllDevices();
-
-    await _ffDeviceDB.write([device.toKeyValue]);
-    BluetoothDeviceManager().castingBluetoothDevice = device;
-    await CanvasNotificationManager().connect(device);
+    await _setupDevice(device, shouldWriteToDb: true);
     log.info(
       'BluetoothDeviceHelper.addDevice: added ${device.toJson()}',
     );
   }
 
-  // connected device
-  FFBluetoothDevice? _castingBluetoothDevice;
-  final ValueNotifier<BluetoothDeviceStatus?> _bluetoothDeviceStatus =
-      ValueNotifier(null);
-
-  ValueNotifier<BluetoothDeviceStatus?> get bluetoothDeviceStatus {
-    if (_bluetoothDeviceStatus.value == null &&
-        castingBluetoothDevice != null) {}
-    return _bluetoothDeviceStatus;
+  Future<void> switchDevice(
+    FFBluetoothDevice device,
+  ) async {
+    await _setupDevice(device, shouldWriteToDb: false);
+    log.info(
+      'BluetoothDeviceHelper.switchDevice: switched to ${device.toJson()}',
+    );
   }
+
+  Future<void> _setupDevice(
+    FFBluetoothDevice device, {
+    required bool shouldWriteToDb,
+  }) async {
+    await resetDevice();
+
+    if (shouldWriteToDb) {
+      await _ffDeviceDB.write([device.toKeyValue]);
+    }
+
+    BluetoothDeviceManager().castingBluetoothDevice = device;
+    await CanvasNotificationManager().connect(device);
+    await injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
+  }
+
+  // Casting device status
+  final ValueNotifier<DeviceStatus?> _castingDeviceStatus = ValueNotifier(null);
+
+  ValueNotifier<DeviceStatus?> get castingDeviceStatus {
+    return _castingDeviceStatus;
+  }
+
+  // Casting device info
+  FFBluetoothDevice? _castingBluetoothDevice;
 
   set castingBluetoothDevice(FFBluetoothDevice? device) {
     final state = injector<CanvasDeviceBloc>().state;
@@ -82,6 +100,7 @@ class BluetoothDeviceManager {
     if (device == _castingBluetoothDevice) {
       return;
     }
+
     _castingBluetoothDevice = device;
   }
 
@@ -90,6 +109,20 @@ class BluetoothDeviceManager {
     if (_castingBluetoothDevice != null) {
       if (state.isDeviceAlive(_castingBluetoothDevice!)) {
         return _castingBluetoothDevice;
+      }
+    }
+
+    final selectedDeviceId =
+        injector<ConfigurationService>().getSelectedDeviceId();
+    if (selectedDeviceId != null) {
+      final device = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
+        (device) => device.deviceId == selectedDeviceId,
+      );
+      if (device != null) {
+        if (state.isDeviceAlive(device)) {
+          castingBluetoothDevice = device;
+          return device;
+        }
       }
     }
 

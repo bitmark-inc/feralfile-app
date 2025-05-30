@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -147,15 +148,20 @@ class FFCastButtonState extends State<FFCastButton>
 
   Future<void> onTap(BuildContext context, bool isSubscribed) async {
     if (!widget.shouldCheckSubscription || isSubscribed) {
-      if (injector<CanvasDeviceBloc>().state.devices.length == 1) {
-        final device = injector<CanvasDeviceBloc>().state.devices.first;
+      // if (injector<CanvasDeviceBloc>().state.devices.length == 1) {
+      //   final device = injector<CanvasDeviceBloc>().state.devices.first;
+      //   await widget.onDeviceSelected?.call(device);
+      //   return;
+      // }
+      // await injector<NavigationService>().showStreamAction(
+      //   widget.displayKey,
+      //   widget.onDeviceSelected,
+      // );
+
+      final device = BluetoothDeviceManager().castingBluetoothDevice;
+      if (device != null) {
         await widget.onDeviceSelected?.call(device);
-        return;
       }
-      await injector<NavigationService>().showStreamAction(
-        widget.displayKey,
-        widget.onDeviceSelected,
-      );
     } else {
       await _showUpgradeDialog(context);
     }

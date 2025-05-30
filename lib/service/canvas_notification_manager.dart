@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart'; // Import BaseDevice and FFBluetoothDevice
 import 'package:autonomy_flutter/model/canvas_notification.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_service.dart';
@@ -72,8 +72,8 @@ class CanvasNotificationManager {
 
           case RelayerNotificationType.deviceStatus:
             final message = notification.message;
-            final deviceStatus = BluetoothDeviceStatus.fromJson(message);
-            BluetoothDeviceManager().bluetoothDeviceStatus.value = deviceStatus;
+            final deviceStatus = DeviceStatus.fromJson(message);
+            BluetoothDeviceManager().castingDeviceStatus.value = deviceStatus;
 
           case RelayerNotificationType.connection:
             final message = notification.message;

@@ -6,17 +6,19 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -706,7 +708,7 @@ class SendWifiCredentialResponse extends BluetoothResponse {
 enum SendWifiCredentialErrorCode {
   userEnterWrongPassword(1),
   wifiConnectedButCannotReachServer(2),
-  unknownError(-1);
+  unknownError(255);
 
   const SendWifiCredentialErrorCode(this.code);
 
@@ -720,7 +722,7 @@ class SendWifiCredentialError implements Exception {
 
   static SendWifiCredentialError fromErrorCode(int errorCode) {
     final error = SendWifiCredentialErrorCode.values
-        .firstWhere((e) => e.code == errorCode);
+        .firstWhereOrNull((e) => e.code == errorCode);
     switch (error) {
       case SendWifiCredentialErrorCode.userEnterWrongPassword:
         // user enter wrong password
@@ -731,7 +733,6 @@ class SendWifiCredentialError implements Exception {
           'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
         );
       default:
-        // A generic error
         return SendWifiCredentialError(
           'Unknown error occurred while sending wifi credentials. Error code: $errorCode',
         );

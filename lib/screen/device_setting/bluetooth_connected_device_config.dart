@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/bluetooth_device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
@@ -99,7 +99,8 @@ class BluetoothConnectedDeviceConfigState
         RouteAware,
         WidgetsBindingObserver,
         AfterLayoutMixin<BluetoothConnectedDeviceConfig> {
-  BluetoothDeviceStatus? status;
+  DeviceStatus? status;
+  FFBluetoothDevice? selectedDevice;
   Timer? _connectionStatusTimer;
 
   // bool _isBLEDeviceConnected = false;
@@ -132,9 +133,10 @@ class BluetoothConnectedDeviceConfigState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    status = BluetoothDeviceManager().bluetoothDeviceStatus.value;
+    selectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
+    status = BluetoothDeviceManager().castingDeviceStatus.value;
     BluetoothDeviceManager()
-        .bluetoothDeviceStatus
+        .castingDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
   }
 
@@ -144,7 +146,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   void _bluetoothDeviceStatusListener() {
-    final status = BluetoothDeviceManager().bluetoothDeviceStatus.value;
+    final status = BluetoothDeviceManager().castingDeviceStatus.value;
     if (mounted) {
       setState(() {
         this.status = status;
@@ -164,7 +166,7 @@ class BluetoothConnectedDeviceConfigState
     _metricsUpdateTimer?.cancel();
     _metricsStreamSubscription?.cancel();
     BluetoothDeviceManager()
-        .bluetoothDeviceStatus
+        .castingDeviceStatus
         .removeListener(_bluetoothDeviceStatusListener);
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
@@ -197,14 +199,15 @@ class BluetoothConnectedDeviceConfigState
         title: 'configure_device'.tr(),
         isWhite: false,
         actions: [
+          _buildDeviceSwitcher(context),
           BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
             bloc: injector<CanvasDeviceBloc>(),
             buildWhen: (previous, current) {
-              return previous.isDeviceAlive(widget.payload.device) !=
-                  current.isDeviceAlive(widget.payload.device);
+              return previous.isDeviceAlive(selectedDevice!) !=
+                  current.isDeviceAlive(selectedDevice!);
             },
             builder: (context, state) {
-              if (!state.isDeviceAlive(widget.payload.device)) {
+              if (!state.isDeviceAlive(selectedDevice!)) {
                 return const SizedBox.shrink();
               }
               return GestureDetector(
@@ -245,7 +248,7 @@ class BluetoothConnectedDeviceConfigState
                                 borderColor: AppColor.white,
                                 color: Colors.transparent,
                                 onTap: () async {
-                                  final device = widget.payload.device;
+                                  final device = selectedDevice!;
                                   await injector<CanvasClientServiceV2>()
                                       .safeShutdown(device);
                                   injector<NavigationService>().goBack();
@@ -478,7 +481,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _displayOrientation(BuildContext context) {
-    final blDevice = widget.payload.device;
+    final blDevice = selectedDevice!;
     return BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, _) {},
@@ -508,9 +511,9 @@ class BluetoothConnectedDeviceConfigState
                     .rotateCanvas(blDevice);
                 if (response != null) {
                   final deviceStatus =
-                      BluetoothDeviceManager().bluetoothDeviceStatus.value;
+                      BluetoothDeviceManager().castingDeviceStatus.value;
                   if (deviceStatus != null) {
-                    BluetoothDeviceManager().bluetoothDeviceStatus.value =
+                    BluetoothDeviceManager().castingDeviceStatus.value =
                         deviceStatus.copyWith(screenRotation: response);
                   }
                 }
@@ -523,7 +526,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _canvasSetting(BuildContext context) {
-    final blDevice = widget.payload.device;
+    final blDevice = selectedDevice!;
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       buildWhen: (previous, current) {
@@ -601,12 +604,12 @@ class BluetoothConnectedDeviceConfigState
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       buildWhen: (previous, current) {
-        return previous.isDeviceAlive(widget.payload.device) !=
-            current.isDeviceAlive(widget.payload.device);
+        return previous.isDeviceAlive(selectedDevice!) !=
+            current.isDeviceAlive(selectedDevice!);
       },
       builder: (context, state) {
         final isEnabled =
-            state.isDeviceAlive(widget.payload.device) && status != null;
+            state.isDeviceAlive(selectedDevice!) && status != null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -637,7 +640,7 @@ class BluetoothConnectedDeviceConfigState
                       injector<NavigationService>().navigateTo(
                         AppRouter.scanWifiNetworkPage,
                         arguments: ScanWifiNetworkPagePayload(
-                          widget.payload.device,
+                          selectedDevice!,
                           onWifiSelected,
                         ),
                       );
@@ -651,7 +654,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
-    final blDevice = widget.payload.device;
+    final blDevice = selectedDevice!;
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
@@ -692,7 +695,7 @@ class BluetoothConnectedDeviceConfigState
     final isUpToDate =
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
-    final device = widget.payload.device;
+    final device = selectedDevice!;
     final deviceId = device.name;
     final connectedWifi = status?.connectedWifi;
 
@@ -885,7 +888,7 @@ class BluetoothConnectedDeviceConfigState
                           : 'Show Pairing QR Code',
                       color: AppColor.white,
                       onTap: () async {
-                        final device = widget.payload.device;
+                        final device = selectedDevice!;
                         await injector<CanvasClientServiceV2>()
                             .showPairingQRCode(device, !_isShowingQRCode);
                         setState(() {
@@ -903,7 +906,7 @@ class BluetoothConnectedDeviceConfigState
                       color: AppColor.white,
                       enabled: isBLEDeviceConnected,
                       onTap: () async {
-                        final device = widget.payload.device;
+                        final device = selectedDevice!;
                         await injector<CanvasClientServiceV2>()
                             .updateToLatestVersion(device);
                       },
@@ -945,7 +948,7 @@ class BluetoothConnectedDeviceConfigState
   // // Enable metrics streaming from the device
   Future<void> _enableMetricsStreaming() async {
     try {
-      final device = widget.payload.device;
+      final device = selectedDevice!;
       log.info('Enabling metrics streaming for device: ${device.name}');
       _metricsStreamSubscription = DeviceRealtimeMetricHelper()
           .startMetrics(device)
@@ -960,7 +963,7 @@ class BluetoothConnectedDeviceConfigState
     try {
       await _metricsStreamSubscription?.cancel();
 
-      final device = widget.payload.device;
+      final device = selectedDevice!;
       log.info('Disabling metrics streaming for device: ${device.name}');
       DeviceRealtimeMetricHelper().stopMetrics(device);
     } catch (e) {
@@ -1390,5 +1393,70 @@ class BluetoothConnectedDeviceConfigState
   String _formatTimestamp(double timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildDeviceSwitcher(BuildContext context) {
+    final pairedDevices = BluetoothDeviceManager.pairedDevices;
+
+    // If there are less than 2 devices, don't show the switcher
+    if (pairedDevices.length < 2) {
+      return const SizedBox.shrink();
+    }
+
+    return PopupMenuButton<FFBluetoothDevice>(
+      icon: const Icon(
+        Icons.devices,
+        color: AppColor.white,
+        size: 24,
+      ),
+      tooltip: 'Switch Device',
+      offset: const Offset(0, 40),
+      onSelected: (FFBluetoothDevice device) async {
+        await BluetoothDeviceManager().switchDevice(device);
+        setState(() {
+          selectedDevice = device;
+        });
+      },
+      itemBuilder: (BuildContext context) {
+        return pairedDevices.map((FFBluetoothDevice device) {
+          final isSelected = device.deviceId == selectedDevice?.deviceId;
+          return PopupMenuItem<FFBluetoothDevice>(
+            value: device,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.tv,
+                  color: isSelected
+                      ? AppColor.white
+                      : AppColor.white.withValues(alpha: 0.7),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    device.name,
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppColor.white
+                          : AppColor.white.withValues(alpha: 0.9),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColor.white,
+                    size: 16,
+                  ),
+                ],
+              ],
+            ),
+          );
+        }).toList();
+      },
+    );
   }
 }
