@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/canvas_notification.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
