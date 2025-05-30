@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 class CanvasNotificationManager {
@@ -28,6 +29,9 @@ class CanvasNotificationManager {
   final Map<String, StreamSubscription<NotificationRelayerMessage>>
       _subscriptions = {};
 
+  // Map to hold retry timers
+  final Map<String, Timer> _retryTimers = {};
+
   // Stream controller for combined notifications
   final _combinedNotificationController = StreamController<
       Pair<BaseDevice, NotificationRelayerMessage>>.broadcast();
@@ -37,6 +41,9 @@ class CanvasNotificationManager {
       get combinedNotificationStream => _combinedNotificationController.stream;
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
+
+  static const _maxRetryAttempts = 10;
+  static const _retryDelay = Duration(seconds: 5);
 
   // start function: connect to all devices
   Future<void> start() async {
@@ -83,11 +90,11 @@ class CanvasNotificationManager {
       },
       onError: (error) {
         // Handle errors from the combined stream
-        print('Error in combined notification stream: $error');
+        log.info('Error in combined notification stream: $error');
       },
       onDone: () {
         // Handle completion of the combined stream if needed
-        print('Combined notification stream done');
+        log.info('Combined notification stream done');
       },
     );
   }
@@ -107,9 +114,35 @@ class CanvasNotificationManager {
       try {
         await connect(device);
       } catch (e) {
-        print('Error reconnecting to device ${device.deviceId}: $e');
+        log.warning('Error reconnecting to device ${device.deviceId}: $e');
+        _scheduleRetry(device);
       }
     }
+  }
+
+  void _scheduleRetry(BaseDevice device) {
+    _retryTimers[device.deviceId]?.cancel();
+    int retryCount = 0;
+
+    void retry() async {
+      if (retryCount >= _maxRetryAttempts) {
+        log.warning('Max retry attempts reached for device ${device.deviceId}');
+        _retryTimers.remove(device.deviceId);
+        return;
+      }
+
+      try {
+        await connect(device);
+        _retryTimers.remove(device.deviceId);
+      } catch (e) {
+        log.warning(
+            'Retry attempt ${retryCount + 1} failed for device ${device.deviceId}: $e');
+        retryCount++;
+        _retryTimers[device.deviceId] = Timer(_retryDelay, retry);
+      }
+    }
+
+    _retryTimers[device.deviceId] = Timer(_retryDelay, retry);
   }
 
   // Connect to a specific device
@@ -131,11 +164,13 @@ class CanvasNotificationManager {
         },
         onError: (error) {
           // Handle error from individual service stream if needed
-          print('Error from device ${device.deviceId}: $error');
+          log.warning('Error from device ${device.deviceId}: $error');
+          _scheduleRetry(device);
         },
         onDone: () {
           // Handle individual service stream completion if needed
-          print('Device ${device.deviceId} stream done');
+          log.info('Device ${device.deviceId} stream done');
+          _scheduleRetry(device);
         },
       );
       await newService.connect();
@@ -152,6 +187,9 @@ class CanvasNotificationManager {
 
   // Disconnect from a specific device
   Future<void> disconnect(String deviceId) async {
+    _retryTimers[deviceId]?.cancel();
+    _retryTimers.remove(deviceId);
+
     final service = _services.remove(deviceId);
     if (service != null) {
       await service.disconnect();
@@ -166,6 +204,11 @@ class CanvasNotificationManager {
   }
 
   Future<void> _disconnectAll() async {
+    for (final timer in _retryTimers.values) {
+      timer.cancel();
+    }
+    _retryTimers.clear();
+
     final futures =
         _services.values.map((service) => service.disconnect()).toList();
     _services.clear();
