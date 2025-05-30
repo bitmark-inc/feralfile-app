@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 class CanvasNotificationManager {
   factory CanvasNotificationManager() => _instance;
@@ -35,17 +36,15 @@ class CanvasNotificationManager {
   Stream<Pair<BaseDevice, NotificationRelayerMessage>>
       get combinedNotificationStream => _combinedNotificationController.stream;
 
+  StreamSubscription<FGBGType>? _fgbgSubscription;
+
   // start function: connect to all devices
   Future<void> start() async {
-    final devices = BluetoothDeviceManager.pairedDevices;
-    for (final device in devices) {
-      try {
-        await connect(device);
-      } catch (e) {
-        // Handle connection error for each device
-        print('Error connecting to device ${device.deviceId}: $e');
-      }
-    }
+    await _reconnectAll();
+
+    // Listen to app lifecycle changes
+    _fgbgSubscription =
+        FGBGEvents.instance.stream.listen(_handleForeBackground);
 
     combinedNotificationStream.listen(
       (Pair<BaseDevice, NotificationRelayerMessage> pair) {
@@ -91,6 +90,26 @@ class CanvasNotificationManager {
         print('Combined notification stream done');
       },
     );
+  }
+
+  void _handleForeBackground(FGBGType event) {
+    switch (event) {
+      case FGBGType.foreground:
+        _reconnectAll();
+      case FGBGType.background:
+        _disconnectAll();
+    }
+  }
+
+  Future<void> _reconnectAll() async {
+    final devices = BluetoothDeviceManager.pairedDevices;
+    for (final device in devices) {
+      try {
+        await connect(device);
+      } catch (e) {
+        print('Error reconnecting to device ${device.deviceId}: $e');
+      }
+    }
   }
 
   // Connect to a specific device
@@ -143,6 +162,10 @@ class CanvasNotificationManager {
 
   // Disconnect from all devices
   Future<void> disconnectAll() async {
+    await _disconnectAll();
+  }
+
+  Future<void> _disconnectAll() async {
     final futures =
         _services.values.map((service) => service.disconnect()).toList();
     _services.clear();
@@ -162,7 +185,8 @@ class CanvasNotificationManager {
 
   // Dispose method to clean up
   void dispose() {
-    disconnectAll();
+    _fgbgSubscription?.cancel();
+    _disconnectAll();
     _combinedNotificationController.close();
   }
 
