@@ -23,37 +23,22 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/svg.dart';
 
 const double kNowDisplayingHeight = 60;
 
 abstract class NowDisplayingStatus {}
 
-// Connect to device
-class ConnectingToDevice implements NowDisplayingStatus {
-  ConnectingToDevice(this.device);
+class ConnectionLost implements NowDisplayingStatus {
+  ConnectionLost(this.device);
 
-  final BluetoothDevice device;
+  final BaseDevice device;
 }
 
-class ConnectSuccess implements NowDisplayingStatus {
-  ConnectSuccess(this.device);
+class DeviceDisconnected implements NowDisplayingStatus {
+  DeviceDisconnected(this.device);
 
-  final BluetoothDevice device;
-}
-
-class ConnectFailed implements NowDisplayingStatus {
-  ConnectFailed(this.device, this.error);
-
-  final BluetoothDevice device;
-  final Object error;
-}
-
-class ConnectionLostAndReconnecting implements NowDisplayingStatus {
-  ConnectionLostAndReconnecting(this.device);
-
-  final BluetoothDevice device;
+  final BaseDevice device;
 }
 
 // Now displaying
@@ -115,10 +100,6 @@ class _NowDisplayingState extends State<NowDisplaying>
     nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
       (status) {
-        if (nowDisplayingStatus is NowDisplayingSuccess &&
-            status is ConnectSuccess) {
-          return;
-        }
         if (mounted) {
           setState(
             () {
@@ -148,14 +129,10 @@ class _NowDisplayingState extends State<NowDisplaying>
         }
 
         switch (nowDisplayingStatus.runtimeType) {
-          case ConnectingToDevice:
-            return _connectingToDeviceView(context, nowDisplayingStatus);
-          case ConnectSuccess:
-            return _connectSuccessView(context, nowDisplayingStatus);
-          case ConnectFailed:
+          case DeviceDisconnected:
             return _connectFailedView(context, nowDisplayingStatus);
-          case ConnectionLostAndReconnecting:
-            return _connectionLostAndReconnectingView(
+          case ConnectionLost:
+            return _connectionLostView(
               context,
               nowDisplayingStatus,
             );
@@ -174,45 +151,24 @@ class _NowDisplayingState extends State<NowDisplaying>
     );
   }
 
-  Widget _connectingToDeviceView(
-    BuildContext context,
-    NowDisplayingStatus status,
-  ) {
-    final device = (status as ConnectingToDevice).device;
-    final deviceName =
-        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connecting to $deviceName',
-    );
-  }
-
-  Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectSuccess).device;
-    final deviceName =
-        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connected to $deviceName',
-    );
-  }
-
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectFailed).device;
+    final device = (status as DeviceDisconnected).device;
     final deviceName =
-        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
+        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Unable to connect to $deviceName. Check connection.',
+      status: 'Device $deviceName is offline or disconnected.',
     );
   }
 
-  Widget _connectionLostAndReconnectingView(
+  Widget _connectionLostView(
     BuildContext context,
     NowDisplayingStatus status,
   ) {
-    final device = (status as ConnectionLostAndReconnecting).device;
+    final device = (status as ConnectionLost).device;
     final deviceName =
-        device.getName.isNotEmpty == true ? device.getName : 'Portal (FF-X1)';
+        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Connection to $deviceName lost, Attempting to reconnect...',
+      status: 'Connection to $deviceName lost.',
     );
   }
 
