@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -38,31 +39,48 @@ class BluetoothDeviceManager {
         .toList();
   }
 
-  Future<void> deleteAllDevices() async {
-    await _ffDeviceDB.deleteAll();
-    _castingBluetoothDevice = null;
+  Future<void> resetDevice() async {
+    BluetoothDeviceManager().castingBluetoothDevice = null;
     await CanvasNotificationManager().disconnectAll();
   }
 
   Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    await deleteAllDevices();
-
-    await _ffDeviceDB.write([device.toKeyValue]);
-    BluetoothDeviceManager().castingBluetoothDevice = device;
-    await CanvasNotificationManager().connect(device);
+    await _setupDevice(device, shouldWriteToDb: true);
     log.info(
       'BluetoothDeviceHelper.addDevice: added ${device.toJson()}',
     );
+  }
+
+  Future<void> switchDevice(
+    FFBluetoothDevice device,
+  ) async {
+    await _setupDevice(device, shouldWriteToDb: false);
+    log.info(
+      'BluetoothDeviceHelper.switchDevice: switched to ${device.toJson()}',
+    );
+  }
+
+  Future<void> _setupDevice(
+    FFBluetoothDevice device, {
+    required bool shouldWriteToDb,
+  }) async {
+    await resetDevice();
+
+    if (shouldWriteToDb) {
+      await _ffDeviceDB.write([device.toKeyValue]);
+    }
+
+    BluetoothDeviceManager().castingBluetoothDevice = device;
+    await CanvasNotificationManager().connect(device);
+    await injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
   }
 
   // Casting device status
   final ValueNotifier<DeviceStatus?> _castingDeviceStatus = ValueNotifier(null);
 
   ValueNotifier<DeviceStatus?> get castingDeviceStatus {
-    if (_castingDeviceStatus.value == null &&
-        castingBluetoothDevice != null) {}
     return _castingDeviceStatus;
   }
 
@@ -91,6 +109,20 @@ class BluetoothDeviceManager {
     if (_castingBluetoothDevice != null) {
       if (state.isDeviceAlive(_castingBluetoothDevice!)) {
         return _castingBluetoothDevice;
+      }
+    }
+
+    final selectedDeviceId =
+        injector<ConfigurationService>().getSelectedDeviceId();
+    if (selectedDeviceId != null) {
+      final device = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
+        (device) => device.deviceId == selectedDeviceId,
+      );
+      if (device != null) {
+        if (state.isDeviceAlive(device)) {
+          castingBluetoothDevice = device;
+          return device;
+        }
       }
     }
 
