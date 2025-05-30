@@ -169,6 +169,7 @@ class FFBluetoothService {
               stackTrace: s,
             ),
           );
+          await device.disconnect();
           if (_connectCompleter?.isCompleted == false) {
             _connectCompleter?.completeError(e);
           }
@@ -485,23 +486,13 @@ class FFBluetoothService {
   Future<void> _connectDevice(
     BluetoothDevice device, {
     bool shouldShowError = true,
-    bool? autoConnect,
   }) async {
     log.info('_connectDevice');
-    try {
-      if (!(autoConnect ?? false)) {
-        log.info('[_connectDevice] _connect with autoConnect is false');
-        await _connect(
-          device,
-          shouldShowError: shouldShowError,
-          autoConnect: false,
-        );
-      }
-    } catch (_) {}
-    if (autoConnect ?? true) {
-      log.info('[_connectDevice] _connect with autoConnect is true');
-      await _connect(device, shouldShowError: false);
-    }
+    await _connect(
+      device,
+      shouldShowError: shouldShowError,
+      autoConnect: false,
+    );
   }
 
   Future<void> _connect(

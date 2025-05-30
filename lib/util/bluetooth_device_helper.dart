@@ -39,10 +39,17 @@ class BluetoothDeviceManager {
         .toList();
   }
 
-  static Future<void> addDevice(
+  Future<void> deleteAllDevices() async {
+    await _ffDeviceDB.deleteAll();
+    _castingBluetoothDevice = null;
+    await CanvasNotificationManager().disconnectAll();
+  }
+
+  Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    await _ffDeviceDB.deleteAll();
+    await deleteAllDevices();
+
     await _ffDeviceDB.write([device.toKeyValue]);
     BluetoothDeviceManager().castingBluetoothDevice = device;
     await CanvasNotificationManager().connect(device);

@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
@@ -234,10 +233,6 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           resultDevice = device;
           return true;
         }
-        if (results.isNotEmpty) {
-          await UIHelper.showInfoDialog(context, "Device $deviceName not found",
-              "Scanned devices: ${devices.map((e) => e.advName).join(', ')}");
-        }
         return false;
       },
       onError: (error) {
@@ -270,7 +265,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           true,
         );
         // add device to canvas
-        await BluetoothDeviceManager.addDevice(
+        await BluetoothDeviceManager().addDevice(
           res.first,
         );
         await injector<NavigationService>().showThePortalIsSet(res.first, null);
@@ -283,7 +278,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           final device = resultDevice!.toFFBluetoothDevice(
             topicId: topicId,
           );
-          await BluetoothDeviceManager.addDevice(
+          await BluetoothDeviceManager().addDevice(
             device,
           );
         }
@@ -305,7 +300,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         ));
 
         // add device to canvas
-        await BluetoothDeviceManager.addDevice(
+        await BluetoothDeviceManager().addDevice(
           res.first,
         );
       }
