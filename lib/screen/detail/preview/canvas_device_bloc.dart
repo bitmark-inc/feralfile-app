@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
@@ -264,6 +265,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final isConnected = event.isConnected;
         final newState = state.updateDeviceAlive(device, isConnected);
         emit(newState);
+        if (!isConnected) {
+          NowDisplayingManager().addStatus(
+            DeviceDisconnected(device),
+          );
+        }
       },
     );
 

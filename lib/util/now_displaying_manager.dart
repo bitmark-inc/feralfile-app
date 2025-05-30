@@ -37,16 +37,16 @@ class NowDisplayingManager {
     nowDisplayingStatus = status;
     _streamController.add(status);
     _onDisconnectTimer?.cancel();
-    if (status is ConnectFailed) {
+    if (status is DeviceDisconnected) {
       _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
-        // shouldShowNowDisplayingOnDisconnect.value = false;
+        shouldShowNowDisplayingOnDisconnect.value = false;
       });
-    } else if (status is ConnectionLostAndReconnecting) {
+    } else if (status is ConnectionLost) {
       _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
-        // shouldShowNowDisplayingOnDisconnect.value = false;
+        shouldShowNowDisplayingOnDisconnect.value = false;
       });
-    } else if (status is NowDisplayingSuccess || status is ConnectSuccess) {
-      // shouldShowNowDisplayingOnDisconnect.value = true;
+    } else if (status is NowDisplayingSuccess) {
+      shouldShowNowDisplayingOnDisconnect.value = true;
     }
     nowDisplayingVisibility.value = true;
     injector<NavigationService>().hideDeviceSettings();

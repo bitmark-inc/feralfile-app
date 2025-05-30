@@ -212,15 +212,11 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
           }
         }
         return _tokenNowDisplaying(context);
-      case ConnectingToDevice:
-        return Text('Connecting to device',
+      case DeviceDisconnected:
+        return Text('Device disconnected',
             style: theme.textTheme.ppMori400White14);
-      case ConnectFailed:
-        return Text('Failed to connect to device',
-            style: theme.textTheme.ppMori400White14);
-      case ConnectionLostAndReconnecting:
-        return Text('Connection lost, reconnecting',
-            style: theme.textTheme.ppMori400White14);
+      case ConnectionLost:
+        return Text('Connection lost', style: theme.textTheme.ppMori400White14);
       default:
         return Text('Unknown state', style: theme.textTheme.ppMori400White14);
     }

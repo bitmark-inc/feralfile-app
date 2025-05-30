@@ -17,9 +17,7 @@ import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -164,7 +162,6 @@ class FFBluetoothService {
             _connectCompleter?.complete();
           }
           _connectCompleter = null;
-          NowDisplayingManager().addStatus(ConnectSuccess(device));
         } catch (e, s) {
           log.warning('Failed to discover characteristics: $e');
           unawaited(
@@ -186,9 +183,6 @@ class FFBluetoothService {
             'Device disconnected reason: ${device.disconnectReason}',
           );
         }
-        NowDisplayingManager().addStatus(
-          ConnectionLostAndReconnecting(device),
-        );
       }
     });
 
@@ -443,7 +437,6 @@ class FFBluetoothService {
   Future<void> connectToDevice(
     BluetoothDevice device, {
     bool shouldShowError = true,
-    bool shouldChangeNowDisplayingStatus = false,
     bool? autoConnect,
   }) async {
     if (_multiConnectCompleter?.isCompleted == false) {
@@ -455,21 +448,13 @@ class FFBluetoothService {
     }
 
     _multiConnectCompleter = Completer<void>();
-    if (shouldChangeNowDisplayingStatus) {
-      NowDisplayingManager().addStatus(ConnectingToDevice(device));
-    }
 
     _connectDevice(device, shouldShowError: shouldShowError).then((_) {
       log.info('Connected to device: ${device.remoteId.str}');
-      if (shouldChangeNowDisplayingStatus) {
-        NowDisplayingManager().addStatus(ConnectSuccess(device));
-      }
+
       _multiConnectCompleter?.complete();
       _multiConnectCompleter = null;
     }).catchError((Object e) {
-      if (shouldChangeNowDisplayingStatus) {
-        NowDisplayingManager().addStatus(ConnectFailed(device, e));
-      }
       log.severe('Failed to connect to device: $e');
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
 
@@ -748,7 +733,6 @@ class SendWifiCredentialError implements Exception {
           'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
         );
       default:
-        // A generic error
         return SendWifiCredentialError(
           'Unknown error occurred while sending wifi credentials. Error code: $errorCode',
         );
