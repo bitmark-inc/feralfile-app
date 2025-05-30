@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
@@ -40,15 +39,14 @@ class NowDisplayingManager {
     _onDisconnectTimer?.cancel();
     if (status is ConnectFailed) {
       _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
+        // shouldShowNowDisplayingOnDisconnect.value = false;
       });
     } else if (status is ConnectionLostAndReconnecting) {
       _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
-        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+        // shouldShowNowDisplayingOnDisconnect.value = false;
       });
     } else if (status is NowDisplayingSuccess || status is ConnectSuccess) {
-      shouldShowNowDisplayingOnDisconnect.value = true;
+      // shouldShowNowDisplayingOnDisconnect.value = true;
     }
     nowDisplayingVisibility.value = true;
     injector<NavigationService>().hideDeviceSettings();
@@ -62,9 +60,9 @@ class NowDisplayingManager {
         return;
       }
 
-      CheckDeviceStatusReply? status;
+      CheckCastingStatusReply? status;
       try {
-        status = await _getStatus(device);
+        status = injector<CanvasDeviceBloc>().state.statusOf(device);
       } catch (e) {
         log.info(
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
@@ -88,7 +86,7 @@ class NowDisplayingManager {
   }
 
   Future<NowDisplayingObject?> getNowDisplayingObject(
-    CheckDeviceStatusReply status,
+    CheckCastingStatusReply status,
   ) async {
     if (status.exhibitionId != null) {
       final exhibitionId = status.exhibitionId!;
@@ -135,28 +133,5 @@ class NowDisplayingManager {
     final request = QueryListTokensRequest(ids: [tokenId]);
     final assetToken = await injector<IndexerService>().getNftTokens(request);
     return assetToken.isNotEmpty ? assetToken.first : null;
-  }
-
-  Future<CheckDeviceStatusReply?> _getStatus(FFBluetoothDevice device) async {
-    return injector<CanvasDeviceBloc>().state.statusOf(device);
-    // final completer = Completer<CheckDeviceStatusReply?>();
-    // injector<CanvasDeviceBloc>().add(
-    //   CanvasDeviceGetStatusEvent(
-    //     device,
-    //     onDoneCallback: (status) {
-    //       completer.complete(status);
-    //     },
-    //     onErrorCallback: (e) {
-    //       completer.completeError(e);
-    //     },
-    //   ),
-    // );
-    // final res = await completer.future.timeout(
-    //   const Duration(seconds: 5),
-    //   onTimeout: () {
-    //     throw TimeoutException('Timeout getting Now Displaying');
-    //   },
-    // );
-    // return res;
   }
 }

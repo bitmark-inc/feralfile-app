@@ -240,7 +240,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(UIHelper.showLiveWithArtIntro(context));
       }
     });
-    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getChatThreads());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
@@ -561,7 +560,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await injector<ConfigurationService>().reload();
     await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(injector<VersionService>().checkForUpdate());
-    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
     unawaited(NowDisplayingManager().updateDisplayingNow());
 

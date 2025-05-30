@@ -157,6 +157,8 @@ class FFBluetoothService {
           if (Platform.isAndroid) {
             // await device.requestMtu(512);
           }
+          // add safe delay to ensure connection is stable
+          await Future.delayed(const Duration(seconds: 1));
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {
             _connectCompleter?.complete();
@@ -171,6 +173,7 @@ class FFBluetoothService {
               stackTrace: s,
             ),
           );
+          await device.disconnect();
           if (_connectCompleter?.isCompleted == false) {
             _connectCompleter?.completeError(e);
           }
@@ -252,6 +255,7 @@ class FFBluetoothService {
     required Map<String, dynamic> request,
     Duration timeout = const Duration(seconds: 10),
     bool shouldShowError = true,
+    bool shouldWaitForReply = true,
   }) async {
     log.info(
       '[sendCommand] Sending command: $command to device: ${device.remoteId.str}',
@@ -276,11 +280,13 @@ class FFBluetoothService {
     final byteBuilder = _buildCommandMessage(command.name, request, replyId);
 
     final completer = command.generateCompleter();
-    final cb = command.notificationCallback(completer);
-    BluetoothNotificationService().subscribe(replyId, cb);
-    log.info(
-      '[sendCommand] Subscribed to replyId: $replyId',
-    );
+    if (shouldWaitForReply) {
+      final cb = command.notificationCallback(completer);
+      BluetoothNotificationService().subscribe(replyId, cb);
+      log.info(
+        '[sendCommand] Subscribed to replyId: $replyId',
+      );
+    }
     try {
       final bytes = byteBuilder.takeBytes();
 
@@ -294,23 +300,17 @@ class FFBluetoothService {
       await wifiChar.writeWithRetry(bytes);
 
       // Wait for reply with timeout
-      final res = await completer.future.timeout(
-        timeout,
-        onTimeout: () {
-          Sentry.captureMessage(
-            '[sendCommand] Timeout waiting for reply: $replyId',
-          );
-          throw TimeoutException('Timeout  waiting for reply $replyId');
-        },
-      );
-      // if (displayingCommand
-      //     .any((element) => element == CastCommand.fromString(command))) {
-      //   castingBluetoothDevice = device;
-      // }
-      // if (updateDeviceStatusCommand
-      //     .any((element) => element == CastCommand.fromString(command))) {
-      //   unawaited(fetchBluetoothDeviceStatus(device));
-      // }
+      final res = (shouldWaitForReply)
+          ? await completer.future.timeout(
+              timeout,
+              onTimeout: () {
+                Sentry.captureMessage(
+                  '[sendCommand] Timeout waiting for reply: $replyId',
+                );
+                throw TimeoutException('Timeout  waiting for reply $replyId');
+              },
+            )
+          : const EmptyBluetoothResponse();
       return res;
     } catch (e, s) {
       // BluetoothNotificationService().unsubscribe(replyId, cb);
@@ -359,6 +359,7 @@ class FFBluetoothService {
       command: BluetoothCommand.setTimezone,
       request: SetTimezoneRequest(timezone: timezone).toJson(),
       timeout: const Duration(seconds: 5),
+      shouldWaitForReply: false,
     );
     log.info(
       '[setTimezone] set timezone to $timezone for device: ${device.remoteId.str} with res: $res',
@@ -487,23 +488,13 @@ class FFBluetoothService {
   Future<void> _connectDevice(
     BluetoothDevice device, {
     bool shouldShowError = true,
-    bool? autoConnect,
   }) async {
     log.info('_connectDevice');
-    try {
-      if (!(autoConnect ?? false)) {
-        log.info('[_connectDevice] _connect with autoConnect is false');
-        await _connect(
-          device,
-          shouldShowError: shouldShowError,
-          autoConnect: false,
-        );
-      }
-    } catch (_) {}
-    if (autoConnect ?? true) {
-      log.info('[_connectDevice] _connect with autoConnect is true');
-      await _connect(device, shouldShowError: false);
-    }
+    await _connect(
+      device,
+      shouldShowError: shouldShowError,
+      autoConnect: false,
+    );
   }
 
   Future<void> _connect(
@@ -530,7 +521,7 @@ class FFBluetoothService {
       log.info('[connect] Connecting to device: ${device.remoteId.str}');
       try {
         await device.connect(
-          timeout: const Duration(seconds: 10),
+          timeout: const Duration(seconds: 30),
           autoConnect: autoConnect,
           mtu: autoConnect ? null : 512,
         );
@@ -565,7 +556,7 @@ class FFBluetoothService {
         }
 
         await _connectCompleter?.future.timeout(
-          const Duration(seconds: 10),
+          const Duration(seconds: 30),
           onTimeout: () {
             log.warning('Timeout waiting for connection to complete');
             if (shouldShowError) {
@@ -605,7 +596,7 @@ class FFBluetoothService {
 
   Future<void> startScan({
     Duration timeout = const Duration(seconds: 30),
-    FutureOr<bool> Function(List<ScanResult>)? onData,
+    FutureOr<bool> Function(List<BluetoothDevice>)? onData,
     FutureOr<void> Function(dynamic)? onError,
     bool forceScan = false,
   }) async {
@@ -616,11 +607,19 @@ class FFBluetoothService {
 
       await listenForAdapterState();
 
-      onData?.call([]);
+      final connectedDevices = FlutterBluePlus.connectedDevices;
+      final shouldStop = await onData?.call(connectedDevices);
+      if (shouldStop == true) {
+        log.info('BluetoothConnectEventScan startScan: already connected');
+        return;
+      }
       StreamSubscription<List<ScanResult>>? scanSubscription;
+
       scanSubscription = FlutterBluePlus.onScanResults.listen(
         (results) async {
-          final shouldStopScan = await onData?.call(results);
+          final devices = results.map((result) => result.device).toList();
+          final shouldStopScan = await onData
+              ?.call(devices..addAll(FlutterBluePlus.connectedDevices));
           if (shouldStopScan == true) {
             FlutterBluePlus.stopScan();
           }
@@ -692,6 +691,10 @@ abstract class BluetoothResponse {
   const BluetoothResponse();
 }
 
+class EmptyBluetoothResponse extends BluetoothResponse {
+  const EmptyBluetoothResponse();
+}
+
 class SendWifiCredentialRequest extends BluetoothRequest {
   const SendWifiCredentialRequest({
     required this.ssid,
@@ -719,6 +722,7 @@ class SendWifiCredentialResponse extends BluetoothResponse {
 
 enum SendWifiCredentialErrorCode {
   userEnterWrongPassword(1),
+  wifiConnectedButCannotReachServer(2),
   unknownError(255);
 
   const SendWifiCredentialErrorCode(this.code);
@@ -739,6 +743,10 @@ class SendWifiCredentialError implements Exception {
         // user enter wrong password
         return SendWifiCredentialError(
             'Failed to connect to Wi-Fi. Please check your password and try again.');
+      case SendWifiCredentialErrorCode.wifiConnectedButCannotReachServer:
+        return SendWifiCredentialError(
+          'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
+        );
       default:
         // A generic error
         return SendWifiCredentialError(

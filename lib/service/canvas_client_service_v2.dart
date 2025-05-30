@@ -9,18 +9,15 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
-import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:flutter/material.dart';
@@ -53,26 +50,6 @@ class CanvasClientServiceV2 {
     } else {
       throw Exception('Unknown device type');
     }
-  }
-
-  Future<CheckDeviceStatusReply> getDeviceCastingStatus(
-    BaseDevice device, {
-    bool shouldShowError = true,
-  }) async =>
-      _getDeviceCastingStatus(device, shouldShowError: shouldShowError);
-
-  Future<CheckDeviceStatusReply> _getDeviceCastingStatus(
-    BaseDevice device, {
-    bool shouldShowError = true,
-  }) async {
-    final stub = _getStub(device);
-    final request = CheckDeviceStatusRequest();
-    final response =
-        await stub.status(request, shouldShowError: shouldShowError);
-    log.info(
-      'CanvasClientService2 status: ${response.connectedDevice?.deviceId}',
-    );
-    return response;
   }
 
   DevicePlatform get _platform {
@@ -232,20 +209,6 @@ class CanvasClientServiceV2 {
     return response;
   }
 
-  Future<Pair<BaseDevice, CheckDeviceStatusReply>?> getCastingStatus(
-    BaseDevice device, {
-    bool shouldShowError = true,
-  }) async {
-    try {
-      final status = await getDeviceCastingStatus(device,
-          shouldShowError: shouldShowError);
-      return Pair(device, status);
-    } catch (e) {
-      log.info('CanvasClientService: getDeviceStatus error: $e');
-      return null;
-    }
-  }
-
   Future<void> sendKeyBoard(List<BaseDevice> devices, int code) async {
     for (final device in devices) {
       final stub = _getStub(device);
@@ -269,7 +232,8 @@ class CanvasClientServiceV2 {
     try {
       final response = await stub.rotate(rotateCanvasRequest);
       log.info(
-          'CanvasClientService: Rotate Canvas Success ${response.orientation}');
+        'CanvasClientService: Rotate Canvas Success ${response.orientation}',
+      );
       return response.orientation;
     } catch (e) {
       log.info('CanvasClientService: Rotate Canvas Failed');
@@ -283,15 +247,6 @@ class CanvasClientServiceV2 {
     final request = SendLogRequest(userId: user ?? '', title: title);
     final response = await stub.getSupport(request);
     log.info('CanvasClientService: Get Support Success ${response.ok}');
-  }
-
-  Future<DeviceStatus> getDeviceStatus(
-    BaseDevice device,
-  ) async {
-    final stub = _getStub(device);
-    final request = GetDeviceStatusRequest();
-    final response = await stub.getDeviceStatus(request);
-    return response.deviceStatus;
   }
 
   Future<bool> updateArtFraming(
@@ -332,9 +287,6 @@ class CanvasClientServiceV2 {
     log.info(
       'CanvasClientService: Update To Latest Version Success: response ${response.toJson()}',
     );
-    if (device is FFBluetoothDevice) {
-      await BluetoothDeviceManager().fetchCastingDeviceStatus(device);
-    }
   }
 
   Future<void> tap(List<BaseDevice> devices) async {

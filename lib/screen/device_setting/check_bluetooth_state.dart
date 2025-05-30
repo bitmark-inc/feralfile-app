@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
@@ -228,17 +227,12 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       timeout: const Duration(seconds: 10),
       forceScan: true,
       onData: (results) async {
-        log.info('Scanned devices: ${results.map((e) => e.device).toList()}');
-        final devices = results.map((e) => e.device).toList();
+        final devices = results;
         final device = devices
             .firstWhereOrNull((element) => element.advName == deviceName);
         if (device != null) {
           resultDevice = device;
           return true;
-        }
-        if (results.isNotEmpty) {
-          await UIHelper.showInfoDialog(context, "Device $deviceName not found",
-              "Scanned devices: ${results.map((e) => e.device.advName).join(', ')}");
         }
         return false;
       },
@@ -272,7 +266,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           true,
         );
         // add device to canvas
-        await BluetoothDeviceManager.addDevice(
+        await BluetoothDeviceManager().addDevice(
           res.first,
         );
         await injector<NavigationService>().showThePortalIsSet(res.first, null);
@@ -285,7 +279,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           final device = resultDevice!.toFFBluetoothDevice(
             topicId: topicId,
           );
-          await BluetoothDeviceManager.addDevice(
+          await BluetoothDeviceManager().addDevice(
             device,
           );
         }
@@ -307,10 +301,12 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         ));
 
         // add device to canvas
-        await BluetoothDeviceManager.addDevice(
+        await BluetoothDeviceManager().addDevice(
           res.first,
         );
       }
+
+      unawaited(_resultDevice?.disconnect());
       try {
         await onFinish?.call();
       } catch (e) {

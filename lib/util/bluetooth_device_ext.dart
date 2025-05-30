@@ -38,7 +38,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     try {
       log.info('Discovering characteristics for device: ${remoteId.str}');
       await Future<void>.delayed(const Duration(seconds: 1));
-      final discoveredServices = await discoverServices();
+      final discoveredServices = await discoverServices(timeout: 30);
       final services = <BluetoothService>[]
         ..clear()
         ..addAll(discoveredServices);

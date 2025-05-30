@@ -16,32 +16,75 @@ class DeviceRealtimeMetricHelper {
   static final DeviceRealtimeMetricHelper _instance =
       DeviceRealtimeMetricHelper._internal();
 
-  final StreamController<DeviceRealtimeMetrics>
-      _deviceRealtimeMetricsController =
-      StreamController<DeviceRealtimeMetrics>.broadcast();
+  final Map<String, StreamController<DeviceRealtimeMetrics>>
+      _deviceRealtimeMetricsControllers = {};
 
-  Stream<DeviceRealtimeMetrics> get deviceRealtimeMetricsStream =>
-      _deviceRealtimeMetricsController.stream;
+  final Map<String, Timer> _deviceTimers = {};
 
-  Timer? _timer;
-
-  void startRealtimeMetrics({required FFBluetoothDevice device}) {
-    // Simulate real-time metrics generation
-    _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
-      final metrics = await injector<CanvasClientServiceV2>()
-          .getDeviceRealtimeMetrics(device);
-      _deviceRealtimeMetricsController.add(metrics);
-    });
+  Stream<DeviceRealtimeMetrics> getDeviceRealtimeMetricsStream(
+      BaseDevice device) {
+    final controller =
+        _deviceRealtimeMetricsControllers[device.deviceId]?.stream;
+    if (controller != null) {
+      return controller;
+    } else {
+      final newController = StreamController<DeviceRealtimeMetrics>.broadcast();
+      _deviceRealtimeMetricsControllers[device.deviceId] = newController;
+      return newController.stream;
+    }
   }
 
-  void stopRealtimeMetrics() {
-    _timer?.cancel();
-    _timer = null;
+  void addMetrics(BaseDevice device, DeviceRealtimeMetrics metrics) {
+    if (!_deviceRealtimeMetricsControllers.containsKey(device.deviceId)) {
+      _deviceRealtimeMetricsControllers[device.deviceId] =
+          StreamController<DeviceRealtimeMetrics>.broadcast();
+    }
+    _deviceRealtimeMetricsControllers[device.deviceId]!.add(metrics);
   }
 
   void dispose() {
-    stopRealtimeMetrics();
-    _deviceRealtimeMetricsController.close();
+    // Cancel all timers
+    for (var timer in _deviceTimers.values) {
+      timer.cancel();
+    }
+    _deviceTimers.clear();
+
+    // Close all stream controllers
+    for (var controller in _deviceRealtimeMetricsControllers.values) {
+      controller.close();
+    }
+    _deviceRealtimeMetricsControllers.clear();
+  }
+
+  Stream<DeviceRealtimeMetrics> startMetrics(BaseDevice device) {
+    if (_deviceTimers.containsKey(device.deviceId)) {
+      return _deviceRealtimeMetricsControllers[device.deviceId]!.stream;
+    }
+
+    final controller = _deviceRealtimeMetricsControllers[device.deviceId] ??
+        StreamController<DeviceRealtimeMetrics>.broadcast();
+    _deviceRealtimeMetricsControllers[device.deviceId] = controller;
+
+    // Simulate periodic metrics updates
+    final timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      final metrics = await injector<CanvasClientServiceV2>()
+          .getDeviceRealtimeMetrics(device);
+
+      controller.add(metrics);
+    });
+
+    _deviceTimers[device.deviceId] = timer;
+    return controller.stream;
+  }
+
+  void stopMetrics(BaseDevice device) {
+    if (_deviceTimers.containsKey(device.deviceId)) {
+      _deviceTimers[device.deviceId]!.cancel();
+      _deviceTimers.remove(device.deviceId);
+    }
+    if (_deviceRealtimeMetricsControllers.containsKey(device.deviceId)) {
+      _deviceRealtimeMetricsControllers[device.deviceId]!.close();
+      _deviceRealtimeMetricsControllers.remove(device.deviceId);
+    }
   }
 }

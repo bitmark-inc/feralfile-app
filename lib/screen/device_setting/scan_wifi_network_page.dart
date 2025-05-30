@@ -114,6 +114,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
   @override
   void dispose() {
     _subscription?.cancel();
+    widget.payload.device.disconnect();
     routeObserver.unsubscribe(this);
     super.dispose();
   }

@@ -34,11 +34,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    unawaited(_fetchDevice());
-  }
-
-  Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 
   @override
@@ -212,6 +207,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
 
   Future<void> onDisconnect() async {
     final allDevices = _canvasDeviceBloc.state.devices.toList();
-    _canvasDeviceBloc.add(CanvasDeviceDisconnectEvent(allDevices));
+    // _canvasDeviceBloc.add(CanvasDeviceDisconnectedEvent(allDevices));
   }
 }
