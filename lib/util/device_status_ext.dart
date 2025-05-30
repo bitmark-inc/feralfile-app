@@ -26,16 +26,16 @@ extension ListDeviceStatusExtension
 }
 
 extension DeviceStatusExtension on CheckCastingStatusReply {
-  String? get playingArtworkKey {
-    if (artworks.isEmpty && exhibitionId == null) {
-      return null;
-    }
+  String get playingArtworkKey {
     if (exhibitionId != null) {
       return exhibitionId.toString();
     }
 
-    final hashCode = artworks.playArtworksHashCode;
-    return hashCode.toString();
+    if (artworks.isNotEmpty) {
+      return artworks.playArtworksHashCode.toString();
+    }
+
+    return this.displayKey ?? '';
   }
 }
 

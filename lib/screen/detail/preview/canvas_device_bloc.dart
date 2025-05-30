@@ -229,7 +229,8 @@ class CanvasDeviceState {
     final id = canvasDeviceStatus.entries
         .firstWhereOrNull((element) => element.value.playingArtworkKey == key)
         ?.key;
-    return devices.firstWhereOrNull((element) => element.deviceId == id);
+    return devices.firstWhereOrNull(
+        (element) => element.deviceId == id && isDeviceAlive(element));
   }
 
   DeviceDisplaySetting? deviceDisplaySettingOf(BaseDevice device) {
@@ -248,8 +249,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       (event, emit) {
         final device = event.device;
         final status = event.status;
+        final key = status.playingArtworkKey;
         final newState = state.canvasDeviceStatus..[device.deviceId] = status;
-        emit(state.copyWith(controllingDeviceStatus: newState));
+        emit(state
+            .updateOnCast(device: device, displayKey: key)
+            .copyWith(controllingDeviceStatus: newState));
         NowDisplayingManager().updateDisplayingNow();
       },
     );
