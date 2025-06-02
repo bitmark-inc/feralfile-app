@@ -1,0 +1,68 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Cache-first data strategy with ObjectBox local storage + remote APIs
+
+DATA SOURCES:
+1. ObjectBox - Primary local cache (objectbox.g.dart, objectbox-model.json)
+2. FeralFile API - Daily artworks, exhibitions, curated content
+3. Blockchain APIs - NFT data (Indexer API, TZKT for Tezos, Web3 for Ethereum)
+4. GraphQL - Complex NFT relationship queries
+
+CACHE-FIRST PATTERN:
+Future<List<Artwork>> getArtworks() async {
+  // 1. Check local cache
+  final cached = await _database.getArtworks();
+  if (cached.isNotEmpty && !_isStale(cached)) return cached;
+  
+  // 2. Fetch from API
+  final fresh = await _api.fetchArtworks();
+  
+  // 3. Update cache
+  await _database.saveArtworks(fresh);
+  return fresh;
+}
+
+API CLIENT PATTERN (Retrofit/Dio):
+@RestApi(baseUrl: Environment.feralFileAPIURL)
+abstract class FeralFileApi {
+  factory FeralFileApi(Dio dio, {String baseUrl}) = _FeralFileApi;
+  
+  @GET('/exhibitions')
+  Future<List<Exhibition>> getExhibitions();
+}
+
+HTTP CLIENT TYPES:
+- Base Dio: Standard API calls
+- Authenticated Dio: User auth required calls
+- FeralFile Dio: FeralFile-specific config  
+- TV Cast Dio: Device casting
+
+INTERCEPTORS:
+- AutonomyAuthInterceptor: Adds auth headers
+- FeralfileErrorHandlerInterceptor: Centralized error handling
+- MetricsInterceptor: Performance tracking
+
+OBJECTBOX DAOS (/lib/nft_collection/database/dao/):
+- assetDao - NFT asset metadata
+- tokenDao - Token information
+- assetTokenDao - Asset-token relationships
+- provenanceDao - Ownership history
+- predefinedCollectionDao - Curated collections
+
+BACKGROUND SYNC:
+@pragma('vm:entry-point')
+Future<void> callbackDispatcher() async {
+  // Runs every 4 hours via WorkManager
+  await injector<HomeWidgetService>().updateDailyTokensToHomeWidget();
+}
+
+CACHING STRATEGY:
+- Level 1: In-memory (BLoC state)
+- Level 2: Local database (ObjectBox)  
+- Level 3: Remote API (FeralFile, blockchain)
+
+Cache invalidation: time-based + event-based + manual refresh
+Offline design: App functions with cached data when offline
