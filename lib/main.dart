@@ -14,6 +14,8 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
+import 'package:autonomy_flutter/model/identity.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -164,7 +166,10 @@ Future<void> runFeralFileApp() async {
 }
 
 void _registerHiveAdapter() {
-  Hive.registerAdapter(AnnouncementLocalAdapter());
+  Hive
+    ..registerAdapter(AnnouncementLocalAdapter())
+    ..registerAdapter(DraftCustomerSupportAdapter())
+    ..registerAdapter(IndexerIdentityAdapter());
 }
 
 Future<void> _setupWorkManager() async {

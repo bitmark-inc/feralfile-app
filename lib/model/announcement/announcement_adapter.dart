@@ -1,9 +1,10 @@
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
   @override
-  final int typeId = 10;
+  final int typeId = HiveStoreId.announcement.typeId;
 
   @override
   AnnouncementLocal read(BinaryReader reader) =>
