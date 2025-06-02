@@ -1,9 +1,6 @@
 // widgetbook for accountItem
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/address_collection_dao.dart';
@@ -22,6 +19,7 @@ import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:widgetbook/widgetbook.dart';
+import 'package:widgetbook_workspace/mock/mock_cloud_manager.dart';
 
 class MockNftCollectionDatabase extends NftCollectionDatabase {
   @override
@@ -95,39 +93,42 @@ class MockCloudDB extends CloudDB {
 
   @override
   void clearCache() {}
+
+  @override
+  Future<void> deleteAll() async {}
 }
 
-class MockCloudManager extends CloudManager {
-  late final WalletAddressCloudObject _walletAddressObject;
-  late final CloudDB _deviceSettingsDB;
-  late final CloudDB _userSettingsDB;
-  late final PlaylistCloudObject _playlistCloudObject;
-  late final CloudDB _ffDeviceCloudDB;
-
-  MockCloudManager() {
-    _walletAddressObject = WalletAddressCloudObject(MockCloudDB());
-    _deviceSettingsDB = MockCloudDB();
-    _userSettingsDB = MockCloudDB();
-    _playlistCloudObject = PlaylistCloudObject(MockCloudDB());
-    _ffDeviceCloudDB = MockCloudDB();
-  }
-
-  @override
-  WalletAddressCloudObject get addressObject => _walletAddressObject;
-
-  @override
-  CloudDB get deviceSettingsDB => _deviceSettingsDB;
-
-  @override
-  CloudDB get userSettingsDB => _userSettingsDB;
-
-  @override
-  PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
-
-  @override
-  CloudDB get ffDeviceDB => _ffDeviceCloudDB;
-}
-
+// class MockCloudManager extends CloudManager {
+//   late final WalletAddressCloudObject _walletAddressObject;
+//   late final CloudDB _deviceSettingsDB;
+//   late final CloudDB _userSettingsDB;
+//   late final PlaylistCloudObject _playlistCloudObject;
+//   late final CloudDB _ffDeviceCloudDB;
+//
+//   MockCloudManager() {
+//     _walletAddressObject = WalletAddressCloudObject(MockCloudDB());
+//     _deviceSettingsDB = MockCloudDB();
+//     _userSettingsDB = MockCloudDB();
+//     _playlistCloudObject = PlaylistCloudObject(MockCloudDB());
+//     _ffDeviceCloudDB = MockCloudDB();
+//   }
+//
+//   @override
+//   WalletAddressCloudObject get addressObject => _walletAddressObject;
+//
+//   @override
+//   CloudDB get deviceSettingsDB => _deviceSettingsDB;
+//
+//   @override
+//   CloudDB get userSettingsDB => _userSettingsDB;
+//
+//   @override
+//   PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
+//
+//   @override
+//   CloudDB get ffDeviceDB => _ffDeviceCloudDB;
+// }
+//
 class MockAddressService extends AddressService {
   MockAddressService() : super(MockCloudManager(), MockNftAddressService());
 }

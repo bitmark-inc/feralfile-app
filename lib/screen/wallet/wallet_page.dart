@@ -28,6 +28,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:autonomy_flutter/view/recovery_phrase_warning.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key, this.payload});
@@ -156,8 +157,7 @@ class _WalletPageState extends State<WalletPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_showRecoveryPhraseWarning)
-                  _getRecoveryPhraseWarning(context),
+                if (_showRecoveryPhraseWarning) const RecoveryPhraseWarning(),
                 Expanded(
                   child: AccountsView(
                     isInSettingsPage: true,
