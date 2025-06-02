@@ -1,0 +1,58 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Clean Architecture + BLoC pattern with dependency inversion
+
+GLOBAL BLOCS (/lib/screen/bloc/):
+- accounts_bloc.dart - User account management
+- identity_bloc.dart - User identity and authentication  
+- subscription_bloc.dart - Subscription status
+- bluetooth_connect_bloc.dart - Bluetooth connectivity
+
+BLOC REGISTRATION (injector.dart):
+// Singleton BLoCs
+injector.registerLazySingleton<IdentityBloc>(() => IdentityBloc(ObjectBox.identityBox, injector()));
+
+// Factory BLoCs (new instance each time)
+injector.registerFactory<CollectionProBloc>(CollectionProBloc.new);
+
+// Parameterized BLoCs
+injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>((p1, p2) => NftCollectionBloc(/*deps*/));
+
+DATA FLOW:
+1. UI Event → BLoC: BlocProvider.of<FeatureBloc>(context).add(LoadDataEvent())
+2. BLoC → Service → API/Database
+3. Service implements cache-first strategy: check local DB → fetch from API → update cache
+
+SERVICE PATTERN:
+class FeatureServiceImpl implements FeatureService {
+  Future<Data> fetchData() async {
+    final cached = await _database.getData();
+    if (cached != null) return cached;
+    
+    final data = await _api.fetchData();
+    await _database.saveData(data);
+    return data;
+  }
+}
+
+DEPENDENCY INJECTION (GetIt):
+// Lazy Singleton (created when accessed)
+injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(injector(), injector()));
+
+// Factory (new instance each time)  
+injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc(injector()));
+
+STATE MANAGEMENT:
+- BLoC: Complex business logic, persistent state
+- StatefulWidget: Simple UI interactions only
+- Global BLoCs: App-wide state (auth, settings)
+- ValueNotifiers: Simple reactive values
+
+ERROR HANDLING:
+- Sentry integration for crash reporting
+- Custom interceptors in API layer
+- Error states in BLoC pattern
+- Global error dialog system

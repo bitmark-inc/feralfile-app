@@ -1,0 +1,108 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Flutter/Dart conventions and testing patterns
+
+NAMING CONVENTIONS:
+- Classes: PascalCase (FeralFileService, ArtworkDetailBloc)
+- Variables/Methods: camelCase (artworkList, fetchDailyArtwork)
+- Constants: lowerCamelCase or ALL_CAPS (defaultTimeout, API_BASE_URL)
+- Private: prefix underscore (_artworkService, _handleAuthError)
+- Files/Directories: snake_case
+
+IMPORT ORGANIZATION:
+1. Dart SDK (import 'dart:async')
+2. Flutter (import 'package:flutter/material.dart') 
+3. Third-party alphabetical (bloc, dio, get_it)
+4. Local alphabetical (autonomy_flutter/model, autonomy_flutter/service)
+
+CLASS STRUCTURE:
+1. Static constants
+2. Instance variables (public then private)
+3. Constructor
+4. Public methods
+5. Private methods  
+6. Event handlers (for BLoCs)
+
+ERROR HANDLING:
+Future<List<Artwork>> fetchArtworks() async {
+  try {
+    final response = await _api.getArtworks().timeout(Duration(seconds: 30));
+    return response.map((json) => Artwork.fromJson(json)).toList();
+  } on DioException catch (e) {
+    throw NetworkException('Failed to fetch: ${e.message}');
+  } on FormatException catch (e) {
+    throw DataException('Invalid format: ${e.message}');
+  } catch (e) {
+    Sentry.captureException(e);
+    throw UnknownException('Unexpected error: $e');
+  }
+}
+
+BLOC ERROR HANDLING:
+Future<void> _onLoad(LoadEvent event, Emitter<State> emit) async {
+  emit(const State.loading());
+  try {
+    final data = await _service.loadData();
+    emit(State.loaded(data));
+  } catch (e) {
+    log.severe('Failed to load data', e);
+    emit(State.error(e.toString()));
+  }
+}
+
+UNIT TESTING:
+class MockApi extends Mock implements FeralFileApi {}
+
+test('should return artwork when API succeeds', () async {
+  final expectedArtwork = Artwork(id: '1', title: 'Test');
+  when(() => mockApi.getDailyArtwork()).thenAnswer((_) async => ArtworkResponse.fromArtwork(expectedArtwork));
+  
+  final result = await service.fetchDailyArtwork();
+  
+  expect(result, equals(expectedArtwork));
+  verify(() => mockApi.getDailyArtwork()).called(1);
+});
+
+BLOC TESTING:
+blocTest<DailyWorkBloc, DailyWorkState>(
+  'emits [loading, loaded] when LoadDailyWork succeeds',
+  build: () {
+    when(() => mockService.fetchDailyArtwork()).thenAnswer((_) async => Artwork(id: '1'));
+    return bloc;
+  },
+  act: (bloc) => bloc.add(const LoadDailyWork()),
+  expect: () => [
+    const DailyWorkState.loading(),
+    DailyWorkState.loaded(Artwork(id: '1')),
+  ],
+);
+
+WIDGET TESTING:
+testWidgets('displays artwork title and artist', (tester) async {
+  const artwork = Artwork(id: '1', title: 'Test Artwork', artist: Artist(name: 'Test Artist'));
+  
+  await tester.pumpWidget(MaterialApp(home: ArtworkCard(artwork: artwork)));
+  
+  expect(find.text('Test Artwork'), findsOneWidget);
+  expect(find.text('Test Artist'), findsOneWidget);
+});
+
+DOCUMENTATION:
+/// Service for managing FeralFile artwork data.
+/// 
+/// Handles fetching, caching, and synchronizing artwork data
+/// from FeralFile.com API with local storage.
+/// 
+/// Throws [NetworkException] if API call fails.
+/// Throws [DataException] if response format is invalid.
+
+CODE QUALITY:
+- Use const constructors when possible
+- Avoid dynamic, use specific types
+- Prefer async/await over raw Futures
+- Dispose resources properly
+- Remove unused imports
+- Use Sentry for crash reporting

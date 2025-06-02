@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Flutter Feral File Client - NFT artwork app with Passkey auth, ObjectBox caching
+
+KEY DIRECTORIES:
+/lib/common - Core infrastructure (injector.dart, database.dart, environment.dart)
+/lib/gateway - Generated API clients (.g.dart files) for FeralFile, user auth, support
+/lib/service - Business logic layer, coordinates between data sources
+/lib/screen - UI layer with BLoCs, organized by feature
+/lib/model - Domain models and data structures  
+/lib/nft_collection - Self-contained feature module with clean architecture
+/lib/view - Reusable UI components
+/lib/util - Shared utilities (logging, error handling, notifications)
+
+FILE CONVENTIONS:
+- snake_case for files/directories
+- BLoCs: feature_name_bloc.dart
+- Services: feature_name_service.dart  
+- APIs: service_name_api.dart + .g.dart generated
+- Import order: Dart SDK → Flutter → Third-party → Local
+
+CORE TECH STACK:
+- ObjectBox: Local database caching
+- GetIt: Dependency injection
+- BLoC: State management
+- Dio/Retrofit: HTTP with generated clients
+- GraphQL: NFT data queries
+- Passkey: Passwordless authentication
+- WorkManager: Background tasks
+- Sentry: Error tracking
+
+PLATFORM CODE:
+/android, /ios - Platform specific implementations
+/assets - Fonts, images (2x/3x), translations, tools

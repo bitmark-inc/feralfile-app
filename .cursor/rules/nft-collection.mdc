@@ -1,0 +1,394 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# NFT Collection Feature Patterns
+
+## NFT Collection Module Architecture
+
+The NFT collection feature (`/lib/nft_collection/`) follows clean architecture as a self-contained module:
+
+### Module Initialization
+```dart
+// Initialize in main app
+await NftCollection.initNftCollection(
+  indexerUrl: Environment.indexerURL,
+  logger: log,
+  apiLogger: apiLog,
+  dio: dio,
+);
+
+// Access services
+final tokenService = NftCollection.tokenService;
+final database = NftCollection.database;
+```
+
+### Data Layer Structure
+```
+/lib/nft_collection/data/
+├── api/
+│   ├── indexer_api.dart          // Cross-chain NFT indexing
+│   └── tzkt_api.dart            // Tezos blockchain API
+```
+
+### Database Layer
+```
+/lib/nft_collection/database/dao/
+├── asset_dao.dart               // NFT asset metadata
+├── token_dao.dart               // Token information
+├── asset_token_dao.dart         // Asset-token relationships
+├── provenance_dao.dart          // Ownership history
+└── predefined_collection_dao.dart // Curated collections
+```
+
+## Blockchain Integration Patterns
+
+### Multi-Chain Support
+```dart
+// Ethereum integration
+class EthereumServiceImpl implements EthereumService {
+  final Web3Client _web3Client;
+  final AddressService _addressService;
+  
+  @override
+  Future<List<NFTToken>> getTokensByAddress(String address) async {
+    // Fetch tokens from Ethereum network
+  }
+}
+
+// Tezos integration  
+class TezosServiceImpl implements TezosService {
+  final TZKTApi _tzktApi;
+  
+  @override
+  Future<List<NFTToken>> getTokensByAddress(String address) async {
+    // Fetch tokens from Tezos network via TZKT API
+  }
+}
+```
+
+### Indexer Service Pattern
+```dart
+class IndexerService {
+  final IndexerClient _client;
+  final TokensService _tokensService;
+  
+  Future<List<CompactedAssetToken>> getTokensByOwner(String address) async {
+    // Cross-chain token aggregation
+    final ethereumTokens = await _getEthereumTokens(address);
+    final tezosTokens = await _getTezosTokens(address);
+    
+    return [...ethereumTokens, ...tezosTokens];
+  }
+}
+```
+
+## NFT Data Models
+
+### Asset Token Relationship
+```dart
+@Entity()
+class AssetToken {
+  @Id()
+  int id = 0;
+  
+  String tokenId;
+  String contractAddress;
+  String blockchain; // 'ethereum', 'tezos'
+  String? owner;
+  DateTime? lastUpdated;
+  
+  // Relationship to Asset
+  final asset = ToOne<Asset>();
+}
+```
+
+### Asset Metadata
+```dart
+@Entity()
+class Asset {
+  @Id()
+  int id = 0;
+  
+  String assetId;
+  String title;
+  String? description;
+  String? artistName;
+  String? thumbnailURL;
+  String? previewURL;
+  String? originalURL;
+  Map<String, dynamic>? metadata;
+}
+```
+
+## Collection Management Patterns
+
+### Collection BLoC Pattern
+```dart
+class NftCollectionBloc extends Bloc<NftCollectionEvent, NftCollectionState> {
+  final TokensService _tokensService;
+  final IndexerService _indexerService;
+  final Duration pendingTokenExpire;
+  
+  NftCollectionBloc(
+    this._tokensService,
+    this._indexerService, {
+    this.pendingTokenExpire = const Duration(hours: 4),
+  }) : super(const NftCollectionState.initial()) {
+    on<RefreshCollectionEvent>(_onRefreshCollection);
+    on<LoadMoreTokensEvent>(_onLoadMoreTokens);
+  }
+  
+  Future<void> _onRefreshCollection(
+    RefreshCollectionEvent event,
+    Emitter<NftCollectionState> emit,
+  ) async {
+    // Refresh from blockchain APIs
+    // Update local database
+    // Emit updated state
+  }
+}
+```
+
+### Cache Strategy for NFTs
+```dart
+class TokensServiceImpl implements TokensService {
+  @override
+  Future<List<CompactedAssetToken>> getTokensByAddresses(
+    List<String> addresses, {
+    bool refreshCache = false,
+  }) async {
+    if (!refreshCache) {
+      // Check local cache first
+      final cached = await _database.getTokensByAddresses(addresses);
+      if (cached.isNotEmpty) {
+        return cached;
+      }
+    }
+    
+    // Fetch from indexer
+    final fresh = await _indexerService.getTokensByOwners(addresses);
+    
+    // Update cache
+    await _database.saveTokens(fresh);
+    
+    return fresh;
+  }
+}
+```
+
+## Wallet Address Management
+
+### Address Import Pattern
+```dart
+class AddressService {
+  Future<void> importAddress(String address, String blockchain) async {
+    // Validate address format
+    if (!_isValidAddress(address, blockchain)) {
+      throw InvalidAddressException('Invalid $blockchain address');
+    }
+    
+    // Store in secure storage
+    await _storage.saveAddress(address, blockchain);
+    
+    // Trigger token refresh
+    _eventBus.fire(AddressImportedEvent(address, blockchain));
+  }
+  
+  bool _isValidAddress(String address, String blockchain) {
+    switch (blockchain) {
+      case 'ethereum':
+        return EthereumAddress.isValidAddress(address);
+      case 'tezos':
+        return TezosAddress.isValidAddress(address);
+      default:
+        return false;
+    }
+  }
+}
+```
+
+### Read-Only Mode
+```dart
+// App supports read-only collection viewing
+// No private key storage or transaction signing
+class ReadOnlyWalletService {
+  Future<List<NFTToken>> getCollectionForAddress(String address) async {
+    // Fetch tokens without requiring private keys
+    return await _indexerService.getTokensByOwner(address);
+  }
+  
+  // Display-only methods
+  String formatTokenBalance(BigInt balance, int decimals) {
+    // Format for display
+  }
+  
+  String getExplorerURL(String tokenId, String blockchain) {
+    // Generate blockchain explorer links
+  }
+}
+```
+
+## GraphQL Integration
+
+### NFT Query Patterns
+```dart
+// GraphQL queries for complex NFT relationships
+class NftGraphQLQueries {
+  static const getTokensByOwner = '''
+    query GetTokensByOwner(\$owner: String!, \$limit: Int!, \$offset: Int!) {
+      tokens(where: {owner: {_eq: \$owner}}, limit: \$limit, offset: \$offset) {
+        id
+        tokenId
+        contractAddress
+        asset {
+          title
+          description
+          artistName
+          previewURL
+        }
+      }
+    }
+  ''';
+}
+```
+
+## Error Handling for Blockchain APIs
+
+### Network-Specific Error Handling
+```dart
+Future<List<NFTToken>> fetchTokensWithRetry(String address) async {
+  int retryCount = 0;
+  const maxRetries = 3;
+  
+  while (retryCount < maxRetries) {
+    try {
+      return await _api.getTokensByAddress(address);
+    } on NetworkException catch (e) {
+      retryCount++;
+      if (retryCount >= maxRetries) {
+        // Fall back to cached data
+        return await _database.getCachedTokens(address);
+      }
+      
+      // Exponential backoff
+      await Future.delayed(Duration(seconds: pow(2, retryCount).toInt()));
+    }
+  }
+  
+  throw MaxRetriesExceededException('Failed to fetch tokens after $maxRetries attempts');
+}
+```
+
+NFT Collection feature with multi-chain blockchain support
+
+FEATURE STRUCTURE:
+/lib/nft_collection/
+├── data/api/ - Blockchain API clients (Indexer, TZKT, GraphQL)
+├── database/dao/ - ObjectBox DAOs for local NFT storage  
+├── models/ - NFT data models and transformations
+├── services/ - Business logic for fetching/caching NFTs
+├── widgets/ - Collection display components
+└── di/ - Feature dependency injection
+
+MULTI-CHAIN SUPPORT:
+- Ethereum: Web3 integration + Indexer API
+- Tezos: TZKT API for Tezos blockchain data
+- Bitcoin: CLibWally/LibWally frameworks
+- Future: Modular design for additional chains
+
+IMPORT FLOW PATTERN:
+1. User provides wallet address
+2. Validate address format per blockchain
+3. Fetch NFTs from blockchain APIs (Indexer/TZKT)
+4. Transform API responses to unified models
+5. Cache in ObjectBox for offline access
+6. Display in collection views
+
+ADDRESS IMPORT (/lib/screen/onboarding/view_address/):
+- view_address_page.dart - Main import screen
+- import_address_bloc.dart - Import state management
+- Manual entry + QR code scanning
+- Multi-format address validation
+
+BLOCKCHAIN APIs:
+@RestApi(baseUrl: Environment.indexerURL)
+abstract class IndexerApi {
+  @GET('/v1/account/{address}/tokens')
+  Future<IndexerTokenResponse> getAccountTokens(@Path('address') String address);
+}
+
+@RestApi(baseUrl: 'https://api.tzkt.io')
+abstract class TzktApi {
+  @GET('/v1/tokens/balances')
+  Future<List<TzktToken>> getTokenBalances(@Query('account') String account);
+}
+
+DATA MODELS:
+class Asset {
+  final String id;
+  final String tokenId;
+  final String contractAddress;
+  final String blockchain;
+  final String? title;
+  final String? thumbnailURL;
+  final String? previewURL;
+}
+
+class AssetToken {
+  final String id;
+  final String tokenId;
+  final String contractAddress;
+  final int balance;
+  final String owner;
+}
+
+CACHE STRATEGY:
+1. Check ObjectBox for existing NFTs
+2. If cache hit and fresh, return cached data
+3. Fetch fresh data from blockchain APIs
+4. Merge new data with existing cache
+5. Update display with combined results
+
+SERVICE LAYER:
+class NftCollectionServiceImpl implements NftCollectionService {
+  Future<List<CompactedAssetToken>> refreshTokens(String address) async {
+    // Parallel fetch from multiple APIs
+    final futures = [
+      _indexerApi.getAccountTokens(address),
+      _tzktApi.getTokenBalances(address),
+    ];
+    
+    final results = await Future.wait(futures);
+    final merged = _mergeResults(results);
+    await _dao.saveTokens(merged);
+    return merged;
+  }
+}
+
+COLLECTION VIEWS:
+- CollectionProBloc - Collection state management
+- collection_pro_page.dart - Main collection screen
+- ArtworkCard - Individual NFT display component
+- GridView layout with lazy loading
+
+PREDEFINED COLLECTIONS (/lib/screen/predefined_collection/):
+- Curated art collections (Chromie Squiggle, etc.)
+- Featured collections from FeralFile
+- Special exhibition collections
+
+DEPENDENCY INJECTION:
+void configureNftCollectionDependencies() {
+  injector.registerFactory<IndexerApi>(() => IndexerApi(injector()));
+  injector.registerFactory<TzktApi>(() => TzktApi(injector()));
+  injector.registerLazySingleton<NftCollectionService>(() => NftCollectionServiceImpl(injector()));
+  injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>((isFromDeeplink, _) => 
+    NftCollectionBloc(injector(), isFromDeeplink: isFromDeeplink));
+}
+
+BLOCKCHAIN UTILITIES:
+- Address validation per chain format
+- Chain detection from address format
+- Token metadata parsing from various standards
+- Price conversion and display formatting

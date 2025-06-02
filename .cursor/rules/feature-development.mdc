@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Feature-based organization with self-contained modules
+
+FEATURE MODULE STRUCTURE:
+/lib/nft_collection/
+├── data/api/ - API clients (Retrofit)
+├── database/dao/ - ObjectBox DAOs  
+├── di/ - Dependency injection setup
+├── models/ - Data models
+├── services/ - Business logic
+├── widgets/ - UI components
+
+FEATURE DEVELOPMENT STEPS:
+1. Define models (data/responses)
+2. Create API client with Retrofit annotations
+3. Setup ObjectBox DAOs for local storage
+4. Implement service layer with cache-first logic
+5. Create BLoC for state management
+6. Register dependencies in injector.dart
+7. Build UI widgets with BlocBuilder
+
+FEATURE DI PATTERN (di/nft_collection_injector.dart):
+void configureDependencies() {
+  injector.registerFactory<NftCollectionApi>(() => NftCollectionApi(injector()));
+  injector.registerLazySingleton<NftCollectionService>(() => NftCollectionServiceImpl(injector()));
+  injector.registerFactory<NftCollectionBloc>(() => NftCollectionBloc(injector()));
+}
+
+SELF-CONTAINED FEATURES:
+- Minimal dependencies on other features
+- Own data models and transformations
+- Independent API clients and services
+- Feature-specific UI components
+- Clear public interface for external usage
+
+SCREEN ORGANIZATION (/lib/screen/):
+feature_name/
+├── feature_bloc.dart - State management
+├── feature_page.dart - Main screen
+├── feature_state.dart - State definitions
+└── widgets/ - Feature-specific widgets
+
+GLOBAL VS FEATURE BLOCS:
+Global (/lib/screen/bloc/): 
+- accounts_bloc.dart - Cross-app account state
+- identity_bloc.dart - Authentication
+- subscription_bloc.dart - Premium features
+
+Feature-specific:
+- Located in feature directories
+- Registered as factories (new instance per use)
+- Handle feature-specific business logic
+
+SERVICE LAYER PATTERN:
+abstract class FeatureService {
+  Future<List<Data>> getData();
+}
+
+class FeatureServiceImpl implements FeatureService {
+  Future<List<Data>> getData() async {
+    // Cache-first implementation
+    final cached = await _dao.getAll();
+    if (cached.isNotEmpty) return cached;
+    
+    final remote = await _api.fetchData();
+    await _dao.saveAll(remote);
+    return remote;
+  }
+}
+
+WIDGET COMPOSITION:
+- Small, focused widgets
+- Clear prop interfaces
+- Reusable across features
+- Consistent design system usage
