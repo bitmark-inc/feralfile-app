@@ -299,11 +299,6 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
             isFromOnboarding: res.second,
           ),
         ));
-
-        // add device to canvas
-        await BluetoothDeviceManager().addDevice(
-          res.first,
-        );
       }
 
       unawaited(_resultDevice?.disconnect());

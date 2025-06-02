@@ -109,7 +109,10 @@ class CanvasNotificationManager {
   }
 
   Future<void> _reconnectAll() async {
-    final devices = BluetoothDeviceManager.pairedDevices;
+    final devices = [
+      if (BluetoothDeviceManager().castingBluetoothDevice != null)
+        BluetoothDeviceManager().castingBluetoothDevice!
+    ];
     for (final device in devices) {
       try {
         await connect(device);

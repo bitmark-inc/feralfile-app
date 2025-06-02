@@ -119,6 +119,7 @@ class CloudManager {
     _deviceSettingsDB.clearCache();
     _userSettingsDB.clearCache();
     _playlistCloudObject.clearCache();
+    _ffDeviceCloudDB.clearCache();
   }
 
   Future<void> deleteAll() async {

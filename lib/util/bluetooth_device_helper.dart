@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.da
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -88,12 +87,9 @@ class BluetoothDeviceManager {
   FFBluetoothDevice? _castingBluetoothDevice;
 
   set castingBluetoothDevice(FFBluetoothDevice? device) {
-    final state = injector<CanvasDeviceBloc>().state;
     if (device == null) {
       _castingBluetoothDevice = null;
-      return;
-    }
-    if (!state.isDeviceAlive(device)) {
+      injector<ConfigurationService>().setSelectedDeviceId(null);
       return;
     }
 
@@ -114,7 +110,7 @@ class BluetoothDeviceManager {
     final selectedDeviceId =
         injector<ConfigurationService>().getSelectedDeviceId();
     if (selectedDeviceId != null) {
-      final device = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
+      final device = BluetoothDeviceManager.pairedDevices.lastWhereOrNull(
         (device) => device.deviceId == selectedDeviceId,
       );
       if (device != null) {

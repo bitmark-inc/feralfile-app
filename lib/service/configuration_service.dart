@@ -163,7 +163,7 @@ abstract class ConfigurationService {
 
   String? getSelectedDeviceId();
 
-  Future<void> setSelectedDeviceId(String deviceId);
+  Future<void> setSelectedDeviceId(String? deviceId);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -646,7 +646,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setSelectedDeviceId(String deviceId) {
+  Future<void> setSelectedDeviceId(String? deviceId) {
+    if (deviceId == null) {
+      return _preferences.remove(KEY_SELECTED_DEVICE_ID);
+    }
     return _preferences.setString(KEY_SELECTED_DEVICE_ID, deviceId);
   }
 }
