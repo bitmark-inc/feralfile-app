@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 
 class BluetoothDeviceManager {
   factory BluetoothDeviceManager() => _instance;
+
   // make singleton
 
   BluetoothDeviceManager._();
@@ -74,7 +75,6 @@ class BluetoothDeviceManager {
 
     BluetoothDeviceManager().castingBluetoothDevice = device;
     await CanvasNotificationManager().connect(device);
-    await injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
   }
 
   // Casting device status
@@ -102,14 +102,13 @@ class BluetoothDeviceManager {
     }
 
     _castingBluetoothDevice = device;
+
+    injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {
-    final state = injector<CanvasDeviceBloc>().state;
     if (_castingBluetoothDevice != null) {
-      if (state.isDeviceAlive(_castingBluetoothDevice!)) {
-        return _castingBluetoothDevice;
-      }
+      return _castingBluetoothDevice;
     }
 
     final selectedDeviceId =
@@ -119,21 +118,11 @@ class BluetoothDeviceManager {
         (device) => device.deviceId == selectedDeviceId,
       );
       if (device != null) {
-        if (state.isDeviceAlive(device)) {
-          castingBluetoothDevice = device;
-          return device;
-        }
+        castingBluetoothDevice = device;
+        return device;
       }
     }
 
-    final device = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
-      state.isDeviceAlive,
-    );
-    if (device != null) {
-      castingBluetoothDevice = device;
-      return device;
-    }
-    _castingBluetoothDevice = null;
     return null;
   }
 }

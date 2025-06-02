@@ -261,8 +261,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       if (topicId != null && isConnectedToInternet == true) {
         res = Pair(
           resultDevice!.toFFBluetoothDevice(
-            topicId: topicId,
-          ),
+              topicId: topicId, deviceId: resultDevice!.advName),
           true,
         );
         // add device to canvas
@@ -278,6 +277,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           // add device to canvas
           final device = resultDevice!.toFFBluetoothDevice(
             topicId: topicId,
+            deviceId: resultDevice!.advName,
           );
           await BluetoothDeviceManager().addDevice(
             device,

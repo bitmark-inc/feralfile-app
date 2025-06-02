@@ -418,6 +418,7 @@ class FFBluetoothService {
 
     final ffBluetoothDevice = device.toFFBluetoothDevice(
       topicId: sendWifiCredentialResponse.topicId,
+      deviceId: device.advName,
     );
 
     log.info(

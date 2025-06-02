@@ -1,9 +1,10 @@
 abstract class BaseDevice {
   const BaseDevice({
     required this.topicId,
+    required this.deviceId,
   });
 
-  String get deviceId;
+  final String deviceId;
 
   String get name;
 

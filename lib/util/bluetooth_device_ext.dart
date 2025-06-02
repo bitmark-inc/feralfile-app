@@ -10,8 +10,10 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:sentry/sentry.dart';
 
 extension BluetoothDeviceExtension on BluetoothDevice {
-  FFBluetoothDevice toFFBluetoothDevice({String? topicId}) {
-    return FFBluetoothDevice.fromBluetoothDevice(this, topicId: topicId);
+  FFBluetoothDevice toFFBluetoothDevice(
+      {String? topicId, required String deviceId}) {
+    return FFBluetoothDevice.fromBluetoothDevice(this,
+        topicId: topicId, deviceId: deviceId);
   }
 
   BluetoothCharacteristic? get wifiConnectCharacteristic =>

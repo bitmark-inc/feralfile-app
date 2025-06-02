@@ -13,10 +13,11 @@ class FFBluetoothDevice extends BluetoothDevice
     required this.name,
     required String remoteID,
     required this.topicId,
+    required this.deviceId,
   }) : super.fromId(remoteID);
 
   factory FFBluetoothDevice.fromBluetoothDevice(BluetoothDevice device,
-      {String? topicId}) {
+      {String? topicId, required String deviceId}) {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
@@ -24,6 +25,7 @@ class FFBluetoothDevice extends BluetoothDevice
       name: device.getName,
       remoteID: device.remoteId.str,
       topicId: topicId ?? savedDevice?.topicId ?? '',
+      deviceId: deviceId,
     );
   }
 
@@ -33,6 +35,9 @@ class FFBluetoothDevice extends BluetoothDevice
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
         topicId: json['topicId'] as String,
+        deviceId: json['deviceId'] != null
+            ? json['deviceId'] as String
+            : json['name'] as String, // TODO: remove this fallback
       );
 
   @override
@@ -41,16 +46,17 @@ class FFBluetoothDevice extends BluetoothDevice
   String get remoteID => remoteId.str;
 
   @override
-  String get deviceId => remoteId.str;
+  final String topicId; // topic id
 
   @override
-  final String topicId; // topic id
+  final String deviceId; // device id
 
   // toJson
   Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
         'topicId': topicId,
+        'deviceId': deviceId,
       };
 
   @override
@@ -67,7 +73,7 @@ class FFBluetoothDevice extends BluetoothDevice
   int get hashCode => super.hashCode;
 
   @override
-  String get key => name;
+  String get key => deviceId;
 
   @override
   Map<String, String> get toKeyValue => {
