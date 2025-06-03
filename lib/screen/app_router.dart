@@ -84,7 +84,6 @@ import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
-import 'package:autonomy_flutter/widgetbook/components/widgetbook_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -790,12 +789,6 @@ class AppRouter {
             payload: settings.arguments!
                 as HandleBluetoothDeviceScanDeeplinkScreenPayload,
           ),
-        );
-
-      case widgetBookScreen:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => const WidgetbookScreen(),
         );
 
       default:
