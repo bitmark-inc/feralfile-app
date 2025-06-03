@@ -1,7 +1,6 @@
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:widgetbook_workspace/mock/mock_accounts_bloc.dart';
 import 'package:widgetbook_workspace/mock/mock_injector.dart';
 
 class MockWrapper extends StatelessWidget {
@@ -18,7 +17,7 @@ class MockWrapper extends StatelessWidget {
     MockInjector.setup();
 
     return BlocProvider<AccountsBloc>(
-      create: (context) => MockInjector.get<MockAccountsBloc>(),
+      create: (context) => MockInjector.get<AccountsBloc>(),
       child: child,
     );
   }
