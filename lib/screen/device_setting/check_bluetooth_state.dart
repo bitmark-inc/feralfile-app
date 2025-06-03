@@ -288,6 +288,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           arguments: resultDevice,
         );
         res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
+        if (res != null) {
+          await BluetoothDeviceManager().addDevice(
+            res.first,
+          );
+        }
       }
 
       // after setting wifi, go to device setting page

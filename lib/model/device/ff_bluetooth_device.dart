@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:collection/collection.dart';
@@ -83,4 +85,11 @@ class FFBluetoothDevice extends BluetoothDevice
 
   @override
   String get value => jsonEncode(toJson());
+}
+
+extension FFBluetoothDeviceExt on FFBluetoothDevice {
+  bool get isAlive {
+    final state = injector<CanvasDeviceBloc>().state;
+    return state.isDeviceAlive(this);
+  }
 }
