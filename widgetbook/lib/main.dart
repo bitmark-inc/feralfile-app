@@ -3,6 +3,14 @@ import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 import 'package:widgetbook_workspace/mock/mock_injector.dart';
 import 'package:widgetbook_workspace/screens/daily_work_page.dart';
+import 'package:widgetbook_workspace/screens/feralfile/artwork_view.dart';
+import 'package:widgetbook_workspace/screens/feralfile/explore_search_bar.dart';
+import 'package:widgetbook_workspace/screens/feralfile/featured_work_view.dart';
+import 'package:widgetbook_workspace/screens/feralfile/filter_bar.dart';
+import 'package:widgetbook_workspace/screens/feralfile/filter_expanded_item.dart';
+import 'package:widgetbook_workspace/screens/feralfile/list_alumni_view.dart';
+import 'package:widgetbook_workspace/screens/feralfile/list_exhibition_view.dart';
+import 'package:widgetbook_workspace/screens/feralfile/sort_bar.dart';
 import 'package:widgetbook_workspace/screens/feralfile_home_page.dart';
 import 'package:widgetbook_workspace/screens/organize_home_page.dart';
 
@@ -54,16 +62,28 @@ class WidgetbookApp extends StatelessWidget {
         ]),
       ],
       directories: [
-        // WidgetbookFolder(
-        //   name: 'Components',
-        //   children: [
-        //     headerViewComponent,
-        //     loadingWidgetComponent,
-        //     backAppBarComponent,
-        //     accountItemComponent,
-        //     primaryButtonComponent,
-        //   ],
-        // ),
+        WidgetbookFolder(
+          name: 'Components',
+          children: [
+            // WidgetbookFolder(name: 'Common', children: [
+            //   headerViewComponent,
+            //   loadingWidgetComponent,
+            //   backAppBarComponent,
+            //   accountItemComponent,
+            //   primaryButtonComponent,
+            // ]),
+            WidgetbookFolder(name: 'Feralfile', children: [
+              seriesView(),
+              exploreSearchBar(),
+              featuredWorkView(),
+              filterBar(),
+              filterExpandedItem(),
+              listAlumniView(),
+              listExhibitionView(),
+              sortBar(),
+            ]),
+          ],
+        ),
         WidgetbookFolder(
           name: 'Screens',
           children: [
