@@ -42,6 +42,15 @@ jobs:
       - name: Build Web
         run: flutter build web --target=lib/widgetbook/main.dart --release
 
+      - name: Debug Cloudflare
+        run: |
+          ACCOUNT_ID="${{ secrets.WIDGETBOOK_CLOUDFLARE_ACCOUNT_ID }}"
+          TOKEN="${{ secrets.WIDGETBOOK_CLOUDFLARE_API_TOKEN }}"
+          echo "Account ID first 4: ${ACCOUNT_ID:0:4}"
+          echo "Account ID last 4: ${ACCOUNT_ID: -4}"
+          echo "Token first 4: ${TOKEN:0:4}"
+          echo "Token last 4: ${TOKEN: -4}"
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
@@ -49,4 +58,4 @@ jobs:
           accountId: ${{ secrets.WIDGETBOOK_CLOUDFLARE_ACCOUNT_ID }}
           projectName: feralfile-widgetbook
           directory: build/web
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
