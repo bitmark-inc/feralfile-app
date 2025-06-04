@@ -22,6 +22,11 @@ jobs:
           flutter-version: "3.27.2"
           channel: "stable"
 
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_ASSETS_KEY }}
+
       - name: Submodules update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
