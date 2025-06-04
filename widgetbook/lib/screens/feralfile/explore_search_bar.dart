@@ -5,11 +5,16 @@ import 'package:widgetbook/widgetbook.dart';
 
 WidgetbookUseCase exploreSearchBar() {
   return WidgetbookUseCase(
-    name: 'Explore Search Bar',
-    builder: (context) => ExploreBar(
-      key: const ValueKey('explore'),
-      onUpdate: (searchText, filters, sortBy) {},
-      tab: FeralfileHomeTab.artworks,
-    ),
-  );
+      name: 'Explore Search Bar',
+      builder: (context) {
+        final tab = context.knobs.list(
+            label: 'Tab',
+            options: FeralfileHomeTab.values,
+            initialOption: FeralfileHomeTab.exhibitions);
+        return ExploreBar(
+          key: const ValueKey('explore'),
+          onUpdate: (searchText, filters, sortBy) {},
+          tab: tab,
+        );
+      });
 }

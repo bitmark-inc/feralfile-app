@@ -1,14 +1,15 @@
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
+import 'package:widgetbook_workspace/mock_data/mock_exhibition.dart';
 
 WidgetbookUseCase listExhibitionView() {
   return WidgetbookUseCase(
     name: 'List Exhibition View',
-    builder: (context) => const ListExhibitionView(
-      exhibitions: [],
-      exploreBar: Text('Explore'),
-      header: Text('Exhibitions'),
+    builder: (context) => ListExhibitionView(
+      exhibitions: MockExhibitionData.listExhibition,
+      exploreBar: SizedBox(),
+      header: SizedBox.shrink(),
     ),
   );
 }

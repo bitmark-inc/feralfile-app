@@ -1,95 +1,41 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
-import 'mock_ff_series.dart';
+import 'package:widgetbook_workspace/mock_data/data/artwork.dart';
 
-class MockArtworkData {
-  static Artwork get artwork1 => Artwork(
-        'mock_artwork_1',
-        'mock_series_1',
-        1,
-        'Mock Artwork 1',
-        'image',
-        '0x1234567890abcdef',
-        false,
-        false,
-        'minted',
-        false,
-        'https://example.com/artwork1.jpg',
-        'https://example.com/artwork1.jpg',
-        'https://example.com/artwork1.jpg',
-        {'default': 'https://example.com/artwork1.jpg'},
-        null,
-        DateTime.now(),
-        DateTime.now(),
-        DateTime.now(),
-        false,
-        MockFFSeriesData.series,
-        null,
-        null,
-      );
+class MockArtwork {
+  static Artwork bend = Artwork.fromJson(bendArtwork);
+  static Artwork metasoto = Artwork.fromJson(metasotoArtwork);
+  static Artwork colorsOfNoise = Artwork.fromJson(colorsOfNoiseArtwork);
+  static Artwork post2 = Artwork.fromJson(post2Artwork);
+  static Artwork uneasyDream = Artwork.fromJson(uneasyDreamArtwork);
+  static Artwork smokeHands = Artwork.fromJson(smokeHandsArtwork);
+  static Artwork ninePlus11 = Artwork.fromJson(ninePlus11Artwork);
+  static Artwork superbloom = Artwork.fromJson(superbloomArtwork);
+  static Artwork unsupervisedMachineHallucinations =
+      Artwork.fromJson(unsupervisedMachineHallucinationsArtwork);
+  static Artwork alleluiaAlleluia = Artwork.fromJson(alleluiaAlleluiaArtwork);
+  static Artwork polymorphism82 = Artwork.fromJson(polymorphism82Artwork);
+  static Artwork fLight = Artwork.fromJson(fLightArtwork);
+  static Artwork unsupervisedDataUniverseMoma =
+      Artwork.fromJson(unsupervisedDataUniverseMomaArtwork);
+  static Artwork entity = Artwork.fromJson(entityArtwork);
+  static Artwork transparentGrit = Artwork.fromJson(transparentGritArtwork);
+  static Artwork payphone = Artwork.fromJson(payphoneArtwork);
 
-  static Artwork get artwork2 => Artwork(
-        'mock_artwork_2',
-        'mock_series_1',
-        2,
-        'Mock Artwork 2',
-        'image',
-        '0xabcdef1234567890',
-        false,
-        false,
-        'minted',
-        false,
-        'https://example.com/artwork2.jpg',
-        'https://example.com/artwork2.jpg',
-        'https://example.com/artwork2.jpg',
-        {'default': 'https://example.com/artwork2.jpg'},
-        null,
-        DateTime.now(),
-        DateTime.now(),
-        DateTime.now(),
-        false,
-        MockFFSeriesData.series,
-        null,
-        null,
-      );
-
-  static Artwork get artwork3 => Artwork(
-        'mock_artwork_3',
-        'mock_series_2',
-        1,
-        'Mock Artwork 3',
-        'video',
-        '0x9876543210fedcba',
-        false,
-        false,
-        'minted',
-        false,
-        'https://example.com/artwork3.jpg',
-        'https://example.com/artwork3.jpg',
-        'https://example.com/artwork3.jpg',
-        {'default': 'https://example.com/artwork3.jpg'},
-        null,
-        DateTime.now(),
-        DateTime.now(),
-        DateTime.now(),
-        false,
-        MockFFSeriesData.seriesName1,
-        null,
-        null,
-      );
-
-  static List<Artwork> get listArtwork => [
-        artwork1,
-        artwork2,
-        artwork3,
-      ];
-
-  static List<Artwork> getListArtworkBySeries(String seriesId) =>
-      listArtwork.where((a) => a.seriesID == seriesId).toList();
-
-  static List<Artwork> getListArtworkByCategory(String category) =>
-      listArtwork.where((a) => a.category == category).toList();
-
-  static Artwork? getArtworkById(String id) =>
-      listArtwork.firstWhere((artwork) => artwork.id == id);
+  static List<Artwork> all = [
+    metasoto,
+    colorsOfNoise,
+    post2,
+    uneasyDream,
+    smokeHands,
+    ninePlus11,
+    superbloom,
+    unsupervisedMachineHallucinations,
+    alleluiaAlleluia,
+    polymorphism82,
+    fLight,
+    unsupervisedDataUniverseMoma,
+    entity,
+    transparentGrit,
+    payphone
+  ];
 }
