@@ -1,6 +1,7 @@
 name: Deploy Widgetbook
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "**"
