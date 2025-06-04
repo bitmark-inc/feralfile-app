@@ -1,0 +1,37 @@
+name: Deploy Widgetbook
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lib/widgetbook/**"
+      - ".github/workflows/deploy_widgetbook.yml"
+      - "pubspec.yaml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.0"
+          channel: "stable"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --target=lib/widgetbook/main.dart --release
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: feralfile-widgetbook
+          directory: build/web
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
