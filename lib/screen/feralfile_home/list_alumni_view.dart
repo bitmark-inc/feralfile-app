@@ -424,12 +424,28 @@ class _ListAlumniViewState extends State<ListAlumniView> {
         ],
       );
 
+  Widget _artistItem(BuildContext context, AlumniAccount alumni) {
+    return AlumniCard(
+      alumni: alumni,
+    );
+  }
+}
+
+class AlumniCard extends StatelessWidget {
+  const AlumniCard({
+    super.key,
+    required this.alumni,
+  });
+
+  final AlumniAccount alumni;
+
   Widget _artistAvatar(BuildContext context, AlumniAccount alumni) {
     final avatarUrl = alumni.avatarUrl;
     return AlumniAvatar(url: avatarUrl);
   }
 
-  Widget _artistItem(BuildContext context, AlumniAccount alumni) {
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
