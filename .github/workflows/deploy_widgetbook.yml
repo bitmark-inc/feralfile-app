@@ -2,6 +2,13 @@ name: Deploy Widgetbook
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Version of the widgetbook (eg 0.30.0)
+        required: true
+      build-number:
+        description: Build number
+        required: true
   push:
     branches:
       - "**"
