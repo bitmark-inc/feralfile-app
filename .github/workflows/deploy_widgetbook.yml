@@ -3,7 +3,7 @@ name: Deploy Widgetbook
 on:
   push:
     branches:
-      - main
+      - "**"
     paths:
       - "lib/widgetbook/**"
       - ".github/workflows/deploy_widgetbook.yml"
