@@ -509,7 +509,7 @@ class FFBluetoothService {
         await device.connect(
           timeout: const Duration(seconds: 30),
           autoConnect: autoConnect,
-          mtu: autoConnect ? null : 512,
+          mtu: null,
         );
       } catch (e) {
         log.warning('Failed to connect to device: $e');
