@@ -1,9 +1,17 @@
 name: Deploy Widgetbook
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version of the widgetbook (eg 0.30.0)
+        required: true
+      build-number:
+        description: Build number
+        required: true
   push:
     branches:
-      - main
+      - "**"
     paths:
       - "lib/widgetbook/**"
       - ".github/workflows/deploy_widgetbook.yml"
@@ -18,8 +26,22 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.0"
+          flutter-version: "3.27.2"
           channel: "stable"
+
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_ASSETS_KEY }}
+
+      - name: Create env file
+        run: |
+          touch .env
+          cat .env
+
+      - name: Submodules update
+        run: git -c submodule.auto-test.update=none submodule update --init --recursive
+      - run: flutter pub cache repair
 
       - name: Install dependencies
         run: flutter pub get
@@ -27,11 +49,20 @@ jobs:
       - name: Build Web
         run: flutter build web --target=lib/widgetbook/main.dart --release
 
+      - name: Debug Cloudflare
+        run: |
+          ACCOUNT_ID="${{ secrets.WIDGETBOOK_CLOUDFLARE_ACCOUNT_ID }}"
+          TOKEN="${{ secrets.WIDGETBOOK_CLOUDFLARE_API_TOKEN }}"
+          echo "Account ID first 4: ${ACCOUNT_ID:0:4}"
+          echo "Account ID last 4: ${ACCOUNT_ID: -4}"
+          echo "Token first 4: ${TOKEN:0:4}"
+          echo "Token last 4: ${TOKEN: -4}"
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.WIDGETBOOK_CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.WIDGETBOOK_CLOUDFLARE_ACCOUNT_ID }}
           projectName: feralfile-widgetbook
           directory: build/web
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
