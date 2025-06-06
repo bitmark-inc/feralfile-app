@@ -863,7 +863,7 @@ class BluetoothConnectedDeviceConfigState
                           return Text(
                             resolution == null
                                 ? '--'
-                                : '${resolution.width} x ${resolution.height}',
+                                : '${resolution.width.toInt()} x ${resolution.height.toInt()}',
                             style: theme.textTheme.ppMori400White14.copyWith(
                               color: isBLEDeviceConnected
                                   ? AppColor.white
