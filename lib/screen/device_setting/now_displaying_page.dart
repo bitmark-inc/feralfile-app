@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -528,8 +529,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
   }
 
   Widget _interactButton(BuildContext context) {
-    final state = injector<CanvasDeviceBloc>().state;
-    final castingDevice = state.devices.firstOrNull;
+    final castingDevice = BluetoothDeviceManager().castingBluetoothDevice;
     return PrimaryButton(
       onTap: () {
         injector<NavigationService>().navigateTo(
