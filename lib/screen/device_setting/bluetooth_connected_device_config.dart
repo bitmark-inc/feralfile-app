@@ -853,13 +853,24 @@ class BluetoothConnectedDeviceConfigState
                     _deviceInfoItem(
                       context,
                       title: 'Screen Resolution',
-                      child: Text(
-                        '${_latestMetrics!.screen!.width} x ${_latestMetrics!.screen!.height}',
-                        style: theme.textTheme.ppMori400White14.copyWith(
-                          color: isBLEDeviceConnected
-                              ? AppColor.white
-                              : AppColor.disabledColor,
-                        ),
+                      child: Builder(
+                        builder: (context) {
+                          final resolution =
+                              _latestMetrics?.screen?.sizeOnOrientation(
+                            status?.screenRotation ??
+                                ScreenOrientation.landscape,
+                          );
+                          return Text(
+                            resolution == null
+                                ? '--'
+                                : '${resolution.width} x ${resolution.height}',
+                            style: theme.textTheme.ppMori400White14.copyWith(
+                              color: isBLEDeviceConnected
+                                  ? AppColor.white
+                                  : AppColor.disabledColor,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     divider,

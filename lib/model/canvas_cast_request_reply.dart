@@ -4,9 +4,8 @@
 
 import 'dart:math';
 
-import 'package:autonomy_flutter/model/device/device_status.dart';
-import 'package:autonomy_flutter/model/device/device_casting_info.dart';
 import 'package:autonomy_flutter/model/device/device_display_setting.dart';
+import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:flutter/material.dart';
@@ -1278,6 +1277,29 @@ class DeviceScreen {
         'refresh_rate': refreshRate,
         'fps': fps,
       };
+}
+
+// extension for DeviceScreen
+extension DeviceScreenExtension on DeviceScreen {
+  Size? get size {
+    if (width != null && height != null && width! > 0 && height! > 0) {
+      return Size(width!.toDouble(), height!.toDouble());
+    }
+    return null;
+  }
+
+  // size on Orientation
+  Size? sizeOnOrientation(ScreenOrientation orientation) {
+    if (size == null) return null;
+    switch (orientation) {
+      case ScreenOrientation.portrait:
+      case ScreenOrientation.portraitReverse:
+        return Size(size!.height, size!.width);
+      case ScreenOrientation.landscape:
+      case ScreenOrientation.landscapeReverse:
+        return Size(size!.width, size!.height);
+    }
+  }
 }
 
 class DeviceRealtimeMetricsRequest implements Request {
