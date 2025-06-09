@@ -19,9 +19,6 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_accounts_bloc.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_address_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_canvas_client_service.dart';
@@ -32,9 +29,14 @@ import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_api.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_client.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_token_service.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockInjector {
   static void setup() async {
+    SharedPreferences.setMockInitialValues({});
+
     final sharedPreferences = await SharedPreferences.getInstance();
 
     // iap service

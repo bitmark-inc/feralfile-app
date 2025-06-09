@@ -449,6 +449,7 @@ class AlumniCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         AspectRatio(aspectRatio: 1, child: _artistAvatar(context, alumni)),
         const SizedBox(height: 14),
@@ -460,6 +461,11 @@ class AlumniCard extends StatelessWidget {
             maxLines: 2,
           ),
         ),
+        Container(
+          color: Colors.red,
+          height: 15,
+          width: 15,
+        )
       ],
     );
   }
