@@ -399,7 +399,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           device,
           status,
         ));
-        unawaited(NowDisplayingManager().updateDisplayingNow());
       } catch (_) {}
     });
 
