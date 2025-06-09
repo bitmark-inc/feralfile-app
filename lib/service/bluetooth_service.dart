@@ -167,6 +167,9 @@ class FFBluetoothService {
               stackTrace: s,
             ),
           );
+          log.info(
+            'Disconnecting from device: ${device.remoteId.str} due to error $e',
+          );
           await device.disconnect();
           if (_connectCompleter?.isCompleted == false) {
             _connectCompleter?.completeError(e);

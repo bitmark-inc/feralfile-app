@@ -306,6 +306,9 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         ));
       }
 
+      log.info(
+        'Bluetooth device setup completed. Disconnecting from device: ${resultDevice!.name}',
+      );
       unawaited(_resultDevice?.disconnect());
       try {
         await onFinish?.call();
