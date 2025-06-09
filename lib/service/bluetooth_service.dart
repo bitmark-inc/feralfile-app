@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
@@ -153,7 +154,16 @@ class FFBluetoothService {
       if (state == BluetoothConnectionState.connected) {
         try {
           if (Platform.isAndroid) {
-            // await device.requestMtu(512);
+            try {
+              await device.requestMtu(512, timeout: 3);
+            } catch (e) {
+              log.warning(
+                'Failed to request MTU for device ${device.remoteId.str}: $e',
+              );
+              unawaited(Sentry.captureException(
+                'Failed to request MTU for device ${device.remoteId.str}: $e',
+              ));
+            }
           }
           // add safe delay to ensure connection is stable
           await Future.delayed(const Duration(seconds: 1));
@@ -663,7 +673,17 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
       final device = this.device;
       if (device.isConnected) {
         await device.discoverCharacteristics();
-        await write(value);
+        try {
+          await write(value);
+        } on PlatformException catch (e) {
+          if ((e.message?.contains('data longer than allowed') ?? false) &&
+              device.isConnected) {
+            log.info(
+              '[writeWithRetry] Data too long, trying to write without response',
+            );
+            await write(value, withoutResponse: true, allowLongWrite: true);
+          }
+        }
       }
     }
   }
