@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -41,6 +42,7 @@ extension SourceExhibitionAPIHelper on SourceExhibitionAPI {
           [];
       return series.map((e) => e.copyWith(artwork: e.artworks!.first)).toList();
     } catch (e) {
+      log.info('Error fetching source exhibition series: $e');
       return [];
     }
   }
