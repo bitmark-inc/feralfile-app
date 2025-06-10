@@ -288,7 +288,7 @@ extension ArtworkExt on Artwork {
 
   String? get indexerTokenId {
     final chain = series?.exhibition?.mintBlockchain.toLowerCase();
-    if (chain == null) {
+    if (chain == null || chain.isEmpty) {
       return null;
     }
     // normal case: tezos or ethereum chain
