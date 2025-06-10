@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
@@ -99,12 +100,16 @@ class NowDisplayingManager {
         exhibitionId,
       );
       final catalogId = status.catalogId;
-      final catalog = catalogId != null ? ExhibitionCatalog.artwork : null;
+      final catalog = status
+          .catalog; // catalogId != null ? ExhibitionCatalog.artwork : null;
       Artwork? artwork;
       if (catalog == ExhibitionCatalog.artwork) {
-        artwork = await injector<FeralFileService>().getArtwork(
-          catalogId!,
-        );
+        if (exhibition.isSourceExhibition)
+          artwork = exhibition.isSourceExhibition
+              ? await injector<FeralFileService>().getSourceArtwork(catalogId!)
+              : await injector<FeralFileService>().getArtwork(
+                  catalogId!,
+                );
       }
       final exhibitionDisplaying = ExhibitionDisplaying(
         exhibition: exhibition,

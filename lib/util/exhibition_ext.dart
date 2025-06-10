@@ -34,6 +34,8 @@ extension ExhibitionExt on Exhibition {
 
   bool get isCrawlShow => id == CrawlHelper.exhibitionID;
 
+  bool get isSourceExhibition => id == SOURCE_EXHIBITION_ID;
+
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
@@ -207,7 +209,7 @@ extension ArtworkExt on Artwork {
 
   String get previewURL {
     final displayUri =
-        Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
+        Platform.isAndroid ? (previewDisplay?['DASH']) : previewDisplay?['HLS'];
     String uri;
     if (displayUri?.isNotEmpty == true) {
       final bandWidth = injector<RemoteConfigService>().getConfig<double?>(
@@ -285,7 +287,10 @@ extension ArtworkExt on Artwork {
   }
 
   String? get indexerTokenId {
-    final chain = series!.exhibition!.mintBlockchain.toLowerCase();
+    final chain = series?.exhibition?.mintBlockchain.toLowerCase();
+    if (chain == null) {
+      return null;
+    }
     // normal case: tezos or ethereum chain
     if (['tezos', 'ethereum'].contains(chain)) {
       final contract = series!.exhibition!.contracts?.firstWhereOrNull(

@@ -397,6 +397,20 @@ class NowDisplayingExhibitionView extends StatelessWidget {
               );
             },
       thumbnailBuilder: (context) {
+        final url = thumbnailUrl ?? '';
+        if (url.isEmpty) {
+          return const SizedBox();
+        }
+        if (url.isSvgImage()) {
+          return SvgPicture.network(
+            url,
+            height: 65,
+            width: 65,
+            fit: BoxFit.cover,
+            placeholderBuilder: (context) =>
+                const GalleryThumbnailPlaceholder(),
+          );
+        }
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
       titleBuilder: (context) {

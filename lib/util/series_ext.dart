@@ -50,6 +50,9 @@ extension FFSeriesExt on FFSeries {
     final uri = (thumbnailDisplay?.isNotEmpty ?? false)
         ? thumbnailDisplay!
         : thumbnailURI;
+    if (uri == null || uri.isEmpty) {
+      return null;
+    }
     return getFFUrl(uri);
   }
 
