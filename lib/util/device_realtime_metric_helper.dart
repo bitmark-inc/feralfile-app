@@ -69,7 +69,13 @@ class DeviceRealtimeMetricHelper {
     final timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       final metrics = await injector<CanvasClientServiceV2>()
           .getDeviceRealtimeMetrics(device);
-
+      if (controller.isClosed) {
+        timer.cancel();
+        return;
+      }
+      if (controller.isPaused) {
+        return;
+      }
       controller.add(metrics);
     });
 
