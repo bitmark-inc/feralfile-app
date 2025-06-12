@@ -21,7 +21,9 @@ class Button extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: state == ButtonState.disabled ? null : () {},
-      child: Text(text),
+      child: Text(text, style: TextStyle(
+        color: state == ButtonState.disabled ? Colors.grey : Colors.white,
+      )),
     );
   }
 }
