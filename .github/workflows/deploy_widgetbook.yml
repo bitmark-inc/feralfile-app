@@ -61,6 +61,9 @@ jobs:
       - name: Install the CLI
         run: dart pub global activate widgetbook_cli
 
+      - name: Code Generation
+        run: dart run build_runner build -d
+
       - name: Upload to Widgetbook Cloud
         run: widgetbook cloud build push --api-key 7173a26cdfc50b0fd0c41ed20a5ca5226d49b2b0cf4391c704edf135857faa82 --actor feralfile-CI
 
