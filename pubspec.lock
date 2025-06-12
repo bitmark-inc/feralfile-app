@@ -3121,6 +3121,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.5.0"
+  widgetbook_generator:
+    dependency: "direct dev"
+    description:
+      name: widgetbook_generator
+      sha256: "38320c313a425e5a354bfdf6d2922efd69b5c3e9c0bf414d3ba7f947c303448a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.13.0"
   widgets_to_image:
     dependency: "direct main"
     description:

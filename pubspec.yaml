@@ -151,6 +151,8 @@ dev_dependencies:
   #  objectbox_generator: any
   very_good_analysis: ^6.0.0
   sentry_dart_plugin: ^2.1.0
+  widgetbook_generator: ^3.13.0
+
 
 flutter:
   uses-material-design: true
