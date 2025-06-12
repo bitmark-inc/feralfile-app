@@ -58,6 +58,12 @@ jobs:
           echo "Token first 4: ${TOKEN:0:4}"
           echo "Token last 4: ${TOKEN: -4}"
 
+      - name: Install the CLI
+        run: dart pub global activate widgetbook_cli
+
+      - name: Upload to Widgetbook Cloud
+        run: widgetbook cloud build push --api-key 7173a26cdfc50b0fd0c41ed20a5ca5226d49b2b0cf4391c704edf135857faa82 --actor feralfile-CI
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
