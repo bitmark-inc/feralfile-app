@@ -658,6 +658,7 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
         ..info('[writeWithRetry] Error writing: $e')
         ..info('[writeWithRetry] Retrying...');
       if (e is FlutterBluePlusException && e.code == 14) {
+        log.info('[writeWithRetry] Error code 14, ignoring');
         return;
       }
       final device = this.device;
@@ -666,7 +667,21 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
         if (!isDataLongError) {
           await device.discoverCharacteristics();
         }
-        await write(value, allowLongWrite: isDataLongError);
+        try {
+          await write(value, allowLongWrite: isDataLongError);
+        } catch (e) {
+          log.warning(
+            '[writeWithRetry] Failed to write after retry: $e',
+          );
+          if (e is FlutterBluePlusException && e.code == 14) {
+            log.info('[writeWithRetry] Error code 14, ignoring');
+            return;
+          }
+          unawaited(Sentry.captureException(
+            'Failed to write after retry: $e',
+          ));
+          rethrow;
+        }
       }
     }
   }
