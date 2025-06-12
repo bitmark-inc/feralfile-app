@@ -18,14 +18,12 @@ import 'package:autonomy_flutter/widgetbook/screens/organize_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:widgetbook/widgetbook.dart';
-import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
 void main() {
   MockInjector.setup();
   runApp(const WidgetbookApp());
 }
 
-@widgetbook.App()
 class WidgetbookApp extends StatelessWidget {
   const WidgetbookApp({super.key});
 

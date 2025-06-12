@@ -461,11 +461,6 @@ class AlumniCard extends StatelessWidget {
             maxLines: 2,
           ),
         ),
-        Container(
-          color: Colors.red,
-          height: 15,
-          width: 15,
-        )
       ],
     );
   }

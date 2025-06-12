@@ -1908,7 +1908,7 @@ packages:
     source: hosted
     version: "0.9.1"
   octo_image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: octo_image
       sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
