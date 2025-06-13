@@ -165,6 +165,20 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                           'The Portal failed to connect to ${e.ssid}',
                         ),
                       );
+                    } on SendWifiCredentialError catch (e) {
+                      log.info('Failed to send wifi credentials: $e');
+                      unawaited(
+                        Sentry.captureException(
+                          'SendWifiCredentialError: ${e.title}: ${e.message} ($e)',
+                        ),
+                      );
+                      unawaited(
+                        UIHelper.showInfoDialog(
+                          context,
+                          e.title,
+                          e.message,
+                        ),
+                      );
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(

@@ -726,7 +726,8 @@ class SendWifiCredentialResponse extends BluetoothResponse {
 
 enum SendWifiCredentialErrorCode {
   userEnterWrongPassword(1),
-  wifiConnectedButCannotReachServer(2),
+  wifiConnectedButNoInternet(2),
+  wifiConnectedButCannotReachServer(3),
   unknownError(255);
 
   const SendWifiCredentialErrorCode(this.code);
@@ -735,9 +736,10 @@ enum SendWifiCredentialErrorCode {
 }
 
 class SendWifiCredentialError implements Exception {
-  SendWifiCredentialError(this.message);
+  SendWifiCredentialError(this.message, {this.title = 'Error'});
 
   final String message;
+  final String title;
 
   static SendWifiCredentialError fromErrorCode(int errorCode) {
     final error = SendWifiCredentialErrorCode.values
@@ -746,14 +748,22 @@ class SendWifiCredentialError implements Exception {
       case SendWifiCredentialErrorCode.userEnterWrongPassword:
         // user enter wrong password
         return SendWifiCredentialError(
+            title: 'Incorrect Wi-Fi Password',
             'Failed to connect to Wi-Fi. Please check your password and try again.');
       case SendWifiCredentialErrorCode.wifiConnectedButCannotReachServer:
         return SendWifiCredentialError(
+          title: 'Server Unreachable',
           'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
+        );
+      case SendWifiCredentialErrorCode.wifiConnectedButNoInternet:
+        return SendWifiCredentialError(
+          title: 'No Internet Access',
+          'Connected to Wi-Fi but no internet access. Please check your internet connection.',
         );
       default:
         return SendWifiCredentialError(
-          'Unknown error occurred while sending wifi credentials. Error code: $errorCode',
+          title: 'Wi-Fi Connection Error',
+          'Unknown error occurred while connecting to Wi-Fi. Error code: $errorCode',
         );
     }
   }
