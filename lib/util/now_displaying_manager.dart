@@ -104,12 +104,11 @@ class NowDisplayingManager {
           .catalog; // catalogId != null ? ExhibitionCatalog.artwork : null;
       Artwork? artwork;
       if (catalog == ExhibitionCatalog.artwork) {
-        if (exhibition.isSourceExhibition)
-          artwork = exhibition.isSourceExhibition
-              ? await injector<FeralFileService>().getSourceArtwork(catalogId!)
-              : await injector<FeralFileService>().getArtwork(
-                  catalogId!,
-                );
+        artwork = exhibition.isSourceExhibition
+            ? await injector<FeralFileService>().getSourceArtwork(catalogId!)
+            : await injector<FeralFileService>().getArtwork(
+                catalogId!,
+              );
       }
       final exhibitionDisplaying = ExhibitionDisplaying(
         exhibition: exhibition,
