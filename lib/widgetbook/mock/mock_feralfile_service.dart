@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock_data/index.dart';
 
 class MockFeralfileService extends FeralFileService {
   @override
@@ -846,32 +847,7 @@ class MockFeralfileService extends FeralFileService {
 
   @override
   Future<AlumniAccount> getAlumniDetail(String alumniId) async {
-    return AlumniAccount(
-      id: alumniId,
-      alias: 'mock-alumni',
-      slug: 'mock-alumni',
-      fullName: 'Mock Alumni',
-      isArtist: true,
-      isCurator: false,
-      bio: 'Mock Bio',
-      email: 'mock@example.com',
-      avatarURI: 'https://example.com/avatar.jpg',
-      avatarDisplay: 'https://example.com/avatar.jpg',
-      location: 'Mock Location',
-      website: 'https://example.com',
-      company: 'Mock Company',
-      socialNetworks: SocialNetwork(
-        instagramID: 'mock',
-        twitterID: 'mock',
-      ),
-      addresses: AlumniAccountAddresses(
-        ethereum: '0x123',
-        tezos: 'tz1',
-        bitmark: 'bitmark1',
-      ),
-      associatedAddresses: ['0x123', 'tz1'],
-      collaborationAlumniAccounts: null,
-    );
+    return MockAlumniData.driessensVerstappen;
   }
 
   @override

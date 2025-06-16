@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -21,13 +23,16 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_accounts_bloc.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_address_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_asset_token_dao.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_canvas_client_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_cloud_manager.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_ethereum_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_feralfile_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_iap_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_api.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_client.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_nft_collection_database.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_token_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -41,25 +46,29 @@ class MockInjector {
 
     // iap service
     if (!injector.isRegistered<IAPService>()) {
-      injector.registerLazySingleton<IAPService>(() => MockIAPService());
+      injector.registerLazySingleton<IAPService>(MockIAPService.new);
     }
 
     if (!injector.isRegistered<AddressService>()) {
-      injector
-          .registerLazySingleton<AddressService>(() => MockAddressService());
+      injector.registerLazySingleton<AddressService>(MockAddressService.new);
     }
     if (!injector.isRegistered<CloudManager>()) {
-      injector.registerLazySingleton<CloudManager>(() => MockCloudManager());
+      injector.registerLazySingleton<CloudManager>(MockCloudManager.new);
     }
     if (!injector.isRegistered<CanvasClientServiceV2>()) {
       injector.registerLazySingleton<CanvasClientServiceV2>(
-          () => MockCanvasClientServiceV2());
+          MockCanvasClientServiceV2.new);
+    }
+
+    // ethereum service
+    if (!injector.isRegistered<EthereumService>()) {
+      injector.registerLazySingleton<EthereumService>(MockEthereumService.new);
     }
 
     // feralfile service
     if (!injector.isRegistered<FeralFileService>()) {
-      injector.registerLazySingleton<FeralFileService>(
-          () => MockFeralfileService());
+      injector
+          .registerLazySingleton<FeralFileService>(MockFeralfileService.new);
     }
 
     if (!injector.isRegistered<CanvasDeviceBloc>()) {
@@ -69,10 +78,10 @@ class MockInjector {
 
     // indexer service
     if (!injector.isRegistered<IndexerClient>()) {
-      injector.registerLazySingleton<IndexerClient>(() => MockIndexerClient());
+      injector.registerLazySingleton<IndexerClient>(MockIndexerClient.new);
     }
     if (!injector.isRegistered<IndexerApi>()) {
-      injector.registerLazySingleton<IndexerApi>(() => MockIndexerApi());
+      injector.registerLazySingleton<IndexerApi>(MockIndexerApi.new);
     }
     if (!injector.isRegistered<IndexerService>()) {
       injector.registerLazySingleton<IndexerService>(
@@ -81,7 +90,7 @@ class MockInjector {
 
     // token service
     if (!injector.isRegistered<TokensService>()) {
-      injector.registerLazySingleton<TokensService>(() => MockTokensService());
+      injector.registerLazySingleton<TokensService>(MockTokensService.new);
     }
 
     // coòniguration service
@@ -99,6 +108,20 @@ class MockInjector {
       injector.registerLazySingleton<CacheManager>(AUImageCacheManage.new);
     }
 
+    //MockAssetTokenDao
+    if (!injector.isRegistered<AssetTokenDao>()) {
+      injector.registerLazySingleton<AssetTokenDao>(
+        MockAssetTokenDao.new,
+      );
+    }
+
+    // MockAssetDao
+    if (!injector.isRegistered<AssetDao>()) {
+      injector.registerLazySingleton<AssetDao>(
+        () => MockAssetDao(),
+      );
+    }
+
     // daily bloc
     if (!injector.isRegistered<DailyWorkBloc>()) {
       injector.registerLazySingleton<DailyWorkBloc>(
@@ -109,7 +132,7 @@ class MockInjector {
     // account bloc
     if (!injector.isRegistered<AccountsBloc>()) {
       injector.registerLazySingleton<AccountsBloc>(
-        () => MockAccountsBloc(),
+        MockAccountsBloc.new,
       );
     }
 
