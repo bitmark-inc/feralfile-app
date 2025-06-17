@@ -1,8 +1,9 @@
 import 'package:autonomy_flutter/nft_collection/models/address_collection.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
+
 import 'mock_nft_collection_database.dart';
 
-class MockNftAddressService extends AddressService {
+class MockNftAddressService extends NftAddressService {
   MockNftAddressService() : super(MockNftCollectionDatabase());
 
   @override

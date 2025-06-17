@@ -25,7 +25,7 @@ class IndexerIdentityStore extends HiveStoreObjectServiceImpl<IndexerIdentity> {
 
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
   final IndexerIdentityStore _identityStore;
-  final IndexerService _indexerService;
+  final NftIndexerService _indexerService;
 
   static const localIdentityCacheDuration = Duration(days: 1);
 

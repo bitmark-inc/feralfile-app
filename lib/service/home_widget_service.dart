@@ -122,7 +122,7 @@ class HomeWidgetService {
   Future<Map<String, String>?> _formatDailyTokenData(
       DailyToken dailyToken) async {
     try {
-      final assetTokens = await injector<IndexerService>()
+      final assetTokens = await injector<NftIndexerService>()
           .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
       if (assetTokens.isEmpty) {
         log.info(

@@ -5,12 +5,21 @@ import 'package:widgetbook/widgetbook.dart';
 WidgetbookUseCase filterExpandedItem() {
   return WidgetbookUseCase(
     name: 'Filter Expanded Item',
-    builder: (context) => FilterExpanandedItem(
-      type: 'Filter Type',
-      values: ['Value 1', 'Value 2', 'Value 3'],
-      selectedIndex: 0,
-      onFilterSelected: (index) {},
-      onFilterCleared: () {},
+    builder: (context) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            FilterExpanandedItem(
+              type: 'Filter Type',
+              values: ['Value 1', 'Value 2', 'Value 3'],
+              selectedIndex: 0,
+              onFilterSelected: (index) {},
+              onFilterCleared: () {},
+            ),
+          ],
+        ),
+      ],
     ),
   );
 }

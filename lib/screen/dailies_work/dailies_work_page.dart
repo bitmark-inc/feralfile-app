@@ -319,7 +319,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
     Duration totalDuration,
   ) {
     return DailyProgressBar(
-        remainingDuration: remainingDuration, totalDuration: totalDuration);
+      remainingDuration: remainingDuration,
+      totalDuration: totalDuration,
+    );
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -484,7 +486,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _dailyDetails(
     BuildContext context,
   ) {
-    final theme = Theme.of(context);
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
       bloc: _dailyWorkBloc,
       builder: (context, state) {
@@ -589,8 +590,8 @@ Widget shortArtistProfile(BuildContext context, AlumniAccount artist) => Column(
 
 class DailyDetails extends StatelessWidget {
   DailyDetails({
-    super.key,
     required this.state,
+    super.key,
     this.pageController,
     this.setUserLiked,
   });
@@ -599,9 +600,9 @@ class DailyDetails extends StatelessWidget {
   final PageController? pageController;
   final Function? setUserLiked;
 
-  DailyWorkBloc get _dailyWorkBloc => injector<DailyWorkBloc>();
+  // DailyWorkBloc get _dailyWorkBloc => injector<DailyWorkBloc>();
 
-  ScrollController? _scrollController = ScrollController();
+  final _scrollController = ScrollController();
 
   static const _scrollLikingThreshold = 100.0;
 
@@ -626,7 +627,7 @@ class DailyDetails extends StatelessWidget {
     return NotificationListener<UserScrollNotification>(
       onNotification: (notification) {
         if (notification.direction == ScrollDirection.forward &&
-            _scrollController!.offset < 10) {
+            _scrollController.offset < 10) {
           unawaited(
             pageController?.animateToPage(
               0,
@@ -635,7 +636,7 @@ class DailyDetails extends StatelessWidget {
             ),
           );
         }
-        if (_scrollController!.offset > _scrollLikingThreshold) {
+        if (_scrollController.offset > _scrollLikingThreshold) {
           setUserLiked?.call();
         }
         return true;

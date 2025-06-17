@@ -85,7 +85,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   }
 
   Future<void> _fetchFeaturedTokens() async {
-    final tokens = await injector<TokensService>()
+    final tokens = await injector<NftTokensService>()
         .fetchManualTokens(widget.payload.playListModel?.tokenIDs ?? []);
     setState(() {
       _featureTokens

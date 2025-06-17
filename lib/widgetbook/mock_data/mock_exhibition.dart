@@ -11,6 +11,9 @@ class MockExhibitionData {
   static Exhibition get crawlExhibition =>
       Exhibition.fromJson(crawlExhibitionData);
 
+  static Exhibition get sourceExhibition =>
+      Exhibition.fromJson(sourceExhibitionData);
+
   static List<Exhibition> get listExhibition => [
         evolvedFormulaeExhibition,
         patternsOfFlowExhibition,

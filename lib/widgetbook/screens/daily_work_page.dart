@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_injector.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +27,13 @@ class DailyWorkPageComponent extends StatelessWidget {
         ),
         BlocProvider<RetryCubit>(
           create: (context) => RetryCubit(),
-        )
+        ),
+        BlocProvider<RoyaltyBloc>(
+          create: (context) => RoyaltyBloc(MockInjector.get()),
+        ),
+        BlocProvider<SubscriptionBloc>.value(
+          value: MockInjector.get<SubscriptionBloc>(),
+        ),
       ],
       child: const DailyWorkPage(),
     );

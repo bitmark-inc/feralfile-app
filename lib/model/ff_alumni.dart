@@ -89,6 +89,49 @@ class AlumniAccount {
         'collaborationAlumniAccounts':
             collaborationAlumniAccounts?.map((e) => e.toJson()).toList(),
       };
+
+  // copyWith
+  AlumniAccount copyWith({
+    String? id,
+    String? alias,
+    String? slug,
+    String? fullName,
+    bool? isArtist,
+    bool? isCurator,
+    String? bio,
+    String? email,
+    String? avatarURI,
+    String? avatarDisplay,
+    String? location,
+    String? website,
+    String? company,
+    SocialNetwork? socialNetworks,
+    AlumniAccountAddresses? addresses,
+    List<String>? associatedAddresses,
+    List<AlumniAccount>? collaborationAlumniAccounts,
+  }) {
+    return AlumniAccount(
+      id: id ?? this.id,
+      alias: alias ?? this.alias,
+      slug: slug ?? this.slug,
+      fullName: fullName ?? this.fullName,
+      isArtist: isArtist ?? this.isArtist,
+      isCurator: isCurator ?? this.isCurator,
+      bio: bio ?? this.bio,
+      email: email ?? this.email,
+      avatarURI: avatarURI ?? this.avatarURI,
+      avatarDisplay: avatarDisplay ?? this.avatarDisplay,
+      location: location ?? this.location,
+      website: website ?? this.website,
+      company: company ?? this.company,
+      socialNetworks: socialNetworks ?? this.socialNetworks,
+      addresses: addresses ?? this.addresses,
+      associatedAddresses:
+          associatedAddresses ?? this.associatedAddresses?.toList(),
+      collaborationAlumniAccounts: collaborationAlumniAccounts ??
+          this.collaborationAlumniAccounts?.toList(),
+    );
+  }
 }
 
 class SocialNetwork {

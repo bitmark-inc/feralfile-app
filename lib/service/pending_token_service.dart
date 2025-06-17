@@ -3,16 +3,16 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:collection/collection.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/models/pending_tx_params.dart';
 import 'package:autonomy_flutter/nft_collection/models/tzkt_operation.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:web3dart/web3dart.dart';
 
 const _erc1155Topic =
@@ -158,7 +158,7 @@ class PendingTokenService {
 
   final TZKTApi _tzktApi;
   final Web3Client _web3Client;
-  final TokensService _tokenService;
+  final NftTokensService _tokenService;
   final AssetTokenDao _assetTokenDao;
   final TokenDao _tokenDao;
   final AssetDao _assetDao;
@@ -204,7 +204,7 @@ class PendingTokenService {
             timestamp: timestamp,
             signature: signature,
           );
-          unawaited(injector<TokensService>().postPendingToken(element));
+          unawaited(injector<NftTokensService>().postPendingToken(element));
         }
 
         await _tokenService.setCustomTokens(pendingTokens);

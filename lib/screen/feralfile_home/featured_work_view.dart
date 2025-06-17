@@ -230,7 +230,8 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   ) async {
     final bloc = context.read<IdentityBloc>();
 
-    final tokens = await injector<TokensService>().fetchManualTokens(tokenIds);
+    final tokens =
+        await injector<NftTokensService>().fetchManualTokens(tokenIds);
     final addresses = <String>[];
     for (final token in tokens) {
       addresses

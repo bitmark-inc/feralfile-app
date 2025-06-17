@@ -1,18 +1,20 @@
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
-import 'package:autonomy_flutter/model/wallet_address.dart';
-import 'mock_wallet_data.dart';
+import 'package:autonomy_flutter/widgetbook/mock_data/data/ff_x1.dart';
 
 class MockCloudManager extends CloudManager {
   MockCloudManager() : super();
+
   //save ff device
   final CloudDB _ffDeviceCloudDB = MockFFDeviceCloudDB();
+
   @override
   CloudDB get ffDeviceDB => _ffDeviceCloudDB;
 
   //save playlist
   final _playlistCloudObject = PlaylistCloudObject(MockPlaylistCloudDB());
+
   @override
   PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
 }
@@ -20,7 +22,12 @@ class MockCloudManager extends CloudManager {
 class MockFFDeviceCloudDB extends CloudDB {
   MockFFDeviceCloudDB() : super();
 
-  final Map<String, String> _cache = {};
+  final Map<String, String> _cache = {
+    ...{
+      for (var device in MockFFBluetoothDevice.allDevices)
+        device.key: device.value
+    },
+  };
   static const String _prefix = 'mock.ff.device';
   static const String _migrateKey = 'didMigrate';
 

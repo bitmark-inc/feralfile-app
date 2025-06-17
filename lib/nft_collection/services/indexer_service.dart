@@ -11,8 +11,8 @@ import 'package:autonomy_flutter/nft_collection/models/identity.dart';
 import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 
-class IndexerService {
-  IndexerService(this._client, this._indexerApi);
+class NftIndexerService {
+  NftIndexerService(this._client, this._indexerApi);
 
   final IndexerClient _client;
   final IndexerApi _indexerApi;

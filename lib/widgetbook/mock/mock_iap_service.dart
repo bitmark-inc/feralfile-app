@@ -95,20 +95,17 @@ class MockIAPService extends IAPService {
 
   @override
   Future<void> reset() {
-    // TODO: implement reset
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override
   Future<void> restore() {
-    // TODO: implement restore
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override
   Future<void> setup() {
-    // TODO: implement setup
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override

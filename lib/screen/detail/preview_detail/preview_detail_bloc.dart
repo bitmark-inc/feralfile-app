@@ -9,15 +9,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
-import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -97,7 +97,7 @@ class ArtworkPreviewDetailBloc
 
   final AssetTokenDao _assetTokenDao;
   final EthereumService _ethereumService;
-  final IndexerService _indexerService;
+  final NftIndexerService _indexerService;
   final AssetDao _assetDao;
 
   Future<String?> _fetchFeralFileFramePreview(AssetToken token) async {

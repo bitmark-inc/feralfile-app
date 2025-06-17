@@ -1,9 +1,10 @@
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'mock_wallet_data.dart';
+
 import 'mock_cloud_manager.dart';
-import 'mock_nft_address_service.dart' as nft;
+import 'mock_wallet_data.dart';
+import 'nft_collection/mock_nft_address_service.dart' as nft;
 
 class MockAddressService extends AddressService {
   MockAddressService() : super(MockCloudManager(), nft.MockNftAddressService());

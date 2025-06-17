@@ -1,12 +1,23 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc_event.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/pending_token_service.dart';
 
-class ClientTokenService {
-  ClientTokenService(
+abstract class ClientTokenService {
+  NftCollectionBloc get nftBloc;
+
+  List<String> getAddresses();
+
+  Future<void> refreshTokens({
+    bool checkPendingToken = false,
+    bool syncAddresses = false,
+  });
+}
+
+class ClientTokenServiceImpl implements ClientTokenService {
+  ClientTokenServiceImpl(
     this._addressService,
     this._pendingTokenService,
     this._nftBloc,
@@ -16,13 +27,16 @@ class ClientTokenService {
   final PendingTokenService _pendingTokenService;
   final NftCollectionBloc _nftBloc;
 
+  @override
   NftCollectionBloc get nftBloc => _nftBloc;
 
+  @override
   List<String> getAddresses() {
     final addresses = _addressService.getAllWalletAddresses();
     return addresses.map((e) => e.address).toList();
   }
 
+  @override
   Future<void> refreshTokens({
     bool checkPendingToken = false,
     bool syncAddresses = false,

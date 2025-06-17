@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -322,8 +323,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       );
     });
     WidgetsBinding.instance.addObserver(this);
-    _fgbgSubscription =
-        FGBGEvents.instance.stream.listen(_handleForeBackground);
+    if (!kIsWeb) {
+      _fgbgSubscription =
+          FGBGEvents.instance.stream.listen(_handleForeBackground);
+    }
 
     /// precache playlist
     injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
@@ -395,14 +398,14 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               return shouldRebuild;
             },
             builder: (context, state) {
-              if (state.tokens.isEmpty) {
-                if ([NftLoadingState.notRequested, NftLoadingState.loading]
-                    .contains(state.state)) {
-                  return Center(
-                    child: loadingIndicator(valueColor: AppColor.white),
-                  );
-                }
-              }
+              // if (state.tokens.isEmpty) {
+              //   if ([NftLoadingState.notRequested, NftLoadingState.loading]
+              //       .contains(state.state)) {
+              //     return Center(
+              //       child: loadingIndicator(valueColor: AppColor.white),
+              //     );
+              //   }
+              // }
               return Stack(
                 children: [
                   PageView(

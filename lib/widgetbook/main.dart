@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/widgetbook/screens/feralfile/filter_bar.dart';
 import 'package:autonomy_flutter/widgetbook/screens/feralfile/filter_expanded_item.dart';
 import 'package:autonomy_flutter/widgetbook/screens/feralfile/sort_bar.dart';
 import 'package:autonomy_flutter/widgetbook/screens/feralfile_home_page.dart';
+import 'package:autonomy_flutter/widgetbook/screens/home/home_navigation_page_component.dart';
 import 'package:autonomy_flutter/widgetbook/screens/organize_home_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,15 @@ void main() {
   runZonedGuarded(() async {
     await dotenv.load();
 
-    MockInjector.setup();
+    await MockInjector.setup();
+    try {
+      await MockDataSetup.setup();
+    } catch (e, stackTrace) {
+      log.info('Error setting up mock data: $e');
+      log.info('Stack trace: $stackTrace');
+      // Optionally rethrow or handle the error
+    }
+    await Future.delayed(const Duration(seconds: 1));
     await EasyLocalization.ensureInitialized();
     runApp(EasyLocalization(
       child: const WidgetbookApp(),
@@ -113,13 +122,15 @@ class WidgetbookApp extends StatelessWidget {
               WidgetbookFolder(
                 name: 'Components',
                 children: [
-                  // WidgetbookFolder(name: 'Common', children: [
-                  //   headerViewComponent,
-                  //   loadingWidgetComponent,
-                  //   backAppBarComponent,
-                  //   accountItemComponent,
-                  //   primaryButtonComponent,
-                  // ]),
+                  WidgetbookFolder(name: 'Common', children: [
+                    // headerViewComponent,
+                    // loadingWidgetComponent,
+                    // backAppBarComponent,
+                    // accountItemComponent,
+                    // primaryButtonComponent,
+                    ffCastButton(),
+                    artworkDetailsHeader(),
+                  ]),
                   WidgetbookFolder(name: 'Feralfile', children: [
                     WidgetbookFolder(name: 'Exhibition', children: [
                       exhibitionView(),
@@ -173,6 +184,7 @@ class WidgetbookApp extends StatelessWidget {
                   //   name: 'Account View',
                   //   children: [homeNavigationPageComponent],
                   // ),
+                  homeNavigationPageComponent,
                   WidgetbookFolder(name: 'Daily Pages', children: [
                     WidgetbookComponent(
                       name: 'Daily Work Page',
@@ -188,6 +200,8 @@ class WidgetbookApp extends StatelessWidget {
                       dailyProgressBar(),
                       artworkPreviewWidget(),
                       dailyDetails(),
+                      ffCastButton(),
+                      artworkDetailsHeader(),
                     ]),
                   ]),
 

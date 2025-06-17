@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
-import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
@@ -959,7 +958,7 @@ class NavigationService {
       }
 
       final tokenConfiguration = tokenId != null
-          ? await injector<IndexerService>().getTokenConfiguration(tokenId)
+          ? await injector<NftIndexerService>().getTokenConfiguration(tokenId)
           : null;
 
       unawaited(

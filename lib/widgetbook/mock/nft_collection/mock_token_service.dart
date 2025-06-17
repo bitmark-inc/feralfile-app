@@ -5,7 +5,7 @@ import 'package:autonomy_flutter/nft_collection/models/pending_tx_params.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock_data/mock_asset_token.dart';
 
-class MockTokensService extends TokensService {
+class MockTokensService extends NftTokensService {
   @override
   Future<void> fetchTokensForAddresses(List<String> addresses) async {
     // Mock implementation

@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
@@ -115,15 +114,15 @@ class FFCastButtonState extends State<FFCastButton>
                             child: Text(
                               widget.text!,
                               style: theme.textTheme.ppMori400Black14.copyWith(
-                                color: theme.colorScheme.primary,
+                                color: AppColor.primaryBlack,
                               ),
                             ),
                           ),
                         SvgPicture.asset(
                           'assets/images/cast_icon.svg',
                           height: 20,
-                          colorFilter: ColorFilter.mode(
-                            theme.colorScheme.primary,
+                          colorFilter: const ColorFilter.mode(
+                            AppColor.primaryBlack,
                             BlendMode.srcIn,
                           ),
                         ),

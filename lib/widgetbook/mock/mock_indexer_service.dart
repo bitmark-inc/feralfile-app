@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/widgetbook/mock_data/mock_asset_token.dart';
 
-class MockIndexerService extends IndexerService {
+class MockIndexerService extends NftIndexerService {
   MockIndexerService(super.indexerClient, super.indexerApi);
 
   @override
