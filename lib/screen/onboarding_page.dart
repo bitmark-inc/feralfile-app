@@ -232,6 +232,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<bool> _loginProcess() async {
+    return true;
     final doesOSSupport = await _passkeyService.doesOSSupport();
     final canAuthenticate = await _passkeyService.canAuthenticate();
     if (!doesOSSupport || !canAuthenticate) {

@@ -508,7 +508,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
                 await Navigator.of(context).pushReplacementNamed(
                   AppRouter.ffArtworkPreviewPage,
                   arguments: FeralFileArtworkPreviewPagePayload(
-                    artwork: artwork,
+                    artworkId: artwork.id,
                     isFromExhibition: true,
                   ),
                 );

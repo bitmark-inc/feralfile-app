@@ -76,7 +76,7 @@ class _FfSeriesInfoThumbnailState extends State<FfSeriesInfoThumbnail> {
           unawaited(Navigator.of(context).pushNamed(
             AppRouter.ffArtworkPreviewPage,
             arguments: FeralFileArtworkPreviewPagePayload(
-              artwork: artwork.copyWith(series: series),
+              artworkId: artwork.id,
             ),
           ));
         }

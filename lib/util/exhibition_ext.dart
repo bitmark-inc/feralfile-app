@@ -207,6 +207,8 @@ extension ArtworkExt on Artwork {
     return getFFUrl(uri, variant: CloudFlareVariant.l.value);
   }
 
+  bool get isFeralfileFrame => series?.isFeralfileFrame ?? false;
+
   String get previewURL {
     final displayUri =
         Platform.isAndroid ? (previewDisplay?['DASH']) : previewDisplay?['HLS'];
@@ -223,6 +225,9 @@ extension ArtworkExt on Artwork {
     }
     return getFFUrl(uri);
   }
+
+  bool get isCrystallineWork =>
+      series?.exhibitionID == JohnGerrardHelper.exhibitionID;
 
   String _urlWithClientBandwidthHint(String uri, double? bandwidth) {
     final queryParameters = <String, String>{};

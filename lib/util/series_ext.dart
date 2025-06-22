@@ -18,6 +18,8 @@ extension FFSeriesExt on FFSeries {
 
   bool get isVideo => medium == 'video';
 
+  bool get isFeralfileFrame => metadata?['onchainRenderer'] == true;
+
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
   bool get isSingle =>

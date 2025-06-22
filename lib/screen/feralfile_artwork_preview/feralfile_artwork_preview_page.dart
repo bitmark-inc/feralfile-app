@@ -5,8 +5,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/feralfile_artwork_details/feralfile_artwork_details_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -15,7 +17,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
-import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -57,8 +58,6 @@ class _FeralFileArtworkPreviewPageState
         AfterLayoutMixin<FeralFileArtworkPreviewPage>,
         SingleTickerProviderStateMixin {
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-  late bool isCrystallineWork;
-
   double? _appBarBottomDy;
   static const _infoShrinkPosition = 0.001;
   static const _infoExpandPosition = 0.99;
@@ -74,10 +73,10 @@ class _FeralFileArtworkPreviewPageState
   ScrollController? _scrollController;
   late AnimationController _animationController;
 
+  final _feralfileArtworkDetailsBloc = FeralfileArtworkDetailsBloc(injector());
+
   @override
   void initState() {
-    isCrystallineWork = widget.payload.artwork.series?.exhibitionID ==
-        JohnGerrardHelper.exhibitionID;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -87,18 +86,26 @@ class _FeralFileArtworkPreviewPageState
     );
     _infoShrink();
     super.initState();
+    _feralfileArtworkDetailsBloc.add(
+      FeralfileArtworkDetailsLoadEvent(widget.payload.artworkId),
+    );
   }
 
-  void _sendMetricViewExhibition() {
-    final exhibitionId = widget.payload.artwork.series?.exhibitionID;
+  void _sendMetricViewExhibition(Artwork artwork) {
+    final exhibitionId = artwork.series?.exhibitionID;
     final data = {
       MetricParameter.exhibitionId: exhibitionId,
       MetricParameter.section: ExhibitionCatalog.artwork.metricName,
-      MetricParameter.tokenId: widget.payload.artwork.id,
+      MetricParameter.tokenId: artwork.id,
     };
 
     injector<MetricClientService>()
         .addEvent(MetricEventName.exhibitionView, data: data);
+  }
+
+  @override
+  void didUpdateWidget(covariant FeralFileArtworkPreviewPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -109,7 +116,6 @@ class _FeralFileArtworkPreviewPageState
         await _exitFullScreen();
       },
     );
-    _sendMetricViewExhibition();
   }
 
   @override
@@ -131,102 +137,137 @@ class _FeralFileArtworkPreviewPageState
   Widget build(BuildContext context) =>
       BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
           bloc: _canvasDeviceBloc,
-          builder: (context, canvasState) => BackdropScaffold(
-                appBar: _isFullScreen
-                    ? null
-                    : _isInfoExpand
-                        ? const PreferredSize(
-                            preferredSize: Size.fromHeight(toolbarHeight),
-                            child: SizedBox(
-                              height: toolbarHeight,
-                            ),
-                          )
-                        : getFFAppBar(context,
-                            onBack: () => Navigator.pop(context),
-                            action: FFCastButton(
-                              displayKey:
-                                  widget.payload.artwork.series?.exhibitionID ??
-                                      '',
-                              onDeviceSelected: _onDeviceSelected,
-                            )),
-                backgroundColor: AppColor.primaryBlack,
-                frontLayerElevation: _isFullScreen ? 0 : 1,
-                frontLayerBackgroundColor:
-                    _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
-                backLayerBackgroundColor: AppColor.primaryBlack,
-                frontLayerScrim: Colors.transparent,
-                backLayerScrim: Colors.transparent,
-                reverseAnimationCurve: Curves.ease,
-                animationController: _animationController,
-                revealBackLayerAtStart: true,
-                subHeaderAlwaysActive: false,
-                frontLayerShape: const BeveledRectangleBorder(),
-                backLayer: Column(
-                  children: [
-                    Expanded(
-                      child: _buildArtworkPreview(),
-                    ),
-                    if (!_isFullScreen) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 18),
-                        child: ArtworkDetailsHeader(
-                          title: 'I',
-                          subTitle: 'I',
-                          color: Colors.transparent,
-                        ),
-                      ),
-                      if (isCrystallineWork) ...[
-                        const SizedBox(height: 20),
-                        ArtworkAttributesText(
-                          artwork: widget.payload.artwork,
-                          color: Colors.transparent,
-                        ),
-                      ]
-                    ]
-                  ],
-                ),
-                frontLayer: _isFullScreen
-                    ? const SizedBox()
-                    : _infoContent(context, widget.payload.artwork),
-                subHeader: _isFullScreen
-                    ? null
-                    : DecoratedBox(
-                        decoration:
-                            const BoxDecoration(color: AppColor.primaryBlack),
-                        child: GestureDetector(
-                          onVerticalDragEnd: (details) {
-                            final dy = details.primaryVelocity ?? 0;
-                            if (dy <= 0) {
-                              _infoExpand();
-                            } else {
-                              _infoShrink();
-                            }
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            child: _infoHeader(
-                                context, widget.payload.artwork, canvasState),
-                          ),
-                        ),
-                      ),
-              ));
+          builder: (context, canvasState) {
+            final theme = Theme.of(context);
+            return BlocBuilder<FeralfileArtworkDetailsBloc,
+                FeralfileArtworkDetailsState>(
+              bloc: _feralfileArtworkDetailsBloc,
+              buildWhen: (previous, current) {
+                // Only rebuild when the artwork is loaded or an error occurs
+                if (current is FeralfileArtworkDetailsLoadedState) {
+                  final artwork = current.artwork;
+                  _sendMetricViewExhibition(artwork!);
+                }
+                return true;
+              },
+              builder: (context, artworkDetailState) {
+                if (artworkDetailState is FeralfileArtworkDetailsErrorState) {
+                  return Center(
+                    child: Text(artworkDetailState.error,
+                        style: theme.textTheme.ppMori400White14),
+                  );
+                }
+                if (artworkDetailState is FeralfileArtworkDetailsLoadedState) {
+                  final artwork = artworkDetailState.artwork!;
+                  return _buildBackdrop(
+                    context,
+                    artwork,
+                    canvasState,
+                  );
+                }
+                if (artworkDetailState is FeralfileArtworkDetailsLoadingState) {
+                  return const Center(child: LoadingWidget());
+                }
+                return const Center(child: LoadingWidget());
+              },
+            );
+          });
 
-  Widget _buildArtworkPreview() => FeralfileArtworkPreviewWidget(
+  Widget _buildBackdrop(
+      BuildContext context, Artwork artwork, CanvasDeviceState canvasState) {
+    return BackdropScaffold(
+      appBar: _isFullScreen
+          ? null
+          : _isInfoExpand
+              ? const PreferredSize(
+                  preferredSize: Size.fromHeight(toolbarHeight),
+                  child: SizedBox(
+                    height: toolbarHeight,
+                  ),
+                )
+              : getFFAppBar(context,
+                  onBack: () => Navigator.pop(context),
+                  action: FFCastButton(
+                    displayKey: artwork.series?.exhibitionID ?? '',
+                    onDeviceSelected: (BaseDevice device) =>
+                        _onDeviceSelected(device, artwork),
+                  )),
+      backgroundColor: AppColor.primaryBlack,
+      frontLayerElevation: _isFullScreen ? 0 : 1,
+      frontLayerBackgroundColor:
+          _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
+      backLayerBackgroundColor: AppColor.primaryBlack,
+      frontLayerScrim: Colors.transparent,
+      backLayerScrim: Colors.transparent,
+      reverseAnimationCurve: Curves.ease,
+      animationController: _animationController,
+      revealBackLayerAtStart: true,
+      subHeaderAlwaysActive: false,
+      frontLayerShape: const BeveledRectangleBorder(),
+      backLayer: Column(
+        children: [
+          Expanded(
+            child: _buildArtworkPreview(artwork),
+          ),
+          if (!_isFullScreen) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: ArtworkDetailsHeader(
+                title: 'I',
+                subTitle: 'I',
+                color: Colors.transparent,
+              ),
+            ),
+            if (artwork.isCrystallineWork) ...[
+              const SizedBox(height: 20),
+              ArtworkAttributesText(
+                artwork: artwork,
+                color: Colors.transparent,
+              ),
+            ]
+          ]
+        ],
+      ),
+      frontLayer:
+          _isFullScreen ? const SizedBox() : _infoContent(context, artwork),
+      subHeader: _isFullScreen
+          ? null
+          : DecoratedBox(
+              decoration: const BoxDecoration(color: AppColor.primaryBlack),
+              child: GestureDetector(
+                onVerticalDragEnd: (details) {
+                  final dy = details.primaryVelocity ?? 0;
+                  if (dy <= 0) {
+                    _infoExpand();
+                  } else {
+                    _infoShrink();
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: _infoHeader(context, artwork, canvasState),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildArtworkPreview(Artwork artwork) => FeralfileArtworkPreviewWidget(
         payload: FeralFileArtworkPreviewWidgetPayload(
-          artwork: widget.payload.artwork,
+          artwork: artwork,
           onLoaded: _onLoaded,
           isMute: false,
-          isScrollable: widget.payload.artwork.isScrollablePreviewURL,
+          isScrollable: artwork.isScrollablePreviewURL,
         ),
       );
 
-  Future<void> _onDeviceSelected(BaseDevice device) async {
-    final exhibitionId = widget.payload.artwork.series?.exhibitionID;
+  Future<void> _onDeviceSelected(BaseDevice device, Artwork artwork) async {
+    final exhibitionId = artwork.series?.exhibitionID;
     if (exhibitionId == null) {
       await Sentry.captureMessage('Exhibition ID is null for artwork '
-          '${widget.payload.artwork.id}');
+          '${artwork.id}');
     } else {
-      final artworkId = widget.payload.artwork.id;
+      final artworkId = artwork.id;
       final request = CastExhibitionRequest(
         exhibitionId: exhibitionId,
         catalog: ExhibitionCatalog.artwork,
@@ -328,7 +369,7 @@ class _FeralFileArtworkPreviewPageState
                 ),
               ],
             ),
-            if (isCrystallineWork) ...[
+            if (artwork.isCrystallineWork) ...[
               const SizedBox(height: 20),
               ArtworkAttributesText(
                 artwork: artwork,
@@ -510,11 +551,11 @@ class _FeralFileArtworkPreviewPageState
 }
 
 class FeralFileArtworkPreviewPagePayload {
-  final Artwork artwork;
+  final String artworkId;
   bool isFromExhibition;
 
   FeralFileArtworkPreviewPagePayload({
-    required this.artwork,
+    required this.artworkId,
     this.isFromExhibition = false,
   });
 }

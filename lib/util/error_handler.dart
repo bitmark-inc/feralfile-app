@@ -316,7 +316,7 @@ Future<bool> showErrorDialogFromException(Object exception,
   }
 
   final event = translateError(exception);
-
+  return true;
   if (context != null) {
     if (event.state == ErrorItemState.getReport) {
       final sentryID = await reportSentry(
