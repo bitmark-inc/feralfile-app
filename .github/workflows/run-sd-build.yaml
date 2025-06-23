@@ -1,0 +1,11 @@
+name: Run Design Token Build
+
+on:
+  pull_request:
+    paths:
+      - 'design/app.tokens.json'
+
+jobs:
+  call-build:
+    if: github.head_ref == 'test/design-tokens-pipeline'
+    uses: bitmark-inc/feralfile-client/.github/workflows/sd-build.yaml@fead/design-tokens
