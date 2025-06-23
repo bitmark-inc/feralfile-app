@@ -728,6 +728,12 @@ enum SendWifiCredentialErrorCode {
   userEnterWrongPassword(1),
   wifiConnectedButNoInternet(2),
   wifiConnectedButCannotReachServer(3),
+  // BLE_ERR_CODE_WIFI_REQUIRED
+  wifiRequired(4),
+  // BLE_ERR_CODE_DEVICE_UPDATING
+  deviceUpdating(5),
+  // BLE_ERR_CODE_VERSION_CHECK_FAILED
+  versionCheckFailed(6),
   unknownError(255);
 
   const SendWifiCredentialErrorCode(this.code);
@@ -759,6 +765,21 @@ class SendWifiCredentialError implements Exception {
         return SendWifiCredentialError(
           title: 'No Internet Access',
           'Connected to Wi-Fi but no internet access. Please check your internet connection.',
+        );
+      case SendWifiCredentialErrorCode.wifiRequired:
+        return SendWifiCredentialError(
+          title: 'Wi-Fi Required',
+          'This device requires a Wi-Fi connection to function properly. Please connect to a Wi-Fi network.',
+        );
+      case SendWifiCredentialErrorCode.deviceUpdating:
+        return SendWifiCredentialError(
+          title: 'Device Updating',
+          'The device is currently updating. Please wait for the update to complete before trying to connect to Wi-Fi.',
+        );
+      case SendWifiCredentialErrorCode.versionCheckFailed:
+        return SendWifiCredentialError(
+          title: 'Version Check Failed',
+          'The device version check failed. Please ensure your device is compatible and try again.',
         );
       default:
         return SendWifiCredentialError(
