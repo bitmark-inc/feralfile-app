@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'source_exhibition_api.dart';
+part of 'mobile_controller_api.dart';
 
 // **************************************************************************
 // RetrofitGenerator
@@ -8,12 +8,14 @@ part of 'source_exhibition_api.dart';
 
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element
 
-class _SourceExhibitionAPI implements SourceExhibitionAPI {
-  _SourceExhibitionAPI(
+class _MobileControllerAPI implements MobileControllerAPI {
+  _MobileControllerAPI(
     this._dio, {
     this.baseUrl,
     this.errorLogger,
-  });
+  }) {
+    baseUrl ??= 'https://artwork-info.bitmark-development.workers.dev';
+  }
 
   final Dio _dio;
 
@@ -22,19 +24,21 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<String> getSourceExhibition() async {
+  Future<Map<String, dynamic>> getDP1CallFromText(
+      Map<String, dynamic> body) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<String>(Options(
-      method: 'GET',
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<Map<String, dynamic>>(Options(
+      method: 'POST',
       headers: _headers,
       extra: _extra,
     )
         .compose(
           _dio.options,
-          '/app/source_exhibition/exhibition.json',
+          '/nl-parser/text',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -43,10 +47,10 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
           _dio.options.baseUrl,
           baseUrl,
         )));
-    final _result = await _dio.fetch<String>(_options);
-    late String _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late Map<String, dynamic> _value;
     try {
-      _value = _result.data!;
+      _value = _result.data!.map((k, dynamic v) => MapEntry(k, v));
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -55,19 +59,23 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
   }
 
   @override
-  Future<String> getSourceSeries() async {
+  Future<Map<String, dynamic>> getDP1CallFromVoice(
+    Map<String, dynamic> body,
+    bool withStream,
+  ) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'stream': withStream};
     final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<String>(Options(
-      method: 'GET',
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<Map<String, dynamic>>(Options(
+      method: 'POST',
       headers: _headers,
       extra: _extra,
     )
         .compose(
           _dio.options,
-          '/app/source_exhibition/series.json',
+          '/nl-parser/voice',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -76,15 +84,53 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
           _dio.options.baseUrl,
           baseUrl,
         )));
-    final _result = await _dio.fetch<String>(_options);
-    late String _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late Map<String, dynamic> _value;
     try {
-      _value = _result.data!;
+      _value = _result.data!.map((k, dynamic v) => MapEntry(k, v));
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
     }
     return _value;
+  }
+
+  @override
+  Future<Stream<dynamic>> getDP1CallFromVoiceStream(
+    Map<String, dynamic> body,
+    bool withStream,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'stream': withStream};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<Map<String, dynamic>>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+      responseType: ResponseType.stream,
+    )
+        .compose(
+          _dio.options,
+          '/nl-parser/voice',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<ResponseBody>(_options);
+    late Stream<dynamic> _stream;
+    try {
+      _stream = (_result.data as ResponseBody).stream;
+      return _stream;
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

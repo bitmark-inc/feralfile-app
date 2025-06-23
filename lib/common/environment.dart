@@ -54,6 +54,7 @@ class Environment {
       'TZKT_MAINNET_URL',
       'TZKT_TESTNET_URL',
       'ACCOUNT_SETTING_URL',
+      'MOBILE_CONTROLLER_URL',
     ];
     const secretKeys = [
       'CHAT_SERVER_HMAC_KEY',
@@ -67,6 +68,7 @@ class Environment {
       'ONESIGNAL_APP_ID',
       'TV_API_KEY',
       'SUPPORT_API_KEY',
+      'MOBILE_CONTROLLER_KEY',
     ];
     final missingKeys = <String>[];
     for (final key in keys) {
@@ -227,4 +229,11 @@ class Environment {
 
   static String get supportApiKey =>
       _readKey('SUPPORT_API_KEY', '', isSecret: true);
+
+  //mobileControllerAPIURL
+  static String get mobileControllerAPIURL =>
+      _readKey('MOBILE_CONTROLLER_URL', '');
+
+  static String get mobileControllerApiKey =>
+      _readKey('MOBILE_CONTROLLER_KEY', '', isSecret: true);
 }

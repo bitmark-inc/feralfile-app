@@ -369,3 +369,22 @@ class TVKeyInterceptor extends Interceptor {
     }
   }
 }
+
+class MobileControllerAuthInterceptor extends Interceptor {
+  MobileControllerAuthInterceptor(this.apiKey);
+
+  final String apiKey;
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['X-API-KEY'] = apiKey;
+    handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    log.info(
+      '[MobileControllerAuthInterceptor]Error: ${err.message} ',
+    );
+  }
+}

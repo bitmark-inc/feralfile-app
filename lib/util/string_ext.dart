@@ -236,3 +236,23 @@ final List<String> listCharacters = [
   'Z',
   '#'
 ];
+
+extension JsonChunkExtractor on String {
+  /// Trả về danh sách các JSON hoàn chỉnh và phần còn lại (chưa đủ JSON)
+  /// Ví dụ:
+  /// final (jsons, remain) = buffer.extractFullJsonChunks();
+  (List<String>, String) extractFullJsonChunks() {
+    List<String> jsons = [];
+    int openBraces = 0;
+    int startIndex = 0;
+    for (int i = 0; i < length; i++) {
+      if (this[i] == '{') openBraces++;
+      if (this[i] == '}') openBraces--;
+      if (openBraces == 0 && startIndex < i) {
+        jsons.add(substring(startIndex, i + 1));
+        startIndex = i + 1;
+      }
+    }
+    return (jsons, substring(startIndex));
+  }
+}

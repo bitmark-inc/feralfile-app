@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/dp1_call_request.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
@@ -18,6 +19,8 @@ abstract class TvCastService {
     CheckCastingStatusRequest request, {
     bool shouldShowError = true,
   });
+
+  Future<void> sendDP1Call(DP1CallRequest request);
 
   Future<ConnectReplyV2> connect(ConnectRequestV2 request);
 
@@ -406,5 +409,15 @@ class TvCastServiceImpl extends BaseTvCastService {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<void> sendDP1Call(DP1CallRequest request) async {
+    final res = await _sendData(
+      request.toJson(),
+      shouldShowError: true,
+      timeout: const Duration(seconds: 10),
+    );
+    log.info('[TvCastServiceImpl] sendDP1Call response: $res');
   }
 }

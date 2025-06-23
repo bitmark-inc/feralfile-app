@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
@@ -43,6 +44,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
+import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -60,6 +62,7 @@ import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
@@ -461,4 +464,24 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<ListPlaylistBloc>(ListPlaylistBloc.new);
 
   injector.registerLazySingleton<HomeWidgetService>(HomeWidgetService.new);
+
+  injector.registerLazySingleton<MobileControllerAPI>(
+    () => MobileControllerAPI(
+      mobileControllerDio(
+        dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.mobileControllerAPIURL,
+    ),
+  );
+
+  injector.registerLazySingleton<MobileControllerService>(
+    () => MobileControllerService(injector()),
+  );
+
+  injector.registerLazySingleton<AudioService>(
+    () => AudioService(),
+  );
 }
