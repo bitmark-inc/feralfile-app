@@ -1,0 +1,64 @@
+name: Build Design Tokens
+
+on:
+  workflow_call:
+
+jobs:
+  build-tokens:
+    name: Generate And Push Tokens
+    runs-on: self-hosted
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm i @tokens-studio/sd-transforms mathjs style-dictionary
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase on latest feat/design-tokens
+        run: |
+          git fetch origin feat/design-tokens
+          if ! git rebase origin/feat/design-tokens; then
+            echo "❌ Rebase failed, aborting"
+            git rebase --abort
+            exit 1
+          fi
+
+      - name: Build tokens by style dictionary
+        run: |
+          echo "Building design tokens..."
+          if ! node style-dictionary-build.mjs; then
+            echo "❌ Token build failed!"
+            exit 1
+          fi
+
+      - name: Validate build output exists
+        run: |
+          test -f src/assets/design-tokens/tokens.dart
+
+      - name: Check for changes and push tokens
+        run: |
+          git add src/assets/design-tokens/
+          if git diff --cached --quiet; then
+            echo "✅ No changes to design tokens"
+          else
+            echo "Design tokens changed, committing..."
+            git commit -m "chore: auto-generate design tokens"
+            git push --force-with-lease origin HEAD:${{ github.head_ref }}
+            echo "✅ Design tokens committed and pushed"
+          fi
