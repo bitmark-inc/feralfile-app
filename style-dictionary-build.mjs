@@ -49,7 +49,7 @@ const sd = new StyleDictionary({
   preprocessors: ["tokens-studio"],
   platforms: {
     flutter: {
-      buildPath: "src/assets/design-tokens/",
+      buildPath: "design/",
       files: [
         {
           destination: "tokens.dart",
