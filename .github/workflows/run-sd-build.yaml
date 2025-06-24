@@ -8,4 +8,4 @@ on:
 jobs:
   call-build:
     if: github.head_ref == 'test/design-tokens-pipeline'
-    uses: bitmark-inc/feralfile-client/.github/workflows/sd-build.yaml@fead/design-tokens
+    uses: bitmark-inc/feralfile-app/.github/workflows/sd-build.yaml@feat/design-tokens
