@@ -38,7 +38,7 @@
     },
     "FF Highlight": {
       "$type": "color",
-      "$value": "#dadad2"
+      "$value": "#ecff0c"
     },
     "fontFamilies": {
       "pp-mori": {
