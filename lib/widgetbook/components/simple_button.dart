@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/design/design-tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart';
 
@@ -21,9 +22,12 @@ class Button extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: state == ButtonState.disabled ? null : () {},
-      child: Text(text, style: TextStyle(
-        color: state == ButtonState.disabled ? Colors.grey : Colors.white,
-      )),
+      child: Text(text,
+          style: TextStyle(
+            color: state == ButtonState.disabled
+                ? DesignTokens.auLightGrey
+                : DesignTokens.white,
+          )),
     );
   }
 }
