@@ -36,7 +36,7 @@ class DesignTokens {
     static const bodyTextDecoration = null;
     static const darkGrey = Color(0xFF2E2E2E);
     static const error = Color(0xFFD10000);
-    static const ffHighlight = Color(0xFFDADAD2);
+    static const ffHighlight = Color(0xFFECFF0C);
     static const ffLightBlue = Color(0xFFB9E5FF);
     static const fontFamiliesIbmPlexMono = 'IBM Plex Mono';
     static const fontFamiliesPpMori = 'PP Mori';
