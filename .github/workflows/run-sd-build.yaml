@@ -7,5 +7,5 @@ on:
 
 jobs:
   call-build:
-    if: github.head_ref == 'feat/design-tokens'
-    uses: bitmark-inc/feralfile-app/.github/workflows/sd-build.yaml@main
+    if: github.head_ref == 'test/design-tokens'
+    uses: bitmark-inc/feralfile-app/.github/workflows/sd-build.yaml@test/design-tokens-pipeline
