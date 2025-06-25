@@ -13,7 +13,7 @@ class DesignTokens {
     DesignTokens._();
 
     static const auGrey = Color(0xFFA0A0A0);
-    static const auLightGrey = Color(0xFFE3E3E3);
+    static const auLightGrey = Color(0xFF60BB3F);
     static const auSuperTeal = Color(0xFF00FFA3);
     static const black = Color(0xFF000000);
     static const bodyBoldFontFamily = 'PP Mori';
@@ -172,5 +172,5 @@ class DesignTokens {
     static const tvSmallParagraphSpacing = 8;
     static const tvSmallTextCase = null;
     static const tvSmallTextDecoration = null;
-    static const white = Color(0xFFFFFFFF);
+    static const white = Color(0xFF870303);
 }

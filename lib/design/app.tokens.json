@@ -14,11 +14,11 @@
     },
     "Au Light Grey": {
       "$type": "color",
-      "$value": "#e3e3e3"
+      "$value": "#60bb3f"
     },
     "White": {
       "$type": "color",
-      "$value": "#ffffff"
+      "$value": "#870303"
     },
     "Black": {
       "$type": "color",
