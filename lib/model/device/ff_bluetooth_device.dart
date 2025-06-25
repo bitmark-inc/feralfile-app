@@ -36,8 +36,7 @@ class FFBluetoothDevice extends BluetoothDevice
       FFBluetoothDevice(
         name: json['name'] as String,
         remoteID: json['remoteID'] as String,
-        topicId: '1FgWEJx5PyaYUFZVHi7c8k2m1W4rfvS7z',
-        //json['topicId'] as String,
+        topicId: json['topicId'] as String,
         deviceId: json['deviceId'] != null
             ? json['deviceId'] as String
             : json['name'] as String, // TODO: remove this fallback
