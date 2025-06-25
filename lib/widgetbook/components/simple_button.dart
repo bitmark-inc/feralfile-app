@@ -34,7 +34,7 @@ class Button extends StatelessWidget {
 
 @UseCase(name: 'Primary', type: Button)
 Widget primaryButton(BuildContext context) {
-  return Button(
+  return const Button(
     text: 'Primary',
     state: ButtonState.primary,
   );
@@ -42,7 +42,7 @@ Widget primaryButton(BuildContext context) {
 
 @UseCase(name: 'Secondary', type: Button)
 Widget secondaryButton(BuildContext context) {
-  return Button(
+  return const Button(
     text: 'Secondary',
     state: ButtonState.secondary,
   );
@@ -50,7 +50,7 @@ Widget secondaryButton(BuildContext context) {
 
 @UseCase(name: 'Disabled', type: Button)
 Widget disabledButton(BuildContext context) {
-  return Button(
+  return const Button(
     text: 'Disabled',
     state: ButtonState.disabled,
   );
