@@ -659,7 +659,7 @@ class BluetoothConnectedDeviceConfigState
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
       device: blDevice,
-      onSubmitted: (FFBluetoothDevice device) {
+      onSubmitted: (FFBluetoothDevice? device) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothConnectedDeviceConfig);
       },

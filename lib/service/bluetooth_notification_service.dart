@@ -72,17 +72,18 @@ class BluetoothNotificationService {
   // Handle incoming notification data
   void handleNotification(List<int> data, BluetoothDevice device) {
     try {
-      final list = getDataFromRawData(data);
-      // log all item in list using log.info in one line
-      log.info('[BluetoothNotification] Notification data: ${list.toString()}');
+      final rawData = getDataFromRawData(data);
+      // log all item in rawData using log.info in one line
+      log.info(
+          '[BluetoothNotification] Notification data: ${rawData.toString()}');
 
-      final topic = list.topic;
+      final topic = rawData.topic;
 
       final callbacks = _subscribers[topic]?.toList();
       // Notify subscribers
       callbacks?.forEach((callback) {
         try {
-          callback(list);
+          callback(rawData);
         } catch (e) {
           log.info('[BluetoothNotification] Error processing notification: $e');
         }

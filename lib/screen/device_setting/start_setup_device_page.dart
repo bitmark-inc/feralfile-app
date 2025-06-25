@@ -144,10 +144,11 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
       device: widget.device,
-      onSubmitted: (FFBluetoothDevice device) {
+      onSubmitted: (FFBluetoothDevice? device) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothDevicePortalPage);
-        injector<NavigationService>().goBack(result: Pair(device, true));
+        final result = device != null ? Pair(device, true) : null;
+        injector<NavigationService>().goBack(result: result);
       },
     );
     injector<NavigationService>()

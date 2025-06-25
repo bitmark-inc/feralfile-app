@@ -772,15 +772,10 @@ class SendWifiCredentialError implements Exception {
           'This device requires a Wi-Fi connection to function properly. Please connect to a Wi-Fi network.',
         );
       case SendWifiCredentialErrorCode.deviceUpdating:
-        return SendWifiCredentialError(
-          title: 'Device Updating',
-          'The device is currently updating. Please wait for the update to complete before trying to connect to Wi-Fi.',
-        );
+        return DeviceUpdatingError();
+
       case SendWifiCredentialErrorCode.versionCheckFailed:
-        return SendWifiCredentialError(
-          title: 'Version Check Failed',
-          'The device version check failed. Please ensure your device is compatible and try again.',
-        );
+        return DeviceVersionCheckFailedError();
       default:
         return SendWifiCredentialError(
           title: 'Wi-Fi Connection Error',
@@ -793,6 +788,22 @@ class SendWifiCredentialError implements Exception {
   String toString() {
     return message;
   }
+}
+
+class DeviceUpdatingError extends SendWifiCredentialError {
+  DeviceUpdatingError()
+      : super(
+          'The device is currently updating. Please wait for the update to complete and try again.',
+          title: 'Device Updating',
+        );
+}
+
+class DeviceVersionCheckFailedError extends SendWifiCredentialError {
+  DeviceVersionCheckFailedError()
+      : super(
+          'The device version check failed. Please try again or contact support.',
+          title: 'Version Check Failed',
+        );
 }
 
 class ScanWifiRequest extends BluetoothRequest {
