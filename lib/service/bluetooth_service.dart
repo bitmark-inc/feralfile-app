@@ -48,6 +48,7 @@ const updateDeviceStatusCommand = [
 enum BluetoothCommand {
   sendWifiCredentials,
   scanWifi,
+  keepWifi,
   setTimezone;
 
   String get name {
@@ -56,6 +57,8 @@ enum BluetoothCommand {
         return 'connect_wifi';
       case BluetoothCommand.scanWifi:
         return 'scan_wifi';
+      case BluetoothCommand.keepWifi:
+        return 'keep_wifi';
       case BluetoothCommand.setTimezone:
         return 'set_time';
     }
@@ -73,13 +76,29 @@ enum BluetoothCommand {
     };
   }
 
+  NotificationCallback _keepWifiCallback(
+    Completer<KeepWifiResponse> completer,
+  ) {
+    return (data) {
+      if (data.errorCode != 0) {
+        log.warning('Error keeping wifi: ${data.errorCode}');
+        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        completer.completeError(
+          error,
+        );
+      }
+      final topicId = data.data[0];
+      completer.complete(KeepWifiResponse(topicId: topicId));
+    };
+  }
+
   NotificationCallback _sendWifiCredentialsCallback(
     Completer<SendWifiCredentialResponse> completer,
   ) {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending wifi credentials: ${data.errorCode}');
-        final error = SendWifiCredentialError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -109,6 +128,8 @@ enum BluetoothCommand {
         return Completer<SendWifiCredentialResponse>();
       case BluetoothCommand.scanWifi:
         return Completer<ScanWifiResponse>();
+      case BluetoothCommand.keepWifi:
+        return Completer<KeepWifiResponse>();
       case BluetoothCommand.setTimezone:
         return Completer<SetTimezoneReply>();
     }
@@ -125,6 +146,10 @@ enum BluetoothCommand {
       case BluetoothCommand.scanWifi:
         return _scanWifiCallback(
           completer as Completer<ScanWifiResponse>,
+        );
+      case BluetoothCommand.keepWifi:
+        return _keepWifiCallback(
+          completer as Completer<KeepWifiResponse>,
         );
       case BluetoothCommand.setTimezone:
         return _setTimezoneCallback(
@@ -378,6 +403,23 @@ class FFBluetoothService {
     return wifiList;
   }
 
+  Future<String> keepWifi(BluetoothDevice device) async {
+    final request = KeepWifiRequest();
+    final res = await sendCommand(
+      device: device,
+      command: BluetoothCommand.keepWifi,
+      request: request.toJson(),
+    );
+
+    if (res is! KeepWifiResponse) {
+      log.warning('Failed to keep Wi-Fi');
+      throw Exception('Failed to keep Wi-Fi');
+    }
+
+    final keepWifiResponse = res;
+    return keepWifiResponse.topicId;
+  }
+
   Future<FFBluetoothDevice?> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
@@ -491,11 +533,11 @@ class FFBluetoothService {
     // connect to device
     if (device.isDisconnected ||
         (autoConnect && !device.isAutoConnectEnabled)) {
-      if (!autoConnect) {
-        log.info('Disconnecting from device: ${device.remoteId.str}');
-        await device.disconnect();
-        log.info('[_connect] device.disconnect() finished');
-      }
+      // if (!autoConnect) {
+      //   log.info('Disconnecting from device: ${device.remoteId.str}');
+      //   await device.disconnect();
+      //   log.info('[_connect] device.disconnect() finished');
+      // }
 
       if (_connectCompleter?.isCompleted == false) {
         log.info(
@@ -724,7 +766,7 @@ class SendWifiCredentialResponse extends BluetoothResponse {
   final String topicId;
 }
 
-enum SendWifiCredentialErrorCode {
+enum FFBluetoothErrorCode {
   userEnterWrongPassword(1),
   wifiConnectedButNoInternet(2),
   wifiConnectedButCannotReachServer(3),
@@ -736,48 +778,48 @@ enum SendWifiCredentialErrorCode {
   versionCheckFailed(6),
   unknownError(255);
 
-  const SendWifiCredentialErrorCode(this.code);
+  const FFBluetoothErrorCode(this.code);
 
   final int code;
 }
 
-class SendWifiCredentialError implements Exception {
-  SendWifiCredentialError(this.message, {this.title = 'Error'});
+class FFBluetoothError implements Exception {
+  FFBluetoothError(this.message, {this.title = 'Error'});
 
   final String message;
   final String title;
 
-  static SendWifiCredentialError fromErrorCode(int errorCode) {
-    final error = SendWifiCredentialErrorCode.values
+  static FFBluetoothError fromErrorCode(int errorCode) {
+    final error = FFBluetoothErrorCode.values
         .firstWhereOrNull((e) => e.code == errorCode);
     switch (error) {
-      case SendWifiCredentialErrorCode.userEnterWrongPassword:
+      case FFBluetoothErrorCode.userEnterWrongPassword:
         // user enter wrong password
-        return SendWifiCredentialError(
+        return FFBluetoothError(
             title: 'Incorrect Wi-Fi Password',
             'Failed to connect to Wi-Fi. Please check your password and try again.');
-      case SendWifiCredentialErrorCode.wifiConnectedButCannotReachServer:
-        return SendWifiCredentialError(
+      case FFBluetoothErrorCode.wifiConnectedButCannotReachServer:
+        return FFBluetoothError(
           title: 'Server Unreachable',
           'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
         );
-      case SendWifiCredentialErrorCode.wifiConnectedButNoInternet:
-        return SendWifiCredentialError(
+      case FFBluetoothErrorCode.wifiConnectedButNoInternet:
+        return FFBluetoothError(
           title: 'No Internet Access',
           'Connected to Wi-Fi but no internet access. Please check your internet connection.',
         );
-      case SendWifiCredentialErrorCode.wifiRequired:
-        return SendWifiCredentialError(
+      case FFBluetoothErrorCode.wifiRequired:
+        return FFBluetoothError(
           title: 'Wi-Fi Required',
           'This device requires a Wi-Fi connection to function properly. Please connect to a Wi-Fi network.',
         );
-      case SendWifiCredentialErrorCode.deviceUpdating:
+      case FFBluetoothErrorCode.deviceUpdating:
         return DeviceUpdatingError();
 
-      case SendWifiCredentialErrorCode.versionCheckFailed:
+      case FFBluetoothErrorCode.versionCheckFailed:
         return DeviceVersionCheckFailedError();
       default:
-        return SendWifiCredentialError(
+        return FFBluetoothError(
           title: 'Wi-Fi Connection Error',
           'Unknown error occurred while connecting to Wi-Fi. Error code: $errorCode',
         );
@@ -790,7 +832,7 @@ class SendWifiCredentialError implements Exception {
   }
 }
 
-class DeviceUpdatingError extends SendWifiCredentialError {
+class DeviceUpdatingError extends FFBluetoothError {
   DeviceUpdatingError()
       : super(
           'The device is currently updating. Please wait for the update to complete and try again.',
@@ -798,7 +840,7 @@ class DeviceUpdatingError extends SendWifiCredentialError {
         );
 }
 
-class DeviceVersionCheckFailedError extends SendWifiCredentialError {
+class DeviceVersionCheckFailedError extends FFBluetoothError {
   DeviceVersionCheckFailedError()
       : super(
           'The device version check failed. Please try again or contact support.',
@@ -820,6 +862,23 @@ class ScanWifiResponse extends BluetoothResponse {
   });
 
   final List<String> result;
+}
+
+class KeepWifiRequest extends BluetoothRequest {
+  const KeepWifiRequest();
+
+  // toJson
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class KeepWifiResponse extends BluetoothResponse {
+  const KeepWifiResponse({
+    required this.topicId,
+  });
+
+  final String topicId;
 }
 
 class SetTimezoneRequest implements BluetoothRequest {
@@ -845,3 +904,8 @@ class SetTimezoneReply extends BluetoothResponse {
   factory SetTimezoneReply.fromJson(Map<String, dynamic> _) =>
       SetTimezoneReply();
 }
+
+void handleBluetoothError({
+  FFBluetoothError? error,
+  bool shouldShowError = true,
+}) {}

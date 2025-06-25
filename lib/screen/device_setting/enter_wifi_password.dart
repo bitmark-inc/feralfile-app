@@ -168,7 +168,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                           'The Portal failed to connect to ${e.ssid}',
                         ),
                       );
-                    } on SendWifiCredentialError catch (e) {
+                    } on FFBluetoothError catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(
                         Sentry.captureException(

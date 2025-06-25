@@ -69,7 +69,7 @@ class UIHelper {
   static const String artistArtworkDisplaySettingModal =
       'artistArtworkDisplaySettingModal';
 
-  static Future<dynamic> showDialog(
+  static Future<T?> showDialog<T>(
     BuildContext context,
     String title,
     Widget content, {
@@ -99,7 +99,7 @@ class UIHelper {
       Vibrate.feedback(feedback);
     }
 
-    return showModalBottomSheet<dynamic>(
+    return showModalBottomSheet<T>(
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,

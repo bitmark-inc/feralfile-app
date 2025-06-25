@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
@@ -82,10 +83,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     if (prefix == null) {
       return [];
     }
-    final data = link.replaceFirst(prefix, '').substring(1).split('|')
-      ..removeWhere(
-        (element) => element.isEmpty,
-      );
+    final data = link.replaceFirst(prefix, '').substring(1).split('|');
+    // Dont remove empty elements, as they are used to indicate the absence of a value
+    // ..removeWhere(
+    //   (element) => element.isEmpty,
+    // );
     return data;
   }
 
@@ -258,7 +260,9 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       // go to setting wifi page
 
       Pair<FFBluetoothDevice, bool>? res;
-      if (topicId != null && isConnectedToInternet == true) {
+      if (topicId != null &&
+          topicId.isNotEmpty &&
+          isConnectedToInternet == true) {
         res = Pair(
           resultDevice!.toFFBluetoothDevice(
               topicId: topicId, deviceId: resultDevice!.advName),
@@ -273,25 +277,90 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         unawaited(injector<CanvasClientServiceV2>()
             .showPairingQRCode(res.first, false));
       } else {
-        if (topicId != null) {
-          // add device to canvas
-          final device = resultDevice!.toFFBluetoothDevice(
-            topicId: topicId,
-            deviceId: resultDevice!.advName,
+        if (isConnectedToInternet == true) {
+          res = await UIHelper.showDialog(
+              context,
+              'Your device is connected to internet',
+              Column(
+                children: [
+                  Text(
+                    'Your device is connected to the internet, but no topic ID was provided.',
+                    style: Theme.of(context).textTheme.ppMori400White14,
+                  ),
+                  const SizedBox(height: 16),
+                  PrimaryAsyncButton(
+                    text: 'Setup Internet',
+                    onTap: () {
+                      injector<NavigationService>().goBack();
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  PrimaryAsyncButton(
+                    text: 'Skip Internet Setup',
+                    processingText: 'Skipping...',
+                    onTap: () async {
+                      try {
+                        // skip setting up internet
+                        await injector<FFBluetoothService>()
+                            .connectToDevice(resultDevice!);
+
+                        final topicId =
+                            await injector<FFBluetoothService>().keepWifi(
+                          resultDevice!,
+                        );
+                        // add device to canvas
+                        final device = resultDevice!.toFFBluetoothDevice(
+                          topicId: topicId,
+                          deviceId: resultDevice!.advName,
+                        );
+                        await BluetoothDeviceManager().addDevice(
+                          device,
+                        );
+                        final res = Pair<FFBluetoothDevice, bool>(
+                          device,
+                          false,
+                        );
+                        injector<NavigationService>().goBack(result: res);
+                      } on FFBluetoothError catch (e) {
+                        if (e is DeviceUpdatingError ||
+                            e is DeviceVersionCheckFailedError) {
+                          injector<NavigationService>().goBack();
+                        }
+                        final context = injector<NavigationService>().context;
+                        unawaited(UIHelper.showInfoDialog(
+                            context, e.title, e.message));
+                      } on Exception catch (e) {
+                        UIHelper.showInfoDialog(
+                          context,
+                          'Error',
+                          'Failed to skip internet setup: $e',
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ));
+        } else {
+          if (topicId != null && topicId.isNotEmpty) {
+            // add device to canvas
+            final device = resultDevice!.toFFBluetoothDevice(
+              topicId: topicId,
+              deviceId: resultDevice!.advName,
+            );
+            await BluetoothDeviceManager().addDevice(
+              device,
+            );
+          }
+          final r = await injector<NavigationService>().navigateTo(
+            AppRouter.bluetoothDevicePortalPage,
+            arguments: resultDevice,
           );
-          await BluetoothDeviceManager().addDevice(
-            device,
-          );
-        }
-        final r = await injector<NavigationService>().navigateTo(
-          AppRouter.bluetoothDevicePortalPage,
-          arguments: resultDevice,
-        );
-        res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
-        if (res != null) {
-          await BluetoothDeviceManager().addDevice(
-            res.first,
-          );
+          res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
+          if (res != null) {
+            await BluetoothDeviceManager().addDevice(
+              res.first,
+            );
+          }
         }
       }
 
