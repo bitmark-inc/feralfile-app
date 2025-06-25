@@ -184,8 +184,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   Future<void> _goToTargetScreen(BuildContext context) async {
     log.info('[_goToTargetScreen] start');
     unawaited(
-      Navigator.of(context)
-          .pushReplacementNamed(AppRouter.homePageNoTransition),
+      Navigator.of(context).pushReplacementNamed(AppRouter.homePage),
     );
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }

@@ -292,7 +292,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   Expanded(
                     child: Scaffold(
                       backgroundColor: AppColor.primaryBlack,
-                      appBar: getPlaylistAppBar(
+                      appBar: getCustomBackAppBar(
                         context,
                         title: _appBarTitle(context, playList),
                         actions: _appBarAction(context, playList),

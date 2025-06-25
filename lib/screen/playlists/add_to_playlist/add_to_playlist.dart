@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -20,8 +22,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 
 class AddToCollectionScreen extends StatefulWidget {
   const AddToCollectionScreen({required this.playList, super.key});
@@ -149,7 +149,7 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
             .length;
         return Scaffold(
           backgroundColor: AppColor.primaryBlack,
-          appBar: getPlaylistAppBar(
+          appBar: getCustomBackAppBar(
             context,
             title: Column(
               children: [

@@ -2,7 +2,9 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/record_controller_bloc.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,13 +16,15 @@ class RecordControllerScreen extends StatefulWidget {
   State<RecordControllerScreen> createState() => _RecordControllerScreenState();
 }
 
-class _RecordControllerScreenState extends State<RecordControllerScreen> {
+class _RecordControllerScreenState extends State<RecordControllerScreen>
+    with AutomaticKeepAliveClientMixin {
   final MobileControllerService mobileControllerService =
       injector<MobileControllerService>();
   final AudioService audioService = injector<AudioService>();
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return BlocProvider(
       create: (_) => RecordBloc(mobileControllerService, audioService),
       // Start recording when screen is opened
@@ -36,7 +40,6 @@ class _RecordControllerScreenState extends State<RecordControllerScreen> {
                   Expanded(
                     flex: 2,
                     child: Column(
-                      mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Center(
@@ -73,9 +76,8 @@ class _RecordControllerScreenState extends State<RecordControllerScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  // Danh sách message
                   _historyChat(context, state.messages),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -145,4 +147,26 @@ class _RecordControllerScreenState extends State<RecordControllerScreen> {
       ),
     );
   }
+
+  Widget _noPermissionWidget(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Microphone permission is required.',
+          style: Theme.of(context).textTheme.ppMori400White12,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        PrimaryButton(
+          text: 'Request Permission',
+          onTap: () async {
+            await injector<NavigationService>().openMicrophoneSettings();
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
 }

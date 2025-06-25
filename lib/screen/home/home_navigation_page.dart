@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/record_controller.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -269,8 +268,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
 
     _pages = <Widget>[
-      // EnterCommandScreen(),
-      const RecordControllerScreen(),
       MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -371,7 +368,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColor.disabledColor,
+        backgroundColor: AppColor.primaryBlack,
         body: SafeArea(
           top: false,
           bottom: false,
@@ -440,19 +437,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         ColorFilter.mode(unselectedColor, BlendMode.srcIn);
     const iconSize = 25.0;
     final bottomItems = [
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/discover.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/discover.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'mobile_controller',
-      ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
           'assets/images/discover.svg',

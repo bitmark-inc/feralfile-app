@@ -32,7 +32,7 @@ class CsViewThread extends AdditionalData {
       AppRouter.supportThreadPage,
       (route) =>
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
       arguments: DetailIssuePayload(reportIssueType: '', issueID: issueId),
     ));
   }

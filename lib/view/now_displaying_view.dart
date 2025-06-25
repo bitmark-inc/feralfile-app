@@ -54,8 +54,6 @@ class NowDisplayingError implements NowDisplayingStatus {
   final Object error;
 }
 
-class GettingNowDisplayingObject implements NowDisplayingStatus {}
-
 class ExhibitionDisplaying {
   ExhibitionDisplaying({
     this.exhibition,
@@ -136,8 +134,6 @@ class _NowDisplayingState extends State<NowDisplaying>
               context,
               nowDisplayingStatus,
             );
-          case GettingNowDisplayingObject:
-            return _gettingNowDisplayingObjectView(context);
           case NowDisplayingError:
             return _getNowDisplayingErrorView(context, nowDisplayingStatus);
           case NowDisplayingSuccess:
@@ -179,12 +175,6 @@ class _NowDisplayingState extends State<NowDisplaying>
     final error = (nowDisplayingStatus as NowDisplayingError).error;
     return NowDisplayingStatusView(
       status: 'Error: $error',
-    );
-  }
-
-  Widget _gettingNowDisplayingObjectView(BuildContext context) {
-    return const NowDisplayingStatusView(
-      status: 'Getting now displaying object...',
     );
   }
 }
@@ -473,20 +463,20 @@ class NowDisplayingView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       constraints: const BoxConstraints(
         maxHeight: kNowDisplayingHeight,
         minHeight: kNowDisplayingHeight,
       ),
       decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 65),
+            constraints: const BoxConstraints(maxWidth: 65, minWidth: 65),
             child: thumbnailBuilder(context),
           ),
           const SizedBox(width: 10),
@@ -508,7 +498,7 @@ class NowDisplayingView extends StatelessWidget {
             IconButton(
               onPressed: onMoreTap,
               icon: SvgPicture.asset(
-                'assets/images/more_circle.svg',
+                'assets/images/icon_drawer.svg',
                 width: 22,
                 colorFilter: const ColorFilter.mode(
                   AppColor.primaryBlack,

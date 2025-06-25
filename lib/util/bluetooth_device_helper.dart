@@ -62,6 +62,18 @@ class BluetoothDeviceManager {
     );
   }
 
+  Future<FFBluetoothDevice> updateDeviceName(
+    FFBluetoothDevice device,
+    String newName,
+  ) async {
+    final updatedDevice = device.copyWith(name: newName);
+    await _ffDeviceDB.write([updatedDevice.toKeyValue]);
+    log.info(
+      'BluetoothDeviceHelper.updateDeviceName: updated ${device.toJson()} to ${updatedDevice.toJson()}',
+    );
+    return updatedDevice;
+  }
+
   Future<void> _setupDevice(
     FFBluetoothDevice device, {
     required bool shouldWriteToDb,
@@ -117,6 +129,34 @@ class BluetoothDeviceManager {
         castingBluetoothDevice = device;
         return device;
       }
+    }
+
+    return null;
+  }
+
+  Future<FFBluetoothDevice?> pickADeviceToDisplay(String deviceName) async {
+    final listDevice = BluetoothDeviceManager.pairedDevices;
+    if (listDevice.isEmpty) {
+      return null;
+    }
+    if (listDevice.length == 1) {
+      return listDevice.first;
+    }
+
+    final device = listDevice.firstWhereOrNull(
+      (device) => device.name == deviceName,
+    );
+    if (device != null) {
+      return device;
+    }
+
+    final aliveDevices = _castingBluetoothDevice?.isAlive == true
+        ? _castingBluetoothDevice!
+        : listDevice.firstWhereOrNull(
+            (device) => device.isAlive,
+          );
+    if (aliveDevices != null) {
+      return aliveDevices;
     }
 
     return null;

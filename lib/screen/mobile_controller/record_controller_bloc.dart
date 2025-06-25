@@ -2,10 +2,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
-import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 abstract class RecordEvent {}
@@ -25,9 +26,9 @@ class RecordState {
   final bool isRecording;
   final List<String> messages;
   final String? status;
-  final String? lastIntent;
+  final Map<String, dynamic>? lastIntent;
   final Map<String, dynamic>? lastDP1Call;
-  final String? error;
+  final Exception? error;
 
   RecordState({
     this.isRecording = false,
@@ -42,9 +43,9 @@ class RecordState {
     bool? isRecording,
     List<String>? messages,
     String? status,
-    String? lastIntent,
+    Map<String, dynamic>? lastIntent,
     Map<String, dynamic>? lastDP1Call,
-    String? error,
+    Exception? error,
   }) =>
       RecordState(
         isRecording: isRecording ?? this.isRecording,
@@ -68,7 +69,7 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       emit(state.copyWith(error: null, status: ''));
       final granted = await audioService.askMicrophonePermission();
       if (!granted) {
-        emit(state.copyWith(error: 'Microphone permission denied'));
+        emit(state.copyWith(error: AudioPermissionDeniedException()));
         return;
       }
       await audioService.startRecording();
@@ -77,12 +78,6 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     on<StopRecordingEvent>((event, emit) async {
       emit(state.copyWith(isRecording: false, error: null));
       final file = await audioService.stopRecording();
-      if (file == null) {
-        emit(state.copyWith(
-            error: 'Recorded file not found, please try again.'));
-        return;
-      }
-
       emit(state.copyWith(status: 'Getting transcription...'));
 
       // Gửi file audio qua service để lấy text và dp1_call
@@ -114,51 +109,65 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
                 final thinking = nlParserData.content;
                 emit(state.copyWith(status: thinking, error: null));
               case NLParserDataType.intent:
-                final data = nlParserData.data;
-                final action = data['action'] as String;
+                final intent =
+                    Map<String, dynamic>.from(nlParserData.data as Map);
+                emit(state.copyWith(
+                    status: 'Intent received.',
+                    lastIntent: intent,
+                    error: null));
               case NLParserDataType.complete:
                 log.info('Complete action received');
-                _statusTimer?.cancel();
-                _statusTimer =
-                    Timer.periodic(const Duration(seconds: 3), (timer) {
-                  emit(state.copyWith(status: ''));
-                });
+              // _statusTimer?.cancel();
+              // _statusTimer =
+              //     Timer.periodic(const Duration(seconds: 3), (timer) {
+              //   emit(state.copyWith(status: ''));
+              // });
 
-              case NLParserDataType.result:
-                emit(state.copyWith(status: 'Sending to device...'));
-                final data = nlParserData.data;
-                final intent = data['intent'];
+              case NLParserDataType.dp1Call:
+                final dp1Call = Map<String, dynamic>.from(nlParserData.data);
+                final intent = state.lastIntent!;
                 final deviceName = intent['device_name'] as String?;
-                final scheduleTime = intent['schedule_time'] == null
-                    ? null
-                    : DateTime.parse(intent['schedule_time'] as String);
-                // convert scheduleTime to local time. Example 2025-06-23T18:00:00.000Z -> 2025-06-23 18:00:00 in local time, means that remove the Z at the end
-                final scheduleTimeInLocal = scheduleTime?.localTimeWithoutShift;
-
-                final dp1Call = data['dp1_call'];
-                await Future.delayed(const Duration(seconds: 2));
+                final device = await BluetoothDeviceManager()
+                    .pickADeviceToDisplay(deviceName ?? '');
+                if (device == null) {
+                  emit(state.copyWith(
+                      error: AudioException('No device selected')));
+                  return;
+                }
                 emit(state.copyWith(
-                  lastIntent: intent?.toString(),
-                  lastDP1Call: dp1Call as Map<String, dynamic>?,
+                    status: 'Sending to device ${deviceName ?? 'FF-X1'}...'));
+                try {
+                  await injector<CanvasClientServiceV2>()
+                      .sendDp1Call(device, dp1Call, intent);
+                } catch (e) {
+                  log.info('Error sending DP1 call: $e');
+                  emit(state.copyWith(
+                      error: AudioException(
+                          'Error sending to ${deviceName ?? 'FF-X1'}: $e')));
+                  return;
+                }
+                emit(state.copyWith(
+                  lastIntent: intent,
+                  lastDP1Call: dp1Call,
                   error: null,
-                  status:
-                      'Sent to device: ${deviceName ?? 'Unknown'} at ${scheduleTimeInLocal?.toString() ?? 'now'}',
+                  status: 'Sent to device: ${deviceName ?? 'FF-X1'}',
                 ));
-                break;
               case NLParserDataType.error:
                 final error = nlParserData.content;
-                emit(state.copyWith(error: error));
+                emit(state.copyWith(error: AudioException(error)));
                 break;
               default:
                 log.warning('Unknown NLParserDataType: [${nlParserData.type}');
             }
           } catch (e) {
             log.info('Error processing data: $e');
-            emit(state.copyWith(error: 'Error processing data: $e'));
+            emit(state.copyWith(
+                error: AudioException('Error processing data: $e')));
           }
         }
       } catch (e) {
-        emit(state.copyWith(error: 'Lỗi xử lý audio: $e'));
+        emit(state.copyWith(
+            error: AudioException('Failed to process audio: $e')));
       }
     });
     on<SubmitTextEvent>((event, emit) async {
@@ -170,7 +179,9 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         deviceNames: ["kitchen", "living_room", "bed room"],
       );
       emit(state.copyWith(
-        lastIntent: result['intent']?.toString(),
+        lastIntent: result['intent'] == null
+            ? null
+            : Map<String, dynamic>.from(result['intent'] as Map),
         lastDP1Call: result['dp1_call'] == null
             ? null
             : Map<String, dynamic>.from(result['dp1_call'] as Map),

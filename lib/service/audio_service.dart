@@ -14,24 +14,28 @@ class AudioService {
     return status.isGranted;
   }
 
-  Future<void> startRecording() async {
+  Future<FlutterSoundRecorder> getRecorder() async {
     if (_recorder == null) {
       _recorder = FlutterSoundRecorder();
       await _recorder!.openRecorder();
     }
+    return _recorder!;
+  }
+
+  Future<void> startRecording() async {
+    final recorder = await getRecorder();
     final dir = await getTemporaryDirectory();
     _filePath =
         '${dir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.aac';
-    await _recorder!.startRecorder(
+    await recorder.startRecorder(
       toFile: _filePath,
       codec: Codec.aacADTS,
     );
   }
 
-  Future<File?> stopRecording() async {
-    if (_recorder == null) return null;
+  Future<File> stopRecording() async {
+    if (_recorder == null) return throw AudioRecorderNotOpenedException();
     await _recorder!.stopRecorder();
-    if (_filePath == null) return null;
     return File(_filePath!);
   }
 
@@ -62,11 +66,38 @@ enum AudioExceptionType {
   }
 }
 
-class AudioServiceException implements Exception {
-  final AudioExceptionType type;
+class AudioException implements Exception {
+  final String message;
 
-  AudioServiceException(this.type);
+  AudioException(
+    this.message,
+  );
+}
 
+class AudioPermissionDeniedException implements AudioException {
   @override
-  String toString() => 'AudioServiceException: ${type.message}';
+  String get message => AudioExceptionType.permissionDenied.message;
+}
+
+class AudioRecordingFailedException implements AudioException {
+  @override
+  String get message => AudioExceptionType.recordingFailed.message;
+
+  final Object? error;
+
+  AudioRecordingFailedException(this.error);
+}
+
+class AudioFileNotFoundException implements AudioException {
+  @override
+  String get message => AudioExceptionType.fileNotFound.message;
+
+  final String filePath;
+
+  AudioFileNotFoundException({required this.filePath});
+}
+
+class AudioRecorderNotOpenedException implements AudioException {
+  @override
+  String get message => 'Audio recorder is not opened';
 }

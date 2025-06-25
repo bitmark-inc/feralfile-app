@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -190,14 +191,26 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   Widget build(BuildContext context) {
+    final name = selectedDevice?.name;
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCustomBackAppBar(
         context,
-        onBack: () {
-          injector<NavigationService>().goBack();
-        },
-        title: 'configure_device'.tr(),
-        isWhite: false,
+        title: name == null
+            ? Text('configure_device'.tr())
+            : FFTextName(
+                title: name,
+                onSubmit: (String newName) async {
+                  final device = selectedDevice!;
+                  final newDevice =
+                      await BluetoothDeviceManager().updateDeviceName(
+                    device,
+                    newName,
+                  );
+                  setState(() {
+                    selectedDevice = newDevice;
+                  });
+                },
+              ),
         actions: [
           _buildDeviceSwitcher(context),
           BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
@@ -307,29 +320,6 @@ class BluetoothConnectedDeviceConfigState
               height: MediaQuery.paddingOf(context).top + 32,
             ),
           ),
-          // if (widget.payload.isFromOnboarding && !_isBLEDeviceConnected) ...[
-          //   const SliverToBoxAdapter(
-          //     child: SizedBox(
-          //       height: 20,
-          //     ),
-          //   ),
-          //   SliverToBoxAdapter(
-          //     child: Column(
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         Text(
-          //           'Waiting for Portal to be ready.',
-          //           style: Theme.of(context).textTheme.ppMori400White14,
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          //   const SliverToBoxAdapter(
-          //     child: SizedBox(
-          //       height: 20,
-          //     ),
-          //   ),
-          // ],
           SliverToBoxAdapter(
             child: Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -696,7 +686,7 @@ class BluetoothConnectedDeviceConfigState
         installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
     final device = selectedDevice!;
-    final deviceId = device.name;
+    final deviceName = device.name;
     final connectedWifi = status?.connectedWifi;
 
     final divider = addDivider(
@@ -773,13 +763,13 @@ class BluetoothConnectedDeviceConfigState
 
                   _deviceInfoItem(
                     context,
-                    title: 'Device ID:',
+                    title: 'Device Name:',
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
                           child: Text(
-                            deviceId,
+                            deviceName,
                             style: theme.textTheme.ppMori400White14.copyWith(
                               color: isBLEDeviceConnected
                                   ? AppColor.white
@@ -789,7 +779,7 @@ class BluetoothConnectedDeviceConfigState
                         ),
                         _copyButton(
                           context,
-                          deviceId,
+                          deviceName,
                         ),
                       ],
                     ),

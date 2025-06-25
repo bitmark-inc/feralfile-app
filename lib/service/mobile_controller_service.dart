@@ -37,8 +37,8 @@ class MobileControllerService {
     final bytes = await file.toBytes();
     final base64String = base64Encode(bytes);
     final body = {
-      'audio': base64String,
       'device_names': deviceNames,
+      'audio': base64String,
     };
     try {
       final result = await api.getDP1CallFromVoiceStream(
@@ -86,7 +86,7 @@ enum NLParserDataType {
   intent,
   complete,
   summary,
-  result,
+  dp1Call,
   unknown,
   error;
 
@@ -102,8 +102,8 @@ enum NLParserDataType {
         return 'complete';
       case NLParserDataType.summary:
         return 'summary';
-      case NLParserDataType.result:
-        return 'result';
+      case NLParserDataType.dp1Call:
+        return 'dp1_call';
       case NLParserDataType.error:
         return 'error';
       default:
@@ -124,8 +124,8 @@ enum NLParserDataType {
         return NLParserDataType.complete;
       case 'summary':
         return NLParserDataType.summary;
-      case 'result':
-        return NLParserDataType.result;
+      case 'dp1_call':
+        return NLParserDataType.dp1Call;
       case 'error':
         return NLParserDataType.error;
       default:

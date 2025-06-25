@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_bloc.dart';
@@ -58,6 +57,7 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/home_mobile_controller/home_mobile_controller.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
@@ -105,7 +105,9 @@ class AppRouter {
   static const newOnboardingPage = 'new_onboarding_page';
   static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
-  static const homePageNoTransition = 'home_page_no_transition';
+  static const oldHomePage = 'old_home_page';
+  static const recordControllerPage = 'record_controller_page';
+  static const enterCommandPage = 'enter_command_page';
   static const artworkDetailsPage = 'artwork_details_page';
   static const galleryPage = 'gallery_page';
   static const settingsPage = 'settings_page';
@@ -238,8 +240,7 @@ class AppRouter {
             ),
           ),
         );
-
-      case homePageNoTransition:
+      case oldHomePage:
         final payload = settings.arguments as HomeNavigationPagePayload?;
         return PageRouteBuilder(
           settings: settings,
@@ -268,39 +269,11 @@ class AppRouter {
         );
 
       case homePage:
-        final payload = settings.arguments as HomeNavigationPagePayload?;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) => HomeBloc(),
-              ),
-              BlocProvider(create: (_) => identityBloc),
-              BlocProvider.value(value: royaltyBloc),
-              BlocProvider.value(
-                value: subscriptionBloc,
-              ),
-              BlocProvider.value(value: canvasDeviceBloc),
-              BlocProvider.value(value: listPlaylistBloc),
-
-              /// The page itself doesn't need to use the bloc.
-              /// This will create bloc instance to receive and handle
-              /// event disconnect from dApp
-            ],
-            child: HomeNavigationPage(
-              key: homePageKey,
-              payload: HomeNavigationPagePayload(
-                startedTab: payload?.startedTab,
-              ),
-            ),
-          ),
-        );
-
-      case accessMethodPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => const AccessMethodPage(),
+          builder: (context) {
+            return MobileControllerHomePage();
+          },
         );
 
       case AppRouter.testArtwork:

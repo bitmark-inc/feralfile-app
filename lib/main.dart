@@ -282,10 +282,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   bool _isVisible = true;
   double _lastScrollPosition = 0;
 
-  // 40: padding bottom of app bar
-  // 45: height of app bar
-  // 10: space between app bar and now displaying
-  static const double kStatusBarMarginBottom = 40 + 45 + 10;
+  static const double kStatusBarMarginBottom = 30;
 
   @override
   void initState() {

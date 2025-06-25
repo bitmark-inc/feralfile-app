@@ -415,7 +415,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   Future<void> sendDP1Call(DP1CallRequest request) async {
     final res = await _sendData(
       request.toJson(),
-      shouldShowError: true,
+      shouldShowError: false,
       timeout: const Duration(seconds: 10),
     );
     log.info('[TvCastServiceImpl] sendDP1Call response: $res');

@@ -55,7 +55,7 @@ void nameContinue(BuildContext context) {
   Navigator.of(context).popUntil(
     (route) =>
         route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition ||
+        route.settings.name == AppRouter.homePage ||
         route.settings.name == AppRouter.walletPage,
   );
 }
