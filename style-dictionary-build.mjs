@@ -45,11 +45,11 @@ StyleDictionary.registerTransform({
 });
 
 const sd = new StyleDictionary({
-  source: ["design/app.tokens.json"],
+  source: ["lib/design/app.tokens.json"],
   preprocessors: ["tokens-studio"],
   platforms: {
     flutter: {
-      buildPath: "design/",
+      buildPath: "lib/design/",
       files: [
         {
           destination: "design-tokens.dart",

@@ -46,10 +46,10 @@ jobs:
           fi
       - name: Validate build output exists
         run: |
-          test -f design/design-tokens.dart
+          test -f lib/design/design-tokens.dart
       - name: Check for changes and push tokens
         run: |
-          git add design/
+          git add lib/design/
           if git diff --cached --quiet; then
             echo "✅ No changes to design tokens"
           else

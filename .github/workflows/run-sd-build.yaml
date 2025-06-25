@@ -3,7 +3,7 @@ name: Run Design Token Build
 on:
   pull_request:
     paths:
-      - 'design/app.tokens.json'
+      - 'lib/design/app.tokens.json'
 
 jobs:
   call-build:
