@@ -1,0 +1,11 @@
+name: Run Design Token Build
+
+on:
+  pull_request:
+    paths:
+      - 'design/app.tokens.json'
+
+jobs:
+  call-build:
+    if: github.head_ref == 'feat/design-tokens'
+    uses: bitmark-inc/feralfile-app/.github/workflows/sd-build.yaml@main
