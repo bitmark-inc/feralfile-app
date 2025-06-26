@@ -64,7 +64,7 @@ class BluetoothNotificationService {
     }
     return RawData(
       topic: topic,
-      errorCode: 5, //errorCode,
+      errorCode: errorCode,
       data: data,
     );
   }
