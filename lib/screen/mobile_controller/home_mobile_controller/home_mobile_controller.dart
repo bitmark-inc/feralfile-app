@@ -41,12 +41,8 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: Container(
-          padding: const EdgeInsets.all(2),
-          color: Colors.amberAccent,
-          child: _buildPageView(
-            pages,
-          ),
+        child: _buildPageView(
+          pages,
         ),
       ),
     );
@@ -60,11 +56,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
           controller: _pageController,
           itemCount: pages.length,
           itemBuilder: (context, index) {
-            return Container(
-              child: pages[index],
-              padding: EdgeInsets.all(2),
-              color: Colors.red,
-            );
+            return pages[index];
           },
           onPageChanged: (index) {
             setState(() {

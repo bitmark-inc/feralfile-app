@@ -30,6 +30,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       // Start recording when screen is opened
       child: BlocBuilder<RecordBloc, RecordState>(
         builder: (context, state) {
+          final error = state.error;
           return Scaffold(
             backgroundColor: AppColor.auGreyBackground,
             body: SafeArea(
@@ -62,16 +63,32 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Center(
-                          child: Text(
-                            state.status ?? '',
-                            style: Theme.of(context)
-                                .textTheme
-                                .ppMori400Grey14
-                                .copyWith(color: Colors.white),
+                        if (state.error == null &&
+                            state.status != null &&
+                            state.status!.isNotEmpty) ...[
+                          Center(
+                            child: Text(
+                              state.status ?? '',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .ppMori400Grey14
+                                  .copyWith(color: Colors.white),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
+                        ],
+                        if (error != null && error is AudioException) ...[
+                          Center(
+                            child: Text(
+                              error.message,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .ppMori400Black14
+                                  .copyWith(color: Colors.red),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                       ],
                     ),
                   ),

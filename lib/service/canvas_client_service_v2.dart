@@ -40,7 +40,7 @@ class CanvasClientServiceV2 {
         platform: _platform,
       );
 
-  TvCastServiceImpl _getTvCastStub(BaseDevice device) =>
+  TvCastServiceImpl _getTvCastStub(FFBluetoothDevice device) =>
       TvCastServiceImpl(_tvCastApi, device);
 
   TvCastService _getStub(

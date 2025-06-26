@@ -45,6 +45,9 @@ class CanvasNotificationService {
 
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
+      log.info(
+          '[CanvasNotificationService] Device ${_device.name} connecting to ${wsUrl.replaceAll(apiKey, '***')}');
+
       _channel!.stream.listen(
         _handleMessage,
         onError: (Object error) {
@@ -115,6 +118,8 @@ class CanvasNotificationService {
     await _channel?.sink.close();
     _channel = null;
     _isConnected = false;
+    log.info(
+        '[CanvasNotificationService] Device ${_device.name} called disconnect');
   }
 
   bool get isConnected => _isConnected;

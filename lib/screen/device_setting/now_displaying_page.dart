@@ -81,20 +81,23 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     }
 
     final object = nowDisplayingStatus.object;
-    final assetToken =
-        object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
-    if (assetToken != null) {
-      final artworkIdentity = ArtworkIdentity(
-        assetToken.id,
-        assetToken.owner,
-      );
-      context.read<ArtworkDetailBloc>().add(
-            ArtworkDetailGetInfoEvent(
-              artworkIdentity,
-              withArtwork: true,
-              useIndexer: true,
-            ),
-          );
+
+    if (object is NowDisplayingObject) {
+      final assetToken =
+          object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
+      if (assetToken != null) {
+        final artworkIdentity = ArtworkIdentity(
+          assetToken.id,
+          assetToken.owner,
+        );
+        context.read<ArtworkDetailBloc>().add(
+              ArtworkDetailGetInfoEvent(
+                artworkIdentity,
+                withArtwork: true,
+                useIndexer: true,
+              ),
+            );
+      }
     }
   }
 
@@ -104,17 +107,21 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
       return null;
     }
     final object = nowDisplayingStatus.object;
-    if (object.assetToken != null) {
-      return object.assetToken!.id;
-    } else if (object.dailiesWorkState != null) {
-      return object.dailiesWorkState!.assetTokens.firstOrNull?.id;
-    } else if (object.exhibitionDisplaying?.artwork != null) {
-      final artwork = object.exhibitionDisplaying!.artwork!.copyWith(
-        series: object.exhibitionDisplaying!.artwork!.series!.copyWith(
-          exhibition: object.exhibitionDisplaying!.exhibition,
-        ),
-      );
-      return artwork.indexerTokenId;
+    if (object is DP1NowDisplayingObject) {
+      return object.playlistItem.id;
+    } else if (object is NowDisplayingObject) {
+      if (object.assetToken != null) {
+        return object.assetToken!.id;
+      } else if (object.dailiesWorkState != null) {
+        return object.dailiesWorkState!.assetTokens.firstOrNull?.id;
+      } else if (object.exhibitionDisplaying?.artwork != null) {
+        final artwork = object.exhibitionDisplaying!.artwork!.copyWith(
+          series: object.exhibitionDisplaying!.artwork!.series!.copyWith(
+            exhibition: object.exhibitionDisplaying!.exhibition,
+          ),
+        );
+        return artwork.indexerTokenId;
+      }
     }
 
     return null;
@@ -127,12 +134,17 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     }
 
     final object = nowDisplayingStatus.object;
-    final assetToken =
-        object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
-    if (assetToken != null) {
-      return assetToken.artistName;
-    } else if (object.exhibitionDisplaying?.artwork != null) {
-      return object.exhibitionDisplaying!.artwork?.series?.artistAlumni?.alias;
+    if (object is DP1NowDisplayingObject) {
+      return object.playlistItem.title;
+    } else if (object is NowDisplayingObject) {
+      final assetToken =
+          object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
+      if (assetToken != null) {
+        return assetToken.artistName;
+      } else if (object.exhibitionDisplaying?.artwork != null) {
+        return object
+            .exhibitionDisplaying!.artwork?.series?.artistAlumni?.alias;
+      }
     }
 
     return null;
@@ -144,7 +156,8 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
       return null;
     }
     final object = nowDisplayingStatus.object;
-    if (object.exhibitionDisplaying?.artwork != null) {
+    if (object is NowDisplayingObject &&
+        object.exhibitionDisplaying?.artwork != null) {
       return object.exhibitionDisplaying!.artwork;
     }
     return null;
@@ -205,14 +218,21 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     switch (nowDisplayingStatus!.runtimeType) {
       case NowDisplayingSuccess:
         final object = (nowDisplayingStatus as NowDisplayingSuccess).object;
-        if (object.exhibitionDisplaying != null) {
-          if (object.exhibitionDisplaying!.artwork != null) {
-            return _ffArtworkNowDisplaying(context, object);
-          } else if (object.exhibitionDisplaying!.exhibition != null) {
-            return _exhibitionNowDisplaying(context, object);
+        if (object is DP1NowDisplayingObject) {
+          return DP1NowDisplayingView(
+            object.playlistItem,
+          );
+        } else if (object is NowDisplayingObject) {
+          if (object.exhibitionDisplaying != null) {
+            if (object.exhibitionDisplaying!.artwork != null) {
+              return _ffArtworkNowDisplaying(context, object);
+            } else if (object.exhibitionDisplaying!.exhibition != null) {
+              return _exhibitionNowDisplaying(context, object);
+            }
           }
+          return _tokenNowDisplaying(context);
         }
-        return _tokenNowDisplaying(context);
+        return const SizedBox();
       case DeviceDisconnected:
         return Text('Device disconnected',
             style: theme.textTheme.ppMori400White14);

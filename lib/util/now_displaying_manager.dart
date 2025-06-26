@@ -91,7 +91,7 @@ class NowDisplayingManager {
     }
   }
 
-  Future<NowDisplayingObject?> getNowDisplayingObject(
+  Future<NowDisplayingObjectBase?> getNowDisplayingObject(
     CheckCastingStatusReply status,
   ) async {
     if (status.exhibitionId != null) {
@@ -128,12 +128,15 @@ class NowDisplayingManager {
       }
       final assetToken = await _fetchAssetToken(tokenId);
       return NowDisplayingObject(assetToken: assetToken);
-    } else {
-      if (status.displayKey == CastDailyWorkRequest.displayKey) {
-        return NowDisplayingObject(
-          dailiesWorkState: injector<DailyWorkBloc>().state,
-        );
-      }
+    } else if (status.displayKey == CastDailyWorkRequest.displayKey) {
+      return NowDisplayingObject(
+        dailiesWorkState: injector<DailyWorkBloc>().state,
+      );
+    } else if (status.items?.isNotEmpty ?? false) {
+      final index = status.index;
+      final playlistItem = status.items![index!];
+
+      return DP1NowDisplayingObject(playlistItem: playlistItem);
     }
     return null;
   }

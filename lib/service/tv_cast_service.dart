@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/dp1_call_request.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -349,7 +350,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   TvCastServiceImpl(this._api, this._device);
 
   final TvCastApi _api;
-  final BaseDevice _device;
+  final FFBluetoothDevice _device;
 
   void _handleError(Object error) {
     final context = injector<NavigationService>().context;
@@ -413,6 +414,7 @@ class TvCastServiceImpl extends BaseTvCastService {
 
   @override
   Future<void> sendDP1Call(DP1CallRequest request) async {
+    await BluetoothDeviceManager().switchDevice(_device);
     final res = await _sendData(
       request.toJson(),
       shouldShowError: false,

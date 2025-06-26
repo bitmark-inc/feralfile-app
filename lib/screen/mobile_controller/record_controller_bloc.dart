@@ -134,27 +134,39 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
                       error: AudioException('No device selected')));
                   return;
                 }
-                emit(state.copyWith(
-                    status: 'Sending to device ${deviceName ?? 'FF-X1'}...'));
+
                 try {
+                  if (BluetoothDeviceManager().castingBluetoothDevice !=
+                      device) {
+                    emit(state.copyWith(
+                        status: 'Switching to ${deviceName ?? 'FF-X1'}...'));
+                    await BluetoothDeviceManager().switchDevice(
+                      device,
+                    );
+                  }
+                  emit(state.copyWith(
+                      status: 'Displaying to ${deviceName ?? 'FF-X1'}...'));
                   await injector<CanvasClientServiceV2>()
                       .sendDp1Call(device, dp1Call, intent);
                 } catch (e) {
-                  log.info('Error sending DP1 call: $e');
+                  log.info(
+                      'Error while displaying to ${deviceName ?? 'FF-X1'}: $e');
                   emit(state.copyWith(
                       error: AudioException(
-                          'Error sending to ${deviceName ?? 'FF-X1'}: $e')));
+                          'Error while displaying to ${deviceName ?? 'FF-X1'}'),
+                      status: null));
                   return;
                 }
                 emit(state.copyWith(
                   lastIntent: intent,
                   lastDP1Call: dp1Call,
                   error: null,
-                  status: 'Sent to device: ${deviceName ?? 'FF-X1'}',
+                  status: 'Artwork displayed on ${deviceName ?? 'FF-X1'}',
                 ));
               case NLParserDataType.error:
                 final error = nlParserData.content;
-                emit(state.copyWith(error: AudioException(error)));
+                emit(
+                    state.copyWith(error: AudioException(error), status: null));
                 break;
               default:
                 log.warning('Unknown NLParserDataType: [${nlParserData.type}');

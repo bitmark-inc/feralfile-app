@@ -10,9 +10,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -45,7 +47,7 @@ class DeviceDisconnected implements NowDisplayingStatus {
 class NowDisplayingSuccess implements NowDisplayingStatus {
   NowDisplayingSuccess(this.object);
 
-  final NowDisplayingObject object;
+  final NowDisplayingObjectBase object;
 }
 
 class NowDisplayingError implements NowDisplayingStatus {
@@ -68,7 +70,9 @@ class ExhibitionDisplaying {
   final Artwork? artwork;
 }
 
-class NowDisplayingObject {
+abstract class NowDisplayingObjectBase {}
+
+class NowDisplayingObject extends NowDisplayingObjectBase {
   NowDisplayingObject({
     this.assetToken,
     this.exhibitionDisplaying,
@@ -78,6 +82,14 @@ class NowDisplayingObject {
   final AssetToken? assetToken;
   final ExhibitionDisplaying? exhibitionDisplaying;
   final DailiesWorkState? dailiesWorkState;
+}
+
+class DP1NowDisplayingObject extends NowDisplayingObjectBase {
+  DP1NowDisplayingObject({
+    required this.playlistItem,
+  });
+
+  final DP1PlaylistItem playlistItem;
 }
 
 class NowDisplaying extends StatefulWidget {
@@ -182,7 +194,7 @@ class _NowDisplayingState extends State<NowDisplaying>
 class NowDisplayingSuccessWidget extends StatefulWidget {
   const NowDisplayingSuccessWidget({required this.object, super.key});
 
-  final NowDisplayingObject object;
+  final NowDisplayingObjectBase object;
 
   @override
   State<NowDisplayingSuccessWidget> createState() =>
@@ -199,6 +211,28 @@ class _NowDisplayingSuccessWidgetState
   @override
   Widget build(BuildContext context) {
     final nowDisplaying = widget.object;
+    if (nowDisplaying is DP1NowDisplayingObject) {
+      return _dp1NowDisplayingView(context, nowDisplaying);
+    } else if (nowDisplaying is NowDisplayingObject) {
+      return _nowDisplayingView(context, nowDisplaying);
+    }
+
+    return const SizedBox();
+  }
+
+  Widget _dp1NowDisplayingView(
+    BuildContext context,
+    DP1NowDisplayingObject nowDisplaying,
+  ) {
+    return DP1NowDisplayingView(
+      nowDisplaying.playlistItem,
+    );
+  }
+
+  Widget _nowDisplayingView(
+    BuildContext context,
+    NowDisplayingObject nowDisplaying,
+  ) {
     final assetToken = nowDisplaying.assetToken;
     if (assetToken != null) {
       return _tokenNowDisplayingView(context, assetToken);
@@ -447,16 +481,54 @@ class NowDisplayingExhibitionView extends StatelessWidget {
   }
 }
 
+class DP1NowDisplayingView extends StatelessWidget {
+  const DP1NowDisplayingView(this.playlistItem, {super.key});
+
+  final DP1PlaylistItem playlistItem;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final device = BluetoothDeviceManager().castingBluetoothDevice;
+    return NowDisplayingView(
+      device: device,
+      onMoreTap: () {
+        injector<NavigationService>().showDeviceSettings(
+          tokenId: playlistItem.id,
+          artistName: playlistItem.title,
+        );
+      },
+      thumbnailBuilder: (context) {
+        return AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            color: AppColor.auLightGrey,
+          ),
+        );
+      },
+      titleBuilder: (context) {
+        return Text(
+          playlistItem.title,
+          style: theme.textTheme.ppMori400Black14,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+    );
+  }
+}
+
 class NowDisplayingView extends StatelessWidget {
   const NowDisplayingView({
     required this.thumbnailBuilder,
     required this.titleBuilder,
     this.onMoreTap,
+    this.device,
     super.key,
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final BaseDevice? device;
   final void Function()? onMoreTap;
 
   @override
@@ -486,7 +558,7 @@ class NowDisplayingView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Now Displaying:',
+                  'Now Displaying: ${device?.name ?? ''}',
                   style: theme.textTheme.ppMori400Black14,
                   overflow: TextOverflow.ellipsis,
                 ),

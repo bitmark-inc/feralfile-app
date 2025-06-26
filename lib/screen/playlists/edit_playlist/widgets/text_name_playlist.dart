@@ -33,6 +33,15 @@ class _FFTextNameState extends State<FFTextName> {
     super.initState();
   }
 
+  // on update widget
+  @override
+  void didUpdateWidget(covariant FFTextName oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.title != widget.title) {
+      _playlistNameC.text = widget.title;
+    }
+  }
+
   void listener() {
     if (_focusNode.hasFocus == false) {
       final value = _playlistNameC.text.trim();
@@ -52,11 +61,6 @@ class _FFTextNameState extends State<FFTextName> {
       _focusNode.dispose();
     }
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant FFTextName oldWidget) {
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
