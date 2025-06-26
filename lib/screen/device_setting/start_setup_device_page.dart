@@ -168,6 +168,7 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                                   text: 'Skip Setup',
                                   processingText: 'Skipping...',
                                   onTap: () async {
+                                    Pair<FFBluetoothDevice, bool>? res;
                                     try {
                                       final topicId =
                                           await injector<FFBluetoothService>()
@@ -180,15 +181,10 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                                         topicId: topicId,
                                         deviceId: device.advName,
                                       );
-                                      final res = Pair<FFBluetoothDevice, bool>(
+                                      res = Pair<FFBluetoothDevice, bool>(
                                         ffdevice,
                                         false,
                                       );
-                                      injector<NavigationService>().popUntil(
-                                        AppRouter.bluetoothDevicePortalPage,
-                                      );
-                                      injector<NavigationService>()
-                                          .goBack(result: res);
                                     } on FFBluetoothError catch (e) {
                                       if (e is DeviceUpdatingError ||
                                           e is DeviceVersionCheckFailedError) {
@@ -196,15 +192,21 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                                       }
                                       final context =
                                           injector<NavigationService>().context;
-                                      unawaited(UIHelper.showInfoDialog(
+                                      await (UIHelper.showInfoDialog(
                                           context, e.title, e.message));
                                     } on Exception catch (e) {
-                                      UIHelper.showInfoDialog(
+                                      await UIHelper.showInfoDialog(
                                         context,
                                         'Error',
                                         'Failed to skip internet setup: $e',
                                       );
-                                    } finally {}
+                                    } finally {
+                                      injector<NavigationService>().popUntil(
+                                        AppRouter.bluetoothDevicePortalPage,
+                                      );
+                                      injector<NavigationService>()
+                                          .goBack(result: res);
+                                    }
                                   },
                                 ),
                               ],
