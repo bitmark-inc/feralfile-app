@@ -280,23 +280,29 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         if (isConnectedToInternet == true) {
           res = await UIHelper.showDialog(
               context,
-              'Your device is connected to internet',
+              'Internet Already Connected',
               Column(
                 children: [
                   Text(
-                    'Your device is connected to the internet, but no topic ID was provided.',
+                    'We’ve detected that your device is already connected to the internet.\nWould you like to skip the network setup or continue anyway?',
                     style: Theme.of(context).textTheme.ppMori400White14,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 36),
                   PrimaryAsyncButton(
-                    text: 'Setup Internet',
+                    text: 'Continue Setup',
+                    color: Colors.transparent,
+                    borderColor: AppColor.white,
+                    textColor: AppColor.white,
                     onTap: () {
                       injector<NavigationService>().goBack();
                     },
                   ),
                   const SizedBox(height: 16),
                   PrimaryAsyncButton(
-                    text: 'Skip Internet Setup',
+                    color: Colors.transparent,
+                    borderColor: AppColor.white,
+                    textColor: AppColor.white,
+                    text: 'Skip Setup',
                     processingText: 'Skipping...',
                     onTap: () async {
                       try {
