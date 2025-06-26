@@ -88,7 +88,6 @@ import 'package:autonomy_flutter/widgetbook/components/widgetbook_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:page_transition/page_transition.dart';
 
 GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
@@ -725,10 +724,10 @@ class AppRouter {
         );
 
       case bluetoothDevicePortalPage:
-        final device = settings.arguments! as BluetoothDevice;
+        final payload = settings.arguments! as BluetoothDevicePortalPagePayload;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BluetoothDevicePortalPage(device: device),
+          builder: (context) => BluetoothDevicePortalPage(payload: payload),
         );
 
       case scanWifiNetworkPage:

@@ -10,7 +10,9 @@ import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.da
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -21,10 +23,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class BluetoothDevicePortalPage extends StatefulWidget {
-  const BluetoothDevicePortalPage({required this.device, super.key});
+class BluetoothDevicePortalPagePayload {
+  BluetoothDevicePortalPagePayload({
+    required this.device,
+    this.canSkipNetworkSetup = true,
+  });
 
   final BluetoothDevice device;
+  final bool canSkipNetworkSetup;
+}
+
+class BluetoothDevicePortalPage extends StatefulWidget {
+  const BluetoothDevicePortalPage({required this.payload, super.key});
+
+  final BluetoothDevicePortalPagePayload payload;
 
   @override
   State<BluetoothDevicePortalPage> createState() =>
@@ -112,18 +124,102 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 child: PrimaryAsyncButton(
                   onTap: () async {
                     try {
-                      final device = widget.device;
+                      final device = widget.payload.device;
                       await injector<FFBluetoothService>()
                           .connectToDevice(device);
-                      unawaited(
-                        Navigator.of(context).pushNamed(
-                          AppRouter.scanWifiNetworkPage,
-                          arguments: ScanWifiNetworkPagePayload(
-                            device,
-                            onWifiSelected,
+                      final canSkipNetworkSetup =
+                          widget.payload.canSkipNetworkSetup;
+                      if (canSkipNetworkSetup) {
+                        await UIHelper.showDialog(
+                            context,
+                            'Internet Already Connected',
+                            Column(
+                              children: [
+                                Text(
+                                  'We’ve detected that your device is already connected to the internet.\nWould you like to skip the network setup or continue anyway?',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .ppMori400White14,
+                                ),
+                                const SizedBox(height: 36),
+                                PrimaryAsyncButton(
+                                  text: 'Continue Setup',
+                                  color: Colors.transparent,
+                                  borderColor: AppColor.white,
+                                  textColor: AppColor.white,
+                                  onTap: () {
+                                    injector<NavigationService>().goBack();
+                                    unawaited(
+                                      Navigator.of(context).pushNamed(
+                                        AppRouter.scanWifiNetworkPage,
+                                        arguments: ScanWifiNetworkPagePayload(
+                                          device,
+                                          onWifiSelected,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                PrimaryAsyncButton(
+                                  color: Colors.transparent,
+                                  borderColor: AppColor.white,
+                                  textColor: AppColor.white,
+                                  text: 'Skip Setup',
+                                  processingText: 'Skipping...',
+                                  onTap: () async {
+                                    try {
+                                      final topicId =
+                                          await injector<FFBluetoothService>()
+                                              .keepWifi(
+                                        device,
+                                      );
+                                      // add device to canvas
+                                      final ffdevice =
+                                          device.toFFBluetoothDevice(
+                                        topicId: topicId,
+                                        deviceId: device.advName,
+                                      );
+                                      final res = Pair<FFBluetoothDevice, bool>(
+                                        ffdevice,
+                                        false,
+                                      );
+                                      injector<NavigationService>().popUntil(
+                                        AppRouter.bluetoothDevicePortalPage,
+                                      );
+                                      injector<NavigationService>()
+                                          .goBack(result: res);
+                                    } on FFBluetoothError catch (e) {
+                                      if (e is DeviceUpdatingError ||
+                                          e is DeviceVersionCheckFailedError) {
+                                        injector<NavigationService>().goBack();
+                                      }
+                                      final context =
+                                          injector<NavigationService>().context;
+                                      unawaited(UIHelper.showInfoDialog(
+                                          context, e.title, e.message));
+                                    } on Exception catch (e) {
+                                      UIHelper.showInfoDialog(
+                                        context,
+                                        'Error',
+                                        'Failed to skip internet setup: $e',
+                                      );
+                                    } finally {}
+                                  },
+                                ),
+                              ],
+                            ));
+                      } else {
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            AppRouter.scanWifiNetworkPage,
+                            arguments: ScanWifiNetworkPagePayload(
+                              device,
+                              onWifiSelected,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     } catch (e) {
                       log.info('Error connecting to device: $e');
                     }
@@ -143,7 +239,7 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
-      device: widget.device,
+      device: widget.payload.device,
       onSubmitted: (FFBluetoothDevice? device) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothDevicePortalPage);

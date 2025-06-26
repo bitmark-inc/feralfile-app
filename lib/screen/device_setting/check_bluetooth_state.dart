@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
+import 'package:autonomy_flutter/screen/device_setting/start_setup_device_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -18,7 +19,6 @@ import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
@@ -277,96 +277,31 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         unawaited(injector<CanvasClientServiceV2>()
             .showPairingQRCode(res.first, false));
       } else {
-        if (isConnectedToInternet == true) {
-          res = await UIHelper.showDialog(
-              context,
-              'Internet Already Connected',
-              Column(
-                children: [
-                  Text(
-                    'We’ve detected that your device is already connected to the internet.\nWould you like to skip the network setup or continue anyway?',
-                    style: Theme.of(context).textTheme.ppMori400White14,
-                  ),
-                  const SizedBox(height: 36),
-                  PrimaryAsyncButton(
-                    text: 'Continue Setup',
-                    color: Colors.transparent,
-                    borderColor: AppColor.white,
-                    textColor: AppColor.white,
-                    onTap: () {
-                      injector<NavigationService>().goBack();
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  PrimaryAsyncButton(
-                    color: Colors.transparent,
-                    borderColor: AppColor.white,
-                    textColor: AppColor.white,
-                    text: 'Skip Setup',
-                    processingText: 'Skipping...',
-                    onTap: () async {
-                      try {
-                        // skip setting up internet
-                        await injector<FFBluetoothService>()
-                            .connectToDevice(resultDevice!);
-
-                        final topicId =
-                            await injector<FFBluetoothService>().keepWifi(
-                          resultDevice!,
-                        );
-                        // add device to canvas
-                        final device = resultDevice!.toFFBluetoothDevice(
-                          topicId: topicId,
-                          deviceId: resultDevice!.advName,
-                        );
-                        await BluetoothDeviceManager().addDevice(
-                          device,
-                        );
-                        final res = Pair<FFBluetoothDevice, bool>(
-                          device,
-                          false,
-                        );
-                        injector<NavigationService>().goBack(result: res);
-                      } on FFBluetoothError catch (e) {
-                        if (e is DeviceUpdatingError ||
-                            e is DeviceVersionCheckFailedError) {
-                          injector<NavigationService>().goBack();
-                        }
-                        final context = injector<NavigationService>().context;
-                        unawaited(UIHelper.showInfoDialog(
-                            context, e.title, e.message));
-                      } on Exception catch (e) {
-                        UIHelper.showInfoDialog(
-                          context,
-                          'Error',
-                          'Failed to skip internet setup: $e',
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ));
-        } else {
-          if (topicId != null && topicId.isNotEmpty) {
-            // add device to canvas
-            final device = resultDevice!.toFFBluetoothDevice(
+        if (topicId != null && topicId.isNotEmpty) {
+          // add device to canvas
+          final device = resultDevice!.toFFBluetoothDevice(
+            topicId: topicId,
+            deviceId: resultDevice!.advName,
+          );
+          await BluetoothDeviceManager().addDevice(
+            device,
+          );
+        }
+        final r = await injector<NavigationService>().navigateTo(
+          AppRouter.bluetoothDevicePortalPage,
+          arguments: BluetoothDevicePortalPagePayload(
+            device: resultDevice!.toFFBluetoothDevice(
               topicId: topicId,
               deviceId: resultDevice!.advName,
-            );
-            await BluetoothDeviceManager().addDevice(
-              device,
-            );
-          }
-          final r = await injector<NavigationService>().navigateTo(
-            AppRouter.bluetoothDevicePortalPage,
-            arguments: resultDevice,
+            ),
+            canSkipNetworkSetup: isConnectedToInternet,
+          ),
+        );
+        res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
+        if (res != null) {
+          await BluetoothDeviceManager().addDevice(
+            res.first,
           );
-          res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
-          if (res != null) {
-            await BluetoothDeviceManager().addDevice(
-              res.first,
-            );
-          }
         }
       }
 
