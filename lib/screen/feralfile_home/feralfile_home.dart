@@ -130,6 +130,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     _selectedIndex = FeralfileHomeTab.exhibitions.index;
   }
 
+  // cast featured artworks to device
   Widget _castButton(BuildContext context, List<Artwork> featuredArtworks) {
     final tokenIDs =
         featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
@@ -150,7 +151,8 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         _canvasDeviceBloc.add(
           CanvasDeviceCastListArtworkEvent(
             device,
-            listPlayArtwork,
+            [],
+            // listPlayArtwork,
             onDone: () {
               completer.complete();
             },

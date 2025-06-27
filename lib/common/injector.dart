@@ -38,7 +38,6 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/home_mobile_controller/ff_directories_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
@@ -409,8 +408,6 @@ Future<void> setupInjector() async {
   injector.registerFactory<AddNewPlaylistBloc>(
     () => AddNewPlaylistBloc(injector()),
   );
-  injector
-      .registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc(injector()));
   injector.registerFactory<EditPlaylistBloc>(EditPlaylistBloc.new);
 
   injector.registerFactory<CollectionProBloc>(CollectionProBloc.new);

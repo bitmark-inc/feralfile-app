@@ -11,7 +11,6 @@ import 'dart:collection';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
@@ -26,6 +25,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -282,15 +282,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               FFCastButton(
                                 displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) async {
-                                  final artwork = PlayArtworkV2(
-                                    token: CastAssetToken(id: asset.id),
-                                    duration: Duration.zero,
-                                  );
+                                  // final artwork = PlayArtworkV2(
+                                  //   token: CastAssetToken(id: asset.id),
+                                  //   duration: Duration.zero,
+                                  // );
+                                  final playlistItem = DP1PlaylistItem(
+                                      id: asset.id,
+                                      title: asset.title!,
+                                      source: asset.getPreviewUrl()!,
+                                      duration: 0,
+                                      license: ArtworkDisplayLicense.open);
                                   final completer = Completer<void>();
                                   _canvasDeviceBloc.add(
                                     CanvasDeviceCastListArtworkEvent(
                                       device,
-                                      [artwork],
+                                      [playlistItem],
                                       onDone: () {
                                         completer.complete();
                                       },

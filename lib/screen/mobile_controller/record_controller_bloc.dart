@@ -135,6 +135,13 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
                   return;
                 }
 
+                final items = List.from(dp1Call['items'] as List);
+                if (items.isEmpty) {
+                  emit(state.copyWith(
+                      error: AudioException('No items to display')));
+                  return;
+                }
+
                 try {
                   if (BluetoothDeviceManager().castingBluetoothDevice !=
                       device) {

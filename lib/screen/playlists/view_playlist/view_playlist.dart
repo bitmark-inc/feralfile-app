@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
-import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -16,7 +15,6 @@ import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -32,74 +30,69 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-enum CollectionType { manual, medium, artist, featured }
+enum CollectionType { manual, medium, artist }
 
 class ViewPlaylistScreenPayload {
-  final PlayListModel? playListModel;
+  const ViewPlaylistScreenPayload({
+    required this.playListModel,
+    this.titleIcon,
+    this.collectionType = CollectionType.manual,
+  });
+
+  final PlayListModel playListModel;
   final CollectionType collectionType;
   final Widget? titleIcon;
-
-  const ViewPlaylistScreenPayload(
-      {this.playListModel,
-      this.titleIcon,
-      this.collectionType = CollectionType.manual});
 }
 
 class ViewPlaylistScreen extends StatefulWidget {
-  final ViewPlaylistScreenPayload payload;
-
   const ViewPlaylistScreen({required this.payload, super.key});
+
+  final ViewPlaylistScreenPayload payload;
 
   @override
   State<ViewPlaylistScreen> createState() => _ViewPlaylistScreenState();
 }
 
 class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
-  final bloc = injector.get<ViewPlaylistBloc>();
-  final nftBloc = injector.get<NftCollectionBloc>(param1: false);
   final _playlistService = injector<PlaylistService>();
+
+  late ViewPlaylistBloc bloc;
+  final nftBloc = injector.get<NftCollectionBloc>(param1: false);
   List<ArtworkIdentity> accountIdentities = [];
   List<CompactedAssetToken> tokensPlaylist = [];
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
   late bool editable;
 
-  final List<CompactedAssetToken> _featureTokens = [];
-
   @override
   void initState() {
+    bloc = ViewPlaylistBloc(_playlistService, widget.payload.playListModel);
     editable = widget.payload.collectionType == CollectionType.manual &&
-        !(widget.payload.playListModel?.isDefault ?? true);
+        !widget.payload.playListModel.isDefault;
     super.initState();
 
-    if (widget.payload.collectionType == CollectionType.featured) {
-      unawaited(_fetchFeaturedTokens());
-    } else {
-      nftBloc.add(RefreshNftCollectionByIDs(
-        ids: widget.payload.playListModel?.tokenIDs,
-      ));
-    }
+    nftBloc.add(
+      RefreshNftCollectionByIDs(
+        ids: widget.payload.playListModel.tokenIDs,
+      ),
+    );
+
+    nftBloc.stream.listen((state) {
+      final tokens = state.tokens.items;
+      setState(() {
+        tokensPlaylist = _setupPlayList(
+          tokens: tokens,
+          selectedTokens: widget.payload.playListModel.tokenIDs,
+        );
+      });
+    });
 
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
-  }
-
-  Future<void> _fetchFeaturedTokens() async {
-    final tokens = await injector<TokensService>()
-        .fetchManualTokens(widget.payload.playListModel?.tokenIDs ?? []);
-    setState(() {
-      _featureTokens
-          .addAll(tokens.map((e) => CompactedAssetToken.fromAssetToken(e)));
-      log.info('feature tokens: ${_featureTokens.length}');
-    });
   }
 
   Future<void> _deletePlayList() async {
-    if (widget.payload.playListModel == null) {
-      return;
-    }
     final isDeleted = await _playlistService.deletePlaylist(
-      widget.payload.playListModel!,
+      widget.payload.playListModel,
     );
     if (isDeleted) {
       injector<NavigationService>().popUntilHomeOrSettings();
@@ -113,8 +106,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     tokens = tokens.filterAssetToken();
 
     final temp = selectedTokens
-            ?.map((e) =>
-                tokens.where((element) => element.id == e).firstOrDefault())
+            ?.map(
+              (e) =>
+                  tokens.where((element) => element.id == e).firstOrDefault(),
+            )
             .toList() ??
         []
       ..removeWhere((element) => element == null);
@@ -126,6 +121,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         .map((element) => ArtworkIdentity(element.id, element.owner))
         .toList();
     return tokensPlaylist;
+  }
+
+  List<ArtworkIdentity> _getIdentities(List<CompactedAssetToken> tokens) {
+    return tokens
+        .where((e) => e.pending != true || e.hasMetadata)
+        .map((element) => ArtworkIdentity(element.id, element.owner))
+        .toList();
   }
 
   @override
@@ -157,11 +159,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ).then((value) {
                 if (value != null) {
                   final playListModel = value as PlayListModel;
-                  bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
-                  bloc.add(SavePlaylist(name: playListModel.name));
-                  nftBloc.add(RefreshNftCollectionByIDs(
-                    ids: value.tokenIDs,
-                  ));
+
+                  bloc.add(SavePlaylist(playlist: playListModel));
+                  nftBloc.add(
+                    RefreshNftCollectionByIDs(
+                      ids: value.tokenIDs,
+                    ),
+                  );
                 }
               });
             },
@@ -200,7 +204,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                    width: 22, height: 22, child: widget.payload.titleIcon),
+                  width: 22,
+                  height: 22,
+                  child: widget.payload.titleIcon,
+                ),
                 const SizedBox(width: 10),
                 _getTitle(playList),
               ],
@@ -228,7 +235,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 minHeight: 44,
               ),
               icon: Padding(
-                padding: const EdgeInsets.all(0),
+                padding: EdgeInsets.zero,
                 child: SvgPicture.asset(
                   'assets/images/more_circle.svg',
                   width: 22,
@@ -238,26 +245,31 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             ),
           ),
         ],
-        if (_getDisplayKey(playList) != null) ...[
+        if (_getDisplayKey(playList) != null && tokensPlaylist.isNotEmpty) ...[
           FFCastButton(
             shouldCheckSubscription: playList.requiredPremiumToDisplay,
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
-              final listTokenIds = playList.tokenIDs;
-              if (listTokenIds.isEmpty) {
-                log.info('playList is empty');
-                return;
-              }
               final duration = speedValues.values.first;
-              final listPlayArtwork = listTokenIds
-                  .map((e) => PlayArtworkV2(
-                      token: CastAssetToken(id: e), duration: duration))
-                  .toList();
+
+              final items = tokensPlaylist.map((token) {
+                return DP1PlaylistItem(
+                  id: token.id,
+                  title: token.title!,
+                  source: token.previewURL!,
+                  duration: duration.inSeconds,
+                  license: ArtworkDisplayLicense.open,
+                );
+
+                // final dp1Playlist = PlaylistDP1Call(
+                //
+                // )
+              }).toList();
               final completer = Completer<void>();
               _canvasDeviceBloc.add(
                 CanvasDeviceCastListArtworkEvent(
                   device,
-                  listPlayArtwork,
+                  items,
                   onDone: () {
                     completer.complete();
                   },
@@ -276,11 +288,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         bloc: bloc,
         listener: (context, state) {},
         builder: (context, state) {
-          if (state.playListModel == null) {
-            return const SizedBox();
-          }
-
-          final PlayListModel playList = state.playListModel!;
+          final playList = state.playListModel;
           return Scaffold(
             backgroundColor: AppColor.primaryBlack,
             appBar: getDarkEmptyAppBar(),
@@ -309,28 +317,19 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                 final displayKey = _getDisplayKey(playList);
                                 final lastSelectedDevice = canvasDeviceState
                                     .lastSelectedActiveDeviceForKey(
-                                        displayKey ?? '');
+                                  displayKey ?? '',
+                                );
                                 final isPlaylistCasting =
                                     lastSelectedDevice != null;
                                 if (isPlaylistCasting) {
                                   return Padding(
                                     padding: const EdgeInsets.all(15),
                                     child: PlaylistControl(
-                                        displayKey: displayKey!,
-                                        viewingArtworkBuilder:
-                                            (context, status) {
-                                          final status = canvasDeviceState
-                                                  .canvasDeviceStatus[
-                                              lastSelectedDevice.deviceId];
-                                          if (status == null) {
-                                            return const SizedBox();
-                                          }
-                                          return _viewingArtworkWidget(
-                                            context,
-                                            tokensPlaylist,
-                                            status,
-                                          );
-                                        }),
+                                      displayKey: displayKey!,
+                                      viewingArtworkBuilder: (context, status) {
+                                        return const SizedBox();
+                                      },
+                                    ),
                                   );
                                 } else {
                                   return const SizedBox();
@@ -341,10 +340,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                               child: NftCollectionGrid(
                                 state: nftState.state,
                                 tokens: _setupPlayList(
-                                  tokens: widget.payload.collectionType ==
-                                          CollectionType.featured
-                                      ? _featureTokens
-                                      : nftState.tokens.items,
+                                  tokens: nftState.tokens.items,
                                   selectedTokens: playList.tokenIDs,
                                 ),
                                 customGalleryViewBuilder: (context, tokens) =>
@@ -370,19 +366,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
-  Widget _viewingArtworkWidget(BuildContext context,
-      List<CompactedAssetToken> assetTokens, CheckCastingStatusReply status) {
-    return const SizedBox();
-    // return const NowDisplaying();
-  }
-
   Widget _assetsWidget(
     BuildContext context,
     List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
     required PlayListModel playlist,
   }) {
-    int cellPerRow =
+    final cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
     final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
@@ -395,51 +385,52 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           children: [
             Expanded(
               child: GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: cellPerRow,
-                    crossAxisSpacing: cellSpacing,
-                    mainAxisSpacing: cellSpacing,
-                  ),
-                  itemBuilder: (context, index) {
-                    final asset = tokens[index];
-                    return GestureDetector(
-                      child: asset.pending == true && !asset.hasMetadata
-                          ? PendingTokenWidget(
-                              thumbnail: asset.galleryThumbnailURL,
-                              tokenId: asset.tokenId,
-                              shouldRefreshCache:
-                                  asset.shouldRefreshThumbnailCache,
-                            )
-                          : tokenGalleryThumbnailWidget(
-                              context,
-                              asset,
-                              cachedImageSize,
-                              usingThumbnailID: index > 50,
-                              useHero: false,
-                            ),
-                      onTap: () async {
-                        if (asset.pending == true && !asset.hasMetadata) {
-                          return;
-                        }
+                shrinkWrap: true,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cellPerRow,
+                  crossAxisSpacing: cellSpacing,
+                  mainAxisSpacing: cellSpacing,
+                ),
+                itemBuilder: (context, index) {
+                  final asset = tokens[index];
+                  return GestureDetector(
+                    child: asset.pending == true && !asset.hasMetadata
+                        ? PendingTokenWidget(
+                            thumbnail: asset.galleryThumbnailURL,
+                            tokenId: asset.tokenId,
+                            shouldRefreshCache:
+                                asset.shouldRefreshThumbnailCache,
+                          )
+                        : tokenGalleryThumbnailWidget(
+                            context,
+                            asset,
+                            cachedImageSize,
+                            usingThumbnailID: index > 50,
+                            useHero: false,
+                          ),
+                    onTap: () async {
+                      if (asset.pending == true && !asset.hasMetadata) {
+                        return;
+                      }
 
-                        final index = tokens
-                            .where((e) => e.pending != true || e.hasMetadata)
-                            .toList()
-                            .indexOf(asset);
+                      final index = tokens
+                          .where((e) => e.pending != true || e.hasMetadata)
+                          .toList()
+                          .indexOf(asset);
 
-                        final payload = ArtworkDetailPayload(
-                          accountIdentities[index],
-                          playlist: playlist,
-                        );
-                        const pageName = AppRouter.artworkDetailsPage;
+                      final payload = ArtworkDetailPayload(
+                        accountIdentities[index],
+                        playlist: playlist,
+                      );
+                      const pageName = AppRouter.artworkDetailsPage;
 
-                        await Navigator.of(context)
-                            .pushNamed(pageName, arguments: payload);
-                      },
-                    );
-                  },
-                  itemCount: tokens.length),
+                      await Navigator.of(context)
+                          .pushNamed(pageName, arguments: payload);
+                    },
+                  );
+                },
+                itemCount: tokens.length,
+              ),
             ),
           ],
         ),
@@ -449,11 +440,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 }
 
 class AddButton extends StatelessWidget {
-  final Widget icon;
-  final Widget? iconOnDisabled;
-  final void Function() onTap;
-  final bool isEnable;
-
   const AddButton({
     required this.icon,
     required this.onTap,
@@ -462,8 +448,14 @@ class AddButton extends StatelessWidget {
     this.isEnable = true,
   });
 
+  final Widget icon;
+  final Widget? iconOnDisabled;
+  final void Function() onTap;
+  final bool isEnable;
+
   @override
   Widget build(BuildContext context) => GestureDetector(
-      onTap: isEnable ? onTap : null,
-      child: isEnable ? icon : iconOnDisabled ?? icon);
+        onTap: isEnable ? onTap : null,
+        child: isEnable ? icon : iconOnDisabled ?? icon,
+      );
 }

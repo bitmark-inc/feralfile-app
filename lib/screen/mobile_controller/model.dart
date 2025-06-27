@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/screen/mobile_controller/dp1_call_request.dart';
+
 class FFDirectory {
   FFDirectory(
     this.name, {
@@ -21,10 +23,7 @@ class DP1Artist {
   DP1Artist({
     required this.name,
     required this.relevanceScore,
-  });
-
-  final String name;
-  final double relevanceScore; // e.g., 1.0
+  }); // e.g., 1.0
 
   // from JSON
   factory DP1Artist.fromJson(Map<String, dynamic> json) {
@@ -33,6 +32,9 @@ class DP1Artist {
       relevanceScore: (json['relevance_score'] as num).toDouble(),
     );
   }
+
+  final String name;
+  final double relevanceScore;
 
   // to JSON
   Map<String, dynamic> toJson() {
@@ -50,7 +52,7 @@ enum DP1Action {
   String get value {
     switch (this) {
       case DP1Action.now:
-        return 'now';
+        return 'now_display';
       case DP1Action.schedulePlay:
         return 'schedule_play';
     }
@@ -58,7 +60,7 @@ enum DP1Action {
 
   static DP1Action fromString(String value) {
     switch (value) {
-      case 'now':
+      case 'now_display':
         return DP1Action.now;
       case 'schedule_play':
         return DP1Action.schedulePlay;
@@ -68,70 +70,62 @@ enum DP1Action {
   }
 }
 
-class DP1Intent {
-  // "action": "schedule_play",
-  //         "device_name": "kitchen",
-  //         "artist": [
-  //             {
-  //                 "name": "Refik Anadol",
-  //                 "relevance_score": 1
-  //             }
-  //         ]
-
+class DP1Intent implements DP1IntentBase {
   DP1Intent({
     required this.action,
-    required this.deviceName,
-    required this.artists,
-  });
+    this.deviceName,
+    this.artists,
+  }); // e.g., [{"name": "Refik Anadol", "relevance_score": 1}]
 
-  final DP1Action action;
-  final String deviceName; // e.g., "kitchen"
-  final List<DP1Artist>
-      artists; // e.g., [{"name": "Refik Anadol", "relevance_score": 1}]
+  // constructor .displayNow
+  DP1Intent.displayNow({this.deviceName, this.artists})
+      : action = DP1Action.now;
+
+  // constructor .schedulePlay
+  DP1Intent.schedulePlay({this.deviceName, this.artists})
+      : action = DP1Action.schedulePlay;
 
   // from JSON
   factory DP1Intent.fromJson(Map<String, dynamic> json) {
     return DP1Intent(
       action: DP1Action.fromString(json['action'] as String),
-      deviceName: json['device_name'] as String,
-      artists: (json['artist'] as List<dynamic>)
-          .map((e) => DP1Artist.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      deviceName: json['device_name'] as String?,
+      artists: json['artist'] == null
+          ? null
+          : (json['artist'] as List<dynamic>)
+              .map((e) => DP1Artist.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 
+  final DP1Action action;
+  final String? deviceName; // e.g., "kitchen"
+  final List<DP1Artist>? artists;
+
   // to JSON
+  @override
   Map<String, dynamic> toJson() {
     return {
       'action': action.value,
       'device_name': deviceName,
-      'artist': artists.map((e) => e.toJson()).toList(),
+      'artist': artists?.map((e) => e.toJson()).toList(),
     };
   }
 }
 
-class DP1Playlist {}
-
-class DP1Call {
-  DP1Call({
+class PlaylistDP1Call implements DP1CallBase {
+  PlaylistDP1Call({
     required this.dpVersion,
     required this.id,
     required this.created,
     required this.defaults,
     required this.items,
     required this.signature,
-  });
-
-  final String dpVersion; // e.g., "1.0.0"
-  final String id; // e.g., "refik-anadol-20250626T063826"
-  final DateTime created; // e.g., "2025-06-26T06:38:26.396Z"
-  final Map<String, dynamic> defaults; // e.g., {"display": {...}}
-  final List<DP1PlaylistItem> items; // list of DP1PlaylistItem
-  final String signature; // e.g., "ed25519:0x884e6b4bab7ab8"
+  }); // e.g., "ed25519:0x884e6b4bab7ab8"
 
   // from JSON
-  factory DP1Call.fromJson(Map<String, dynamic> json) {
-    return DP1Call(
+  factory PlaylistDP1Call.fromJson(Map<String, dynamic> json) {
+    return PlaylistDP1Call(
       dpVersion: json['dpVersion'] as String,
       id: json['id'] as String,
       created: DateTime.parse(json['created'] as String),
@@ -143,7 +137,15 @@ class DP1Call {
     );
   }
 
+  final String dpVersion; // e.g., "1.0.0"
+  final String id; // e.g., "refik-anadol-20250626T063826"
+  final DateTime created; // e.g., "2025-06-26T06:38:26.396Z"
+  final Map<String, dynamic> defaults; // e.g., {"display": {...}}
+  final List<DP1PlaylistItem> items; // list of DP1PlaylistItem
+  final String signature;
+
   // to JSON
+  @override
   Map<String, dynamic> toJson() {
     return {
       'dpVersion': dpVersion,
@@ -188,13 +190,7 @@ class DP1PlaylistItem {
     required this.source,
     required this.duration,
     required this.license,
-  });
-
-  final String id;
-  final String title;
-  final String source;
-  final int duration; // in seconds
-  final ArtworkDisplayLicense license; // e.g., "open", "restricted", etc.
+  }); // e.g., "open", "restricted", etc.
 
 // from JSON
   factory DP1PlaylistItem.fromJson(Map<String, dynamic> json) {
@@ -208,6 +204,12 @@ class DP1PlaylistItem {
       ),
     );
   }
+
+  final String id;
+  final String title;
+  final String source;
+  final int duration; // in seconds
+  final ArtworkDisplayLicense license;
 
   // to JSON
   Map<String, dynamic> toJson() {

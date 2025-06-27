@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/device_display_setting.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
@@ -77,8 +78,17 @@ class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
   CanvasDeviceCastListArtworkEvent(this.device, this.artwork, {this.onDone});
 
   final BaseDevice device;
-  final List<PlayArtworkV2> artwork;
+  final List<DP1PlaylistItem> artwork;
   final FutureOr<void> Function()? onDone;
+}
+
+class CanvasDeviceCastDP1PlaylistEvent extends CanvasDeviceEvent {
+  final BaseDevice device;
+  final PlaylistDP1Call playlist;
+  final DP1Intent intent;
+
+  CanvasDeviceCastDP1PlaylistEvent(
+      {required this.device, required this.playlist, required this.intent});
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
@@ -247,6 +257,22 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   // constructor
   CanvasDeviceBloc(this._canvasClientServiceV2) : super(CanvasDeviceState()) {
+    // DP1
+    // on<CanvasDeviceCastDP1PlaylistEvent>((event, emit) async {
+    //   final device = event.device;
+    //   final playlist = event.playlist;
+    //   final intent = event.intent;
+    //
+    //   try {
+    //     final ok = await _canvasClientServiceV2.castDP1Playlist(
+    //         device, playlist, intent);
+    //     if (!ok) {
+    //       throw Exception('Failed to cast to device');
+    //     }
+    //   }
+    // });
+
+    // old event
     on<CanvasDeviceUpdateCastingStatusEvent>(
       (event, emit) {
         final device = event.device;
@@ -322,10 +348,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         }
         final currentDeviceState = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
-          artworks: event.artwork,
+          items: event.artwork,
           index: 0,
           isPaused: false,
           connectedDevice: currentDeviceState?.connectedDevice,
+          artworks: [],
         );
         add(CanvasDeviceUpdateCastingStatusEvent(
           device,
