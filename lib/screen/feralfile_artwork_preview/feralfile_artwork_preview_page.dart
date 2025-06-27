@@ -485,7 +485,8 @@ class _FeralFileArtworkPreviewPageState
         )),
         SingleChildScrollView(
           controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics()
+              .applyTo(const AlwaysScrollableScrollPhysics()),
           child: SizedBox(
             width: double.infinity,
             child: Column(
