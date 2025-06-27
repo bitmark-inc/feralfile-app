@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_exception.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -27,7 +31,7 @@ class SendWifiCredentialsPagePayload {
 
   final WifiPoint wifiAccessPoint;
   final BluetoothDevice device;
-  final FutureOr<void> Function(FFBluetoothDevice)? onSubmitted;
+  final FutureOr<void> Function(FFBluetoothDevice?)? onSubmitted;
 }
 
 class SendWifiCredentialsPage extends StatefulWidget {
@@ -139,7 +143,6 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                         await injector<FFBluetoothService>()
                             .connectToDevice(bleDevice);
                       }
-
                       final ffBluetoothDevice =
                           await injector<FFBluetoothService>()
                               .sendWifiCredentials(
@@ -165,20 +168,45 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                           'The Portal failed to connect to ${e.ssid}',
                         ),
                       );
-                    } on SendWifiCredentialError catch (e) {
+                    } on FFBluetoothError catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(
                         Sentry.captureException(
                           'SendWifiCredentialError: ${e.title}: ${e.message} ($e)',
                         ),
                       );
-                      unawaited(
-                        UIHelper.showInfoDialog(
-                          context,
-                          e.title,
-                          e.message,
-                        ),
-                      );
+                      if (e is DeviceVersionCheckFailedError) {
+                        unawaited(
+                          UIHelper.showInfoDialog(
+                            context,
+                            e.title,
+                            e.message,
+                            closeButton: 'Connect support',
+                            onClose: () async {
+                              await injector<NavigationService>()
+                                  .navigateTo(AppRouter.supportThreadPage,
+                                      arguments: NewIssuePayload(
+                                        reportIssueType: ReportIssueType.Bug,
+                                      ));
+                              injector<NavigationService>().goBack();
+                            },
+                          ).then((_) {
+                            widget.payload.onSubmitted?.call(null);
+                          }),
+                        );
+                        return;
+                      }
+                      unawaited(UIHelper.showInfoDialog(
+                        context,
+                        e.title,
+                        e.message,
+                      ).then((_) {
+                        if (e is DeviceUpdatingError) {
+                          widget.payload.onSubmitted?.call(
+                            null,
+                          );
+                        }
+                      }));
                     } catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(
