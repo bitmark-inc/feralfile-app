@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -13,6 +12,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_alumni_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/model_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
@@ -139,20 +139,15 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       displayKey: displayKey,
       onDeviceSelected: (device) async {
         final duration = speedValues.values.first;
-        final listPlayArtwork = tokenIDs
-            .map(
-              (e) => PlayArtworkV2(
-                token: CastAssetToken(id: e),
-                duration: duration,
-              ),
-            )
-            .toList();
+        final items = featuredArtworks.map((artwork) {
+          return DP1PlaylistItemExtension.fromArtwork(
+              artwork: artwork, duration: duration);
+        }).toList();
         final completer = Completer<void>();
         _canvasDeviceBloc.add(
           CanvasDeviceCastListArtworkEvent(
             device,
-            [],
-            // listPlayArtwork,
+            items,
             onDone: () {
               completer.complete();
             },

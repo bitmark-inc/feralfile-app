@@ -1,6 +1,8 @@
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 
 extension PlaylistDP1CallExtension on PlaylistDP1Call {
   static PlaylistDP1Call fromCompactedAssetToken(
@@ -41,6 +43,20 @@ extension DP1PlaylistItemExtension on DP1PlaylistItem {
       id: token.id,
       title: token.title!,
       source: token.previewURL!,
+      duration: duration.inSeconds,
+      license: license,
+    );
+  }
+
+  static DP1PlaylistItem fromArtwork({
+    required Artwork artwork,
+    Duration duration = Duration.zero,
+    ArtworkDisplayLicense license = ArtworkDisplayLicense.open,
+  }) {
+    return DP1PlaylistItem(
+      id: artwork.indexerTokenId!,
+      title: artwork.series!.title,
+      source: artwork.previewURL,
       duration: duration.inSeconds,
       license: license,
     );

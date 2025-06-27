@@ -15,21 +15,16 @@ class StartRecordingEvent extends RecordEvent {}
 
 class StopRecordingEvent extends RecordEvent {}
 
-class SubmitTextEvent extends RecordEvent {
-  final String text;
+class PermissionGrantedEvent extends RecordEvent {}
 
+class SubmitTextEvent extends RecordEvent {
   SubmitTextEvent(this.text);
+
+  final String text;
 }
 
 // State
 class RecordState {
-  final bool isRecording;
-  final List<String> messages;
-  final String? status;
-  final Map<String, dynamic>? lastIntent;
-  final Map<String, dynamic>? lastDP1Call;
-  final Exception? error;
-
   RecordState({
     this.isRecording = false,
     this.messages = const [],
@@ -37,33 +32,50 @@ class RecordState {
     this.lastIntent,
     this.lastDP1Call,
     this.error,
+    this.isProcessing = false,
   });
+
+  final bool isRecording;
+  final bool isProcessing;
+  final List<String> messages;
+  final String? status;
+  final Map<String, dynamic>? lastIntent;
+  final Map<String, dynamic>? lastDP1Call;
+  final Exception? error;
+
+  static const _sentinel = Object();
 
   RecordState copyWith({
     bool? isRecording,
+    bool? isProcessing,
     List<String>? messages,
-    String? status,
+    Object? status = _sentinel,
     Map<String, dynamic>? lastIntent,
     Map<String, dynamic>? lastDP1Call,
-    Exception? error,
+    Object? error = _sentinel,
+    bool forceUpdateErrorIfNull = false,
   }) =>
       RecordState(
         isRecording: isRecording ?? this.isRecording,
+        isProcessing: isProcessing ?? this.isProcessing,
         messages: messages ?? this.messages,
-        status: status ?? this.status,
+        status: status != _sentinel ? status as String? : this.status,
         lastIntent: lastIntent ?? this.lastIntent,
         lastDP1Call: lastDP1Call ?? this.lastDP1Call,
-        error: error,
+        error: error != _sentinel ? error as Exception? : this.error,
       );
 }
 
 // Bloc
 class RecordBloc extends AuBloc<RecordEvent, RecordState> {
-  final MobileControllerService service;
-  final AudioService audioService;
-  Timer? _statusTimer;
-
   RecordBloc(this.service, this.audioService) : super(RecordState()) {
+    on<PermissionGrantedEvent>((event, emit) {
+      if (state.error != null &&
+          state.error is AudioPermissionDeniedException) {
+        emit(state.copyWith(error: null));
+      }
+    });
+
     on<StartRecordingEvent>((event, emit) async {
       _statusTimer?.cancel();
       emit(state.copyWith(error: null, status: ''));
@@ -76,11 +88,15 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       emit(state.copyWith(isRecording: true));
     });
     on<StopRecordingEvent>((event, emit) async {
-      emit(state.copyWith(isRecording: false, error: null));
       final file = await audioService.stopRecording();
-      emit(state.copyWith(status: 'Getting transcription...'));
+      emit(state.copyWith(isRecording: false, error: null));
+      emit(
+        state.copyWith(
+          status: 'Getting transcription...',
+          isProcessing: true,
+        ),
+      );
 
-      // Gửi file audio qua service để lấy text và dp1_call
       try {
         final devicesName =
             BluetoothDeviceManager.pairedDevices.map((e) => e.name).toList();
@@ -99,22 +115,28 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
                     nlParserData.data['corrected_text'] as String;
                 final newMessages = [
                   transcribe,
-                  ...List<String>.from(state.messages)
+                  ...List<String>.from(state.messages),
                 ];
-                emit(state.copyWith(
+                emit(
+                  state.copyWith(
                     messages: newMessages,
                     error: null,
-                    status: 'Processing...'));
+                    status: 'Processing...',
+                  ),
+                );
               case NLParserDataType.thinking:
                 final thinking = nlParserData.content;
                 emit(state.copyWith(status: thinking, error: null));
               case NLParserDataType.intent:
                 final intent =
                     Map<String, dynamic>.from(nlParserData.data as Map);
-                emit(state.copyWith(
+                emit(
+                  state.copyWith(
                     status: 'Intent received.',
                     lastIntent: intent,
-                    error: null));
+                    error: null,
+                  ),
+                );
               case NLParserDataType.complete:
                 log.info('Complete action received');
               // _statusTimer?.cancel();
@@ -130,63 +152,97 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
                 final device = await BluetoothDeviceManager()
                     .pickADeviceToDisplay(deviceName ?? '');
                 if (device == null) {
-                  emit(state.copyWith(
-                      error: AudioException('No device selected')));
+                  emit(
+                    state.copyWith(
+                      error: AudioException('No device selected'),
+                      isProcessing: false,
+                    ),
+                  );
                   return;
                 }
 
-                final items = List.from(dp1Call['items'] as List);
+                final items = dp1Call['items'] as List;
                 if (items.isEmpty) {
-                  emit(state.copyWith(
-                      error: AudioException('No items to display')));
+                  emit(
+                    state.copyWith(
+                      error: AudioException('No items to display'),
+                      isProcessing: false,
+                    ),
+                  );
                   return;
                 }
 
                 try {
                   if (BluetoothDeviceManager().castingBluetoothDevice !=
                       device) {
-                    emit(state.copyWith(
-                        status: 'Switching to ${deviceName ?? 'FF-X1'}...'));
+                    emit(
+                      state.copyWith(
+                        status: 'Switching to ${deviceName ?? 'FF-X1'}...',
+                      ),
+                    );
                     await BluetoothDeviceManager().switchDevice(
                       device,
                     );
                   }
-                  emit(state.copyWith(
-                      status: 'Displaying to ${deviceName ?? 'FF-X1'}...'));
+                  emit(
+                    state.copyWith(
+                      status: 'Displaying to ${deviceName ?? 'FF-X1'}...',
+                    ),
+                  );
                   await injector<CanvasClientServiceV2>()
                       .sendDp1Call(device, dp1Call, intent);
                 } catch (e) {
                   log.info(
-                      'Error while displaying to ${deviceName ?? 'FF-X1'}: $e');
-                  emit(state.copyWith(
+                    'Error while displaying to ${deviceName ?? 'FF-X1'}: $e',
+                  );
+                  emit(
+                    state.copyWith(
                       error: AudioException(
-                          'Error while displaying to ${deviceName ?? 'FF-X1'}'),
-                      status: null));
+                        'Error while displaying to ${deviceName ?? 'FF-X1'}',
+                      ),
+                      status: null,
+                      isProcessing: false,
+                    ),
+                  );
                   return;
                 }
-                emit(state.copyWith(
-                  lastIntent: intent,
-                  lastDP1Call: dp1Call,
-                  error: null,
-                  status: 'Artwork displayed on ${deviceName ?? 'FF-X1'}',
-                ));
+                emit(
+                  state.copyWith(
+                    lastIntent: intent,
+                    lastDP1Call: dp1Call,
+                    error: null,
+                    status: 'Artwork displayed on ${deviceName ?? 'FF-X1'}',
+                    isProcessing: false,
+                  ),
+                );
               case NLParserDataType.error:
                 final error = nlParserData.content;
                 emit(
-                    state.copyWith(error: AudioException(error), status: null));
-                break;
+                  state.copyWith(
+                    error: AudioException(error),
+                    status: null,
+                    isProcessing: false,
+                  ),
+                );
               default:
                 log.warning('Unknown NLParserDataType: [${nlParserData.type}');
             }
           } catch (e) {
             log.info('Error processing data: $e');
-            emit(state.copyWith(
-                error: AudioException('Error processing data: $e')));
+            emit(
+              state.copyWith(
+                error: AudioException('Error processing data: $e'),
+                isProcessing: false,
+              ),
+            );
           }
         }
       } catch (e) {
-        emit(state.copyWith(
-            error: AudioException('Failed to process audio: $e')));
+        emit(
+          state.copyWith(
+            error: AudioException('Failed to process audio: $e'),
+          ),
+        );
       }
     });
     on<SubmitTextEvent>((event, emit) async {
@@ -197,14 +253,20 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         command: event.text,
         deviceNames: ["kitchen", "living_room", "bed room"],
       );
-      emit(state.copyWith(
-        lastIntent: result['intent'] == null
-            ? null
-            : Map<String, dynamic>.from(result['intent'] as Map),
-        lastDP1Call: result['dp1_call'] == null
-            ? null
-            : Map<String, dynamic>.from(result['dp1_call'] as Map),
-      ));
+      emit(
+        state.copyWith(
+          lastIntent: result['intent'] == null
+              ? null
+              : Map<String, dynamic>.from(result['intent'] as Map),
+          lastDP1Call: result['dp1_call'] == null
+              ? null
+              : Map<String, dynamic>.from(result['dp1_call'] as Map),
+        ),
+      );
     });
   }
+
+  final MobileControllerService service;
+  final AudioService audioService;
+  Timer? _statusTimer;
 }

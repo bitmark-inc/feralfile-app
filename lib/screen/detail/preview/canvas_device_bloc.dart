@@ -83,12 +83,15 @@ class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDeviceCastDP1PlaylistEvent extends CanvasDeviceEvent {
+  CanvasDeviceCastDP1PlaylistEvent({
+    required this.device,
+    required this.playlist,
+    required this.intent,
+  });
+
   final BaseDevice device;
   final PlaylistDP1Call playlist;
   final DP1Intent intent;
-
-  CanvasDeviceCastDP1PlaylistEvent(
-      {required this.device, required this.playlist, required this.intent});
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
@@ -234,7 +237,7 @@ class CanvasDeviceState {
   }
 
   List<BaseDevice> get activeDevices {
-    return devices.where((element) => isDeviceAlive(element)).toList();
+    return devices.where(isDeviceAlive).toList();
   }
 
   BaseDevice? _activeDeviceForKey(String key) {
@@ -242,7 +245,8 @@ class CanvasDeviceState {
         .firstWhereOrNull((element) => element.value.playingArtworkKey == key)
         ?.key;
     return devices.firstWhereOrNull(
-        (element) => element.deviceId == id && isDeviceAlive(element));
+      (element) => element.deviceId == id && isDeviceAlive(element),
+    );
   }
 
   DeviceDisplaySetting? deviceDisplaySettingOf(BaseDevice device) {
@@ -257,21 +261,6 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   // constructor
   CanvasDeviceBloc(this._canvasClientServiceV2) : super(CanvasDeviceState()) {
-    // DP1
-    // on<CanvasDeviceCastDP1PlaylistEvent>((event, emit) async {
-    //   final device = event.device;
-    //   final playlist = event.playlist;
-    //   final intent = event.intent;
-    //
-    //   try {
-    //     final ok = await _canvasClientServiceV2.castDP1Playlist(
-    //         device, playlist, intent);
-    //     if (!ok) {
-    //       throw Exception('Failed to cast to device');
-    //     }
-    //   }
-    // });
-
     // old event
     on<CanvasDeviceUpdateCastingStatusEvent>(
       (event, emit) {
@@ -280,9 +269,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final key = status.playingArtworkKey;
         final newState = state.canvasDeviceStatus.copy()
           ..[device.deviceId] = status;
-        emit(state
-            .updateOnCast(device: device, displayKey: key)
-            .copyWith(controllingDeviceStatus: newState));
+        emit(
+          state
+              .updateOnCast(device: device, displayKey: key)
+              .copyWith(controllingDeviceStatus: newState),
+        );
         NowDisplayingManager().updateDisplayingNow();
       },
     );
@@ -354,10 +345,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           connectedDevice: currentDeviceState?.connectedDevice,
           artworks: [],
         );
-        add(CanvasDeviceUpdateCastingStatusEvent(
-          device,
-          status,
-        ));
+        add(
+          CanvasDeviceUpdateCastingStatusEvent(
+            device,
+            status,
+          ),
+        );
       } catch (_) {
       } finally {
         unawaited(NowDisplayingManager().updateDisplayingNow());
@@ -389,10 +382,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           catalog: event.castRequest.catalog,
           connectedDevice: currentDeviceStatus?.connectedDevice,
         );
-        add(CanvasDeviceUpdateCastingStatusEvent(
-          device,
-          status,
-        ));
+        add(
+          CanvasDeviceUpdateCastingStatusEvent(
+            device,
+            status,
+          ),
+        );
       } catch (_) {
       } finally {
         unawaited(NowDisplayingManager().updateDisplayingNow());
@@ -422,10 +417,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           displayKey: CastDailyWorkRequest.displayKey,
           connectedDevice: currentDeviceStatus?.connectedDevice,
         );
-        add(CanvasDeviceUpdateCastingStatusEvent(
-          device,
-          status,
-        ));
+        add(
+          CanvasDeviceUpdateCastingStatusEvent(
+            device,
+            status,
+          ),
+        );
       } catch (_) {}
     });
 

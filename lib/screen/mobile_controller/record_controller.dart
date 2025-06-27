@@ -5,9 +5,11 @@ import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class RecordControllerScreen extends StatefulWidget {
   const RecordControllerScreen({super.key});
@@ -21,6 +23,14 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   final MobileControllerService mobileControllerService =
       injector<MobileControllerService>();
   final AudioService audioService = injector<AudioService>();
+
+  @override
+  void initState() {
+    Permission.microphone.onGrantedCallback(
+      () => context.read<RecordBloc>().add(StartRecordingEvent()),
+    );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,56 +50,62 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                   // Nút ghi âm
                   Expanded(
                     flex: 2,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (!state.isRecording) {
-                                context
-                                    .read<RecordBloc>()
-                                    .add(StartRecordingEvent());
-                              } else {
-                                context
-                                    .read<RecordBloc>()
-                                    .add(StopRecordingEvent());
-                              }
-                            },
-                            child: _askAnythingWidget(
-                              context,
-                              state.isRecording,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (state.error == null &&
-                            state.status != null &&
-                            state.status!.isNotEmpty) ...[
+                    child: Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           Center(
-                            child: Text(
-                              state.status ?? '',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .ppMori400Grey14
-                                  .copyWith(color: Colors.white),
+                            child: GestureDetector(
+                              onTap: state.isProcessing
+                                  ? null
+                                  : () {
+                                      if (!state.isRecording) {
+                                        context
+                                            .read<RecordBloc>()
+                                            .add(StartRecordingEvent());
+                                      } else {
+                                        context
+                                            .read<RecordBloc>()
+                                            .add(StopRecordingEvent());
+                                      }
+                                    },
+                              child: _askAnythingWidget(context,
+                                  state.isRecording, state.isProcessing),
                             ),
                           ),
                           const SizedBox(height: 20),
-                        ],
-                        if (error != null && error is AudioException) ...[
-                          Center(
-                            child: Text(
-                              error.message,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .ppMori400Black14
-                                  .copyWith(color: Colors.red),
+                          if (state.error == null &&
+                              state.status != null &&
+                              state.status!.isNotEmpty) ...[
+                            Center(
+                              child: Text(
+                                state.status ?? '',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400Grey14
+                                    .copyWith(color: Colors.white),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 20),
+                          ],
+                          if (error != null)
+                            if (error is AudioPermissionDeniedException)
+                              _noPermissionWidget(context)
+                            else if (error is AudioException) ...[
+                              Center(
+                                child: Text(
+                                  error.message,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .ppMori400Black14
+                                      .copyWith(color: Colors.red),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -104,7 +120,8 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
     );
   }
 
-  Widget _askAnythingWidget(BuildContext context, bool isRecording) {
+  Widget _askAnythingWidget(
+      BuildContext context, bool isRecording, bool isProcessing) {
     return Container(
       color: Colors.transparent,
       child: AnimatedContainer(
@@ -112,7 +129,9 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         width: isRecording ? 220 : 180,
         height: isRecording ? 220 : 180,
         decoration: BoxDecoration(
-          color: AppColor.feralFileLightBlue,
+          color: !isProcessing
+              ? AppColor.feralFileLightBlue
+              : AppColor.auLightGrey,
           shape: BoxShape.circle,
           boxShadow: isRecording
               ? [
@@ -126,7 +145,11 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         ),
         alignment: Alignment.center,
         child: Text(
-          isRecording ? 'RECORDING...' : 'ASK ME ANYTHING',
+          isRecording
+              ? 'RECORDING...'
+              : isProcessing
+                  ? 'PROCESSING...'
+                  : 'ASK ME ANYTHING',
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
