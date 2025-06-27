@@ -215,6 +215,7 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                             key: _artworkKey,
                             previewURL: previewURL,
                             isMute: widget.isMute,
+                            overriddenHtml: state.overriddenHtml,
                           );
                           return Center(
                             child: _currentRenderingWidget,
