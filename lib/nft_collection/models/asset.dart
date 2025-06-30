@@ -104,7 +104,7 @@ class Asset {
       map['title'] != null ? map['title'] as String : null,
       map['description'] != null ? map['description'] as String : null,
       map['mimeType'] != null ? map['mimeType'] as String : null,
-      mediumFromMimeType(map['mimeType'] as String?),
+      map['medium'] as String?,
       map['maxEdition'] != null ? map['maxEdition'] as int : null,
       map['source'] != null ? map['source'] as String : null,
       map['sourceURL'] != null ? map['sourceURL'] as String : null,
