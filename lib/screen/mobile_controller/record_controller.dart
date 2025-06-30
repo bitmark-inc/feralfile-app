@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class RecordControllerScreen extends StatefulWidget {
   const RecordControllerScreen({super.key});
@@ -23,20 +22,22 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   final MobileControllerService mobileControllerService =
       injector<MobileControllerService>();
   final AudioService audioService = injector<AudioService>();
+  late RecordBloc recordBloc;
 
   @override
   void initState() {
-    Permission.microphone.onGrantedCallback(
-      () => context.read<RecordBloc>().add(StartRecordingEvent()),
-    );
+    recordBloc = RecordBloc(mobileControllerService, audioService);
+    // Permission.microphone.onGrantedCallback(
+    //   () => recordBloc.add(StartRecordingEvent()),
+    // );
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    return BlocProvider(
-      create: (_) => RecordBloc(mobileControllerService, audioService),
+    return BlocProvider.value(
+      value: recordBloc,
       // Start recording when screen is opened
       child: BlocBuilder<RecordBloc, RecordState>(
         builder: (context, state) {
