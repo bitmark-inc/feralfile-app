@@ -49,6 +49,8 @@ enum BluetoothCommand {
   sendWifiCredentials,
   scanWifi,
   keepWifi,
+  factoryReset,
+  sendLog,
   setTimezone;
 
   String get name {
@@ -59,6 +61,10 @@ enum BluetoothCommand {
         return 'scan_wifi';
       case BluetoothCommand.keepWifi:
         return 'keep_wifi';
+      case BluetoothCommand.factoryReset:
+        return 'factory_reset';
+      case BluetoothCommand.sendLog:
+        return 'send_log';
       case BluetoothCommand.setTimezone:
         return 'set_time';
     }
@@ -113,6 +119,18 @@ enum BluetoothCommand {
     };
   }
 
+  NotificationCallback _factoryResetCallback(
+    Completer<FactoryResetResponse> completer,
+  ) {
+    return (data) {};
+  }
+
+  NotificationCallback _sendLogCallback(
+    Completer<SendLogResponse> completer,
+  ) {
+    return (data) {};
+  }
+
   // cb for setTimezone
   NotificationCallback _setTimezoneCallback(
     Completer<SetTimezoneReply> completer,
@@ -130,6 +148,10 @@ enum BluetoothCommand {
         return Completer<ScanWifiResponse>();
       case BluetoothCommand.keepWifi:
         return Completer<KeepWifiResponse>();
+      case BluetoothCommand.factoryReset:
+        return Completer<FactoryResetResponse>();
+      case BluetoothCommand.sendLog:
+        return Completer<SendLogResponse>();
       case BluetoothCommand.setTimezone:
         return Completer<SetTimezoneReply>();
     }
@@ -150,6 +172,14 @@ enum BluetoothCommand {
       case BluetoothCommand.keepWifi:
         return _keepWifiCallback(
           completer as Completer<KeepWifiResponse>,
+        );
+      case BluetoothCommand.factoryReset:
+        return _factoryResetCallback(
+          completer as Completer<FactoryResetResponse>,
+        );
+      case BluetoothCommand.sendLog:
+        return _sendLogCallback(
+          completer as Completer<SendLogResponse>,
         );
       case BluetoothCommand.setTimezone:
         return _setTimezoneCallback(
@@ -678,6 +708,33 @@ class FFBluetoothService {
       await FlutterBluePlus.stopScan();
     }
   }
+
+  Future<void> factoryReset(FFBluetoothDevice device) async {
+    if (device.isDisconnected) {
+      await connectToDevice(device);
+    }
+
+    final res = await sendCommand(
+        device: device,
+        command: BluetoothCommand.factoryReset,
+        request: FactoryResetRequest().toJson(),
+        timeout: const Duration(seconds: 30));
+    log.info('[factoryReset] res: $res');
+  }
+
+  Future<void> sendLog(FFBluetoothDevice device) async {
+    if (device.isDisconnected) {
+      await connectToDevice(device);
+    }
+
+    final res = await sendCommand(
+        device: device,
+        command: BluetoothCommand.sendLog,
+        request: SendLogRequest().toJson(),
+        timeout: const Duration(seconds: 30));
+
+    log.info('[sendLog] res: $res');
+  }
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
@@ -765,6 +822,23 @@ class SendWifiCredentialResponse extends BluetoothResponse {
 
   final String topicId;
 }
+
+class FactoryResetRequest extends BluetoothRequest {
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class FactoryResetResponse extends BluetoothResponse {}
+
+class SendLogRequest extends BluetoothRequest {
+  // to json
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class SendLogResponse extends BluetoothResponse {}
 
 enum FFBluetoothErrorCode {
   userEnterWrongPassword(1),
