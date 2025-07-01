@@ -141,6 +141,7 @@ dependencies:
   widgetbook_annotation: ^3.5.0
   golden_toolkit: ^0.15.0
   flutter_sound: ^9.28.0
+  mockito: ^5.4.5
 
 dev_dependencies:
   retrofit_generator: ^8.0.0

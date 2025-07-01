@@ -77,6 +77,7 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/flutter_blue_plus_base.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -258,7 +259,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<FFBluetoothService>(
-    FFBluetoothService.new,
+    () => FFBluetoothService(FlutterBluePlusMockable()),
   );
 
   injector<FFBluetoothService>().startListen();

@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
+import 'package:autonomy_flutter/util/flutter_blue_plus_base.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:collection/collection.dart';
@@ -160,16 +161,19 @@ enum BluetoothCommand {
 }
 
 class FFBluetoothService {
-  FFBluetoothService();
+  FFBluetoothService(this._flutterBluePlusMockable);
+
+  final FlutterBluePlusMockable _flutterBluePlusMockable;
 
   bool _listeningForAdapterState = false;
 
   void startListen() {
     log.info('Start listening to bluetooth events');
-    FlutterBluePlus.events.onDiscoveredServices.listen((event) {
+    _flutterBluePlusMockable.events.onDiscoveredServices.listen((event) {
       log.info('Discovered services: $event');
     });
-    FlutterBluePlus.events.onConnectionStateChanged.listen((event) async {
+    _flutterBluePlusMockable.events.onConnectionStateChanged
+        .listen((event) async {
       final device = event.device;
       final state = event.connectionState;
       log.info(
@@ -211,11 +215,11 @@ class FFBluetoothService {
       }
     });
 
-    FlutterBluePlus.events.onServicesReset.listen((event) {
+    _flutterBluePlusMockable.events.onServicesReset.listen((event) {
       log.info('Services reset: $event');
       event.device.discoverCharacteristics();
     });
-    FlutterBluePlus.events.onCharacteristicReceived.listen(
+    _flutterBluePlusMockable.events.onCharacteristicReceived.listen(
       (event) {
         final characteristic = event.characteristic;
         final device = event.device;
@@ -231,7 +235,7 @@ class FFBluetoothService {
   }
 
   Future<void> init() async {
-    FlutterBluePlus.logs.listen((event) {
+    _flutterBluePlusMockable.logs.listen((event) {
       log.info('[FlutterBluePlus]: $event');
     });
     if (await Permission.bluetooth.isGranted ||
@@ -245,7 +249,7 @@ class FFBluetoothService {
       return;
     }
     _listeningForAdapterState = true;
-    if (!(await FlutterBluePlus.isSupported)) {
+    if (!(await _flutterBluePlusMockable.isSupported)) {
       log.info('Bluetooth is not supported');
       injector<BluetoothConnectBloc>().add(
         BluetoothConnectEventUpdateBluetoothState(
@@ -254,7 +258,7 @@ class FFBluetoothService {
       );
       return;
     }
-    final stateNow = FlutterBluePlus.adapterStateNow;
+    final stateNow = _flutterBluePlusMockable.adapterStateNow;
     injector<BluetoothConnectBloc>()
         .add(BluetoothConnectEventUpdateBluetoothState(stateNow));
     FlutterBluePlus.adapterState.listen((BluetoothAdapterState bluetoothState) {
@@ -635,7 +639,7 @@ class FFBluetoothService {
 
       await listenForAdapterState();
 
-      final connectedDevices = FlutterBluePlus.connectedDevices;
+      final connectedDevices = _flutterBluePlusMockable.connectedDevices;
       final shouldStop = await onData?.call(connectedDevices);
       if (shouldStop == true) {
         log.info('BluetoothConnectEventScan startScan: already connected');
@@ -643,13 +647,13 @@ class FFBluetoothService {
       }
       StreamSubscription<List<ScanResult>>? scanSubscription;
 
-      scanSubscription = FlutterBluePlus.onScanResults.listen(
+      scanSubscription = _flutterBluePlusMockable.onScanResults.listen(
         (results) async {
           final devices = results.map((result) => result.device).toList();
-          final shouldStopScan = await onData
-              ?.call(devices..addAll(FlutterBluePlus.connectedDevices));
+          final shouldStopScan = await onData?.call(
+              devices..addAll(_flutterBluePlusMockable.connectedDevices));
           if (shouldStopScan == true) {
-            FlutterBluePlus.stopScan();
+            _flutterBluePlusMockable.stopScan();
           }
         },
         onError: (Object error) {
@@ -658,16 +662,16 @@ class FFBluetoothService {
         },
       );
 
-      FlutterBluePlus.cancelWhenScanComplete(scanSubscription);
+      _flutterBluePlusMockable.cancelWhenScanComplete(scanSubscription);
       log.info('BluetoothConnectEventScan startScan');
-      await FlutterBluePlus.startScan(
+      await _flutterBluePlusMockable.startScan(
         timeout: timeout, // Updated to 60 seconds
         withServices: [
           Guid(BluetoothManager.serviceUuid),
         ],
       );
       // wait for scan to complete
-      while (FlutterBluePlus.isScanningNow) {
+      while (_flutterBluePlusMockable.isScanningNow) {
         await Future.delayed(const Duration(milliseconds: 1000));
       }
     } catch (e) {
@@ -675,7 +679,7 @@ class FFBluetoothService {
       onError?.call(e);
     } finally {
       log.info('BluetoothConnectEventScan stopScan');
-      await FlutterBluePlus.stopScan();
+      await _flutterBluePlusMockable.stopScan();
     }
   }
 }
