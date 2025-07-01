@@ -74,7 +74,14 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         onFinish: widget.payload.onFinish,
       );
     }
-    injector<FFBluetoothService>().listenForAdapterState();
+    injector<FFBluetoothService>().listenForAdapterState(
+        onStateUpdate: (state) {
+      injector<BluetoothConnectBloc>().add(
+        BluetoothConnectEventUpdateBluetoothState(
+          state,
+        ),
+      );
+    });
   }
 
   List<String> getDataFromLink(String link) {

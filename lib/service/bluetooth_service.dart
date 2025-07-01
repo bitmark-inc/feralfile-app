@@ -6,8 +6,6 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
-import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -234,37 +232,41 @@ class FFBluetoothService {
     );
   }
 
+  void _onStateUpdate(BluetoothAdapterState state) {
+    // injector<BluetoothConnectBloc>().add(
+    //   BluetoothConnectEventUpdateBluetoothState(
+    //     BluetoothAdapterState.unavailable,
+    //   ),
+    // );
+  }
+
   Future<void> init() async {
     _flutterBluePlusMockable.logs.listen((event) {
       log.info('[FlutterBluePlus]: $event');
     });
     if (await Permission.bluetooth.isGranted ||
         BluetoothDeviceManager().castingBluetoothDevice != null) {
-      await listenForAdapterState();
+      await listenForAdapterState(onStateUpdate: _onStateUpdate);
     }
   }
 
-  Future<void> listenForAdapterState() async {
+  Future<void> listenForAdapterState(
+      {void Function(BluetoothAdapterState state)? onStateUpdate}) async {
     if (_listeningForAdapterState) {
       return;
     }
     _listeningForAdapterState = true;
     if (!(await _flutterBluePlusMockable.isSupported)) {
       log.info('Bluetooth is not supported');
-      injector<BluetoothConnectBloc>().add(
-        BluetoothConnectEventUpdateBluetoothState(
-          BluetoothAdapterState.unavailable,
-        ),
-      );
+      onStateUpdate?.call(BluetoothAdapterState.unavailable);
       return;
     }
     final stateNow = _flutterBluePlusMockable.adapterStateNow;
-    injector<BluetoothConnectBloc>()
-        .add(BluetoothConnectEventUpdateBluetoothState(stateNow));
-    FlutterBluePlus.adapterState.listen((BluetoothAdapterState bluetoothState) {
+    onStateUpdate?.call(stateNow);
+    _flutterBluePlusMockable.adapterState
+        .listen((BluetoothAdapterState bluetoothState) {
       _bluetoothAdapterState = bluetoothState;
-      injector<BluetoothConnectBloc>()
-          .add(BluetoothConnectEventUpdateBluetoothState(bluetoothState));
+      onStateUpdate?.call(bluetoothState);
     });
   }
 
@@ -633,11 +635,11 @@ class FFBluetoothService {
     bool forceScan = false,
   }) async {
     try {
-      if (!injector<AuthService>().isBetaTester() && !forceScan) {
+      if (!forceScan && !injector<AuthService>().isBetaTester()) {
         return;
       }
 
-      await listenForAdapterState();
+      await listenForAdapterState(onStateUpdate: _onStateUpdate);
 
       final connectedDevices = _flutterBluePlusMockable.connectedDevices;
       final shouldStop = await onData?.call(connectedDevices);
