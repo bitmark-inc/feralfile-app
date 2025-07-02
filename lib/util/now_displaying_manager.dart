@@ -3,19 +3,21 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/playlist_item.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
 class NowDisplayingManager {
   factory NowDisplayingManager() => _instance;
@@ -122,21 +124,32 @@ class NowDisplayingManager {
       if (index == null) {
         return null;
       }
+      AssetToken? assetToken;
       final tokenId = status.artworks[index].token?.id;
-      if (tokenId == null) {
-        return null;
+      if (tokenId != null) {
+        assetToken = await _fetchAssetToken(tokenId);
       }
-      final assetToken = await _fetchAssetToken(tokenId);
       return NowDisplayingObject(assetToken: assetToken);
     } else if (status.displayKey == CastDailyWorkRequest.displayKey) {
       return NowDisplayingObject(
         dailiesWorkState: injector<DailyWorkBloc>().state,
       );
     } else if (status.items?.isNotEmpty ?? false) {
+      // DP1
       final index = status.index;
       final playlistItem = status.items![index!];
 
-      return DP1NowDisplayingObject(playlistItem: playlistItem);
+      AssetToken? assetToken;
+
+      final tokenId = playlistItem.indexId;
+      if (tokenId != null) {
+        assetToken = await _fetchAssetToken(tokenId);
+      }
+
+      return DP1NowDisplayingObject(
+        playlistItem: playlistItem,
+        assetToken: assetToken,
+      );
     }
     return null;
   }
@@ -146,4 +159,31 @@ class NowDisplayingManager {
     final assetToken = await injector<IndexerService>().getNftTokens(request);
     return assetToken.isNotEmpty ? assetToken.first : null;
   }
+}
+
+abstract class NowDisplayingStatus {}
+
+class ConnectionLost implements NowDisplayingStatus {
+  ConnectionLost(this.device);
+
+  final BaseDevice device;
+}
+
+class DeviceDisconnected implements NowDisplayingStatus {
+  DeviceDisconnected(this.device);
+
+  final BaseDevice device;
+}
+
+// Now displaying
+class NowDisplayingSuccess implements NowDisplayingStatus {
+  NowDisplayingSuccess(this.object);
+
+  final NowDisplayingObjectBase object;
+}
+
+class NowDisplayingError implements NowDisplayingStatus {
+  NowDisplayingError(this.error);
+
+  final Object error;
 }

@@ -1,16 +1,13 @@
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
-import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -28,69 +25,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 const double kNowDisplayingHeight = 60;
-
-abstract class NowDisplayingStatus {}
-
-class ConnectionLost implements NowDisplayingStatus {
-  ConnectionLost(this.device);
-
-  final BaseDevice device;
-}
-
-class DeviceDisconnected implements NowDisplayingStatus {
-  DeviceDisconnected(this.device);
-
-  final BaseDevice device;
-}
-
-// Now displaying
-class NowDisplayingSuccess implements NowDisplayingStatus {
-  NowDisplayingSuccess(this.object);
-
-  final NowDisplayingObjectBase object;
-}
-
-class NowDisplayingError implements NowDisplayingStatus {
-  NowDisplayingError(this.error);
-
-  final Object error;
-}
-
-class ExhibitionDisplaying {
-  ExhibitionDisplaying({
-    this.exhibition,
-    this.catalogId,
-    this.catalog,
-    this.artwork,
-  });
-
-  final Exhibition? exhibition;
-  final String? catalogId;
-  final ExhibitionCatalog? catalog;
-  final Artwork? artwork;
-}
-
-abstract class NowDisplayingObjectBase {}
-
-class NowDisplayingObject extends NowDisplayingObjectBase {
-  NowDisplayingObject({
-    this.assetToken,
-    this.exhibitionDisplaying,
-    this.dailiesWorkState,
-  });
-
-  final AssetToken? assetToken;
-  final ExhibitionDisplaying? exhibitionDisplaying;
-  final DailiesWorkState? dailiesWorkState;
-}
-
-class DP1NowDisplayingObject extends NowDisplayingObjectBase {
-  DP1NowDisplayingObject({
-    required this.playlistItem,
-  });
-
-  final DP1PlaylistItem playlistItem;
-}
 
 class NowDisplaying extends StatefulWidget {
   const NowDisplaying({super.key});
@@ -224,9 +158,13 @@ class _NowDisplayingSuccessWidgetState
     BuildContext context,
     DP1NowDisplayingObject nowDisplaying,
   ) {
-    return DP1NowDisplayingView(
-      nowDisplaying.playlistItem,
-    );
+    return GestureDetector(
+        child: DP1NowDisplayingView(
+          nowDisplaying,
+        ),
+        onTap: () {
+          injector<NavigationService>().navigateTo(AppRouter.nowDisplayingPage);
+        });
   }
 
   Widget _nowDisplayingView(
@@ -482,13 +420,15 @@ class NowDisplayingExhibitionView extends StatelessWidget {
 }
 
 class DP1NowDisplayingView extends StatelessWidget {
-  const DP1NowDisplayingView(this.playlistItem, {super.key});
+  const DP1NowDisplayingView(this.object, {super.key});
 
-  final DP1PlaylistItem playlistItem;
+  final DP1NowDisplayingObject object;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final playlistItem = object.playlistItem;
+    final assetToken = object.assetToken;
     final device = BluetoothDeviceManager().castingBluetoothDevice;
     return NowDisplayingView(
       device: device,
@@ -499,6 +439,17 @@ class DP1NowDisplayingView extends StatelessWidget {
         );
       },
       thumbnailBuilder: (context) {
+        if (assetToken != null) {
+          return AspectRatio(
+            aspectRatio: 1,
+            child: tokenGalleryThumbnailWidget(
+              context,
+              CompactedAssetToken.fromAssetToken(assetToken),
+              65,
+              useHero: false,
+            ),
+          );
+        }
         return AspectRatio(
           aspectRatio: 1,
           child: Container(
@@ -507,8 +458,9 @@ class DP1NowDisplayingView extends StatelessWidget {
         );
       },
       titleBuilder: (context) {
+        final title = assetToken?.title ?? playlistItem.title;
         return Text(
-          playlistItem.title,
+          title,
           style: theme.textTheme.ppMori400Black14,
           overflow: TextOverflow.ellipsis,
         );

@@ -241,6 +241,7 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         emit(
           state.copyWith(
             error: AudioException('Failed to process audio: $e'),
+            isProcessing: false,
           ),
         );
       }

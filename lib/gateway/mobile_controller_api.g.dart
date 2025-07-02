@@ -38,7 +38,7 @@ class _MobileControllerAPI implements MobileControllerAPI {
     )
         .compose(
           _dio.options,
-          '/nl-parser/text',
+          '/intent-parser/text',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -75,7 +75,7 @@ class _MobileControllerAPI implements MobileControllerAPI {
     )
         .compose(
           _dio.options,
-          '/nl-parser/voice',
+          '/intent-parser/voice',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -113,7 +113,7 @@ class _MobileControllerAPI implements MobileControllerAPI {
     )
         .compose(
           _dio.options,
-          '/nl-parser/voice',
+          '/intent-parser/voice',
           queryParameters: queryParameters,
           data: _data,
         )

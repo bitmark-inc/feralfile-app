@@ -82,6 +82,8 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                             Center(
                               child: Text(
                                 state.status ?? '',
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
                                     .textTheme
                                     .ppMori400Grey14
@@ -97,6 +99,8 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                               Center(
                                 child: Text(
                                   error.message,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
                                   style: Theme.of(context)
                                       .textTheme
                                       .ppMori400Black14

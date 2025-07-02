@@ -2,7 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/home_mobile_controller/ff_directories_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/directory.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';

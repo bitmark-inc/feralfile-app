@@ -386,5 +386,6 @@ class MobileControllerAuthInterceptor extends Interceptor {
     log.info(
       '[MobileControllerAuthInterceptor]Error: ${err.message} ',
     );
+    handler.next(err);
   }
 }

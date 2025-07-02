@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/model.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/directory.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // Event
