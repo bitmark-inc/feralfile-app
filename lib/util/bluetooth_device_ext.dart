@@ -17,7 +17,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
   }
 
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
-      BluetoothManager.getWifiConnectCharacteristic(remoteId.str);
+      BluetoothManager.instance.getWifiConnectCharacteristic(remoteId.str);
 
   String get getName {
     final savedName = BluetoothDeviceManager.pairedDevices
