@@ -41,15 +41,15 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       value: recordBloc,
       child: BlocBuilder<RecordBloc, RecordState>(
         builder: (context, state) {
-          print('Record state: $state');
           return Column(
             children: [
               Expanded(
+                flex: 5,
                 child: Padding(
                   padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      const SizedBox(height: 40),
                       Center(
                         child: GestureDetector(
                           onTap: state is RecordProcessingState
@@ -68,44 +68,47 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                         ),
                       ),
                       const SizedBox(height: 20),
-                      if (state is RecordProcessingState) ...[
-                        Center(
-                          child: Text(
-                            state.processingMessage,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .ppMori400Grey14
-                                .copyWith(color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                      if (state is RecordErrorState) ...[
-                        if (state.error is AudioPermissionDeniedException)
-                          _noPermissionWidget(context)
-                        else if (state.error is AudioException) ...[
-                          Center(
-                            child: Text(
-                              (state.error as AudioException).message,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .ppMori400Black14
-                                  .copyWith(color: Colors.red),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                      ],
+                      Builder(
+                        builder: (context) {
+                          if (state is RecordProcessingState) {
+                            return Center(
+                              child: Text(
+                                state.processingMessage,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400Grey14
+                                    .copyWith(color: Colors.white),
+                              ),
+                            );
+                          } else if (state is RecordErrorState) {
+                            if (state.error
+                                is AudioPermissionDeniedException) {
+                              return _noPermissionWidget(context);
+                            } else if (state.error is AudioException) {
+                              return Center(
+                                child: Text(
+                                  (state.error as AudioException).message,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .ppMori400Black14
+                                      .copyWith(color: Colors.red),
+                                ),
+                              );
+                            }
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
               Expanded(
+                flex: 4,
                 child: _historyChat(context),
               ),
             ],
@@ -123,11 +126,10 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       color: Colors.transparent,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        width: isRecording ? 260 : 220,
-        height: isRecording ? 260 : 220,
+        width: isRecording ? 240 : 220,
+        height: isRecording ? 240 : 220,
         decoration: BoxDecoration(
-          color:
-              isRecording ? AppColor.feralFileLightBlue : AppColor.auLightGrey,
+          color: AppColor.feralFileLightBlue,
           shape: BoxShape.circle,
           boxShadow: isRecording
               ? [
@@ -154,7 +156,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   }
 
   Widget _historyChat(BuildContext context) {
-    final messages = injector<ConfigurationService>().getRecordedMessages();
+    final messages = configurationService.getRecordedMessages();
     return ListView.builder(
       itemCount: messages.length + 1,
       itemBuilder: (context, index) {

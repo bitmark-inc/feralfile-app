@@ -59,25 +59,26 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        Column(
-          children: [
-            _topControlsBar(context),
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pages.length,
-                itemBuilder: (context, index) {
-                  return pages[index];
-                },
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPageIndex = index;
-                  });
-                },
-              ),
-            ),
-          ],
+        _topControlsBar(context),
+        Container(
+          padding: const EdgeInsets.only(
+            top: _topControlsBarHeight,
+          ),
+          child: PageView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _pageController,
+            itemCount: pages.length,
+            itemBuilder: (context, index) {
+              return pages[index];
+            },
+            onPageChanged: (index) {
+              setState(() {
+                _currentPageIndex = index;
+              });
+            },
+          ),
         ),
+
         // fade effect on bottom
         MultiValueListenableBuilder(
           valueListenables: [
@@ -85,6 +86,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
             nowDisplayingVisibility,
           ],
           builder: (context, values, _) {
+            print('values: $values');
             return values.every((value) => value as bool)
                 ? Positioned(
                     bottom: 0,
@@ -117,6 +119,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
 
   Widget _topControlsBar(BuildContext context) {
     return Container(
+      color: Colors.transparent,
       height: _topControlsBarHeight,
       padding: EdgeInsets.symmetric(
         horizontal: ResponsiveLayout.paddingHorizontal,
