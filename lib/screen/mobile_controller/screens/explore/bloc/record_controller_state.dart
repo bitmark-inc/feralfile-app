@@ -1,47 +1,5 @@
 part of 'record_controller_bloc.dart';
 
-// class RecordState {
-//   RecordState({
-//     this.isRecording = false,
-//     this.messages = const [],
-//     this.status,
-//     this.lastIntent,
-//     this.lastDP1Call,
-//     this.error,
-//     this.isProcessing = false,
-//   });
-
-//   final bool isRecording;
-//   final bool isProcessing;
-//   final List<String> messages;
-//   final String? status;
-//   final Map<String, dynamic>? lastIntent;
-//   final Map<String, dynamic>? lastDP1Call;
-//   final Exception? error;
-
-//   static const _sentinel = Object();
-
-//   RecordState copyWith({
-//     bool? isRecording,
-//     bool? isProcessing,
-//     List<String>? messages,
-//     Object? status = _sentinel,
-//     Map<String, dynamic>? lastIntent,
-//     Map<String, dynamic>? lastDP1Call,
-//     Object? error = _sentinel,
-//     bool forceUpdateErrorIfNull = false,
-//   }) =>
-//       RecordState(
-//         isRecording: isRecording ?? this.isRecording,
-//         isProcessing: isProcessing ?? this.isProcessing,
-//         messages: messages ?? this.messages,
-//         status: status != _sentinel ? status as String? : this.status,
-//         lastIntent: lastIntent ?? this.lastIntent,
-//         lastDP1Call: lastDP1Call ?? this.lastDP1Call,
-//         error: error != _sentinel ? error as Exception? : this.error,
-//       );
-// }
-
 enum RecordProcessingStatus {
   transcribing,
   transcribed,
@@ -53,22 +11,21 @@ enum RecordProcessingStatus {
 }
 
 class RecordState {
-  const RecordState(
-      {this.lastIntent, this.lastDP1Call, this.messages = const []});
+  const RecordState({
+    this.lastIntent,
+    this.lastDP1Call,
+  });
 
   final Map<String, dynamic>? lastIntent;
   final Map<String, dynamic>? lastDP1Call;
-  final List<String> messages;
 
   RecordState copyWith({
     Map<String, dynamic>? lastIntent,
     Map<String, dynamic>? lastDP1Call,
-    List<String>? messages,
   }) =>
       RecordState(
         lastIntent: lastIntent ?? this.lastIntent,
         lastDP1Call: lastDP1Call ?? this.lastDP1Call,
-        messages: messages ?? this.messages,
       );
 }
 
@@ -81,7 +38,6 @@ class RecordProcessingState extends RecordState {
     required this.status,
     super.lastIntent,
     super.lastDP1Call,
-    super.messages,
     this.statusMessage,
   });
 
@@ -93,14 +49,12 @@ class RecordProcessingState extends RecordState {
     RecordProcessingStatus? status,
     Map<String, dynamic>? lastIntent,
     Map<String, dynamic>? lastDP1Call,
-    List<String>? messages,
     String? statusMessage,
   }) =>
       RecordProcessingState(
         status: status ?? this.status,
         lastIntent: lastIntent ?? this.lastIntent,
         lastDP1Call: lastDP1Call ?? this.lastDP1Call,
-        messages: messages ?? this.messages,
         statusMessage: statusMessage ?? this.statusMessage,
       );
 

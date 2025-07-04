@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -22,14 +23,14 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   final MobileControllerService mobileControllerService =
       injector<MobileControllerService>();
   final AudioService audioService = injector<AudioService>();
+  final ConfigurationService configurationService =
+      injector<ConfigurationService>();
   late RecordBloc recordBloc;
 
   @override
   void initState() {
-    recordBloc = RecordBloc(mobileControllerService, audioService);
-    // Permission.microphone.onGrantedCallback(
-    //   () => recordBloc.add(StartRecordingEvent()),
-    // );
+    recordBloc =
+        RecordBloc(mobileControllerService, audioService, configurationService);
     super.initState();
   }
 
@@ -40,6 +41,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       value: recordBloc,
       child: BlocBuilder<RecordBloc, RecordState>(
         builder: (context, state) {
+          print('Record state: $state');
           return Column(
             children: [
               Expanded(
@@ -104,7 +106,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: _historyChat(context, state.messages),
+                child: _historyChat(context),
               ),
             ],
           );
@@ -151,14 +153,8 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
     );
   }
 
-  Widget _historyChat(BuildContext context, List<String> messages) {
-    messages = [
-      'Hey FF1, find me a 2‑hour generative art mix that feels like Bauhaus colours.',
-      'Show me work by Casey Rease.',
-      'Hey FF1, find me a 2‑hour generative art mix that feels like Bauhaus colours.',
-      'Hey FF1, find me a 2‑hour generative art mix that feels like Bauhaus colours.',
-      'Show me work by Casey Rease.',
-    ];
+  Widget _historyChat(BuildContext context) {
+    final messages = injector<ConfigurationService>().getRecordedMessages();
     return ListView.builder(
       itemCount: messages.length + 1,
       itemBuilder: (context, index) {
@@ -170,7 +166,6 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (index != 0) addDivider(color: AppColor.primaryBlack, height: 1),
             Padding(
               padding: ResponsiveLayout.paddingAll,
               child: Text(
@@ -180,6 +175,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            addDivider(color: AppColor.primaryBlack, height: 1),
           ],
         );
       },
