@@ -25,11 +25,7 @@ enum DP1Action {
   }
 }
 
-abstract class DP1IntentBase {
-  Map<String, dynamic> toJson();
-}
-
-class DP1Intent implements DP1IntentBase {
+class DP1Intent {
   DP1Intent({
     required this.action,
     this.deviceName,
@@ -62,7 +58,6 @@ class DP1Intent implements DP1IntentBase {
   final List<DP1Artist>? artists;
 
   // to JSON
-  @override
   Map<String, dynamic> toJson() {
     return {
       'action': action.value,

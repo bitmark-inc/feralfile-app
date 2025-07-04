@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/playlist_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 
 abstract class NowDisplayingObjectBase {}
 
@@ -25,7 +25,7 @@ class DP1NowDisplayingObject extends NowDisplayingObjectBase {
     this.assetToken,
   });
 
-  final DP1PlaylistItem playlistItem;
+  final DP1Item playlistItem;
   final AssetToken? assetToken;
 }
 

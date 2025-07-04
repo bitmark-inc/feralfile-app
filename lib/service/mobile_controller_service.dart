@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/screen/mobile_controller/json_stream.dart';
+import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/utils/json_stream.dart';
 import 'package:autonomy_flutter/util/file_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-
-import '../gateway/mobile_controller_api.dart';
 
 class MobileControllerService {
   MobileControllerService(this.api);

@@ -1,4 +1,14 @@
 class DP1Provenance {
+  DP1Provenance({
+    required this.type,
+    this.contract,
+  }) : assert(
+          ![DP1ProvenanceType.onChain, DP1ProvenanceType.seriesRegistry]
+                  .contains(type) ||
+              contract != null,
+          'Contract must be provided for onChain and seriesRegistry provenance types',
+        );
+
   // from json method
   factory DP1Provenance.fromJson(Map<String, dynamic> json) {
     return DP1Provenance(
@@ -8,13 +18,6 @@ class DP1Provenance {
           : null,
     );
   }
-
-  DP1Provenance({
-    required this.type,
-    this.contract,
-  }) : assert(![DP1ProvenanceType.onChain, DP1ProvenanceType.seriesRegistry]
-                .contains(type) ||
-            contract != null);
 
   final DP1ProvenanceType type;
   final DP1Contract? contract;
@@ -194,9 +197,9 @@ enum DP1ProvenanceStandard {
 
 extension DP1ContractExt on DP1Contract {
   String? get indexId {
-    final contracAddress = address;
+    final contractAddress = address;
     final prefix = chain.prefix;
-    return '$prefix-$contracAddress-$tokenId';
+    return '$prefix-$contractAddress-$tokenId';
   }
 }
 

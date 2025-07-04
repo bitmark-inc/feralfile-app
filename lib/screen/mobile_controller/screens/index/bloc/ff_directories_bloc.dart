@@ -4,35 +4,8 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/directory.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Event
-abstract class FFDirectoriesEvent {}
-
-class GetDirectoriesEvent extends FFDirectoriesEvent {}
-
-// State
-class FFDirectoriesState {
-  FFDirectoriesState({
-    this.directories = const [],
-    this.loading = false,
-    this.error,
-  });
-
-  final List<FFDirectory> directories;
-  final bool loading;
-  final Object? error;
-
-  FFDirectoriesState copyWith({
-    List<FFDirectory>? directories,
-    bool? loading,
-    Object? error,
-  }) {
-    return FFDirectoriesState(
-      directories: directories ?? this.directories,
-      loading: loading ?? this.loading,
-      error: error ?? this.error,
-    );
-  }
-}
+part 'ff_directories_event.dart';
+part 'ff_directories_state.dart';
 
 class FFDirectoriesBloc extends AuBloc<FFDirectoriesEvent, FFDirectoriesState> {
   FFDirectoriesBloc() : super(FFDirectoriesState()) {
@@ -51,7 +24,7 @@ class FFDirectoriesBloc extends AuBloc<FFDirectoriesEvent, FFDirectoriesState> {
   }
 
   Future<List<FFDirectory>> getFakeDirectories() async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     return <FFDirectory>[
       FFDirectory('Art Blocks'),
       FFDirectory('Aorist'),

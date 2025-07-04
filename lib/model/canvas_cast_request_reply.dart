@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/model/device/device_display_setting.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/playlist_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -418,9 +418,9 @@ class CheckCastingStatusReply extends Reply {
             : null,
         items: json['items'] == null
             ? null
-            : List<DP1PlaylistItem>.from(
+            : List<DP1Item>.from(
                 (json['items'] as List).map(
-                  (x) => DP1PlaylistItem.fromJson(
+                  (x) => DP1Item.fromJson(
                     Map<String, dynamic>.from(x as Map),
                   ),
                 ),
@@ -443,7 +443,7 @@ class CheckCastingStatusReply extends Reply {
   ExhibitionCatalog? catalog;
   String? displayKey;
   DeviceDisplaySetting? deviceSettings;
-  final List<DP1PlaylistItem>? items;
+  final List<DP1Item>? items;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -469,7 +469,7 @@ class CheckCastingStatusReply extends Reply {
     ExhibitionCatalog? catalog,
     String? displayKey,
     DeviceDisplaySetting? deviceSettings,
-    List<DP1PlaylistItem>? items,
+    List<DP1Item>? items,
   }) {
     return CheckCastingStatusReply(
       artworks: artworks ?? this.artworks,
