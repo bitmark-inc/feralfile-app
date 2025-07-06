@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/extensions/record_processing_status_ext.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -18,7 +19,7 @@ part 'record_controller_state.dart';
 // Bloc
 class RecordBloc extends AuBloc<RecordEvent, RecordState> {
   RecordBloc(this.service, this.audioService, this.configurationService)
-      : super(RecordInitialState()) {
+      : super(const RecordInitialState()) {
     on<PermissionGrantedEvent>(_onPermissionGranted);
     on<StartRecordingEvent>(_onStartRecording);
     on<StopRecordingEvent>(_onStopRecording);
@@ -34,7 +35,8 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     PermissionGrantedEvent event,
     Emitter<RecordState> emit,
   ) {
-    if (state is RecordPermissionDeniedState) {
+    if (state is RecordErrorState &&
+        (state as RecordErrorState).error is AudioPermissionDeniedException) {
       emit(RecordInitialState());
     }
   }
@@ -44,16 +46,16 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     Emitter<RecordState> emit,
   ) async {
     _statusTimer?.cancel();
-    emit(RecordInitialState());
+    emit(const RecordInitialState());
 
     final granted = await audioService.askMicrophonePermission();
     if (!granted) {
-      emit(RecordPermissionDeniedState());
+      emit(RecordErrorState(error: AudioPermissionDeniedException()));
       return;
     }
 
     await audioService.startRecording();
-    emit(RecordRecordingState());
+    emit(const RecordRecordingState());
   }
 
   Future<void> _onStopRecording(

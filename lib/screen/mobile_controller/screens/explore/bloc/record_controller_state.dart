@@ -29,9 +29,13 @@ class RecordState {
       );
 }
 
-class RecordInitialState extends RecordState {}
+class RecordInitialState extends RecordState {
+  const RecordInitialState();
+}
 
-class RecordRecordingState extends RecordState {}
+class RecordRecordingState extends RecordState {
+  const RecordRecordingState();
+}
 
 class RecordProcessingState extends RecordState {
   RecordProcessingState({
@@ -53,27 +57,13 @@ class RecordProcessingState extends RecordState {
   }) =>
       RecordProcessingState(
         status: status ?? this.status,
-        lastIntent: lastIntent ?? this.lastIntent,
-        lastDP1Call: lastDP1Call ?? this.lastDP1Call,
         statusMessage: statusMessage ?? this.statusMessage,
+      ).copyWith(
+        lastIntent: lastIntent,
+        lastDP1Call: lastDP1Call,
       );
 
-  String get processingMessage {
-    if (statusMessage != null) return statusMessage!;
-    switch (status) {
-      case RecordProcessingStatus.transcribing:
-        return 'Getting transcription...';
-      case RecordProcessingStatus.transcribed:
-        return 'Processing...';
-      case RecordProcessingStatus.intentReceived:
-        return 'Intent received.';
-      case RecordProcessingStatus.thinking:
-      case RecordProcessingStatus.dp1CallReceived:
-      case RecordProcessingStatus.switchingDevice:
-      case RecordProcessingStatus.displaying:
-        return statusMessage ?? '';
-    }
-  }
+  String get processingMessage => statusMessage ?? status.message;
 }
 
 class RecordErrorState extends RecordState {
@@ -83,8 +73,3 @@ class RecordErrorState extends RecordState {
 }
 
 class RecordSuccessState extends RecordState {}
-
-class RecordPermissionDeniedState extends RecordErrorState {
-  RecordPermissionDeniedState()
-      : super(error: AudioPermissionDeniedException());
-}

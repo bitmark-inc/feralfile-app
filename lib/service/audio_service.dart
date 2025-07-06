@@ -54,7 +54,7 @@ enum AudioExceptionType {
   String get message {
     switch (this) {
       case AudioExceptionType.permissionDenied:
-        return 'Microphone permission denied';
+        return 'Microphone permission is required.';
       case AudioExceptionType.recordingFailed:
         return 'Failed to start recording';
       case AudioExceptionType.fileNotFound:

@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -83,8 +84,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                               ),
                             );
                           } else if (state is RecordErrorState) {
-                            if (state.error
-                                is AudioPermissionDeniedException) {
+                            if (state.error is AudioPermissionDeniedException) {
                               return _noPermissionWidget(context);
                             } else if (state.error is AudioException) {
                               return Center(
@@ -125,9 +125,13 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
     return ColoredBox(
       color: Colors.transparent,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        width: isRecording ? 240 : 220,
-        height: isRecording ? 240 : 220,
+        duration: UIConstants.animationDuration,
+        width: isRecording
+            ? UIConstants.recordButtonSizeActive
+            : UIConstants.recordButtonSize,
+        height: isRecording
+            ? UIConstants.recordButtonSizeActive
+            : UIConstants.recordButtonSize,
         decoration: BoxDecoration(
           color: AppColor.feralFileLightBlue,
           shape: BoxShape.circle,
@@ -144,10 +148,10 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         alignment: Alignment.center,
         child: Text(
           isRecording
-              ? 'RECORDING...'
+              ? MessageConstants.recordingText
               : isProcessing
-                  ? 'PROCESSING...'
-                  : 'ASK ME ANYTHING',
+                  ? MessageConstants.processingText
+                  : MessageConstants.askAnythingText,
           style: Theme.of(context).textTheme.ppMori400Black14,
           textAlign: TextAlign.center,
         ),
@@ -188,7 +192,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
     return Column(
       children: [
         Text(
-          'Microphone permission is required.',
+          AudioExceptionType.permissionDenied.message,
           style: Theme.of(context).textTheme.ppMori400White12,
           textAlign: TextAlign.center,
         ),

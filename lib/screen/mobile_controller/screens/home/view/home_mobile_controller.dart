@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/widgets/icon_switcher.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/bloc/ff_directories_bloc.dart';
@@ -25,8 +26,6 @@ class MobileControllerHomePage extends StatefulWidget {
 class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
   late int _currentPageIndex;
   late PageController _pageController;
-
-  static const _topControlsBarHeight = 130.0;
 
   @override
   void initState() {
@@ -62,7 +61,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
         _topControlsBar(context),
         Container(
           padding: const EdgeInsets.only(
-            top: _topControlsBarHeight,
+            top: UIConstants.topControlsBarHeight,
           ),
           child: PageView.builder(
             physics: const NeverScrollableScrollPhysics(),
@@ -86,7 +85,6 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
             nowDisplayingVisibility,
           ],
           builder: (context, values, _) {
-            print('values: $values');
             return values.every((value) => value as bool)
                 ? Positioned(
                     bottom: 0,
@@ -120,7 +118,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
   Widget _topControlsBar(BuildContext context) {
     return Container(
       color: Colors.transparent,
-      height: _topControlsBarHeight,
+      height: UIConstants.topControlsBarHeight,
       padding: EdgeInsets.symmetric(
         horizontal: ResponsiveLayout.paddingHorizontal,
       ),
