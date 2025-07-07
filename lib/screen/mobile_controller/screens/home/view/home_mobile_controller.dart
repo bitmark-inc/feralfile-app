@@ -1,10 +1,8 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/widgets/icon_switcher.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/bloc/ff_directories_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/list_directories.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/index.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -32,7 +30,6 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
     super.initState();
     _currentPageIndex = widget.initialPageIndex;
     _pageController = PageController(initialPage: _currentPageIndex);
-    injector<FFDirectoriesBloc>().add(GetDirectoriesEvent());
   }
 
   @override

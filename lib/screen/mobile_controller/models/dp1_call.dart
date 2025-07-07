@@ -4,6 +4,7 @@ class DP1Call {
   DP1Call({
     required this.dpVersion,
     required this.id,
+    required this.slug,
     required this.created,
     required this.defaults,
     required this.items,
@@ -15,6 +16,7 @@ class DP1Call {
     return DP1Call(
       dpVersion: json['dpVersion'] as String,
       id: json['id'] as String,
+      slug: json['slug'] as String,
       created: DateTime.parse(json['created'] as String),
       defaults: json['defaults'] as Map<String, dynamic>,
       items: (json['items'] as List<dynamic>)
@@ -26,6 +28,7 @@ class DP1Call {
 
   final String dpVersion; // e.g., "1.0.0"
   final String id; // e.g., "refik-anadol-20250626T063826"
+  final String slug; // e.g., "summer‑mix‑01"
   final DateTime created; // e.g., "2025-06-26T06:38:26.396Z"
   final Map<String, dynamic> defaults; // e.g., {"display": {...}}
   final List<DP1Item> items; // list of DP1PlaylistItem
