@@ -44,4 +44,6 @@ extension DP1CallExtension on DP1Call {
 
   String get playlistName =>
       slug.split('-').map((e) => e.capitalize()).join(' ');
+
+  String get channelName => 'Feral File';
 }

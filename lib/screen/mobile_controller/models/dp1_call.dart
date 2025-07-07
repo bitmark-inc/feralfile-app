@@ -44,4 +44,25 @@ class DP1Call {
       'signature': signature,
     };
   }
+
+  // copyWith method
+  DP1Call copyWith({
+    String? dpVersion,
+    String? id,
+    String? slug,
+    DateTime? created,
+    Map<String, dynamic>? defaults,
+    List<DP1Item>? items,
+    String? signature,
+  }) {
+    return DP1Call(
+      dpVersion: dpVersion ?? this.dpVersion,
+      id: id ?? this.id,
+      slug: slug ?? this.slug,
+      created: created ?? this.created,
+      defaults: defaults ?? this.defaults,
+      items: items ?? this.items,
+      signature: signature ?? this.signature,
+    );
+  }
 }

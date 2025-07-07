@@ -57,9 +57,10 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/view/home_mobile_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/channel_detail.page.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/playlist_detail_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/dp1_playlist_details.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
@@ -168,7 +169,7 @@ class AppRouter {
       'handle_bluetooth_device_scan_deeplink_screen';
   static const widgetBookScreen = 'widget_book_screen';
   static const channelDetailPage = 'channel_detail_page';
-  static const playlistDetailPage = 'playlist_detail_page';
+  static const playlistDetailsPage = 'playlist_details_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     log.info('[onGenerateRoute] Route: ${settings.name}');
@@ -778,14 +779,6 @@ class AppRouter {
           builder: (context) => const WidgetbookScreen(),
         );
 
-      case playlistDetailPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => PlaylistDetailPage(
-            payload: settings.arguments! as PlaylistDetailPagePayload,
-          ),
-        );
-
       case channelDetailPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -793,6 +786,14 @@ class AppRouter {
             payload: settings.arguments! as ChannelDetailPagePayload,
           ),
         );
+
+      case playlistDetailsPage:
+        final playlist = settings.arguments! as DP1Call;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => DP1PlaylistDetailsScreen(
+                  playlist: playlist,
+                ));
 
       default:
         throw Exception('Invalid route: ${settings.name}');

@@ -59,8 +59,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-part 'artwork_detail_page.g.dart';
-
 class ArtworkDetailPage extends StatefulWidget {
   const ArtworkDetailPage({required this.payload, super.key});
 
@@ -806,12 +804,21 @@ class ArtworkDetailPayload {
 class ArtworkIdentity {
   ArtworkIdentity(this.id, this.owner);
 
-  factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
-      _$ArtworkIdentityFromJson(json);
   final String id;
   final String owner;
 
-  Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
+  // from json
+  factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
+      ArtworkIdentity(
+        json['id'] as String,
+        json['owner'] as String,
+      );
+
+  // to json
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'owner': owner,
+      };
 
   String get key => '$id||$owner';
 

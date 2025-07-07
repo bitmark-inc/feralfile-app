@@ -1,12 +1,12 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/playlist_detail_page.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistItem extends StatelessWidget {
   const PlaylistItem({required this.playlist, super.key});
+
   final DP1Call playlist;
 
   @override
@@ -15,10 +15,8 @@ class PlaylistItem extends StatelessWidget {
     return GestureDetector(
       onTap: () async {
         await Navigator.of(context).pushNamed(
-          AppRouter.playlistDetailPage,
-          arguments: PlaylistDetailPagePayload(
-            playlist: playlist,
-          ),
+          AppRouter.playlistDetailsPage,
+          arguments: playlist,
         );
       },
       child: Column(

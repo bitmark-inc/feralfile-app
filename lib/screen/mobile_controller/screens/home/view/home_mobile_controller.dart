@@ -148,14 +148,14 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
           icon: SvgPicture.asset(
             'assets/images/cycle.svg',
             colorFilter: const ColorFilter.mode(
-              Colors.grey,
+              AppColor.disabledColor,
               BlendMode.srcIn,
             ),
           ),
           iconOnSelected: SvgPicture.asset(
             'assets/images/cycle.svg',
             colorFilter: const ColorFilter.mode(
-              Colors.white,
+              AppColor.white,
               BlendMode.srcIn,
             ),
           ),
@@ -167,14 +167,14 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
           icon: SvgPicture.asset(
             'assets/images/list.svg',
             colorFilter: const ColorFilter.mode(
-              Colors.grey,
+              AppColor.disabledColor,
               BlendMode.srcIn,
             ),
           ),
           iconOnSelected: SvgPicture.asset(
             'assets/images/list.svg',
             colorFilter: const ColorFilter.mode(
-              Colors.white,
+              AppColor.white,
               BlendMode.srcIn,
             ),
           ),

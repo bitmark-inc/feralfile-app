@@ -1,6 +1,9 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -115,10 +118,9 @@ class _PlaylistsPageState extends State<PlaylistsPage>
     final hasMore = state.hasMore;
     final isLoadingMore = state is PlaylistsLoadingMoreState;
 
-    return ListView.separated(
+    return ListView.builder(
       controller: _scrollController,
       itemCount: playlists.length + (hasMore ? 1 : 0),
-      separatorBuilder: (context, index) => const SizedBox(height: 1),
       itemBuilder: (context, index) {
         if (index == playlists.length) {
           return _buildLoadingIndicator(isLoadingMore);
@@ -126,7 +128,12 @@ class _PlaylistsPageState extends State<PlaylistsPage>
 
         return Column(
           children: [
-            PlaylistItem(playlist: playlists[index]),
+            _buildPlaylistItem(playlists[index]),
+            if (index < playlists.length - 1)
+              const Divider(
+                height: 1,
+                color: AppColor.primaryBlack,
+              ),
             if (index == playlists.length - 1) const SizedBox(height: 20),
           ],
         );
@@ -148,6 +155,40 @@ class _PlaylistsPageState extends State<PlaylistsPage>
               ),
             )
           : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildPlaylistItem(DP1Call playlist) {
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: () {
+        injector<NavigationService>()
+            .navigateTo(AppRouter.playlistDetailsPage, arguments: playlist);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            // Playlist info
+            Expanded(
+              child: Text(
+                playlist.playlistName,
+                style: theme.textTheme.ppMori400White12,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              'Feral File',
+              style: theme.textTheme.ppMori400Grey12.copyWith(
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
