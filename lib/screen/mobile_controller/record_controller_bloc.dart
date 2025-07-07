@@ -84,7 +84,9 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         emit(state.copyWith(error: AudioPermissionDeniedException()));
         return;
       }
-      await audioService.startRecording();
+      await audioService.startRecording(onSilenceDetected: () {
+        add(StopRecordingEvent());
+      });
       emit(state.copyWith(isRecording: true));
     });
     on<StopRecordingEvent>((event, emit) async {
@@ -139,16 +141,14 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
                 );
               case NLParserDataType.complete:
                 log.info('Complete action received');
-              // _statusTimer?.cancel();
-              // _statusTimer =
-              //     Timer.periodic(const Duration(seconds: 3), (timer) {
-              //   emit(state.copyWith(status: ''));
-              // });
 
               case NLParserDataType.dp1Call:
                 final dp1Call = Map<String, dynamic>.from(nlParserData.data);
                 final intent = state.lastIntent!;
                 final deviceName = intent['device_name'] as String?;
+
+                // select a device and display artwork
+
                 final device = await BluetoothDeviceManager()
                     .pickADeviceToDisplay(deviceName ?? '');
                 if (device == null) {

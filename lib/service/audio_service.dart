@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -14,6 +15,8 @@ class AudioService {
     return status.isGranted;
   }
 
+  StreamSubscription? _recorderSubscription;
+
   Future<FlutterSoundRecorder> getRecorder() async {
     if (_recorder == null) {
       _recorder = FlutterSoundRecorder();
@@ -22,11 +25,36 @@ class AudioService {
     return _recorder!;
   }
 
-  Future<void> startRecording() async {
+  Future<void> startRecording(
+      {double silenceThreshold = 40,
+      Duration silenceDuration = const Duration(seconds: 3),
+      FutureOr<void> Function()? onSilenceDetected}) async {
     final recorder = await getRecorder();
     final dir = await getTemporaryDirectory();
     _filePath =
         '${dir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.aac';
+    var lastLoudTime = DateTime.now();
+    await recorder.setSubscriptionDuration(const Duration(milliseconds: 500));
+    _recorderSubscription = recorder.onProgress!.listen((event) {
+      log.info('Recording progress: ${event.toString()}');
+      final double? decibels = event.decibels;
+      final now = DateTime.now();
+
+      if (decibels != null) {
+        if (decibels > silenceThreshold) {
+          // User is talking
+          lastLoudTime = now;
+        } else {
+          // Check if silence has lasted more than 3 seconds
+          if (now.difference(lastLoudTime).inSeconds >=
+              silenceDuration.inSeconds) {
+            log.info('Silence detected');
+            _recorderSubscription?.cancel();
+            onSilenceDetected?.call();
+          }
+        }
+      }
+    });
     await recorder.startRecorder(
       toFile: _filePath,
       codec: Codec.aacADTS,
@@ -36,6 +64,7 @@ class AudioService {
   Future<File> stopRecording() async {
     if (_recorder == null) return throw AudioRecorderNotOpenedException();
     await _recorder!.stopRecorder();
+    _recorderSubscription?.cancel();
     return File(_filePath!);
   }
 
