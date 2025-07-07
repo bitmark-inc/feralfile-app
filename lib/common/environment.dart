@@ -236,4 +236,12 @@ class Environment {
 
   static String get mobileControllerApiKey =>
       _readKey('MOBILE_CONTROLLER_KEY', '', isSecret: true);
+
+  static String get dp1FeedUrl => _readKey('DP1_FEED_URL', '');
+
+  static String get dp1FeedApiKey => _readKey(
+        'DP1_FEED_API_KEY',
+        '',
+        isSecret: true,
+      );
 }

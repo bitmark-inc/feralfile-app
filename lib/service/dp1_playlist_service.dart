@@ -1,6 +1,9 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 class Dp1PlaylistService {
   final DP1PlaylistApi api;
@@ -15,6 +18,20 @@ class Dp1PlaylistService {
 
   Future<DP1Call> getPlaylistById(String playlistId) async {
     return api.getPlaylistById(playlistId);
+  }
+
+  Future<List<DP1Call>> getAllPlaylistsFromAllChannel(
+      {required int page, required int limit}) async {
+    final channel = await injector<ChannelsService>().getChannels();
+    final res = <DP1Call>[];
+    for (final c in channel) {
+      try {
+        res.addAll(await c.getPlaylists());
+      } catch (e) {
+        log.info('Error when get playlists from channel ${c.title}: $e');
+      }
+    }
+    return res;
   }
 
   Future<List<DP1Call>> getAllPlaylists() async {

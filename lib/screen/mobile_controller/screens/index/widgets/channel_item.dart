@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 class ChannelItem extends StatelessWidget {
   const ChannelItem({required this.channel, super.key});
+
   final Channel channel;
 
   @override
@@ -33,7 +34,7 @@ class ChannelItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  channel.description,
+                  channel.summary ?? '',
                   style: theme.textTheme.ppMori400Grey12,
                 ),
               ],

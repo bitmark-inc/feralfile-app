@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
@@ -35,9 +36,8 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart'
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/services/playlists_service.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
@@ -59,6 +59,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
@@ -486,19 +487,30 @@ Future<void> setupInjector() async {
     AudioService.new,
   );
 
-  injector.registerLazySingleton<PlaylistsService>(
-    PlaylistsService.new,
-  );
-
   injector.registerFactory<PlaylistsBloc>(
     () => PlaylistsBloc(injector()),
   );
 
   injector.registerLazySingleton<ChannelsService>(
-    ChannelsService.new,
+    () => ChannelsService(injector()),
   );
 
   injector.registerFactory<ChannelsBloc>(
     () => ChannelsBloc(injector()),
   );
+
+  injector.registerLazySingleton<DP1PlaylistApi>(
+    () => DP1PlaylistApi(
+      baseDio(
+        dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.dp1FeedUrl,
+    ),
+  );
+
+  injector.registerLazySingleton<Dp1PlaylistService>(
+      () => Dp1PlaylistService(injector(), Environment.dp1FeedApiKey));
 }
