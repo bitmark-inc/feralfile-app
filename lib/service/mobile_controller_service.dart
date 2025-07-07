@@ -86,6 +86,7 @@ enum NLParserDataType {
   complete,
   summary,
   dp1Call,
+  response,
   unknown,
   error;
 
@@ -103,6 +104,8 @@ enum NLParserDataType {
         return 'summary';
       case NLParserDataType.dp1Call:
         return 'dp1_call';
+      case NLParserDataType.response:
+        return 'response';
       case NLParserDataType.error:
         return 'error';
       default:
@@ -127,6 +130,8 @@ enum NLParserDataType {
         return NLParserDataType.dp1Call;
       case 'error':
         return NLParserDataType.error;
+      case 'response':
+        return NLParserDataType.response;
       default:
         throw NLParserDataType.unknown;
     }

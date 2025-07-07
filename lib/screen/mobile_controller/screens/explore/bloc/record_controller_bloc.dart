@@ -155,6 +155,8 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         await _handleIntent(nlParserData, emit);
       case NLParserDataType.dp1Call:
         await _handleDP1Call(nlParserData, emit);
+      case NLParserDataType.response:
+        await _handleResponse(nlParserData, emit);
       case NLParserDataType.complete:
         await _handleComplete(nlParserData, emit);
       case NLParserDataType.error:
@@ -219,6 +221,16 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       return;
     }
 
+    final items = dp1Call['items'] as List;
+    if (items.isEmpty) {
+      emit(
+        RecordErrorState(
+          error: AudioException('No items to display'),
+        ),
+      );
+      return;
+    }
+
     final deviceName = intent['device_name'] as String?;
     final device =
         await BluetoothDeviceManager().pickADeviceToDisplay(deviceName ?? '');
@@ -227,16 +239,6 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       emit(
         RecordErrorState(
           error: AudioException('No device selected'),
-        ),
-      );
-      return;
-    }
-
-    final items = dp1Call['items'] as List;
-    if (items.isEmpty) {
-      emit(
-        RecordErrorState(
-          error: AudioException('No items to display'),
         ),
       );
       return;
@@ -296,6 +298,13 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         lastDP1Call: dp1Call,
       ),
     );
+  }
+
+  Future<void> _handleResponse(
+    NLParserData nlParserData,
+    Emitter<RecordState> emit,
+  ) async {
+    log.info('Response action received: ${nlParserData.data}');
   }
 
   Future<void> _handleComplete(
