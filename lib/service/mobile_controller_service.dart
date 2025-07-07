@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/screen/mobile_controller/json_stream.dart';
+import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/utils/json_stream.dart';
 import 'package:autonomy_flutter/util/file_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-
-import '../gateway/mobile_controller_api.dart';
 
 class MobileControllerService {
   MobileControllerService(this.api);
@@ -87,6 +86,7 @@ enum NLParserDataType {
   complete,
   summary,
   dp1Call,
+  response,
   unknown,
   error;
 
@@ -104,6 +104,8 @@ enum NLParserDataType {
         return 'summary';
       case NLParserDataType.dp1Call:
         return 'dp1_call';
+      case NLParserDataType.response:
+        return 'response';
       case NLParserDataType.error:
         return 'error';
       default:
@@ -128,6 +130,8 @@ enum NLParserDataType {
         return NLParserDataType.dp1Call;
       case 'error':
         return NLParserDataType.error;
+      case 'response':
+        return NLParserDataType.response;
       default:
         throw NLParserDataType.unknown;
     }

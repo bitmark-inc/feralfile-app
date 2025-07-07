@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/screen/mobile_controller/models/provenance.dart';
 
-class DP1PlaylistItem {
-  DP1PlaylistItem({
+class DP1Item {
+  DP1Item({
     required this.id,
     required this.title,
     required this.source,
@@ -11,8 +11,8 @@ class DP1PlaylistItem {
   }); // e.g., "open", "restricted", etc.
 
 // from JSON
-  factory DP1PlaylistItem.fromJson(Map<String, dynamic> json) {
-    return DP1PlaylistItem(
+  factory DP1Item.fromJson(Map<String, dynamic> json) {
+    return DP1Item(
       id: json['id'] as String,
       title: json['title'] as String,
       source: json['source'] as String,
@@ -22,7 +22,8 @@ class DP1PlaylistItem {
       ),
       provenance: json['provenance'] != null
           ? DP1Provenance.fromJson(
-              Map<String, dynamic>.from(json['provenance'] as Map))
+              Map<String, dynamic>.from(json['provenance'] as Map),
+            )
           : null,
     );
   }
@@ -34,7 +35,6 @@ class DP1PlaylistItem {
   final ArtworkDisplayLicense license;
   final DP1Provenance? provenance;
 
-  // to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -72,6 +72,6 @@ enum ArtworkDisplayLicense {
   }
 }
 
-extension DP1PlaylistItemExt on DP1PlaylistItem {
+extension DP1PlaylistItemExt on DP1Item {
   String? get indexId => provenance?.indexId;
 }

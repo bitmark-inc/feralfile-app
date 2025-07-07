@@ -1,0 +1,188 @@
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/home/widgets/icon_switcher.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/index.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
+
+class MobileControllerHomePage extends StatefulWidget {
+  const MobileControllerHomePage({super.key, this.initialPageIndex = 0});
+
+  final int initialPageIndex;
+
+  @override
+  State<MobileControllerHomePage> createState() =>
+      _MobileControllerHomePageState();
+}
+
+class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
+  late int _currentPageIndex;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPageIndex = widget.initialPageIndex;
+    _pageController = PageController(initialPage: _currentPageIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      const RecordControllerScreen(),
+      const ListDirectoryPage(),
+    ];
+    return Scaffold(
+      appBar: getDarkEmptyAppBar(AppColor.auGreyBackground),
+      backgroundColor: AppColor.auGreyBackground,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: _buildPageView(
+          pages,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPageView(List<Widget> pages) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        _topControlsBar(context),
+        Container(
+          padding: const EdgeInsets.only(
+            top: UIConstants.topControlsBarHeight,
+          ),
+          child: PageView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _pageController,
+            itemCount: pages.length,
+            itemBuilder: (context, index) {
+              return pages[index];
+            },
+            onPageChanged: (index) {
+              setState(() {
+                _currentPageIndex = index;
+              });
+            },
+          ),
+        ),
+
+        // fade effect on bottom
+        MultiValueListenableBuilder(
+          valueListenables: [
+            shouldShowNowDisplayingOnDisconnect,
+            nowDisplayingVisibility,
+          ],
+          builder: (context, values, _) {
+            return values.every((value) => value as bool)
+                ? Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: IgnorePointer(
+                      child: Container(
+                        height: 160,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.0, 0.37, 0.37],
+                            colors: [
+                              AppColor.auGreyBackground.withAlpha(0),
+                              AppColor.auGreyBackground,
+                              AppColor.auGreyBackground,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : Container();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _topControlsBar(BuildContext context) {
+    return Container(
+      color: Colors.transparent,
+      height: UIConstants.topControlsBarHeight,
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveLayout.paddingHorizontal,
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: _buildSwitcher(context, _currentPageIndex),
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: FFCastButton(
+                displayKey: '',
+                onDeviceSelected: (device) async {},
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitcher(BuildContext context, int currentIndex) {
+    return IconSwitcher(
+      initialIndex: _currentPageIndex,
+      items: [
+        IconSwitcherItem(
+          icon: SvgPicture.asset(
+            'assets/images/cycle.svg',
+            colorFilter: const ColorFilter.mode(
+              Colors.grey,
+              BlendMode.srcIn,
+            ),
+          ),
+          iconOnSelected: SvgPicture.asset(
+            'assets/images/cycle.svg',
+            colorFilter: const ColorFilter.mode(
+              Colors.white,
+              BlendMode.srcIn,
+            ),
+          ),
+          onTap: () {
+            _pageController.jumpToPage(0);
+          },
+        ),
+        IconSwitcherItem(
+          icon: SvgPicture.asset(
+            'assets/images/list.svg',
+            colorFilter: const ColorFilter.mode(
+              Colors.grey,
+              BlendMode.srcIn,
+            ),
+          ),
+          iconOnSelected: SvgPicture.asset(
+            'assets/images/list.svg',
+            colorFilter: const ColorFilter.mode(
+              Colors.white,
+              BlendMode.srcIn,
+            ),
+          ),
+          onTap: () {
+            _pageController.jumpToPage(1);
+          },
+        ),
+      ],
+    );
+  }
+}

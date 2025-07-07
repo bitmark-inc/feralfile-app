@@ -282,7 +282,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   bool _isVisible = true;
   double _lastScrollPosition = 0;
 
-  static const double kStatusBarMarginBottom = 30;
+  static const double kStatusBarMarginBottom = 20;
 
   @override
   void initState() {

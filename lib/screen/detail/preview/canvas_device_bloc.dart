@@ -12,16 +12,15 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/device_display_setting.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/playlist.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/playlist_item.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
@@ -80,7 +79,7 @@ class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
   CanvasDeviceCastListArtworkEvent(this.device, this.artwork, {this.onDone});
 
   final BaseDevice device;
-  final List<DP1PlaylistItem> artwork;
+  final List<DP1Item> artwork;
   final FutureOr<void> Function()? onDone;
 }
 
@@ -92,7 +91,7 @@ class CanvasDeviceCastDP1PlaylistEvent extends CanvasDeviceEvent {
   });
 
   final BaseDevice device;
-  final PlaylistDP1Call playlist;
+  final DP1Call playlist;
   final DP1Intent intent;
 }
 

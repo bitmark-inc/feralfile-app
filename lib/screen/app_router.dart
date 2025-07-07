@@ -57,7 +57,7 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/home_mobile_controller/home_mobile_controller.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/home/view/home_mobile_controller.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
@@ -270,9 +270,13 @@ class AppRouter {
       case homePage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return MobileControllerHomePage();
-          },
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: canvasDeviceBloc),
+              BlocProvider.value(value: subscriptionBloc),
+            ],
+            child: const MobileControllerHomePage(),
+          ),
         );
 
       case AppRouter.testArtwork:

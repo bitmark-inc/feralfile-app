@@ -14,10 +14,10 @@ import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/dp1_call_request.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/model_ext.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call_request.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/playlist_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -139,7 +139,7 @@ class CanvasClientServiceV2 {
 
   Future<bool> castListArtwork(
     BaseDevice device,
-    List<DP1PlaylistItem> artworks,
+    List<DP1Item> artworks,
   ) async {
     try {
       final canConnect = await connectToDevice(device);
@@ -150,7 +150,7 @@ class CanvasClientServiceV2 {
       // final castRequest = CastListArtworkRequest(artworks: artworks);
 
       final intent = DP1Intent.displayNow();
-      final dp1Call = PlaylistDP1CallExtension.fromItems(items: artworks);
+      final dp1Call = DP1CallExtension.fromItems(items: artworks);
 
       final dp1CallRequest = DP1CallRequest(
         dp1Call: dp1Call.toJson(),
