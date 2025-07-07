@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -126,12 +126,7 @@ class _ChannelsPageState extends State<ChannelsPage>
 
         return Column(
           children: [
-            _buildChannelItem(channels[index]),
-            if (index < channels.length - 1)
-              const Divider(
-                height: 1,
-                color: AppColor.primaryBlack,
-              ),
+            ChannelItem(channel: channels[index]),
             if (index == channels.length - 1) const SizedBox(height: 20),
           ],
         );
@@ -153,30 +148,6 @@ class _ChannelsPageState extends State<ChannelsPage>
               ),
             )
           : const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildChannelItem(Channel channel) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            channel.title,
-            style: theme.textTheme.ppMori400White12,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            channel.description,
-            style: theme.textTheme.ppMori400Grey12,
-          ),
-        ],
-      ),
     );
   }
 
