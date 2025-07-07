@@ -29,6 +29,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
+    _playlistsBloc.close();
     _scrollController.dispose();
     super.dispose();
   }

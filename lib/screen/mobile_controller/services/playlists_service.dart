@@ -145,12 +145,18 @@ class PlaylistsService {
     await Future<void>.delayed(Duration(milliseconds: delayMs));
 
     final startIndex = page * limit;
+    final endIndex = startIndex + limit;
 
     // Simulate finite data
     if (startIndex >= _mockData.length * 3) {
       return [];
     }
 
-    return _mockData.map(DP1Call.fromJson).toList();
+    final playlists = <DP1Call>[];
+    for (var i = startIndex; i < endIndex && i < _mockData.length; i++) {
+      playlists.add(DP1Call.fromJson(_mockData[i]));
+    }
+
+    return playlists;
   }
 }
