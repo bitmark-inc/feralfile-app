@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/chat_thread_view.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
@@ -30,8 +31,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
 
   @override
   void initState() {
-    recordBloc =
-        RecordBloc(mobileControllerService, audioService, configurationService);
+    recordBloc = context.read<RecordBloc>();
     super.initState();
   }
 
@@ -42,79 +42,99 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       value: recordBloc,
       child: BlocBuilder<RecordBloc, RecordState>(
         builder: (context, state) {
-          return Column(
-            children: [
-              Expanded(
-                flex: 5,
-                child: Padding(
-                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 40),
-                      Center(
-                        child: GestureDetector(
-                          onTap: state is RecordProcessingState
-                              ? null
-                              : () {
-                                  context.read<RecordBloc>().add(
-                                        state is RecordRecordingState
-                                            ? StopRecordingEvent()
-                                            : StartRecordingEvent(),
-                                      );
-                                },
-                          child: _askAnythingWidget(
-                            context,
-                            state,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Builder(
-                        builder: (context) {
-                          if (state is RecordProcessingState) {
-                            return Center(
-                              child: Text(
-                                state.processingMessage,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .ppMori400Grey14
-                                    .copyWith(color: Colors.white),
-                              ),
-                            );
-                          } else if (state is RecordErrorState) {
-                            if (state.error is AudioPermissionDeniedException) {
-                              return _noPermissionWidget(context);
-                            } else if (state.error is AudioException) {
-                              return Center(
-                                child: Text(
-                                  (state.error as AudioException).message,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .ppMori400Black14
-                                      .copyWith(color: Colors.red),
-                                ),
-                              );
-                            }
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 4,
-                child: _historyChat(context),
-              ),
-            ],
-          );
+          if (state is RecordSuccessState) {
+            return _chatThreadView(context, state);
+          }
+          return _recordView(context, state);
         },
       ),
+    );
+  }
+
+  Widget _recordView(BuildContext context, RecordState state) {
+    return Column(
+      children: [
+        Expanded(
+          flex: 6,
+          child: Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 100),
+                Center(
+                  child: GestureDetector(
+                    onTap: state is RecordProcessingState
+                        ? null
+                        : () {
+                            context.read<RecordBloc>().add(
+                                  state is RecordRecordingState
+                                      ? StopRecordingEvent()
+                                      : StartRecordingEvent(),
+                                );
+                          },
+                    child: _askAnythingWidget(
+                      context,
+                      state,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Builder(
+                  builder: (context) {
+                    if (state is RecordProcessingState) {
+                      return Center(
+                        child: Text(
+                          state.processingMessage,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .ppMori400Grey14
+                              .copyWith(color: Colors.white),
+                        ),
+                      );
+                    } else if (state is RecordErrorState) {
+                      if (state.error is AudioPermissionDeniedException) {
+                        return _noPermissionWidget(context);
+                      } else if (state.error is AudioException) {
+                        return Center(
+                          child: Text(
+                            (state.error as AudioException).message,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .ppMori400Black14
+                                .copyWith(color: Colors.red),
+                          ),
+                        );
+                      }
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 4,
+          child: _historyChat(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _chatThreadView(BuildContext context, RecordSuccessState state) {
+    return Column(
+      children: [
+        SizedBox(
+          height: UIConstants.detailPageHeaderPadding,
+        ),
+        ChatThreadView(
+          state: state,
+        ),
+        const SizedBox(height: 120),
+      ],
     );
   }
 

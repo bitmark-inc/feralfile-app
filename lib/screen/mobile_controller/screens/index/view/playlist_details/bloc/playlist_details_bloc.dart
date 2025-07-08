@@ -40,17 +40,10 @@ class PlaylistDetailsBloc
         QueryListTokensRequest(ids: pageIndexIds),
       ));
       final tokens = List<AssetToken>.from(asseTtokens).toList();
-      final newTokens = asseTtokens
-        ..addAll(tokens)
-        ..addAll(tokens)
-        ..addAll(tokens)
-        ..addAll(tokens);
+
       emit(
         PlaylistDetailsLoadedState(
-          assetTokens: List<AssetToken>.from(newTokens)
-            ..addAll(newTokens)
-            ..addAll(newTokens)
-            ..addAll(newTokens),
+          assetTokens: tokens,
           hasMore: indexIds.length > _pageSize,
           currentPage: 0,
         ),

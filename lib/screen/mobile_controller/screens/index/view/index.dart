@@ -40,6 +40,7 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 45),
           HeaderWidget(
             selectedIndex: _selectedPageIndex,
             onPageChanged: (index) {

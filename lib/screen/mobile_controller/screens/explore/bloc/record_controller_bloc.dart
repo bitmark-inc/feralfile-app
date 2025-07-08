@@ -5,6 +5,8 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/record_processing_status_ext.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -24,6 +26,10 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     on<StartRecordingEvent>(_onStartRecording);
     on<StopRecordingEvent>(_onStopRecording);
     on<SubmitTextEvent>(_onSubmitText);
+
+    on<ResetPlaylistEvent>((event, emit) {
+      emit(const RecordInitialState());
+    });
   }
 
   final MobileControllerService service;
@@ -109,10 +115,12 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         state.copyWith(
           lastIntent: result['intent'] == null
               ? null
-              : Map<String, dynamic>.from(result['intent'] as Map),
+              : DP1Intent.fromJson(
+                  Map<String, dynamic>.from(result['intent'] as Map)),
           lastDP1Call: result['dp1_call'] == null
               ? null
-              : Map<String, dynamic>.from(result['dp1_call'] as Map),
+              : DP1Call.fromJson(
+                  Map<String, dynamic>.from(result['dp1_call'] as Map)),
         ),
       );
     } catch (e) {
@@ -133,7 +141,8 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         final nlParserData =
             NLParserData.fromJson(Map<String, dynamic>.from(json));
         await _handleNLParserData(nlParserData, emit);
-      } catch (e) {
+        await Future.delayed(const Duration(milliseconds: 300));
+      } catch (e, s) {
         log.info('Error processing data: $e');
         emit(
           RecordErrorState(
@@ -174,11 +183,17 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
   ) async {
     final transcribe = nlParserData.data['corrected_text'] as String;
     await configurationService.addRecordedMessage(transcribe);
-    emit(
-      RecordProcessingState(
+    if (state is RecordProcessingState) {
+      emit((state as RecordProcessingState).copyWith(
+        transcription: transcribe,
         status: RecordProcessingStatus.transcribed,
-      ),
-    );
+      ));
+    } else
+      emit(
+        RecordProcessingState(
+            status: RecordProcessingStatus.transcribed,
+            transcription: transcribe),
+      );
   }
 
   Future<void> _handleThinking(
@@ -186,32 +201,45 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     Emitter<RecordState> emit,
   ) async {
     final thinking = nlParserData.content;
-    emit(
-      RecordProcessingState(
-        status: RecordProcessingStatus.thinking,
+    if (state is RecordProcessingState) {
+      emit((state as RecordProcessingState).copyWith(
         statusMessage: thinking,
-      ),
-    );
+        status: RecordProcessingStatus.thinking,
+      ));
+    } else
+      emit(
+        RecordProcessingState(
+          status: RecordProcessingStatus.thinking,
+          statusMessage: thinking,
+        ),
+      );
   }
 
   Future<void> _handleIntent(
     NLParserData nlParserData,
     Emitter<RecordState> emit,
   ) async {
-    final intent = Map<String, dynamic>.from(nlParserData.data as Map);
-    emit(
-      RecordProcessingState(
-        status: RecordProcessingStatus.intentReceived,
-        lastIntent: intent,
-      ),
-    );
+    final intent =
+        DP1Intent.fromJson(Map<String, dynamic>.from(nlParserData.data as Map));
+    if (state is RecordProcessingState) {
+      emit((state as RecordProcessingState).copyWith(
+          lastIntent: intent, status: RecordProcessingStatus.intentReceived));
+    } else {
+      emit(
+        RecordProcessingState(
+          status: RecordProcessingStatus.intentReceived,
+          lastIntent: intent,
+        ),
+      );
+    }
   }
 
   Future<void> _handleDP1Call(
     NLParserData nlParserData,
     Emitter<RecordState> emit,
   ) async {
-    final dp1Call = Map<String, dynamic>.from(nlParserData.data);
+    final dp1Call =
+        DP1Call.fromJson(Map<String, dynamic>.from(nlParserData.data));
     final intent = state.lastIntent;
 
     if (intent == null) {
@@ -223,7 +251,7 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       return;
     }
 
-    final items = dp1Call['items'] as List;
+    final items = dp1Call.items as List;
     if (items.isEmpty) {
       emit(
         RecordErrorState(
@@ -233,7 +261,19 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       return;
     }
 
-    final deviceName = intent['device_name'] as String?;
+    if (state is RecordProcessingState) {
+      emit((state as RecordProcessingState).copyWith(
+          lastDP1Call: dp1Call,
+          status: RecordProcessingStatus.dp1CallReceived));
+    } else {
+      emit(RecordProcessingState(
+        status: RecordProcessingStatus.dp1CallReceived,
+        lastDP1Call: dp1Call,
+      ));
+    }
+    return;
+
+    final deviceName = intent.deviceName as String?;
     final device =
         await BluetoothDeviceManager().pickADeviceToDisplay(deviceName ?? '');
 
@@ -279,8 +319,8 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
 
   Future<void> _displayToDevice(
     FFBluetoothDevice device,
-    Map<String, dynamic> dp1Call,
-    Map<String, dynamic> intent,
+    DP1Call dp1Call,
+    DP1Intent intent,
     String? deviceName,
     Emitter<RecordState> emit,
   ) async {
@@ -292,14 +332,14 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     );
 
     await injector<CanvasClientServiceV2>()
-        .sendDp1Call(device, dp1Call, intent);
+        .castPlaylist(device, dp1Call, intent);
 
-    emit(
-      RecordSuccessState().copyWith(
-        lastIntent: intent,
-        lastDP1Call: dp1Call,
-      ),
-    );
+    // emit(
+    //   RecordSuccessState().copyWith(
+    //     lastIntent: intent,
+    //     lastDP1Call: dp1Call,
+    //   ),
+    // );
   }
 
   Future<void> _handleResponse(
@@ -307,6 +347,20 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     Emitter<RecordState> emit,
   ) async {
     log.info('Response action received: ${nlParserData.data}');
+
+    if (state is RecordProcessingState) {
+      final response = nlParserData.content;
+      final intent = state.lastIntent!;
+      final dp1call = state.lastDP1Call!;
+      final transcription = (state as RecordProcessingState).transcription!;
+      final successState = RecordSuccessState(
+        lastIntent: intent,
+        lastDP1Call: dp1call,
+        response: response,
+        transcription: transcription,
+      );
+      emit(successState);
+    }
   }
 
   Future<void> _handleComplete(

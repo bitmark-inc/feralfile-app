@@ -1,13 +1,19 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/widgets/icon_switcher.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/index.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 
@@ -25,6 +31,8 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
   late int _currentPageIndex;
   late PageController _pageController;
 
+  final _recordBloc = RecordBloc(injector(), injector(), injector());
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +43,14 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      const RecordControllerScreen(),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(
+            value: _recordBloc,
+          )
+        ],
+        child: const RecordControllerScreen(),
+      ),
       const ListDirectoryPage(),
     ];
     return SafeArea(
@@ -120,23 +135,45 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
       height: UIConstants.topControlsBarHeight,
       padding: EdgeInsets.symmetric(
         horizontal: ResponsiveLayout.paddingHorizontal,
-      ),
+      ).copyWith(top: 60),
       child: Stack(
         children: [
           Center(
             child: _buildSwitcher(context, _currentPageIndex),
           ),
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: FFCastButton(
-                displayKey: '',
-                onDeviceSelected: (device) async {},
-              ),
-            ),
-          ),
+          BlocBuilder<RecordBloc, RecordState>(
+              bloc: _recordBloc,
+              builder: (context, state) {
+                if (state is RecordSuccessState) {
+                  return Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: FFCastButton(
+                        displayKey: state.lastDP1Call!.id,
+                        onDeviceSelected: (device) async {
+                          final lastIntent = state.lastIntent!;
+                          final lastDP1Call = state.lastDP1Call!;
+                          final deviceName = lastIntent.deviceName;
+                          final device = await BluetoothDeviceManager()
+                              .pickADeviceToDisplay(deviceName ?? '');
+                          if (device == null) {
+                            UIHelper.showInfoDialog(context, 'Device not found',
+                                'Can not find a device to display your artworks');
+                          }
+                          injector<CanvasDeviceBloc>().add(
+                              CanvasDeviceCastDP1PlaylistEvent(
+                                  device: device!,
+                                  playlist: lastDP1Call,
+                                  intent: lastIntent));
+                        },
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox();
+              }),
         ],
       ),
     );
@@ -163,6 +200,10 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
           ),
           onTap: () {
             _pageController.jumpToPage(0);
+            if (_recordBloc.state is RecordSuccessState) {
+              _recordBloc.add(ResetPlaylistEvent());
+            }
+            ;
           },
         ),
         IconSwitcherItem(

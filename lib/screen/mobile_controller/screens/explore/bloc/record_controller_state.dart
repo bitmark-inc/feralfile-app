@@ -16,12 +16,12 @@ class RecordState {
     this.lastDP1Call,
   });
 
-  final Map<String, dynamic>? lastIntent;
-  final Map<String, dynamic>? lastDP1Call;
+  final DP1Intent? lastIntent;
+  final DP1Call? lastDP1Call;
 
   RecordState copyWith({
-    Map<String, dynamic>? lastIntent,
-    Map<String, dynamic>? lastDP1Call,
+    DP1Intent? lastIntent,
+    DP1Call? lastDP1Call,
   }) =>
       RecordState(
         lastIntent: lastIntent ?? this.lastIntent,
@@ -43,24 +43,27 @@ class RecordProcessingState extends RecordState {
     super.lastIntent,
     super.lastDP1Call,
     this.statusMessage,
+    this.transcription,
   });
 
   final RecordProcessingStatus status;
   final String? statusMessage;
+  final String? transcription;
 
   @override
   RecordProcessingState copyWith({
     RecordProcessingStatus? status,
-    Map<String, dynamic>? lastIntent,
-    Map<String, dynamic>? lastDP1Call,
+    DP1Intent? lastIntent,
+    DP1Call? lastDP1Call,
     String? statusMessage,
+    String? transcription,
   }) =>
       RecordProcessingState(
         status: status ?? this.status,
         statusMessage: statusMessage ?? this.statusMessage,
-      ).copyWith(
-        lastIntent: lastIntent,
-        lastDP1Call: lastDP1Call,
+        transcription: transcription ?? this.transcription,
+        lastIntent: lastIntent ?? this.lastIntent,
+        lastDP1Call: lastDP1Call ?? this.lastDP1Call,
       );
 
   String get processingMessage => statusMessage ?? status.message;
@@ -72,4 +75,14 @@ class RecordErrorState extends RecordState {
   final Exception error;
 }
 
-class RecordSuccessState extends RecordState {}
+class RecordSuccessState extends RecordState {
+  final String response;
+  final String transcription;
+
+  const RecordSuccessState({
+    required DP1Intent lastIntent,
+    required DP1Call lastDP1Call,
+    required this.response,
+    required this.transcription,
+  }) : super(lastIntent: lastIntent, lastDP1Call: lastDP1Call);
+}

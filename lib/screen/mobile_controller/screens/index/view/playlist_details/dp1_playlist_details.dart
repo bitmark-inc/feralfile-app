@@ -28,37 +28,31 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => PlaylistDetailsBloc(
-        injector(),
-        playlist,
-      )..add(GetPlaylistDetailsEvent()),
-      child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-        bloc: _canvasDeviceBloc,
-        builder: (context, state) {
-          return Scaffold(
-            appBar: DetailPageAppBar(
-              title: 'Playlists',
-              actions: [
-                FFCastButton(
-                  displayKey: playlist.id,
-                  onDeviceSelected: (device) {
-                    _canvasDeviceBloc.add(
-                      CanvasDeviceCastDP1PlaylistEvent(
-                        device: device,
-                        playlist: playlist,
-                        intent: DP1Intent.displayNow(),
-                      ),
-                    );
-                  },
-                )
-              ],
-            ),
-            backgroundColor: AppColor.auGreyBackground,
-            body: _body(context),
-          );
-        },
-      ),
+    return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+      bloc: _canvasDeviceBloc,
+      builder: (context, state) {
+        return Scaffold(
+          appBar: DetailPageAppBar(
+            title: 'Playlists',
+            actions: [
+              FFCastButton(
+                displayKey: playlist.id,
+                onDeviceSelected: (device) {
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastDP1PlaylistEvent(
+                      device: device,
+                      playlist: playlist,
+                      intent: DP1Intent.displayNow(),
+                    ),
+                  );
+                },
+              )
+            ],
+          ),
+          backgroundColor: AppColor.auGreyBackground,
+          body: _body(context),
+        );
+      },
     );
   }
 
@@ -95,7 +89,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
               // Playlist info
               Expanded(
                 child: Text(
-                  playlist.playlistName,
+                  playlist.title,
                   style: theme.textTheme.ppMori400White12,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -130,9 +124,13 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
   late final ScrollController _scrollController;
   bool _isLoadingMore = false;
 
+  late PlaylistDetailsBloc _playlistDetailsBloc;
+
   @override
   void initState() {
     super.initState();
+    _playlistDetailsBloc = PlaylistDetailsBloc(injector(), widget.playlist);
+    _playlistDetailsBloc.add(GetPlaylistDetailsEvent());
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
   }
@@ -147,11 +145,10 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !_isLoadingMore) {
-      final bloc = context.read<PlaylistDetailsBloc>();
-      final state = bloc.state;
+      final state = _playlistDetailsBloc.state;
       if (state.hasMore && state is! PlaylistDetailsLoadingMoreState) {
         _isLoadingMore = true;
-        bloc.add(LoadMorePlaylistDetailsEvent());
+        _playlistDetailsBloc.add(LoadMorePlaylistDetailsEvent());
       }
     }
   }
@@ -159,6 +156,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PlaylistDetailsBloc, PlaylistDetailsState>(
+      bloc: _playlistDetailsBloc,
       listener: (context, state) {
         if (state is! PlaylistDetailsLoadingMoreState) {
           _isLoadingMore = false;
@@ -219,7 +217,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                         arguments: ArtworkDetailPayload(
                           ArtworkIdentity(asset.id, asset.owner),
                           useIndexer: true,
-                          backTitle: widget.playlist.playlistName,
+                          backTitle: widget.playlist.title,
                         ),
                       );
                     },

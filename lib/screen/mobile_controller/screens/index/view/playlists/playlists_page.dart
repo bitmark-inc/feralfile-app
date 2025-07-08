@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading-indicator.dart';
@@ -167,7 +166,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
             // Playlist info
             Expanded(
               child: Text(
-                playlist.playlistName,
+                playlist.title,
                 style: theme.textTheme.ppMori400White12,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

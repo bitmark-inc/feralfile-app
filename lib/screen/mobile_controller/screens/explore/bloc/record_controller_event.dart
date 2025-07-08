@@ -13,3 +13,5 @@ class SubmitTextEvent extends RecordEvent {
 
   final String text;
 }
+
+class ResetPlaylistEvent extends RecordEvent {}
