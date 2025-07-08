@@ -29,15 +29,15 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
 
-      final playlists = await _playlistService.getAllPlaylistsFromAllChannel(
-        page: 0,
+      final playlists = await _playlistService.getPlaylists(
+        cursor: 0,
         limit: _pageSize,
       );
 
       emit(
         PlaylistsLoadedState(
-          playlists: playlists,
-          hasMore: playlists.length == _pageSize,
+          playlists: playlists.items,
+          hasMore: playlists.hasMore,
           currentPage: 0,
         ),
       );
@@ -74,17 +74,17 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
       );
 
       final nextPage = state.currentPage + 1;
-      final newPlaylists = await _playlistService.getAllPlaylistsFromAllChannel(
-        page: nextPage,
+      final newPlaylistsResponse = await _playlistService.getPlaylists(
+        cursor: nextPage,
         limit: _pageSize,
       );
 
-      final allPlaylists = [...state.playlists, ...newPlaylists];
+      final allPlaylists = [...state.playlists, ...newPlaylistsResponse.items];
 
       emit(
         PlaylistsLoadedState(
           playlists: allPlaylists,
-          hasMore: newPlaylists.length == _pageSize,
+          hasMore: newPlaylistsResponse.hasMore,
           currentPage: nextPage,
         ),
       );
@@ -114,15 +114,15 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
 
-      final playlists = await _playlistService.getAllPlaylistsFromAllChannel(
-        page: 0,
+      final playlistsResponse = await _playlistService.getPlaylists(
+        cursor: 0,
         limit: _pageSize,
       );
 
       emit(
         PlaylistsLoadedState(
-          playlists: playlists,
-          hasMore: playlists.length == _pageSize,
+          playlists: playlistsResponse.items,
+          hasMore: playlistsResponse.hasMore,
           currentPage: 0,
         ),
       );

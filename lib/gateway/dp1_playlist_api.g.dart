@@ -95,12 +95,23 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
   }
 
   @override
-  Future<List<DP1Call>> getAllPlaylists() async {
+  Future<DP1PlaylistResponse> getAllPlaylists({
+    int? cursor,
+    int? limit,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'cursor': cursor,
+      r'limit': limit,
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<DP1Call>>(Options(
+    final _options = _setStreamType<DP1PlaylistResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -116,12 +127,10 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
           _dio.options.baseUrl,
           baseUrl,
         )));
-    final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<DP1Call> _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late DP1PlaylistResponse _value;
     try {
-      _value = _result.data!
-          .map((dynamic i) => DP1Call.fromJson(i as Map<String, dynamic>))
-          .toList();
+      _value = DP1PlaylistResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

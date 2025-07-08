@@ -1,7 +1,8 @@
+import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_api_response.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 
 part 'dp1_playlist_api.g.dart';
 
@@ -21,9 +22,13 @@ abstract class DP1PlaylistApi {
     @Path('playlistId') String playlistId,
   );
 
-  // Nếu API hỗ trợ lấy tất cả playlist
   @GET('/playlists')
-  Future<List<DP1Call>> getAllPlaylists();
+  Future<DP1PlaylistResponse> getAllPlaylists({
+    @Query('cursor') int? cursor,
+    @Query('limit') int? limit,
+    @Query('sortBy') String? sortBy,
+    @Query('sortOrder') String? sortOrder,
+  });
 
   // PLAYLIST GROUP
   @POST('/playlist-groups')

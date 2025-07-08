@@ -1,16 +1,16 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_api_response.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 
 class Dp1PlaylistService {
+  Dp1PlaylistService(this.api, this.apiKey);
   final DP1PlaylistApi api;
   final String apiKey;
-
-  Dp1PlaylistService(this.api, this.apiKey);
 
   // PLAYLIST
   Future<DP1Call> createPlaylist(DP1Call playlist) async {
@@ -39,7 +39,12 @@ class Dp1PlaylistService {
     return results.expand((list) => list).toList();
   }
 
-  Future<List<DP1Call>> getAllPlaylists() async {
+  Future<DP1PlaylistResponse> getPlaylists({
+    int? cursor,
+    int? limit,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
     return api.getAllPlaylists();
   }
 
