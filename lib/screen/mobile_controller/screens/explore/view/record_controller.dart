@@ -160,7 +160,11 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   }
 
   Widget _historyChat(BuildContext context) {
-    final messages = configurationService.getRecordedMessages();
+    var messages = configurationService.getRecordedMessages();
+    if (messages.isEmpty) {
+      messages = UIConstants.sampleHistoryAsks;
+    }
+
     return ListView.builder(
       itemCount: messages.length + 1,
       itemBuilder: (context, index) {
