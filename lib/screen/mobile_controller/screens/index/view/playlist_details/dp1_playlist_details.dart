@@ -1,33 +1,46 @@
-import 'dart:math';
-
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class DP1PlaylistDetailsScreen extends StatefulWidget {
+class DP1PlaylistDetailsScreen extends StatelessWidget {
   const DP1PlaylistDetailsScreen({required this.playlist, super.key});
 
-  @override
-  State<DP1PlaylistDetailsScreen> createState() =>
-      _DP1PlaylistDetailsScreenState();
-
   final DP1Call playlist;
-}
 
-class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: detailPageAppBar(context, 'Playlists'),
-      backgroundColor: AppColor.auGreyBackground,
-      body: _body(context),
+    return BlocProvider(
+      create: (context) => PlaylistDetailsBloc(
+        injector(),
+        playlist,
+      )..add(GetPlaylistDetailsEvent()),
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            Navigator.pop(context);
+          },
+          isWhite: false,
+          statusBarColor: AppColor.auGreyBackground,
+        ),
+        backgroundColor: AppColor.auGreyBackground,
+        body: _body(context),
+      ),
     );
   }
 
@@ -35,13 +48,12 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: UIConstants.detailPageHeaderPadding),
+        const SizedBox(
+          height: UIConstants.topControlsBarHeight,
+        ),
         _header(context),
-        const SizedBox(height: UIConstants.detailPageHeaderPadding),
-        Expanded(
-          child: PlaylistitemGridView(
-            items: widget.playlist.items,
-          ),
+        const Expanded(
+          child: PlaylistAssetGridView(),
         ),
       ],
     );
@@ -49,7 +61,7 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
 
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
-    final playlist = widget.playlist;
+    final playlist = this.playlist;
     return Column(
       children: [
         Container(
@@ -74,131 +86,156 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
             ],
           ),
         ),
-        addOnlyDivider(color: AppColor.primaryBlack)
+        addOnlyDivider(color: AppColor.primaryBlack),
       ],
     );
   }
 }
 
-class PlaylistitemGridView extends StatefulWidget {
-  const PlaylistitemGridView({
-    required this.items,
-    this.scrollController,
-    super.key,
-    this.isScrollable = true,
-    this.padding = EdgeInsets.zero,
-    this.limit,
-    this.header,
-  });
-
-  final List<DP1Item>? items;
-  final ScrollController? scrollController;
-  final bool isScrollable;
-  final EdgeInsets padding;
-  final int? limit;
-  final Widget? header;
+class PlaylistAssetGridView extends StatefulWidget {
+  const PlaylistAssetGridView({super.key});
 
   @override
-  State<PlaylistitemGridView> createState() => _PlaylistitemGridViewState();
+  State<PlaylistAssetGridView> createState() => _PlaylistAssetGridViewState();
 }
 
-class _PlaylistitemGridViewState extends State<PlaylistitemGridView> {
-  late ScrollController _scrollController;
+class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
+  late final ScrollController _scrollController;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = widget.scrollController ?? ScrollController();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
   }
 
-  Widget _loadingView(BuildContext context) => const Padding(
-        padding: EdgeInsets.only(top: 150),
-        child: LoadingWidget(),
-      );
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-  Widget _emptyView(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Text('Playlist Empty', style: theme.textTheme.ppMori400White14),
-    );
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoadingMore) {
+      final bloc = context.read<PlaylistDetailsBloc>();
+      final state = bloc.state;
+      if (state.hasMore && state is! PlaylistDetailsLoadingMoreState) {
+        _isLoadingMore = true;
+        bloc.add(LoadMorePlaylistDetailsEvent());
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final playlistItems = widget.items;
-    return CustomScrollView(
-      controller: _scrollController,
-      shrinkWrap: true,
-      physics: widget.isScrollable
-          ? const AlwaysScrollableScrollPhysics()
-          : const NeverScrollableScrollPhysics(),
-      slivers: [
-        if (playlistItems == null) ...[
-          SliverToBoxAdapter(
-            child: _loadingView(context),
-          ),
-        ] else if (playlistItems.isEmpty) ...[
-          SliverToBoxAdapter(
-            child: _emptyView(context),
-          ),
-        ] else ...[
-          SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+    return BlocConsumer<PlaylistDetailsBloc, PlaylistDetailsState>(
+      listener: (context, state) {
+        if (state is! PlaylistDetailsLoadingMoreState) {
+          _isLoadingMore = false;
+        }
+      },
+      builder: (context, state) {
+        if (state is PlaylistDetailsInitialState ||
+            state is PlaylistDetailsLoadingState) {
+          return _loadingView(context);
+        }
+        if (state.assetTokens.isEmpty) {
+          return _emptyView(context);
+        }
+        return CustomScrollView(
+          controller: _scrollController,
+          shrinkWrap: true,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 40,
+              ),
+            ),
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 188 / 307,
-                mainAxisSpacing: 0,
-                crossAxisSpacing: 17),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final item = playlistItems[index];
-                final border = Border(
-                  top: const BorderSide(
-                    color: AppColor.auGreyBackground,
-                  ),
-                  right: BorderSide(
-                    color:
-                        // if index is even, show border on the right
-                        index.isEven
-                            ? AppColor.auGreyBackground
-                            : Colors.transparent,
-                  ),
-                  // if last row, add border on the bottom
-                  bottom: index >= playlistItems.length - 2
-                      ? const BorderSide(
-                          color: AppColor.auGreyBackground,
-                        )
-                      : BorderSide.none,
-                );
-                return _item(context, item, border);
-              },
-              childCount: widget.limit == null
-                  ? playlistItems.length
-                  : min(widget.limit!, playlistItems.length),
+                crossAxisSpacing: 17,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final asset = state.assetTokens[index];
+                  final border = Border(
+                    top: const BorderSide(
+                      color: AppColor.auGreyBackground,
+                    ),
+                    right: BorderSide(
+                      color: index.isEven
+                          ? AppColor.auGreyBackground
+                          : Colors.transparent,
+                    ),
+                    bottom: index >= state.assetTokens.length - 2
+                        ? const BorderSide(
+                            color: AppColor.auGreyBackground,
+                          )
+                        : BorderSide.none,
+                  );
+                  return GestureDetector(
+                    child: _item(context, asset, border),
+                    onTap: () {
+                      injector<NavigationService>().navigateTo(
+                        AppRouter.artworkDetailsPage,
+                        arguments: ArtworkDetailPayload(
+                          ArtworkIdentity(asset.id, asset.owner),
+                          useIndexer: true,
+                        ),
+                      );
+                    },
+                  );
+                },
+                childCount: state.assetTokens.length,
+              ),
             ),
-          ),
-        ],
-        SliverPadding(
-          padding: widget.padding,
-          sliver: const SliverToBoxAdapter(),
-        ),
-      ],
+            if (state is PlaylistDetailsLoadingMoreState)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _item(BuildContext context, DP1Item item, Border border) {
-    final title = item.title;
-    final artist = item.title;
+  Widget _loadingView(BuildContext context) => const LoadingWidget(
+        backgroundColor: AppColor.auGreyBackground,
+        alignment: Alignment.topCenter,
+        padding: EdgeInsets.only(top: 60),
+      );
+
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 60),
+      child: Text('Playlist Empty', style: theme.textTheme.ppMori400White14),
+    );
+  }
+
+  Widget _item(BuildContext context, AssetToken asset, Border border) {
+    final title = asset.projectMetadata?.latest.title ?? asset.id;
+    final artist = asset.projectMetadata?.latest.artistName ?? '';
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(border: border),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: Container(
-              color: Colors.amber,
-              height: 500,
-              width: 200,
+            child: FFCacheNetworkImage(
+              imageUrl: asset.galleryThumbnailURL ?? '',
+              fit: BoxFit.fitWidth,
             ),
           ),
           const SizedBox(height: 10),
@@ -219,7 +256,7 @@ class _PlaylistitemGridViewState extends State<PlaylistitemGridView> {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-          )
+          ),
         ],
       ),
     );

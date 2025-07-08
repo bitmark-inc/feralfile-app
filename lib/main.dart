@@ -151,8 +151,11 @@ Future<void> runFeralFileApp() async {
       statusBarColor: AppColor.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: AppColor.auGreyBackground,
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     showErrorDialogFromException(

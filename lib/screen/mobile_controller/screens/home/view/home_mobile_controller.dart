@@ -38,13 +38,15 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
       const RecordControllerScreen(),
       const ListDirectoryPage(),
     ];
-    return Scaffold(
-      appBar: getDarkEmptyAppBar(AppColor.auGreyBackground),
-      backgroundColor: AppColor.auGreyBackground,
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: _buildPageView(
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Scaffold(
+        appBar: getDarkEmptyAppBar(Colors.transparent),
+        backgroundColor: AppColor.auGreyBackground,
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        body: _buildPageView(
           pages,
         ),
       ),

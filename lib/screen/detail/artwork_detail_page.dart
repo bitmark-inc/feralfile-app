@@ -231,7 +231,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       },
       builder: (context, state) {
         if (state.assetToken == null) {
-          return const LoadingWidget();
+          return const LoadingWidget(
+            backgroundColor: AppColor.auGreyBackground,
+          );
         }
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
@@ -243,7 +245,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           builder: (context, canvasState) => Stack(
             children: [
               BackdropScaffold(
-                backgroundColor: AppColor.primaryBlack,
+                backgroundColor: AppColor.auGreyBackground,
                 resizeToAvoidBottomInset: !hasKeyboard,
                 frontLayerElevation: _isFullScreen ? 0 : 1,
                 appBar: _isFullScreen
