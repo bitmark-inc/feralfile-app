@@ -57,7 +57,6 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/view/home_mobile_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/channel_detail.page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/dp1_playlist_details.dart';
@@ -782,16 +781,26 @@ class AppRouter {
       case channelDetailPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => ChannelDetailPage(
-            payload: settings.arguments! as ChannelDetailPagePayload,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
+            child: ChannelDetailPage(
+              payload: settings.arguments! as ChannelDetailPagePayload,
+            ),
           ),
         );
 
       case playlistDetailsPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => DP1PlaylistDetailsScreen(
-            payload: settings.arguments! as DP1PlaylistDetailsScreenPayload,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
+            child: DP1PlaylistDetailsScreen(
+              payload: settings.arguments! as DP1PlaylistDetailsScreenPayload,
+            ),
           ),
         );
 

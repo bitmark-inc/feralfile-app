@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -13,6 +14,7 @@ PreferredSize detailPageAppBar(BuildContext context, String title) {
       child: SafeArea(
         bottom: false,
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             InkWell(
               onTap: () => Navigator.pop(context),
@@ -38,6 +40,10 @@ PreferredSize detailPageAppBar(BuildContext context, String title) {
                   ],
                 ),
               ),
+            ),
+            FFCastButton(
+              displayKey: '',
+              onDeviceSelected: (device) async {},
             ),
           ],
         ),
