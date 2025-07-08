@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading-indicator.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,7 +67,7 @@ class _ChannelsPageState extends State<ChannelsPage>
 
   Widget _buildContent(ChannelsState state) {
     if (state is ChannelsLoadingState && state.channels.isEmpty) {
-      return _buildLoadingView();
+      return const LoadingIndicator();
     }
 
     if (state is ChannelsErrorState && state.channels.isEmpty) {
@@ -74,14 +75,6 @@ class _ChannelsPageState extends State<ChannelsPage>
     }
 
     return _buildChannelsList(state);
-  }
-
-  Widget _buildLoadingView() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColor.white,
-      ),
-    );
   }
 
   Widget _buildErrorView(String error) {

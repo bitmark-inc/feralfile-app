@@ -59,7 +59,7 @@ import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bl
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/view/home_mobile_controller.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/channel_detail.page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/channel_detail.page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/dp1_playlist_details.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';

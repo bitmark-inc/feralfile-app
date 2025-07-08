@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-part 'channels_events.dart';
+part 'channels_event.dart';
 part 'channels_state.dart';
 
 class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
