@@ -3,15 +3,17 @@ import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,8 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
 
   final DP1Call playlist;
 
+  CanvasDeviceBloc get _canvasDeviceBloc => injector<CanvasDeviceBloc>();
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -29,17 +33,31 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
         injector(),
         playlist,
       )..add(GetPlaylistDetailsEvent()),
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.pop(context);
-          },
-          isWhite: false,
-          statusBarColor: AppColor.auGreyBackground,
-        ),
-        backgroundColor: AppColor.auGreyBackground,
-        body: _body(context),
+      child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+        bloc: _canvasDeviceBloc,
+        builder: (context, state) {
+          return Scaffold(
+            appBar: DetailPageAppBar(
+              title: 'Playlists',
+              actions: [
+                FFCastButton(
+                  displayKey: playlist.id,
+                  onDeviceSelected: (device) {
+                    _canvasDeviceBloc.add(
+                      CanvasDeviceCastDP1PlaylistEvent(
+                        device: device,
+                        playlist: playlist,
+                        intent: DP1Intent.displayNow(),
+                      ),
+                    );
+                  },
+                )
+              ],
+            ),
+            backgroundColor: AppColor.auGreyBackground,
+            body: _body(context),
+          );
+        },
       ),
     );
   }
@@ -48,12 +66,18 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(
-          height: UIConstants.topControlsBarHeight,
-        ),
-        _header(context),
-        const Expanded(
-          child: PlaylistAssetGridView(),
+        Expanded(
+          child: PlaylistAssetGridView(
+            header: Column(
+              children: [
+                const SizedBox(
+                  height: 65,
+                ),
+                _header(context),
+              ],
+            ),
+            playlist: playlist,
+          ),
         ),
       ],
     );
@@ -93,7 +117,10 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
 }
 
 class PlaylistAssetGridView extends StatefulWidget {
-  const PlaylistAssetGridView({super.key});
+  const PlaylistAssetGridView({required this.playlist, super.key, this.header});
+
+  final DP1Call playlist;
+  final Widget? header;
 
   @override
   State<PlaylistAssetGridView> createState() => _PlaylistAssetGridViewState();
@@ -150,11 +177,16 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
           shrinkWrap: true,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 40,
+            if (widget.header != null) ...[
+              SliverToBoxAdapter(
+                child: widget.header!,
               ),
-            ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 40,
+                ),
+              ),
+            ],
             SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -187,6 +219,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                         arguments: ArtworkDetailPayload(
                           ArtworkIdentity(asset.id, asset.owner),
                           useIndexer: true,
+                          backTitle: widget.playlist.playlistName,
                         ),
                       );
                     },

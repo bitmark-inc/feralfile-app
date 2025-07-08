@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -39,7 +40,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -214,71 +214,70 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final hasKeyboard = currentAsset?.medium == 'software' ||
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
-    return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-      listener: (context, state) {
-        final identitiesList = state.provenances.map((e) => e.owner).toList();
-        if (state.assetToken?.artistName != null &&
-            state.assetToken!.artistName!.length > 20) {
-          identitiesList.add(state.assetToken!.artistName!);
-        }
+    return Scaffold(
+      backgroundColor: AppColor.auGreyBackground,
+      body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+        listener: (context, state) {
+          final identitiesList = state.provenances.map((e) => e.owner).toList();
+          if (state.assetToken?.artistName != null &&
+              state.assetToken!.artistName!.length > 20) {
+            identitiesList.add(state.assetToken!.artistName!);
+          }
 
-        identitiesList.add(state.assetToken?.owner ?? '');
+          identitiesList.add(state.assetToken?.owner ?? '');
 
-        setState(() {
-          currentAsset = state.assetToken;
-        });
-        context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-      },
-      builder: (context, state) {
-        if (state.assetToken == null) {
-          return const LoadingWidget(
-            backgroundColor: AppColor.auGreyBackground,
-          );
-        }
-        final identityState = context.watch<IdentityBloc>().state;
-        final asset = state.assetToken!;
-        final artistName =
-            asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
-        return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-          bloc: _canvasDeviceBloc,
-          builder: (context, canvasState) => Stack(
-            children: [
-              BackdropScaffold(
-                backgroundColor: AppColor.auGreyBackground,
-                resizeToAvoidBottomInset: !hasKeyboard,
-                frontLayerElevation: _isFullScreen ? 0 : 1,
-                appBar: _isFullScreen
-                    ? null
-                    : PreferredSize(
-                        preferredSize: const Size.fromHeight(kToolbarHeight),
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 14),
-                          child: AppBar(
-                            systemOverlayStyle: systemUiOverlayDarkStyle,
-                            leading: Semantics(
-                              label: 'BACK',
-                              child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                constraints: const BoxConstraints(
-                                  maxWidth: 44,
-                                  maxHeight: 44,
-                                  minWidth: 44,
-                                  minHeight: 44,
-                                ),
-                                icon: Padding(
-                                  padding: EdgeInsets.zero,
-                                  child: SvgPicture.asset(
-                                    'assets/images/ff_back_dark.svg',
-                                    width: 28,
-                                    height: 28,
+          setState(() {
+            currentAsset = state.assetToken;
+          });
+          context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+        },
+        builder: (context, state) {
+          if (state.assetToken == null) {
+            return const LoadingWidget(
+              backgroundColor: AppColor.auGreyBackground,
+            );
+          }
+          final identityState = context.watch<IdentityBloc>().state;
+          final asset = state.assetToken!;
+          final artistName =
+              asset.artistName?.toIdentityOrMask(identityState.identityMap);
+          return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+            bloc: _canvasDeviceBloc,
+            builder: (context, canvasState) => Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  child: BackdropScaffold(
+                    backgroundColor: AppColor.auGreyBackground,
+                    resizeToAvoidBottomInset: !hasKeyboard,
+                    frontLayerElevation: _isFullScreen ? 0 : 1,
+                    appBar: _isFullScreen
+                        ? null
+                        : DetailPageAppBar(
+                            title: widget.payload.backTitle ?? '',
+                            actions: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 5),
+                                child: IconButton(
+                                  onPressed: () async =>
+                                      _showArtworkOptionsDialog(
+                                    context,
+                                    asset,
+                                    canvasState,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 44,
+                                    maxHeight: 44,
+                                    minWidth: 44,
+                                    minHeight: 44,
+                                  ),
+                                  icon: SvgPicture.asset(
+                                    'assets/images/more_circle.svg',
+                                    width: 22,
+                                    height: 22,
                                   ),
                                 ),
                               ),
-                            ),
-                            centerTitle: false,
-                            backgroundColor: Colors.transparent,
-                            actions: [
                               FFCastButton(
                                 displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) async {
@@ -307,92 +306,95 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                backLayer: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: ArtworkPreviewWidget(
-                        useIndexer: widget.payload.useIndexer,
-                        identity: widget.payload.identity,
-                        onLoaded: _onLoaded,
-                      ),
-                    ),
-                    if (!_isFullScreen)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 18),
-                        child: ArtworkDetailsHeader(
-                          title: 'I',
-                          subTitle: 'I',
-                          color: Colors.transparent,
-                        ),
-                      ),
-                  ],
-                ),
-                reverseAnimationCurve: Curves.ease,
-                frontLayer: _isFullScreen
-                    ? const SizedBox()
-                    : _infoContent(context, identityState, state, artistName),
-                frontLayerBackgroundColor:
-                    _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
-                backLayerBackgroundColor: AppColor.primaryBlack,
-                animationController: _animationController,
-                revealBackLayerAtStart: true,
-                frontLayerScrim: Colors.transparent,
-                backLayerScrim: Colors.transparent,
-                subHeaderAlwaysActive: false,
-                frontLayerShape: const BeveledRectangleBorder(),
-                subHeader: _isFullScreen
-                    ? null
-                    : DecoratedBox(
-                        decoration:
-                            const BoxDecoration(color: AppColor.primaryBlack),
-                        child: GestureDetector(
-                          onVerticalDragEnd: (details) {
-                            final dy = details.primaryVelocity ?? 0;
-                            if (dy <= 0) {
-                              _infoExpand();
-                            } else {
-                              _infoShrink();
-                            }
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            child: _infoHeader(
-                              context,
-                              asset,
-                              artistName,
-                              canvasState,
-                            ),
+                    backLayer: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ArtworkPreviewWidget(
+                            useIndexer: widget.payload.useIndexer,
+                            identity: widget.payload.identity,
+                            onLoaded: _onLoaded,
                           ),
                         ),
-                      ),
-              ),
-              if (_isInfoExpand && !_isFullScreen)
-                Positioned(
-                  top: _appBarBottomDy ?? 80,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: _infoShrink,
-                    onVerticalDragEnd: (details) {
-                      final dy = details.primaryVelocity ?? 0;
-                      if (dy > 0) {
-                        _infoShrink();
-                      }
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      height: MediaQuery.of(context).size.height / 2 -
-                          (_appBarBottomDy ?? 80),
-                      width: MediaQuery.of(context).size.width,
+                        if (!_isFullScreen)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 18),
+                            child: ArtworkDetailsHeader(
+                              title: 'I',
+                              subTitle: 'I',
+                              color: Colors.transparent,
+                            ),
+                          ),
+                      ],
                     ),
+                    reverseAnimationCurve: Curves.ease,
+                    frontLayer: _isFullScreen
+                        ? const SizedBox()
+                        : _infoContent(
+                            context, identityState, state, artistName),
+                    frontLayerBackgroundColor: _isFullScreen
+                        ? Colors.transparent
+                        : AppColor.auGreyBackground,
+                    backLayerBackgroundColor: AppColor.auGreyBackground,
+                    animationController: _animationController,
+                    revealBackLayerAtStart: true,
+                    frontLayerScrim: Colors.transparent,
+                    backLayerScrim: Colors.transparent,
+                    subHeaderAlwaysActive: false,
+                    frontLayerShape: const BeveledRectangleBorder(),
+                    subHeader: _isFullScreen
+                        ? null
+                        : DecoratedBox(
+                            decoration: const BoxDecoration(
+                                color: AppColor.auGreyBackground),
+                            child: GestureDetector(
+                              onVerticalDragEnd: (details) {
+                                final dy = details.primaryVelocity ?? 0;
+                                if (dy <= 0) {
+                                  _infoExpand();
+                                } else {
+                                  _infoShrink();
+                                }
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                child: _infoHeader(
+                                  context,
+                                  asset,
+                                  artistName,
+                                  canvasState,
+                                ),
+                              ),
+                            ),
+                          ),
                   ),
                 ),
-            ],
-          ),
-        );
-      },
+                if (_isInfoExpand && !_isFullScreen)
+                  Positioned(
+                    top: _appBarBottomDy ?? 80,
+                    bottom: 100,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: _infoShrink,
+                      onVerticalDragEnd: (details) {
+                        final dy = details.primaryVelocity ?? 0;
+                        if (dy > 0) {
+                          _infoShrink();
+                        }
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        height: MediaQuery.of(context).size.height / 2 -
+                            (_appBarBottomDy ?? 80),
+                        width: MediaQuery.of(context).size.width,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -451,30 +453,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             ),
           ),
           _artworkInfoIcon(),
-          Semantics(
-            label: 'artworkDotIcon',
-            child: Padding(
-              padding: const EdgeInsets.only(left: 5),
-              child: IconButton(
-                onPressed: () async => _showArtworkOptionsDialog(
-                  context,
-                  asset,
-                  canvasState,
-                ),
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                  minWidth: 44,
-                  minHeight: 44,
-                ),
-                icon: SvgPicture.asset(
-                  'assets/images/more_circle.svg',
-                  width: 22,
-                  height: 22,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -779,6 +757,7 @@ class ArtworkDetailPayload {
     this.useIndexer = false,
     this.shouldUseLocalCache = true,
     this.key,
+    this.backTitle,
   });
 
   final Key? key;
@@ -787,6 +766,7 @@ class ArtworkDetailPayload {
   final bool useIndexer; // set true when navigate from discover/gallery page
   // if local token, it can be hidden and refresh metadata
   final bool shouldUseLocalCache;
+  final String? backTitle;
 
   ArtworkDetailPayload copyWith({
     ArtworkIdentity? identity,

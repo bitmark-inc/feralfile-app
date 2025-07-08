@@ -791,9 +791,14 @@ class AppRouter {
         final playlist = settings.arguments! as DP1Call;
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => DP1PlaylistDetailsScreen(
-                  playlist: playlist,
-                ));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: subscriptionBloc),
+                      BlocProvider.value(value: canvasDeviceBloc),
+                    ],
+                    child: DP1PlaylistDetailsScreen(
+                      playlist: playlist,
+                    )));
 
       default:
         throw Exception('Invalid route: ${settings.name}');

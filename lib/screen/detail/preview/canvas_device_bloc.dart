@@ -359,6 +359,20 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       }
     });
 
+    on<CanvasDeviceCastDP1PlaylistEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        final ok = await _canvasClientServiceV2.castPlaylist(
+          device,
+          event.playlist,
+          event.intent,
+        );
+        log.info('CanvasDeviceBloc: castPlaylist ok: $ok');
+      } catch (e) {
+        log.info('CanvasDeviceBloc: error while cast playlist: $e');
+      }
+    });
+
     on<CanvasDeviceCastExhibitionEvent>((event, emit) async {
       final device = event.device;
       try {
