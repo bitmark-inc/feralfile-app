@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/channels_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/collection/collection_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/playlists_page.dart';
@@ -50,7 +51,7 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
               _pageController.jumpToPage(index);
             },
           ),
-          const SizedBox(height: 45),
+          const SizedBox(height: UIConstants.detailPageHeaderPadding),
           Expanded(
             child: PageView.builder(
               physics: const NeverScrollableScrollPhysics(),

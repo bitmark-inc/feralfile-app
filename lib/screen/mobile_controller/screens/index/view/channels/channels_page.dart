@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading-indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_indicator.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -71,36 +73,13 @@ class _ChannelsPageState extends State<ChannelsPage>
     }
 
     if (state is ChannelsErrorState && state.channels.isEmpty) {
-      return _buildErrorView(state.error);
+      return ErrorView(
+        error: 'Error loading channels: ${state.error}',
+        onRetry: () => _channelsBloc.add(LoadChannelsEvent()),
+      );
     }
 
     return _buildChannelsList(state);
-  }
-
-  Widget _buildErrorView(String error) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Error loading channels',
-            style: theme.textTheme.ppMori400White12,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: theme.textTheme.ppMori400Grey12,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => _channelsBloc.add(LoadChannelsEvent()),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildChannelsList(ChannelsState state) {
@@ -114,7 +93,7 @@ class _ChannelsPageState extends State<ChannelsPage>
       separatorBuilder: (context, index) => const SizedBox(height: 1),
       itemBuilder: (context, index) {
         if (index == channels.length) {
-          return _buildLoadingIndicator(isLoadingMore);
+          return LoadMoreIndicator(isLoadingMore: isLoadingMore);
         }
 
         return Column(
@@ -124,23 +103,6 @@ class _ChannelsPageState extends State<ChannelsPage>
           ],
         );
       },
-    );
-  }
-
-  Widget _buildLoadingIndicator(bool isLoadingMore) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      alignment: Alignment.center,
-      child: isLoadingMore
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                color: AppColor.white,
-                strokeWidth: 2,
-              ),
-            )
-          : const SizedBox.shrink(),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,6 +21,7 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: SafeArea(
         bottom: false,
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _backIcon(context, title),
             Spacer(),
@@ -58,6 +60,10 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
               title,
               style: theme.textTheme.ppMori400Grey12,
               overflow: TextOverflow.ellipsis,
+            ),
+            FFCastButton(
+              displayKey: '',
+              onDeviceSelected: (device) async {},
             ),
           ],
         ),

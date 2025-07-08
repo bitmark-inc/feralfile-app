@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -19,10 +19,20 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class DP1PlaylistDetailsScreen extends StatelessWidget {
-  const DP1PlaylistDetailsScreen({required this.playlist, super.key});
+class DP1PlaylistDetailsScreenPayload {
+  const DP1PlaylistDetailsScreenPayload({
+    required this.playlist,
+    this.customTitle,
+  });
 
   final DP1Call playlist;
+  final String? customTitle;
+}
+
+class DP1PlaylistDetailsScreen extends StatelessWidget {
+  const DP1PlaylistDetailsScreen({required this.payload, super.key});
+
+  final DP1PlaylistDetailsScreenPayload payload;
 
   CanvasDeviceBloc get _canvasDeviceBloc => injector<CanvasDeviceBloc>();
 
@@ -36,12 +46,12 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
             title: 'Playlists',
             actions: [
               FFCastButton(
-                displayKey: playlist.id,
+                displayKey: payload.playlist.id,
                 onDeviceSelected: (device) {
                   _canvasDeviceBloc.add(
                     CanvasDeviceCastDP1PlaylistEvent(
                       device: device,
-                      playlist: playlist,
+                      playlist: payload.playlist,
                       intent: DP1Intent.displayNow(),
                     ),
                   );
@@ -70,7 +80,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
                 _header(context),
               ],
             ),
-            playlist: playlist,
+            playlist: payload.playlist,
           ),
         ),
       ],
@@ -79,7 +89,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
 
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
-    final playlist = this.playlist;
+    final playlist = payload.playlist;
     return Column(
       children: [
         Container(
