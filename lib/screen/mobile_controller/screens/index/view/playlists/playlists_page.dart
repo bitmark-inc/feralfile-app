@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading-indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -71,36 +73,13 @@ class _PlaylistsPageState extends State<PlaylistsPage>
     }
 
     if (state is PlaylistsErrorState && state.playlists.isEmpty) {
-      return _buildErrorView(state.error);
+      return ErrorView(
+        error: 'Error loading playlists: ${state.error}',
+        onRetry: () => _playlistsBloc.add(LoadPlaylistsEvent()),
+      );
     }
 
     return _buildPlaylistsList(state);
-  }
-
-  Widget _buildErrorView(String error) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Error loading playlists',
-            style: theme.textTheme.ppMori400White12,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: theme.textTheme.ppMori400Grey12,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => _playlistsBloc.add(LoadPlaylistsEvent()),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildPlaylistsList(PlaylistsState state) {
@@ -113,7 +92,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
       itemCount: playlists.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == playlists.length) {
-          return _buildLoadingIndicator(isLoadingMore);
+          return LoadMoreIndicator(isLoadingMore: isLoadingMore);
         }
 
         return Column(
@@ -123,23 +102,6 @@ class _PlaylistsPageState extends State<PlaylistsPage>
           ],
         );
       },
-    );
-  }
-
-  Widget _buildLoadingIndicator(bool isLoadingMore) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      alignment: Alignment.center,
-      child: isLoadingMore
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                color: AppColor.white,
-                strokeWidth: 2,
-              ),
-            )
-          : const SizedBox.shrink(),
     );
   }
 

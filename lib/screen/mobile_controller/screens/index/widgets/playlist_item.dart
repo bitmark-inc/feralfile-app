@@ -47,7 +47,7 @@ class PlaylistItem extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Feral File',
+                  playlist.channelName,
                   style: theme.textTheme.ppMori400Grey12.copyWith(
                     decoration: TextDecoration.underline,
                   ),

@@ -11,12 +11,12 @@ const List<String> pageTitles = [
 
 class HeaderWidget extends StatelessWidget {
   const HeaderWidget({
-    super.key,
     required this.selectedIndex,
     required this.onPageChanged,
+    super.key,
   });
   final int selectedIndex;
-  final Function(int) onPageChanged;
+  final void Function(int) onPageChanged;
 
   @override
   Widget build(BuildContext context) {

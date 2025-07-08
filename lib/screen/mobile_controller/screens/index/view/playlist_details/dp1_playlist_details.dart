@@ -2,11 +2,10 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -46,52 +45,20 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: UIConstants.detailPageHeaderPadding),
-        _header(context),
+        PlaylistItem(playlist: widget.payload.playlist),
         const SizedBox(height: UIConstants.detailPageHeaderPadding),
         Expanded(
-          child: PlaylistitemGridView(
+          child: PlaylistItemGridView(
             items: widget.payload.playlist.items,
           ),
         ),
       ],
     );
   }
-
-  Widget _header(BuildContext context) {
-    final theme = Theme.of(context);
-    final playlist = widget.payload.playlist;
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          child: Row(
-            children: [
-              // Playlist info
-              Expanded(
-                child: Text(
-                  playlist.playlistName,
-                  style: theme.textTheme.ppMori400White12,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                playlist.channelName,
-                style: theme.textTheme.ppMori400Grey12.copyWith(
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ],
-          ),
-        ),
-        addOnlyDivider(color: AppColor.primaryBlack)
-      ],
-    );
-  }
 }
 
-class PlaylistitemGridView extends StatefulWidget {
-  const PlaylistitemGridView({
+class PlaylistItemGridView extends StatefulWidget {
+  const PlaylistItemGridView({
     required this.items,
     this.scrollController,
     super.key,
@@ -109,10 +76,10 @@ class PlaylistitemGridView extends StatefulWidget {
   final Widget? header;
 
   @override
-  State<PlaylistitemGridView> createState() => _PlaylistitemGridViewState();
+  State<PlaylistItemGridView> createState() => _PlaylistItemGridViewState();
 }
 
-class _PlaylistitemGridViewState extends State<PlaylistitemGridView> {
+class _PlaylistItemGridViewState extends State<PlaylistItemGridView> {
   late ScrollController _scrollController;
 
   @override
