@@ -116,9 +116,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
     return Container(
       color: Colors.transparent,
       height: UIConstants.topControlsBarHeight,
-      padding: EdgeInsets.symmetric(
-        horizontal: ResponsiveLayout.paddingHorizontal,
-      ),
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
       child: Stack(
         children: [
           Center(
