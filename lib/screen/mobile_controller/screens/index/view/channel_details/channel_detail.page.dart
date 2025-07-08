@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/bloc/channel_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
@@ -44,9 +45,9 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
           builder: (context, state) {
             return Column(
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: UIConstants.detailPageHeaderPadding),
                 ChannelItem(channel: widget.payload.channel),
-                const SizedBox(height: 40),
+                const SizedBox(height: UIConstants.detailPageHeaderPadding),
                 _buildPlaylists(context, state),
               ],
             );

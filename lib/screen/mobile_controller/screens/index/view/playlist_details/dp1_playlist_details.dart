@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -24,9 +25,7 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: () {
-        Navigator.pop(context);
-      }, isWhite: false, statusBarColor: AppColor.auGreyBackground),
+      appBar: detailPageAppBar(context, 'Playlists'),
       backgroundColor: AppColor.auGreyBackground,
       body: _body(context),
     );
@@ -36,11 +35,9 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(
-          height: UIConstants.topControlsBarHeight,
-        ),
+        const SizedBox(height: UIConstants.detailPageHeaderPadding),
         _header(context),
-        const SizedBox(height: 40),
+        const SizedBox(height: UIConstants.detailPageHeaderPadding),
         Expanded(
           child: PlaylistitemGridView(
             items: widget.playlist.items,
