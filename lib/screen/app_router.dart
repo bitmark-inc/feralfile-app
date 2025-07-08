@@ -788,12 +788,12 @@ class AppRouter {
         );
 
       case playlistDetailsPage:
-        final playlist = settings.arguments! as DP1Call;
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => DP1PlaylistDetailsScreen(
-                  playlist: playlist,
-                ));
+          settings: settings,
+          builder: (context) => DP1PlaylistDetailsScreen(
+            payload: settings.arguments! as DP1PlaylistDetailsScreenPayload,
+          ),
+        );
 
       default:
         throw Exception('Invalid route: ${settings.name}');

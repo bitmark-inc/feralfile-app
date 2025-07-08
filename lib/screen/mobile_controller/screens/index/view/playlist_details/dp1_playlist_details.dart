@@ -7,25 +7,35 @@ import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
+class DP1PlaylistDetailsScreenPayload {
+  const DP1PlaylistDetailsScreenPayload({
+    required this.playlist,
+    this.customTitle,
+  });
+
+  final DP1Call playlist;
+  final String? customTitle;
+}
+
 class DP1PlaylistDetailsScreen extends StatefulWidget {
-  const DP1PlaylistDetailsScreen({required this.playlist, super.key});
+  const DP1PlaylistDetailsScreen({required this.payload, super.key});
 
   @override
   State<DP1PlaylistDetailsScreen> createState() =>
       _DP1PlaylistDetailsScreenState();
 
-  final DP1Call playlist;
+  final DP1PlaylistDetailsScreenPayload payload;
 }
 
 class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: detailPageAppBar(context, 'Playlists'),
+      appBar:
+          detailPageAppBar(context, widget.payload.customTitle ?? 'Playlists'),
       backgroundColor: AppColor.auGreyBackground,
       body: _body(context),
     );
@@ -40,7 +50,7 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
         const SizedBox(height: UIConstants.detailPageHeaderPadding),
         Expanded(
           child: PlaylistitemGridView(
-            items: widget.playlist.items,
+            items: widget.payload.playlist.items,
           ),
         ),
       ],
@@ -49,7 +59,7 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
 
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
-    final playlist = widget.playlist;
+    final playlist = widget.payload.playlist;
     return Column(
       children: [
         Container(

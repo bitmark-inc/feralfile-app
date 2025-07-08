@@ -119,11 +119,6 @@ class _PlaylistsPageState extends State<PlaylistsPage>
         return Column(
           children: [
             PlaylistItem(playlist: playlists[index]),
-            if (index < playlists.length - 1)
-              const Divider(
-                height: 1,
-                color: AppColor.primaryBlack,
-              ),
             if (index == playlists.length - 1) const SizedBox(height: 20),
           ],
         );

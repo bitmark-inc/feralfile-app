@@ -62,8 +62,12 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (state is ChannelDetailLoadedState)
-          ...state.playlists
-              .map((playlist) => PlaylistItem(playlist: playlist)),
+          ...state.playlists.map(
+            (playlist) => PlaylistItem(
+              playlist: playlist,
+              channel: widget.payload.channel,
+            ),
+          ),
         if (state is ChannelDetailLoadingState) const LoadingIndicator(),
         if (state is ChannelDetailErrorState) Center(child: Text(state.error)),
       ],
