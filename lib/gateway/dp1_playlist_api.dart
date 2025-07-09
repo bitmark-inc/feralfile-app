@@ -24,7 +24,7 @@ abstract class DP1PlaylistApi {
 
   @GET('/playlists')
   Future<DP1PlaylistResponse> getAllPlaylists({
-    @Query('cursor') int? cursor,
+    @Query('cursor') String? cursor,
     @Query('limit') int? limit,
     @Query('sortBy') String? sortBy,
     @Query('sortOrder') String? sortOrder,
@@ -42,7 +42,9 @@ abstract class DP1PlaylistApi {
     @Path('groupId') String groupId,
   );
 
-  // Nếu API hỗ trợ lấy tất cả playlist-group
   @GET('/playlist-groups')
-  Future<List<Channel>> getAllPlaylistGroups();
+  Future<DP1ChannelsResponse> getAllPlaylistGroups({
+    @Query('cursor') String? cursor,
+    @Query('limit') int? limit,
+  });
 }

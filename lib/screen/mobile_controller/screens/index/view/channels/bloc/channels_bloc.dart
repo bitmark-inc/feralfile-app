@@ -23,25 +23,27 @@ class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
       emit(ChannelsLoadingState(
         channels: state.channels,
         hasMore: state.hasMore,
-        currentPage: state.currentPage,
+        cursor: state.cursor,
       ));
 
-      final channels = await _channelsService.getChannels(
-        page: 0,
+      final channelsResponse = await _channelsService.getChannels(
+        cursor: state.cursor,
         limit: _pageSize,
       );
 
-      emit(ChannelsLoadedState(
-        channels: channels,
-        hasMore: channels.length == _pageSize,
-        currentPage: 0,
-      ));
+      emit(
+        ChannelsLoadedState(
+          channels: channelsResponse.items,
+          hasMore: channelsResponse.hasMore,
+          cursor: channelsResponse.cursor,
+        ),
+      );
     } catch (error) {
       emit(ChannelsErrorState(
         error: error.toString(),
         channels: state.channels,
         hasMore: state.hasMore,
-        currentPage: state.currentPage,
+        cursor: state.cursor,
       ));
     }
   }
@@ -61,28 +63,27 @@ class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
       emit(ChannelsLoadingMoreState(
         channels: state.channels,
         hasMore: state.hasMore,
-        currentPage: state.currentPage,
+        cursor: state.cursor,
       ));
 
-      final nextPage = state.currentPage + 1;
-      final newChannels = await _channelsService.getChannels(
-        page: nextPage,
+      final newChannelsResponse = await _channelsService.getChannels(
+        cursor: state.cursor,
         limit: _pageSize,
       );
 
-      final allChannels = [...state.channels, ...newChannels];
+      final allChannels = [...state.channels, ...newChannelsResponse.items];
 
       emit(ChannelsLoadedState(
         channels: allChannels,
-        hasMore: newChannels.length == _pageSize,
-        currentPage: nextPage,
+        hasMore: newChannelsResponse.hasMore,
+        cursor: newChannelsResponse.cursor,
       ));
     } catch (error) {
       emit(ChannelsErrorState(
         error: error.toString(),
         channels: state.channels,
         hasMore: state.hasMore,
-        currentPage: state.currentPage,
+        cursor: state.cursor,
       ));
     }
   }
@@ -96,28 +97,30 @@ class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
       emit(ChannelsLoadingState(
         channels: state.channels,
         hasMore: state.hasMore,
-        currentPage: state.currentPage,
+        cursor: state.cursor,
       ));
 
-      final channels = await _channelsService.getChannels(
-        page: 0,
+      final channelsResponse = await _channelsService.getChannels(
+        cursor: state.cursor,
         limit: _pageSize,
       );
 
       emit(
         ChannelsLoadedState(
-          channels: channels,
-          hasMore: channels.length == _pageSize,
-          currentPage: 0,
+          channels: channelsResponse.items,
+          hasMore: channelsResponse.hasMore,
+          cursor: channelsResponse.cursor,
         ),
       );
     } catch (error) {
-      emit(ChannelsErrorState(
-        error: error.toString(),
-        channels: state.channels,
-        hasMore: state.hasMore,
-        currentPage: state.currentPage,
-      ));
+      emit(
+        ChannelsErrorState(
+          error: error.toString(),
+          channels: state.channels,
+          hasMore: state.hasMore,
+          cursor: state.cursor,
+        ),
+      );
     }
   }
 }

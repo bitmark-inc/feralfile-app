@@ -5,11 +5,11 @@ abstract class PlaylistsState {
   const PlaylistsState({
     required this.playlists,
     required this.hasMore,
-    required this.currentPage,
+    required this.cursor,
   });
   final List<DP1Call> playlists;
   final bool hasMore;
-  final int currentPage;
+  final String? cursor;
 }
 
 // Initial state
@@ -18,7 +18,7 @@ class PlaylistsInitialState extends PlaylistsState {
       : super(
           playlists: const [],
           hasMore: true,
-          currentPage: 0,
+          cursor: null,
         );
 }
 
@@ -27,7 +27,7 @@ class PlaylistsLoadingState extends PlaylistsState {
   const PlaylistsLoadingState({
     required super.playlists,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
 }
 
@@ -36,7 +36,7 @@ class PlaylistsLoadedState extends PlaylistsState {
   const PlaylistsLoadedState({
     required super.playlists,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
 }
 
@@ -45,7 +45,7 @@ class PlaylistsLoadingMoreState extends PlaylistsState {
   const PlaylistsLoadingMoreState({
     required super.playlists,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
 }
 
@@ -55,7 +55,7 @@ class PlaylistsErrorState extends PlaylistsState {
     required this.error,
     required super.playlists,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
   final String error;
 }

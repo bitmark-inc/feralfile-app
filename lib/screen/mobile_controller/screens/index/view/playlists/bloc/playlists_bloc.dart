@@ -25,20 +25,19 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         PlaylistsLoadingState(
           playlists: state.playlists,
           hasMore: state.hasMore,
-          currentPage: state.currentPage,
+          cursor: state.cursor,
         ),
       );
 
-      final playlists = await _playlistService.getPlaylists(
-        cursor: 0,
+      final playlistsResponse = await _playlistService.getPlaylists(
         limit: _pageSize,
       );
 
       emit(
         PlaylistsLoadedState(
-          playlists: playlists.items,
-          hasMore: playlists.hasMore,
-          currentPage: 0,
+          playlists: playlistsResponse.items,
+          hasMore: playlistsResponse.hasMore,
+          cursor: playlistsResponse.cursor,
         ),
       );
     } catch (error) {
@@ -47,7 +46,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
           error: error.toString(),
           playlists: state.playlists,
           hasMore: state.hasMore,
-          currentPage: state.currentPage,
+          cursor: state.cursor,
         ),
       );
     }
@@ -69,13 +68,12 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         PlaylistsLoadingMoreState(
           playlists: state.playlists,
           hasMore: state.hasMore,
-          currentPage: state.currentPage,
+          cursor: state.cursor,
         ),
       );
 
-      final nextPage = state.currentPage + 1;
       final newPlaylistsResponse = await _playlistService.getPlaylists(
-        cursor: nextPage,
+        cursor: state.cursor,
         limit: _pageSize,
       );
 
@@ -85,7 +83,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         PlaylistsLoadedState(
           playlists: allPlaylists,
           hasMore: newPlaylistsResponse.hasMore,
-          currentPage: nextPage,
+          cursor: newPlaylistsResponse.cursor,
         ),
       );
     } catch (error) {
@@ -94,7 +92,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
           error: error.toString(),
           playlists: state.playlists,
           hasMore: state.hasMore,
-          currentPage: state.currentPage,
+          cursor: state.cursor,
         ),
       );
     }
@@ -110,12 +108,12 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         PlaylistsLoadingState(
           playlists: state.playlists,
           hasMore: state.hasMore,
-          currentPage: state.currentPage,
+          cursor: state.cursor,
         ),
       );
 
       final playlistsResponse = await _playlistService.getPlaylists(
-        cursor: 0,
+        cursor: state.cursor,
         limit: _pageSize,
       );
 
@@ -123,7 +121,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         PlaylistsLoadedState(
           playlists: playlistsResponse.items,
           hasMore: playlistsResponse.hasMore,
-          currentPage: 0,
+          cursor: playlistsResponse.cursor,
         ),
       );
     } catch (error) {
@@ -132,7 +130,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
           error: error.toString(),
           playlists: state.playlists,
           hasMore: state.hasMore,
-          currentPage: state.currentPage,
+          cursor: state.cursor,
         ),
       );
     }

@@ -5,11 +5,11 @@ abstract class ChannelsState {
   const ChannelsState({
     required this.channels,
     required this.hasMore,
-    required this.currentPage,
+    required this.cursor,
   });
   final List<Channel> channels;
   final bool hasMore;
-  final int currentPage;
+  final String? cursor;
 }
 
 // Initial state
@@ -18,7 +18,7 @@ class ChannelsInitialState extends ChannelsState {
       : super(
           channels: const [],
           hasMore: true,
-          currentPage: 0,
+          cursor: null,
         );
 }
 
@@ -27,7 +27,7 @@ class ChannelsLoadingState extends ChannelsState {
   const ChannelsLoadingState({
     required super.channels,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
 }
 
@@ -36,7 +36,7 @@ class ChannelsLoadedState extends ChannelsState {
   const ChannelsLoadedState({
     required super.channels,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
 }
 
@@ -45,7 +45,7 @@ class ChannelsLoadingMoreState extends ChannelsState {
   const ChannelsLoadingMoreState({
     required super.channels,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
 }
 
@@ -55,7 +55,7 @@ class ChannelsErrorState extends ChannelsState {
     required this.error,
     required super.channels,
     required super.hasMore,
-    required super.currentPage,
+    required super.cursor,
   });
   final String error;
 }

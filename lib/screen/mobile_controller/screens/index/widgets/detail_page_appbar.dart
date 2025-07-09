@@ -24,14 +24,16 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _backIcon(context, title),
-            Spacer(),
+            const Spacer(),
             const SizedBox(width: 10),
-            ...actions.map((e) => Row(
-                  children: [
-                    e,
-                    const SizedBox(height: 10),
-                  ],
-                )),
+            ...actions.map(
+              (e) => Row(
+                children: [
+                  e,
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -60,10 +62,6 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
               title,
               style: theme.textTheme.ppMori400Grey12,
               overflow: TextOverflow.ellipsis,
-            ),
-            FFCastButton(
-              displayKey: '',
-              onDeviceSelected: (device) async {},
             ),
           ],
         ),

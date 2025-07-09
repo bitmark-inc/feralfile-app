@@ -1,9 +1,7 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_api_response.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 
@@ -21,31 +19,14 @@ class Dp1PlaylistService {
     return api.getPlaylistById(playlistId);
   }
 
-  Future<List<DP1Call>> getAllPlaylistsFromAllChannel(
-      {required int page, required int limit}) async {
-    final channel = await injector<ChannelsService>().getChannels();
-
-    // Execute all requests in parallel
-    final futures = channel.map((c) async {
-      try {
-        return await getPlaylistsByChannel(c);
-      } catch (e) {
-        log.info('Error when get playlists from channel ${c.title}: $e');
-        return <DP1Call>[]; // Return empty list on error
-      }
-    });
-
-    final results = await Future.wait(futures);
-    return results.expand((list) => list).toList();
-  }
-
   Future<DP1PlaylistResponse> getPlaylists({
-    int? cursor,
+    String? cursor,
     int? limit,
-    String? sortBy,
-    String? sortOrder,
   }) async {
-    return api.getAllPlaylists();
+    return api.getAllPlaylists(
+      cursor: cursor,
+      limit: limit,
+    );
   }
 
   // PLAYLIST GROUP
@@ -55,10 +36,6 @@ class Dp1PlaylistService {
 
   Future<Channel> getPlaylistGroupById(String groupId) async {
     return api.getPlaylistGroupById(groupId);
-  }
-
-  Future<List<Channel>> getAllPlaylistGroups() async {
-    return api.getAllPlaylistGroups();
   }
 
   Future<List<DP1Call>> getPlaylistsByChannel(Channel channel) async {
