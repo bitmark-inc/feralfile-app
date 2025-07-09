@@ -78,39 +78,42 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                   ),
                 ),
                 const SizedBox(height: 20),
-                Builder(
-                  builder: (context) {
-                    if (state is RecordProcessingState) {
-                      return Center(
-                        child: Text(
-                          state.processingMessage,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .ppMori400Grey14
-                              .copyWith(color: Colors.white),
-                        ),
-                      );
-                    } else if (state is RecordErrorState) {
-                      if (state.error is AudioPermissionDeniedException) {
-                        return _noPermissionWidget(context);
-                      } else if (state.error is AudioException) {
+                Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: Builder(
+                    builder: (context) {
+                      if (state is RecordProcessingState) {
                         return Center(
                           child: Text(
-                            (state.error as AudioException).message,
+                            state.processingMessage,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context)
                                 .textTheme
-                                .ppMori400Black14
-                                .copyWith(color: Colors.red),
+                                .ppMori400Grey14
+                                .copyWith(color: Colors.white),
                           ),
                         );
+                      } else if (state is RecordErrorState) {
+                        if (state.error is AudioPermissionDeniedException) {
+                          return _noPermissionWidget(context);
+                        } else if (state.error is AudioException) {
+                          return Center(
+                            child: Text(
+                              (state.error as AudioException).message,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .ppMori400Black14
+                                  .copyWith(color: Colors.red),
+                            ),
+                          );
+                        }
                       }
-                    }
-                    return const SizedBox.shrink();
-                  },
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ),
               ],
             ),
