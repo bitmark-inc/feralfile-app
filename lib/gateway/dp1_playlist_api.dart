@@ -11,18 +11,18 @@ abstract class DP1PlaylistApi {
   factory DP1PlaylistApi(Dio dio, {String baseUrl}) = _DP1PlaylistApi;
 
   // PLAYLIST
-  @POST('/playlists')
+  @POST('/api/v1/playlists')
   Future<DP1Call> createPlaylist(
     @Body() Map<String, dynamic> body,
     @Header('Authorization') String bearerToken,
   );
 
-  @GET('/playlists/{playlistId}')
+  @GET('/api/v1/playlists/{playlistId}')
   Future<DP1Call> getPlaylistById(
     @Path('playlistId') String playlistId,
   );
 
-  @GET('/playlists')
+  @GET('/api/v1/playlists')
   Future<DP1PlaylistResponse> getAllPlaylists({
     @Query('cursor') String? cursor,
     @Query('limit') int? limit,
@@ -31,18 +31,18 @@ abstract class DP1PlaylistApi {
   });
 
   // PLAYLIST GROUP
-  @POST('/playlist-groups')
+  @POST('/api/v1/playlist-groups')
   Future<Channel> createPlaylistGroup(
     @Body() Map<String, dynamic> body,
     @Header('Authorization') String bearerToken,
   );
 
-  @GET('/playlist-groups/{groupId}')
+  @GET('/api/v1/playlist-groups/{groupId}')
   Future<Channel> getPlaylistGroupById(
     @Path('groupId') String groupId,
   );
 
-  @GET('/playlist-groups')
+  @GET('/api/v1/playlist-groups')
   Future<DP1ChannelsResponse> getAllPlaylistGroups({
     @Query('cursor') String? cursor,
     @Query('limit') int? limit,

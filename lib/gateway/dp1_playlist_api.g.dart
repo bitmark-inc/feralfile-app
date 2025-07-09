@@ -41,7 +41,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
     )
         .compose(
           _dio.options,
-          '/playlists',
+          '/api/v1/playlists',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -74,7 +74,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
     )
         .compose(
           _dio.options,
-          '/playlists/${playlistId}',
+          '/api/v1/playlists/${playlistId}',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -118,7 +118,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
     )
         .compose(
           _dio.options,
-          '/playlists',
+          '/api/v1/playlists',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -156,7 +156,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
     )
         .compose(
           _dio.options,
-          '/playlist-groups',
+          '/api/v1/playlist-groups',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -189,7 +189,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
     )
         .compose(
           _dio.options,
-          '/playlist-groups/${groupId}',
+          '/api/v1/playlist-groups/${groupId}',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -228,7 +228,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
     )
         .compose(
           _dio.options,
-          '/playlist-groups',
+          '/api/v1/playlist-groups',
           queryParameters: queryParameters,
           data: _data,
         )
