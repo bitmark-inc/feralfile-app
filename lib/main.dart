@@ -279,13 +279,13 @@ class AutonomyAppScaffold extends StatefulWidget {
   State<AutonomyAppScaffold> createState() => _AutonomyAppScaffoldState();
 }
 
+const double kStatusBarMarginBottom = 20;
+
 class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   bool _isVisible = true;
   double _lastScrollPosition = 0;
-
-  static const double kStatusBarMarginBottom = 20;
 
   @override
   void initState() {
