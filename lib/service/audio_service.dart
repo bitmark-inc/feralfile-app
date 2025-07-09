@@ -26,8 +26,8 @@ class AudioService {
   }
 
   Future<void> startRecording(
-      {double silenceThreshold = 40,
-      Duration silenceDuration = const Duration(seconds: 3),
+      {double silenceThreshold = 50,
+      Duration silenceDuration = const Duration(seconds: 2),
       FutureOr<void> Function()? onSilenceDetected}) async {
     final recorder = await getRecorder();
     final dir = await getTemporaryDirectory();

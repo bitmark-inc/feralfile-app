@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -94,10 +95,16 @@ class _PlaylistsPageState extends State<PlaylistsPage>
         if (index == playlists.length) {
           return LoadMoreIndicator(isLoadingMore: isLoadingMore);
         }
+        final playlist = playlists[index];
+        final channel =
+            injector<Dp1PlaylistService>().getChannelByPlaylistId(playlist.id);
 
         return Column(
           children: [
-            PlaylistItem(playlist: playlists[index]),
+            PlaylistItem(
+              playlist: playlist,
+              channel: channel,
+            ),
             if (index == playlists.length - 1) const SizedBox(height: 20),
           ],
         );

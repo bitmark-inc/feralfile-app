@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -10,8 +11,8 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/pla
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
@@ -67,6 +68,9 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
   }
 
   Widget _body(BuildContext context) {
+    final channel = injector<Dp1PlaylistService>()
+        .getChannelByPlaylistId(payload.playlist.id);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -75,7 +79,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
             header: Column(
               children: [
                 const SizedBox(height: UIConstants.detailPageHeaderPadding),
-                PlaylistItem(playlist: payload.playlist),
+                PlaylistItem(playlist: payload.playlist, channel: channel)
               ],
             ),
             playlist: payload.playlist,
@@ -141,7 +145,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
       builder: (context, state) {
         if (state is PlaylistDetailsInitialState ||
             state is PlaylistDetailsLoadingState) {
-          return const LoadingView();
+          return _loadingView(context);
         }
         if (state.assetTokens.isEmpty) {
           return _emptyView(context);
@@ -208,12 +212,20 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                   padding: EdgeInsets.symmetric(vertical: 16),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-              ),
+              )
+            else
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         );
       },
     );
   }
+
+  Widget _loadingView(BuildContext context) => const LoadingWidget(
+        backgroundColor: AppColor.auGreyBackground,
+        alignment: Alignment.topCenter,
+        padding: EdgeInsets.only(top: 60),
+      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
@@ -244,15 +256,19 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
-                style: Theme.of(context).textTheme.ppMori400White12,
+                artist,
+                style: Theme.of(context).textTheme.ppMori700White12,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 5),
               Text(
-                artist,
-                style: Theme.of(context).textTheme.ppMori400Grey12,
+                title,
+                // italic
+                style: Theme.of(context)
+                    .textTheme
+                    .ppMori700White12
+                    .copyWith(fontStyle: FontStyle.italic),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

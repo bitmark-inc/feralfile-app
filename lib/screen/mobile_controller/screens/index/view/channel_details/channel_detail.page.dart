@@ -11,9 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChannelDetailPagePayload {
-  ChannelDetailPagePayload({required this.channel});
+  ChannelDetailPagePayload(
+      {required this.channel, this.backTitle = 'Channels'});
 
   final Channel channel;
+  final String backTitle;
 }
 
 class ChannelDetailPage extends StatefulWidget {
@@ -40,7 +42,7 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.auGreyBackground,
-      appBar: DetailPageAppBar(title: 'Channels'),
+      appBar: DetailPageAppBar(title: widget.payload.backTitle),
       body: SafeArea(
         child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
           bloc: _channelDetailBloc,

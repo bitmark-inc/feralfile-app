@@ -5,7 +5,9 @@ import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/widgets/icon_switcher.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/index.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -38,6 +40,10 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
     super.initState();
     _currentPageIndex = widget.initialPageIndex;
     _pageController = PageController(initialPage: _currentPageIndex);
+
+    // load channel and playlist
+    injector<ChannelsBloc>().add(LoadChannelsEvent());
+    injector<PlaylistsBloc>().add(LoadPlaylistsEvent());
   }
 
   @override
