@@ -93,13 +93,21 @@ class _ChannelsPageState extends State<ChannelsPage>
       itemCount: channels.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == channels.length) {
-          return LoadMoreIndicator(isLoadingMore: isLoadingMore);
+          return Column(
+            children: [
+              LoadMoreIndicator(isLoadingMore: isLoadingMore),
+              const SizedBox(height: 120),
+            ],
+          );
         }
 
         return Column(
           children: [
             ChannelItem(channel: channels[index]),
-            if (index == channels.length - 1) const SizedBox(height: 120),
+            if (index == channels.length - 1 && !hasMore)
+              const SizedBox(
+                height: 120,
+              ),
           ],
         );
       },

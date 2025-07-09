@@ -94,7 +94,12 @@ class _PlaylistsPageState extends State<PlaylistsPage>
       itemCount: playlists.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == playlists.length) {
-          return LoadMoreIndicator(isLoadingMore: isLoadingMore);
+          return Column(
+            children: [
+              LoadMoreIndicator(isLoadingMore: isLoadingMore),
+              const SizedBox(height: 120),
+            ],
+          );
         }
 
         final playlist = playlists[index];
@@ -107,7 +112,10 @@ class _PlaylistsPageState extends State<PlaylistsPage>
               playlist: playlist,
               channel: channel,
             ),
-            if (index == playlists.length - 1) const SizedBox(height: 120),
+            if (index == playlists.length - 1 && !hasMore)
+              const SizedBox(
+                height: 120,
+              ),
           ],
         );
       },
