@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -7,6 +9,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sentry/sentry.dart';
 
 class PlaylistDetailsBloc
     extends AuBloc<PlaylistDetailsEvent, PlaylistDetailsState> {
@@ -40,6 +43,10 @@ class PlaylistDetailsBloc
         QueryListTokensRequest(ids: pageIndexIds),
       ));
       final tokens = List<AssetToken>.from(asseTtokens).toList();
+      if (tokens.length != indexIds.length) {
+        unawaited(Sentry.captureException(
+            Exception('Can not get all tokens: ${indexIds.join(', ')}')));
+      }
 
       emit(
         PlaylistDetailsLoadedState(

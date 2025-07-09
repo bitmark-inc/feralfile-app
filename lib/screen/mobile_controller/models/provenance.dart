@@ -149,7 +149,7 @@ enum DP1ProvenanceChain {
       case DP1ProvenanceChain.evm:
         return 'eth';
       case DP1ProvenanceChain.tezos:
-        return 'tz';
+        return 'tez';
       case DP1ProvenanceChain.bitmark:
         return 'bmk';
       case DP1ProvenanceChain.other:

@@ -225,6 +225,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
   Widget _loadingView(BuildContext context) => const LoadingWidget(
         backgroundColor: AppColor.auGreyBackground,
         isInfinitySize: false,
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 60),
       );
 
   Widget _emptyView(BuildContext context) {
