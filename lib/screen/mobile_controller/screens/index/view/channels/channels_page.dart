@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/cha
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -69,7 +69,7 @@ class _ChannelsPageState extends State<ChannelsPage>
 
   Widget _buildContent(ChannelsState state) {
     if (state is ChannelsLoadingState && state.channels.isEmpty) {
-      return const LoadingIndicator();
+      return const LoadingView();
     }
 
     if (state is ChannelsErrorState && state.channels.isEmpty) {

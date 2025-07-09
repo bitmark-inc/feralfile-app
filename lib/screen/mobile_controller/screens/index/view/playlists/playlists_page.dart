@@ -2,7 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +69,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
 
   Widget _buildContent(PlaylistsState state) {
     if (state is PlaylistsLoadingState && state.playlists.isEmpty) {
-      return const LoadingIndicator();
+      return const LoadingView();
     }
 
     if (state is PlaylistsErrorState && state.playlists.isEmpty) {

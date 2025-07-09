@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/bloc/channel_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_indicator.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +50,9 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
                 const SizedBox(height: UIConstants.detailPageHeaderPadding),
                 ChannelItem(channel: widget.payload.channel),
                 const SizedBox(height: UIConstants.detailPageHeaderPadding),
-                _buildPlaylists(context, state),
+                Expanded(
+                  child: _buildPlaylists(context, state),
+                ),
               ],
             );
           },
@@ -60,19 +62,25 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
   }
 
   Widget _buildPlaylists(BuildContext context, ChannelDetailState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (state is ChannelDetailLoadedState)
-          ...state.playlists.map(
-            (playlist) => PlaylistItem(
-              playlist: playlist,
-              channel: widget.payload.channel,
+    switch (state) {
+      case ChannelDetailLoadingState():
+        return const LoadingView();
+      case ChannelDetailErrorState():
+        return Center(child: Text(state.error));
+      case ChannelDetailLoadedState():
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...state.playlists.map(
+              (playlist) => PlaylistItem(
+                playlist: playlist,
+                channel: widget.payload.channel,
+              ),
             ),
-          ),
-        if (state is ChannelDetailLoadingState) const LoadingIndicator(),
-        if (state is ChannelDetailErrorState) Center(child: Text(state.error)),
-      ],
-    );
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }

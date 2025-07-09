@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
-import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -11,6 +10,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/pla
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -175,7 +175,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
       builder: (context, state) {
         if (state is PlaylistDetailsInitialState ||
             state is PlaylistDetailsLoadingState) {
-          return _loadingView(context);
+          return const LoadingView();
         }
         if (state.assetTokens.isEmpty) {
           return _emptyView(context);
@@ -248,12 +248,6 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
       },
     );
   }
-
-  Widget _loadingView(BuildContext context) => const LoadingWidget(
-        backgroundColor: AppColor.auGreyBackground,
-        alignment: Alignment.topCenter,
-        padding: EdgeInsets.only(top: 60),
-      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);

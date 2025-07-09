@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_indicator.dart';
+import 'package:feralfile_app_theme/style/colors.dart';
 import 'package:flutter/material.dart';
 
 class LoadMoreIndicator extends StatelessWidget {
@@ -18,7 +18,9 @@ class LoadMoreIndicator extends StatelessWidget {
           ? const SizedBox(
               height: 20,
               width: 20,
-              child: LoadingIndicator(),
+              child: CircularProgressIndicator(
+                color: AppColor.white,
+              ),
             )
           : const SizedBox.shrink(),
     );
