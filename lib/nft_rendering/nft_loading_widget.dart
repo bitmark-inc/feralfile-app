@@ -8,21 +8,23 @@ class LoadingWidget extends StatelessWidget {
   final Color? backgroundColor;
   final Alignment alignment;
   final EdgeInsets padding;
+  final bool isInfinitySize;
 
   const LoadingWidget(
       {super.key,
       this.invertColors = false,
       this.backgroundColor,
       this.alignment = Alignment.center,
-      this.padding = EdgeInsets.zero});
+      this.padding = EdgeInsets.zero,
+      this.isInfinitySize = true});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      width: double.infinity,
-      height: double.infinity,
+      width: isInfinitySize ? double.infinity : null,
+      height: isInfinitySize ? double.infinity : null,
       color: backgroundColor ?? AppColor.primaryBlack,
       child: Align(
         alignment: alignment,

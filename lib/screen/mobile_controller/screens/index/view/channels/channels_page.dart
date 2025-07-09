@@ -1,4 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/channel_detail.page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
@@ -90,7 +92,19 @@ class _ChannelsPageState extends State<ChannelsPage>
     return ListView.custom(
       controller: _scrollController,
       childrenDelegate: SliverChildListDelegate([
-        for (final channel in channels) ChannelItem(channel: channel),
+        for (final channel in channels)
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                AppRouter.channelDetailPage,
+                arguments: ChannelDetailPagePayload(channel: channel),
+              );
+            },
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: ChannelItem(channel: channel),
+            ),
+          ),
         if (hasMore) ...[
           const SizedBox(height: 20),
           LoadMoreIndicator(isLoadingMore: isLoadingMore),

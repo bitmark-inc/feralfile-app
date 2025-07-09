@@ -143,13 +143,6 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
         }
       },
       builder: (context, state) {
-        if (state is PlaylistDetailsInitialState ||
-            state is PlaylistDetailsLoadingState) {
-          return _loadingView(context);
-        }
-        if (state.assetTokens.isEmpty) {
-          return _emptyView(context);
-        }
         return CustomScrollView(
           controller: _scrollController,
           shrinkWrap: true,
@@ -165,47 +158,57 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                 ),
               ),
             ],
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 188 / 307,
-                crossAxisSpacing: 17,
+            if (state is PlaylistDetailsInitialState ||
+                state is PlaylistDetailsLoadingState)
+              SliverToBoxAdapter(
+                child: _loadingView(context),
+              )
+            else if (state.assetTokens.isEmpty)
+              SliverToBoxAdapter(
+                child: _emptyView(context),
+              )
+            else
+              SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 188 / 307,
+                  crossAxisSpacing: 17,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final asset = state.assetTokens[index];
+                    final border = Border(
+                      top: const BorderSide(
+                        color: AppColor.auGreyBackground,
+                      ),
+                      right: BorderSide(
+                        color: index.isEven
+                            ? AppColor.auGreyBackground
+                            : Colors.transparent,
+                      ),
+                      bottom: index >= state.assetTokens.length - 2
+                          ? const BorderSide(
+                              color: AppColor.auGreyBackground,
+                            )
+                          : BorderSide.none,
+                    );
+                    return GestureDetector(
+                      child: _item(context, asset, border),
+                      onTap: () {
+                        injector<NavigationService>().navigateTo(
+                          AppRouter.artworkDetailsPage,
+                          arguments: ArtworkDetailPayload(
+                            ArtworkIdentity(asset.id, asset.owner),
+                            useIndexer: true,
+                            backTitle: widget.playlist.title,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  childCount: state.assetTokens.length,
+                ),
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final asset = state.assetTokens[index];
-                  final border = Border(
-                    top: const BorderSide(
-                      color: AppColor.auGreyBackground,
-                    ),
-                    right: BorderSide(
-                      color: index.isEven
-                          ? AppColor.auGreyBackground
-                          : Colors.transparent,
-                    ),
-                    bottom: index >= state.assetTokens.length - 2
-                        ? const BorderSide(
-                            color: AppColor.auGreyBackground,
-                          )
-                        : BorderSide.none,
-                  );
-                  return GestureDetector(
-                    child: _item(context, asset, border),
-                    onTap: () {
-                      injector<NavigationService>().navigateTo(
-                        AppRouter.artworkDetailsPage,
-                        arguments: ArtworkDetailPayload(
-                          ArtworkIdentity(asset.id, asset.owner),
-                          useIndexer: true,
-                          backTitle: widget.playlist.title,
-                        ),
-                      );
-                    },
-                  );
-                },
-                childCount: state.assetTokens.length,
-              ),
-            ),
             if (state is PlaylistDetailsLoadingMoreState)
               const SliverToBoxAdapter(
                 child: Padding(
@@ -223,8 +226,7 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
 
   Widget _loadingView(BuildContext context) => const LoadingWidget(
         backgroundColor: AppColor.auGreyBackground,
-        alignment: Alignment.topCenter,
-        padding: EdgeInsets.only(top: 60),
+        isInfinitySize: false,
       );
 
   Widget _emptyView(BuildContext context) {
