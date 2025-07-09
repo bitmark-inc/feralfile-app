@@ -24,10 +24,9 @@ abstract class DP1PlaylistApi {
 
   @GET('/api/v1/playlists')
   Future<DP1PlaylistResponse> getAllPlaylists({
+    @Query('playlist-group') String? playlistGroupId,
     @Query('cursor') String? cursor,
     @Query('limit') int? limit,
-    @Query('sortBy') String? sortBy,
-    @Query('sortOrder') String? sortOrder,
   });
 
   // PLAYLIST GROUP

@@ -493,7 +493,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<ChannelsService>(
-    () => ChannelsService(injector()),
+    () => ChannelsService(injector(), Environment.dp1FeedApiKey),
   );
 
   injector.registerFactory<ChannelsBloc>(

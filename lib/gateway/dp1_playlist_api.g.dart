@@ -96,17 +96,15 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
 
   @override
   Future<DP1PlaylistResponse> getAllPlaylists({
+    String? playlistGroupId,
     String? cursor,
     int? limit,
-    String? sortBy,
-    String? sortOrder,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
+      r'playlist-group': playlistGroupId,
       r'cursor': cursor,
       r'limit': limit,
-      r'sortBy': sortBy,
-      r'sortOrder': sortOrder,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

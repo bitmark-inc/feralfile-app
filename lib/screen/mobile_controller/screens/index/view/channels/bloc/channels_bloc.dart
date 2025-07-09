@@ -20,11 +20,13 @@ class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
     Emitter<ChannelsState> emit,
   ) async {
     try {
-      emit(ChannelsLoadingState(
-        channels: state.channels,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
+      emit(
+        ChannelsLoadingState(
+          channels: state.channels,
+          hasMore: state.hasMore,
+          cursor: state.cursor,
+        ),
+      );
 
       final channelsResponse = await _channelsService.getChannels(
         cursor: state.cursor,
@@ -73,11 +75,13 @@ class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
 
       final allChannels = [...state.channels, ...newChannelsResponse.items];
 
-      emit(ChannelsLoadedState(
-        channels: allChannels,
-        hasMore: newChannelsResponse.hasMore,
-        cursor: newChannelsResponse.cursor,
-      ));
+      emit(
+        ChannelsLoadedState(
+          channels: allChannels,
+          hasMore: newChannelsResponse.hasMore,
+          cursor: newChannelsResponse.cursor,
+        ),
+      );
     } catch (error) {
       emit(ChannelsErrorState(
         error: error.toString(),
@@ -94,11 +98,13 @@ class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
   ) async {
     try {
       // Keep current channels visible during refresh
-      emit(ChannelsLoadingState(
-        channels: state.channels,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
+      emit(
+        ChannelsLoadingState(
+          channels: state.channels,
+          hasMore: state.hasMore,
+          cursor: state.cursor,
+        ),
+      );
 
       final channelsResponse = await _channelsService.getChannels(
         cursor: state.cursor,
