@@ -5,9 +5,8 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/cha
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_list_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,7 +85,8 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
             Expanded(
               child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
                 bloc: _channelDetailBloc,
-                builder: (context, state) => RefreshIndicator(
+                builder: (context, state) =>
+                RefreshIndicator(
                   onRefresh: () async {
                     _channelDetailBloc.add(
                       RefreshChannelPlaylistsEvent(
@@ -132,34 +132,13 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
     final hasMore = state.hasMore;
     final isLoadingMore = state is ChannelDetailLoadingState;
 
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      controller: _scrollController,
-      itemCount: playlists.length + (hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == playlists.length) {
-          return Column(
-            children: [
-              LoadMoreIndicator(isLoadingMore: isLoadingMore),
-              const SizedBox(height: 120),
-            ],
-          );
-        }
-
-        return Column(
-          children: [
-            PlaylistItem(
-              playlist: playlists[index],
-              channel: widget.payload.channel,
-              isCustomTitle: true,
-            ),
-            if (index == playlists.length - 1 && !hasMore)
-              const SizedBox(
-                height: 120,
-              ),
-          ],
-        );
-      },
+    return PlaylistListView(
+      playlists: playlists,
+      hasMore: hasMore,
+      isLoadingMore: isLoadingMore,
+      scrollController: _scrollController,
+      channel: widget.payload.channel,
+      isCustomTitle: true,
     );
   }
 

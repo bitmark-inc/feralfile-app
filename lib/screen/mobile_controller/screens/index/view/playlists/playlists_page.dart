@@ -1,9 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_list_view.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -80,45 +79,21 @@ class _PlaylistsPageState extends State<PlaylistsPage>
       );
     }
 
-    return _buildPlaylistsList(state);
+    return _buildPlaylists(state);
   }
 
-  Widget _buildPlaylistsList(PlaylistsState state) {
+  Widget _buildPlaylists(PlaylistsState state) {
     final playlists = state.playlists;
     final hasMore = state.hasMore;
     final isLoadingMore = state is PlaylistsLoadingMoreState;
 
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      controller: _scrollController,
-      itemCount: playlists.length + (hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == playlists.length) {
-          return Column(
-            children: [
-              LoadMoreIndicator(isLoadingMore: isLoadingMore),
-              const SizedBox(height: 120),
-            ],
-          );
-        }
-
-        final playlist = playlists[index];
-        final channel =
-            injector<Dp1PlaylistService>().getChannelByPlaylistId(playlist.id);
-
-        return Column(
-          children: [
-            PlaylistItem(
-              playlist: playlist,
-              channel: channel,
-            ),
-            if (index == playlists.length - 1 && !hasMore)
-              const SizedBox(
-                height: 120,
-              ),
-          ],
-        );
-      },
+    return PlaylistListView(
+      playlists: playlists,
+      hasMore: hasMore,
+      isLoadingMore: isLoadingMore,
+      scrollController: _scrollController,
+      channel: injector<Dp1PlaylistService>()
+          .getChannelByPlaylistId(playlists.first.id),
     );
   }
 
