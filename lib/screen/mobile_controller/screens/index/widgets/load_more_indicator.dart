@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:feralfile_app_theme/style/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -15,12 +16,8 @@ class LoadMoreIndicator extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       alignment: Alignment.center,
       child: isLoadingMore
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                color: AppColor.white,
-              ),
+          ? const LoadingWidget(
+              backgroundColor: AppColor.auGreyBackground,
             )
           : const SizedBox.shrink(),
     );

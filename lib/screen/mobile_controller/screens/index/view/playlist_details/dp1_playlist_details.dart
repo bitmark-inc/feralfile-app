@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/pla
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -211,13 +212,10 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
               ),
             if (state is PlaylistDetailsLoadingMoreState)
               const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              )
-            else
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                  child: LoadMoreIndicator(
+                isLoadingMore: true,
+              )),
+            const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         );
       },
