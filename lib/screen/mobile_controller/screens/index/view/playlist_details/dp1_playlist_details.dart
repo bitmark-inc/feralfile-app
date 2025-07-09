@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_call_ext.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_bloc.dart';
@@ -11,8 +11,8 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/pla
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_state.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -43,7 +43,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: DetailPageAppBar(
-            title: 'Playlists',
+            title: payload.customTitle ?? 'Playlists',
             actions: [
               FFCastButton(
                 displayKey: payload.playlist.id,
@@ -74,47 +74,13 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
           child: PlaylistAssetGridView(
             header: Column(
               children: [
-                const SizedBox(
-                  height: 65,
-                ),
-                _header(context),
+                const SizedBox(height: UIConstants.detailPageHeaderPadding),
+                PlaylistItem(playlist: payload.playlist),
               ],
             ),
             playlist: payload.playlist,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _header(BuildContext context) {
-    final theme = Theme.of(context);
-    final playlist = payload.playlist;
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          child: Row(
-            children: [
-              // Playlist info
-              Expanded(
-                child: Text(
-                  playlist.title,
-                  style: theme.textTheme.ppMori400White12,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                playlist.channelName,
-                style: theme.textTheme.ppMori400Grey12.copyWith(
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ],
-          ),
-        ),
-        addOnlyDivider(color: AppColor.primaryBlack),
       ],
     );
   }
@@ -189,9 +155,9 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
               SliverToBoxAdapter(
                 child: widget.header!,
               ),
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SizedBox(
-                  height: 40,
+                  height: UIConstants.detailPageHeaderPadding,
                 ),
               ),
             ],
