@@ -88,27 +88,34 @@ class _PlaylistsPageState extends State<PlaylistsPage>
     final hasMore = state.hasMore;
     final isLoadingMore = state is PlaylistsLoadingMoreState;
 
-    return ListView.builder(
+    return ListView.custom(
       controller: _scrollController,
-      itemCount: playlists.length + (hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == playlists.length) {
-          return LoadMoreIndicator(isLoadingMore: isLoadingMore);
-        }
-        final playlist = playlists[index];
-        final channel =
-            injector<Dp1PlaylistService>().getChannelByPlaylistId(playlist.id);
+      // itemCount: playlists.length + (hasMore ? 1 : 0),
+      childrenDelegate: SliverChildListDelegate(
+        [
+          for (final playlist in playlists)
+            Builder(builder: (context) {
+              final channel = injector<Dp1PlaylistService>()
+                  .getChannelByPlaylistId(playlist.id);
 
-        return Column(
-          children: [
-            PlaylistItem(
-              playlist: playlist,
-              channel: channel,
-            ),
-            if (index == playlists.length - 1) const SizedBox(height: 20),
+              return Column(
+                children: [
+                  PlaylistItem(
+                    playlist: playlist,
+                    channel: channel,
+                  ),
+                ],
+              );
+            }),
+          if (hasMore) ...[
+            const SizedBox(height: 20),
+            LoadMoreIndicator(isLoadingMore: isLoadingMore),
           ],
-        );
-      },
+          Container(
+            height: 160,
+          )
+        ],
+      ),
     );
   }
 

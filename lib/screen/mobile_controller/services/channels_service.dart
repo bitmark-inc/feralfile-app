@@ -19,6 +19,8 @@ class ChannelsService {
       cursor: cursor,
       limit: limit,
     );
+    channels.items.sort(
+        (channel1, channel2) => channel1.created.compareTo(channel2.created));
     _channels.addAll(channels.items);
     return channels;
   }
