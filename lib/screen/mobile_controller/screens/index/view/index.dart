@@ -52,6 +52,7 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
             },
           ),
           const SizedBox(height: UIConstants.detailPageHeaderPadding),
+          // _myCollectionButton(context),
           Expanded(
             child: PageView.builder(
               physics: const NeverScrollableScrollPhysics(),
