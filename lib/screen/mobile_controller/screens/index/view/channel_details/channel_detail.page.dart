@@ -151,6 +151,7 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
             PlaylistItem(
               playlist: playlists[index],
               channel: widget.payload.channel,
+              isCustomTitle: true,
             ),
             if (index == playlists.length - 1 && !hasMore)
               const SizedBox(

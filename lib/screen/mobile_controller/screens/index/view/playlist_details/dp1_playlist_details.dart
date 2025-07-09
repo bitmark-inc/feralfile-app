@@ -24,11 +24,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class DP1PlaylistDetailsScreenPayload {
   const DP1PlaylistDetailsScreenPayload({
     required this.playlist,
-    this.customTitle,
+    this.backTitle,
   });
 
   final DP1Call playlist;
-  final String? customTitle;
+  final String? backTitle;
 }
 
 class DP1PlaylistDetailsScreen extends StatelessWidget {
@@ -45,7 +45,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: DetailPageAppBar(
-            title: payload.customTitle ?? 'Playlists',
+            title: payload.backTitle ?? 'Playlists',
             actions: [
               FFCastButton(
                 displayKey: payload.playlist.id,

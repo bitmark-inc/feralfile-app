@@ -12,11 +12,13 @@ class PlaylistItem extends StatelessWidget {
   const PlaylistItem({
     required this.playlist,
     this.channel,
+    this.isCustomTitle = false,
     super.key,
   });
 
   final DP1Call playlist;
   final Channel? channel;
+  final bool isCustomTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,7 @@ class PlaylistItem extends StatelessWidget {
           AppRouter.playlistDetailsPage,
           arguments: DP1PlaylistDetailsScreenPayload(
             playlist: playlist,
-            customTitle: channel?.title,
+            backTitle: isCustomTitle ? channel?.title : null,
           ),
         );
       },
@@ -50,9 +52,12 @@ class PlaylistItem extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       injector<NavigationService>().navigateTo(
-                          AppRouter.channelDetailPage,
-                          arguments: ChannelDetailPagePayload(
-                              channel: channel!, backTitle: 'Playlists'));
+                        AppRouter.channelDetailPage,
+                        arguments: ChannelDetailPagePayload(
+                          channel: channel!,
+                          backTitle: 'Playlists',
+                        ),
+                      );
                     },
                     child: Text(
                       channel!.title,
