@@ -87,18 +87,22 @@ class _ChannelsPageState extends State<ChannelsPage>
     final hasMore = state.hasMore;
     final isLoadingMore = state is ChannelsLoadingMoreState;
 
-    return ListView.custom(
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
-      childrenDelegate: SliverChildListDelegate([
-        for (final channel in channels) ChannelItem(channel: channel),
-        if (hasMore) ...[
-          const SizedBox(height: 20),
-          LoadMoreIndicator(isLoadingMore: isLoadingMore),
-        ],
-        Container(
-          height: 160,
-        ),
-      ]),
+      itemCount: channels.length + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == channels.length) {
+          return LoadMoreIndicator(isLoadingMore: isLoadingMore);
+        }
+
+        return Column(
+          children: [
+            ChannelItem(channel: channels[index]),
+            if (index == channels.length - 1) const SizedBox(height: 120),
+          ],
+        );
+      },
     );
   }
 
