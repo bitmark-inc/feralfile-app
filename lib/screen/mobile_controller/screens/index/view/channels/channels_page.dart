@@ -89,30 +89,43 @@ class _ChannelsPageState extends State<ChannelsPage>
     final hasMore = state.hasMore;
     final isLoadingMore = state is ChannelsLoadingMoreState;
 
-    return ListView.custom(
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
-      childrenDelegate: SliverChildListDelegate([
-        for (final channel in channels)
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                AppRouter.channelDetailPage,
-                arguments: ChannelDetailPagePayload(channel: channel),
-              );
-            },
-            child: ColoredBox(
-              color: Colors.transparent,
-              child: ChannelItem(channel: channel),
+      itemCount: channels.length + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == channels.length) {
+          return Column(
+            children: [
+              LoadMoreIndicator(isLoadingMore: isLoadingMore),
+              const SizedBox(height: 120),
+            ],
+          );
+        }
+
+        final channel = channels[index];
+
+        return Column(
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  AppRouter.channelDetailPage,
+                  arguments: ChannelDetailPagePayload(channel: channel),
+                );
+              },
+              child: ColoredBox(
+                color: Colors.transparent,
+                child: ChannelItem(channel: channel),
+              ),
             ),
-          ),
-        if (hasMore) ...[
-          const SizedBox(height: 20),
-          LoadMoreIndicator(isLoadingMore: isLoadingMore),
-        ],
-        Container(
-          height: 160,
-        ),
-      ]),
+            if (index == channels.length - 1 && !hasMore)
+              const SizedBox(
+                height: 120,
+              ),
+          ],
+        );
+      },
     );
   }
 

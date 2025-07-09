@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/metric_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -56,7 +57,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:shake/shake.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -88,6 +88,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   bool _isInfoExpand = false;
   static const _infoShrinkPosition = 0.001;
   static const _infoExpandPosition = 0.29;
+  static const _infoHeaderHeight = 68;
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
   late AnimationController _animationController;
@@ -123,7 +124,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void afterFirstLayout(BuildContext context) {
     WidgetsBinding.instance.addObserver(this);
-    _appBarBottomDy ??= MediaQuery.of(context).padding.top + kToolbarHeight;
+    const appBarHeight = kToolbarHeight + 20;
+    _appBarBottomDy ??= appBarHeight + MediaQuery.of(context).padding.top;
     _detector = ShakeDetector.autoStart(
       onPhoneShake: () async {
         await _exitFullScreen();
@@ -184,9 +186,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     super.dispose();
   }
 
+  @override
+  void didPop() {
+    CustomRouteObserver.bottomSheetHeight.value = 0;
+    super.didPop();
+  }
+
+  @override
+  void didPopNext() {
+    CustomRouteObserver.bottomSheetHeight.value = 0;
+    super.didPopNext();
+  }
+
   void _infoShrink() {
     setState(() {
       _isInfoExpand = false;
+      CustomRouteObserver.bottomSheetHeight.value = 0;
     });
     _selectTextFocusNode.unfocus();
     _animationController.animateTo(_infoShrinkPosition);
@@ -199,6 +214,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     }
     setState(() {
       _isInfoExpand = true;
+      CustomRouteObserver.bottomSheetHeight.value =
+          (MediaQuery.of(context).size.height -
+                      (_appBarBottomDy ?? 80) -
+                      _infoHeaderHeight) *
+                  0.5 +
+              _infoHeaderHeight;
     });
     _animationController.animateTo(_infoExpandPosition);
   }
@@ -388,7 +409,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 if (_isInfoExpand && !_isFullScreen)
                   Positioned(
                     top: _appBarBottomDy ?? 80,
-                    bottom: 100,
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: _infoShrink,
@@ -400,8 +420,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       },
                       child: Container(
                         color: Colors.transparent,
-                        height: MediaQuery.of(context).size.height / 2 -
-                            (_appBarBottomDy ?? 80),
+                        height: (MediaQuery.of(context).size.height -
+                                (_appBarBottomDy ?? 80) -
+                                _infoHeaderHeight) *
+                            0.5,
                         width: MediaQuery.of(context).size.width,
                       ),
                     ),
@@ -588,8 +610,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   ),
                 ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.5 -
-                      (_appBarBottomDy ?? 80),
+                  height: (MediaQuery.of(context).size.height -
+                          (_appBarBottomDy ?? 80) -
+                          _infoHeaderHeight) *
+                      0.5,
                 ),
               ],
             ),

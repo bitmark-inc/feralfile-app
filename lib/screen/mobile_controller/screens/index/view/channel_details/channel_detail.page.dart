@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ChannelDetailPagePayload {
   ChannelDetailPagePayload(
@@ -42,7 +43,28 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.auGreyBackground,
-      appBar: DetailPageAppBar(title: widget.payload.backTitle),
+      appBar: DetailPageAppBar(
+        title: widget.payload.backTitle,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(left: 5),
+            child: IconButton(
+              onPressed: () {},
+              constraints: const BoxConstraints(
+                maxWidth: 44,
+                maxHeight: 44,
+                minWidth: 44,
+                minHeight: 44,
+              ),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                height: 22,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
           bloc: _channelDetailBloc,
