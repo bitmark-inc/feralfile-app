@@ -29,7 +29,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
 
-      final playlistsResponse = await _playlistService.getPlaylists(
+      final playlistsResponse = await _playlistService.getPlaylistsFromChannels(
         limit: _pageSize,
       );
 
@@ -72,7 +72,8 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
 
-      final newPlaylistsResponse = await _playlistService.getPlaylists(
+      final newPlaylistsResponse =
+          await _playlistService.getPlaylistsFromChannels(
         cursor: state.cursor,
         limit: _pageSize,
       );
@@ -112,7 +113,7 @@ class PlaylistsBloc extends AuBloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
 
-      final playlistsResponse = await _playlistService.getPlaylists(
+      final playlistsResponse = await _playlistService.getPlaylistsFromChannels(
         cursor: state.cursor,
         limit: _pageSize,
       );

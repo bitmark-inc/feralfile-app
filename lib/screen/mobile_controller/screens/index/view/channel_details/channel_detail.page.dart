@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/bloc/channel_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/channel_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -28,8 +30,10 @@ class ChannelDetailPage extends StatefulWidget {
   State<ChannelDetailPage> createState() => _ChannelDetailPageState();
 }
 
-class _ChannelDetailPageState extends State<ChannelDetailPage> {
+class _ChannelDetailPageState extends State<ChannelDetailPage>
+    with AutomaticKeepAliveClientMixin {
   late final ChannelDetailBloc _channelDetailBloc;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -40,7 +44,15 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
       backgroundColor: AppColor.auGreyBackground,
       appBar: DetailPageAppBar(
@@ -66,45 +78,91 @@ class _ChannelDetailPageState extends State<ChannelDetailPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
-          bloc: _channelDetailBloc,
-          builder: (context, state) {
-            return Column(
-              children: [
-                const SizedBox(height: UIConstants.detailPageHeaderPadding),
-                ChannelItem(channel: widget.payload.channel),
-                const SizedBox(height: UIConstants.detailPageHeaderPadding),
-                Expanded(
-                  child: _buildPlaylists(context, state),
+        child: Column(
+          children: [
+            const SizedBox(height: UIConstants.detailPageHeaderPadding),
+            ChannelItem(channel: widget.payload.channel),
+            const SizedBox(height: UIConstants.detailPageHeaderPadding),
+            Expanded(
+              child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
+                bloc: _channelDetailBloc,
+                builder: (context, state) => RefreshIndicator(
+                  onRefresh: () async {
+                    _channelDetailBloc.add(
+                      RefreshChannelPlaylistsEvent(
+                        channel: widget.payload.channel,
+                      ),
+                    );
+                    await _channelDetailBloc.stream.firstWhere(
+                      (state) =>
+                          state is ChannelDetailLoadedState ||
+                          state is ChannelDetailErrorState,
+                    );
+                  },
+                  backgroundColor: AppColor.primaryBlack,
+                  color: AppColor.white,
+                  child: _buildContent(context, state),
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPlaylists(BuildContext context, ChannelDetailState state) {
-    switch (state) {
-      case ChannelDetailLoadingState():
-        return const LoadingView();
-      case ChannelDetailErrorState():
-        return Center(child: Text(state.error));
-      case ChannelDetailLoadedState():
+  Widget _buildContent(BuildContext context, ChannelDetailState state) {
+    if (state is ChannelDetailLoadingState && state.playlists.isEmpty) {
+      return const LoadingView();
+    }
+
+    if (state is ChannelDetailErrorState && state.playlists.isEmpty) {
+      return ErrorView(
+        error: 'Error loading playlists: ${state.error}',
+        onRetry: () => _channelDetailBloc.add(
+          LoadChannelPlaylistsEvent(channel: widget.payload.channel),
+        ),
+      );
+    }
+    return _buildPlaylists(state);
+  }
+
+  Widget _buildPlaylists(ChannelDetailState state) {
+    final playlists = state.playlists;
+    final hasMore = state.hasMore;
+    final isLoadingMore = state is ChannelDetailLoadingState;
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      controller: _scrollController,
+      itemCount: playlists.length + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == playlists.length) {
+          return Column(
+            children: [
+              LoadMoreIndicator(isLoadingMore: isLoadingMore),
+              const SizedBox(height: 120),
+            ],
+          );
+        }
+
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...state.playlists.map(
-              (playlist) => PlaylistItem(
-                playlist: playlist,
-                channel: widget.payload.channel,
-              ),
+            PlaylistItem(
+              playlist: playlists[index],
+              channel: widget.payload.channel,
+              isCustomTitle: true,
             ),
+            if (index == playlists.length - 1 && !hasMore)
+              const SizedBox(
+                height: 120,
+              ),
           ],
         );
-      default:
-        return const SizedBox.shrink();
-    }
+      },
+    );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

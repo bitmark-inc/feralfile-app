@@ -24,59 +24,6 @@ class Dp1PlaylistService {
     return api.getPlaylistById(playlistId);
   }
 
-  Future<List<DP1Call>> getAllPlaylistsFromAllChannel() async {
-    final response = await injector<ChannelsService>().getChannels();
-    final channels = response.items;
-
-    // Execute all requests in parallel
-    final futures = channels.map((c) async {
-      try {
-        return await getPlaylistsByChannel(c);
-      } catch (e) {
-        log.info('Error when get playlists from channel ${c.title}: $e');
-        return <DP1Call>[]; // Return empty list on error
-      }
-    });
-
-    final results = await Future.wait(futures);
-    return results.expand((list) => list).toList();
-  }
-
-  Channel? getChannelByPlaylistId(String playlistId) {
-    final cachedChannels = injector<ChannelsService>().cachedChannels;
-    for (final channel in cachedChannels) {
-      for (final playlistUrl in channel.playlists) {
-        if (urlmap[playlistId] == playlistUrl) {
-          return channel;
-        }
-      }
-    }
-    return null;
-  }
-
-  Future<DP1PlaylistResponse> getPlaylists({
-    String? cursor,
-    int? limit,
-  }) async {
-    final playlists = await getAllPlaylistsFromAllChannel();
-    final hasMore = false;
-    return DP1PlaylistResponse(playlists, hasMore, null);
-
-    // return api.getAllPlaylists(
-    //   cursor: cursor,
-    //   limit: limit,
-    // );
-  }
-
-  // PLAYLIST GROUP
-  Future<Channel> createPlaylistGroup(Channel group) async {
-    return api.createPlaylistGroup(group.toJson(), 'Bearer $apiKey');
-  }
-
-  Future<Channel> getPlaylistGroupById(String groupId) async {
-    return api.getPlaylistGroupById(groupId);
-  }
-
   Future<List<DP1Call>> getPlaylistsByChannel(Channel channel) async {
     // map DP1Call Id to url
     final dio = Dio();
@@ -95,5 +42,55 @@ class Dp1PlaylistService {
     });
     final results = await Future.wait(futures);
     return results.whereType<DP1Call>().toList();
+  }
+
+  Future<List<DP1Call>> getAllPlaylistsFromAllChannel() async {
+    final response = await injector<ChannelsService>().getChannels();
+    final channels = response.items;
+
+    // Execute all requests in parallel
+    final futures = channels.map((c) async {
+      try {
+        return await getPlaylistsByChannel(c);
+      } catch (e) {
+        log.info('Error when get playlists from channel ${c.title}: $e');
+        return <DP1Call>[]; // Return empty list on error
+      }
+    });
+
+    final results = await Future.wait(futures);
+    return results.expand((list) => list).toList();
+  }
+
+  Future<DP1PlaylistResponse> getPlaylistsFromChannels({
+    String? cursor,
+    int? limit,
+  }) async {
+    final playlists = await getAllPlaylistsFromAllChannel();
+    return DP1PlaylistResponse(playlists, false, null);
+  }
+
+  Channel? getChannelByPlaylistId(String playlistId) {
+    final cachedChannels = injector<ChannelsService>().cachedChannels;
+    for (final channel in cachedChannels) {
+      for (final playlistUrl in channel.playlists) {
+        if (urlmap[playlistId] == playlistUrl) {
+          return channel;
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<DP1PlaylistResponse> getPlaylists({
+    String? channelId,
+    String? cursor,
+    int? limit,
+  }) async {
+    return api.getAllPlaylists(
+      playlistGroupId: channelId,
+      cursor: cursor,
+      limit: limit,
+    );
   }
 }
