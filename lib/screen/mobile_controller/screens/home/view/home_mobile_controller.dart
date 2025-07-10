@@ -101,8 +101,7 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
         // fade effect on bottom
         MultiValueListenableBuilder(
           valueListenables: [
-            shouldShowNowDisplayingOnDisconnect,
-            nowDisplayingVisibility,
+            nowDisplayingShowing,
           ],
           builder: (context, values, _) {
             return values.every((value) => value as bool)

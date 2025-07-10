@@ -464,9 +464,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _webViewController = webViewController;
   }
 
-  Widget _nowDisplayingSpace() => const SizedBox(
-        height: kStatusBarMarginBottom + kNowDisplayingHeight,
-      );
+  Widget _nowDisplayingSpace() => ValueListenableBuilder(
+      valueListenable: nowDisplayingShowing,
+      builder: (context, value, child) {
+        return SizedBox(
+          height: kStatusBarMarginBottom + (value ? kNowDisplayingHeight : 0),
+        );
+      });
 
   Widget _infoHeader(
     BuildContext context,

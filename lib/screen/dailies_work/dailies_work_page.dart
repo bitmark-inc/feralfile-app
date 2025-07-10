@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_alumni.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
@@ -43,7 +44,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -470,10 +470,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
             ),
           ),
           MultiValueListenableBuilder(
-            valueListenables: [
-              shouldShowNowDisplayingOnDisconnect,
-              nowDisplayingVisibility,
-            ],
+            valueListenables: [nowDisplayingShowing],
             builder: (context, values, _) {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
