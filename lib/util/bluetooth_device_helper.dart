@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
@@ -72,6 +73,9 @@ class BluetoothDeviceManager {
     await resetDevice();
     if (devices.isNotEmpty) {
       await switchDevice(devices.first);
+    } else {
+      // if no device is paired, hide now displaying (like when user tap on close)
+      shouldShowNowDisplayingOnDisconnect.value = false;
     }
   }
 
