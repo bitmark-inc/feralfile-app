@@ -38,6 +38,7 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _channelDetailBloc = ChannelDetailBloc(
       channel: widget.payload.channel,
       dp1playlistService: injector<Dp1PlaylistService>(),
@@ -47,8 +48,18 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    _channelDetailBloc.close();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels + 100 >=
+        _scrollController.position.maxScrollExtent) {
+      _channelDetailBloc.add(const LoadMoreChannelPlaylistsEvent());
+    }
   }
 
   @override

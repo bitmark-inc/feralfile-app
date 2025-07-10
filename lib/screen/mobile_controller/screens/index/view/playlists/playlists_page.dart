@@ -23,16 +23,17 @@ class _PlaylistsPageState extends State<PlaylistsPage>
   @override
   void initState() {
     super.initState();
-    _playlistsBloc = injector<PlaylistsBloc>();
     _scrollController.addListener(_onScroll);
-    _playlistsBloc.add(LoadPlaylistsEvent());
+    _playlistsBloc = injector<PlaylistsBloc>();
+    _playlistsBloc.add(const LoadPlaylistsEvent());
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     _playlistsBloc.close();
-    _scrollController.dispose();
     super.dispose();
   }
 

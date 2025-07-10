@@ -25,16 +25,17 @@ class _ChannelsPageState extends State<ChannelsPage>
   @override
   void initState() {
     super.initState();
-    _channelsBloc = injector<ChannelsBloc>();
     _scrollController.addListener(_onScroll);
+    _channelsBloc = injector<ChannelsBloc>();
     _channelsBloc.add(const LoadChannelsEvent());
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     _channelsBloc.close();
-    _scrollController.dispose();
     super.dispose();
   }
 
