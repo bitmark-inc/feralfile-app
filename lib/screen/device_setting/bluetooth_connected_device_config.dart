@@ -1539,8 +1539,8 @@ class BluetoothConnectedDeviceConfigState
                       final device = selectedDevice!;
                       await injector<FFBluetoothService>().factoryReset(device);
                       unawaited(device.disconnect());
-                      unawaited(BluetoothDeviceManager()
-                          .removeDevice(device.deviceId));
+                      await BluetoothDeviceManager()
+                          .removeDevice(device.deviceId);
                       injector<NavigationService>().goBack(result: true);
                     } catch (e, s) {
                       injector<NavigationService>().goBack(result: e);

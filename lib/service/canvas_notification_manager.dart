@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/canvas_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 class CanvasNotificationManager {
@@ -173,7 +174,7 @@ class CanvasNotificationManager {
 
   // Connect to a specific device
   Future<void> connect(BaseDevice device) async {
-    final service = _services[device.deviceId];
+    var service = _services[device.deviceId];
 
     if (service == null) {
       final newService = CanvasNotificationService(device);
@@ -199,15 +200,20 @@ class CanvasNotificationManager {
           _scheduleRetry(device);
         },
       );
-      await newService.connect();
-    } else {
-      if (service.isConnected) {
-        // Already connected, no need to reconnect
-        return;
-      } else {
-        // Reconnect if the service is not connected
-        await service.connect();
+      service = newService;
+    }
+    if (service.isConnected) {
+      return;
+    }
+    try {
+      final res = await service.connect();
+      if (!res) {
+        unawaited(NowDisplayingManager().updateDisplayingNow());
       }
+    } catch (e) {
+      log.warning('Error connecting to device ${device.deviceId}: $e');
+      // update Now Displaying as when connect failed.
+      unawaited(NowDisplayingManager().updateDisplayingNow());
     }
   }
 

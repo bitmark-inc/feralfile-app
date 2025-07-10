@@ -27,8 +27,8 @@ class CanvasNotificationService {
   Stream<NotificationRelayerMessage> get notificationStream =>
       _notificationController.stream;
 
-  Future<void> connect() async {
-    if (_isConnected) return;
+  Future<bool> connect() async {
+    if (_isConnected) return true;
 
     try {
       final userId = _authService.getUserId();
@@ -53,12 +53,24 @@ class CanvasNotificationService {
         onDone: _handleDisconnect,
       );
 
-      _isConnected = true;
-      _startPingTimer();
-      _lastError = null;
+      final completer = Completer<bool>();
+      final subscription = _channel!.stream.listen((message) {
+        completer.complete(true);
+      }, onError: (Object error) {
+        completer.complete(false);
+      });
+      _isConnected = await completer.future;
+      await subscription.cancel();
+
+      if (_isConnected) {
+        _startPingTimer();
+        _lastError = null;
+      }
+      return _isConnected;
     } catch (e) {
       _lastError = e.toString();
       _scheduleReconnect();
+      return false;
     }
   }
 
