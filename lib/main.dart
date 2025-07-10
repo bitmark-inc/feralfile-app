@@ -342,6 +342,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplaying.removeListener(_updateAnimationBasedOnDisplayState);
     shouldShowNowDisplayingOnDisconnect
         .removeListener(_updateAnimationBasedOnDisplayState);
+    nowDisplayingVisibility.removeListener(_updateAnimationBasedOnDisplayState);
     _animationController.dispose();
     super.dispose();
   }
