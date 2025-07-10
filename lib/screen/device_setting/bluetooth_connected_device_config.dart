@@ -1539,6 +1539,8 @@ class BluetoothConnectedDeviceConfigState
                       final device = selectedDevice!;
                       await injector<FFBluetoothService>().factoryReset(device);
                       unawaited(device.disconnect());
+                      unawaited(BluetoothDeviceManager()
+                          .removeDevice(device.deviceId));
                       injector<NavigationService>().goBack(result: true);
                     } catch (e, s) {
                       injector<NavigationService>().goBack(result: e);
@@ -1552,6 +1554,7 @@ class BluetoothConnectedDeviceConfigState
       ),
     );
     if (error is bool) {
+      injector<NavigationService>().popUntilHome();
       if (error) {
         await UIHelper.showInfoDialog(context, 'Restoring Factory Defaults',
             'The device is now restoring to factory settings. It may take some time to complete. Please keep the device powered on and wait until the reset is finished.');

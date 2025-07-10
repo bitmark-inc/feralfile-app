@@ -62,6 +62,24 @@ class BluetoothDeviceManager {
     );
   }
 
+  Future<void> removeDevice(String deviceId) async {
+    await _ffDeviceDB.delete([deviceId]);
+    if (BluetoothDeviceManager().castingBluetoothDevice?.deviceId != deviceId) {
+      return;
+    }
+    // if casting device is removed, switch to another device
+    final devices = pairedDevices;
+    await resetDevice();
+    if (devices.isNotEmpty) {
+      await switchDevice(devices.first);
+    }
+  }
+
+  FFBluetoothDevice? findDeviceByRemoteId(String remoteId) {
+    final devices = pairedDevices;
+    return devices.firstWhereOrNull((device) => device.remoteID == remoteId);
+  }
+
   Future<void> _setupDevice(
     FFBluetoothDevice device, {
     required bool shouldWriteToDb,
