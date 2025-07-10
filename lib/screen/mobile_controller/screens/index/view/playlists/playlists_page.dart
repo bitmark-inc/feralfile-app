@@ -92,8 +92,10 @@ class _PlaylistsPageState extends State<PlaylistsPage>
       hasMore: hasMore,
       isLoadingMore: isLoadingMore,
       scrollController: _scrollController,
-      channel: injector<Dp1PlaylistService>()
-          .getChannelByPlaylistId(playlists.first.id),
+      channel: playlists.isNotEmpty
+          ? injector<Dp1PlaylistService>()
+              .getChannelByPlaylistId(playlists.first.id)
+          : null,
     );
   }
 
