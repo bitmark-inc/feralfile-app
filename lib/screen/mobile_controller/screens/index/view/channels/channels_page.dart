@@ -27,7 +27,7 @@ class _ChannelsPageState extends State<ChannelsPage>
     super.initState();
     _channelsBloc = injector<ChannelsBloc>();
     _scrollController.addListener(_onScroll);
-    _channelsBloc.add(LoadChannelsEvent());
+    _channelsBloc.add(const LoadChannelsEvent());
   }
 
   @override
@@ -41,7 +41,7 @@ class _ChannelsPageState extends State<ChannelsPage>
   void _onScroll() {
     if (_scrollController.position.pixels + 100 >=
         _scrollController.position.maxScrollExtent) {
-      _channelsBloc.add(LoadMoreChannelsEvent());
+      _channelsBloc.add(const LoadMoreChannelsEvent());
     }
   }
 
@@ -54,11 +54,10 @@ class _ChannelsPageState extends State<ChannelsPage>
       builder: (context, state) {
         return RefreshIndicator(
           onRefresh: () async {
-            _channelsBloc.add(RefreshChannelsEvent());
+            _channelsBloc.add(const RefreshChannelsEvent());
             // Wait for the refresh to complete
             await _channelsBloc.stream.firstWhere(
-              (state) =>
-                  state is ChannelsLoadedState || state is ChannelsErrorState,
+              (state) => state.isLoaded || state.isError,
             );
           },
           backgroundColor: AppColor.primaryBlack,
@@ -70,14 +69,14 @@ class _ChannelsPageState extends State<ChannelsPage>
   }
 
   Widget _buildContent(ChannelsState state) {
-    if (state is ChannelsLoadingState && state.channels.isEmpty) {
+    if (state.isLoading && state.channels.isEmpty) {
       return const LoadingView();
     }
 
-    if (state is ChannelsErrorState && state.channels.isEmpty) {
+    if (state.isError && state.channels.isEmpty) {
       return ErrorView(
         error: 'Error loading channels: ${state.error}',
-        onRetry: () => _channelsBloc.add(LoadChannelsEvent()),
+        onRetry: () => _channelsBloc.add(const LoadChannelsEvent()),
       );
     }
 
@@ -87,7 +86,7 @@ class _ChannelsPageState extends State<ChannelsPage>
   Widget _buildChannelsList(ChannelsState state) {
     final channels = state.channels;
     final hasMore = state.hasMore;
-    final isLoadingMore = state is ChannelsLoadingMoreState;
+    final isLoadingMore = state.isLoadingMore;
 
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),

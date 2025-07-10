@@ -1,61 +1,68 @@
 part of 'channels_bloc.dart';
 
-// Base state class
-abstract class ChannelsState {
+enum ChannelsStatus {
+  initial,
+  loading,
+  loadingMore,
+  loaded,
+  error,
+}
+
+@immutable
+class ChannelsState {
   const ChannelsState({
-    required this.channels,
-    required this.hasMore,
-    required this.cursor,
+    this.status = ChannelsStatus.initial,
+    this.channels = const [],
+    this.hasMore = true,
+    this.cursor,
+    this.error,
   });
+
+  final ChannelsStatus status;
   final List<Channel> channels;
   final bool hasMore;
   final String? cursor;
-}
+  final String? error;
 
-// Initial state
-class ChannelsInitialState extends ChannelsState {
-  const ChannelsInitialState()
-      : super(
-          channels: const [],
-          hasMore: true,
-          cursor: null,
-        );
-}
+  ChannelsState copyWith({
+    ChannelsStatus? status,
+    List<Channel>? channels,
+    bool? hasMore,
+    String? cursor,
+    String? error,
+  }) {
+    return ChannelsState(
+      status: status ?? this.status,
+      channels: channels ?? this.channels,
+      hasMore: hasMore ?? this.hasMore,
+      cursor: cursor ?? this.cursor,
+      error: error ?? this.error,
+    );
+  }
 
-// Loading state (initial load)
-class ChannelsLoadingState extends ChannelsState {
-  const ChannelsLoadingState({
-    required super.channels,
-    required super.hasMore,
-    required super.cursor,
-  });
-}
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ChannelsState &&
+        other.status == status &&
+        other.channels == channels &&
+        other.hasMore == hasMore &&
+        other.cursor == cursor &&
+        other.error == error;
+  }
 
-// Loaded state
-class ChannelsLoadedState extends ChannelsState {
-  const ChannelsLoadedState({
-    required super.channels,
-    required super.hasMore,
-    required super.cursor,
-  });
-}
+  @override
+  int get hashCode {
+    return status.hashCode ^
+        channels.hashCode ^
+        hasMore.hashCode ^
+        cursor.hashCode ^
+        error.hashCode;
+  }
 
-// Loading more state (pagination)
-class ChannelsLoadingMoreState extends ChannelsState {
-  const ChannelsLoadingMoreState({
-    required super.channels,
-    required super.hasMore,
-    required super.cursor,
-  });
-}
-
-// Error state
-class ChannelsErrorState extends ChannelsState {
-  const ChannelsErrorState({
-    required this.error,
-    required super.channels,
-    required super.hasMore,
-    required super.cursor,
-  });
-  final String error;
+  bool get isInitial => status == ChannelsStatus.initial;
+  bool get isLoading => status == ChannelsStatus.loading;
+  bool get isLoadingMore => status == ChannelsStatus.loadingMore;
+  bool get isLoaded => status == ChannelsStatus.loaded;
+  bool get isError => status == ChannelsStatus.error;
 }

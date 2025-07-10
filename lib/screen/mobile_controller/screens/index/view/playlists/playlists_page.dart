@@ -39,7 +39,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
   void _onScroll() {
     if (_scrollController.position.pixels + 100 >=
         _scrollController.position.maxScrollExtent) {
-      _playlistsBloc.add(LoadMorePlaylistsEvent());
+      _playlistsBloc.add(const LoadMorePlaylistsEvent());
     }
   }
 
@@ -52,11 +52,10 @@ class _PlaylistsPageState extends State<PlaylistsPage>
       builder: (context, state) {
         return RefreshIndicator(
           onRefresh: () async {
-            _playlistsBloc.add(RefreshPlaylistsEvent());
+            _playlistsBloc.add(const RefreshPlaylistsEvent());
             // Wait for the refresh to complete
             await _playlistsBloc.stream.firstWhere(
-              (state) =>
-                  state is PlaylistsLoadedState || state is PlaylistsErrorState,
+              (state) => state.isLoaded || state.isError,
             );
           },
           backgroundColor: AppColor.primaryBlack,
@@ -68,14 +67,14 @@ class _PlaylistsPageState extends State<PlaylistsPage>
   }
 
   Widget _buildContent(PlaylistsState state) {
-    if (state is PlaylistsLoadingState && state.playlists.isEmpty) {
+    if (state.isLoading && state.playlists.isEmpty) {
       return const LoadingView();
     }
 
-    if (state is PlaylistsErrorState && state.playlists.isEmpty) {
+    if (state.isError && state.playlists.isEmpty) {
       return ErrorView(
         error: 'Error loading playlists: ${state.error}',
-        onRetry: () => _playlistsBloc.add(LoadPlaylistsEvent()),
+        onRetry: () => _playlistsBloc.add(const LoadPlaylistsEvent()),
       );
     }
 
@@ -85,7 +84,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
   Widget _buildPlaylists(PlaylistsState state) {
     final playlists = state.playlists;
     final hasMore = state.hasMore;
-    final isLoadingMore = state is PlaylistsLoadingMoreState;
+    final isLoadingMore = state.isLoadingMore;
 
     return PlaylistListView(
       playlists: playlists,

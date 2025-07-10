@@ -1,130 +1,102 @@
-import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'channels_event.dart';
 part 'channels_state.dart';
 
-class ChannelsBloc extends AuBloc<ChannelsEvent, ChannelsState> {
-  ChannelsBloc(this._channelsService) : super(const ChannelsInitialState()) {
+class ChannelsBloc extends Bloc<ChannelsEvent, ChannelsState> {
+  ChannelsBloc({
+    required ChannelsService channelsService,
+  })  : _channelsService = channelsService,
+        super(const ChannelsState()) {
     on<LoadChannelsEvent>(_onLoadChannels);
     on<LoadMoreChannelsEvent>(_onLoadMoreChannels);
     on<RefreshChannelsEvent>(_onRefreshChannels);
   }
-  final ChannelsService _channelsService;
+
   static const int _pageSize = 10;
+
+  final ChannelsService _channelsService;
 
   Future<void> _onLoadChannels(
     LoadChannelsEvent event,
     Emitter<ChannelsState> emit,
   ) async {
-    try {
-      emit(
-        ChannelsLoadingState(
-          channels: state.channels,
-          hasMore: state.hasMore,
-          cursor: state.cursor,
-        ),
-      );
-
-      final channelsResponse = await _channelsService.getChannels(
-        cursor: state.cursor,
-        limit: _pageSize,
-      );
-
-      emit(
-        ChannelsLoadedState(
-          channels: channelsResponse.items,
-          hasMore: channelsResponse.hasMore,
-          cursor: channelsResponse.cursor,
-        ),
-      );
-    } catch (error) {
-      emit(ChannelsErrorState(
-        error: error.toString(),
-        channels: state.channels,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
-    }
+    await _loadChannels(
+      emit: emit,
+      cursor: null,
+    );
   }
 
   Future<void> _onLoadMoreChannels(
     LoadMoreChannelsEvent event,
     Emitter<ChannelsState> emit,
   ) async {
-    // Don't load more if already loading, no more data, or in error state
-    if (state is ChannelsLoadingState ||
-        state is ChannelsLoadingMoreState ||
-        !state.hasMore) {
+    // Prevent multiple simultaneous load more requests
+    if (state.isLoading || state.isLoadingMore || !state.hasMore) {
       return;
     }
 
-    try {
-      emit(ChannelsLoadingMoreState(
-        channels: state.channels,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
-
-      final newChannelsResponse = await _channelsService.getChannels(
-        cursor: state.cursor,
-        limit: _pageSize,
-      );
-
-      final allChannels = [...state.channels, ...newChannelsResponse.items];
-
-      emit(
-        ChannelsLoadedState(
-          channels: allChannels,
-          hasMore: newChannelsResponse.hasMore,
-          cursor: newChannelsResponse.cursor,
-        ),
-      );
-    } catch (error) {
-      emit(ChannelsErrorState(
-        error: error.toString(),
-        channels: state.channels,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
-    }
+    await _loadChannels(
+      emit: emit,
+      cursor: state.cursor,
+      isLoadMore: true,
+    );
   }
 
   Future<void> _onRefreshChannels(
     RefreshChannelsEvent event,
     Emitter<ChannelsState> emit,
   ) async {
+    await _loadChannels(
+      emit: emit,
+      cursor: null,
+      isRefresh: true,
+    );
+  }
+
+  Future<void> _loadChannels({
+    required Emitter<ChannelsState> emit,
+    required String? cursor,
+    bool isLoadMore = false,
+    bool isRefresh = false,
+  }) async {
     try {
-      // Keep current channels visible during refresh
-      emit(
-        ChannelsLoadingState(
-          channels: state.channels,
-          hasMore: state.hasMore,
-          cursor: state.cursor,
-        ),
-      );
+      // Emit appropriate loading state
+      if (isLoadMore) {
+        emit(state.copyWith(status: ChannelsStatus.loadingMore));
+      } else {
+        emit(state.copyWith(status: ChannelsStatus.loading));
+      }
 
       final channelsResponse = await _channelsService.getChannels(
-        cursor: state.cursor,
+        cursor: cursor,
         limit: _pageSize,
       );
 
+      final List<Channel> newChannels;
+      if (isLoadMore) {
+        newChannels = [...state.channels, ...channelsResponse.items];
+      } else {
+        newChannels = channelsResponse.items;
+      }
+
       emit(
-        ChannelsLoadedState(
-          channels: channelsResponse.items,
+        state.copyWith(
+          status: ChannelsStatus.loaded,
+          channels: newChannels,
           hasMore: channelsResponse.hasMore,
           cursor: channelsResponse.cursor,
+          error: '',
         ),
       );
-    } catch (error) {
+    } catch (e) {
       emit(
-        ChannelsErrorState(
-          error: error.toString(),
-          channels: state.channels,
-          hasMore: state.hasMore,
-          cursor: state.cursor,
+        state.copyWith(
+          status: ChannelsStatus.error,
+          error: e.toString(),
         ),
       );
     }

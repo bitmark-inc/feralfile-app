@@ -489,7 +489,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerFactory<PlaylistsBloc>(
-    () => PlaylistsBloc(injector()),
+    () => PlaylistsBloc(playlistService: injector()),
   );
 
   injector.registerLazySingleton<ChannelsService>(
@@ -497,7 +497,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerFactory<ChannelsBloc>(
-    () => ChannelsBloc(injector()),
+    () => ChannelsBloc(channelsService: injector()),
   );
 
   injector.registerLazySingleton<DP1PlaylistApi>(

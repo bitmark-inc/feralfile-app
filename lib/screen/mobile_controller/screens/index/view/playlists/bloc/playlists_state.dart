@@ -1,61 +1,68 @@
 part of 'playlists_bloc.dart';
 
-// Base state class
-abstract class PlaylistsState {
+enum PlaylistsStatus {
+  initial,
+  loading,
+  loadingMore,
+  loaded,
+  error,
+}
+
+@immutable
+class PlaylistsState {
   const PlaylistsState({
-    required this.playlists,
-    required this.hasMore,
-    required this.cursor,
+    this.status = PlaylistsStatus.initial,
+    this.playlists = const [],
+    this.hasMore = true,
+    this.cursor,
+    this.error,
   });
+
+  final PlaylistsStatus status;
   final List<DP1Call> playlists;
   final bool hasMore;
   final String? cursor;
-}
+  final String? error;
 
-// Initial state
-class PlaylistsInitialState extends PlaylistsState {
-  const PlaylistsInitialState()
-      : super(
-          playlists: const [],
-          hasMore: true,
-          cursor: null,
-        );
-}
+  PlaylistsState copyWith({
+    PlaylistsStatus? status,
+    List<DP1Call>? playlists,
+    bool? hasMore,
+    String? cursor,
+    String? error,
+  }) {
+    return PlaylistsState(
+      status: status ?? this.status,
+      playlists: playlists ?? this.playlists,
+      hasMore: hasMore ?? this.hasMore,
+      cursor: cursor ?? this.cursor,
+      error: error ?? this.error,
+    );
+  }
 
-// Loading state (initial load)
-class PlaylistsLoadingState extends PlaylistsState {
-  const PlaylistsLoadingState({
-    required super.playlists,
-    required super.hasMore,
-    required super.cursor,
-  });
-}
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PlaylistsState &&
+        other.status == status &&
+        other.playlists == playlists &&
+        other.hasMore == hasMore &&
+        other.cursor == cursor &&
+        other.error == error;
+  }
 
-// Loaded state
-class PlaylistsLoadedState extends PlaylistsState {
-  const PlaylistsLoadedState({
-    required super.playlists,
-    required super.hasMore,
-    required super.cursor,
-  });
-}
+  @override
+  int get hashCode {
+    return status.hashCode ^
+        playlists.hashCode ^
+        hasMore.hashCode ^
+        cursor.hashCode ^
+        error.hashCode;
+  }
 
-// Loading more state (pagination)
-class PlaylistsLoadingMoreState extends PlaylistsState {
-  const PlaylistsLoadingMoreState({
-    required super.playlists,
-    required super.hasMore,
-    required super.cursor,
-  });
-}
-
-// Error state
-class PlaylistsErrorState extends PlaylistsState {
-  const PlaylistsErrorState({
-    required this.error,
-    required super.playlists,
-    required super.hasMore,
-    required super.cursor,
-  });
-  final String error;
+  bool get isInitial => status == PlaylistsStatus.initial;
+  bool get isLoading => status == PlaylistsStatus.loading;
+  bool get isLoadingMore => status == PlaylistsStatus.loadingMore;
+  bool get isLoaded => status == PlaylistsStatus.loaded;
+  bool get isError => status == PlaylistsStatus.error;
 }

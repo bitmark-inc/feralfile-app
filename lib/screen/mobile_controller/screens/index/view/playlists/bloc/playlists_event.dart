@@ -1,13 +1,17 @@
 part of 'playlists_bloc.dart';
 
-// Base event class
-abstract class PlaylistsEvent {}
+abstract class PlaylistsEvent {
+  const PlaylistsEvent();
+}
 
-// Event to load initial playlists
-class LoadPlaylistsEvent extends PlaylistsEvent {}
+class LoadPlaylistsEvent extends PlaylistsEvent {
+  const LoadPlaylistsEvent();
+}
 
-// Event to load more playlists (pagination)
-class LoadMorePlaylistsEvent extends PlaylistsEvent {}
+class LoadMorePlaylistsEvent extends PlaylistsEvent {
+  const LoadMorePlaylistsEvent();
+}
 
-// Event to refresh playlists (pull to refresh)
-class RefreshPlaylistsEvent extends PlaylistsEvent {}
+class RefreshPlaylistsEvent extends PlaylistsEvent {
+  const RefreshPlaylistsEvent();
+}

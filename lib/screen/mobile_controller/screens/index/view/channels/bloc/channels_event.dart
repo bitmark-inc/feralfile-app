@@ -1,13 +1,17 @@
 part of 'channels_bloc.dart';
 
-// Base event class
-abstract class ChannelsEvent {}
+abstract class ChannelsEvent {
+  const ChannelsEvent();
+}
 
-// Event to load initial channels
-class LoadChannelsEvent extends ChannelsEvent {}
+class LoadChannelsEvent extends ChannelsEvent {
+  const LoadChannelsEvent();
+}
 
-// Event to load more channels (pagination)
-class LoadMoreChannelsEvent extends ChannelsEvent {}
+class LoadMoreChannelsEvent extends ChannelsEvent {
+  const LoadMoreChannelsEvent();
+}
 
-// Event to refresh channels (pull to refresh)
-class RefreshChannelsEvent extends ChannelsEvent {}
+class RefreshChannelsEvent extends ChannelsEvent {
+  const RefreshChannelsEvent();
+}
