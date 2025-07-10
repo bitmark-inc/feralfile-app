@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_list_view.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,9 +38,11 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
   @override
   void initState() {
     super.initState();
-    _channelDetailBloc = injector<ChannelDetailBloc>();
-    _channelDetailBloc
-        .add(LoadChannelPlaylistsEvent(channel: widget.payload.channel));
+    _channelDetailBloc = ChannelDetailBloc(
+      channel: widget.payload.channel,
+      dp1playlistService: injector<Dp1PlaylistService>(),
+    );
+    _channelDetailBloc.add(const LoadChannelPlaylistsEvent());
   }
 
   @override
@@ -85,18 +88,13 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
             Expanded(
               child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
                 bloc: _channelDetailBloc,
-                builder: (context, state) =>
-                RefreshIndicator(
+                builder: (context, state) => RefreshIndicator(
                   onRefresh: () async {
                     _channelDetailBloc.add(
-                      RefreshChannelPlaylistsEvent(
-                        channel: widget.payload.channel,
-                      ),
+                      const RefreshChannelPlaylistsEvent(),
                     );
                     await _channelDetailBloc.stream.firstWhere(
-                      (state) =>
-                          state is ChannelDetailLoadedState ||
-                          state is ChannelDetailErrorState,
+                      (state) => state.isLoaded || state.isError,
                     );
                   },
                   backgroundColor: AppColor.primaryBlack,
@@ -112,15 +110,15 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
   }
 
   Widget _buildContent(BuildContext context, ChannelDetailState state) {
-    if (state is ChannelDetailLoadingState && state.playlists.isEmpty) {
+    if (state.isLoading && state.playlists.isEmpty) {
       return const LoadingView();
     }
 
-    if (state is ChannelDetailErrorState && state.playlists.isEmpty) {
+    if (state.isError && state.playlists.isEmpty) {
       return ErrorView(
         error: 'Error loading playlists: ${state.error}',
         onRetry: () => _channelDetailBloc.add(
-          LoadChannelPlaylistsEvent(channel: widget.payload.channel),
+          const LoadChannelPlaylistsEvent(),
         ),
       );
     }
@@ -130,7 +128,7 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
   Widget _buildPlaylists(ChannelDetailState state) {
     final playlists = state.playlists;
     final hasMore = state.hasMore;
-    final isLoadingMore = state is ChannelDetailLoadingState;
+    final isLoadingMore = state.isLoadingMore;
 
     return PlaylistListView(
       playlists: playlists,

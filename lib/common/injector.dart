@@ -500,10 +500,6 @@ Future<void> setupInjector() async {
     () => ChannelsBloc(injector()),
   );
 
-  injector.registerFactory<ChannelDetailBloc>(
-    () => ChannelDetailBloc(injector()),
-  );
-
   injector.registerLazySingleton<DP1PlaylistApi>(
     () => DP1PlaylistApi(
       baseDio(

@@ -1,19 +1,17 @@
 part of 'channel_detail_bloc.dart';
 
 abstract class ChannelDetailEvent {
-  const ChannelDetailEvent({required this.channel});
-
-  final Channel channel;
+  const ChannelDetailEvent();
 }
 
 class LoadChannelPlaylistsEvent extends ChannelDetailEvent {
-  LoadChannelPlaylistsEvent({required super.channel});
+  const LoadChannelPlaylistsEvent();
 }
 
 class LoadMoreChannelPlaylistsEvent extends ChannelDetailEvent {
-  LoadMoreChannelPlaylistsEvent({required super.channel});
+  const LoadMoreChannelPlaylistsEvent();
 }
 
 class RefreshChannelPlaylistsEvent extends ChannelDetailEvent {
-  RefreshChannelPlaylistsEvent({required super.channel});
+  const RefreshChannelPlaylistsEvent();
 }

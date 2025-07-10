@@ -1,14 +1,18 @@
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'channel_detail_event.dart';
 part 'channel_detail_state.dart';
 
 class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
-  ChannelDetailBloc(this._dp1playlistService)
-      : super(const ChannelDetailInitialState()) {
+  ChannelDetailBloc({
+    required this.channel,
+    required Dp1PlaylistService dp1playlistService,
+  })  : _dp1playlistService = dp1playlistService,
+        super(const ChannelDetailState()) {
     on<LoadChannelPlaylistsEvent>(_onLoadChannelPlaylists);
     on<LoadMoreChannelPlaylistsEvent>(_onLoadMoreChannelPlaylists);
     on<RefreshChannelPlaylistsEvent>(_onRefreshChannelPlaylists);
@@ -16,119 +20,89 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
 
   static const int _pageSize = 10;
 
+  final Channel channel;
   final Dp1PlaylistService _dp1playlistService;
 
   Future<void> _onLoadChannelPlaylists(
     LoadChannelPlaylistsEvent event,
     Emitter<ChannelDetailState> emit,
   ) async {
-    try {
-      emit(
-        ChannelDetailLoadingState(
-          playlists: state.playlists,
-          hasMore: state.hasMore,
-          cursor: state.cursor,
-        ),
-      );
-
-      final playlistsResponse = await _dp1playlistService.getPlaylists(
-        channelId: event.channel.id,
-        limit: _pageSize,
-        cursor: state.cursor,
-      );
-
-      emit(
-        ChannelDetailLoadedState(
-          playlists: playlistsResponse.items,
-          hasMore: playlistsResponse.hasMore,
-          cursor: playlistsResponse.cursor,
-        ),
-      );
-    } catch (e) {
-      emit(ChannelDetailErrorState(
-        error: e.toString(),
-        playlists: state.playlists,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
-    }
+    await _loadPlaylists(
+      emit: emit,
+      cursor: null,
+    );
   }
 
   Future<void> _onLoadMoreChannelPlaylists(
     LoadMoreChannelPlaylistsEvent event,
     Emitter<ChannelDetailState> emit,
   ) async {
-    if (state is ChannelDetailLoadingState ||
-        state is ChannelDetailLoadingMoreState ||
-        !state.hasMore) {
+    // Prevent multiple simultaneous load more requests
+    if (state.isLoading || state.isLoadingMore || !state.hasMore) {
       return;
     }
-    try {
-      emit(
-        ChannelDetailLoadingMoreState(
-          playlists: state.playlists,
-          hasMore: state.hasMore,
-          cursor: state.cursor,
-        ),
-      );
 
-      final newPlaylistsResponse = await _dp1playlistService.getPlaylists(
-        channelId: event.channel.id,
-        limit: _pageSize,
-        cursor: state.cursor,
-      );
-
-      final allPlaylists = [...state.playlists, ...newPlaylistsResponse.items];
-
-      emit(
-        ChannelDetailLoadedState(
-          playlists: allPlaylists,
-          hasMore: newPlaylistsResponse.hasMore,
-          cursor: newPlaylistsResponse.cursor,
-        ),
-      );
-    } catch (e) {
-      emit(ChannelDetailErrorState(
-        error: e.toString(),
-        playlists: state.playlists,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
-    }
+    await _loadPlaylists(
+      emit: emit,
+      cursor: state.cursor,
+      isLoadMore: true,
+    );
   }
 
   Future<void> _onRefreshChannelPlaylists(
     RefreshChannelPlaylistsEvent event,
     Emitter<ChannelDetailState> emit,
   ) async {
+    await _loadPlaylists(
+      emit: emit,
+      cursor: null,
+      isRefresh: true,
+    );
+  }
+
+  Future<void> _loadPlaylists({
+    required Emitter<ChannelDetailState> emit,
+    required String? cursor,
+    bool isLoadMore = false,
+    bool isRefresh = false,
+  }) async {
     try {
-      emit(
-        ChannelDetailLoadingState(
-          playlists: state.playlists,
-          hasMore: state.hasMore,
-          cursor: state.cursor,
-        ),
-      );
+      // Emit appropriate loading state
+      if (isLoadMore) {
+        emit(state.copyWith(status: ChannelDetailStatus.loadingMore));
+      } else {
+        emit(state.copyWith(status: ChannelDetailStatus.loading));
+      }
+
       final playlistsResponse = await _dp1playlistService.getPlaylists(
-        channelId: event.channel.id,
+        channelId: channel.id,
         limit: _pageSize,
-        cursor: state.cursor,
+        cursor: cursor,
       );
 
+      final List<DP1Call> newPlaylists;
+      if (isLoadMore) {
+        newPlaylists = [...state.playlists, ...playlistsResponse.items];
+      } else {
+        newPlaylists = playlistsResponse.items;
+      }
+
       emit(
-        ChannelDetailLoadedState(
-          playlists: playlistsResponse.items,
+        state.copyWith(
+          status: ChannelDetailStatus.loaded,
+          playlists: newPlaylists,
           hasMore: playlistsResponse.hasMore,
           cursor: playlistsResponse.cursor,
+          error: '',
         ),
       );
     } catch (e) {
-      emit(ChannelDetailErrorState(
-        error: e.toString(),
-        playlists: state.playlists,
-        hasMore: state.hasMore,
-        cursor: state.cursor,
-      ));
+      emit(
+        state.copyWith(
+          status: ChannelDetailStatus.error,
+          error: e.toString(),
+        ),
+      );
     }
   }
 }
