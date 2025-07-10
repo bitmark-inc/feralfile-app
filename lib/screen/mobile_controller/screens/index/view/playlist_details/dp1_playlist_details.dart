@@ -31,11 +31,17 @@ class DP1PlaylistDetailsScreenPayload {
   final String? backTitle;
 }
 
-class DP1PlaylistDetailsScreen extends StatelessWidget {
+class DP1PlaylistDetailsScreen extends StatefulWidget {
   const DP1PlaylistDetailsScreen({required this.payload, super.key});
 
   final DP1PlaylistDetailsScreenPayload payload;
 
+  @override
+  State<DP1PlaylistDetailsScreen> createState() =>
+      _DP1PlaylistDetailsScreenState();
+}
+
+class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
   CanvasDeviceBloc get _canvasDeviceBloc => injector<CanvasDeviceBloc>();
 
   @override
@@ -45,15 +51,15 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: DetailPageAppBar(
-            title: payload.backTitle ?? 'Playlists',
+            title: widget.payload.backTitle ?? 'Playlists',
             actions: [
               FFCastButton(
-                displayKey: payload.playlist.id,
+                displayKey: widget.payload.playlist.id,
                 onDeviceSelected: (device) {
                   _canvasDeviceBloc.add(
                     CanvasDeviceCastDP1PlaylistEvent(
                       device: device,
-                      playlist: payload.playlist,
+                      playlist: widget.payload.playlist,
                       intent: DP1Intent.displayNow(),
                     ),
                   );
@@ -70,7 +76,7 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
 
   Widget _body(BuildContext context) {
     final channel = injector<Dp1PlaylistService>()
-        .getChannelByPlaylistId(payload.playlist.id);
+        .getChannelByPlaylistId(widget.payload.playlist.id);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -80,10 +86,11 @@ class DP1PlaylistDetailsScreen extends StatelessWidget {
             header: Column(
               children: [
                 const SizedBox(height: UIConstants.detailPageHeaderPadding),
-                PlaylistItem(playlist: payload.playlist, channel: channel)
+                PlaylistItem(
+                    playlist: widget.payload.playlist, channel: channel)
               ],
             ),
-            playlist: payload.playlist,
+            playlist: widget.payload.playlist,
           ),
         ),
       ],
@@ -194,7 +201,10 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                           : BorderSide.none,
                     );
                     return GestureDetector(
-                      child: _item(context, asset, border),
+                      child: Container(
+                        color: Colors.transparent,
+                        child: _item(context, asset, border),
+                      ),
                       onTap: () {
                         injector<NavigationService>().navigateTo(
                           AppRouter.artworkDetailsPage,
@@ -247,9 +257,11 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: FFCacheNetworkImage(
-              imageUrl: asset.galleryThumbnailURL ?? '',
-              fit: BoxFit.fitWidth,
+            child: Center(
+              child: FFCacheNetworkImage(
+                imageUrl: asset.galleryThumbnailURL ?? '',
+                fit: BoxFit.fitWidth,
+              ),
             ),
           ),
           const SizedBox(height: 10),
