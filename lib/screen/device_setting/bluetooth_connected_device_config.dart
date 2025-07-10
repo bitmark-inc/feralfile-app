@@ -1498,8 +1498,8 @@ class BluetoothConnectedDeviceConfigState
         options: options, title: selectedDevice?.name));
   }
 
-  void _onFactoryResetSelected() {
-    UIHelper.showCenterDialog(
+  Future<void> _onFactoryResetSelected() async {
+    final error = await UIHelper.showCenterDialog(
       context,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1523,7 +1523,7 @@ class BluetoothConnectedDeviceConfigState
                   color: Colors.transparent,
                   borderColor: AppColor.white,
                   onTap: () {
-                    injector<NavigationService>().goBack();
+                    injector<NavigationService>().goBack(result: false);
                   },
                 ),
               ),
@@ -1535,10 +1535,14 @@ class BluetoothConnectedDeviceConfigState
                   borderColor: AppColor.white,
                   color: Colors.transparent,
                   onTap: () async {
-                    final device = selectedDevice!;
-                    await injector<FFBluetoothService>().factoryReset(device);
-                    unawaited(device.disconnect());
-                    // injector<NavigationService>().goBack();
+                    try {
+                      final device = selectedDevice!;
+                      await injector<FFBluetoothService>().factoryReset(device);
+                      unawaited(device.disconnect());
+                      injector<NavigationService>().goBack(result: true);
+                    } catch (e, s) {
+                      injector<NavigationService>().goBack(result: e);
+                    }
                   },
                 ),
               ),
@@ -1547,9 +1551,28 @@ class BluetoothConnectedDeviceConfigState
         ],
       ),
     );
+    if (error is bool) {
+      if (error) {
+        await UIHelper.showInfoDialog(context, 'Restoring Factory Defaults',
+            'The device is now restoring to factory settings. It may take some time to complete. Please keep the device powered on and wait until the reset is finished.');
+      }
+    } else {
+      await UIHelper.showInfoDialog(context, 'Factory Reset Failed',
+          'Something went wrong while trying to restore the device to factory settings. ${error.toString()}');
+    }
   }
 
-  Future<void> _onSendLogSelected() async {}
+  Future<void> _onSendLogSelected() async {
+    try {
+      final device = selectedDevice!;
+      final res = await injector<FFBluetoothService>().sendLog(device);
+      unawaited(UIHelper.showInfoDialog(context, 'Logs Sent Successfully',
+          'Your logs have been sent. Thank you for helping us improve the device.'));
+    } catch (e) {
+      await UIHelper.showInfoDialog(context, 'Failed to send logs',
+          'We couldn’t send the logs due to a connection issue or unexpected error. ${e.toString()}');
+    }
+  }
 
   void _onPowerOffSelected() {
     UIHelper.showCenterDialog(
