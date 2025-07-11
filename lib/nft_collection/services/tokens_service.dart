@@ -8,9 +8,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:get_it/get_it.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
@@ -19,7 +16,6 @@ import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.d
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/pending_tx_params.dart';
 import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_collection/models/token.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
@@ -27,12 +23,18 @@ import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/configuration_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/utils/logging_interceptor.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class TokensService {
   Future<void> fetchTokensForAddresses(List<String> addresses);
 
   Future<List<AssetToken>> fetchManualTokens(List<String> indexerIds);
+
+  Future<List<AssetToken>> getManualTokens(
+      {List<String>? indexerIds, bool shouldCallIndexer = true});
 
   Future<void> setCustomTokens(List<AssetToken> assetTokens);
 
@@ -45,8 +47,6 @@ abstract class TokensService {
   bool get isRefreshAllTokensListen;
 
   Future<void> purgeCachedGallery();
-
-  Future<void> postPendingToken(PendingTxParams params);
 }
 
 final _isolateScopeInjector = GetIt.asNewInstance();
@@ -266,6 +266,28 @@ class TokensServiceImpl extends TokensService {
   }
 
   @override
+  Future<List<AssetToken>> getManualTokens(
+      {List<String>? indexerIds, bool shouldCallIndexer = true}) async {
+    if (indexerIds == null) {
+      indexerIds = [];
+    }
+    // get from database
+    final assetTokenFromDatabase =
+        await _assetTokenDao.findAllAssetTokensByTokenIDs(indexerIds);
+    final res = [...assetTokenFromDatabase];
+    final missingIds = indexerIds
+        .where((id) => !assetTokenFromDatabase.any((e) => e.id == id))
+        .toList();
+    if (missingIds.isNotEmpty) {
+      if (shouldCallIndexer) {
+        final assetTokenFromIndexer = await fetchManualTokens(missingIds);
+        res.addAll(assetTokenFromIndexer);
+      }
+    }
+    return res;
+  }
+
+  @override
   Future<void> setCustomTokens(List<AssetToken> assetTokens) async {
     try {
       final tokens = assetTokens.map(Token.fromAssetToken).toList();
@@ -281,9 +303,6 @@ class TokensServiceImpl extends TokensService {
           'error: $e');
     }
   }
-
-  @override
-  Future<void> postPendingToken(PendingTxParams params) async {}
 
   static void _isolateEntry(List<dynamic> arguments) {
     final sendPort = arguments[0] as SendPort;

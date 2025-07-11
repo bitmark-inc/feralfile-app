@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/bloc/playlist_details_event.dart';
@@ -11,13 +12,12 @@ import 'package:sentry/sentry.dart';
 
 class PlaylistDetailsBloc
     extends AuBloc<PlaylistDetailsEvent, PlaylistDetailsState> {
-  PlaylistDetailsBloc(this._indexerService, this.playlist)
+  PlaylistDetailsBloc(this.playlist)
       : super(const PlaylistDetailsInitialState()) {
     on<GetPlaylistDetailsEvent>(_onGetPlaylistDetails);
     on<LoadMorePlaylistDetailsEvent>(_onLoadMorePlaylistDetails);
   }
 
-  final IndexerService _indexerService;
   final DP1Call playlist;
   static const int _pageSize = 10;
 
@@ -35,8 +35,11 @@ class PlaylistDetailsBloc
     try {
       final items = playlist.items;
       final pageItems = items.take(_pageSize).toList();
+      final pageIndexIds =
+          pageItems.map((item) => item.indexId).whereType<String>().toList();
 
-      final assetTokens = await _indexerService.getAssetTokens(pageItems);
+      final assetTokens = await injector<TokensService>()
+          .getManualTokens(indexerIds: pageIndexIds);
       if (assetTokens.length != pageItems.length) {
         final missingTokens = pageItems
             .where((item) => !assetTokens.any((t) => t.id == item.indexId))
@@ -94,7 +97,11 @@ class PlaylistDetailsBloc
         start,
         end > items.length ? items.length : end,
       );
-      final assetTokens = await _indexerService.getAssetTokens(pageItems);
+      final pageIndexIds =
+          pageItems.map((item) => item.indexId).whereType<String>().toList();
+      final assetTokens = await injector<TokensService>().getManualTokens(
+        indexerIds: pageIndexIds,
+      );
       emit(
         PlaylistDetailsLoadedState(
           assetTokens: [...state.assetTokens, ...assetTokens],
