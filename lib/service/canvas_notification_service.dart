@@ -45,22 +45,23 @@ class CanvasNotificationService {
 
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
+      final completer = Completer<bool>();
       _channel!.stream.listen(
-        _handleMessage,
+        (data) {
+          if (!completer.isCompleted) {
+            completer.complete(true);
+          }
+          _handleMessage(data);
+        },
         onError: (Object error) {
+          if (!completer.isCompleted) {
+            completer.complete(false);
+          }
           _handleError(error);
         },
         onDone: _handleDisconnect,
       );
-
-      final completer = Completer<bool>();
-      final subscription = _channel!.stream.listen((message) {
-        completer.complete(true);
-      }, onError: (Object error) {
-        completer.complete(false);
-      });
       _isConnected = await completer.future;
-      await subscription.cancel();
 
       if (_isConnected) {
         _startPingTimer();
