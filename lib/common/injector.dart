@@ -72,7 +72,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -344,9 +343,9 @@ Future<void> setupInjector() async {
     () => ClientTokenService(
       injector(),
       injector(),
-      injector(),
     ),
   );
+
   injector.registerLazySingleton<FeralFileApi>(
     () => FeralFileApi(
       feralFileDio(dioOptions),
@@ -400,16 +399,6 @@ Future<void> setupInjector() async {
     ),
   );
 
-  injector.registerLazySingleton<PendingTokenService>(
-    () => PendingTokenService(
-      injector(),
-      injector(),
-      injector(),
-      NftCollection.database.assetTokenDao,
-      NftCollection.database.tokenDao,
-      NftCollection.database.assetDao,
-    ),
-  );
   injector.registerFactory<AddNewPlaylistBloc>(
     () => AddNewPlaylistBloc(injector()),
   );

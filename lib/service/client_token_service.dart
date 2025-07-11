@@ -1,19 +1,16 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc_event.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 
 class ClientTokenService {
   ClientTokenService(
     this._addressService,
-    this._pendingTokenService,
     this._nftBloc,
   );
 
   final AddressService _addressService;
-  final PendingTokenService _pendingTokenService;
   final NftCollectionBloc _nftBloc;
 
   NftCollectionBloc get nftBloc => _nftBloc;
@@ -41,28 +38,5 @@ class ClientTokenService {
     }
 
     _nftBloc.add(RefreshNftCollectionByOwners());
-
-    if (checkPendingToken) {
-      final activeAddresses = _addressService
-          .getAllWalletAddresses(isHidden: true)
-          .map((e) => e.address)
-          .toList();
-
-      final pendingResults = await Future.wait(
-        activeAddresses.where((address) => address.startsWith('tz')).map(
-              (address) => _pendingTokenService.checkPendingTezosTokens(
-                address,
-                maxRetries: 1,
-              ),
-            ),
-      );
-      if (pendingResults.any((e) => e.isNotEmpty)) {
-        _nftBloc.add(
-          UpdateTokensEvent(
-            tokens: pendingResults.expand((e) => e).toList(),
-          ),
-        );
-      }
-    }
   }
 }
