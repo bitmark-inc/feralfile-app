@@ -66,9 +66,9 @@ class ChannelsBloc extends Bloc<ChannelsEvent, ChannelsState> {
     try {
       // Emit appropriate loading state
       if (isLoadMore) {
-        emit(state.copyWith(status: ChannelsStatus.loadingMore));
+        emit(state.copyWith(status: ChannelsStateStatus.loadingMore));
       } else {
-        emit(state.copyWith(status: ChannelsStatus.loading));
+        emit(state.copyWith(status: ChannelsStateStatus.loading));
       }
 
       final channelsResponse = await _channelsService.getChannels(
@@ -85,7 +85,7 @@ class ChannelsBloc extends Bloc<ChannelsEvent, ChannelsState> {
 
       emit(
         state.copyWith(
-          status: ChannelsStatus.loaded,
+          status: ChannelsStateStatus.loaded,
           channels: newChannels,
           hasMore: channelsResponse.hasMore,
           cursor: channelsResponse.cursor,
@@ -95,7 +95,7 @@ class ChannelsBloc extends Bloc<ChannelsEvent, ChannelsState> {
     } catch (e) {
       emit(
         state.copyWith(
-          status: ChannelsStatus.error,
+          status: ChannelsStateStatus.error,
           error: e.toString(),
         ),
       );

@@ -66,9 +66,9 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     try {
       // Emit appropriate loading state
       if (isLoadMore) {
-        emit(state.copyWith(status: PlaylistsStatus.loadingMore));
+        emit(state.copyWith(status: PlaylistsStateStatus.loadingMore));
       } else {
-        emit(state.copyWith(status: PlaylistsStatus.loading));
+        emit(state.copyWith(status: PlaylistsStateStatus.loading));
       }
 
       final playlistsResponse = await _playlistService.getPlaylistsFromChannels(
@@ -85,7 +85,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
 
       emit(
         state.copyWith(
-          status: PlaylistsStatus.loaded,
+          status: PlaylistsStateStatus.loaded,
           playlists: newPlaylists,
           hasMore: playlistsResponse.hasMore,
           cursor: playlistsResponse.cursor,
@@ -95,7 +95,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     } catch (e) {
       emit(
         state.copyWith(
-          status: PlaylistsStatus.error,
+          status: PlaylistsStateStatus.error,
           error: e.toString(),
         ),
       );

@@ -1,6 +1,6 @@
 part of 'channel_detail_bloc.dart';
 
-enum ChannelDetailStatus {
+enum ChannelDetailStateStatus {
   initial,
   loading,
   loadingMore,
@@ -11,21 +11,21 @@ enum ChannelDetailStatus {
 @immutable
 class ChannelDetailState {
   const ChannelDetailState({
-    this.status = ChannelDetailStatus.initial,
+    this.status = ChannelDetailStateStatus.initial,
     this.playlists = const [],
     this.hasMore = true,
     this.cursor,
     this.error,
   });
 
-  final ChannelDetailStatus status;
+  final ChannelDetailStateStatus status;
   final List<DP1Call> playlists;
   final bool hasMore;
   final String? cursor;
   final String? error;
 
   ChannelDetailState copyWith({
-    ChannelDetailStatus? status,
+    ChannelDetailStateStatus? status,
     List<DP1Call>? playlists,
     bool? hasMore,
     String? cursor,
@@ -60,9 +60,9 @@ class ChannelDetailState {
         error.hashCode;
   }
 
-  bool get isInitial => status == ChannelDetailStatus.initial;
-  bool get isLoading => status == ChannelDetailStatus.loading;
-  bool get isLoadingMore => status == ChannelDetailStatus.loadingMore;
-  bool get isLoaded => status == ChannelDetailStatus.loaded;
-  bool get isError => status == ChannelDetailStatus.error;
+  bool get isInitial => status == ChannelDetailStateStatus.initial;
+  bool get isLoading => status == ChannelDetailStateStatus.loading;
+  bool get isLoadingMore => status == ChannelDetailStateStatus.loadingMore;
+  bool get isLoaded => status == ChannelDetailStateStatus.loaded;
+  bool get isError => status == ChannelDetailStateStatus.error;
 }

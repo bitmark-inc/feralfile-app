@@ -69,9 +69,9 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     try {
       // Emit appropriate loading state
       if (isLoadMore) {
-        emit(state.copyWith(status: ChannelDetailStatus.loadingMore));
+        emit(state.copyWith(status: ChannelDetailStateStatus.loadingMore));
       } else {
-        emit(state.copyWith(status: ChannelDetailStatus.loading));
+        emit(state.copyWith(status: ChannelDetailStateStatus.loading));
       }
 
       final playlistsResponse = await _dp1playlistService.getPlaylists(
@@ -89,7 +89,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
 
       emit(
         state.copyWith(
-          status: ChannelDetailStatus.loaded,
+          status: ChannelDetailStateStatus.loaded,
           playlists: newPlaylists,
           hasMore: playlistsResponse.hasMore,
           cursor: playlistsResponse.cursor,
@@ -99,7 +99,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     } catch (e) {
       emit(
         state.copyWith(
-          status: ChannelDetailStatus.error,
+          status: ChannelDetailStateStatus.error,
           error: e.toString(),
         ),
       );

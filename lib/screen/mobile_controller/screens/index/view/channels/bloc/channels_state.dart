@@ -1,6 +1,6 @@
 part of 'channels_bloc.dart';
 
-enum ChannelsStatus {
+enum ChannelsStateStatus {
   initial,
   loading,
   loadingMore,
@@ -11,21 +11,21 @@ enum ChannelsStatus {
 @immutable
 class ChannelsState {
   const ChannelsState({
-    this.status = ChannelsStatus.initial,
+    this.status = ChannelsStateStatus.initial,
     this.channels = const [],
     this.hasMore = true,
     this.cursor,
     this.error,
   });
 
-  final ChannelsStatus status;
+  final ChannelsStateStatus status;
   final List<Channel> channels;
   final bool hasMore;
   final String? cursor;
   final String? error;
 
   ChannelsState copyWith({
-    ChannelsStatus? status,
+    ChannelsStateStatus? status,
     List<Channel>? channels,
     bool? hasMore,
     String? cursor,
@@ -60,9 +60,9 @@ class ChannelsState {
         error.hashCode;
   }
 
-  bool get isInitial => status == ChannelsStatus.initial;
-  bool get isLoading => status == ChannelsStatus.loading;
-  bool get isLoadingMore => status == ChannelsStatus.loadingMore;
-  bool get isLoaded => status == ChannelsStatus.loaded;
-  bool get isError => status == ChannelsStatus.error;
+  bool get isInitial => status == ChannelsStateStatus.initial;
+  bool get isLoading => status == ChannelsStateStatus.loading;
+  bool get isLoadingMore => status == ChannelsStateStatus.loadingMore;
+  bool get isLoaded => status == ChannelsStateStatus.loaded;
+  bool get isError => status == ChannelsStateStatus.error;
 }

@@ -1,6 +1,6 @@
 part of 'playlists_bloc.dart';
 
-enum PlaylistsStatus {
+enum PlaylistsStateStatus {
   initial,
   loading,
   loadingMore,
@@ -11,21 +11,21 @@ enum PlaylistsStatus {
 @immutable
 class PlaylistsState {
   const PlaylistsState({
-    this.status = PlaylistsStatus.initial,
+    this.status = PlaylistsStateStatus.initial,
     this.playlists = const [],
     this.hasMore = true,
     this.cursor,
     this.error,
   });
 
-  final PlaylistsStatus status;
+  final PlaylistsStateStatus status;
   final List<DP1Call> playlists;
   final bool hasMore;
   final String? cursor;
   final String? error;
 
   PlaylistsState copyWith({
-    PlaylistsStatus? status,
+    PlaylistsStateStatus? status,
     List<DP1Call>? playlists,
     bool? hasMore,
     String? cursor,
@@ -60,9 +60,9 @@ class PlaylistsState {
         error.hashCode;
   }
 
-  bool get isInitial => status == PlaylistsStatus.initial;
-  bool get isLoading => status == PlaylistsStatus.loading;
-  bool get isLoadingMore => status == PlaylistsStatus.loadingMore;
-  bool get isLoaded => status == PlaylistsStatus.loaded;
-  bool get isError => status == PlaylistsStatus.error;
+  bool get isInitial => status == PlaylistsStateStatus.initial;
+  bool get isLoading => status == PlaylistsStateStatus.loading;
+  bool get isLoadingMore => status == PlaylistsStateStatus.loadingMore;
+  bool get isLoaded => status == PlaylistsStateStatus.loaded;
+  bool get isError => status == PlaylistsStateStatus.error;
 }
