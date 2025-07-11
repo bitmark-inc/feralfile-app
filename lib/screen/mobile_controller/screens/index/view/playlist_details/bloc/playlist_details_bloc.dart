@@ -43,9 +43,11 @@ class PlaylistDetailsBloc
         QueryListTokensRequest(ids: pageIndexIds),
       ));
       final tokens = List<AssetToken>.from(asseTtokens).toList();
-      if (tokens.length != indexIds.length) {
-        unawaited(Sentry.captureException(
-            Exception('Can not get all tokens: ${indexIds.join(', ')}')));
+      if (tokens.length != pageIndexIds.length) {
+        final missingTokens =
+            pageIndexIds.where((id) => !tokens.any((t) => t.id == id)).toList();
+        unawaited(Sentry.captureException(Exception(
+            'Can not get all tokens. Missing tokens:  ${missingTokens.join(', ')}')));
       }
 
       emit(

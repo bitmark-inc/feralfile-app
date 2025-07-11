@@ -311,6 +311,20 @@ class DailyWorkPageState extends State<DailyWorkPage>
             text: 'display'.tr(),
             shouldCheckSubscription: false,
           ),
+          const SizedBox(width: 16),
+          // close button
+          GestureDetector(
+            onTap: () {
+              injector<NavigationService>().goBack();
+            },
+            child: SvgPicture.asset(
+              'assets/images/iconClose.svg',
+              width: 34,
+              height: 34,
+              colorFilter:
+                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          )
         ],
       );
 
