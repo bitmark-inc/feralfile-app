@@ -1,8 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
@@ -13,10 +10,9 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/pla
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item_card.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
-import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -185,36 +181,9 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final asset = state.assetTokens[index];
-                    final border = Border(
-                      top: const BorderSide(
-                        color: AppColor.auGreyBackground,
-                      ),
-                      right: BorderSide(
-                        color: index.isEven
-                            ? AppColor.auGreyBackground
-                            : Colors.transparent,
-                      ),
-                      bottom: index >= state.assetTokens.length - 2
-                          ? const BorderSide(
-                              color: AppColor.auGreyBackground,
-                            )
-                          : BorderSide.none,
-                    );
-                    return GestureDetector(
-                      child: Container(
-                        color: Colors.transparent,
-                        child: _item(context, asset, border),
-                      ),
-                      onTap: () {
-                        injector<NavigationService>().navigateTo(
-                          AppRouter.artworkDetailsPage,
-                          arguments: ArtworkDetailPayload(
-                            ArtworkIdentity(asset.id, asset.owner),
-                            useIndexer: true,
-                            backTitle: widget.playlist.title,
-                          ),
-                        );
-                      },
+                    return PlaylistItemCard(
+                      asset: asset,
+                      playlistTitle: widget.playlist.title,
                     );
                   },
                   childCount: state.assetTokens.length,
@@ -243,52 +212,6 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 60),
       child: Text('Playlist Empty', style: theme.textTheme.ppMori400White14),
-    );
-  }
-
-  Widget _item(BuildContext context, AssetToken asset, Border border) {
-    final title = asset.projectMetadata?.latest.title ?? asset.id;
-    final artist = asset.projectMetadata?.latest.artistName ?? '';
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(border: border),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Center(
-              child: FFCacheNetworkImage(
-                imageUrl: asset.galleryThumbnailURL ?? '',
-                fit: BoxFit.fitWidth,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                artist,
-                style: Theme.of(context).textTheme.ppMori700White12,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 5),
-              Text(
-                title,
-                // italic
-                style: Theme.of(context)
-                    .textTheme
-                    .ppMori700White12
-                    .copyWith(fontStyle: FontStyle.italic),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

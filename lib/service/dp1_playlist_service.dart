@@ -93,4 +93,16 @@ class Dp1PlaylistService {
       limit: limit,
     );
   }
+
+  Future<DP1PlaylistItemsResponse> getPlaylistItems({
+    List<String>? playlistGroupIds,
+    String? cursor,
+    int? limit,
+  }) async {
+    return api.getPlaylistItems(
+      playlistGroupIds: playlistGroupIds,
+      cursor: cursor,
+      limit: limit,
+    );
+  }
 }

@@ -46,4 +46,12 @@ abstract class DP1PlaylistApi {
     @Query('cursor') String? cursor,
     @Query('limit') int? limit,
   });
+
+  // PLAYLIST ITEM
+  @GET('/api/v1/playlist-items')
+  Future<DP1PlaylistItemsResponse> getPlaylistItems({
+    @Query('playlist-group') List<String>? playlistGroupIds,
+    @Query('cursor') String? cursor,
+    @Query('limit') int? limit,
+  });
 }
