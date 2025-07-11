@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/channel_detail.page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
@@ -26,7 +25,7 @@ class _ChannelsPageState extends State<ChannelsPage>
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _channelsBloc = injector<ChannelsBloc>();
+    _channelsBloc = context.read<ChannelsBloc>();
     _channelsBloc.add(const LoadChannelsEvent());
   }
 

@@ -276,6 +276,9 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(
             providers: [
+              BlocProvider(
+                create: (_) => HomeBloc(),
+              ),
               BlocProvider.value(value: canvasDeviceBloc),
               BlocProvider.value(value: subscriptionBloc),
             ],

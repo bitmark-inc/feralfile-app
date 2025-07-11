@@ -24,7 +24,7 @@ class _PlaylistsPageState extends State<PlaylistsPage>
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _playlistsBloc = injector<PlaylistsBloc>();
+    _playlistsBloc = context.read<PlaylistsBloc>();
     _playlistsBloc.add(const LoadPlaylistsEvent());
   }
 

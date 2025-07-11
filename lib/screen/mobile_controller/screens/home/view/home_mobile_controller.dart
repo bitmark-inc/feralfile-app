@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/cha
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/index.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/home_page_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -29,11 +30,14 @@ class MobileControllerHomePage extends StatefulWidget {
       _MobileControllerHomePageState();
 }
 
-class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
+class _MobileControllerHomePageState
+    extends ObservingState<MobileControllerHomePage> {
   late int _currentPageIndex;
   late PageController _pageController;
 
   final _recordBloc = RecordBloc(injector(), injector(), injector());
+  final _channelsBloc = injector<ChannelsBloc>();
+  final _playlistsBloc = injector<PlaylistsBloc>();
 
   @override
   void initState() {
@@ -42,8 +46,18 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
     _pageController = PageController(initialPage: _currentPageIndex);
 
     // load channel and playlist
-    injector<ChannelsBloc>().add(LoadChannelsEvent());
-    injector<PlaylistsBloc>().add(LoadPlaylistsEvent());
+    _channelsBloc.add(const LoadChannelsEvent());
+    _playlistsBloc.add(const LoadPlaylistsEvent());
+
+    HomePageHelper.instance.onHomePageInit(context, this);
+  }
+
+  // dispose
+  @override
+  void dispose() {
+    _pageController.dispose();
+    HomePageHelper.instance.onHomePageDispose();
+    super.dispose();
   }
 
   @override
@@ -53,11 +67,17 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
         providers: [
           BlocProvider.value(
             value: _recordBloc,
-          )
+          ),
         ],
         child: const RecordControllerScreen(),
       ),
-      const ListDirectoryPage(),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: _channelsBloc),
+          BlocProvider.value(value: _playlistsBloc),
+        ],
+        child: const ListDirectoryPage(),
+      ),
     ];
     return SafeArea(
       top: false,
@@ -147,38 +167,44 @@ class _MobileControllerHomePageState extends State<MobileControllerHomePage> {
             child: _buildSwitcher(context, _currentPageIndex),
           ),
           BlocBuilder<RecordBloc, RecordState>(
-              bloc: _recordBloc,
-              builder: (context, state) {
-                if (state is RecordSuccessState) {
-                  return Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: FFCastButton(
-                        displayKey: state.lastDP1Call!.id,
-                        onDeviceSelected: (device) async {
-                          final lastIntent = state.lastIntent!;
-                          final lastDP1Call = state.lastDP1Call!;
-                          final deviceName = lastIntent.deviceName;
-                          final device = await BluetoothDeviceManager()
-                              .pickADeviceToDisplay(deviceName ?? '');
-                          if (device == null) {
-                            UIHelper.showInfoDialog(context, 'Device not found',
-                                'Can not find a device to display your artworks');
-                          }
-                          injector<CanvasDeviceBloc>().add(
-                              CanvasDeviceCastDP1PlaylistEvent(
-                                  device: device!,
-                                  playlist: lastDP1Call,
-                                  intent: lastIntent));
-                        },
-                      ),
+            bloc: _recordBloc,
+            builder: (context, state) {
+              if (state is RecordSuccessState) {
+                return Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: FFCastButton(
+                      displayKey: state.lastDP1Call!.id,
+                      onDeviceSelected: (device) async {
+                        final lastIntent = state.lastIntent!;
+                        final lastDP1Call = state.lastDP1Call!;
+                        final deviceName = lastIntent.deviceName;
+                        final device = await BluetoothDeviceManager()
+                            .pickADeviceToDisplay(deviceName ?? '');
+                        if (device == null) {
+                          UIHelper.showInfoDialog(
+                            context,
+                            'Device not found',
+                            'Can not find a device to display your artworks',
+                          );
+                        }
+                        injector<CanvasDeviceBloc>().add(
+                          CanvasDeviceCastDP1PlaylistEvent(
+                            device: device!,
+                            playlist: lastDP1Call,
+                            intent: lastIntent,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                }
-                return SizedBox();
-              }),
+                  ),
+                );
+              }
+              return const SizedBox();
+            },
+          ),
         ],
       ),
     );

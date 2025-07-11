@@ -9,9 +9,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -21,8 +19,6 @@ import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -30,16 +26,12 @@ import 'package:autonomy_flutter/service/announcement/announcement_service.dart'
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
-import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
@@ -51,7 +43,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class HomeNavigationPagePayload {
   const HomeNavigationPagePayload({
@@ -86,7 +77,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   final GlobalKey<OrganizeHomePageState> _organizeHomeKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
-  late Timer? _timer;
+  Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _announcementService = injector<AnnouncementService>();
@@ -240,32 +231,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(UIHelper.showLiveWithArtIntro(context));
       }
     });
-    unawaited(injector<CustomerSupportService>().getChatThreads());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
-    NftCollectionBloc.eventController.stream.listen((event) async {
-      switch (event.runtimeType) {
-        case const (ReloadEvent):
-        case const (GetTokensByOwnerEvent):
-        case const (UpdateTokensEvent):
-        case const (GetTokensBeforeByOwnerEvent):
-          nftBloc.add(event);
-        default:
-      }
-    });
-    unawaited(injector<VersionService>().checkForUpdate());
-
-    unawaited(
-      _clientTokenService.refreshTokens(syncAddresses: true).then(
-        (_) {
-          nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-        },
-      ),
-    );
-    context.read<HomeBloc>().add(CheckReviewAppEvent());
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      unawaited(_clientTokenService.refreshTokens());
-    });
 
     _pages = <Widget>[
       MultiBlocProvider(
@@ -301,29 +268,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         ),
       ),
     ];
-
-    _triggerShowAnnouncement();
-
-    OneSignal.Notifications.addClickListener((openedResult) async {
-      log.info('Tapped push notification: '
-          '${openedResult.notification.additionalData}');
-      final additionalData =
-          AdditionalData.fromJson(openedResult.notification.additionalData!);
-      final id = additionalData.announcementContentId ??
-          openedResult.notification.notificationId;
-      final body = openedResult.notification.body;
-      await _announcementService.fetchAnnouncements();
-      if (!mounted) {
-        return;
-      }
-      unawaited(
-        NotificationHandler.instance
-            .handlePushNotificationClicked(context, additionalData),
-      );
-    });
-    WidgetsBinding.instance.addObserver(this);
-    _fgbgSubscription =
-        FGBGEvents.instance.stream.listen(_handleForeBackground);
 
     /// precache playlist
     injector<ListPlaylistBloc>().add(ListPlaylistLoadPlaylist());
@@ -519,52 +463,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     final pageController = PageController(initialPage: initialIndex);
     injector<NavigationService>().setGlobalHomeTabController(pageController);
     return pageController;
-  }
-
-  void _handleBackground() {
-    unawaited(_checkForReferralCode());
-  }
-
-  Future<void> _checkForReferralCode() async {
-    final referralCode = injector<ConfigurationService>().getReferralCode();
-    if (referralCode != null && referralCode.isNotEmpty) {
-      await injector<DeeplinkService>().handleReferralCode(referralCode);
-    }
-  }
-
-  void _triggerShowAnnouncement() {
-    unawaited(
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        _announcementService.fetchAnnouncements().then(
-          (_) async {
-            await _announcementService.showOldestAnnouncement();
-          },
-        );
-      }),
-    );
-  }
-
-  Future<void> _handleForeBackground(FGBGType event) async {
-    switch (event) {
-      case FGBGType.foreground:
-        unawaited(_handleForeground());
-        memoryValues.isForeground = true;
-      case FGBGType.background:
-        memoryValues.isForeground = false;
-        _handleBackground();
-    }
-  }
-
-  Future<void> _handleForeground() async {
-    memoryValues.inForegroundAt = DateTime.now();
-    await injector<ConfigurationService>().reload();
-    await injector<CloudManager>().downloadAll(includePlaylists: true);
-    unawaited(injector<VersionService>().checkForUpdate());
-    await _remoteConfig.loadConfigs(forceRefresh: true);
-    unawaited(NowDisplayingManager().updateDisplayingNow());
-
-    unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
-    _triggerShowAnnouncement();
   }
 
   @override
