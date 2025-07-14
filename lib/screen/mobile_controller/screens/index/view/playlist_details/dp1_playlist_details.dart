@@ -10,8 +10,8 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/pla
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item_card.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -172,23 +172,8 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
                 child: _emptyView(context),
               )
             else
-              SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 188 / 307,
-                  crossAxisSpacing: 17,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final asset = state.assetTokens[index];
-                    return PlaylistItemCard(
-                      asset: asset,
-                      playlistTitle: widget.playlist.title,
-                    );
-                  },
-                  childCount: state.assetTokens.length,
-                ),
-              ),
+              UIHelper.assetTokenSliverGrid(
+                  context, state.assetTokens, widget.playlist.title),
             if (state is PlaylistDetailsLoadingMoreState)
               const SliverToBoxAdapter(
                   child: LoadMoreIndicator(
