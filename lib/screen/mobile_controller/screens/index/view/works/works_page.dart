@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/wor
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/error_view.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/load_more_indicator.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/loading_view.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item_card.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,22 +88,7 @@ class _WorksPageState extends State<WorksPage>
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        SliverGrid(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final asset = assetTokens[index];
-
-              return PlaylistItemCard(
-                asset: asset,
-                playlistTitle: 'Works',
-              );
-            },
-            childCount: assetTokens.length,
-          ),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-          ),
-        ),
+        UIHelper.assetTokenSliverGrid(context, assetTokens, 'Works'),
         if (hasMore || isLoadingMore)
           SliverToBoxAdapter(
             child: Padding(
