@@ -166,45 +166,46 @@ class _MobileControllerHomePageState
           Center(
             child: _buildSwitcher(context, _currentPageIndex),
           ),
-          BlocBuilder<RecordBloc, RecordState>(
-            bloc: _recordBloc,
-            builder: (context, state) {
-              if (state is RecordSuccessState) {
-                return Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: FFCastButton(
-                      displayKey: state.lastDP1Call!.id,
-                      onDeviceSelected: (device) async {
-                        final lastIntent = state.lastIntent!;
-                        final lastDP1Call = state.lastDP1Call!;
-                        final deviceName = lastIntent.deviceName;
-                        final device = await BluetoothDeviceManager()
-                            .pickADeviceToDisplay(deviceName ?? '');
-                        if (device == null) {
-                          UIHelper.showInfoDialog(
-                            context,
-                            'Device not found',
-                            'Can not find a device to display your artworks',
+          if (_currentPageIndex == 0)
+            BlocBuilder<RecordBloc, RecordState>(
+              bloc: _recordBloc,
+              builder: (context, state) {
+                if (state is RecordSuccessState) {
+                  return Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: FFCastButton(
+                        displayKey: state.lastDP1Call!.id,
+                        onDeviceSelected: (device) async {
+                          final lastIntent = state.lastIntent!;
+                          final lastDP1Call = state.lastDP1Call!;
+                          final deviceName = lastIntent.deviceName;
+                          final device = await BluetoothDeviceManager()
+                              .pickADeviceToDisplay(deviceName ?? '');
+                          if (device == null) {
+                            UIHelper.showInfoDialog(
+                              context,
+                              'Device not found',
+                              'Can not find a device to display your artworks',
+                            );
+                          }
+                          injector<CanvasDeviceBloc>().add(
+                            CanvasDeviceCastDP1PlaylistEvent(
+                              device: device!,
+                              playlist: lastDP1Call,
+                              intent: lastIntent,
+                            ),
                           );
-                        }
-                        injector<CanvasDeviceBloc>().add(
-                          CanvasDeviceCastDP1PlaylistEvent(
-                            device: device!,
-                            playlist: lastDP1Call,
-                            intent: lastIntent,
-                          ),
-                        );
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                );
-              }
-              return const SizedBox();
-            },
-          ),
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
         ],
       ),
     );
