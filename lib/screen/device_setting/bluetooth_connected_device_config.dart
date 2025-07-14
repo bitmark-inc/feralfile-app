@@ -13,8 +13,10 @@ import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart'
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -220,6 +222,19 @@ class BluetoothConnectedDeviceConfigState
                   current.isDeviceAlive(selectedDevice!);
             },
             builder: (context, state) {
+              return GestureDetector(
+                onTap: () {
+                  _showOption(context, state);
+                },
+                child: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 22,
+                  colorFilter: const ColorFilter.mode(
+                    AppColor.white,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              );
               if (!state.isDeviceAlive(selectedDevice!)) {
                 return const SizedBox.shrink();
               }
@@ -1458,6 +1473,171 @@ class BluetoothConnectedDeviceConfigState
           );
         }).toList();
       },
+    );
+  }
+
+  void _showOption(BuildContext context, CanvasDeviceState state) {
+    final isDeviceAlive = selectedDevice!.isAlive;
+
+    final options = [
+      if (isDeviceAlive)
+        OptionItem(
+          title: 'Power Off',
+          icon: const Icon(
+            Icons.power_settings_new,
+            size: 24,
+          ),
+          onTap: () {
+            _onPowerOffSelected();
+          },
+        ),
+      OptionItem(
+        title: 'Send Log',
+        icon: Icon(AuIcon.help),
+        onTap: () {
+          _onSendLogSelected();
+        },
+      ),
+      OptionItem(
+        title: 'Factory Reset',
+        icon: Icon(Icons.restart_alt),
+        onTap: () {
+          _onFactoryResetSelected();
+        },
+      ),
+      OptionItem.emptyOptionItem,
+    ];
+    unawaited(UIHelper.showDrawerAction(context,
+        options: options, title: selectedDevice?.name));
+  }
+
+  Future<void> _onFactoryResetSelected() async {
+    final error = await UIHelper.showCenterDialog(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Factory Reset',
+            style: Theme.of(context).textTheme.ppMori700White16,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Are you sure you want to reset the device to factory settings? This will erase all data and cannot be undone.',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 36),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'cancel'.tr(),
+                  textColor: AppColor.white,
+                  color: Colors.transparent,
+                  borderColor: AppColor.white,
+                  onTap: () {
+                    injector<NavigationService>().goBack(result: false);
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'Reset',
+                  textColor: AppColor.white,
+                  borderColor: AppColor.white,
+                  color: Colors.transparent,
+                  onTap: () async {
+                    try {
+                      final device = selectedDevice!;
+                      await injector<FFBluetoothService>().factoryReset(device);
+                      unawaited(device.disconnect());
+                      await BluetoothDeviceManager()
+                          .removeDevice(device.deviceId);
+                      injector<NavigationService>().goBack(result: true);
+                    } catch (e, s) {
+                      injector<NavigationService>().goBack(result: e);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (error is bool) {
+      injector<NavigationService>().popUntilHome();
+      if (error) {
+        await UIHelper.showInfoDialog(context, 'Restoring Factory Defaults',
+            'The device is now restoring to factory settings. It may take some time to complete. Please keep the device powered on and wait until the reset is finished.');
+      }
+    } else {
+      await UIHelper.showInfoDialog(context, 'Factory Reset Failed',
+          'Something went wrong while trying to restore the device to factory settings. ${error.toString()}');
+    }
+  }
+
+  Future<void> _onSendLogSelected() async {
+    try {
+      final device = selectedDevice!;
+      final res = await injector<FFBluetoothService>().sendLog(device);
+      unawaited(UIHelper.showInfoDialog(context, 'Logs Sent Successfully',
+          'Your logs have been sent. Thank you for helping us improve the device.'));
+    } catch (e) {
+      await UIHelper.showInfoDialog(context, 'Failed to send logs',
+          'We couldn’t send the logs due to a connection issue or unexpected error. ${e.toString()}');
+    }
+  }
+
+  void _onPowerOffSelected() {
+    UIHelper.showCenterDialog(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Power Off',
+            style: Theme.of(context).textTheme.ppMori700White16,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Are you sure you want to power off the device?',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 36),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'cancel'.tr(),
+                  textColor: AppColor.white,
+                  color: Colors.transparent,
+                  borderColor: AppColor.white,
+                  onTap: () {
+                    injector<NavigationService>().goBack();
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'OK',
+                  textColor: AppColor.white,
+                  borderColor: AppColor.white,
+                  color: Colors.transparent,
+                  onTap: () async {
+                    final device = selectedDevice!;
+                    await injector<CanvasClientServiceV2>()
+                        .safeShutdown(device);
+                    injector<NavigationService>().goBack();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

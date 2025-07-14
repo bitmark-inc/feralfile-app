@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/shared.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -289,7 +290,7 @@ class NavigationService {
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
         context,
-        'Can not connect to ${device.advName}',
+        'Can not connect to ${device.getName}',
         'Error: ${error}',
         onClose: () => UIHelper.hideInfoDialog(context),
       );

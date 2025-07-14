@@ -65,6 +65,7 @@ class NowDisplayingManager {
       }
 
       if (!device.isAlive) {
+        addStatus(DeviceDisconnected(device));
         return;
       }
 
