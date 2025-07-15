@@ -1,30 +1,28 @@
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_item_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 extension DP1CallExtension on DP1Call {
-  static DP1Call fromCompactedAssetToken({
-    required List<CompactedAssetToken> tokens,
-    required Duration duration,
-    required ArtworkDisplayLicense license,
-    String? playlistId,
-  }) {
-    final items = tokens
-        .map(
-          (token) => DP1PlaylistItemExtension.fromCompactedAssetToken(
-            token: token,
-            duration: duration,
-            license: license,
-          ),
-        )
-        .toList();
-    return DP1CallExtension.fromItems(
-      items: items,
-      playlistId: playlistId,
-    );
-  }
+  // static DP1Call fromCompactedAssetToken({
+  //   required List<CompactedAssetToken> tokens,
+  //   required Duration duration,
+  //   required ArtworkDisplayLicense license,
+  //   String? playlistId,
+  // }) {
+  //   final items = tokens
+  //       .map(
+  //         (token) => DP1PlaylistItemExtension.fromCompactedAssetToken(
+  //           token: token,
+  //           duration: duration,
+  //           license: license,
+  //         ),
+  //       )
+  //       .toList();
+  //   return DP1CallExtension.fromItems(
+  //     items: items,
+  //     playlistId: playlistId,
+  //   );
+  // }
 
   static DP1Call fromItems({
     required List<DP1Item> items,

@@ -16,6 +16,7 @@ class AudioService {
   }
 
   StreamSubscription? _recorderSubscription;
+  bool _didTalk = false; // Add a flag to track if user spoke
 
   Future<FlutterSoundRecorder> getRecorder() async {
     if (_recorder == null) {
@@ -29,6 +30,7 @@ class AudioService {
       {double silenceThreshold = 50,
       Duration silenceDuration = const Duration(seconds: 2),
       FutureOr<void> Function()? onSilenceDetected}) async {
+    _didTalk = false; // Reset the flag
     final recorder = await getRecorder();
     final dir = await getTemporaryDirectory();
     _filePath =
@@ -44,6 +46,7 @@ class AudioService {
         if (decibels > silenceThreshold) {
           // User is talking
           lastLoudTime = now;
+          _didTalk = true; // Set flag to true if speech is detected
         } else {
           // Check if silence has lasted more than 3 seconds
           if (now.difference(lastLoudTime).inSeconds >=
@@ -61,11 +64,22 @@ class AudioService {
     );
   }
 
-  Future<File> stopRecording() async {
+  Future<File?> stopRecording() async {
     if (_recorder == null) return throw AudioRecorderNotOpenedException();
     await _recorder!.stopRecorder();
     _recorderSubscription?.cancel();
-    return File(_filePath!);
+    if (_filePath != null && _didTalk) {
+      return File(_filePath!);
+    } else if (_filePath != null) {
+      // If no speech detected, delete the file and return null
+      final file = File(_filePath!);
+      if (await file.exists()) {
+        await file.delete();
+        log.info('Deleted silent audio file: $_filePath');
+      }
+      return null;
+    }
+    return null; // Should not happen if _filePath is always set in startRecording
   }
 
   Future<void> dispose() async {
@@ -78,6 +92,7 @@ enum AudioExceptionType {
   permissionDenied,
   recordingFailed,
   fileNotFound,
+  noSpeech,
   unknown;
 
   String get message {
@@ -88,6 +103,8 @@ enum AudioExceptionType {
         return 'Failed to start recording';
       case AudioExceptionType.fileNotFound:
         return 'Recorded file not found';
+      case AudioExceptionType.noSpeech:
+        return 'No speech detected';
       case AudioExceptionType.unknown:
       default:
         return 'An unknown error occurred';
@@ -129,4 +146,9 @@ class AudioFileNotFoundException implements AudioException {
 class AudioRecorderNotOpenedException implements AudioException {
   @override
   String get message => 'Audio recorder is not opened';
+}
+
+class AudioRecordNoSpeechException implements AudioException {
+  @override
+  String get message => 'No speech detected';
 }

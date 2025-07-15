@@ -43,7 +43,7 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
   ) {
     if (state is RecordErrorState &&
         (state as RecordErrorState).error is AudioPermissionDeniedException) {
-      emit(RecordInitialState());
+      emit(const RecordInitialState());
     }
   }
 
@@ -71,6 +71,12 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     Emitter<RecordState> emit,
   ) async {
     final file = await audioService.stopRecording();
+    if (file == null) {
+      emit(RecordErrorState(
+          error:
+              AudioRecordNoSpeechException())); // Emit RecordNoSpeechState if no audio was recorded
+      return;
+    }
     emit(
       RecordProcessingState(
         status: RecordProcessingStatus.transcribing,
@@ -107,20 +113,16 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     );
 
     try {
-      final result = await service.getDP1CallFromText(
+      final (dp1call, intent, response) = await service.getDP1CallFromText(
         command: event.text,
         deviceNames: ["kitchen", "living_room", "bed room"],
       );
       emit(
-        state.copyWith(
-          lastIntent: result['intent'] == null
-              ? null
-              : DP1Intent.fromJson(
-                  Map<String, dynamic>.from(result['intent'] as Map)),
-          lastDP1Call: result['dp1_call'] == null
-              ? null
-              : DP1Call.fromJson(
-                  Map<String, dynamic>.from(result['dp1_call'] as Map)),
+        RecordSuccessState(
+          lastIntent: intent,
+          lastDP1Call: dp1call,
+          response: response,
+          transcription: event.text,
         ),
       );
     } catch (e) {
@@ -223,7 +225,9 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         DP1Intent.fromJson(Map<String, dynamic>.from(nlParserData.data as Map));
     if (state is RecordProcessingState) {
       emit((state as RecordProcessingState).copyWith(
-          lastIntent: intent, status: RecordProcessingStatus.intentReceived));
+          lastIntent: intent,
+          status: RecordProcessingStatus.intentReceived,
+          statusMessage: intent.displayText));
     } else {
       emit(
         RecordProcessingState(

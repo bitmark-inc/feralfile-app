@@ -26,7 +26,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/extensions/dp1_item_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/detail_page_appbar.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -262,9 +262,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             );
           }
           final identityState = context.watch<IdentityBloc>().state;
-          final asset = state.assetToken!;
-          final artistName =
-              asset.artistName?.toIdentityOrMask(identityState.identityMap);
+          final assetToken = state.assetToken!;
+          final artistName = assetToken.artistName
+              ?.toIdentityOrMask(identityState.identityMap);
           return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
             bloc: _canvasDeviceBloc,
             builder: (context, canvasState) => Stack(
@@ -284,7 +284,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 onPressed: () async =>
                                     _showArtworkOptionsDialog(
                                   context,
-                                  asset,
+                                  assetToken,
                                   canvasState,
                                 ),
                                 constraints: const BoxConstraints(
@@ -301,18 +301,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               ),
                             ),
                             FFCastButton(
-                              displayKey: _getDisplayKey(asset),
+                              displayKey: _getDisplayKey(assetToken),
                               onDeviceSelected: (device) async {
-                                // final artwork = PlayArtworkV2(
-                                //   token: CastAssetToken(id: asset.id),
-                                //   duration: Duration.zero,
-                                // );
-                                final playlistItem = DP1Item(
-                                    id: asset.id,
-                                    title: asset.title!,
-                                    source: asset.getPreviewUrl()!,
-                                    duration: 0,
-                                    license: ArtworkDisplayLicense.open);
+                                final playlistItem =
+                                    DP1PlaylistItemExtension.fromCAssetToken(
+                                        token: assetToken);
                                 final completer = Completer<void>();
                                 _canvasDeviceBloc.add(
                                   CanvasDeviceCastListArtworkEvent(
@@ -398,7 +391,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             child: Container(
                               child: _infoHeader(
                                 context,
-                                asset,
+                                assetToken,
                                 artistName,
                                 canvasState,
                               ),

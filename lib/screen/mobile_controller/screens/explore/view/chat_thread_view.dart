@@ -64,23 +64,29 @@ class _ChatThreadViewState extends State<ChatThreadView> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
+          Padding(
+            padding: const EdgeInsets.only(left: 100),
+            child: Align(
+              child: Text(
+                message,
+                style: theme.textTheme.ppMori400White12,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              alignment: Alignment.centerRight,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(right: 100),
             child: Text(
-              message,
-              style: theme.textTheme.ppMori400White12,
+              response,
+              style: theme.textTheme.ppMori400Black12.copyWith(
+                color: AppColor.feralFileLightBlue,
+              ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
-            alignment: Alignment.centerRight,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            response,
-            style: theme.textTheme.ppMori400Black12.copyWith(
-              color: AppColor.feralFileLightBlue,
-            ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
         ],

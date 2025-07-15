@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -434,7 +435,7 @@ class DP1NowDisplayingView extends StatelessWidget {
       device: device,
       onMoreTap: () {
         injector<NavigationService>().showDeviceSettings(
-          tokenId: playlistItem.id,
+          tokenId: playlistItem.indexId,
           artistName: playlistItem.title,
         );
       },
@@ -458,7 +459,7 @@ class DP1NowDisplayingView extends StatelessWidget {
         );
       },
       titleBuilder: (context) {
-        final title = assetToken?.title ?? playlistItem.title;
+        final title = assetToken?.title ?? '';
         return Text(
           title,
           style: theme.textTheme.ppMori400Black14,

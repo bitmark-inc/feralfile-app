@@ -13,13 +13,14 @@ class PlaylistItemCard extends StatelessWidget {
     this.playlistTitle,
     super.key,
   });
+
   final AssetToken asset;
   final String? playlistTitle;
 
   @override
   Widget build(BuildContext context) {
-    final title = asset.projectMetadata?.latest.title ?? asset.id;
-    final artist = asset.projectMetadata?.latest.artistName ?? '';
+    final title = asset.title ?? '';
+    final artist = asset.artistName ?? '';
     return GestureDetector(
       onTap: () {
         injector<NavigationService>().navigateTo(

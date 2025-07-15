@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -360,6 +361,20 @@ extension AssetTokenExtension on AssetToken {
     final collectionAddresses =
         await injector<AddressService>().getAllAddresses();
     return collectionAddresses.any((element) => element.address == owner);
+  }
+
+  DP1Provenance get dp1Provenance {
+    final chain = DP1ProvenanceChain.fromString(blockchain ?? '');
+    final standard = DP1ProvenanceStandard.fromString(contractType ?? '');
+    final contractAddress = this.contractAddress!;
+    final tokenId = this.tokenId;
+    final dp1Contract = DP1Contract(
+        chain: chain,
+        standard: standard,
+        address: contractAddress,
+        tokenId: tokenId!);
+    return DP1Provenance(
+        type: DP1ProvenanceType.onChain, contract: dp1Contract);
   }
 }
 

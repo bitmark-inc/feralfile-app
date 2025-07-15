@@ -1,65 +1,55 @@
 class DP1Provenance {
   DP1Provenance({
     required this.type,
-    this.contract,
-  }) : assert(
-          ![DP1ProvenanceType.onChain, DP1ProvenanceType.seriesRegistry]
-                  .contains(type) ||
-              contract != null,
-          'Contract must be provided for onChain and seriesRegistry provenance types',
-        );
+    required this.contract,
+  });
 
   // from json method
   factory DP1Provenance.fromJson(Map<String, dynamic> json) {
     return DP1Provenance(
       type: DP1ProvenanceType.fromString(json['type'] as String),
-      contract: json['contract'] != null
-          ? DP1Contract.fromJson(json['contract'] as Map<String, dynamic>)
-          : null,
+      contract: DP1Contract.fromJson(json['contract'] as Map<String, dynamic>),
     );
   }
 
   final DP1ProvenanceType type;
-  final DP1Contract? contract;
+  final DP1Contract contract;
 
   // to json method
   Map<String, dynamic> toJson() {
     return {
       'type': type.value,
-      'contract': contract?.toJson(),
+      'contract': contract.toJson(),
     };
   }
 }
 
 class DP1Contract {
+  DP1Contract({
+    required this.chain,
+    required this.standard,
+    required this.address,
+    required this.tokenId,
+    this.uri,
+    this.metaHash,
+  });
+
   //from json method
   factory DP1Contract.fromJson(Map<String, dynamic> json) {
     return DP1Contract(
       chain: DP1ProvenanceChain.fromString(json['chain'] as String),
       standard: DP1ProvenanceStandard.fromString(json['standard'] as String),
       address: json['address'] as String,
-      seriesId: json['seriesId'] as String?,
-      tokenId: json['tokenId'] as String?,
+      tokenId: json['tokenId'] as String,
       uri: json['uri'] as String?,
       metaHash: json['metaHash'] as String?,
     );
   }
 
-  DP1Contract({
-    required this.chain,
-    required this.standard,
-    required this.address,
-    this.seriesId,
-    this.tokenId,
-    this.uri,
-    this.metaHash,
-  }) : assert(tokenId != null || seriesId != null);
-
   final DP1ProvenanceChain chain;
   final DP1ProvenanceStandard standard;
   final String address;
-  final String? seriesId;
-  final String? tokenId;
+  final String tokenId;
   final String? uri;
   final String? metaHash;
 
@@ -69,7 +59,6 @@ class DP1Contract {
       'chain': chain.value,
       'standard': standard.value,
       'address': address,
-      'seriesId': seriesId,
       'tokenId': tokenId,
       'uri': uri,
       'metaHash': metaHash,
@@ -119,6 +108,7 @@ enum DP1ProvenanceChain {
   static DP1ProvenanceChain fromString(String value) {
     switch (value) {
       case 'evm':
+      case 'ethereum':
         return DP1ProvenanceChain.evm;
       case 'tezos':
         return DP1ProvenanceChain.tezos;
@@ -196,7 +186,7 @@ enum DP1ProvenanceStandard {
 }
 
 extension DP1ContractExt on DP1Contract {
-  String? get indexId {
+  String get indexId {
     final prefix = chain.prefix;
     final contractAddress = chain == DP1ProvenanceChain.bitmark ? '' : address;
 
@@ -204,6 +194,6 @@ extension DP1ContractExt on DP1Contract {
   }
 }
 
-extension DP1ProvenanceExt on DP1Provenance? {
-  String? get indexId => this?.contract?.indexId;
+extension DP1ProvenanceExt on DP1Provenance {
+  String get indexId => contract.indexId;
 }

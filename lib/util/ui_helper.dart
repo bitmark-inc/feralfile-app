@@ -571,7 +571,7 @@ class UIHelper {
     return res as T?;
   }
 
-  static Future<void> showFlexibleDialog(
+  static Future<dynamic> showFlexibleDialog(
     BuildContext context,
     Widget content, {
     bool isDismissible = false,

@@ -6,7 +6,10 @@ import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -59,7 +62,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
           child: Center(
             child: Column(
               children: [
-                const SizedBox(height: 100),
+                const SizedBox(height: 80),
                 Center(
                   child: GestureDetector(
                     onTap: state is RecordProcessingState
@@ -80,39 +83,74 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                 const SizedBox(height: 20),
                 Padding(
                   padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                  child: Builder(
-                    builder: (context) {
-                      if (state is RecordProcessingState) {
-                        return Center(
-                          child: Text(
-                            state.processingMessage,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .ppMori400Grey14
-                                .copyWith(color: Colors.white),
-                          ),
-                        );
-                      } else if (state is RecordErrorState) {
-                        if (state.error is AudioPermissionDeniedException) {
-                          return _noPermissionWidget(context);
-                        } else if (state.error is AudioException) {
-                          return Center(
-                            child: Text(
-                              (state.error as AudioException).message,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .ppMori400Black14
-                                  .copyWith(color: Colors.red),
-                            ),
-                          );
-                        }
-                      }
-                      return const SizedBox.shrink();
-                    },
+                  child: Column(
+                    children: [
+                      Builder(
+                        builder: (context) {
+                          if (state is RecordProcessingState) {
+                            return Center(
+                              child: Text(
+                                state.processingMessage,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .ppMori400Grey14
+                                    .copyWith(color: Colors.white),
+                              ),
+                            );
+                          } else if (state is RecordErrorState) {
+                            if (state.error is AudioPermissionDeniedException) {
+                              return _noPermissionWidget(context);
+                            } else if (state.error
+                                is AudioRecordNoSpeechException) {
+                              return _noSpeechWidget(context);
+                            } else if (state.error is AudioException) {
+                              return Center(
+                                child: Text(
+                                  (state.error as AudioException).message,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .ppMori400Black14
+                                      .copyWith(color: Colors.red),
+                                ),
+                              );
+                            }
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      if (state is RecordErrorState)
+                        PrimaryAsyncButton(
+                            text: 'Enter manually',
+                            onTap: () async {
+                              // show a dialog to enter text manually
+                              final text = await UIHelper.showCenterDialog(
+                                  context, content: Builder(builder: (context) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AuTextField(
+                                      title: 'Command',
+                                      controller: TextEditingController()
+                                        ..text =
+                                            'Display some artworks of Refik Anadol',
+                                      onSubmit: (text) {
+                                        injector<NavigationService>()
+                                            .goBack(result: text);
+                                      },
+                                    )
+                                  ],
+                                );
+                              }));
+
+                              log.info('User entered text: $text');
+                              if (text is String)
+                                recordBloc.add(SubmitTextEvent(text));
+                            })
+                    ],
                   ),
                 ),
               ],
@@ -130,7 +168,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   Widget _chatThreadView(BuildContext context, RecordSuccessState state) {
     return Column(
       children: [
-        SizedBox(
+        const SizedBox(
           height: UIConstants.detailPageHeaderPadding,
         ),
         ChatThreadView(
@@ -232,6 +270,16 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         ),
       ],
     );
+  }
+
+  // AudioRecordNoSpeechException
+  Widget _noSpeechWidget(BuildContext context) {
+    return Column(children: [
+      Text(
+        AudioExceptionType.noSpeech.message,
+        style: Theme.of(context).textTheme.ppMori400White12,
+      )
+    ]);
   }
 
   @override

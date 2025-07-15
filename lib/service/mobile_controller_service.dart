@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/utils/json_stream.dart';
 import 'package:autonomy_flutter/util/file_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -12,7 +14,8 @@ class MobileControllerService {
   final MobileControllerAPI api;
 
   /// Gọi API và trả về intent, dp1_call
-  Future<Map<String, dynamic>> getDP1CallFromText({
+  Future<(DP1Call dp1Call, DP1Intent intent, String response)>
+      getDP1CallFromText({
     required String command,
     required List<String> deviceNames,
   }) async {
@@ -21,10 +24,12 @@ class MobileControllerService {
       'device_names': deviceNames,
     };
     final result = await api.getDP1CallFromText(body);
-    return {
-      'intent': result['intent'],
-      'dp1_call': result['dp1_call'],
-    };
+    final dp1call =
+        DP1Call.fromJson(Map<String, dynamic>.from(result['dp1_call'] as Map));
+    final intent =
+        DP1Intent.fromJson(Map<String, dynamic>.from(result['intent'] as Map));
+    final response = result['response'] as String;
+    return (dp1call, intent, response);
   }
 
   //getDP1CallFromVoice

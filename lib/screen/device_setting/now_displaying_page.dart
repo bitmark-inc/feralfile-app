@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -115,7 +116,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     }
     final object = nowDisplayingStatus.object;
     if (object is DP1NowDisplayingObject) {
-      return object.playlistItem.id;
+      return object.playlistItem.indexId;
     } else if (object is NowDisplayingObject) {
       if (object.assetToken != null) {
         return object.assetToken!.id;
