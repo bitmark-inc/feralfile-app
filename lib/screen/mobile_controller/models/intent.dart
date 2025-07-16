@@ -24,12 +24,15 @@ enum DP1Action {
 }
 
 enum DPIEntityType {
-  artist;
+  artist,
+  exhibition;
 
   String get value {
     switch (this) {
       case DPIEntityType.artist:
         return 'artist';
+      case DPIEntityType.exhibition:
+        return 'exhibition';
     }
   }
 
@@ -37,7 +40,10 @@ enum DPIEntityType {
     switch (value) {
       case 'artist':
         return DPIEntityType.artist;
+      case 'exhibition':
+        return DPIEntityType.exhibition;
       default:
+        return DPIEntityType.artist;
         throw ArgumentError('Unknown entity type: $value');
     }
   }
@@ -117,11 +123,11 @@ class DP1Intent {
   }
 
   String get displayText {
-    String prefix = 'Finding artworks';
+    String prefix = 'Building playlist';
     if (action == DP1Action.now) {
-      prefix = 'Getting artworks';
+      prefix = 'Building playlist';
     } else if (action == DP1Action.schedulePlay) {
-      prefix = 'Preparing artworks for scheduled play';
+      prefix = 'Building playlist for scheduled play';
     }
 
     if (entities != null && entities!.isNotEmpty) {

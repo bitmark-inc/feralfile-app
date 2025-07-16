@@ -36,7 +36,6 @@ class MobileControllerService {
   Future<Stream<Map<String, dynamic>>> getDP1CallFromVoice({
     required File file,
     required List<String> deviceNames,
-    bool withStream = false,
   }) async {
     final bytes = await file.toBytes();
     final base64String = base64Encode(bytes);
@@ -47,7 +46,26 @@ class MobileControllerService {
     try {
       final result = await api.getDP1CallFromVoiceStream(
         body,
-        true,
+      );
+      final listIntStream = result.cast<List<int>>();
+      return JsonStream(listIntStream).stream;
+    } catch (e) {
+      log.info('getDP1CallFromVoice error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Stream<Map<String, dynamic>>> getDP1CallFromTextStream({
+    required String command,
+    required List<String> deviceNames,
+  }) async {
+    final body = {
+      'device_names': deviceNames,
+      'command': command,
+    };
+    try {
+      final result = await api.getDP1CallFromTextStream(
+        body,
       );
       final listIntStream = result.cast<List<int>>();
       return JsonStream(listIntStream).stream;

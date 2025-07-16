@@ -11,19 +11,31 @@ class DP1Item {
 
 // from JSON
   factory DP1Item.fromJson(Map<String, dynamic> json) {
-    return DP1Item(
-      title: json['title'] as String?,
-      source: json['source'] as String?,
-      duration: json['duration'] as int,
-      license: json['license'] == null
-          ? null
-          : ArtworkDisplayLicense.fromString(
-              json['license'] as String,
-            ),
-      provenance: DP1Provenance.fromJson(
-        Map<String, dynamic>.from(json['provenance'] as Map),
-      ),
-    );
+    try {
+      return DP1Item(
+        title: json['title'] as String?,
+        source: json['source'] as String?,
+        duration: json['duration'] as int,
+        license: json['license'] == null
+            ? null
+            : ArtworkDisplayLicense.fromString(
+                json['license'] as String,
+              ),
+        provenance: json['provenance'] == null
+            ? DP1Provenance(
+                type: DP1ProvenanceType.onChain,
+                contract: DP1Contract(
+                    chain: DP1ProvenanceChain.evm,
+                    standard: DP1ProvenanceStandard.erc721,
+                    address: "address",
+                    tokenId: "tokenId"))
+            : DP1Provenance.fromJson(
+                Map<String, dynamic>.from(json['provenance'] as Map),
+              ),
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   final String? title;

@@ -72,4 +72,11 @@ class DP1Call {
       signature: signature ?? this.signature,
     );
   }
+
+  // == operator
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is DP1Call && other.dpVersion == dpVersion && other.id == id;
+  }
 }

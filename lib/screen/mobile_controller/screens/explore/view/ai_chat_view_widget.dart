@@ -1,0 +1,277 @@
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uuid/uuid.dart';
+
+const aiChatUser = types.User(id: 'user');
+const aiChatBot = types.User(id: 'aiBot');
+
+class AiChatViewWidget extends StatefulWidget {
+  const AiChatViewWidget(
+      {super.key,
+      this.initialMessages = const [],
+      required this.onMessage,
+      this.messageLimit = 1});
+
+  final List<types.Message> initialMessages;
+  final Future<void> Function(String message) onMessage;
+  final int? messageLimit; // New: Optional message limit
+
+  @override
+  State<AiChatViewWidget> createState() => _AiChatViewWidgetState();
+}
+
+class _AiChatViewWidgetState extends State<AiChatViewWidget> {
+  final TextEditingController _textController = TextEditingController()
+    ..text = 'Display some artworks';
+  String _sendIcon = 'assets/images/sendMessage.svg';
+
+  late List<types.Message> _messages;
+
+  late RecordBloc recordBloc;
+  String?
+      _currentProcessingMessageId; // To keep track of the processing message
+
+  @override
+  void initState() {
+    recordBloc = context.read<RecordBloc>();
+    _messages = widget.initialMessages.toList();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // _textController.dispose();
+    super.dispose();
+  }
+
+  int get _userMessageCount =>
+      _messages.where((msg) => msg.author.id == aiChatUser.id).length;
+
+  bool get _isInputEnabled {
+    if (widget.messageLimit == null) {
+      return true; // No limit, always enabled
+    }
+    return _userMessageCount < widget.messageLimit!; // Enabled if under limit
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return BlocListener<RecordBloc, RecordState>(
+      listener: (context, state) {
+        if (state is RecordProcessingState) {
+          final newProcessingMessage = types.TextMessage(
+            author: aiChatBot,
+            createdAt: DateTime.now().millisecondsSinceEpoch + 1,
+            id: _currentProcessingMessageId ??
+                const Uuid().v4(), // Use existing ID or generate new
+            text: state.processingMessage,
+          );
+
+          setState(() {
+            if (_currentProcessingMessageId == null) {
+              _messages.add(newProcessingMessage);
+              _currentProcessingMessageId = newProcessingMessage.id;
+            } else {
+              // Update existing processing message
+              final index = _messages
+                  .indexWhere((msg) => msg.id == _currentProcessingMessageId);
+              if (index != -1) {
+                _messages[index] = newProcessingMessage;
+              }
+            }
+          });
+        } else if (state is RecordSuccessState) {
+          if (_currentProcessingMessageId != null) {
+            setState(() {
+              _messages
+                  .removeWhere((msg) => msg.id == _currentProcessingMessageId);
+              _currentProcessingMessageId = null;
+            });
+          }
+          setState(() {
+            final aiResponse = types.TextMessage(
+              author: aiChatBot,
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              id: const Uuid().v4(),
+              text: state.response,
+            );
+            _messages.add(aiResponse);
+          });
+        } else if (state is RecordErrorState) {
+          if (_currentProcessingMessageId != null) {
+            setState(() {
+              _messages
+                  .removeWhere((msg) => msg.id == _currentProcessingMessageId);
+              _currentProcessingMessageId = null;
+            });
+          }
+          setState(() {
+            final errorMessage = types.TextMessage(
+              author: aiChatBot,
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              id: const Uuid().v4(),
+              text: 'Error: ${state.error}',
+            );
+            _messages.add(errorMessage);
+          });
+        }
+      },
+      child: Chat(
+        l10n: ChatL10nEn(
+          inputPlaceholder: 'Ask me to display art',
+        ),
+        messages: _messages.reversed.toList(),
+        customMessageBuilder: _customMessageBuilder,
+        bubbleBuilder: _bubbleBuilder,
+        onSendPressed: _handleSendPressed,
+        user: aiChatUser,
+        customBottomWidget: _isInputEnabled
+            ? Input(
+                onSendPressed: _handleSendPressed,
+                options: _inputOption(),
+              )
+            : const SizedBox(),
+        // Disabled input or message when limit reached
+        theme: _chatTheme,
+        emptyState: Center(
+          child: Text(
+            'How can I help you display art?',
+            style: theme.textTheme.ppMori700White14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputOptions _inputOption() => InputOptions(
+        sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+        keyboardType: TextInputType.text,
+        onTextChanged: (text) {
+          if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
+                  text.trim() == '' ||
+              _sendIcon == 'assets/images/sendMessage.svg' &&
+                  text.trim() != '') {
+            setState(() {
+              _sendIcon = text.trim() != ''
+                  ? 'assets/images/sendMessageFilled.svg'
+                  : 'assets/images/sendMessage.svg';
+            });
+          }
+        },
+        textEditingController: _textController,
+        usesSafeArea: false,
+      );
+
+  void _handleSendPressed(types.PartialText message) async {
+    if (!_isInputEnabled) {
+      return; // Do not send if input is disabled
+    }
+
+    final userMessage = types.TextMessage(
+      author: aiChatUser,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: const Uuid().v4(),
+      text: message.text,
+    );
+
+    setState(() {
+      _messages.add(userMessage);
+      // Ensure _currentProcessingMessageId is set before calling onMessage
+      // This message will be updated/removed by the BlocListener
+      _currentProcessingMessageId = const Uuid().v4();
+      _messages.add(types.TextMessage(
+        author: aiChatBot,
+        createdAt: DateTime.now().millisecondsSinceEpoch + 1,
+        id: _currentProcessingMessageId!,
+        text: 'Đang xử lý...',
+      ));
+      _textController.clear();
+      _sendIcon = 'assets/images/sendMessage.svg';
+    });
+
+    // Call the onMessage callback which is expected to dispatch the BLoC event
+    widget.onMessage(message.text);
+
+    FocusScope.of(context).unfocus(); // Unfocus the input field
+  }
+
+  DefaultChatTheme get _chatTheme {
+    final theme = Theme.of(context);
+    final inputPadding = const EdgeInsets.fromLTRB(0, 10, 0, 10);
+    return DefaultChatTheme(
+      messageInsetsVertical: 6,
+      messageInsetsHorizontal: 0,
+      errorIcon: const SizedBox(),
+      inputPadding: inputPadding,
+      backgroundColor: Colors.transparent,
+      // bubbleMargin: EdgeInsets.all(0),
+      inputBackgroundColor: AppColor.auGreyBackground,
+      inputContainerDecoration: BoxDecoration(
+          border: Border.all(color: AppColor.auLightGrey),
+          borderRadius: BorderRadius.circular(10)),
+      inputTextStyle: theme.textTheme.ppMori400White12,
+      inputTextColor: theme.colorScheme.secondary,
+      inputBorderRadius: BorderRadius.zero,
+      inputMargin: EdgeInsets.zero,
+      sendButtonIcon: SvgPicture.asset(
+        _sendIcon,
+      ),
+      inputTextCursorColor: theme.colorScheme.secondary,
+      emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400White12
+          .copyWith(color: AppColor.auQuickSilver),
+      dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
+      dateDividerTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.dateDividerTextStyle
+          : theme.textTheme.dateDividerTextStyle14,
+      primaryColor: Colors.transparent,
+      sentMessageBodyTextStyle: theme.textTheme.ppMori400White12,
+      secondaryColor: AppColor.chatSecondaryColor,
+      receivedMessageBodyTextStyle: theme.textTheme.ppMori400White12
+          .copyWith(color: AppColor.feralFileLightBlue),
+      receivedMessageDocumentIconColor: Colors.transparent,
+      sentMessageDocumentIconColor: Colors.transparent,
+      documentIcon: SvgPicture.asset(
+        'assets/images/bug_icon.svg',
+        width: 20,
+      ),
+      sentMessageCaptionTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.sentMessageCaptionTextStyle
+          : theme.textTheme.sentMessageCaptionTextStyle16,
+      receivedMessageCaptionTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.receivedMessageCaptionTextStyle
+          : theme.textTheme.receivedMessageCaptionTextStyle16,
+      sendingIcon: Container(
+        width: 16,
+        height: 12,
+        padding: const EdgeInsets.only(left: 3),
+        child: const CircularProgressIndicator(
+          color: AppColor.secondarySpanishGrey,
+          strokeWidth: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _customMessageBuilder(
+    types.CustomMessage message, {
+    required int messageWidth,
+  }) {
+    final text = message.metadata.toString();
+    return Text(text);
+  }
+
+  Widget _bubbleBuilder(
+    Widget child, {
+    required types.Message message,
+    required bool nextMessageInGroup,
+  }) {
+    return child;
+  }
+}

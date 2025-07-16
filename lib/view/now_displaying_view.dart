@@ -9,17 +9,21 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -160,12 +164,13 @@ class _NowDisplayingSuccessWidgetState
     DP1NowDisplayingObject nowDisplaying,
   ) {
     return GestureDetector(
-        child: DP1NowDisplayingView(
-          nowDisplaying,
-        ),
-        onTap: () {
-          injector<NavigationService>().navigateTo(AppRouter.nowDisplayingPage);
-        });
+      child: DP1NowDisplayingView(
+        nowDisplaying,
+      ),
+      onTap: () {
+        injector<NavigationService>().navigateTo(AppRouter.nowDisplayingPage);
+      },
+    );
   }
 
   Widget _nowDisplayingView(
@@ -466,6 +471,22 @@ class DP1NowDisplayingView extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         );
       },
+      customAction: [
+        if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+            (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                    .settings
+                    .name ==
+                AppRouter.homePage)
+          GestureDetector(
+            child: SvgPicture.asset('assets/images/run.svg'),
+            onTap: () {
+              chatModeNotifier.value = !chatModeNotifier.value;
+              // injector<RecordBloc>().add(
+              //   ResetPlaylistEvent(),
+              // );
+            },
+          ),
+      ],
     );
   }
 }
@@ -477,12 +498,14 @@ class NowDisplayingView extends StatelessWidget {
     this.onMoreTap,
     this.device,
     super.key,
+    this.customAction = const [],
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
   final BaseDevice? device;
   final void Function()? onMoreTap;
+  final List<Widget> customAction;
 
   @override
   Widget build(BuildContext context) {
@@ -519,6 +542,15 @@ class NowDisplayingView extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 10),
+          ...customAction
+              .map(
+                (action) => [
+                  const SizedBox(width: 10),
+                  action,
+                ],
+              )
+              .flattened,
           if (onMoreTap != null)
             IconButton(
               onPressed: onMoreTap,

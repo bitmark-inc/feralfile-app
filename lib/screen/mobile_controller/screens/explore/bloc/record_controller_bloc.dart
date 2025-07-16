@@ -89,9 +89,8 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       final stream = await service.getDP1CallFromVoice(
         file: file,
         deviceNames: devicesName,
-        withStream: true,
       );
-      await _processVoiceStream(stream, emit);
+      await _processParserStream(stream, emit);
     } catch (e) {
       emit(
         RecordErrorState(
@@ -105,26 +104,24 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     SubmitTextEvent event,
     Emitter<RecordState> emit,
   ) async {
-    await configurationService.addRecordedMessage(event.text);
+    final text = event.text;
+    await configurationService.addRecordedMessage(text);
     emit(
       RecordProcessingState(
         status: RecordProcessingStatus.transcribed,
+        transcription: text,
       ),
     );
 
     try {
-      final (dp1call, intent, response) = await service.getDP1CallFromText(
-        command: event.text,
-        deviceNames: ["kitchen", "living_room", "bed room"],
+      final devicesNames =
+          BluetoothDeviceManager.pairedDevices.map((e) => e.name).toList();
+
+      final stream = await service.getDP1CallFromTextStream(
+        command: text,
+        deviceNames: devicesNames,
       );
-      emit(
-        RecordSuccessState(
-          lastIntent: intent,
-          lastDP1Call: dp1call,
-          response: response,
-          transcription: event.text,
-        ),
-      );
+      await _processParserStream(stream, emit);
     } catch (e) {
       emit(
         RecordErrorState(
@@ -134,7 +131,7 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     }
   }
 
-  Future<void> _processVoiceStream(
+  Future<void> _processParserStream(
     Stream<Map<String, dynamic>> stream,
     Emitter<RecordState> emit,
   ) async {
@@ -145,7 +142,7 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
         await _handleNLParserData(nlParserData, emit);
         await Future.delayed(const Duration(milliseconds: 300));
       } catch (e, s) {
-        log.info('Error processing data: $e');
+        log.info('[RecordBloc] Error processing data: $e');
         emit(
           RecordErrorState(
             error: AudioException('Error processing data: $e'),
@@ -250,16 +247,6 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       emit(
         RecordErrorState(
           error: AudioException('No intent available for DP1 call'),
-        ),
-      );
-      return;
-    }
-
-    final items = dp1Call.items as List;
-    if (items.isEmpty) {
-      emit(
-        RecordErrorState(
-          error: AudioException('No items to display'),
         ),
       );
       return;

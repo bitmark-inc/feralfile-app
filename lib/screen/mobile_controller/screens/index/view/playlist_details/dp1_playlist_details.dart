@@ -87,6 +87,7 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
               ],
             ),
             playlist: widget.payload.playlist,
+            padding: const EdgeInsets.only(bottom: 120),
           ),
         ),
       ],
@@ -95,10 +96,18 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
 }
 
 class PlaylistAssetGridView extends StatefulWidget {
-  const PlaylistAssetGridView({required this.playlist, super.key, this.header});
+  const PlaylistAssetGridView({
+    required this.playlist,
+    super.key,
+    this.header,
+    this.backgroundColor = AppColor.auGreyBackground,
+    this.padding = EdgeInsets.zero,
+  });
 
   final DP1Call playlist;
   final Widget? header;
+  final Color backgroundColor;
+  final EdgeInsets padding;
 
   @override
   State<PlaylistAssetGridView> createState() => _PlaylistAssetGridViewState();
@@ -117,6 +126,13 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
     _playlistDetailsBloc.add(GetPlaylistDetailsEvent());
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant PlaylistAssetGridView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.playlist != widget.playlist)
+      _playlistDetailsBloc.add(GetPlaylistDetailsEvent());
   }
 
   @override
@@ -139,63 +155,73 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PlaylistDetailsBloc, PlaylistDetailsState>(
-      bloc: _playlistDetailsBloc,
-      listener: (context, state) {
-        if (state is! PlaylistDetailsLoadingMoreState) {
-          _isLoadingMore = false;
-        }
-      },
-      builder: (context, state) {
-        return CustomScrollView(
-          controller: _scrollController,
-          shrinkWrap: true,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            if (widget.header != null) ...[
+    return Container(
+      color: widget.backgroundColor,
+      padding: widget.padding.copyWith(top: 0, bottom: 0),
+      // top and bottom will be added by the custom scroll view
+      child: BlocConsumer<PlaylistDetailsBloc, PlaylistDetailsState>(
+        bloc: _playlistDetailsBloc,
+        listener: (context, state) {
+          if (state is! PlaylistDetailsLoadingMoreState) {
+            _isLoadingMore = false;
+          }
+        },
+        builder: (context, state) {
+          return CustomScrollView(
+            controller: _scrollController,
+            shrinkWrap: true,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
               SliverToBoxAdapter(
-                child: widget.header!,
-              ),
-              const SliverToBoxAdapter(
-                child: SizedBox(
-                  height: UIConstants.detailPageHeaderPadding,
-                ),
-              ),
-            ],
-            if (state is PlaylistDetailsInitialState ||
-                state is PlaylistDetailsLoadingState)
-              SliverToBoxAdapter(
-                child: _loadingView(context),
-              )
-            else if (state.assetTokens.isEmpty)
-              SliverToBoxAdapter(
-                child: _emptyView(context),
-              )
-            else
-              UIHelper.assetTokenSliverGrid(
-                  context, state.assetTokens, widget.playlist.title),
-            if (state is PlaylistDetailsLoadingMoreState)
-              const SliverToBoxAdapter(
-                  child: LoadMoreIndicator(
-                isLoadingMore: true,
+                  child: SizedBox(
+                height: widget.padding.top,
               )),
-            const SliverToBoxAdapter(child: SizedBox(height: 120)),
-          ],
-        );
-      },
+              if (widget.header != null) ...[
+                SliverToBoxAdapter(
+                  child: widget.header!,
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: UIConstants.detailPageHeaderPadding,
+                  ),
+                ),
+              ],
+              if (state is PlaylistDetailsInitialState ||
+                  state is PlaylistDetailsLoadingState)
+                SliverToBoxAdapter(
+                  child: _loadingView(context),
+                )
+              else if (state.assetTokens.isEmpty)
+                SliverToBoxAdapter(
+                  child: _emptyView(context),
+                )
+              else
+                UIHelper.assetTokenSliverGrid(
+                    context, state.assetTokens, widget.playlist.title),
+              if (state is PlaylistDetailsLoadingMoreState)
+                const SliverToBoxAdapter(
+                    child: LoadMoreIndicator(
+                  isLoadingMore: true,
+                )),
+              SliverToBoxAdapter(
+                  child: SizedBox(height: widget.padding.bottom)),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _loadingView(BuildContext context) => const LoadingWidget(
-        backgroundColor: AppColor.auGreyBackground,
+  Widget _loadingView(BuildContext context) => LoadingWidget(
+        backgroundColor: widget.backgroundColor,
         isInfinitySize: false,
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 60),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 60),
       );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 60),
       child: Text('Playlist Empty', style: theme.textTheme.ppMori400White14),
     );
   }

@@ -217,6 +217,7 @@ class _DP1PlaylistApi implements DP1PlaylistApi {
       r'cursor': cursor,
       r'limit': limit,
     };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<DP1ChannelsResponse>(Options(

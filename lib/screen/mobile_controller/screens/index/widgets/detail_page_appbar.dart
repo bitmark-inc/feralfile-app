@@ -20,10 +20,9 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: SafeArea(
         bottom: false,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _backIcon(context, title),
-            const Spacer(),
+            Expanded(child: _backIcon(context, title)),
             const SizedBox(width: 10),
             ...actions.map(
               (e) => Row(
@@ -41,30 +40,39 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _backIcon(BuildContext context, String title) {
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColor.auLightGrey),
-          borderRadius: BorderRadius.circular(90),
-        ),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/images/arrow-left.svg',
-              width: 15,
-              height: 12,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColor.auLightGrey),
+              borderRadius: BorderRadius.circular(90),
             ),
-            const SizedBox(width: 20),
-            Text(
-              title,
-              style: theme.textTheme.ppMori400Grey12,
-              overflow: TextOverflow.ellipsis,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/arrow-left.svg',
+                  width: 15,
+                  height: 12,
+                ),
+                const SizedBox(width: 20),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.ppMori400Grey12,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

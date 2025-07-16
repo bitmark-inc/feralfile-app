@@ -1,7 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/chat_thread_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/ai_chat_thread_view.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/ai_chat_view_widget.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
@@ -15,6 +16,10 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:uuid/uuid.dart';
+
+ValueNotifier<bool> chatModeNotifier = ValueNotifier<bool>(false);
 
 class RecordControllerScreen extends StatefulWidget {
   const RecordControllerScreen({super.key});
@@ -41,22 +46,38 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    return BlocProvider.value(
-      value: recordBloc,
-      child: BlocBuilder<RecordBloc, RecordState>(
-        builder: (context, state) {
-          if (state is RecordSuccessState) {
-            return _chatThreadView(context, state);
-          }
-          return _recordView(context, state);
-        },
-      ),
+    return ValueListenableBuilder(
+      valueListenable: chatModeNotifier,
+      builder: (context, chatModeView, child) {
+        return BlocProvider.value(
+          value: recordBloc,
+          child: BlocConsumer<RecordBloc, RecordState>(
+            listener: (context, state) {
+              if (state is RecordSuccessState) {
+                chatModeNotifier.value = true;
+              }
+            },
+            builder: (context, state) {
+              return IndexedStack(index: chatModeView ? 0 : 1, children: [
+                _aiChatThreadView(
+                  context,
+                  state is RecordSuccessState ? state : null,
+                ),
+                _recordView(context, state)
+              ]);
+            },
+          ),
+        );
+      },
     );
   }
 
   Widget _recordView(BuildContext context, RecordState state) {
     return Column(
       children: [
+        const SizedBox(
+          height: UIConstants.topControlsBarHeight,
+        ),
         Expanded(
           flex: 6,
           child: Center(
@@ -87,6 +108,13 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                     children: [
                       Builder(
                         builder: (context) {
+                          if (state is RecordSuccessState &&
+                              state.lastDP1Call!.items.isEmpty) {
+                            return _errorWidget(
+                              context,
+                              AudioException(state.response),
+                            );
+                          }
                           if (state is RecordProcessingState) {
                             return Center(
                               child: Text(
@@ -106,16 +134,9 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                                 is AudioRecordNoSpeechException) {
                               return _noSpeechWidget(context);
                             } else if (state.error is AudioException) {
-                              return Center(
-                                child: Text(
-                                  (state.error as AudioException).message,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .ppMori400Black14
-                                      .copyWith(color: Colors.red),
-                                ),
+                              return _errorWidget(
+                                context,
+                                state.error as AudioException,
                               );
                             }
                           }
@@ -124,32 +145,38 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                       ),
                       if (state is RecordErrorState)
                         PrimaryAsyncButton(
-                            text: 'Enter manually',
-                            onTap: () async {
-                              // show a dialog to enter text manually
-                              final text = await UIHelper.showCenterDialog(
-                                  context, content: Builder(builder: (context) {
-                                return Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    AuTextField(
-                                      title: 'Command',
-                                      controller: TextEditingController()
-                                        ..text =
-                                            'Display some artworks of Refik Anadol',
-                                      onSubmit: (text) {
-                                        injector<NavigationService>()
-                                            .goBack(result: text);
-                                      },
-                                    )
-                                  ],
-                                );
-                              }));
+                          text: 'Enter manually',
+                          onTap: () async {
+                            // show a dialog to enter text manually
+                            final text = await UIHelper.showCenterDialog(
+                              context,
+                              content: Builder(
+                                builder: (context) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      AuTextField(
+                                        title: 'Command',
+                                        controller: TextEditingController()
+                                          ..text =
+                                              'Display some artworks of Refik Anadol',
+                                        onSubmit: (text) {
+                                          injector<NavigationService>()
+                                              .goBack(result: text);
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
 
-                              log.info('User entered text: $text');
-                              if (text is String)
-                                recordBloc.add(SubmitTextEvent(text));
-                            })
+                            log.info('User entered text: $text');
+                            if (text is String) {
+                              recordBloc.add(SubmitTextEvent(text));
+                            }
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -165,16 +192,33 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
     );
   }
 
-  Widget _chatThreadView(BuildContext context, RecordSuccessState state) {
+  Widget _aiChatThreadView(BuildContext context, RecordSuccessState? state) {
+    final messages = <types.Message>[];
+    if (state != null) {
+      final userMessage = types.TextMessage(
+        author: aiChatUser,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text: state.transcription,
+      );
+      final aiBotMessage = types.TextMessage(
+        author: aiChatBot,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text: state.response,
+      );
+      messages.addAll([userMessage, aiBotMessage]);
+    }
+
     return Column(
       children: [
-        const SizedBox(
-          height: UIConstants.detailPageHeaderPadding,
+        Container(
+          color: AppColor.primaryBlack,
+          height: UIConstants.topControlsBarHeight,
         ),
-        ChatThreadView(
-          state: state,
+        AiChatThreadView(
+          initialMessages: [],
         ),
-        const SizedBox(height: 120),
       ],
     );
   }
@@ -274,12 +318,28 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
 
   // AudioRecordNoSpeechException
   Widget _noSpeechWidget(BuildContext context) {
-    return Column(children: [
-      Text(
-        AudioExceptionType.noSpeech.message,
-        style: Theme.of(context).textTheme.ppMori400White12,
-      )
-    ]);
+    return Column(
+      children: [
+        Text(
+          AudioExceptionType.noSpeech.message,
+          style: Theme.of(context).textTheme.ppMori400White12,
+        ),
+      ],
+    );
+  }
+
+  Widget _errorWidget(BuildContext context, AudioException error) {
+    return Center(
+      child: Text(
+        error.message,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context)
+            .textTheme
+            .ppMori400Black14
+            .copyWith(color: Colors.red),
+      ),
+    );
   }
 
   @override

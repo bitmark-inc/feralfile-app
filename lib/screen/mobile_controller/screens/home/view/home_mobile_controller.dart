@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
@@ -18,7 +17,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 
 class MobileControllerHomePage extends StatefulWidget {
   const MobileControllerHomePage({super.key, this.initialPageIndex = 0});
@@ -35,7 +33,7 @@ class _MobileControllerHomePageState
   late int _currentPageIndex;
   late PageController _pageController;
 
-  final _recordBloc = RecordBloc(injector(), injector(), injector());
+  final _recordBloc = injector<RecordBloc>();
   final _channelsBloc = injector<ChannelsBloc>();
   final _playlistsBloc = injector<PlaylistsBloc>();
 
@@ -86,6 +84,7 @@ class _MobileControllerHomePageState
         appBar: getDarkEmptyAppBar(Colors.transparent),
         backgroundColor: AppColor.auGreyBackground,
         extendBody: true,
+        resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
         body: _buildPageView(
           pages,
@@ -98,11 +97,10 @@ class _MobileControllerHomePageState
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        _topControlsBar(context),
         Container(
-          padding: const EdgeInsets.only(
-            top: UIConstants.topControlsBarHeight,
-          ),
+          // padding: const EdgeInsets.only(
+          //   top: UIConstants.topControlsBarHeight,
+          // ),
           child: PageView.builder(
             physics: const NeverScrollableScrollPhysics(),
             controller: _pageController,
@@ -117,39 +115,40 @@ class _MobileControllerHomePageState
             },
           ),
         ),
+        _topControlsBar(context),
 
         // fade effect on bottom
-        MultiValueListenableBuilder(
-          valueListenables: [
-            nowDisplayingShowing,
-          ],
-          builder: (context, values, _) {
-            return values.every((value) => value as bool)
-                ? Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: IgnorePointer(
-                      child: Container(
-                        height: 160,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            stops: const [0.0, 0.37, 0.37],
-                            colors: [
-                              AppColor.auGreyBackground.withAlpha(0),
-                              AppColor.auGreyBackground,
-                              AppColor.auGreyBackground,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                : Container();
-          },
-        ),
+        // MultiValueListenableBuilder(
+        //   valueListenables: [
+        //     nowDisplayingShowing,
+        //   ],
+        //   builder: (context, values, _) {
+        //     return values.every((value) => value as bool)
+        //         ? Positioned(
+        //             bottom: 0,
+        //             left: 0,
+        //             right: 0,
+        //             child: IgnorePointer(
+        //               child: Container(
+        //                 height: 160,
+        //                 decoration: BoxDecoration(
+        //                   gradient: LinearGradient(
+        //                     begin: Alignment.topCenter,
+        //                     end: Alignment.bottomCenter,
+        //                     stops: const [0.0, 0.37, 0.37],
+        //                     colors: [
+        //                       AppColor.auGreyBackground.withAlpha(0),
+        //                       AppColor.auGreyBackground,
+        //                       AppColor.auGreyBackground,
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //             ),
+        //           )
+        //         : Container();
+        //   },
+        // ),
       ],
     );
   }
@@ -170,7 +169,8 @@ class _MobileControllerHomePageState
             BlocBuilder<RecordBloc, RecordState>(
               bloc: _recordBloc,
               builder: (context, state) {
-                if (state is RecordSuccessState) {
+                if (state is RecordSuccessState &&
+                    state.lastDP1Call!.items.isNotEmpty) {
                   return Positioned(
                     right: 0,
                     top: 0,
@@ -235,7 +235,7 @@ class _MobileControllerHomePageState
             if (_recordBloc.state is RecordSuccessState) {
               _recordBloc.add(ResetPlaylistEvent());
             }
-            ;
+            chatModeNotifier.value = false;
           },
         ),
         IconSwitcherItem(

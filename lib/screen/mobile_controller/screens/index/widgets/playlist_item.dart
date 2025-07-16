@@ -13,12 +13,14 @@ class PlaylistItem extends StatelessWidget {
     required this.playlist,
     this.channel,
     this.isCustomTitle = false,
+    this.deviderColor = AppColor.primaryBlack,
     super.key,
   });
 
   final DP1Call playlist;
   final Channel? channel;
   final bool isCustomTitle;
+  final Color deviderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +71,9 @@ class PlaylistItem extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(
+          Divider(
             height: 1,
-            color: AppColor.primaryBlack,
+            color: deviderColor,
           ),
         ],
       ),

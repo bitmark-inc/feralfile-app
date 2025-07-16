@@ -305,7 +305,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               onDeviceSelected: (device) async {
                                 final playlistItem =
                                     DP1PlaylistItemExtension.fromCAssetToken(
-                                        token: assetToken);
+                                  token: assetToken,
+                                );
                                 final completer = Completer<void>();
                                 _canvasDeviceBloc.add(
                                   CanvasDeviceCastListArtworkEvent(
@@ -378,7 +379,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       ? null
                       : DecoratedBox(
                           decoration: const BoxDecoration(
-                              color: AppColor.auGreyBackground),
+                            color: AppColor.auGreyBackground,
+                          ),
                           child: GestureDetector(
                             onVerticalDragEnd: (details) {
                               final dy = details.primaryVelocity ?? 0;
@@ -458,12 +460,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Widget _nowDisplayingSpace() => ValueListenableBuilder(
-      valueListenable: nowDisplayingShowing,
-      builder: (context, value, child) {
-        return SizedBox(
-          height: kStatusBarMarginBottom + (value ? kNowDisplayingHeight : 0),
-        );
-      });
+        valueListenable: nowDisplayingShowing,
+        builder: (context, value, child) {
+          return SizedBox(
+            height: kStatusBarMarginBottom + (value ? kNowDisplayingHeight : 0),
+          );
+        },
+      );
 
   Widget _infoHeader(
     BuildContext context,
@@ -649,8 +652,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     AssetToken asset,
     CanvasDeviceState canvasDeviceState,
   ) async {
-    final castingDevice =
-        canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
     final connectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
     final isCasting = connectedDevice != null;
     final hasLocalAddress = await asset.hasLocalAddress();

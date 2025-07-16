@@ -41,6 +41,9 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: UIConstants.topControlsBarHeight,
+          ),
           const SizedBox(height: 45),
           HeaderWidget(
             selectedIndex: _selectedPageIndex,

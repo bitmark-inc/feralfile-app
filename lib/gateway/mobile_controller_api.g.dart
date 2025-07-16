@@ -59,12 +59,45 @@ class _MobileControllerAPI implements MobileControllerAPI {
   }
 
   @override
-  Future<Map<String, dynamic>> getDP1CallFromVoice(
-    Map<String, dynamic> body,
-    bool withStream,
-  ) async {
+  Future<Stream<dynamic>> getDP1CallFromTextStream(
+      Map<String, dynamic> body) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'stream': withStream};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<Stream<dynamic>>(Options(
+            method: 'POST',
+            headers: _headers,
+            extra: _extra,
+            responseType: ResponseType.stream)
+        .compose(
+          _dio.options,
+          '/intent-parser/text?stream=true',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<ResponseBody>(_options);
+    late Stream<dynamic> _stream;
+    try {
+      _stream = (_result.data as ResponseBody).stream;
+      return _stream;
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDP1CallFromVoice(
+      Map<String, dynamic> body) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -97,15 +130,13 @@ class _MobileControllerAPI implements MobileControllerAPI {
 
   @override
   Future<Stream<dynamic>> getDP1CallFromVoiceStream(
-    Map<String, dynamic> body,
-    bool withStream,
-  ) async {
+      Map<String, dynamic> body) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'stream': withStream};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _options = _setStreamType<Map<String, dynamic>>(Options(
+    final _options = _setStreamType<Stream<dynamic>>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -113,7 +144,7 @@ class _MobileControllerAPI implements MobileControllerAPI {
     )
         .compose(
           _dio.options,
-          '/intent-parser/voice',
+          '/intent-parser/voice?stream=true',
           queryParameters: queryParameters,
           data: _data,
         )
