@@ -17,7 +17,7 @@ class AiChatThreadView extends StatefulWidget {
     this.initialMessages = const [],
   });
 
-  final Future<String> Function(String message)? onMessage;
+  final Future<void> Function(String message)? onMessage;
   final List<types.Message> initialMessages;
 
   @override
