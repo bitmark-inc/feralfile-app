@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
@@ -97,23 +99,18 @@ class _MobileControllerHomePageState
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        Container(
-          // padding: const EdgeInsets.only(
-          //   top: UIConstants.topControlsBarHeight,
-          // ),
-          child: PageView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: _pageController,
-            itemCount: pages.length,
-            itemBuilder: (context, index) {
-              return pages[index];
-            },
-            onPageChanged: (index) {
-              setState(() {
-                _currentPageIndex = index;
-              });
-            },
-          ),
+        PageView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _pageController,
+          itemCount: pages.length,
+          itemBuilder: (context, index) {
+            return pages[index];
+          },
+          onPageChanged: (index) {
+            setState(() {
+              _currentPageIndex = index;
+            });
+          },
         ),
         _topControlsBar(context),
 
@@ -185,19 +182,28 @@ class _MobileControllerHomePageState
                           final device = await BluetoothDeviceManager()
                               .pickADeviceToDisplay(deviceName ?? '');
                           if (device == null) {
-                            UIHelper.showInfoDialog(
+                            await UIHelper.showInfoDialog(
                               context,
                               'Device not found',
                               'Can not find a device to display your artworks',
                             );
+                            return;
                           }
+                          if (BluetoothDeviceManager().castingBluetoothDevice !=
+                              device) {
+                            await BluetoothDeviceManager().switchDevice(device);
+                          }
+                          final completer = Completer<void>();
                           injector<CanvasDeviceBloc>().add(
                             CanvasDeviceCastDP1PlaylistEvent(
-                              device: device!,
-                              playlist: lastDP1Call,
-                              intent: lastIntent,
-                            ),
+                                device: device,
+                                playlist: lastDP1Call,
+                                intent: lastIntent,
+                                onDoneCallback: () {
+                                  completer.complete();
+                                }),
                           );
+                          await completer.future;
                         },
                       ),
                     ),

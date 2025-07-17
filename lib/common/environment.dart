@@ -55,6 +55,7 @@ class Environment {
       'TZKT_TESTNET_URL',
       'ACCOUNT_SETTING_URL',
       'MOBILE_CONTROLLER_URL',
+      'ARTBLOCKS_GRAPHQL_URL', // Add new key for Artblocks GraphQL URL
     ];
     const secretKeys = [
       'CHAT_SERVER_HMAC_KEY',
@@ -244,4 +245,8 @@ class Environment {
         '',
         isSecret: true,
       );
+
+  // Artblocks GraphQL URL
+  static String get artblocksGraphQLURL =>
+      _readKey('ARTBLOCKS_GRAPHQL_URL', '');
 }

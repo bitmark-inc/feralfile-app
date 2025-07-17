@@ -88,11 +88,13 @@ class CanvasDeviceCastDP1PlaylistEvent extends CanvasDeviceEvent {
     required this.device,
     required this.playlist,
     required this.intent,
+    this.onDoneCallback,
   });
 
   final BaseDevice device;
   final DP1Call playlist;
   final DP1Intent intent;
+  final FutureOr<void> Function()? onDoneCallback;
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
@@ -370,6 +372,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         log.info('CanvasDeviceBloc: castPlaylist ok: $ok');
       } catch (e) {
         log.info('CanvasDeviceBloc: error while cast playlist: $e');
+      } finally {
+        event.onDoneCallback?.call();
       }
     });
 
