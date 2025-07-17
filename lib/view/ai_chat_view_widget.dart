@@ -42,6 +42,9 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
       _currentProcessingMessageId; // To keep track of the processing bot message
   String? _currentUserMessageId; // To keep track of the user's message ID
 
+  bool get _isProcessing =>
+      _currentProcessingMessageId != null; // Add this line
+
   @override
   void initState() {
     recordBloc = context.read<RecordBloc>();
@@ -198,6 +201,7 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
                 // Replace Input with CustomChatInputWidget
                 onSendPressed: _handleSendPressed,
                 textEditingController: _textController,
+                isProcessing: _isProcessing, // Pass isProcessing state
               )
             : const SizedBox(),
         // Disabled input or message when limit reached
