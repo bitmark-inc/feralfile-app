@@ -24,8 +24,10 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/clients/artblocks_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/artblocks_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -148,6 +150,9 @@ Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   injector.registerLazySingleton(NavigationService.new);
+
+  // Setup NFT collection dependencies
+  // setupNftCollectionDependencies();
 
   injector.registerLazySingleton<NetworkIssueManager>(NetworkIssueManager.new);
 
@@ -514,4 +519,12 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<RecordBloc>(
       () => RecordBloc(injector(), injector(), injector()));
+
+  injector.registerLazySingleton<ArtblocksClient>(
+    ArtblocksClient.new,
+  );
+
+  injector.registerLazySingleton<ArtBlockService>(
+    () => ArtBlockService(injector<ArtblocksClient>()),
+  );
 }
