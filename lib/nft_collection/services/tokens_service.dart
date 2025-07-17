@@ -34,7 +34,7 @@ abstract class TokensService {
   Future<List<AssetToken>> fetchManualTokens(List<String> indexerIds);
 
   Future<List<AssetToken>> getManualTokens(
-      {List<String>? indexerIds, bool shouldCallIndexer = true});
+      {required List<String> indexerIds, bool shouldCallIndexer = true});
 
   Future<void> setCustomTokens(List<AssetToken> assetTokens);
 
@@ -267,10 +267,7 @@ class TokensServiceImpl extends TokensService {
 
   @override
   Future<List<AssetToken>> getManualTokens(
-      {List<String>? indexerIds, bool shouldCallIndexer = true}) async {
-    if (indexerIds == null) {
-      indexerIds = [];
-    }
+      {required List<String> indexerIds, bool shouldCallIndexer = true}) async {
     // get from database
     final assetTokenFromDatabase =
         await _assetTokenDao.findAllAssetTokensByTokenIDs(indexerIds);
@@ -284,6 +281,9 @@ class TokensServiceImpl extends TokensService {
         res.addAll(assetTokenFromIndexer);
       }
     }
+    // reorder the res to match the indexerIds
+    res.sort(
+        (a, b) => indexerIds.indexOf(a.id).compareTo(indexerIds.indexOf(b.id)));
     return res;
   }
 
