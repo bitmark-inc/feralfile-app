@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
+import 'package:autonomy_flutter/view/custom_chat_input_widget.dart'; // Add this import
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,10 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
     _messages =
         widget.initialMessages.toList(); // Initialize with initial messages
     super.initState();
+    // Unfocus the input after the initial build, and when returning to the page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+    });
   }
 
   @override
@@ -189,9 +194,10 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
         onSendPressed: _handleSendPressed,
         user: aiChatUser,
         customBottomWidget: _isInputEnabled
-            ? Input(
+            ? CustomChatInputWidget(
+                // Replace Input with CustomChatInputWidget
                 onSendPressed: _handleSendPressed,
-                options: _inputOption(),
+                textEditingController: _textController,
               )
             : const SizedBox(),
         // Disabled input or message when limit reached
@@ -206,26 +212,7 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
     );
   }
 
-  InputOptions _inputOption() => InputOptions(
-        sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-        keyboardType: TextInputType.text,
-        onTextChanged: (text) {
-          if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
-                  text.trim() == '' ||
-              _sendIcon == 'assets/images/sendMessage.svg' &&
-                  text.trim() != '') {
-            setState(() {
-              _sendIcon = text.trim() != ''
-                  ? 'assets/images/sendMessageFilled.svg'
-                  : 'assets/images/sendMessage.svg';
-            });
-          }
-        },
-        textEditingController: _textController,
-        usesSafeArea: false,
-      );
-
-  void _handleSendPressed(types.PartialText message) async {
+  Future<void> _handleSendPressed(types.PartialText message) async {
     if (!_isInputEnabled) {
       return; // Do not send if input is disabled
     }
