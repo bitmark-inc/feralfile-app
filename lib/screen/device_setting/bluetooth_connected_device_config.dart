@@ -15,7 +15,8 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_nam
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/navigation_serviceh_device_helper.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
