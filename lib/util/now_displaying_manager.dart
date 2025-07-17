@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
-import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
@@ -13,10 +12,8 @@ import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 class NowDisplayingManager {
@@ -97,30 +94,7 @@ class NowDisplayingManager {
   Future<NowDisplayingObjectBase?> getNowDisplayingObject(
     CheckCastingStatusReply status,
   ) async {
-    if (status.exhibitionId != null) {
-      final exhibitionId = status.exhibitionId!;
-      final exhibition = await injector<FeralFileService>().getExhibition(
-        exhibitionId,
-      );
-      final catalogId = status.catalogId;
-      final catalog = status
-          .catalog; // catalogId != null ? ExhibitionCatalog.artwork : null;
-      Artwork? artwork;
-      if (catalog == ExhibitionCatalog.artwork) {
-        artwork = exhibition.isSourceExhibition
-            ? await injector<FeralFileService>().getSourceArtwork(catalogId!)
-            : await injector<FeralFileService>().getArtwork(
-                catalogId!,
-              );
-      }
-      final exhibitionDisplaying = ExhibitionDisplaying(
-        exhibition: exhibition,
-        catalogId: catalogId,
-        catalog: catalog,
-        artwork: artwork,
-      );
-      return NowDisplayingObject(exhibitionDisplaying: exhibitionDisplaying);
-    } else if (status.artworks.isNotEmpty) {
+    if (status.artworks.isNotEmpty) {
       final index = status.currentArtworkIndex;
       if (index == null) {
         return null;
@@ -143,9 +117,7 @@ class NowDisplayingManager {
       AssetToken? assetToken;
 
       final tokenId = playlistItem.indexId;
-      if (tokenId != null) {
-        assetToken = await _fetchAssetToken(tokenId);
-      }
+      assetToken = await _fetchAssetToken(tokenId);
 
       return DP1NowDisplayingObject(
         playlistItem: playlistItem,

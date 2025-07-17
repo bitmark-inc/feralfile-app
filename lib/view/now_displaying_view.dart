@@ -15,12 +15,9 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -181,10 +178,6 @@ class _NowDisplayingSuccessWidgetState
     if (assetToken != null) {
       return _tokenNowDisplayingView(context, assetToken);
     }
-    final exhibitionDisplaying = nowDisplaying.exhibitionDisplaying;
-    if (exhibitionDisplaying != null) {
-      return _exhibitionNowDisplayingView(context, exhibitionDisplaying);
-    }
     if (nowDisplaying.dailiesWorkState != null) {
       return _dailyWorkNowDisplayingView(
         context,
@@ -225,28 +218,6 @@ Widget _dailyWorkNowDisplayingView(
       injector<NavigationService>().navigateTo(
         AppRouter.nowDisplayingPage,
       );
-    },
-  );
-}
-
-Widget _exhibitionNowDisplayingView(
-  BuildContext context,
-  ExhibitionDisplaying exhibitionDisplaying,
-) {
-  return GestureDetector(
-    child: NowDisplayingExhibitionView(exhibitionDisplaying),
-    onTap: () {
-      final exhibition = exhibitionDisplaying.exhibition;
-      final artwork = exhibitionDisplaying.artwork;
-      if (artwork != null) {
-        injector<NavigationService>().navigateTo(
-          AppRouter.nowDisplayingPage,
-        );
-      } else if (exhibition != null) {
-        injector<NavigationService>().navigateTo(
-          AppRouter.nowDisplayingPage,
-        );
-      }
     },
   );
 }
@@ -328,97 +299,6 @@ class TokenNowDisplayingView extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             );
           },
-        );
-      },
-    );
-  }
-}
-
-class NowDisplayingExhibitionView extends StatelessWidget {
-  const NowDisplayingExhibitionView(this.exhibitionDisplaying, {super.key});
-
-  final ExhibitionDisplaying exhibitionDisplaying;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final exhibition = exhibitionDisplaying.exhibition;
-    final artwork = exhibitionDisplaying.artwork?.copyWith(
-      series: exhibitionDisplaying.artwork?.series
-          ?.copyWith(exhibition: exhibition),
-    );
-    final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
-    final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses != null &&
-        injector<AuthService>().isLinkArtist(artistAddresses);
-    return NowDisplayingView(
-      onMoreTap: artwork?.indexerTokenId != null && isUserArtist
-          ? () {
-              injector<NavigationService>().openArtistDisplaySetting(
-                artwork: artwork,
-              );
-            }
-          : () {
-              injector<NavigationService>().showDeviceSettings(
-                tokenId: artwork?.indexerTokenId,
-                artistName: artwork?.series?.artistAlumni?.alias,
-              );
-            },
-      thumbnailBuilder: (context) {
-        final url = thumbnailUrl ?? '';
-        if (url.isEmpty) {
-          return const SizedBox();
-        }
-        if (url.isSvgImage()) {
-          return SvgPicture.network(
-            url,
-            height: 65,
-            width: 65,
-            fit: BoxFit.cover,
-            placeholderBuilder: (context) =>
-                const GalleryThumbnailPlaceholder(),
-          );
-        }
-        return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
-      },
-      titleBuilder: (context) {
-        if (artwork != null) {
-          return RichText(
-            text: TextSpan(
-              children: [
-                if (artwork.series?.artistAlumni?.alias != null)
-                  TextSpan(
-                    text: artwork.series?.artistAlumni?.alias ?? '',
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColor.primaryBlack,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        injector<NavigationService>().openFeralFileArtistPage(
-                          artwork.series?.artistAlumniAccountID ?? '',
-                        );
-                      },
-                  ),
-                if (artwork.series?.artistAlumni?.alias != null)
-                  TextSpan(
-                    text: ', ',
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                TextSpan(
-                  text: artwork.series?.title ?? '',
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-              ],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          );
-        }
-        return Text(
-          exhibition?.title ?? '',
-          style: theme.textTheme.ppMori400Black14,
-          overflow: TextOverflow.ellipsis,
         );
       },
     );
