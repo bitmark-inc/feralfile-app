@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,12 @@ const aiChatUser = types.User(id: 'user');
 const aiChatBot = types.User(id: 'aiBot');
 
 class AiChatViewWidget extends StatefulWidget {
-  const AiChatViewWidget(
-      {super.key,
-      this.initialMessages = const [],
-      required this.onMessage,
-      this.messageLimit = 1});
+  const AiChatViewWidget({
+    required this.onMessage,
+    super.key,
+    this.initialMessages = const [],
+    this.messageLimit = 1,
+  });
 
   final List<types.Message> initialMessages;
   final Future<void> Function(String message) onMessage;
@@ -28,30 +30,35 @@ class AiChatViewWidget extends StatefulWidget {
 
 class _AiChatViewWidgetState extends State<AiChatViewWidget> {
   final TextEditingController _textController = TextEditingController()
-    ..text = 'Display some artworks';
+    ..text = 'Display random works';
   String _sendIcon = 'assets/images/sendMessage.svg';
 
-  late List<types.Message> _messages;
+  late final List<types.Message>
+      _messages; // Re-introduced: This list is now managed internally
 
   late RecordBloc recordBloc;
   String?
-      _currentProcessingMessageId; // To keep track of the processing message
+      _currentProcessingMessageId; // To keep track of the processing bot message
+  String? _currentUserMessageId; // To keep track of the user's message ID
 
   @override
   void initState() {
     recordBloc = context.read<RecordBloc>();
-    _messages = widget.initialMessages.toList();
+    _messages =
+        widget.initialMessages.toList(); // Initialize with initial messages
     super.initState();
   }
 
   @override
   void dispose() {
-    // _textController.dispose();
+    // _textController.dispose(); // Retained in previous diff for some reason, will remove this comment
+    _textController.dispose();
     super.dispose();
   }
 
-  int get _userMessageCount =>
-      _messages.where((msg) => msg.author.id == aiChatUser.id).length;
+  int get _userMessageCount => _messages
+      .where((msg) => msg.author.id == aiChatUser.id)
+      .length; // Use internal _messages list
 
   bool get _isInputEnabled {
     if (widget.messageLimit == null) {
@@ -66,20 +73,35 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
     return BlocListener<RecordBloc, RecordState>(
       listener: (context, state) {
         if (state is RecordProcessingState) {
+          if (state.status == RecordProcessingStatus.transcribed) {
+            final userMessage = types.TextMessage(
+              author: aiChatUser,
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              id: const Uuid().v4(),
+              text: state.transcription!,
+              status: types.Status.delivered,
+            );
+            if (_currentUserMessageId == null) {
+              _messages.add(userMessage);
+            }
+          }
+
           final newProcessingMessage = types.TextMessage(
             author: aiChatBot,
             createdAt: DateTime.now().millisecondsSinceEpoch + 1,
-            id: _currentProcessingMessageId ??
-                const Uuid().v4(), // Use existing ID or generate new
+            id: _currentProcessingMessageId ?? const Uuid().v4(),
+            // Use existing ID or generate new
             text: state.processingMessage,
+            status: types.Status.sending, // Ensure status is sending
           );
 
           setState(() {
             if (_currentProcessingMessageId == null) {
+              // Add to _messages which is a mutable list from parent
               _messages.add(newProcessingMessage);
               _currentProcessingMessageId = newProcessingMessage.id;
             } else {
-              // Update existing processing message
+              // Update existing processing message in _messages
               final index = _messages
                   .indexWhere((msg) => msg.id == _currentProcessingMessageId);
               if (index != -1) {
@@ -88,46 +110,80 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
             }
           });
         } else if (state is RecordSuccessState) {
-          if (_currentProcessingMessageId != null) {
-            setState(() {
+          setState(() {
+            // Update user message status to delivered
+            final userMessageIndex =
+                _messages.indexWhere((msg) => msg.id == _currentUserMessageId);
+            if (userMessageIndex != -1) {
+              _messages[userMessageIndex] =
+                  (_messages[userMessageIndex] as types.TextMessage).copyWith(
+                      text: state.transcription,
+                      status:
+                          types.Status.delivered); // Update with transcription
+            }
+
+            // Remove processing message
+            if (_currentProcessingMessageId != null) {
               _messages
                   .removeWhere((msg) => msg.id == _currentProcessingMessageId);
               _currentProcessingMessageId = null;
-            });
-          }
-          setState(() {
-            final aiResponse = types.TextMessage(
-              author: aiChatBot,
-              createdAt: DateTime.now().millisecondsSinceEpoch,
-              id: const Uuid().v4(),
-              text: state.response,
+            }
+
+            // Add bot's actual response
+            _messages.add(
+              types.TextMessage(
+                author: aiChatBot,
+                createdAt: DateTime.now().millisecondsSinceEpoch,
+                id: const Uuid().v4(),
+                text: state.response,
+                status: types.Status.delivered,
+              ),
             );
-            _messages.add(aiResponse);
+            _currentUserMessageId = null; // Clear user message ID
           });
         } else if (state is RecordErrorState) {
-          if (_currentProcessingMessageId != null) {
+          if (!(state.error is AudioRecordingFailedException ||
+              state.error is AudioPermissionDeniedException ||
+              state.error is AudioRecordNoSpeechException ||
+              state.error is AudioFileNotFoundException))
             setState(() {
-              _messages
-                  .removeWhere((msg) => msg.id == _currentProcessingMessageId);
-              _currentProcessingMessageId = null;
+              // Update user message status to error
+              final userMessageIndex = _messages
+                  .indexWhere((msg) => msg.id == _currentUserMessageId);
+              if (userMessageIndex != -1) {
+                _messages[userMessageIndex] =
+                    (_messages[userMessageIndex] as types.TextMessage)
+                        .copyWith(status: types.Status.error);
+              }
+
+              // Remove processing message
+              if (_currentProcessingMessageId != null) {
+                _messages.removeWhere(
+                    (msg) => msg.id == _currentProcessingMessageId);
+                _currentProcessingMessageId = null;
+              }
+
+              // Add bot's error message
+              _messages.add(
+                types.TextMessage(
+                  author: aiChatBot,
+                  createdAt: DateTime.now().millisecondsSinceEpoch,
+                  id: const Uuid().v4(),
+                  text: '${(state.error as AudioException).message}',
+                  // Localize this if possible
+                  status: types.Status.error,
+                ),
+              );
+              _currentUserMessageId = null; // Clear user message ID
             });
-          }
-          setState(() {
-            final errorMessage = types.TextMessage(
-              author: aiChatBot,
-              createdAt: DateTime.now().millisecondsSinceEpoch,
-              id: const Uuid().v4(),
-              text: 'Error: ${state.error}',
-            );
-            _messages.add(errorMessage);
-          });
         }
       },
       child: Chat(
-        l10n: ChatL10nEn(
-          inputPlaceholder: 'Ask me to display art',
-        ),
+        // l10n: ChatL10nEn(
+        //   inputPlaceholder: 'Ask me to display art',
+        // ),
         messages: _messages.reversed.toList(),
+        // Use internal _messages list
         customMessageBuilder: _customMessageBuilder,
         bubbleBuilder: _bubbleBuilder,
         onSendPressed: _handleSendPressed,
@@ -179,10 +235,13 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
       text: message.text,
+      status: types.Status.sending, // Set initial status to sending
     );
 
     setState(() {
-      _messages.add(userMessage);
+      _messages
+          .add(userMessage); // Add user message immediately to internal list
+      _currentUserMessageId = userMessage.id; // Store user message ID
       // Ensure _currentProcessingMessageId is set before calling onMessage
       // This message will be updated/removed by the BlocListener
       _currentProcessingMessageId = const Uuid().v4();
@@ -190,7 +249,7 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
         author: aiChatBot,
         createdAt: DateTime.now().millisecondsSinceEpoch + 1,
         id: _currentProcessingMessageId!,
-        text: 'Đang xử lý...',
+        text: 'Processing...',
       ));
       _textController.clear();
       _sendIcon = 'assets/images/sendMessage.svg';
@@ -214,8 +273,9 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
       // bubbleMargin: EdgeInsets.all(0),
       inputBackgroundColor: AppColor.auGreyBackground,
       inputContainerDecoration: BoxDecoration(
-          border: Border.all(color: AppColor.auLightGrey),
-          borderRadius: BorderRadius.circular(10)),
+        border: Border.all(color: AppColor.auLightGrey),
+        borderRadius: BorderRadius.circular(10),
+      ),
       inputTextStyle: theme.textTheme.ppMori400White12,
       inputTextColor: theme.colorScheme.secondary,
       inputBorderRadius: BorderRadius.zero,

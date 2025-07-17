@@ -111,8 +111,10 @@ enum DP1ProvenanceChain {
       case 'ethereum':
         return DP1ProvenanceChain.evm;
       case 'tezos':
+      case 'tez':
         return DP1ProvenanceChain.tezos;
       case 'bitmark':
+      case 'bmk':
         return DP1ProvenanceChain.bitmark;
       case 'other':
         return DP1ProvenanceChain.other;

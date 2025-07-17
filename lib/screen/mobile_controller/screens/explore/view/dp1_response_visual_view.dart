@@ -18,8 +18,7 @@ class _DP1ResponseVisualViewState extends State<DP1ResponseVisualView> {
     return BlocConsumer<RecordBloc, RecordState>(
       listener: (context, state) {},
       buildWhen: (previous, current) {
-        return (current is RecordSuccessState) &&
-                current.lastDP1Call!.items.isNotEmpty ||
+        return (current is RecordSuccessState) ||
             current is RecordInitialState;
       },
       builder: (context, state) {
