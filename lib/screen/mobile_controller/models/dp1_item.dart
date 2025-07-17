@@ -21,17 +21,9 @@ class DP1Item {
             : ArtworkDisplayLicense.fromString(
                 json['license'] as String,
               ),
-        provenance: json['provenance'] == null
-            ? DP1Provenance(
-                type: DP1ProvenanceType.onChain,
-                contract: DP1Contract(
-                    chain: DP1ProvenanceChain.evm,
-                    standard: DP1ProvenanceStandard.erc721,
-                    address: "address",
-                    tokenId: "tokenId"))
-            : DP1Provenance.fromJson(
-                Map<String, dynamic>.from(json['provenance'] as Map),
-              ),
+        provenance: DP1Provenance.fromJson(
+          Map<String, dynamic>.from(json['provenance'] as Map),
+        ),
       );
     } catch (e) {
       rethrow;
