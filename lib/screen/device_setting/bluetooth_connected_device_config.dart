@@ -234,65 +234,6 @@ class BluetoothConnectedDeviceConfigState
                   ),
                 ),
               );
-              if (!state.isDeviceAlive(selectedDevice!)) {
-                return const SizedBox.shrink();
-              }
-              return GestureDetector(
-                onTap: () {
-                  UIHelper.showCenterDialog(
-                    context,
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Power Off',
-                          style: Theme.of(context).textTheme.ppMori700White16,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Are you sure you want to power off the device?',
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
-                        const SizedBox(height: 36),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: PrimaryAsyncButton(
-                                text: 'cancel'.tr(),
-                                textColor: AppColor.white,
-                                color: Colors.transparent,
-                                borderColor: AppColor.white,
-                                onTap: () {
-                                  injector<NavigationService>().goBack();
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: PrimaryAsyncButton(
-                                text: 'OK',
-                                textColor: AppColor.white,
-                                borderColor: AppColor.white,
-                                color: Colors.transparent,
-                                onTap: () async {
-                                  final device = selectedDevice!;
-                                  await injector<CanvasClientServiceV2>()
-                                      .safeShutdown(device);
-                                  injector<NavigationService>().goBack();
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Icon(
-                  Icons.power_settings_new,
-                  size: 24,
-                ),
-              );
             },
           ),
         ],
@@ -1554,7 +1495,7 @@ class BluetoothConnectedDeviceConfigState
                       await BluetoothDeviceManager()
                           .removeDevice(device.deviceId);
                       injector<NavigationService>().goBack(result: true);
-                    } catch (e, s) {
+                    } catch (e) {
                       injector<NavigationService>().goBack(result: e);
                     }
                   },
@@ -1574,18 +1515,6 @@ class BluetoothConnectedDeviceConfigState
     } else {
       await UIHelper.showInfoDialog(context, 'Factory Reset Failed',
           'Something went wrong while trying to restore the device to factory settings. ${error.toString()}');
-    }
-  }
-
-  Future<void> _onSendLogSelected() async {
-    try {
-      final device = selectedDevice!;
-      final res = await injector<FFBluetoothService>().sendLog(device);
-      unawaited(UIHelper.showInfoDialog(context, 'Logs Sent Successfully',
-          'Your logs have been sent. Thank you for helping us improve the device.'));
-    } catch (e) {
-      await UIHelper.showInfoDialog(context, 'Failed to send logs',
-          'We couldn’t send the logs due to a connection issue or unexpected error. ${e.toString()}');
     }
   }
 

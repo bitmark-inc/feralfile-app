@@ -12,8 +12,11 @@ import 'package:autonomy_flutter/widgetbook/mock_data/index.dart';
 
 class MockFeralfileService extends FeralFileService {
   @override
-  Future<FFSeries> getSeries(String id,
-      {String? exhibitionID, bool includeFirstArtwork = false}) async {
+  Future<FFSeries> getSeries(
+    String id, {
+    String? exhibitionID,
+    bool includeFirstArtwork = false,
+  }) async {
     return FFSeries(
       id,
       'mock_artist_id',
@@ -46,8 +49,10 @@ class MockFeralfileService extends FeralFileService {
   }
 
   @override
-  Future<List<FFSeries>> getListSeries(String exhibitionId,
-      {bool includeFirstArtwork = false}) async {
+  Future<List<FFSeries>> getListSeries(
+    String exhibitionId, {
+    bool includeFirstArtwork = false,
+  }) async {
     return [
       ...MockFFSeriesData.listSeries,
     ];
@@ -69,13 +74,6 @@ class MockFeralfileService extends FeralFileService {
       status: 0,
       coverURI: 'https://example.com/cover.jpg',
       coverDisplay: 'https://example.com/display.jpg',
-      curatorsAlumni: null,
-      artistsAlumni: null,
-      series: null,
-      contracts: null,
-      partnerAlumni: null,
-      curatorAlumni: null,
-      posts: null,
     );
   }
 
@@ -100,8 +98,10 @@ class MockFeralfileService extends FeralFileService {
   }
 
   @override
-  Future<Exhibition> getExhibition(String id,
-      {bool includeFirstArtwork = false}) async {
+  Future<Exhibition> getExhibition(
+    String id, {
+    bool includeFirstArtwork = false,
+  }) async {
     return Exhibition(
       id: id,
       title: 'Mock Exhibition',
@@ -116,13 +116,6 @@ class MockFeralfileService extends FeralFileService {
       status: 0,
       coverURI: 'https://example.com/cover.jpg',
       coverDisplay: 'https://example.com/display.jpg',
-      curatorsAlumni: null,
-      artistsAlumni: null,
-      series: null,
-      contracts: null,
-      partnerAlumni: null,
-      curatorAlumni: null,
-      posts: null,
     );
   }
 
@@ -193,7 +186,6 @@ class MockFeralfileService extends FeralFileService {
         coverURI: 'https://example.com/image1.jpg',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        exhibition: null,
       ),
       Post(
         id: 'mock_post_2',
@@ -204,7 +196,6 @@ class MockFeralfileService extends FeralFileService {
         coverURI: 'https://example.com/image2.jpg',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        exhibition: null,
       ),
     ];
   }
@@ -230,13 +221,6 @@ class MockFeralfileService extends FeralFileService {
       status: 0,
       coverURI: 'https://example.com/cover.jpg',
       coverDisplay: 'https://example.com/display.jpg',
-      curatorsAlumni: null,
-      artistsAlumni: null,
-      series: null,
-      contracts: null,
-      partnerAlumni: null,
-      curatorAlumni: null,
-      posts: null,
     );
   }
 
@@ -256,13 +240,6 @@ class MockFeralfileService extends FeralFileService {
       status: 0,
       coverURI: 'https://example.com/cover.jpg',
       coverDisplay: 'https://example.com/display.jpg',
-      curatorsAlumni: null,
-      artistsAlumni: null,
-      series: null,
-      contracts: null,
-      partnerAlumni: null,
-      curatorAlumni: null,
-      posts: null,
     );
   }
 
@@ -283,13 +260,6 @@ class MockFeralfileService extends FeralFileService {
         status: 0,
         coverURI: 'https://example.com/cover1.jpg',
         coverDisplay: 'https://example.com/display1.jpg',
-        curatorsAlumni: null,
-        artistsAlumni: null,
-        series: null,
-        contracts: null,
-        partnerAlumni: null,
-        curatorAlumni: null,
-        posts: null,
       ),
       Exhibition(
         id: 'mock_ongoing_exhibition_2',
@@ -305,13 +275,6 @@ class MockFeralfileService extends FeralFileService {
         status: 0,
         coverURI: 'https://example.com/cover2.jpg',
         coverDisplay: 'https://example.com/display2.jpg',
-        curatorsAlumni: null,
-        artistsAlumni: null,
-        series: null,
-        contracts: null,
-        partnerAlumni: null,
-        curatorAlumni: null,
-        posts: null,
       ),
     ];
   }
@@ -560,5 +523,11 @@ class MockFeralfileService extends FeralFileService {
   @override
   Future<List<String>> getIndexerAssetIdsFromSeries(String seriesId) async {
     return [];
+  }
+
+  @override
+  Future<Artwork?> getSourceArtwork(String artworkId) {
+    // TODO: implement getSourceArtwork
+    throw UnimplementedError();
   }
 }

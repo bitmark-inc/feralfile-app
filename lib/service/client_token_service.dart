@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 
 abstract class ClientTokenService {
   NftCollectionBloc get nftBloc;

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/pending_tx_params.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock_data/mock_asset_token.dart';
 
@@ -42,7 +41,9 @@ class MockTokensService extends NftTokensService {
   }
 
   @override
-  Future<void> postPendingToken(PendingTxParams params) async {
-    // Mock implementation
+  Future<List<AssetToken>> getManualTokens(
+      {required List<String> indexerIds, bool shouldCallIndexer = true}) {
+    // TODO: implement getManualTokens
+    throw UnimplementedError();
   }
 }

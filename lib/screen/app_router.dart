@@ -165,7 +165,6 @@ class AppRouter {
       'bluetooth_connected_device_config';
   static const handleBluetoothDeviceScanDeeplinkScreen =
       'handle_bluetooth_device_scan_deeplink_screen';
-  static const widgetBookScreen = 'widget_book_screen';
   static const channelDetailPage = 'channel_detail_page';
   static const playlistDetailsPage = 'playlist_details_page';
 
@@ -772,12 +771,6 @@ class AppRouter {
             payload: settings.arguments!
                 as HandleBluetoothDeviceScanDeeplinkScreenPayload,
           ),
-        );
-
-      case widgetBookScreen:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => const WidgetbookScreen(),
         );
 
       case channelDetailPage:

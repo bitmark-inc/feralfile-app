@@ -315,7 +315,7 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<CurrencyService>(
     () => CurrencyServiceImpl(injector()),
   );
-  injector.registerLazySingleton(
+  injector.registerLazySingleton<VersionService>(
     () => VersionServiceImpl(injector(), injector(), injector()),
   );
   injector.registerLazySingleton<CustomerSupportService>(

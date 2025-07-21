@@ -20,12 +20,6 @@ class MockCanvasClientServiceV2 extends CanvasClientServiceV2 {
   }
 
   @override
-  Future<bool> castListArtwork(
-      BaseDevice device, List<PlayArtworkV2> artworks) async {
-    return true;
-  }
-
-  @override
   Future<bool> pauseCasting(BaseDevice device) async {
     return true;
   }
@@ -47,13 +41,17 @@ class MockCanvasClientServiceV2 extends CanvasClientServiceV2 {
 
   @override
   Future<bool> castExhibition(
-      BaseDevice device, CastExhibitionRequest castRequest) async {
+    BaseDevice device,
+    CastExhibitionRequest castRequest,
+  ) async {
     return true;
   }
 
   @override
   Future<bool> castDailyWork(
-      BaseDevice device, CastDailyWorkRequest castRequest) async {
+    BaseDevice device,
+    CastDailyWorkRequest castRequest,
+  ) async {
     return true;
   }
 }
@@ -68,8 +66,10 @@ class MockDeviceInfoService extends DeviceInfoService {
 
 class MockTvCastApi implements TvCastApi {
   @override
-  Future<dynamic> request(
-      {required String topicId, required Map<String, dynamic> body}) async {
+  Future<dynamic> request({
+    required String topicId,
+    required Map<String, dynamic> body,
+  }) async {
     return {};
   }
 }
