@@ -138,87 +138,89 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                   builder: (context) {
                     final previewURL = assetToken.getPreviewUrl() ?? '';
 
-                    switch (assetToken.getMimeType) {
-                      case RenderingType.image:
-                        _currentRenderingWidget = ImageNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                        );
-                        return InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          child: Center(
+                      switch (assetToken.getMimeType) {
+                        case RenderingType.image:
+                          _currentRenderingWidget = ImageNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.video:
+                          _currentRenderingWidget = VideoNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                            isMute: widget.isMute,
+                            resumeWhenPopNext:
+                                widget.shouldUpdateStatusWhenDidPopNext,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.gif:
+                          _currentRenderingWidget = GifNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.svg:
+                          _currentRenderingWidget = SVGNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _currentRenderingWidget,
+                            ),
+                          );
+                        case RenderingType.pdf:
+                          _currentRenderingWidget = PDFNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                          );
+                          return Center(
                             child: _currentRenderingWidget,
-                          ),
-                        );
-                      case RenderingType.video:
-                        _currentRenderingWidget = VideoNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                          isMute: widget.isMute,
-                          resumeWhenPopNext:
-                              widget.shouldUpdateStatusWhenDidPopNext,
-                        );
-                        return InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          child: Center(
+                          );
+                        case RenderingType.audio:
+                          _currentRenderingWidget = AudioNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                            isMute: widget.isMute,
+                            thumbnailURL: assetToken.galleryThumbnailURL,
+                          );
+                          return Center(
                             child: _currentRenderingWidget,
-                          ),
-                        );
-                      case RenderingType.gif:
-                        _currentRenderingWidget = GifNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                        );
-                        return InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          child: Center(
+                          );
+                        default:
+                          _currentRenderingWidget = WebviewNFTRenderingWidget(
+                            key: _artworkKey,
+                            previewURL: previewURL,
+                            isMute: widget.isMute,
+                            overriddenHtml: state.overriddenHtml,
+                          );
+                          return Center(
                             child: _currentRenderingWidget,
-                          ),
-                        );
-                      case RenderingType.svg:
-                        _currentRenderingWidget = SVGNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                        );
-                        return InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          child: Center(
-                            child: _currentRenderingWidget,
-                          ),
-                        );
-                      case RenderingType.pdf:
-                        _currentRenderingWidget = PDFNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                        );
-                        return Center(
-                          child: _currentRenderingWidget,
-                        );
-                      case RenderingType.audio:
-                        _currentRenderingWidget = AudioNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                          isMute: widget.isMute,
-                          thumbnailURL: assetToken.galleryThumbnailURL,
-                        );
-                        return Center(
-                          child: _currentRenderingWidget,
-                        );
-                      default:
-                        _currentRenderingWidget = WebviewNFTRenderingWidget(
-                          key: _artworkKey,
-                          previewURL: previewURL,
-                          isMute: widget.isMute,
-                        );
-                        return Center(
-                          child: _currentRenderingWidget,
-                        );
-                    }
-                  },
+                          );
+                      }
+                    },
+                  ),
                 );
               }
 

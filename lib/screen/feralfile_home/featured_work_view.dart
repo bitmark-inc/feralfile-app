@@ -52,7 +52,10 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     super.initState();
     _scrollController = ScrollController();
     _canvasDeviceBloc = injector<CanvasDeviceBloc>();
-    _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
+    _paging = Paging(
+        offset: 0,
+        limit: widget.tokenIDs.length,
+        total: widget.tokenIDs.length);
     log.info('paging initState: ${_paging.offset}');
     unawaited(_fetchFeaturedTokens(context, _paging));
     _scrollController.addListener(() {

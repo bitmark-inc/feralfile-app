@@ -18,6 +18,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: lines_longer_than_80_chars
 
+const DP_VERSION = '1.0.0';
+
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';

@@ -32,7 +32,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
                   await Navigator.of(context).pushNamed(
                     AppRouter.ffArtworkPreviewPage,
                     arguments: FeralFileArtworkPreviewPagePayload(
-                      artwork: artwork,
+                      artworkId: artwork.id,
                       isFromExhibition: true,
                     ),
                   );

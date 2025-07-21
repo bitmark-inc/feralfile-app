@@ -49,7 +49,7 @@ class HomeWidgetService {
     }
   }
 
-  Future<void> updateWidget(
+  Future<void> _updateWidget(
       {required Map<String, String> data, bool shouldUpdate = true}) async {
     try {
       await Future.wait(
@@ -115,7 +115,7 @@ class HomeWidgetService {
 
     // Update widget with combined data
     if (combinedData.isNotEmpty) {
-      await updateWidget(data: combinedData);
+      await _updateWidget(data: combinedData);
     }
   }
 

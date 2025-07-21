@@ -22,7 +22,7 @@ extension BigIntExtension on BigInt {
   }
 }
 
-extension MapExtention on Map {
+extension MapExtention<K, T> on Map<K, T> {
   Map<K, T> typeCast<K, T>() {
     if (this is Map<K, T>) {
       return this as Map<K, T>;
@@ -32,5 +32,9 @@ extension MapExtention on Map {
         (key, value) => MapEntry(key as K, value as T),
       );
     }
+  }
+
+  Map<K, T> copy() {
+    return Map<K, T>.from(this);
   }
 }

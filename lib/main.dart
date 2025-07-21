@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -68,10 +69,18 @@ Future<void> callbackDispatcher() async {
   });
 }
 
+// This value notifies which screen should be shown
 ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
+
+// This value notifies if user did tap on close icon to hide now displaying
 ValueNotifier<bool> shouldShowNowDisplayingOnDisconnect =
     ValueNotifier<bool>(true);
+
+// This value notifies if now displaying is visible on scroll
 ValueNotifier<bool> nowDisplayingVisibility = ValueNotifier<bool>(true);
+
+// This value indicates whether the display is currently active. Its value is a combination of the three values above.
+ValueNotifier<bool> nowDisplayingShowing = ValueNotifier<bool>(false);
 
 void main() async {
   unawaited(
@@ -151,8 +160,11 @@ Future<void> runFeralFileApp() async {
       statusBarColor: AppColor.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: AppColor.auGreyBackground,
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     showErrorDialogFromException(
@@ -276,16 +288,15 @@ class AutonomyAppScaffold extends StatefulWidget {
   State<AutonomyAppScaffold> createState() => _AutonomyAppScaffoldState();
 }
 
+const double kStatusBarMarginBottom = 20;
+
 class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   bool _isVisible = true;
   double _lastScrollPosition = 0;
 
-  // 40: padding bottom of app bar
-  // 45: height of app bar
-  // 10: space between app bar and now displaying
-  static const double kStatusBarMarginBottom = 40 + 45 + 10;
+  StreamSubscription<NowDisplayingStatus?>? _nowDisplayingStreamSubscription;
 
   @override
   void initState() {
@@ -300,6 +311,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplayingOnDisconnect
         .addListener(_updateAnimationBasedOnDisplayState);
     nowDisplayingVisibility.addListener(_updateAnimationBasedOnDisplayState);
+    _nowDisplayingStreamSubscription =
+        NowDisplayingManager().nowDisplayingStream.listen((_) {
+      _updateAnimationBasedOnDisplayState();
+    });
   }
 
   void _updateAnimationBasedOnDisplayState() {
@@ -307,7 +322,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value;
     final isBetaTester = injector<AuthService>().isBetaTester();
-    if (shouldShow && isBetaTester) {
+    nowDisplayingShowing.value = shouldShow &&
+        isBetaTester &&
+        NowDisplayingManager().nowDisplayingStatus != null;
+    if (nowDisplayingShowing.value) {
       _animationController.forward();
       setState(() => _isVisible = true);
     } else {
@@ -342,6 +360,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplaying.removeListener(_updateAnimationBasedOnDisplayState);
     shouldShowNowDisplayingOnDisconnect
         .removeListener(_updateAnimationBasedOnDisplayState);
+    nowDisplayingVisibility.removeListener(_updateAnimationBasedOnDisplayState);
+    _nowDisplayingStreamSubscription?.cancel();
     _animationController.dispose();
     super.dispose();
   }

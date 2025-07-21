@@ -148,7 +148,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
           Navigator.of(context).popUntil(
             (route) =>
                 route.settings.name == AppRouter.homePage ||
-                route.settings.name == AppRouter.homePageNoTransition,
+                route.settings.name == AppRouter.homePage,
           );
         },
         'cancel'.tr(),

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_collection.dart';
@@ -9,7 +10,10 @@ import 'package:autonomy_flutter/nft_collection/graphql/queries/queries.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/models/identity.dart';
 import 'package:autonomy_flutter/nft_collection/models/user_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/artblocks_service.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
 class NftIndexerService {
   NftIndexerService(this._client, this._indexerApi);
@@ -29,7 +33,41 @@ class NftIndexerService {
     final data = QueryListTokensResponse.fromJson(
       Map<String, dynamic>.from(result as Map),
     );
-    return data.tokens;
+    final assetTokens = data.tokens;
+    // missing artist assetToken
+    final missingArtistAssetTokens = assetTokens.where((token) {
+      final artistAddress = token.asset?.artistID;
+      return artistAddress == '0x0000000000000000000000000000000000000000';
+    }).toList();
+    if (missingArtistAssetTokens.isEmpty) {
+      return assetTokens;
+    }
+    final List<AssetToken> newAssetTokens = assetTokens
+      ..removeWhere(missingArtistAssetTokens.contains);
+    for (final assetToken in missingArtistAssetTokens) {
+      final asset = assetToken.asset;
+      if (asset == null) {
+        newAssetTokens.add(assetToken);
+        continue;
+      }
+      final artblockArtist = await injector<ArtBlockService>().getArtistByToken(
+          contractAddress: assetToken.contractAddress!.toLowerCase(),
+          tokenId: assetToken.tokenId!);
+      if (artblockArtist == null) {
+        newAssetTokens.add(assetToken);
+        continue;
+      }
+      final newAsset = asset.copyWith(
+          artistID: artblockArtist.address, artistName: artblockArtist.name);
+      newAssetTokens.add(assetToken.copyWith(asset: newAsset));
+    }
+    // sort the newAssetToken to match with assetTokens
+    newAssetTokens.sort((a, b) {
+      final aIndex = assetTokens.indexOf(a);
+      final bIndex = assetTokens.indexOf(b);
+      return aIndex.compareTo(bIndex);
+    });
+    return newAssetTokens;
   }
 
   Future<Identity> getIdentity(QueryIdentityRequest request) async {
@@ -86,5 +124,14 @@ class NftIndexerService {
       Map<String, dynamic>.from(response as Map),
     );
     return data.tokenConfigurations.firstOrNull;
+  }
+
+  Future<List<AssetToken>> getAssetTokens(List<DP1Item> items) async {
+    final indexIds =
+        items.map((item) => item.indexId).whereType<String>().toList();
+    final assetTokens = await getNftTokens(
+      QueryListTokensRequest(ids: indexIds),
+    );
+    return List<AssetToken>.from(assetTokens).toList();
   }
 }

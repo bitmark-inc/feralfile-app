@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
+import 'package:autonomy_flutter/screen/device_setting/start_setup_device_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -82,10 +83,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     if (prefix == null) {
       return [];
     }
-    final data = link.replaceFirst(prefix, '').substring(1).split('|')
-      ..removeWhere(
-        (element) => element.isEmpty,
-      );
+    final data = link.replaceFirst(prefix, '').substring(1).split('|');
+    // Dont remove empty elements, as they are used to indicate the absence of a value
+    // ..removeWhere(
+    //   (element) => element.isEmpty,
+    // );
     return data;
   }
 
@@ -258,7 +260,9 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       // go to setting wifi page
 
       Pair<FFBluetoothDevice, bool>? res;
-      if (topicId != null && isConnectedToInternet == true) {
+      if (topicId != null &&
+          topicId.isNotEmpty &&
+          isConnectedToInternet == true) {
         res = Pair(
           resultDevice!.toFFBluetoothDevice(
               topicId: topicId, deviceId: resultDevice!.advName),
@@ -273,7 +277,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         unawaited(injector<CanvasClientServiceV2>()
             .showPairingQRCode(res.first, false));
       } else {
-        if (topicId != null) {
+        if (topicId != null && topicId.isNotEmpty) {
           // add device to canvas
           final device = resultDevice!.toFFBluetoothDevice(
             topicId: topicId,
@@ -285,7 +289,13 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         }
         final r = await injector<NavigationService>().navigateTo(
           AppRouter.bluetoothDevicePortalPage,
-          arguments: resultDevice,
+          arguments: BluetoothDevicePortalPagePayload(
+            device: resultDevice!.toFFBluetoothDevice(
+              topicId: topicId,
+              deviceId: resultDevice!.advName,
+            ),
+            canSkipNetworkSetup: isConnectedToInternet,
+          ),
         );
         res = r == null ? null : r as Pair<FFBluetoothDevice, bool>;
         if (res != null) {
@@ -306,6 +316,9 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         ));
       }
 
+      log.info(
+        'Bluetooth device setup completed. Disconnecting from device: ${resultDevice!.name}',
+      );
       unawaited(_resultDevice?.disconnect());
       try {
         await onFinish?.call();

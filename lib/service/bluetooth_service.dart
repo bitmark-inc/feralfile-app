@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -16,11 +15,11 @@ import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/bluetooth_manager.dart';
 import 'package:autonomy_flutter/util/byte_builder_ext.dart';
+import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
@@ -49,6 +48,9 @@ const updateDeviceStatusCommand = [
 enum BluetoothCommand {
   sendWifiCredentials,
   scanWifi,
+  keepWifi,
+  factoryReset,
+  sendLog,
   setTimezone;
 
   String get name {
@@ -57,6 +59,12 @@ enum BluetoothCommand {
         return 'connect_wifi';
       case BluetoothCommand.scanWifi:
         return 'scan_wifi';
+      case BluetoothCommand.keepWifi:
+        return 'keep_wifi';
+      case BluetoothCommand.factoryReset:
+        return 'factory_reset';
+      case BluetoothCommand.sendLog:
+        return 'send_log';
       case BluetoothCommand.setTimezone:
         return 'set_time';
     }
@@ -74,13 +82,29 @@ enum BluetoothCommand {
     };
   }
 
+  NotificationCallback _keepWifiCallback(
+    Completer<KeepWifiResponse> completer,
+  ) {
+    return (data) {
+      if (data.errorCode != 0) {
+        log.warning('Error keeping wifi: ${data.errorCode}');
+        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        completer.completeError(
+          error,
+        );
+      }
+      final topicId = data.data[0];
+      completer.complete(KeepWifiResponse(topicId: topicId));
+    };
+  }
+
   NotificationCallback _sendWifiCredentialsCallback(
     Completer<SendWifiCredentialResponse> completer,
   ) {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending wifi credentials: ${data.errorCode}');
-        final error = SendWifiCredentialError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -92,6 +116,36 @@ enum BluetoothCommand {
           topicId: topicId,
         ),
       );
+    };
+  }
+
+  NotificationCallback _factoryResetCallback(
+    Completer<FactoryResetResponse> completer,
+  ) {
+    return (data) {
+      if (data.errorCode != 0) {
+        log.warning('Error resetting factory: ${data.errorCode}');
+        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        completer.completeError(
+          error,
+        );
+      }
+      completer.complete(FactoryResetResponse());
+    };
+  }
+
+  NotificationCallback _sendLogCallback(
+    Completer<SendLogResponse> completer,
+  ) {
+    return (data) {
+      if (data.errorCode != 0) {
+        log.warning('Error sending log: ${data.errorCode}');
+        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        completer.completeError(
+          error,
+        );
+      }
+      completer.complete(SendLogResponse());
     };
   }
 
@@ -110,6 +164,12 @@ enum BluetoothCommand {
         return Completer<SendWifiCredentialResponse>();
       case BluetoothCommand.scanWifi:
         return Completer<ScanWifiResponse>();
+      case BluetoothCommand.keepWifi:
+        return Completer<KeepWifiResponse>();
+      case BluetoothCommand.factoryReset:
+        return Completer<FactoryResetResponse>();
+      case BluetoothCommand.sendLog:
+        return Completer<SendLogResponse>();
       case BluetoothCommand.setTimezone:
         return Completer<SetTimezoneReply>();
     }
@@ -126,6 +186,18 @@ enum BluetoothCommand {
       case BluetoothCommand.scanWifi:
         return _scanWifiCallback(
           completer as Completer<ScanWifiResponse>,
+        );
+      case BluetoothCommand.keepWifi:
+        return _keepWifiCallback(
+          completer as Completer<KeepWifiResponse>,
+        );
+      case BluetoothCommand.factoryReset:
+        return _factoryResetCallback(
+          completer as Completer<FactoryResetResponse>,
+        );
+      case BluetoothCommand.sendLog:
+        return _sendLogCallback(
+          completer as Completer<SendLogResponse>,
         );
       case BluetoothCommand.setTimezone:
         return _setTimezoneCallback(
@@ -153,18 +225,6 @@ class FFBluetoothService {
       );
       if (state == BluetoothConnectionState.connected) {
         try {
-          if (Platform.isAndroid) {
-            try {
-              await device.requestMtu(512, timeout: 3);
-            } catch (e) {
-              log.warning(
-                'Failed to request MTU for device ${device.remoteId.str}: $e',
-              );
-              unawaited(Sentry.captureException(
-                'Failed to request MTU for device ${device.remoteId.str}: $e',
-              ));
-            }
-          }
           // add safe delay to ensure connection is stable
           await Future.delayed(const Duration(seconds: 1));
           await device.discoverCharacteristics();
@@ -179,6 +239,9 @@ class FFBluetoothService {
               'Failed to discover characteristics: $e',
               stackTrace: s,
             ),
+          );
+          log.info(
+            'Disconnecting from device: ${device.remoteId.str} due to error $e',
           );
           await device.disconnect();
           if (_connectCompleter?.isCompleted == false) {
@@ -388,6 +451,23 @@ class FFBluetoothService {
     return wifiList;
   }
 
+  Future<String> keepWifi(BluetoothDevice device) async {
+    final request = KeepWifiRequest();
+    final res = await sendCommand(
+      device: device,
+      command: BluetoothCommand.keepWifi,
+      request: request.toJson(),
+    );
+
+    if (res is! KeepWifiResponse) {
+      log.warning('Failed to keep Wi-Fi');
+      throw Exception('Failed to keep Wi-Fi');
+    }
+
+    final keepWifiResponse = res;
+    return keepWifiResponse.topicId;
+  }
+
   Future<FFBluetoothDevice?> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
@@ -449,6 +529,7 @@ class FFBluetoothService {
     BluetoothDevice device, {
     bool shouldShowError = true,
     bool? autoConnect,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (_multiConnectCompleter?.isCompleted == false) {
       log.info(
@@ -460,7 +541,8 @@ class FFBluetoothService {
 
     _multiConnectCompleter = Completer<void>();
 
-    _connectDevice(device, shouldShowError: shouldShowError).then((_) {
+    _connectDevice(device, shouldShowError: shouldShowError, timeout: timeout)
+        .then((_) {
       log.info('Connected to device: ${device.remoteId.str}');
 
       _multiConnectCompleter?.complete();
@@ -484,12 +566,14 @@ class FFBluetoothService {
   Future<void> _connectDevice(
     BluetoothDevice device, {
     bool shouldShowError = true,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     log.info('_connectDevice');
     await _connect(
       device,
       shouldShowError: shouldShowError,
       autoConnect: false,
+      timeout: timeout,
     );
   }
 
@@ -497,15 +581,16 @@ class FFBluetoothService {
     BluetoothDevice device, {
     bool shouldShowError = true,
     bool autoConnect = true,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     // connect to device
     if (device.isDisconnected ||
         (autoConnect && !device.isAutoConnectEnabled)) {
-      if (!autoConnect) {
-        log.info('Disconnecting from device: ${device.remoteId.str}');
-        await device.disconnect();
-        log.info('[_connect] device.disconnect() finished');
-      }
+      // if (!autoConnect) {
+      //   log.info('Disconnecting from device: ${device.remoteId.str}');
+      //   await device.disconnect();
+      //   log.info('[_connect] device.disconnect() finished');
+      // }
 
       if (_connectCompleter?.isCompleted == false) {
         log.info(
@@ -517,9 +602,9 @@ class FFBluetoothService {
       log.info('[connect] Connecting to device: ${device.remoteId.str}');
       try {
         await device.connect(
-          timeout: const Duration(seconds: 30),
+          timeout: timeout,
           autoConnect: autoConnect,
-          mtu: autoConnect ? null : 512,
+          mtu: null,
         );
       } catch (e) {
         log.warning('Failed to connect to device: $e');
@@ -646,6 +731,35 @@ class FFBluetoothService {
       await FlutterBluePlus.stopScan();
     }
   }
+
+  Future<void> factoryReset(FFBluetoothDevice device) async {
+    if (device.isDisconnected) {
+      await connectToDevice(device, timeout: Duration(seconds: 10));
+    }
+
+    final res = await sendCommand(
+        device: device,
+        command: BluetoothCommand.factoryReset,
+        request: FactoryResetRequest().toJson(),
+        timeout: const Duration(seconds: 30));
+    log.info('[factoryReset] res: $res');
+  }
+
+  Future<void> sendLog(FFBluetoothDevice device) async {
+    if (device.isDisconnected) {
+      await connectToDevice(device, timeout: Duration(seconds: 10));
+    }
+    final userId = injector<AuthService>().getUserId();
+    final message = device.getName;
+    final request = SendLogRequest(userId: userId!, title: message);
+    final res = await sendCommand(
+        device: device,
+        command: BluetoothCommand.sendLog,
+        request: request.toJson(),
+        timeout: const Duration(seconds: 30));
+
+    log.info('[sendLog] res: $res');
+  }
 }
 
 extension BluetoothCharacteristicExt on BluetoothCharacteristic {
@@ -667,22 +781,30 @@ extension BluetoothCharacteristicExt on BluetoothCharacteristic {
       log
         ..info('[writeWithRetry] Error writing: $e')
         ..info('[writeWithRetry] Retrying...');
-      if (e is FlutterBluePlusException && e.code == 14) {
+      if (e is FlutterBluePlusException && e.canIgnore) {
+        log.info('[writeWithRetry] Error code 14, ignoring');
         return;
       }
       final device = this.device;
+      final isDataLongError = e is Exception && e.isDataLongerThanAllowed;
       if (device.isConnected) {
-        await device.discoverCharacteristics();
+        if (!isDataLongError) {
+          await device.discoverCharacteristics();
+        }
         try {
-          await write(value);
-        } on PlatformException catch (e) {
-          if ((e.message?.contains('data longer than allowed') ?? false) &&
-              device.isConnected) {
-            log.info(
-              '[writeWithRetry] Data too long, trying to write without response',
-            );
-            await write(value, withoutResponse: true, allowLongWrite: true);
+          await write(value, allowLongWrite: isDataLongError);
+        } catch (e) {
+          log.warning(
+            '[writeWithRetry] Failed to write after retry: $e',
+          );
+          if (e is FlutterBluePlusException && e.canIgnore) {
+            log.info('[writeWithRetry] Error code 14, ignoring');
+            return;
           }
+          unawaited(Sentry.captureException(
+            'Failed to write after retry: $e',
+          ));
+          rethrow;
         }
       }
     }
@@ -726,36 +848,90 @@ class SendWifiCredentialResponse extends BluetoothResponse {
   final String topicId;
 }
 
-enum SendWifiCredentialErrorCode {
+class FactoryResetRequest extends BluetoothRequest {
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class FactoryResetResponse extends BluetoothResponse {}
+
+class SendLogRequest implements Request {
+  SendLogRequest({required this.userId, required this.title});
+
+  factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
+        userId: json['userId'] as String,
+        title: json['title'] as String?,
+      );
+
+  final String userId;
+  final String? title;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'title': title,
+      };
+}
+
+class SendLogResponse extends BluetoothResponse {}
+
+enum FFBluetoothErrorCode {
   userEnterWrongPassword(1),
-  wifiConnectedButCannotReachServer(2),
+  wifiConnectedButNoInternet(2),
+  wifiConnectedButCannotReachServer(3),
+  // BLE_ERR_CODE_WIFI_REQUIRED
+  wifiRequired(4),
+  // BLE_ERR_CODE_DEVICE_UPDATING
+  deviceUpdating(5),
+  // BLE_ERR_CODE_VERSION_CHECK_FAILED
+  versionCheckFailed(6),
   unknownError(255);
 
-  const SendWifiCredentialErrorCode(this.code);
+  const FFBluetoothErrorCode(this.code);
 
   final int code;
 }
 
-class SendWifiCredentialError implements Exception {
-  SendWifiCredentialError(this.message);
+class FFBluetoothError implements Exception {
+  FFBluetoothError(this.message, {this.title = 'Error'});
 
   final String message;
+  final String title;
 
-  static SendWifiCredentialError fromErrorCode(int errorCode) {
-    final error = SendWifiCredentialErrorCode.values
+  static FFBluetoothError fromErrorCode(int errorCode) {
+    final error = FFBluetoothErrorCode.values
         .firstWhereOrNull((e) => e.code == errorCode);
     switch (error) {
-      case SendWifiCredentialErrorCode.userEnterWrongPassword:
+      case FFBluetoothErrorCode.userEnterWrongPassword:
         // user enter wrong password
-        return SendWifiCredentialError(
+        return FFBluetoothError(
+            title: 'Incorrect Wi-Fi Password',
             'Failed to connect to Wi-Fi. Please check your password and try again.');
-      case SendWifiCredentialErrorCode.wifiConnectedButCannotReachServer:
-        return SendWifiCredentialError(
+      case FFBluetoothErrorCode.wifiConnectedButCannotReachServer:
+        return FFBluetoothError(
+          title: 'Server Unreachable',
           'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
         );
+      case FFBluetoothErrorCode.wifiConnectedButNoInternet:
+        return FFBluetoothError(
+          title: 'No Internet Access',
+          'Connected to Wi-Fi but no internet access. Please check your internet connection.',
+        );
+      case FFBluetoothErrorCode.wifiRequired:
+        return FFBluetoothError(
+          title: 'Wi-Fi Required',
+          'This device requires a Wi-Fi connection to function properly. Please connect to a Wi-Fi network.',
+        );
+      case FFBluetoothErrorCode.deviceUpdating:
+        return DeviceUpdatingError();
+
+      case FFBluetoothErrorCode.versionCheckFailed:
+        return DeviceVersionCheckFailedError();
       default:
-        return SendWifiCredentialError(
-          'Unknown error occurred while sending wifi credentials. Error code: $errorCode',
+        return FFBluetoothError(
+          title: 'Wi-Fi Connection Error',
+          'Unknown error occurred while connecting to Wi-Fi. Error code: $errorCode',
         );
     }
   }
@@ -764,6 +940,22 @@ class SendWifiCredentialError implements Exception {
   String toString() {
     return message;
   }
+}
+
+class DeviceUpdatingError extends FFBluetoothError {
+  DeviceUpdatingError()
+      : super(
+          'The device is currently updating. Please wait for the update to complete and try again.',
+          title: 'Device Updating',
+        );
+}
+
+class DeviceVersionCheckFailedError extends FFBluetoothError {
+  DeviceVersionCheckFailedError()
+      : super(
+          'The device version check failed. Please try again or contact support.',
+          title: 'Version Check Failed',
+        );
 }
 
 class ScanWifiRequest extends BluetoothRequest {
@@ -780,6 +972,23 @@ class ScanWifiResponse extends BluetoothResponse {
   });
 
   final List<String> result;
+}
+
+class KeepWifiRequest extends BluetoothRequest {
+  const KeepWifiRequest();
+
+  // toJson
+  Map<String, dynamic> toJson() {
+    return {};
+  }
+}
+
+class KeepWifiResponse extends BluetoothResponse {
+  const KeepWifiResponse({
+    required this.topicId,
+  });
+
+  final String topicId;
 }
 
 class SetTimezoneRequest implements BluetoothRequest {
@@ -804,4 +1013,17 @@ class SetTimezoneReply extends BluetoothResponse {
 
   factory SetTimezoneReply.fromJson(Map<String, dynamic> _) =>
       SetTimezoneReply();
+}
+
+void handleBluetoothError({
+  FFBluetoothError? error,
+  bool shouldShowError = true,
+}) {}
+
+extension FlutterBluePlusExceptionExt on FlutterBluePlusException {
+  bool get canIgnore {
+    return code == 14 ||
+        code == 133 ||
+        (description?.contains('GATT') ?? false);
+  }
 }

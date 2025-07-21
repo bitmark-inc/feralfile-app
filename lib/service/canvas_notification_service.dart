@@ -27,8 +27,8 @@ class CanvasNotificationService {
   Stream<NotificationRelayerMessage> get notificationStream =>
       _notificationController.stream;
 
-  Future<void> connect() async {
-    if (_isConnected) return;
+  Future<bool> connect() async {
+    if (_isConnected) return true;
 
     try {
       final userId = _authService.getUserId();
@@ -45,6 +45,9 @@ class CanvasNotificationService {
 
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
+      log.info(
+          '[CanvasNotificationService] Device ${_device.name} connecting to ${wsUrl.replaceAll(apiKey, '***')}');
+
       _channel!.stream.listen(
         _handleMessage,
         onError: (Object error) {
@@ -53,12 +56,24 @@ class CanvasNotificationService {
         onDone: _handleDisconnect,
       );
 
-      _isConnected = true;
-      _startPingTimer();
-      _lastError = null;
+      final completer = Completer<bool>();
+      final subscription = _channel!.stream.listen((message) {
+        completer.complete(true);
+      }, onError: (Object error) {
+        completer.complete(false);
+      });
+      _isConnected = await completer.future;
+      await subscription.cancel();
+
+      if (_isConnected) {
+        _startPingTimer();
+        _lastError = null;
+      }
+      return _isConnected;
     } catch (e) {
       _lastError = e.toString();
       _scheduleReconnect();
+      return false;
     }
   }
 
@@ -115,6 +130,8 @@ class CanvasNotificationService {
     await _channel?.sink.close();
     _channel = null;
     _isConnected = false;
+    log.info(
+        '[CanvasNotificationService] Device ${_device.name} called disconnect');
   }
 
   bool get isConnected => _isConnected;

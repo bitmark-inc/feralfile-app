@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
@@ -136,13 +135,13 @@ class _WebviewNFTRenderingWidgetState
         backgroundColor: backgroundColor,
         onStarted: (WebViewController controller) {
           _webViewController = controller;
-          if (widget.overriddenHtml != null) {
-            final uri = Uri.dataFromString(widget.overriddenHtml!,
-                mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-            unawaited(
-              _webViewController?.loadRequest(uri),
-            );
-          }
+          // if (widget.overriddenHtml != null) {
+          //   final uri = Uri.dataFromString(widget.overriddenHtml!,
+          //       mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
+          //   unawaited(
+          //     _webViewController?.loadRequest(uri),
+          //   );
+          // }
         },
         onLoaded: (controller) async {
           setState(() {

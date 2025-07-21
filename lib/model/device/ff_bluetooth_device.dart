@@ -61,6 +61,21 @@ class FFBluetoothDevice extends BluetoothDevice
         'deviceId': deviceId,
       };
 
+  // copyWith
+  FFBluetoothDevice copyWith({
+    String? name,
+    String? remoteID,
+    String? topicId,
+    String? deviceId,
+  }) {
+    return FFBluetoothDevice(
+      name: name ?? this.name,
+      remoteID: remoteID ?? this.remoteID,
+      topicId: topicId ?? this.topicId,
+      deviceId: deviceId ?? this.deviceId,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {

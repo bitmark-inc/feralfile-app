@@ -105,7 +105,7 @@ class Artwork {
   final String thumbnailURI;
   final String? thumbnailDisplay;
   final String previewURI;
-  final Map<String, String> previewDisplay;
+  final Map<String, String>? previewDisplay;
   final Map<String, dynamic>? metadata;
   final DateTime? mintedAt;
   final DateTime? createdAt;

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wifi_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
@@ -114,6 +115,9 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
   @override
   void dispose() {
     _subscription?.cancel();
+    log.info(
+      'ScanWifiNetworkPage: dispose called, disconnecting from device ${widget.payload.device.name}',
+    );
     widget.payload.device.disconnect();
     routeObserver.unsubscribe(this);
     super.dispose();

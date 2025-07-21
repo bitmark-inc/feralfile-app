@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/device/device_display_setting.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
@@ -385,6 +386,7 @@ class CheckCastingStatusReply extends Reply {
     this.catalog,
     this.displayKey,
     this.deviceSettings,
+    this.items,
   }) : isPaused = isPaused ?? false;
 
   factory CheckCastingStatusReply.fromJson(Map<String, dynamic> json) =>
@@ -414,6 +416,15 @@ class CheckCastingStatusReply extends Reply {
                 json['deviceSettings'] as Map<String, dynamic>,
               )
             : null,
+        items: json['items'] == null
+            ? null
+            : List<DP1Item>.from(
+                (json['items'] as List).map(
+                  (x) => DP1Item.fromJson(
+                    Map<String, dynamic>.from(x as Map),
+                  ),
+                ),
+              ),
       );
 
   int? get currentArtworkIndex {
@@ -432,6 +443,7 @@ class CheckCastingStatusReply extends Reply {
   ExhibitionCatalog? catalog;
   String? displayKey;
   DeviceDisplaySetting? deviceSettings;
+  final List<DP1Item>? items;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -457,6 +469,7 @@ class CheckCastingStatusReply extends Reply {
     ExhibitionCatalog? catalog,
     String? displayKey,
     DeviceDisplaySetting? deviceSettings,
+    List<DP1Item>? items,
   }) {
     return CheckCastingStatusReply(
       artworks: artworks ?? this.artworks,
@@ -468,6 +481,7 @@ class CheckCastingStatusReply extends Reply {
       catalog: catalog ?? this.catalog,
       displayKey: displayKey ?? this.displayKey,
       deviceSettings: deviceSettings ?? this.deviceSettings,
+      items: items ?? this.items,
     );
   }
 }

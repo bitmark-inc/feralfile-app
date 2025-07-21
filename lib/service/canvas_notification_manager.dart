@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/canvas_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 class CanvasNotificationManager {
@@ -31,6 +32,22 @@ class CanvasNotificationManager {
 
   // Map to hold retry timers
   final Map<String, Timer> _retryTimers = {};
+
+  // Map to hold current processing messages for each device, grouped by notification type
+  final Map<
+          String,
+          Map<RelayerNotificationType,
+              Pair<BaseDevice, NotificationRelayerMessage>>>
+      _processingMessages = {};
+
+  // Map to hold next messages for each device, grouped by notification type
+  final Map<
+      String,
+      Map<RelayerNotificationType,
+          Pair<BaseDevice, NotificationRelayerMessage>>> _nextMessages = {};
+
+  // Flag to track if processing is in progress for each device and notification type
+  final Map<String, Map<RelayerNotificationType, bool>> _isProcessing = {};
 
   // Stream controller for combined notifications
   final _combinedNotificationController = StreamController<
@@ -56,44 +73,51 @@ class CanvasNotificationManager {
     combinedNotificationStream.listen(
       (Pair<BaseDevice, NotificationRelayerMessage> pair) {
         final device = pair.first;
+        final deviceId = device.deviceId;
         final notification = pair.second;
         final notificationType = notification.notificationType;
-        // Handle the notification based on its type
-        switch (notificationType) {
-          case RelayerNotificationType.status:
-            final message = notification.message;
-            final status = CheckCastingStatusReply.fromJson(message);
-            injector<CanvasDeviceBloc>().add(
-              CanvasDeviceUpdateCastingStatusEvent(
-                device,
-                status,
-              ),
-            );
 
-          case RelayerNotificationType.deviceStatus:
-            final message = notification.message;
-            final deviceStatus = DeviceStatus.fromJson(message);
-            BluetoothDeviceManager().castingDeviceStatus.value = deviceStatus;
+        // Initialize maps for this device if not exists
+        _processingMessages.putIfAbsent(deviceId, () => {});
+        _nextMessages.putIfAbsent(deviceId, () => {});
+        _isProcessing.putIfAbsent(deviceId, () => {});
 
-          case RelayerNotificationType.connection:
-            final message = notification.message;
-            final isConnected = message['isConnected'] as bool;
-            injector<CanvasDeviceBloc>().add(
-              CanvasDeviceUpdateConnectionEvent(device, isConnected),
-            );
+        // If there's a message being processed of the same type, check its timestamp
+        if (_isProcessing[deviceId]![notificationType] == true) {
+          final processingMessage =
+              _processingMessages[deviceId]![notificationType];
+          if (processingMessage != null &&
+              notification.timestamp
+                  .isBefore(processingMessage.second.timestamp)) {
+            log.info(
+                'Skipping older message for device $deviceId and type $notificationType: ${notification.timestamp} < ${processingMessage.second.timestamp}');
+            return;
+          }
+        }
 
-          case RelayerNotificationType.systemMetrics:
-            final message = notification.message;
-            final metrics = DeviceRealtimeMetrics.fromJson(message);
-            DeviceRealtimeMetricHelper().addMetrics(device, metrics);
+        // Check if we have a next message of the same type
+        final nextMessage = _nextMessages[deviceId]![notificationType];
+        if (nextMessage != null) {
+          // If new message is older than next message, skip it
+          if (notification.timestamp.isBefore(nextMessage.second.timestamp)) {
+            log.info(
+                'Skipping older message for device $deviceId and type $notificationType: ${notification.timestamp} < ${nextMessage.second.timestamp}');
+            return;
+          }
+        }
+
+        // Update next message for this type
+        _nextMessages[deviceId]![notificationType] = pair;
+
+        // Process next notification of this type if not already processing
+        if (_isProcessing[deviceId]![notificationType] != true) {
+          _processNextNotification(deviceId, notificationType);
         }
       },
-      onError: (error) {
-        // Handle errors from the combined stream
+      onError: (Object error) {
         log.info('Error in combined notification stream: $error');
       },
       onDone: () {
-        // Handle completion of the combined stream if needed
         log.info('Combined notification stream done');
       },
     );
@@ -150,7 +174,7 @@ class CanvasNotificationManager {
 
   // Connect to a specific device
   Future<void> connect(BaseDevice device) async {
-    final service = _services[device.deviceId];
+    var service = _services[device.deviceId];
 
     if (service == null) {
       final newService = CanvasNotificationService(device);
@@ -165,7 +189,7 @@ class CanvasNotificationManager {
             ),
           );
         },
-        onError: (error) {
+        onError: (Object error) {
           // Handle error from individual service stream if needed
           log.warning('Error from device ${device.deviceId}: $error');
           _scheduleRetry(device);
@@ -176,15 +200,20 @@ class CanvasNotificationManager {
           _scheduleRetry(device);
         },
       );
-      await newService.connect();
-    } else {
-      if (service.isConnected) {
-        // Already connected, no need to reconnect
-        return;
-      } else {
-        // Reconnect if the service is not connected
-        await service.connect();
+      service = newService;
+    }
+    if (service.isConnected) {
+      return;
+    }
+    try {
+      final res = await service.connect();
+      if (!res) {
+        unawaited(NowDisplayingManager().updateDisplayingNow());
       }
+    } catch (e) {
+      log.warning('Error connecting to device ${device.deviceId}: $e');
+      // update Now Displaying as when connect failed.
+      unawaited(NowDisplayingManager().updateDisplayingNow());
     }
   }
 
@@ -192,6 +221,11 @@ class CanvasNotificationManager {
   Future<void> disconnect(String deviceId) async {
     _retryTimers[deviceId]?.cancel();
     _retryTimers.remove(deviceId);
+
+    // Clear messages for this device
+    _processingMessages.remove(deviceId);
+    _nextMessages.remove(deviceId);
+    _isProcessing.remove(deviceId);
 
     final service = _services.remove(deviceId);
     if (service != null) {
@@ -211,6 +245,11 @@ class CanvasNotificationManager {
       timer.cancel();
     }
     _retryTimers.clear();
+
+    // Clear all messages
+    _processingMessages.clear();
+    _nextMessages.clear();
+    _isProcessing.clear();
 
     final futures =
         _services.values.map((service) => service.disconnect()).toList();
@@ -234,6 +273,76 @@ class CanvasNotificationManager {
     _fgbgSubscription?.cancel();
     _disconnectAll();
     _combinedNotificationController.close();
+
+    // Clear all messages and processing flags
+    _processingMessages.clear();
+    _nextMessages.clear();
+    _isProcessing.clear();
+  }
+
+  Future<void> _processNextNotification(
+      String deviceId, RelayerNotificationType notificationType) async {
+    if (_nextMessages[deviceId]?[notificationType] == null) {
+      _isProcessing[deviceId]![notificationType] = false;
+      _processingMessages[deviceId]?.remove(notificationType);
+
+      // Clean up empty maps
+      if (_processingMessages[deviceId]?.isEmpty ?? false) {
+        _processingMessages.remove(deviceId);
+      }
+      if (_isProcessing[deviceId]?.isEmpty ?? false) {
+        _isProcessing.remove(deviceId);
+      }
+      return;
+    }
+
+    _isProcessing[deviceId]![notificationType] = true;
+    final pair = _nextMessages[deviceId]!.remove(notificationType)!;
+    _processingMessages[deviceId]![notificationType] = pair;
+
+    final device = pair.first;
+    final notification = pair.second;
+
+    try {
+      // Handle the notification based on its type
+      switch (notificationType) {
+        case RelayerNotificationType.status:
+          final message = notification.message;
+          final status = CheckCastingStatusReply.fromJson(message);
+          injector<CanvasDeviceBloc>().add(
+            CanvasDeviceUpdateCastingStatusEvent(
+              device,
+              status,
+            ),
+          );
+
+        case RelayerNotificationType.deviceStatus:
+          final message = notification.message;
+          final deviceStatus = DeviceStatus.fromJson(message);
+          BluetoothDeviceManager().castingDeviceStatus.value = deviceStatus;
+
+        case RelayerNotificationType.connection:
+          final message = notification.message;
+          final isConnected = message['isConnected'] as bool;
+          injector<CanvasDeviceBloc>().add(
+            CanvasDeviceUpdateConnectionEvent(device, isConnected),
+          );
+
+        case RelayerNotificationType.systemMetrics:
+          final message = notification.message;
+          final metrics = DeviceRealtimeMetrics.fromJson(message);
+          DeviceRealtimeMetricHelper().addMetrics(device, metrics);
+      }
+    } catch (e, stackTrace) {
+      log.warning(
+        'Error processing notification for device $deviceId and type $notificationType: $e\nStack trace: $stackTrace',
+      );
+    } finally {
+      // Remove processed message
+      _processingMessages[deviceId]?.remove(notificationType);
+      // Process next notification of this type if available
+      _processNextNotification(deviceId, notificationType);
+    }
   }
 
 // You might want methods to list connected devices, check connection status, etc.

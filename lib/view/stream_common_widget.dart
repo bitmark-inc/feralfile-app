@@ -105,7 +105,7 @@ class StreamDrawerItem extends StatelessWidget {
                 Positioned(
                   top: 0,
                   bottom: 0,
-                  right: ResponsiveLayout.padding,
+                  right: ResponsiveLayout.paddingHorizontal,
                   child: ColoredBox(
                     color: AppColor.primaryBlack,
                     child: Column(

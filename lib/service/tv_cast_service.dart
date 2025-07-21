@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call_request.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -19,11 +21,13 @@ abstract class TvCastService {
     bool shouldShowError = true,
   });
 
+  Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request);
+
   Future<ConnectReplyV2> connect(ConnectRequestV2 request);
 
   Future<DisconnectReplyV2> disconnect(DisconnectRequestV2 request);
 
-  Future<CastListArtworkReply> castListArtwork(CastListArtworkRequest request);
+  Future<CastListArtworkReply> castListArtwork(DP1CallRequest request);
 
   Future<PauseCastingReply> pauseCasting(PauseCastingRequest request);
 
@@ -181,9 +185,9 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<CastListArtworkReply> castListArtwork(
-    CastListArtworkRequest request,
+    DP1CallRequest request,
   ) async {
-    final result = await _sendData(_getBody(request));
+    final result = await sendDP1Call(request);
     return CastListArtworkReply.fromJson(result);
   }
 
@@ -346,7 +350,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   TvCastServiceImpl(this._api, this._device);
 
   final TvCastApi _api;
-  final BaseDevice _device;
+  final FFBluetoothDevice _device;
 
   void _handleError(Object error) {
     final context = injector<NavigationService>().context;
@@ -406,5 +410,17 @@ class TvCastServiceImpl extends BaseTvCastService {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request) async {
+    await BluetoothDeviceManager().switchDevice(_device);
+    final res = await _sendData(
+      request.toJson(),
+      shouldShowError: false,
+      timeout: const Duration(seconds: 10),
+    );
+    log.info('[TvCastServiceImpl] sendDP1Call response: $res');
+    return res;
   }
 }

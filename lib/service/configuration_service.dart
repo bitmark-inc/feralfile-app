@@ -164,6 +164,12 @@ abstract class ConfigurationService {
   String? getSelectedDeviceId();
 
   Future<void> setSelectedDeviceId(String? deviceId);
+
+  List<String> getRecordedMessages();
+
+  Future<void> addRecordedMessage(String message);
+
+  Future<void> setRecordedMessages(List<String> messages);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -261,6 +267,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'sent_tezos_artwork_metric';
 
   static const String POSTCARD_MINT = 'postcard_mint';
+
+  static const String KEY_RECORDED_MESSAGES = 'recorded_messages';
 
   final SharedPreferences _preferences;
 
@@ -651,6 +659,26 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return _preferences.remove(KEY_SELECTED_DEVICE_ID);
     }
     return _preferences.setString(KEY_SELECTED_DEVICE_ID, deviceId);
+  }
+
+  @override
+  List<String> getRecordedMessages() =>
+      _preferences.getStringList(KEY_RECORDED_MESSAGES) ?? [];
+
+  @override
+  Future<void> addRecordedMessage(String message) async {
+    var currentMessages = getRecordedMessages();
+    if (currentMessages.length >= 20) {
+      currentMessages = currentMessages.sublist(0, 19);
+    }
+
+    currentMessages.insert(0, message);
+    await setRecordedMessages(currentMessages);
+  }
+
+  @override
+  Future<void> setRecordedMessages(List<String> messages) async {
+    await _preferences.setStringList(KEY_RECORDED_MESSAGES, messages);
   }
 }
 

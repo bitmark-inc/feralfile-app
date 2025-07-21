@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -102,24 +103,32 @@ class ArtworkPreviewDetailBloc
 
   Future<String?> _fetchFeralFileFramePreview(AssetToken token) async {
     if (token.contractAddress == null) return '';
-
-    try {
-      final contract = EthereumAddress.fromHex(token.contractAddress!);
-      final data = hexToBytes('c87b56dd${token.tokenIdHex()}');
-
-      final metadata =
-          await _ethereumService.getFeralFileTokenMetadata(contract, data);
-
-      final tokenMetadata = json.decode(_decodeBase64WithPrefix(metadata));
-      return _decodeBase64WithPrefix(tokenMetadata['animation_url'] as String);
-    } catch (e) {
-      log.warning(
-        '[ArtworkPreviewDetailBloc] _fetchFeralFileFramePreview failed - $e',
-      );
-      return null;
-    }
+    return fetchFeralFileFramePreview(token.contractAddress!, token.tokenId);
   }
-
-  String _decodeBase64WithPrefix(String message) =>
-      utf8.decode(base64.decode(message.split('base64,').last));
 }
+
+Future<String?> fetchFeralFileFramePreview(
+    String contractAddress, String? tokenId) async {
+  try {
+    final _ethereumService = injector<EthereumService>();
+    final contract = EthereumAddress.fromHex(contractAddress);
+    final tokenIdHex = tokenId != null ? intToHex(tokenId) : null;
+    final data = hexToBytes('c87b56dd$tokenIdHex');
+
+    final metadata =
+        await _ethereumService.getFeralFileTokenMetadata(contract, data);
+
+    final tokenMetadata = json.decode(_decodeBase64WithPrefix(metadata));
+    final messsage = tokenMetadata['animation_url'] as String;
+    // return messsage;
+    return _decodeBase64WithPrefix(tokenMetadata['animation_url'] as String);
+  } catch (e) {
+    log.warning(
+      '[ArtworkPreviewDetailBloc] _fetchFeralFileFramePreview failed - $e',
+    );
+    return null;
+  }
+}
+
+String _decodeBase64WithPrefix(String message) =>
+    utf8.decode(base64.decode(message.split('base64,').last));

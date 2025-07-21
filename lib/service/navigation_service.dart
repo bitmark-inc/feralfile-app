@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/shared.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -159,6 +160,16 @@ class NavigationService {
     }
   }
 
+  Future<void> openMicrophoneSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.applicationDetails();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
   Future<void> showAppLoadError() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -225,7 +236,7 @@ class NavigationService {
     navigatorKey.currentState?.popUntil(
       (route) =>
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
     );
   }
 
@@ -240,7 +251,7 @@ class NavigationService {
       (route) =>
           route.settings.name == AppRouter.settingsPage ||
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
     );
   }
 
@@ -279,7 +290,7 @@ class NavigationService {
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
         context,
-        'Can not connect to ${device.advName}',
+        'Can not connect to ${device.getName}',
         'Error: ${error}',
         onClose: () => UIHelper.hideInfoDialog(context),
       );
@@ -470,30 +481,30 @@ class NavigationService {
 
     switch (pair.first) {
       case AppRouter.dailyWorkPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.daily;
       case AppRouter.featuredPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.featured;
       case AppRouter.artworksPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.artworks;
       case AppRouter.exhibitionsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.exhibitions;
       case AppRouter.artistsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.artists;
       case AppRouter.curatorsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.curators;
       case AppRouter.organizePage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.collection;
       default:
         route = pair.first;
