@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/view/custom_chat_input_widget.dart'; // Add this import
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -31,7 +32,7 @@ class AiChatViewWidget extends StatefulWidget {
 
 class _AiChatViewWidgetState extends State<AiChatViewWidget> {
   final TextEditingController _textController = TextEditingController()
-    ..text = 'Display random works';
+    ..text = kDebugMode ? 'Display random works' : '';
   String _sendIcon = 'assets/images/sendMessage.svg';
 
   late final List<types.Message>

@@ -5,12 +5,9 @@ import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/ai_chat_thread_view.dart';
 import 'package:autonomy_flutter/view/ai_chat_view_widget.dart';
-import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -143,40 +140,6 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                           return const SizedBox.shrink();
                         },
                       ),
-                      if (state is RecordErrorState)
-                        PrimaryAsyncButton(
-                          text: 'Enter manually',
-                          onTap: () async {
-                            // show a dialog to enter text manually
-                            final text = await UIHelper.showCenterDialog(
-                              context,
-                              content: Builder(
-                                builder: (context) {
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      AuTextField(
-                                        title: 'Command',
-                                        controller: TextEditingController()
-                                          ..text =
-                                              'Display some artworks of Refik Anadol',
-                                        onSubmit: (text) {
-                                          injector<NavigationService>()
-                                              .goBack(result: text);
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            );
-
-                            log.info('User entered text: $text');
-                            if (text is String) {
-                              recordBloc.add(SubmitTextEvent(text));
-                            }
-                          },
-                        ),
                     ],
                   ),
                 ),
