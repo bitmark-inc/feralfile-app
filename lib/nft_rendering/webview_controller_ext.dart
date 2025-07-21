@@ -30,4 +30,14 @@ extension WebViewControllerExtension on WebViewController {
   void onDispose() {
     log.info('WebViewController onDispose');
   }
+
+  void load(Uri uri, String? overriddenHtml) {
+    if (overriddenHtml != null) {
+      loadHtmlString(
+        overriddenHtml,
+      );
+    } else {
+      loadRequest(uri);
+    }
+  }
 }

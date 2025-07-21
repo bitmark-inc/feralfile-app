@@ -107,7 +107,6 @@ dependencies:
   image: ^4.2.0
   widgets_to_image: ^1.0.0
   geocoding: ^3.0.0
-  objectbox: ^4.0.3
   flutter_inappwebview: ^6.1.5
   webview_flutter: ^4.9.0
   html: ^0.15.1
@@ -130,7 +129,6 @@ dependencies:
   home_widget: ^0.7.0
   workmanager: ^0.5.2
   go_router: ^14.6.0
-  objectbox_flutter_libs: any
   flutter_blue_plus: ^1.34.5
   wifi_scan: ^0.4.1+1
   wifi_info_flutter: ^2.0.2
@@ -139,16 +137,24 @@ dependencies:
   flutter_timezone: ^4.1.0
   flutter_colorpicker: ^1.1.0
   syncfusion_flutter_sliders: ^29.1.33
+  widgetbook: ^3.14.2
+  widgetbook_annotation: ^3.5.0
+  golden_toolkit: ^0.15.0
+  flutter_sound: ^9.28.0
+  octo_image: ^2.1.0
 
 dev_dependencies:
+  retrofit_generator: ^8.0.0
   bloc_test: ^9.1.7
   build_runner: ^2.4.13
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.4
-  objectbox_generator: any
+  #  objectbox_generator: any
   very_good_analysis: ^6.0.0
   sentry_dart_plugin: ^2.1.0
+  widgetbook_generator: ^3.13.0
+
 
 flutter:
   uses-material-design: true

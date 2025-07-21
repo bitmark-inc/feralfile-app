@@ -1,9 +1,9 @@
-import 'package:dio/dio.dart';
-import 'package:logging/logging.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/configuration_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
+import 'package:dio/dio.dart';
+import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 export 'package:autonomy_flutter/nft_collection/widgets/nft_collection_bloc.dart';
@@ -13,10 +13,10 @@ export 'package:autonomy_flutter/nft_collection/widgets/nft_collection_grid_widg
 class NftCollection {
   static Logger logger = Logger('nft_collection');
   static Logger apiLog = Logger('nft_collection_api_log');
-  static late TokensServiceImpl tokenService;
+  static late NftTokensServiceImpl tokenService;
   static late NftCollectionPrefs prefs;
   static late NftCollectionDatabase database;
-  static late AddressService addressService;
+  static late NftAddressService addressService;
 
   static Future<void> initNftCollection({
     required String indexerUrl,
@@ -33,9 +33,9 @@ class NftCollection {
         .addMigrations(migrations)
         .build();
     prefs = NftCollectionPrefs(await SharedPreferences.getInstance());
-    addressService = AddressService(database);
+    addressService = NftAddressService(database);
 
     tokenService =
-        TokensServiceImpl(indexerUrl, database, prefs, addressService, dio);
+        NftTokensServiceImpl(indexerUrl, database, prefs, addressService, dio);
   }
 }

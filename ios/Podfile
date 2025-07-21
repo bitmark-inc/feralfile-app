@@ -28,7 +28,7 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  use_frameworks!
+  use_frameworks! :linkage => :static
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
@@ -48,7 +48,8 @@ post_install do |installer|
           '$(inherited)',
           ## dart: PermissionGroup.camera
           'PERMISSION_CAMERA=1',
-          'PERMISSION_LOCATION=1'
+          'PERMISSION_LOCATION=1',
+          'PERMISSION_MICROPHONE=1'
         ]
       end
   end

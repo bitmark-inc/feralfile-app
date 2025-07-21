@@ -4,8 +4,15 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/attributes.dart';
+import 'package:autonomy_flutter/nft_collection/models/origin_token_info.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
+import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -13,12 +20,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/attributes.dart';
-import 'package:autonomy_flutter/nft_collection/models/origin_token_info.dart';
-import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
-import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web3dart/crypto.dart';
@@ -121,16 +122,7 @@ extension AssetTokenExtension on AssetToken {
     return '$editionStr$maxEditionStr';
   }
 
-  String _intToHex(String intValue) {
-    try {
-      final hex = BigInt.parse(intValue, radix: 10).toRadixString(16);
-      return hex.padLeft(64, '0');
-    } catch (e) {
-      return intValue;
-    }
-  }
-
-  String? tokenIdHex() => tokenId != null ? _intToHex(tokenId!) : null;
+  String? tokenIdHex() => tokenId != null ? intToHex(tokenId!) : null;
 
   String digestHex2Hash(String tokenId) {
     final bigint = BigInt.tryParse(tokenId, radix: 10);
@@ -367,8 +359,31 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> hasLocalAddress() async {
     final owner = this.owner;
     final collectionAddresses =
-        await injector<AddressService>().getAllAddresses();
+        await injector<NftAddressService>().getAllAddresses();
     return collectionAddresses.any((element) => element.address == owner);
+  }
+
+  DP1Provenance get dp1Provenance {
+    final chain = DP1ProvenanceChain.fromString(blockchain ?? '');
+    final standard = DP1ProvenanceStandard.fromString(contractType ?? '');
+    final contractAddress = this.contractAddress!;
+    final tokenId = this.tokenId;
+    final dp1Contract = DP1Contract(
+        chain: chain,
+        standard: standard,
+        address: contractAddress,
+        tokenId: tokenId!);
+    return DP1Provenance(
+        type: DP1ProvenanceType.onChain, contract: dp1Contract);
+  }
+}
+
+String intToHex(String intValue) {
+  try {
+    final hex = BigInt.parse(intValue, radix: 10).toRadixString(16);
+    return hex.padLeft(64, '0');
+  } catch (e) {
+    return intValue;
   }
 }
 
@@ -525,7 +540,7 @@ extension AssetExt on Asset {
     String? thumbnailID,
     DateTime? lastRefreshedTime,
     String? artistID,
-    String? artistNam,
+    String? artistName,
     String? artistURL,
     String? artists,
     String? assetID,
@@ -551,7 +566,7 @@ extension AssetExt on Asset {
         thumbnailID ?? this.thumbnailID,
         lastRefreshedTime ?? this.lastRefreshedTime,
         artistID ?? this.artistID,
-        artistName ?? artistName,
+        artistName ?? this.artistName,
         artistURL ?? this.artistURL,
         artists ?? this.artists,
         assetID ?? this.assetID,

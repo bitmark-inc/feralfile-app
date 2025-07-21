@@ -1,99 +1,32 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 const double kNowDisplayingHeight = 60;
-
-abstract class NowDisplayingStatus {}
-
-// Connect to device
-class ConnectingToDevice implements NowDisplayingStatus {
-  ConnectingToDevice(this.device);
-
-  final FFBluetoothDevice device;
-}
-
-class ConnectSuccess implements NowDisplayingStatus {
-  ConnectSuccess(this.device);
-
-  final FFBluetoothDevice device;
-}
-
-class ConnectFailed implements NowDisplayingStatus {
-  ConnectFailed(this.device, this.error);
-
-  final FFBluetoothDevice device;
-  final Object error;
-}
-
-class ConnectionLostAndReconnecting implements NowDisplayingStatus {
-  ConnectionLostAndReconnecting(this.device);
-
-  final FFBluetoothDevice device;
-}
-
-// Now displaying
-class NowDisplayingSuccess implements NowDisplayingStatus {
-  NowDisplayingSuccess(this.object);
-
-  final NowDisplayingObject object;
-}
-
-class NowDisplayingError implements NowDisplayingStatus {
-  NowDisplayingError(this.error);
-
-  final Object error;
-}
-
-class GettingNowDisplayingObject implements NowDisplayingStatus {}
-
-class ExhibitionDisplaying {
-  ExhibitionDisplaying({
-    this.exhibition,
-    this.catalogId,
-    this.catalog,
-    this.artwork,
-  });
-
-  final Exhibition? exhibition;
-  final String? catalogId;
-  final ExhibitionCatalog? catalog;
-  final Artwork? artwork;
-}
-
-class NowDisplayingObject {
-  NowDisplayingObject({
-    this.assetToken,
-    this.exhibitionDisplaying,
-    this.dailiesWorkState,
-  });
-
-  final AssetToken? assetToken;
-  final ExhibitionDisplaying? exhibitionDisplaying;
-  final DailiesWorkState? dailiesWorkState;
-}
 
 class NowDisplaying extends StatefulWidget {
   const NowDisplaying({super.key});
@@ -102,7 +35,8 @@ class NowDisplaying extends StatefulWidget {
   State<NowDisplaying> createState() => _NowDisplayingState();
 }
 
-class _NowDisplayingState extends State<NowDisplaying> {
+class _NowDisplayingState extends State<NowDisplaying>
+    with AfterLayoutMixin<NowDisplaying> {
   final NowDisplayingManager _manager = NowDisplayingManager();
   NowDisplayingStatus? nowDisplayingStatus;
 
@@ -112,10 +46,6 @@ class _NowDisplayingState extends State<NowDisplaying> {
     nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
       (status) {
-        if (nowDisplayingStatus is NowDisplayingSuccess &&
-            status is ConnectSuccess) {
-          return;
-        }
         if (mounted) {
           setState(
             () {
@@ -126,6 +56,9 @@ class _NowDisplayingState extends State<NowDisplaying> {
       },
     );
   }
+
+  @override
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
@@ -142,19 +75,13 @@ class _NowDisplayingState extends State<NowDisplaying> {
         }
 
         switch (nowDisplayingStatus.runtimeType) {
-          case ConnectingToDevice:
-            return _connectingToDeviceView(context, nowDisplayingStatus);
-          case ConnectSuccess:
-            return _connectSuccessView(context, nowDisplayingStatus);
-          case ConnectFailed:
+          case DeviceDisconnected:
             return _connectFailedView(context, nowDisplayingStatus);
-          case ConnectionLostAndReconnecting:
-            return _connectionLostAndReconnectingView(
+          case ConnectionLost:
+            return _connectionLostView(
               context,
               nowDisplayingStatus,
             );
-          case GettingNowDisplayingObject:
-            return _gettingNowDisplayingObjectView(context);
           case NowDisplayingError:
             return _getNowDisplayingErrorView(context, nowDisplayingStatus);
           case NowDisplayingSuccess:
@@ -168,45 +95,24 @@ class _NowDisplayingState extends State<NowDisplaying> {
     );
   }
 
-  Widget _connectingToDeviceView(
-    BuildContext context,
-    NowDisplayingStatus status,
-  ) {
-    final device = (status as ConnectingToDevice).device;
-    final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connecting to $deviceName',
-    );
-  }
-
-  Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectSuccess).device;
-    final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connected to $deviceName',
-    );
-  }
-
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectFailed).device;
+    final device = (status as DeviceDisconnected).device;
     final deviceName =
         device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Unable to connect to $deviceName. Check connection.',
+      status: 'Device $deviceName is offline or disconnected.',
     );
   }
 
-  Widget _connectionLostAndReconnectingView(
+  Widget _connectionLostView(
     BuildContext context,
     NowDisplayingStatus status,
   ) {
-    final device = (status as ConnectionLostAndReconnecting).device;
+    final device = (status as ConnectionLost).device;
     final deviceName =
         device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Connection to $deviceName lost, Attempting to reconnect...',
+      status: 'Connection to $deviceName lost.',
     );
   }
 
@@ -219,18 +125,12 @@ class _NowDisplayingState extends State<NowDisplaying> {
       status: 'Error: $error',
     );
   }
-
-  Widget _gettingNowDisplayingObjectView(BuildContext context) {
-    return const NowDisplayingStatusView(
-      status: 'Getting now displaying object...',
-    );
-  }
 }
 
 class NowDisplayingSuccessWidget extends StatefulWidget {
   const NowDisplayingSuccessWidget({required this.object, super.key});
 
-  final NowDisplayingObject object;
+  final NowDisplayingObjectBase object;
 
   @override
   State<NowDisplayingSuccessWidget> createState() =>
@@ -247,13 +147,36 @@ class _NowDisplayingSuccessWidgetState
   @override
   Widget build(BuildContext context) {
     final nowDisplaying = widget.object;
+    if (nowDisplaying is DP1NowDisplayingObject) {
+      return _dp1NowDisplayingView(context, nowDisplaying);
+    } else if (nowDisplaying is NowDisplayingObject) {
+      return _nowDisplayingView(context, nowDisplaying);
+    }
+
+    return const SizedBox();
+  }
+
+  Widget _dp1NowDisplayingView(
+    BuildContext context,
+    DP1NowDisplayingObject nowDisplaying,
+  ) {
+    return GestureDetector(
+      child: DP1NowDisplayingView(
+        nowDisplaying,
+      ),
+      onTap: () {
+        injector<NavigationService>().navigateTo(AppRouter.nowDisplayingPage);
+      },
+    );
+  }
+
+  Widget _nowDisplayingView(
+    BuildContext context,
+    NowDisplayingObject nowDisplaying,
+  ) {
     final assetToken = nowDisplaying.assetToken;
     if (assetToken != null) {
       return _tokenNowDisplayingView(context, assetToken);
-    }
-    final exhibitionDisplaying = nowDisplaying.exhibitionDisplaying;
-    if (exhibitionDisplaying != null) {
-      return _exhibitionNowDisplayingView(context, exhibitionDisplaying);
     }
     if (nowDisplaying.dailiesWorkState != null) {
       return _dailyWorkNowDisplayingView(
@@ -295,28 +218,6 @@ Widget _dailyWorkNowDisplayingView(
       injector<NavigationService>().navigateTo(
         AppRouter.nowDisplayingPage,
       );
-    },
-  );
-}
-
-Widget _exhibitionNowDisplayingView(
-  BuildContext context,
-  ExhibitionDisplaying exhibitionDisplaying,
-) {
-  return GestureDetector(
-    child: NowDisplayingExhibitionView(exhibitionDisplaying),
-    onTap: () {
-      final exhibition = exhibitionDisplaying.exhibition;
-      final artwork = exhibitionDisplaying.artwork;
-      if (artwork != null) {
-        injector<NavigationService>().navigateTo(
-          AppRouter.nowDisplayingPage,
-        );
-      } else if (exhibition != null) {
-        injector<NavigationService>().navigateTo(
-          AppRouter.nowDisplayingPage,
-        );
-      }
     },
   );
 }
@@ -404,82 +305,68 @@ class TokenNowDisplayingView extends StatelessWidget {
   }
 }
 
-class NowDisplayingExhibitionView extends StatelessWidget {
-  const NowDisplayingExhibitionView(this.exhibitionDisplaying, {super.key});
+class DP1NowDisplayingView extends StatelessWidget {
+  const DP1NowDisplayingView(this.object, {super.key});
 
-  final ExhibitionDisplaying exhibitionDisplaying;
+  final DP1NowDisplayingObject object;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final exhibition = exhibitionDisplaying.exhibition;
-    final artwork = exhibitionDisplaying.artwork?.copyWith(
-      series: exhibitionDisplaying.artwork?.series
-          ?.copyWith(exhibition: exhibition),
-    );
-    final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
-    final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses == null
-        ? false
-        : injector<AuthService>().isLinkArtist(artistAddresses);
+    final playlistItem = object.playlistItem;
+    final assetToken = object.assetToken;
+    final device = BluetoothDeviceManager().castingBluetoothDevice;
     return NowDisplayingView(
-      onMoreTap: artwork?.indexerTokenId == null
-          ? null
-          : isUserArtist
-              ? () {
-                  injector<NavigationService>().openArtistDisplaySetting(
-                    artwork: artwork!,
-                  );
-                }
-              : () {
-                  injector<NavigationService>().showDeviceSettings(
-                    tokenId: artwork?.indexerTokenId ?? '',
-                    artistName: artwork?.series?.artistAlumni?.alias,
-                  );
-                },
-      thumbnailBuilder: (context) {
-        return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
+      device: device,
+      onMoreTap: () {
+        injector<NavigationService>().showDeviceSettings(
+          tokenId: playlistItem.indexId,
+          artistName: playlistItem.title,
+        );
       },
-      titleBuilder: (context) {
-        if (artwork != null) {
-          return RichText(
-            text: TextSpan(
-              children: [
-                if (artwork.series?.artistAlumni?.alias != null)
-                  TextSpan(
-                    text: artwork.series?.artistAlumni?.alias ?? '',
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColor.primaryBlack,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        injector<NavigationService>().openFeralFileArtistPage(
-                          artwork.series?.artistAlumniAccountID ?? '',
-                        );
-                      },
-                  ),
-                if (artwork.series?.artistAlumni?.alias != null)
-                  TextSpan(
-                    text: ', ',
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                TextSpan(
-                  text: artwork.series?.title ?? '',
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-              ],
+      thumbnailBuilder: (context) {
+        if (assetToken != null) {
+          return AspectRatio(
+            aspectRatio: 1,
+            child: tokenGalleryThumbnailWidget(
+              context,
+              CompactedAssetToken.fromAssetToken(assetToken),
+              65,
+              useHero: false,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           );
         }
+        return AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            color: AppColor.auLightGrey,
+          ),
+        );
+      },
+      titleBuilder: (context) {
+        final title = assetToken?.title ?? '';
         return Text(
-          exhibition?.title ?? '',
+          title,
           style: theme.textTheme.ppMori400Black14,
           overflow: TextOverflow.ellipsis,
         );
       },
+      customAction: [
+        if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+            (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                    .settings
+                    .name ==
+                AppRouter.homePage)
+          GestureDetector(
+            child: SvgPicture.asset('assets/images/run.svg'),
+            onTap: () {
+              chatModeNotifier.value = !chatModeNotifier.value;
+              // injector<RecordBloc>().add(
+              //   ResetPlaylistEvent(),
+              // );
+            },
+          ),
+      ],
     );
   }
 }
@@ -489,31 +376,35 @@ class NowDisplayingView extends StatelessWidget {
     required this.thumbnailBuilder,
     required this.titleBuilder,
     this.onMoreTap,
+    this.device,
     super.key,
+    this.customAction = const [],
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final BaseDevice? device;
   final void Function()? onMoreTap;
+  final List<Widget> customAction;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       constraints: const BoxConstraints(
         maxHeight: kNowDisplayingHeight,
         minHeight: kNowDisplayingHeight,
       ),
       decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 65),
+            constraints: const BoxConstraints(maxWidth: 65, minWidth: 65),
             child: thumbnailBuilder(context),
           ),
           const SizedBox(width: 10),
@@ -523,19 +414,28 @@ class NowDisplayingView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Now Displaying:',
+                  'Now Displaying: ${device?.name ?? ''}',
                   style: theme.textTheme.ppMori400Black14,
                   overflow: TextOverflow.ellipsis,
                 ),
-                titleBuilder(context),
+                Expanded(child: titleBuilder(context)),
               ],
             ),
           ),
+          const SizedBox(width: 10),
+          ...customAction
+              .map(
+                (action) => [
+                  const SizedBox(width: 10),
+                  action,
+                ],
+              )
+              .flattened,
           if (onMoreTap != null)
             IconButton(
               onPressed: onMoreTap,
               icon: SvgPicture.asset(
-                'assets/images/more_circle.svg',
+                'assets/images/icon_drawer.svg',
                 width: 22,
                 colorFilter: const ColorFilter.mode(
                   AppColor.primaryBlack,

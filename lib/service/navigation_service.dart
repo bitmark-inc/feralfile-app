@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/shared.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -159,6 +160,16 @@ class NavigationService {
     }
   }
 
+  Future<void> openMicrophoneSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.applicationDetails();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
   Future<void> showAppLoadError() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -225,7 +236,7 @@ class NavigationService {
     navigatorKey.currentState?.popUntil(
       (route) =>
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
     );
   }
 
@@ -240,7 +251,7 @@ class NavigationService {
       (route) =>
           route.settings.name == AppRouter.settingsPage ||
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
     );
   }
 
@@ -274,15 +285,16 @@ class NavigationService {
     BluetoothDevice device,
     Object? error,
   ) async {
-    // if (navigatorKey.currentContext != null &&
-    //     navigatorKey.currentState?.mounted == true) {
-    //   await UIHelper.showInfoDialog(
-    //     context,
-    //     'Can not connect to ${device.advName}',
-    //     'Error: ${error}',
-    //     onClose: () => UIHelper.hideInfoDialog(context),
-    //   );
-    // }
+    hideInfoDialog();
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+        context,
+        'Can not connect to ${device.getName}',
+        'Error: ${error}',
+        onClose: () => UIHelper.hideInfoDialog(context),
+      );
+    }
   }
 
   Future<void> showUnknownLink() async {
@@ -469,30 +481,30 @@ class NavigationService {
 
     switch (pair.first) {
       case AppRouter.dailyWorkPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.daily;
       case AppRouter.featuredPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.featured;
       case AppRouter.artworksPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.artworks;
       case AppRouter.exhibitionsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.exhibitions;
       case AppRouter.artistsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.artists;
       case AppRouter.curatorsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.curators;
       case AppRouter.organizePage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.collection;
       default:
         route = pair.first;
@@ -946,7 +958,7 @@ class NavigationService {
   }
 
   Future<void> showDeviceSettings({
-    required String tokenId,
+    String? tokenId,
     String? artistName,
   }) async {
     if (navigatorKey.currentState != null &&
@@ -956,8 +968,9 @@ class NavigationService {
         Navigator.pop(navigatorKey.currentContext!);
       }
 
-      final tokenConfiguration =
-          await injector<IndexerService>().getTokenConfiguration(tokenId);
+      final tokenConfiguration = tokenId != null
+          ? await injector<NftIndexerService>().getTokenConfiguration(tokenId)
+          : null;
 
       unawaited(
         UIHelper.showRawDialog(
@@ -965,6 +978,7 @@ class NavigationService {
           NowDisplaySettingView(
             tokenConfiguration: tokenConfiguration,
             artistName: artistName,
+            tokenId: tokenId,
           ),
           title: 'device_settings'.tr(),
           name: UIHelper.artDisplaySettingModal,
@@ -1029,5 +1043,30 @@ class NavigationService {
       ),
     );
     return (res is bool) ? res : false;
+  }
+
+  Future<void> showThePortalIsSet(
+      BluetoothDevice device, Function? onTap) async {
+    return UIHelper.showDialog(
+      context,
+      'The Portal is All Set',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            onTap: () {
+              injector<NavigationService>().goBack();
+              onTap?.call();
+            },
+            text: 'Go to Settings',
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -1,10 +1,10 @@
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class FailedToConnectToWifiException implements Exception {
   FailedToConnectToWifiException(this.ssid, this.device);
 
   final String ssid;
-  final BaseDevice device;
+  final BluetoothDevice device;
 
   @override
   String toString() {

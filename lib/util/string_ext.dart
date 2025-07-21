@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:path/path.dart' as p;
 
 extension StringExtension on String {
   String capitalize() =>
@@ -162,6 +163,13 @@ extension StringExtension on String {
   }
 }
 
+extension UrlExtension on String {
+  bool isSvgImage() {
+    final ext = p.extension(this).toLowerCase();
+    return ext == '.svg';
+  }
+}
+
 extension SearchKeyExtension on String? {
   String get firstSearchCharacter {
     if (this == null || this!.isEmpty) {
@@ -228,3 +236,23 @@ final List<String> listCharacters = [
   'Z',
   '#'
 ];
+
+extension JsonChunkExtractor on String {
+  /// Trả về danh sách các JSON hoàn chỉnh và phần còn lại (chưa đủ JSON)
+  /// Ví dụ:
+  /// final (jsons, remain) = buffer.extractFullJsonChunks();
+  (List<String>, String) extractFullJsonChunks() {
+    List<String> jsons = [];
+    int openBraces = 0;
+    int startIndex = 0;
+    for (int i = 0; i < length; i++) {
+      if (this[i] == '{') openBraces++;
+      if (this[i] == '}') openBraces--;
+      if (openBraces == 0 && startIndex < i) {
+        jsons.add(substring(startIndex, i + 1));
+        startIndex = i + 1;
+      }
+    }
+    return (jsons, substring(startIndex));
+  }
+}

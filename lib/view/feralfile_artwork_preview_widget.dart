@@ -58,6 +58,16 @@ class _FeralfileArtworkPreviewWidgetState
   }
 
   @override
+  void didUpdateWidget(covariant FeralfileArtworkPreviewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.payload.artwork.id != widget.payload.artwork.id) {
+      context.read<FFArtworkPreviewBloc>().add(
+            FFArtworkPreviewConfigByArtwork(widget.payload.artwork),
+          );
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
     super.didChangeDependencies();
@@ -134,10 +144,13 @@ class _FeralfileArtworkPreviewWidgetState
                   ),
                 );
               default:
+                final overriddenHtml =
+                    state.overriddenHtml[widget.payload.artwork.id];
                 return Center(
                   child: WebviewNFTRenderingWidget(
                     previewURL: previewUrl,
                     isMute: widget.payload.isMute,
+                    overriddenHtml: overriddenHtml,
                   ),
                 );
             }

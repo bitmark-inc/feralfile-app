@@ -2,9 +2,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:bloc/bloc.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/nft_collection/models/address_collection.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -15,6 +12,9 @@ import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/nft_collection/utils/constants.dart';
 import 'package:autonomy_flutter/nft_collection/utils/list_extentions.dart';
 import 'package:autonomy_flutter/nft_collection/utils/sorted_list.dart';
+import 'package:bloc/bloc.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 class NftCollectionBlocState {
   final NftLoadingState state;
@@ -48,12 +48,12 @@ class NftCollectionBlocState {
 
 class NftCollectionBloc
     extends Bloc<NftCollectionBlocEvent, NftCollectionBlocState> {
-  final TokensService tokensService;
+  final NftTokensService tokensService;
   final NftCollectionDatabase database;
   final Duration pendingTokenExpire;
   final NftCollectionPrefs prefs;
   final bool isSortedToken;
-  final AddressService addressService;
+  final NftAddressService addressService;
 
   List<String> _debugTokenIds = [];
 

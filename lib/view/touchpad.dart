@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -20,23 +19,11 @@ class TouchPad extends StatefulWidget {
   State<TouchPad> createState() => _TouchPadState();
 }
 
-class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
+class _TouchPadState extends State<TouchPad> {
   final _canvasClient = injector<CanvasClientServiceV2>();
   final _touchPadKey = GlobalKey();
-  Size? _touchpadSize;
 
-  Size? _getSize() {
-    final size = MediaQuery.of(context).size;
-    setState(() {
-      _touchpadSize = size;
-    });
-    return size;
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    _getSize();
-  }
+  Offset? _lastPosition;
 
   @override
   Widget build(BuildContext context) {
@@ -53,12 +40,14 @@ class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
               await _canvasClient.tap(widget.devices);
             },
             onPanStart: (panDetails) {
-              _getSize();
+              log.info('[Touchpad] onPanStart: ${panDetails.localPosition}');
+              _lastPosition = panDetails.localPosition;
             },
             onPanUpdate: (panDetails) {
-              Offset delta = panDetails.delta;
-              unawaited(
-                  _canvasClient.drag(widget.devices, delta, _touchpadSize!));
+              Offset delta = panDetails.localPosition -
+                  (_lastPosition ?? panDetails.localPosition);
+              _lastPosition = panDetails.localPosition;
+              unawaited(_canvasClient.drag(widget.devices, delta));
             },
           ),
           Positioned(

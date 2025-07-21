@@ -23,7 +23,7 @@ class ViewCollection extends AdditionalData {
     log.info('ViewCollection: handle tap');
     Navigator.of(context).popUntil((route) =>
         route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition);
+        route.settings.name == AppRouter.homePage);
     Future.delayed(const Duration(milliseconds: 300), () {
       injector<NavigationService>().popToCollection();
     });

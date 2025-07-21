@@ -13,7 +13,9 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/playlist_item_card.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -55,7 +57,7 @@ void nameContinue(BuildContext context) {
   Navigator.of(context).popUntil(
     (route) =>
         route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition ||
+        route.settings.name == AppRouter.homePage ||
         route.settings.name == AppRouter.walletPage,
   );
 }
@@ -69,7 +71,7 @@ class UIHelper {
   static const String artistArtworkDisplaySettingModal =
       'artistArtworkDisplaySettingModal';
 
-  static Future<dynamic> showDialog(
+  static Future<T?> showDialog<T>(
     BuildContext context,
     String title,
     Widget content, {
@@ -99,7 +101,7 @@ class UIHelper {
       Vibrate.feedback(feedback);
     }
 
-    return showModalBottomSheet<dynamic>(
+    return showModalBottomSheet<T>(
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,
@@ -569,7 +571,7 @@ class UIHelper {
     return res as T?;
   }
 
-  static Future<void> showFlexibleDialog(
+  static Future<dynamic> showFlexibleDialog(
     BuildContext context,
     Widget content, {
     bool isDismissible = false,
@@ -1684,6 +1686,27 @@ class UIHelper {
       ),
     );
     return jwt as JWT?;
+  }
+
+  static SliverGrid assetTokenSliverGrid(
+      BuildContext context, List<AssetToken> assetTokens, String title) {
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 188 / 307,
+        crossAxisSpacing: 17,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final asset = assetTokens[index];
+          return PlaylistItemCard(
+            asset: asset,
+            playlistTitle: title,
+          );
+        },
+        childCount: assetTokens.length,
+      ),
+    );
   }
 }
 
