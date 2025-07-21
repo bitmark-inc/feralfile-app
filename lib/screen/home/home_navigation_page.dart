@@ -27,13 +27,11 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
-import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -242,7 +240,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(UIHelper.showLiveWithArtIntro(context));
       }
     });
-    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getChatThreads());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
@@ -559,22 +556,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
-    final locale = Localizations.localeOf(context);
-    unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await injector<CloudManager>().downloadAll(includePlaylists: true);
     unawaited(injector<VersionService>().checkForUpdate());
-    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs(forceRefresh: true);
-
-    final device = injector<FFBluetoothService>().castingBluetoothDevice;
-    if (device != null) {
-      unawaited(injector<FFBluetoothService>().connectToDevice(device));
-      if (device.isConnected) {
-        unawaited(NowDisplayingManager().updateDisplayingNow());
-      }
-    }
+    unawaited(NowDisplayingManager().updateDisplayingNow());
 
     unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     _triggerShowAnnouncement();

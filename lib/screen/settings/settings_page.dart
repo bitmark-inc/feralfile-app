@@ -15,10 +15,10 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -141,14 +141,13 @@ class _SettingsPageState extends State<SettingsPage>
               Column(
                 children: [
                   if (injector<AuthService>().isBetaTester() &&
-                      injector<FFBluetoothService>().castingBluetoothDevice !=
-                          null)
+                      BluetoothDeviceManager().castingBluetoothDevice != null)
                     _settingItem(
                       title: 'Portal (FF-X1) Alpha Pilot',
                       icon: const Icon(AuIcon.add),
                       onTap: () async {
-                        final connectedDevice = injector<FFBluetoothService>()
-                            .castingBluetoothDevice;
+                        final connectedDevice =
+                            BluetoothDeviceManager().castingBluetoothDevice;
                         await Navigator.of(context).pushNamed(
                           AppRouter.bluetoothConnectedDeviceConfig,
                           arguments: BluetoothConnectedDeviceConfigPayload(

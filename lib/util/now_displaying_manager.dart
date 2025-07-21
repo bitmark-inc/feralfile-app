@@ -3,16 +3,17 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 
@@ -38,16 +39,15 @@ class NowDisplayingManager {
     nowDisplayingStatus = status;
     _streamController.add(status);
     _onDisconnectTimer?.cancel();
-    if (status is ConnectFailed) {
+    if (status is DeviceDisconnected) {
       _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
         shouldShowNowDisplayingOnDisconnect.value = false;
       });
-    } else if (status is ConnectionLostAndReconnecting) {
+    } else if (status is ConnectionLost) {
       _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
         shouldShowNowDisplayingOnDisconnect.value = false;
-        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       });
-    } else if (status is NowDisplayingSuccess || status is ConnectSuccess) {
+    } else if (status is NowDisplayingSuccess) {
       shouldShowNowDisplayingOnDisconnect.value = true;
     }
     nowDisplayingVisibility.value = true;
@@ -57,30 +57,26 @@ class NowDisplayingManager {
   Future<void> updateDisplayingNow({bool addStatusOnError = true}) async {
     try {
       log.info('NowDisplayingManager: updateDisplayingNow');
-      final device = injector<FFBluetoothService>().castingBluetoothDevice;
+      final device = BluetoothDeviceManager().castingBluetoothDevice;
       if (device == null) {
         return;
       }
 
-      CheckDeviceStatusReply? status;
+      if (!device.isAlive) {
+        addStatus(DeviceDisconnected(device));
+        return;
+      }
+
+      CheckCastingStatusReply? status;
       try {
-        status = await _getStatus(device);
+        status = injector<CanvasDeviceBloc>().state.statusOf(device);
       } catch (e) {
         log.info(
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
         );
-        await Future.delayed(const Duration(seconds: 5));
-        if (device.isConnected) {
-          status = await _getStatus(device);
-        }
       }
       if (status == null) {
-        if (device.isConnected) {
-          throw Exception('Failed to get Now Displaying');
-        } else {
-          log.info('[NowDisplayingManager] Device is not connected');
-          return;
-        }
+        throw Exception('Failed to get Now Displaying');
       }
       final nowDisplaying = await getNowDisplayingObject(status);
       if (nowDisplaying == null) {
@@ -97,7 +93,7 @@ class NowDisplayingManager {
   }
 
   Future<NowDisplayingObject?> getNowDisplayingObject(
-    CheckDeviceStatusReply status,
+    CheckCastingStatusReply status,
   ) async {
     if (status.exhibitionId != null) {
       final exhibitionId = status.exhibitionId!;
@@ -105,12 +101,15 @@ class NowDisplayingManager {
         exhibitionId,
       );
       final catalogId = status.catalogId;
-      final catalog = catalogId != null ? ExhibitionCatalog.artwork : null;
+      final catalog = status
+          .catalog; // catalogId != null ? ExhibitionCatalog.artwork : null;
       Artwork? artwork;
       if (catalog == ExhibitionCatalog.artwork) {
-        artwork = await injector<FeralFileService>().getArtwork(
-          catalogId!,
-        );
+        artwork = exhibition.isSourceExhibition
+            ? await injector<FeralFileService>().getSourceArtwork(catalogId!)
+            : await injector<FeralFileService>().getArtwork(
+                catalogId!,
+              );
       }
       final exhibitionDisplaying = ExhibitionDisplaying(
         exhibition: exhibition,
@@ -144,27 +143,5 @@ class NowDisplayingManager {
     final request = QueryListTokensRequest(ids: [tokenId]);
     final assetToken = await injector<IndexerService>().getNftTokens(request);
     return assetToken.isNotEmpty ? assetToken.first : null;
-  }
-
-  Future<CheckDeviceStatusReply?> _getStatus(FFBluetoothDevice device) async {
-    final completer = Completer<CheckDeviceStatusReply?>();
-    injector<CanvasDeviceBloc>().add(
-      CanvasDeviceGetStatusEvent(
-        device,
-        onDoneCallback: (status) {
-          completer.complete(status);
-        },
-        onErrorCallback: (e) {
-          completer.completeError(e);
-        },
-      ),
-    );
-    final res = await completer.future.timeout(
-      const Duration(seconds: 5),
-      onTimeout: () {
-        throw TimeoutException('Timeout getting Now Displaying');
-      },
-    );
-    return res;
   }
 }

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -49,6 +50,10 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
   void initState() {
     super.initState();
     _webViewController = getWebViewController();
+    _webViewController.load(
+      widget.uri,
+      widget.overriddenHtml,
+    );
   }
 
   @override
@@ -67,8 +72,12 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
   @override
   void didUpdateWidget(covariant FeralFileWebview oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.uri != widget.uri) {
-      _webViewController = getWebViewController();
+    if (oldWidget.uri != widget.uri ||
+        oldWidget.overriddenHtml != widget.overriddenHtml) {
+      _webViewController.load(
+        widget.uri,
+        widget.overriddenHtml,
+      );
     }
   }
 
@@ -108,6 +117,10 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
             if (widget.isMute) {
               await webViewController.mute();
             }
+            final html = await webViewController.runJavaScriptReturningResult(
+              'document.documentElement.outerHTML',
+            );
+            log.info('Page finished loading: $url');
           },
           onWebResourceError: (error) {
             log.info('Error: ${error.description}');
@@ -118,10 +131,9 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
             widget.onHttpError?.call(webViewController, error);
           },
         ),
-      )
-      ..loadRequest(widget.uri);
+      );
     if (webViewController.platform is AndroidWebViewController) {
-      AndroidWebViewController.enableDebugging(false);
+      AndroidWebViewController.enableDebugging(kDebugMode);
       unawaited((webViewController.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false));
     }

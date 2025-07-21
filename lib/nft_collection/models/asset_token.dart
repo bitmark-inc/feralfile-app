@@ -226,7 +226,9 @@ class AssetToken {
 
   String? get mimeType => asset?.mimeType;
 
-  String? get medium => asset?.medium;
+  String? get medium => asset?.mimeType != null && asset!.mimeType!.isNotEmpty
+      ? mediumFromMimeType(asset!.mimeType!)
+      : asset?.medium;
 
   int? get maxEdition => asset?.maxEdition;
 
@@ -403,7 +405,7 @@ class ProjectMetadata {
         latest.title,
         latest.description,
         latest.mimeType,
-        mediumFromMimeType(latest.mimeType),
+        latest.medium,
         latest.maxEdition,
         latest.source,
         latest.sourceUrl,

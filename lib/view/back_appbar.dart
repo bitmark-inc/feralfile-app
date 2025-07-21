@@ -74,7 +74,7 @@ AppBar getBackAppBar(BuildContext context, {
               ),
         )
       else
-        const SizedBox(width: 44),
+        const SizedBox(width: 16),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
     surfaceTintColor: surfaceTintColor ?? Colors.transparent,

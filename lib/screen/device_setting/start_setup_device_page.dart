@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -19,12 +20,23 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class BluetoothDevicePortalPage extends StatefulWidget {
-  const BluetoothDevicePortalPage({required this.device, super.key});
+class BluetoothDevicePortalPagePayload {
+  BluetoothDevicePortalPagePayload({
+    required this.device,
+    this.canSkipNetworkSetup = true,
+  });
 
-  final FFBluetoothDevice device;
+  final BluetoothDevice device;
+  final bool canSkipNetworkSetup;
+}
+
+class BluetoothDevicePortalPage extends StatefulWidget {
+  const BluetoothDevicePortalPage({required this.payload, super.key});
+
+  final BluetoothDevicePortalPagePayload payload;
 
   @override
   State<BluetoothDevicePortalPage> createState() =>
@@ -111,47 +123,108 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                 right: 0,
                 child: PrimaryAsyncButton(
                   onTap: () async {
-                    final device = widget.device;
-
-                    await injector<FFBluetoothService>()
-                        .connectToDevice(device);
-
-                    final deviceStatus = await injector<CanvasClientServiceV2>()
-                        .getBluetoothDeviceStatus(device);
-
-                    if (deviceStatus.isConnectedToWifi) {
-                      unawaited(UIHelper.showDialog(
-                        context,
-                        'The Portal is All Set',
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Your device is already set up and connected. You can head to settings to make changes or check the status.',
-                              style:
-                                  Theme.of(context).textTheme.ppMori400White14,
+                    try {
+                      final device = widget.payload.device;
+                      await injector<FFBluetoothService>()
+                          .connectToDevice(device);
+                      final canSkipNetworkSetup =
+                          widget.payload.canSkipNetworkSetup;
+                      if (canSkipNetworkSetup) {
+                        await UIHelper.showDialog(
+                            context,
+                            'Internet Already Connected',
+                            Column(
+                              children: [
+                                Text(
+                                  'We’ve detected that your device is already connected to the internet.\nWould you like to skip the network setup or continue anyway?',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .ppMori400White14,
+                                ),
+                                const SizedBox(height: 36),
+                                PrimaryAsyncButton(
+                                  text: 'Continue Setup',
+                                  color: Colors.transparent,
+                                  borderColor: AppColor.white,
+                                  textColor: AppColor.white,
+                                  onTap: () {
+                                    injector<NavigationService>().goBack();
+                                    unawaited(
+                                      Navigator.of(context).pushNamed(
+                                        AppRouter.scanWifiNetworkPage,
+                                        arguments: ScanWifiNetworkPagePayload(
+                                          device,
+                                          onWifiSelected,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                PrimaryAsyncButton(
+                                  color: Colors.transparent,
+                                  borderColor: AppColor.white,
+                                  textColor: AppColor.white,
+                                  text: 'Skip Setup',
+                                  processingText: 'Skipping...',
+                                  onTap: () async {
+                                    Pair<FFBluetoothDevice, bool>? res;
+                                    try {
+                                      final topicId =
+                                          await injector<FFBluetoothService>()
+                                              .keepWifi(
+                                        device,
+                                      );
+                                      // add device to canvas
+                                      final ffdevice =
+                                          device.toFFBluetoothDevice(
+                                        topicId: topicId,
+                                        deviceId: device.advName,
+                                      );
+                                      res = Pair<FFBluetoothDevice, bool>(
+                                        ffdevice,
+                                        false,
+                                      );
+                                    } on FFBluetoothError catch (e) {
+                                      if (e is DeviceUpdatingError ||
+                                          e is DeviceVersionCheckFailedError) {
+                                        injector<NavigationService>().goBack();
+                                      }
+                                      final context =
+                                          injector<NavigationService>().context;
+                                      await (UIHelper.showInfoDialog(
+                                          context, e.title, e.message));
+                                    } on Exception catch (e) {
+                                      await UIHelper.showInfoDialog(
+                                        context,
+                                        'Error',
+                                        'Failed to skip internet setup: $e',
+                                      );
+                                    } finally {
+                                      injector<NavigationService>().popUntil(
+                                        AppRouter.bluetoothDevicePortalPage,
+                                      );
+                                      injector<NavigationService>()
+                                          .goBack(result: res);
+                                    }
+                                  },
+                                ),
+                              ],
+                            ));
+                      } else {
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            AppRouter.scanWifiNetworkPage,
+                            arguments: ScanWifiNetworkPagePayload(
+                              device,
+                              onWifiSelected,
                             ),
-                            const SizedBox(height: 16),
-                            PrimaryButton(
-                              onTap: () {
-                                injector<NavigationService>().popUntil(
-                                    AppRouter.bluetoothDevicePortalPage);
-                                injector<NavigationService>()
-                                    .goBack(result: false);
-                              },
-                              text: 'Go to Settings',
-                            ),
-                          ],
-                        ),
-                      ));
-                    } else
-                      unawaited(Navigator.of(context).pushNamed(
-                        AppRouter.scanWifiNetworkPage,
-                        arguments: ScanWifiNetworkPagePayload(
-                          widget.device.toFFBluetoothDevice(),
-                          onWifiSelected,
-                        ),
-                      ));
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      log.info('Error connecting to device: $e');
+                    }
                   },
                   color: AppColor.white,
                   text: 'start_device_setup'.tr(),
@@ -168,11 +241,12 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
     log.info('onWifiSelected: $accessPoint');
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
-      device: widget.device,
-      onSubmitted: () {
+      device: widget.payload.device,
+      onSubmitted: (FFBluetoothDevice? device) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothDevicePortalPage);
-        injector<NavigationService>().goBack(result: true);
+        final result = device != null ? Pair(device, true) : null;
+        injector<NavigationService>().goBack(result: result);
       },
     );
     injector<NavigationService>()

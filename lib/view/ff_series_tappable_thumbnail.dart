@@ -38,25 +38,28 @@ class _FfSeriesInfoThumbnailState extends State<FfSeriesInfoThumbnail> {
             onTap: () async {
               await _gotoSeriesDetails(context, series);
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: FFCacheNetworkImage(
-                          imageUrl: series.thumbnailUrl ?? '',
-                          fit: BoxFit.fitWidth,
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: FFCacheNetworkImage(
+                            imageUrl: series.thumbnailUrl ?? '',
+                            fit: BoxFit.fitWidth,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                _seriesInfo(context, series),
-              ],
+                  const SizedBox(height: 8),
+                  _seriesInfo(context, series),
+                ],
+              ),
             ),
           );
   }
@@ -73,7 +76,7 @@ class _FfSeriesInfoThumbnailState extends State<FfSeriesInfoThumbnail> {
           unawaited(Navigator.of(context).pushNamed(
             AppRouter.ffArtworkPreviewPage,
             arguments: FeralFileArtworkPreviewPagePayload(
-              artwork: artwork.copyWith(series: series),
+              artworkId: artwork.id,
             ),
           ));
         }

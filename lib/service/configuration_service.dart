@@ -160,6 +160,10 @@ abstract class ConfigurationService {
   String? getPilotVersion();
 
   Future<void> setPilotVersion(String version);
+
+  String? getSelectedDeviceId();
+
+  Future<void> setSelectedDeviceId(String? deviceId);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -249,6 +253,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_BETA_TESTER = 'beta_tester';
 
   static const String PILOT_VERSION = 'pilot_version';
+
+  static const String KEY_SELECTED_DEVICE_ID = 'selected_device_id';
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -632,6 +638,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setPilotVersion(String version) {
     return _preferences.setString(PILOT_VERSION, version);
+  }
+
+  @override
+  String? getSelectedDeviceId() {
+    return _preferences.getString(KEY_SELECTED_DEVICE_ID);
+  }
+
+  @override
+  Future<void> setSelectedDeviceId(String? deviceId) {
+    if (deviceId == null) {
+      return _preferences.remove(KEY_SELECTED_DEVICE_ID);
+    }
+    return _preferences.setString(KEY_SELECTED_DEVICE_ID, deviceId);
   }
 }
 

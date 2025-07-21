@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:path/path.dart' as p;
 
 extension StringExtension on String {
   String capitalize() =>
@@ -159,6 +160,13 @@ extension StringExtension on String {
       hexString = hexString.substring(2);
     }
     return RegExp(r'^[0-9a-fA-F]+$').hasMatch(hexString);
+  }
+}
+
+extension UrlExtension on String {
+  bool isSvgImage() {
+    final ext = p.extension(this).toLowerCase();
+    return ext == '.svg';
   }
 }
 

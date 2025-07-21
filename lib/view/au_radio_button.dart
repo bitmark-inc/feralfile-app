@@ -9,11 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AuRadio<T> extends StatelessWidget {
-  final Function(T value) onTap;
-  final T value;
-  final T groupValue;
-  final Color? color;
-
   const AuRadio({
     required this.onTap,
     required this.value,
@@ -21,6 +16,11 @@ class AuRadio<T> extends StatelessWidget {
     super.key,
     this.color,
   });
+
+  final Function(T value) onTap;
+  final T value;
+  final T groupValue;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) => GestureDetector(

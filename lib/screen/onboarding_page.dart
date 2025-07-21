@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -218,6 +219,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (!mounted) {
       return;
     }
+    CanvasNotificationManager().start();
     await _goToTargetScreen(context);
   }
 

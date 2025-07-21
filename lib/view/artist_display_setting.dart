@@ -621,25 +621,26 @@ class _ColorSettingWidgetState extends State<ColorSettingWidget> {
             Expanded(
               child: GestureDetector(
                 onTap: () async {
+                  final currentColor = _selectedColor;
                   final color = await UIHelper.showCustomDialog<Color>(
                     context: context,
                     child: ColorPickerView(
                       initialColor: _selectedColor,
                       onColorChanged: (color) {
-                        widget.onColorChanged(color, false);
+                        widget.onColorChanged(color, true);
                       },
                     ),
                   );
-                  if (color != null) {
+                  final newColor = color ?? currentColor;
+                  if (newColor != _selectedColor) {
                     setState(() {
-                      _selectedColor = color;
-                      _controller.text = color.toHex();
+                      _selectedColor = newColor;
+                      _controller.text = newColor.toHex();
                     });
-                    widget.onColorChanged(color, true);
-                  } else {
-                    widget.onColorChanged(_selectedColor, true);
+                    widget.onColorChanged(newColor, true);
                   }
-                  log.info('Color: $color');
+
+                  log.info('Color: $newColor');
                 },
                 child: AspectRatio(
                   aspectRatio: 168.5 / 42,
