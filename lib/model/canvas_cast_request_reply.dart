@@ -171,6 +171,12 @@ enum ReplyError {
         ReplyError.overheating => 'overheating',
         ReplyError.unknown => 'unknown',
       };
+
+  String get message => switch (this) {
+        ReplyError.overheating => '''
+Device temperature is too high. Playback paused to prevent damage.''',
+        ReplyError.unknown => 'Unknown error',
+      };
 }
 
 class Reply {
@@ -411,6 +417,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
     this.catalog,
     this.displayKey,
     this.deviceSettings,
+    super.error,
   }) : isPaused = isPaused ?? false;
 
   factory CheckCastingStatusReply.fromJson(Map<String, dynamic> json) =>
@@ -440,6 +447,9 @@ class CheckCastingStatusReply extends ReplyWithOK {
             ? DeviceDisplaySetting.fromJson(
                 json['deviceSettings'] as Map<String, dynamic>,
               )
+            : null,
+        error: json['error'] != null
+            ? ReplyError.fromString(json['error'] as String)
             : null,
       );
 
@@ -472,6 +482,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
         'catalog': catalog?.index,
         'displayKey': displayKey,
         'deviceSettings': deviceSettings?.toJson(),
+        'error': super.error?.jsonString,
       };
 
   // copyWith method
@@ -486,6 +497,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
     ExhibitionCatalog? catalog,
     String? displayKey,
     DeviceDisplaySetting? deviceSettings,
+    ReplyError? error,
   }) {
     return CheckCastingStatusReply(
       ok: super.ok,
@@ -498,6 +510,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
       catalog: catalog ?? this.catalog,
       displayKey: displayKey ?? this.displayKey,
       deviceSettings: deviceSettings ?? this.deviceSettings,
+      error: error ?? super.error,
     );
   }
 }

@@ -124,6 +124,7 @@ abstract class BaseTvCastService implements TvCastService {
     }
     if (state['command'] == null) {
       return CheckCastingStatusReply(
+        ok: true,
         artworks: [],
         connectedDevice: connectedDevice,
       );
@@ -136,11 +137,13 @@ abstract class BaseTvCastService implements TvCastService {
       case CastCommand.castListArtwork:
         final request = CastListArtworkRequest.fromJson(commandJson);
         return CheckCastingStatusReply(
+          ok: true,
           artworks: request.artworks,
           connectedDevice: connectedDevice,
         );
       case CastCommand.castDaily:
         return CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           connectedDevice: connectedDevice,
           displayKey: CastDailyWorkRequest.displayKey,
@@ -148,6 +151,7 @@ abstract class BaseTvCastService implements TvCastService {
       case CastCommand.castExhibition:
         final request = CastExhibitionRequest.fromJson(commandJson);
         return CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           connectedDevice: connectedDevice,
           exhibitionId: request.exhibitionId,
@@ -156,6 +160,7 @@ abstract class BaseTvCastService implements TvCastService {
         );
       default:
         return CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           connectedDevice: connectedDevice,
         );

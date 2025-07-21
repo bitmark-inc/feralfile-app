@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+
 class SystemException implements Exception {
   final String reason;
 
@@ -18,3 +20,8 @@ class LinkingFailedException implements Exception {}
 class InvalidDeeplink implements Exception {}
 
 class FailedFetchBackupVersion implements Exception {}
+
+class CheckCastingStatusException implements Exception {
+  CheckCastingStatusException(this.error);
+  final ReplyError error;
+}
