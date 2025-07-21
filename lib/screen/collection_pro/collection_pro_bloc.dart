@@ -1,14 +1,14 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/medium_category_ext.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/predefined_collection_dao.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_collection/utils/medium_category.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/medium_category_ext.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CollectionProBloc
     extends Bloc<CollectionProEvent, CollectionLoadedState> {
@@ -20,7 +20,7 @@ class CollectionProBloc
     on<LoadCollectionEvent>((event, emit) async {
       final hiddenTokenIDs = _configurationService.getHiddenTokenIDs();
       final hiddenAddresses =
-          await injector<AddressService>().getHiddenAddresses();
+          await injector<NftAddressService>().getHiddenAddresses();
       final hiddenTokens =
           await _assetTokenDao.findAllAssetTokensByTokenIDs(hiddenTokenIDs);
       hiddenTokens.removeWhere((element) =>

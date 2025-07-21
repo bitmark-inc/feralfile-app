@@ -18,8 +18,7 @@ import 'package:autonomy_flutter/nft_collection/models/asset.dart';
 import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_collection/models/token.dart';
 import 'package:autonomy_flutter/nft_collection/utils/date_time_converter.dart';
-import 'package:floor/floor.dart';
-// ignore: depend_on_referenced_packages
+import 'package:floor/floor.dart'; // ignore: depend_on_referenced_packages
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'nft_collection_database.g.dart'; // the generated code will be there
@@ -33,10 +32,11 @@ part 'nft_collection_database.g.dart'; // the generated code will be there
 abstract class NftCollectionDatabase extends FloorDatabase {
   TokenDao get tokenDao;
 
-  AssetTokenDao get assetTokenDao => AssetTokenDao(database, changeListener);
+  AssetTokenDao get assetTokenDao =>
+      DatabaseAssetTokenDao(database, changeListener);
 
   PredefinedCollectionDao get predefinedCollectionDao =>
-      PredefinedCollectionDao(database, changeListener);
+      PredefinedCollectionDaoImpl(database, changeListener);
 
   AssetDao get assetDao;
 

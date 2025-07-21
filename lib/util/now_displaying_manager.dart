@@ -129,7 +129,8 @@ class NowDisplayingManager {
 
   Future<AssetToken?> _fetchAssetToken(String tokenId) async {
     final request = QueryListTokensRequest(ids: [tokenId]);
-    final assetToken = await injector<IndexerService>().getNftTokens(request);
+    final assetToken =
+        await injector<NftIndexerService>().getNftTokens(request);
     return assetToken.isNotEmpty ? assetToken.first : null;
   }
 }

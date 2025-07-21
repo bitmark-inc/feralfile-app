@@ -24,7 +24,7 @@ class AddressService {
   AddressService(this._cloudObject, this._nftCollectionAddressService);
 
   final CloudManager _cloudObject;
-  final nft.AddressService _nftCollectionAddressService;
+  final nft.NftAddressService _nftCollectionAddressService;
 
   Future<bool> registerReferralCode({required String referralCode}) async {
     try {

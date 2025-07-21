@@ -969,7 +969,7 @@ class NavigationService {
       }
 
       final tokenConfiguration = tokenId != null
-          ? await injector<IndexerService>().getTokenConfiguration(tokenId)
+          ? await injector<NftIndexerService>().getTokenConfiguration(tokenId)
           : null;
 
       unawaited(

@@ -136,8 +136,8 @@ Future<void> setupHomeWidgetInjector() async {
     ),
   );
   final indexerClient = IndexerClient(Environment.indexerURL);
-  injector.registerLazySingleton<IndexerService>(
-    () => IndexerService(indexerClient, injector()),
+  injector.registerLazySingleton<NftIndexerService>(
+    () => NftIndexerService(indexerClient, injector()),
   );
   injector.registerLazySingleton<RemoteConfigService>(
     () => RemoteConfigServiceImpl(
@@ -170,8 +170,8 @@ Future<void> setupInjector() async {
     apiLogger: apiLog,
     dio: dio,
   );
-  injector
-      .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
+  injector.registerLazySingleton<NftTokensService>(
+      () => NftCollection.tokenService);
   injector.registerLazySingleton(() => NftCollection.prefs);
   injector.registerLazySingleton(() => NftCollection.database);
   injector.registerLazySingleton(() => NftCollection.addressService);
@@ -315,8 +315,8 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<CurrencyService>(
     () => CurrencyServiceImpl(injector()),
   );
-  injector.registerLazySingleton(
-    () => VersionService(injector(), injector(), injector()),
+  injector.registerLazySingleton<VersionService>(
+    () => VersionServiceImpl(injector(), injector(), injector()),
   );
   injector.registerLazySingleton<CustomerSupportService>(
     () => CustomerSupportServiceImpl(
@@ -346,7 +346,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<ClientTokenService>(
-    () => ClientTokenService(
+    () => ClientTokenServiceImpl(
       injector(),
       injector(),
     ),
@@ -363,8 +363,8 @@ Future<void> setupInjector() async {
   );
 
   final indexerClient = IndexerClient(Environment.indexerURL);
-  injector.registerLazySingleton<IndexerService>(
-    () => IndexerService(indexerClient, injector()),
+  injector.registerLazySingleton<NftIndexerService>(
+    () => NftIndexerService(indexerClient, injector()),
   );
 
   injector

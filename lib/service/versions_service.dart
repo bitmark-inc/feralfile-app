@@ -24,12 +24,20 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class VersionService {
+abstract class VersionService {
+  Future<void> checkForUpdate();
+
+  Future<void> showReleaseNotes({String? currentVersion});
+
+  Future<void> openLatestVersion();
+}
+
+class VersionServiceImpl implements VersionService {
   final PubdocAPI _pubdocAPI;
   final ConfigurationService _configurationService;
   final NavigationService _navigationService;
 
-  VersionService(
+  VersionServiceImpl(
       this._pubdocAPI, this._configurationService, this._navigationService);
 
   Future checkForUpdate() async {

@@ -359,7 +359,7 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> hasLocalAddress() async {
     final owner = this.owner;
     final collectionAddresses =
-        await injector<AddressService>().getAllAddresses();
+        await injector<NftAddressService>().getAllAddresses();
     return collectionAddresses.any((element) => element.address == owner);
   }
 

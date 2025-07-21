@@ -38,7 +38,7 @@ class PlaylistDetailsBloc
       final pageIndexIds =
           pageItems.map((item) => item.indexId).whereType<String>().toList();
 
-      final assetTokens = await injector<TokensService>()
+      final assetTokens = await injector<NftTokensService>()
           .getManualTokens(indexerIds: pageIndexIds);
       if (assetTokens.length != pageItems.length) {
         final missingTokens = pageItems
@@ -99,7 +99,7 @@ class PlaylistDetailsBloc
       );
       final pageIndexIds =
           pageItems.map((item) => item.indexId).whereType<String>().toList();
-      final assetTokens = await injector<TokensService>().getManualTokens(
+      final assetTokens = await injector<NftTokensService>().getManualTokens(
         indexerIds: pageIndexIds,
       );
       emit(

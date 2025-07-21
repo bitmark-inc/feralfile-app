@@ -28,7 +28,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:uuid/uuid.dart';
 
-abstract class TokensService {
+abstract class NftTokensService {
   Future<void> fetchTokensForAddresses(List<String> addresses);
 
   Future<List<AssetToken>> fetchManualTokens(List<String> indexerIds);
@@ -51,8 +51,8 @@ abstract class TokensService {
 
 final _isolateScopeInjector = GetIt.asNewInstance();
 
-class TokensServiceImpl extends TokensService {
-  TokensServiceImpl(
+class NftTokensServiceImpl extends NftTokensService {
+  NftTokensServiceImpl(
     this._indexerUrl,
     this._database,
     this._configurationService,
@@ -62,15 +62,15 @@ class TokensServiceImpl extends TokensService {
     dio ??= Dio()..interceptors.add(LoggingInterceptor());
     _indexer = IndexerApi(dio, baseUrl: _indexerUrl);
     final indexerClient = IndexerClient(_indexerUrl);
-    _indexerService = IndexerService(indexerClient, _indexer);
+    _indexerService = NftIndexerService(indexerClient, _indexer);
   }
 
   final String _indexerUrl;
   late IndexerApi _indexer;
-  late IndexerService _indexerService;
+  late NftIndexerService _indexerService;
   final NftCollectionDatabase _database;
   final NftCollectionPrefs _configurationService;
-  final AddressService _addressService;
+  final NftAddressService _addressService;
 
   static const REFRESH_ALL_TOKENS = 'REFRESH_ALL_TOKENS';
   static const FETCH_TOKENS = 'FETCH_TOKENS';
@@ -323,8 +323,8 @@ class TokensServiceImpl extends TokensService {
     _isolateScopeInjector
       ..registerLazySingleton(() => indexerClient)
       ..registerLazySingleton(
-        () =>
-            IndexerService(indexerClient, _isolateScopeInjector<IndexerApi>()),
+        () => NftIndexerService(
+            indexerClient, _isolateScopeInjector<IndexerApi>()),
       )
       ..registerLazySingleton(() => TZKTApi(dio));
   }
@@ -437,7 +437,7 @@ class TokensServiceImpl extends TokensService {
     Map<int, List<String>> addresses,
   ) async {
     try {
-      final isolateIndexerService = _isolateScopeInjector<IndexerService>();
+      final isolateIndexerService = _isolateScopeInjector<NftIndexerService>();
       final offsetMap = addresses.map((key, value) => MapEntry(key, 0));
 
       await Future.wait(

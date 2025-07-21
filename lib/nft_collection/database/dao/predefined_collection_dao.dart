@@ -9,13 +9,24 @@
 
 import 'dart:async';
 
-import 'package:floor/floor.dart';
 import 'package:autonomy_flutter/nft_collection/models/predefined_collection_model.dart';
+import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
+abstract class PredefinedCollectionDao {
+  Future<List<PredefinedCollectionModel>> getPredefinedCollectionsByArtist(
+      {String name = ""});
+
+  Future<List<PredefinedCollectionModel>> getPredefinedCollectionsByMedium(
+      {String title = "",
+      required List<String> mimeTypes,
+      required List<String> mediums,
+      bool isInMimeTypes = true});
+}
+
 @dao
-class PredefinedCollectionDao {
-  PredefinedCollectionDao(this.database, this.changeListener)
+class PredefinedCollectionDaoImpl implements PredefinedCollectionDao {
+  PredefinedCollectionDaoImpl(this.database, this.changeListener)
       : _queryAdapter = QueryAdapter(database);
 
   final sqflite.DatabaseExecutor database;

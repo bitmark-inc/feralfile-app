@@ -70,7 +70,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   bool _trackingDailyLiked = false;
   Timer? _trackingDailyLikedTimer;
-  static const _scrollLikingThreshold = 100.0;
   static const _stayDurationLikingThreshold = Duration(seconds: 10);
 
   @override
@@ -333,47 +332,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
     Duration remainingDuration,
     Duration totalDuration,
   ) {
-    final progress = 1 - remainingDuration.inSeconds / totalDuration.inSeconds;
-    return Row(
-      children: [
-        Expanded(
-          child: ProgressBar(
-            progress: progress,
-          ),
-        ),
-        const SizedBox(width: 32),
-        Text(
-          _nextDailyDurationText(remainingDuration),
-          style: Theme.of(context).textTheme.ppMori400Grey12,
-        ),
-      ],
+    return DailyProgressBar(
+      remainingDuration: remainingDuration,
+      totalDuration: totalDuration,
     );
-  }
-
-  String _nextDailyDurationText(Duration remainingDuration) {
-    final hours = remainingDuration.inHours;
-    if (hours > 0) {
-      return 'next_daily'.tr(
-        namedArgs: {
-          'duration': '${hours}hr',
-        },
-      );
-    } else {
-      final minutes = remainingDuration.inMinutes;
-      if (minutes <= 1) {
-        return 'next_daily'.tr(
-          namedArgs: {
-            'duration': 'in a minute',
-          },
-        );
-      } else {
-        return 'next_daily'.tr(
-          namedArgs: {
-            'duration': '$minutes mins',
-          },
-        );
-      }
-    }
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -535,7 +497,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _dailyDetails(
     BuildContext context,
   ) {
-    final theme = Theme.of(context);
     return BlocBuilder<DailyWorkBloc, DailiesWorkState>(
       bloc: _dailyWorkBloc,
       builder: (context, state) {
@@ -543,207 +504,12 @@ class DailyWorkPageState extends State<DailyWorkPage>
         if (assetToken == null) {
           return loadingIndicator();
         }
-        final identityState = context.watch<IdentityBloc>().state;
-        final artistName = assetToken.artistName
-                ?.toIdentityOrMask(identityState.identityMap) ??
-            assetToken.artistID ??
-            '';
-        return NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            if (notification.direction == ScrollDirection.forward &&
-                _scrollController!.offset < 10) {
-              unawaited(
-                _pageController?.animateToPage(
-                  0,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                ),
-              );
-            }
-            if (_scrollController!.offset > _scrollLikingThreshold) {
-              _setUserLiked();
-            }
-            return true;
-          },
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: MediaQuery.of(context).padding.top + 48,
-                ),
-              ),
-              if (state.currentDailyToken != null &&
-                  state.currentExhibition != null) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _mediumDescription(
-                      context,
-                      state.currentDailyToken!,
-                      state.currentExhibition!,
-                    ),
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-              ],
-              // artwork desc
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: HtmlWidget(
-                    customStylesBuilder: auHtmlStyle,
-                    assetToken.description ?? '',
-                    textStyle: theme.textTheme.ppMori400White14,
-                    onTapUrl: (url) async {
-                      await launchUrl(
-                        Uri.parse(url),
-                        mode: LaunchMode.externalApplication,
-                      );
-                      return true;
-                    },
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 64),
-              ),
-
-              // Daily note if not empty
-              if (state.currentDailyToken?.dailyNote?.isNotEmpty ?? false) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ImportantNoteView(
-                      title: 'daily_note'.tr(),
-                      titleStyle: theme.textTheme.ppMori400White14,
-                      note: state.currentDailyToken!.dailyNote!,
-                      noteStyle: theme.textTheme.ppMori400White14,
-                      backgroundColor: AppColor.auGreyBackground,
-                    ),
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 64),
-                ),
-              ],
-
-              // Artist Profile
-              if (state.currentArtist != null) ...[
-                SliverToBoxAdapter(
-                  child: GestureDetector(
-                    onTap: () {
-                      unawaited(
-                        injector<NavigationService>()
-                            .openFeralFileArtistPage(state.currentArtist!.id),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: shortArtistProfile(context, state.currentArtist!),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: addDivider(
-                    height: 40,
-                    color: AppColor.auQuickSilver,
-                    thickness: 0.5,
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-              ],
-              if (state.currentExhibition != null) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: exhibitionInfo(context, state.currentExhibition!),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: addDivider(
-                    height: 40,
-                    color: AppColor.auQuickSilver,
-                    thickness: 0.5,
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-              ],
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: artworkDetailsMetadataSection(
-                    context,
-                    assetToken,
-                    artistName,
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: artworkDetailsRightSection(
-                    context,
-                    assetToken,
-                  ),
-                ),
-              ),
-
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 100),
-                  child: SizedBox(),
-                ),
-              ),
-            ],
-          ),
+        return DailyDetails(
+          state: state,
+          pageController: _pageController,
+          setUserLiked: _setUserLiked,
         );
       },
-    );
-  }
-
-  Widget _mediumDescription(
-    BuildContext context,
-    DailyToken currentDailyToken,
-    Exhibition exhibition,
-  ) {
-    final theme = Theme.of(context);
-    final seriesId = currentDailyToken.artwork?.seriesID;
-    if (seriesId == null) {
-      return const SizedBox();
-    }
-
-    final mediumDesc = List<String>.from(
-      exhibition.series
-              ?.firstWhereOrNull((series) => series.id == seriesId)
-              ?.metadata?['mediumDescription'] as List? ??
-          [],
-    );
-
-    if (mediumDesc.isEmpty) {
-      return const SizedBox();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: mediumDesc
-          .map(
-            (desc) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                desc,
-                style: theme.textTheme.ppMori400White14,
-              ),
-            ),
-          )
-          .toList(),
     );
   }
 
@@ -832,3 +598,237 @@ Widget shortArtistProfile(BuildContext context, AlumniAccount artist) => Column(
         ),
       ],
     );
+
+class DailyDetails extends StatelessWidget {
+  DailyDetails({
+    required this.state,
+    super.key,
+    this.pageController,
+    this.setUserLiked,
+  });
+
+  final DailiesWorkState state;
+  final PageController? pageController;
+  final Function? setUserLiked;
+
+  // DailyWorkBloc get _dailyWorkBloc => injector<DailyWorkBloc>();
+
+  final _scrollController = ScrollController();
+
+  static const _scrollLikingThreshold = 100.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return _dailyDetails(context);
+  }
+
+  Widget _dailyDetails(
+    BuildContext context,
+  ) {
+    final theme = Theme.of(context);
+    final assetToken = state.assetTokens.firstOrNull;
+    if (assetToken == null) {
+      return loadingIndicator();
+    }
+    final identityState = context.watch<IdentityBloc>().state;
+    final artistName =
+        assetToken.artistName?.toIdentityOrMask(identityState.identityMap) ??
+            assetToken.artistID ??
+            '';
+    return NotificationListener<UserScrollNotification>(
+      onNotification: (notification) {
+        if (notification.direction == ScrollDirection.forward &&
+            _scrollController.offset < 10) {
+          unawaited(
+            pageController?.animateToPage(
+              0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          );
+        }
+        if (_scrollController.offset > _scrollLikingThreshold) {
+          setUserLiked?.call();
+        }
+        return true;
+      },
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: MediaQuery.of(context).padding.top + 48,
+            ),
+          ),
+          if (state.currentDailyToken != null &&
+              state.currentExhibition != null) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _mediumDescription(
+                  context,
+                  state.currentDailyToken!,
+                  state.currentExhibition!,
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 32),
+            ),
+          ],
+          // artwork desc
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: HtmlWidget(
+                customStylesBuilder: auHtmlStyle,
+                assetToken.description ?? '',
+                textStyle: theme.textTheme.ppMori400White14,
+                onTapUrl: (url) async {
+                  await launchUrl(
+                    Uri.parse(url),
+                    mode: LaunchMode.externalApplication,
+                  );
+                  return true;
+                },
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 64),
+          ),
+
+          // Daily note if not empty
+          if (state.currentDailyToken?.dailyNote?.isNotEmpty ?? false) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: ImportantNoteView(
+                  title: 'daily_note'.tr(),
+                  titleStyle: theme.textTheme.ppMori400White14,
+                  note: state.currentDailyToken!.dailyNote!,
+                  noteStyle: theme.textTheme.ppMori400White14,
+                  backgroundColor: AppColor.auGreyBackground,
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 64),
+            ),
+          ],
+
+          // Artist Profile
+          if (state.currentArtist != null) ...[
+            SliverToBoxAdapter(
+              child: GestureDetector(
+                onTap: () {
+                  unawaited(
+                    injector<NavigationService>()
+                        .openFeralFileArtistPage(state.currentArtist!.id),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: shortArtistProfile(context, state.currentArtist!),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: addDivider(
+                height: 40,
+                color: AppColor.auQuickSilver,
+                thickness: 0.5,
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 32),
+            ),
+          ],
+          if (state.currentExhibition != null) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: exhibitionInfo(context, state.currentExhibition!),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: addDivider(
+                height: 40,
+                color: AppColor.auQuickSilver,
+                thickness: 0.5,
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 32),
+            ),
+          ],
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: artworkDetailsMetadataSection(
+                context,
+                assetToken,
+                artistName,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: artworkDetailsRightSection(
+                context,
+                assetToken,
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 100),
+              child: SizedBox(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mediumDescription(
+    BuildContext context,
+    DailyToken currentDailyToken,
+    Exhibition exhibition,
+  ) {
+    final theme = Theme.of(context);
+    final seriesId = currentDailyToken.artwork?.seriesID;
+    if (seriesId == null) {
+      return const SizedBox();
+    }
+
+    final mediumDesc = List<String>.from(
+      exhibition.series
+              ?.firstWhereOrNull((series) => series.id == seriesId)
+              ?.metadata?['mediumDescription'] as List? ??
+          [],
+    );
+
+    if (mediumDesc.isEmpty) {
+      return const SizedBox();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: mediumDesc
+          .map(
+            (desc) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                desc,
+                style: theme.textTheme.ppMori400White14,
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}

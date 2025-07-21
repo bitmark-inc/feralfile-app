@@ -1940,7 +1940,7 @@ packages:
     source: hosted
     version: "0.9.1"
   octo_image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: octo_image
       sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
@@ -3169,6 +3169,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.5.0"
+  widgetbook_generator:
+    dependency: "direct dev"
+    description:
+      name: widgetbook_generator
+      sha256: "38320c313a425e5a354bfdf6d2922efd69b5c3e9c0bf414d3ba7f947c303448a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.13.0"
   widgets_to_image:
     dependency: "direct main"
     description:

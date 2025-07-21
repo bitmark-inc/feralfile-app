@@ -98,7 +98,7 @@ class ArtworkPreviewDetailBloc
 
   final AssetTokenDao _assetTokenDao;
   final EthereumService _ethereumService;
-  final IndexerService _indexerService;
+  final NftIndexerService _indexerService;
   final AssetDao _assetDao;
 
   Future<String?> _fetchFeralFileFramePreview(AssetToken token) async {

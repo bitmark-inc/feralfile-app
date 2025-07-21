@@ -750,7 +750,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 height: 20,
               ),
               onTap: () async {
-                await injector<TokensService>().fetchManualTokens([asset.id]);
+                await injector<NftTokensService>()
+                    .fetchManualTokens([asset.id]);
                 if (!context.mounted) {
                   return;
                 }

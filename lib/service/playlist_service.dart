@@ -137,7 +137,7 @@ class PlayListServiceImp implements PlaylistService {
 
   @override
   Future<void> addPlaylists(List<PlayListModel> playlists) async {
-    final tokenService = injector<TokensService>();
+    final tokenService = injector<NftTokensService>();
     final indexerIds = playlists
         .map((e) => e.tokenIDs)
         .expand((element) => element)
