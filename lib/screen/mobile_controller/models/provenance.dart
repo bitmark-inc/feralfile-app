@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/util/eth_utils.dart';
+
 class DP1Provenance {
   DP1Provenance({
     required this.type,
@@ -24,15 +26,23 @@ class DP1Provenance {
   }
 }
 
+String getContractAddress(String address) {
+  final ethereumAddress = address.toEthereumAddress(isChecksum: false);
+  if (ethereumAddress != null) {
+    return ethereumAddress.hexEip55;
+  }
+  return address;
+}
+
 class DP1Contract {
   DP1Contract({
     required this.chain,
     required this.standard,
-    required this.address,
+    required String address,
     required this.tokenId,
     this.uri,
     this.metaHash,
-  });
+  }) : address = getContractAddress(address);
 
   //from json method
   factory DP1Contract.fromJson(Map<String, dynamic> json) {

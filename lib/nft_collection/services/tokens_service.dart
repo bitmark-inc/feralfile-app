@@ -283,7 +283,10 @@ class NftTokensServiceImpl extends NftTokensService {
     }
     // reorder the res to match the indexerIds
     res.sort(
-        (a, b) => indexerIds.indexOf(a.id).compareTo(indexerIds.indexOf(b.id)));
+      (a, b) => indexerIds.indexOf(a.id).compareTo(
+            indexerIds.indexOf(b.id),
+          ),
+    );
     return res;
   }
 
