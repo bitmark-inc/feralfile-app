@@ -153,6 +153,32 @@ class RequestBody {
       };
 }
 
+enum ReplyError {
+  overheating,
+  unknown,
+  ;
+
+  static ReplyError fromString(String error) {
+    switch (error) {
+      case 'overheating':
+        return ReplyError.overheating;
+      default:
+        return ReplyError.unknown;
+    }
+  }
+
+  String get jsonString => switch (this) {
+        ReplyError.overheating => 'overheating',
+        ReplyError.unknown => 'unknown',
+      };
+
+  String get message => switch (this) {
+        ReplyError.overheating => '''
+Device temperature is too high. Playback paused to prevent damage.''',
+        ReplyError.unknown => 'Unknown error',
+      };
+}
+
 class Reply {
   Reply();
 
@@ -162,16 +188,21 @@ class Reply {
 }
 
 class ReplyWithOK extends Reply {
-  ReplyWithOK({required this.ok});
+  ReplyWithOK({required this.ok, this.error});
 
   factory ReplyWithOK.fromJson(Map<String, dynamic> json) => ReplyWithOK(
         ok: json['ok'] as bool,
+        error: json['error'] != null
+            ? ReplyError.fromString(json['error'] as String)
+            : null,
       );
   final bool ok;
+  final ReplyError? error;
 
   @override
   Map<String, dynamic> toJson() => {
         'ok': ok,
+        'error': error?.jsonString,
       };
 }
 
@@ -374,8 +405,9 @@ class CheckCastingStatusRequest implements Request {
 }
 
 // Class representing CheckDeviceStatusReply message
-class CheckCastingStatusReply extends Reply {
+class CheckCastingStatusReply extends ReplyWithOK {
   CheckCastingStatusReply({
+    required super.ok,
     required this.artworks,
     this.index,
     bool? isPaused,
@@ -385,10 +417,12 @@ class CheckCastingStatusReply extends Reply {
     this.catalog,
     this.displayKey,
     this.deviceSettings,
+    super.error,
   }) : isPaused = isPaused ?? false;
 
   factory CheckCastingStatusReply.fromJson(Map<String, dynamic> json) =>
       CheckCastingStatusReply(
+        ok: json['ok'] as bool,
         artworks: json['artworks'] == null
             ? []
             : List<PlayArtworkV2>.from(
@@ -414,6 +448,9 @@ class CheckCastingStatusReply extends Reply {
                 json['deviceSettings'] as Map<String, dynamic>,
               )
             : null,
+        error: json['error'] != null
+            ? ReplyError.fromString(json['error'] as String)
+            : null,
       );
 
   int? get currentArtworkIndex {
@@ -435,6 +472,7 @@ class CheckCastingStatusReply extends Reply {
 
   @override
   Map<String, dynamic> toJson() => {
+        'ok': super.ok,
         'artworks': artworks.map((artwork) => artwork.toJson()).toList(),
         'index': index,
         'isPaused': isPaused,
@@ -444,10 +482,12 @@ class CheckCastingStatusReply extends Reply {
         'catalog': catalog?.index,
         'displayKey': displayKey,
         'deviceSettings': deviceSettings?.toJson(),
+        'error': super.error?.jsonString,
       };
 
   // copyWith method
   CheckCastingStatusReply copyWith({
+    bool? ok,
     List<PlayArtworkV2>? artworks,
     int? index,
     bool? isPaused,
@@ -457,8 +497,10 @@ class CheckCastingStatusReply extends Reply {
     ExhibitionCatalog? catalog,
     String? displayKey,
     DeviceDisplaySetting? deviceSettings,
+    ReplyError? error,
   }) {
     return CheckCastingStatusReply(
+      ok: super.ok,
       artworks: artworks ?? this.artworks,
       index: index ?? this.index,
       isPaused: isPaused ?? this.isPaused,
@@ -468,6 +510,7 @@ class CheckCastingStatusReply extends Reply {
       catalog: catalog ?? this.catalog,
       displayKey: displayKey ?? this.displayKey,
       deviceSettings: deviceSettings ?? this.deviceSettings,
+      error: error ?? super.error,
     );
   }
 }

@@ -320,8 +320,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (!ok) {
           throw Exception('Failed to cast to device');
         }
+
         final currentDeviceState = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: event.artwork,
           index: 0,
           isPaused: false,
@@ -356,6 +358,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         }
         final currentDeviceStatus = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           exhibitionId: event.castRequest.exhibitionId,
           catalogId: event.castRequest.catalogId,
@@ -391,6 +394,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         }
         final currentDeviceStatus = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           displayKey: CastDailyWorkRequest.displayKey,
           connectedDevice: currentDeviceStatus?.connectedDevice,
@@ -423,6 +427,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           return;
         }
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: currentDeviceStatus.artworks,
           index: (currentDeviceStatus.index! + 1) %
               currentDeviceStatus.artworks.length,
@@ -459,6 +464,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           return;
         }
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: currentDeviceStatus.artworks,
           index: (currentDeviceStatus.index! -
                   1 +
@@ -547,7 +553,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (controllingStatus == null) {
           throw Exception('Device not found');
         }
-        final newControllingStatus = CheckCastingStatusReply(artworks: artworks)
+        final newControllingStatus = CheckCastingStatusReply(
+          artworks: artworks,
+          ok: true,
+        )
           ..index = controllingStatus.index
           ..connectedDevice = controllingStatus.connectedDevice;
 

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
@@ -75,6 +76,11 @@ class NowDisplayingManager {
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
         );
       }
+
+      if (status?.ok == false) {
+        throw CheckCastingStatusException(status?.error ?? ReplyError.unknown);
+      }
+
       if (status == null) {
         throw Exception('Failed to get Now Displaying');
       }
