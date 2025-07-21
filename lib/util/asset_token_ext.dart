@@ -69,7 +69,7 @@ extension AssetTokenExtension on AssetToken {
   String get secondaryMarketURL {
     switch (blockchain) {
       case 'ethereum':
-        return '$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId';
+        return '$OPENSEA_ASSET_PREFIX/$contractAddress/$tokenId';
       case 'tezos':
         if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
           return '$TEIA_ART_ASSET_PREFIX$tokenId';

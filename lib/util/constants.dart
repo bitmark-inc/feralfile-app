@@ -59,7 +59,7 @@ const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
 const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
 
 const TEIA_ART_CONTRACT_ADDRESSES = ['KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton'];
-const OPENSEA_ASSET_PREFIX = 'https://opensea.io/assets/';
+const OPENSEA_ASSET_PREFIX = 'https://opensea.io/item/ethereum';
 const OBJKT_ASSET_PREFIX_MAINNET = 'https://objkt.com/asset/';
 const OBJKT_ASSET_PREFIX_TESTNET = 'https://ghostnet.objkt.com/asset/';
 const TEIA_ART_ASSET_PREFIX = 'https://teia.art/objkt/';

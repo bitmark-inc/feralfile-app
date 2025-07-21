@@ -22,13 +22,11 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart'
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -79,8 +77,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final _configurationService = injector<ConfigurationService>();
   Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
-  final _remoteConfig = injector<RemoteConfigService>();
-  final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
   final _subscriptionBloc = injector<SubscriptionBloc>();
@@ -233,7 +229,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
-
+    _pageController = _getPageController(_selectedIndex);
     _pages = <Widget>[
       MultiBlocProvider(
         providers: [
@@ -349,10 +345,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               }
               return Stack(
                 children: [
-                  PageView(
+                  PageView.builder(
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
-                    children: _pages,
+                    itemBuilder: (BuildContext context, int index) {
+                      return _pages[index];
+                    },
                   ),
                   KeyboardVisibilityBuilder(
                     builder: (context, isKeyboardVisible) => isKeyboardVisible
