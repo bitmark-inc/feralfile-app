@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -31,7 +30,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -53,7 +51,6 @@ import 'package:autonomy_flutter/widgetbook/mock/mock_configuration_service.dart
 import 'package:autonomy_flutter/widgetbook/mock/mock_customer_support.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_ethereum_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_feralfile_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_iap_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_api.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_client.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_service.dart';
@@ -100,14 +97,14 @@ class MockInjector {
     // PredefinedCollectionDao
     if (!injector.isRegistered<PredefinedCollectionDao>()) {
       injector.registerLazySingleton<PredefinedCollectionDao>(
-        () => MockPredefinedCollectionDao(),
+        MockPredefinedCollectionDao.new,
       );
     }
 
     // nft collection database
     if (!injector.isRegistered<NftCollectionDatabase>()) {
       injector.registerLazySingleton<NftCollectionDatabase>(
-        () => MockNftCollectionDatabase(),
+        MockNftCollectionDatabase.new,
       );
     }
 
@@ -129,11 +126,6 @@ class MockInjector {
       injector.registerLazySingleton<NftTokensService>(MockTokensService.new);
     }
 
-    // iap service
-    if (!injector.isRegistered<IAPService>()) {
-      injector.registerLazySingleton<IAPService>(MockIAPService.new);
-    }
-
     if (!injector.isRegistered<AddressService>()) {
       injector.registerLazySingleton<AddressService>(MockAddressService.new);
     }
@@ -142,7 +134,8 @@ class MockInjector {
     }
     if (!injector.isRegistered<CanvasClientServiceV2>()) {
       injector.registerLazySingleton<CanvasClientServiceV2>(
-          MockCanvasClientServiceV2.new);
+        MockCanvasClientServiceV2.new,
+      );
     }
 
     // ethereum service
@@ -158,7 +151,8 @@ class MockInjector {
 
     if (!injector.isRegistered<CanvasDeviceBloc>()) {
       injector.registerLazySingleton<CanvasDeviceBloc>(
-          () => CanvasDeviceBloc(injector.get()));
+        () => CanvasDeviceBloc(injector.get()),
+      );
     }
 
     // indexer service
@@ -170,7 +164,8 @@ class MockInjector {
     }
     if (!injector.isRegistered<NftIndexerService>()) {
       injector.registerLazySingleton<NftIndexerService>(
-          () => MockIndexerService(injector.get(), injector.get()));
+        () => MockIndexerService(injector.get(), injector.get()),
+      );
     }
 
     // token service
@@ -181,28 +176,28 @@ class MockInjector {
     // ClientTokenService
     if (!injector.isRegistered<ClientTokenService>()) {
       injector.registerLazySingleton<ClientTokenService>(
-        () => MockClientTokenService(),
+        MockClientTokenService.new,
       );
     }
 
     // AnnouncementService
     if (!injector.isRegistered<AnnouncementService>()) {
       injector.registerLazySingleton<AnnouncementService>(
-        () => MockAnnouncementService(),
+        MockAnnouncementService.new,
       );
     }
 
     // Customer Support Service
     if (!injector.isRegistered<CustomerSupportService>()) {
       injector.registerLazySingleton<CustomerSupportService>(
-        () => MockCustomerSupportService(),
+        MockCustomerSupportService.new,
       );
     }
 
     // Version Service
     if (!injector.isRegistered<VersionService>()) {
       injector.registerLazySingleton<VersionService>(
-        () => MockVersionService(),
+        MockVersionService.new,
       );
     }
 
@@ -214,12 +209,14 @@ class MockInjector {
     // coòniguration service
     if (!injector.isRegistered<ConfigurationService>()) {
       injector.registerLazySingleton<ConfigurationService>(
-          () => MockConfigurationService(sharedPreferences));
+        () => MockConfigurationService(sharedPreferences),
+      );
     }
 
     if (!injector.isRegistered<RemoteConfigService>()) {
-      injector.registerLazySingleton<RemoteConfigService>(() =>
-          RemoteConfigServiceImpl(RemoteConfigApi(baseDio(BaseOptions()))));
+      injector.registerLazySingleton<RemoteConfigService>(
+        () => RemoteConfigServiceImpl(RemoteConfigApi(baseDio(BaseOptions()))),
+      );
     }
 
     // NftCollectionBloc
@@ -253,17 +250,10 @@ class MockInjector {
       );
     }
 
-    // upgrade bloc
-    if (!injector.isRegistered<UpgradesBloc>()) {
-      injector.registerLazySingleton<UpgradesBloc>(
-        () => UpgradesBloc(injector.get(), injector.get()),
-      );
-    }
-
     // subscription bloc
     if (!injector.isRegistered<SubscriptionBloc>()) {
       injector.registerLazySingleton<SubscriptionBloc>(
-        () => SubscriptionBloc(injector.get()),
+        SubscriptionBloc.new,
       );
     }
 
@@ -277,7 +267,7 @@ class MockInjector {
     // Collection Pro Bloc
     if (!injector.isRegistered<CollectionProBloc>()) {
       injector.registerLazySingleton<CollectionProBloc>(
-        () => CollectionProBloc(),
+        CollectionProBloc.new,
       );
     }
 
