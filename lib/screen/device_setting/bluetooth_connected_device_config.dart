@@ -636,9 +636,6 @@ class BluetoothConnectedDeviceConfigState
   Widget _deviceInfo(BuildContext context) {
     final version = status?.installedVersion;
     final installedVersion = status?.installedVersion ?? version;
-    final latestVersion = status?.latestVersion;
-    final isUpToDate =
-        installedVersion == latestVersion || latestVersion == null;
     final theme = Theme.of(context);
     final device = selectedDevice!;
     final deviceName = device.name;
@@ -755,19 +752,6 @@ class BluetoothConnectedDeviceConfigState
                           TextSpan(
                             text: installedVersion ?? '-',
                           ),
-                          if (installedVersion != null)
-                            if (isUpToDate)
-                              const TextSpan(
-                                text: ' - Up to date',
-                                style: TextStyle(color: AppColor.disabledColor),
-                              )
-                            else
-                              const TextSpan(
-                                text: ' - Update available',
-                                style: TextStyle(
-                                  color: AppColor.disabledColor,
-                                ),
-                              ),
                         ],
                       ),
                     ),
@@ -850,21 +834,6 @@ class BluetoothConnectedDeviceConfigState
                         setState(() {
                           _isShowingQRCode = !_isShowingQRCode;
                         });
-                      },
-                    ),
-                  ],
-
-                  // Update Button
-                  if (!isUpToDate) ...[
-                    const SizedBox(height: 16),
-                    PrimaryAsyncButton(
-                      text: 'Update to latest version v.$latestVersion',
-                      color: AppColor.white,
-                      enabled: isBLEDeviceConnected,
-                      onTap: () async {
-                        final device = selectedDevice!;
-                        await injector<CanvasClientServiceV2>()
-                            .updateToLatestVersion(device);
                       },
                     ),
                   ],
