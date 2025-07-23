@@ -310,7 +310,6 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         unawaited(injector<NavigationService>().navigateTo(
           AppRouter.bluetoothConnectedDeviceConfig,
           arguments: BluetoothConnectedDeviceConfigPayload(
-            device: res.first,
             isFromOnboarding: res.second,
           ),
         ));

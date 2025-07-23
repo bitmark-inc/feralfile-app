@@ -76,11 +76,8 @@ enum ScreenOrientation {
 
 class BluetoothConnectedDeviceConfigPayload {
   BluetoothConnectedDeviceConfigPayload({
-    required this.device,
     this.isFromOnboarding = false,
   });
-
-  final FFBluetoothDevice device;
 
   final bool isFromOnboarding;
 }

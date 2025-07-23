@@ -10,13 +10,10 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -136,38 +133,12 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               Column(
                 children: [
-                  if (injector<AuthService>().isBetaTester() &&
-                      BluetoothDeviceManager().castingBluetoothDevice != null)
-                    _settingItem(
-                      title: 'Portal (FF-X1) Alpha Pilot',
-                      icon: const Icon(AuIcon.add),
-                      onTap: () async {
-                        final connectedDevice =
-                            BluetoothDeviceManager().castingBluetoothDevice;
-                        await Navigator.of(context).pushNamed(
-                          AppRouter.bluetoothConnectedDeviceConfig,
-                          arguments: BluetoothConnectedDeviceConfigPayload(
-                            device: connectedDevice!,
-                          ),
-                        );
-                      },
-                    ),
-                  addOnlyDivider(),
                   _settingItem(
                     title: 'preferences'.tr(),
                     icon: const Icon(AuIcon.preferences),
                     onTap: () async {
                       await Navigator.of(context)
                           .pushNamed(AppRouter.preferencesPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: 'hidden_artwork'.tr(),
-                    icon: const Icon(AuIcon.hidden_artwork),
-                    onTap: () async {
-                      await Navigator.of(context)
-                          .pushNamed(AppRouter.hiddenArtworksPage);
                     },
                   ),
                   addOnlyDivider(),

@@ -63,8 +63,10 @@ class Artwork {
         json['thumbnailURI'] as String,
         json['thumbnailDisplay'] as String?,
         json['previewURI'] as String,
-        (Map<String, dynamic>.from(json['previewDisplay'] as Map))
-            .map((key, value) => MapEntry(key, value as String)),
+        json['previewDisplay'] == null
+            ? null
+            : (Map<String, dynamic>.from(json['previewDisplay'] as Map))
+                .map((key, value) => MapEntry(key, value as String)),
         json['metadata'] == null
             ? null
             : Map<String, dynamic>.from(json['metadata'] as Map),

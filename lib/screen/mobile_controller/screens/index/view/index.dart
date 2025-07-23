@@ -1,14 +1,9 @@
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/channels_page.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/collection/collection_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/playlists_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/works/works_page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/header.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class ListDirectoryPage extends StatefulWidget {
   const ListDirectoryPage({super.key});
@@ -35,7 +30,6 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
       const PlaylistsPage(),
       const ChannelsPage(),
       const WorksPage(),
-      const CollectionPage(),
     ];
     return Center(
       child: Column(
@@ -67,38 +61,6 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _myCollectionButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Handle navigation to My Collection
-        Navigator.of(context).pushNamed(
-          AppRouter.oldHomePage,
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColor.primaryBlack,
-          borderRadius: BorderRadius.circular(90),
-        ),
-        padding: ResponsiveLayout.paddingAll,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'My Collection',
-              style: Theme.of(context).textTheme.ppMori400White12,
-            ),
-            const SizedBox(width: 20),
-            SvgPicture.asset(
-              'assets/images/arraw-left.svg',
-            ),
-          ],
-        ),
       ),
     );
   }

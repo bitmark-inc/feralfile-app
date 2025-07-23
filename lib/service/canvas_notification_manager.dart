@@ -31,7 +31,6 @@ class CanvasNotificationManager {
       _subscriptions = {};
 
   // Map to hold retry timers
-  final Map<String, Timer> _retryTimers = {};
 
   // Map to hold current processing messages for each device, grouped by notification type
   final Map<
@@ -142,34 +141,8 @@ class CanvasNotificationManager {
         await connect(device);
       } catch (e) {
         log.warning('Error reconnecting to device ${device.deviceId}: $e');
-        _scheduleRetry(device);
       }
     }
-  }
-
-  void _scheduleRetry(BaseDevice device) {
-    _retryTimers[device.deviceId]?.cancel();
-    int retryCount = 0;
-
-    void retry() async {
-      if (retryCount >= _maxRetryAttempts) {
-        log.warning('Max retry attempts reached for device ${device.deviceId}');
-        _retryTimers.remove(device.deviceId);
-        return;
-      }
-
-      try {
-        await connect(device);
-        _retryTimers.remove(device.deviceId);
-      } catch (e) {
-        log.warning(
-            'Retry attempt ${retryCount + 1} failed for device ${device.deviceId}: $e');
-        retryCount++;
-        _retryTimers[device.deviceId] = Timer(_retryDelay, retry);
-      }
-    }
-
-    _retryTimers[device.deviceId] = Timer(_retryDelay, retry);
   }
 
   // Connect to a specific device
@@ -192,12 +165,10 @@ class CanvasNotificationManager {
         onError: (Object error) {
           // Handle error from individual service stream if needed
           log.warning('Error from device ${device.deviceId}: $error');
-          _scheduleRetry(device);
         },
         onDone: () {
           // Handle individual service stream completion if needed
           log.info('Device ${device.deviceId} stream done');
-          _scheduleRetry(device);
         },
       );
       service = newService;
@@ -219,9 +190,6 @@ class CanvasNotificationManager {
 
   // Disconnect from a specific device
   Future<void> disconnect(String deviceId) async {
-    _retryTimers[deviceId]?.cancel();
-    _retryTimers.remove(deviceId);
-
     // Clear messages for this device
     _processingMessages.remove(deviceId);
     _nextMessages.remove(deviceId);
@@ -241,11 +209,6 @@ class CanvasNotificationManager {
   }
 
   Future<void> _disconnectAll() async {
-    for (final timer in _retryTimers.values) {
-      timer.cancel();
-    }
-    _retryTimers.clear();
-
     // Clear all messages
     _processingMessages.clear();
     _nextMessages.clear();

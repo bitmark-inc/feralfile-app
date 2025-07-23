@@ -8,17 +8,24 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -316,14 +323,88 @@ class DP1NowDisplayingView extends StatelessWidget {
     final playlistItem = object.playlistItem;
     final assetToken = object.assetToken;
     final device = BluetoothDeviceManager().castingBluetoothDevice;
-    return NowDisplayingView(
+    return ExpandableNowDisplayingView(
       device: device,
-      onMoreTap: () {
-        injector<NavigationService>().showDeviceSettings(
-          tokenId: playlistItem.indexId,
-          artistName: playlistItem.title,
-        );
-      },
+      options: [
+        // scan
+        OptionItem(
+          title: 'scan'.tr(),
+          icon: const Icon(
+            AuIcon.scan,
+          ),
+          onTap: () {
+            injector<NavigationService>().navigateTo(
+              AppRouter.scanQRPage,
+              arguments:
+                  const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
+            );
+          },
+        ),
+        if (injector<AuthService>().isBetaTester() &&
+            BluetoothDeviceManager().castingBluetoothDevice != null)
+          // FF-X1 Setting
+          OptionItem(
+            title: 'FF1 Settings',
+            icon: const Icon(
+              AuIcon.settings,
+            ),
+            onTap: () {
+              injector<NavigationService>().navigateTo(
+                  AppRouter.bluetoothConnectedDeviceConfig,
+                  arguments: BluetoothConnectedDeviceConfigPayload());
+            },
+          ),
+        // account
+        OptionItem(
+          title: 'wallet'.tr(),
+          icon: const Icon(
+            AuIcon.wallet,
+          ),
+          onTap: () {
+            injector<NavigationService>().navigateTo(AppRouter.walletPage);
+          },
+        ),
+        OptionItem(
+          title: 'App Settings',
+          icon: const Icon(
+            AuIcon.settings,
+          ),
+          onTap: () {
+            Navigator.of(context).pushNamed(AppRouter.settingsPage);
+          },
+        ),
+        // help
+        OptionItem(
+          title: 'help'.tr(),
+          icon: ValueListenableBuilder<List<int>?>(
+            valueListenable:
+                injector<CustomerSupportService>().numberOfIssuesInfo,
+            builder: (
+              BuildContext context,
+              List<int>? numberOfIssuesInfo,
+              Widget? child,
+            ) =>
+                iconWithRedDot(
+              icon: const Icon(
+                AuIcon.help,
+              ),
+              padding: const EdgeInsets.only(right: 2, top: 2),
+              withReddot:
+                  numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+            ),
+          ),
+          onTap: () {
+            injector<NavigationService>()
+                .navigateTo(AppRouter.supportCustomerPage);
+          },
+        ),
+      ],
+      // onMoreTap: () {
+      //   injector<NavigationService>().showDeviceSettings(
+      //     tokenId: playlistItem.indexId,
+      //     artistName: playlistItem.title,
+      //   );
+      // },
       thumbnailBuilder: (context) {
         if (assetToken != null) {
           return AspectRatio(
@@ -379,6 +460,7 @@ class NowDisplayingView extends StatelessWidget {
     this.device,
     super.key,
     this.customAction = const [],
+    this.moreIcon, // Added parameter for custom icon
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
@@ -386,6 +468,7 @@ class NowDisplayingView extends StatelessWidget {
   final BaseDevice? device;
   final void Function()? onMoreTap;
   final List<Widget> customAction;
+  final Widget? moreIcon; // Declare the new parameter
 
   @override
   Widget build(BuildContext context) {
@@ -433,15 +516,18 @@ class NowDisplayingView extends StatelessWidget {
               .flattened,
           if (onMoreTap != null)
             IconButton(
-              onPressed: onMoreTap,
-              icon: SvgPicture.asset(
-                'assets/images/icon_drawer.svg',
-                width: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColor.primaryBlack,
-                  BlendMode.srcIn,
-                ),
-              ),
+              onPressed: () {
+                onMoreTap?.call();
+              },
+              icon: moreIcon ??
+                  SvgPicture.asset(
+                    'assets/images/icon_drawer.svg',
+                    width: 22,
+                    colorFilter: const ColorFilter.mode(
+                      AppColor.primaryBlack,
+                      BlendMode.srcIn,
+                    ),
+                  ),
             ),
         ],
       ),

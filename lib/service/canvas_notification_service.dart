@@ -48,24 +48,27 @@ class CanvasNotificationService {
       log.info(
           '[CanvasNotificationService] Device ${_device.name} connecting to ${wsUrl.replaceAll(apiKey, '***')}');
 
+      final completer = Completer<bool>();
       _channel!.stream.listen(
-        _handleMessage,
+        (message) {
+          if (!completer.isCompleted) {
+            completer.complete(true);
+          }
+          _handleMessage(message);
+        },
         onError: (Object error) {
+          if (!completer.isCompleted) {
+            completer.complete(false);
+          }
           _handleError(error);
         },
         onDone: _handleDisconnect,
       );
 
-      final completer = Completer<bool>();
-      final subscription = _channel!.stream.listen((message) {
-        completer.complete(true);
-      }, onError: (Object error) {
-        completer.complete(false);
-      });
       _isConnected = await completer.future;
-      await subscription.cancel();
 
       if (_isConnected) {
+        _reconnectTimer?.cancel();
         _startPingTimer();
         _lastError = null;
       }
