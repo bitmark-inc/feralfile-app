@@ -68,6 +68,7 @@ class AuthService {
   }
 
   bool isBetaTester() {
+    return true; // public for all users
     if (kDebugMode) return true;
     try {
       final isBetaTesterFromLocalConfig =

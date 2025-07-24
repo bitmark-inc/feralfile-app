@@ -366,9 +366,10 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     Emitter<RecordState> emit,
   ) async {
     final error = nlParserData.content;
+    log.info('Error action received: $error');
     emit(
       RecordErrorState(
-        error: AudioException(error),
+        error: AudioFailedToParseCommandException(),
       ),
     );
   }

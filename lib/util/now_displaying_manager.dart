@@ -26,11 +26,11 @@ class NowDisplayingManager {
 
   Timer? _onDisconnectTimer;
 
-  NowDisplayingStatus? nowDisplayingStatus;
-  final StreamController<NowDisplayingStatus?> _streamController =
+  NowDisplayingStatus nowDisplayingStatus = InitialNowDisplayingStatus();
+  final StreamController<NowDisplayingStatus> _streamController =
       StreamController.broadcast();
 
-  Stream<NowDisplayingStatus?> get nowDisplayingStream =>
+  Stream<NowDisplayingStatus> get nowDisplayingStream =>
       _streamController.stream;
 
   void addStatus(NowDisplayingStatus status) {
@@ -39,13 +39,13 @@ class NowDisplayingManager {
     _streamController.add(status);
     _onDisconnectTimer?.cancel();
     if (status is DeviceDisconnected) {
-      _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
-      });
+      // _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
+      //   shouldShowNowDisplayingOnDisconnect.value = false;
+      // });
     } else if (status is ConnectionLost) {
-      _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
-      });
+      // _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
+      //   shouldShowNowDisplayingOnDisconnect.value = false;
+      // });
     } else if (status is NowDisplayingSuccess) {
       shouldShowNowDisplayingOnDisconnect.value = true;
     }
@@ -82,7 +82,7 @@ class NowDisplayingManager {
         return;
       }
       nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
-      addStatus(nowDisplayingStatus!);
+      addStatus(nowDisplayingStatus);
     } catch (e) {
       log.info('NowDisplayingManager: updateDisplayingNow error: $e');
       if (addStatusOnError) {
@@ -136,6 +136,10 @@ class NowDisplayingManager {
 }
 
 abstract class NowDisplayingStatus {}
+
+class InitialNowDisplayingStatus implements NowDisplayingStatus {
+  InitialNowDisplayingStatus();
+}
 
 class ConnectionLost implements NowDisplayingStatus {
   ConnectionLost(this.device);

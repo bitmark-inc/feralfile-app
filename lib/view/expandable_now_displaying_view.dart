@@ -1,28 +1,110 @@
-import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart'; // Added for AppColor
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 
 ValueNotifier<bool> isNowDisplayingExpanded = ValueNotifier(false);
 
 class ExpandableNowDisplayingView extends StatefulWidget {
-  final Widget Function(BuildContext) thumbnailBuilder;
-  final Widget Function(BuildContext) titleBuilder;
-  final BaseDevice? device;
-  final List<Widget> customAction;
-  final List<OptionItem> options;
+  // final Widget Function(BuildContext) thumbnailBuilder;
+  // final Widget Function(BuildContext) titleBuilder;
+  // final BaseDevice? device;
+  // final List<Widget> customAction;
+  final List<OptionItem>? _options;
+  final Widget Function(Function onMoreTap, bool isExpanded) headerBuilder;
 
   const ExpandableNowDisplayingView({
+    required this.headerBuilder,
     super.key,
-    required this.thumbnailBuilder,
-    required this.titleBuilder,
-    this.device,
-    this.customAction = const [],
-    required this.options,
-  });
+    List<OptionItem>? options,
+  }) : this._options = options;
+
+  List<OptionItem> get options => _options ?? _defaultOptions;
+
+  List<OptionItem> get _defaultOptions {
+    return [
+      // scan
+      OptionItem(
+        title: 'scan'.tr(),
+        icon: const Icon(
+          AuIcon.scan,
+        ),
+        onTap: () {
+          injector<NavigationService>().navigateTo(
+            AppRouter.scanQRPage,
+            arguments: const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
+          );
+        },
+      ),
+      if (injector<AuthService>().isBetaTester() &&
+          BluetoothDeviceManager().castingBluetoothDevice != null)
+        // FF-X1 Setting
+        OptionItem(
+          title: 'FF1 Settings',
+          icon: SvgPicture.asset('assets/images/portal_setting.svg'),
+          onTap: () {
+            injector<NavigationService>().navigateTo(
+                AppRouter.bluetoothConnectedDeviceConfig,
+                arguments: BluetoothConnectedDeviceConfigPayload());
+          },
+        ),
+      // account
+      OptionItem(
+        title: 'wallet'.tr(),
+        icon: const Icon(
+          AuIcon.wallet,
+        ),
+        onTap: () {
+          injector<NavigationService>().navigateTo(AppRouter.walletPage);
+        },
+      ),
+      OptionItem(
+        title: 'App Settings',
+        icon: const Icon(
+          AuIcon.settings,
+        ),
+        onTap: () {
+          injector<NavigationService>().navigateTo(AppRouter.settingsPage);
+        },
+      ),
+      // help
+      OptionItem(
+        title: 'help'.tr(),
+        icon: ValueListenableBuilder<List<int>?>(
+          valueListenable:
+              injector<CustomerSupportService>().numberOfIssuesInfo,
+          builder: (
+            BuildContext context,
+            List<int>? numberOfIssuesInfo,
+            Widget? child,
+          ) =>
+              iconWithRedDot(
+            icon: const Icon(
+              AuIcon.help,
+            ),
+            padding: const EdgeInsets.only(right: 2, top: 2),
+            withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+          ),
+        ),
+        onTap: () {
+          injector<NavigationService>()
+              .navigateTo(AppRouter.supportCustomerPage);
+        },
+      ),
+    ];
+  }
 
   @override
   State<ExpandableNowDisplayingView> createState() =>
@@ -87,27 +169,11 @@ class _ExpandableNowDisplayingViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                NowDisplayingView(
-                  thumbnailBuilder: widget.thumbnailBuilder,
-                  titleBuilder: widget.titleBuilder,
-                  device: widget.device,
-                  customAction: widget.customAction,
-                  onMoreTap: () {
-                    setState(() {
-                      isNowDisplayingExpanded.value = !value;
-                    });
-                  },
-                  moreIcon: SvgPicture.asset(
-                    value
-                        ? 'assets/images/close.svg'
-                        : 'assets/images/icon_drawer.svg',
-                    width: 22,
-                    colorFilter: const ColorFilter.mode(
-                      AppColor.primaryBlack,
-                      BlendMode.srcIn,
-                    ),
-                  ), // Pass the dynamic icon here
-                ),
+                widget.headerBuilder(() {
+                  setState(() {
+                    isNowDisplayingExpanded.value = !value;
+                  });
+                }, isNowDisplayingExpanded.value),
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {

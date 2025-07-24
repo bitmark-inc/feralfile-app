@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/identity.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -322,10 +321,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value;
-    final isBetaTester = injector<AuthService>().isBetaTester();
-    nowDisplayingShowing.value = shouldShow &&
-        isBetaTester &&
-        NowDisplayingManager().nowDisplayingStatus != null;
+    nowDisplayingShowing.value = shouldShow;
     if (nowDisplayingShowing.value) {
       _animationController.forward();
       setState(() => _isVisible = true);
@@ -386,9 +382,9 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                 child,
               ) {
                 if (isExpanded) {
-                  return child ?? SizedBox();
+                  return child ?? const SizedBox();
                 }
-                return SizedBox();
+                return const SizedBox();
               },
               child: Positioned.fill(
                 child: GestureDetector(

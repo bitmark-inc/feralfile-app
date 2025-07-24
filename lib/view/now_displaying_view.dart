@@ -1,6 +1,5 @@
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -8,24 +7,16 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
 import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -45,7 +36,7 @@ class NowDisplaying extends StatefulWidget {
 class _NowDisplayingState extends State<NowDisplaying>
     with AfterLayoutMixin<NowDisplaying> {
   final NowDisplayingManager _manager = NowDisplayingManager();
-  NowDisplayingStatus? nowDisplayingStatus;
+  late NowDisplayingStatus nowDisplayingStatus;
 
   @override
   void initState() {
@@ -73,13 +64,7 @@ class _NowDisplayingState extends State<NowDisplaying>
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {},
       builder: (context, state) {
-        if (!injector<AuthService>().isBetaTester()) {
-          return const SizedBox();
-        }
         final nowDisplayingStatus = this.nowDisplayingStatus;
-        if (nowDisplayingStatus == null) {
-          return const SizedBox();
-        }
 
         switch (nowDisplayingStatus.runtimeType) {
           case DeviceDisconnected:
@@ -96,7 +81,7 @@ class _NowDisplayingState extends State<NowDisplaying>
               object: (nowDisplayingStatus as NowDisplayingSuccess).object,
             );
           default:
-            return const SizedBox();
+            return _noDeviceView(context);
         }
       },
     );
@@ -130,6 +115,14 @@ class _NowDisplayingState extends State<NowDisplaying>
     final error = (nowDisplayingStatus as NowDisplayingError).error;
     return NowDisplayingStatusView(
       status: 'Error: $error',
+    );
+  }
+
+  // there no device setuped
+  Widget _noDeviceView(BuildContext context) {
+    return NowDisplayingStatusView(
+      status:
+          'Unlock your personal gallery! Pair an FF1 device to display your collection and curated art on any screen.',
     );
   }
 }
@@ -239,7 +232,6 @@ class TokenNowDisplayingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _identityBloc.add(GetIdentityEvent([assetToken.artistTitle ?? '']));
-    final theme = Theme.of(context);
     return BlocBuilder<IdentityBloc, IdentityState>(
       bloc: _identityBloc,
       builder: (context, state) {
@@ -247,138 +239,154 @@ class TokenNowDisplayingView extends StatelessWidget {
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
         return ExpandableNowDisplayingView(
-          // onMoreTap: () {
-          //   injector<NavigationService>().showDeviceSettings(
-          //     tokenId: assetToken.id,
-          //     artistName: artistTitle,
-          //   );
-          // },
-          options: [
-            // scan
-            OptionItem(
-              title: 'scan'.tr(),
-              icon: const Icon(
-                AuIcon.scan,
-              ),
-              onTap: () {
-                injector<NavigationService>().navigateTo(
-                  AppRouter.scanQRPage,
-                  arguments:
-                      const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
-                );
-              },
-            ),
-            if (injector<AuthService>().isBetaTester() &&
-                BluetoothDeviceManager().castingBluetoothDevice != null)
-              // FF-X1 Setting
-              OptionItem(
-                title: 'FF1 Settings',
-                icon: SvgPicture.asset('assets/images/portal_setting.svg'),
-                onTap: () {
-                  injector<NavigationService>().navigateTo(
-                      AppRouter.bluetoothConnectedDeviceConfig,
-                      arguments: BluetoothConnectedDeviceConfigPayload());
-                },
-              ),
-            // account
-            OptionItem(
-              title: 'wallet'.tr(),
-              icon: const Icon(
-                AuIcon.wallet,
-              ),
-              onTap: () {
-                injector<NavigationService>().navigateTo(AppRouter.walletPage);
-              },
-            ),
-            OptionItem(
-              title: 'App Settings',
-              icon: const Icon(
-                AuIcon.settings,
-              ),
-              onTap: () {
-                injector<NavigationService>()
-                    .navigateTo(AppRouter.settingsPage);
-              },
-            ),
-            // help
-            OptionItem(
-              title: 'help'.tr(),
-              icon: ValueListenableBuilder<List<int>?>(
-                valueListenable:
-                    injector<CustomerSupportService>().numberOfIssuesInfo,
-                builder: (
-                  BuildContext context,
-                  List<int>? numberOfIssuesInfo,
-                  Widget? child,
-                ) =>
-                    iconWithRedDot(
-                  icon: const Icon(
-                    AuIcon.help,
+          headerBuilder: (onMoreTap, isExpanded) {
+            return NowDisplayingView(
+              thumbnailBuilder: thumbnailBuilder,
+              titleBuilder: (context) => titleBuilder(context, artistTitle),
+              customAction: [
+                if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+                    (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                            .settings
+                            .name ==
+                        AppRouter.homePage)
+                  GestureDetector(
+                    child: SvgPicture.asset('assets/images/run.svg'),
+                    onTap: () {
+                      chatModeNotifier.value = !chatModeNotifier.value;
+                      // injector<RecordBloc>().add(
+                      //   ResetPlaylistEvent(),
+                      // );
+                    },
                   ),
-                  padding: const EdgeInsets.only(right: 2, top: 2),
-                  withReddot:
-                      numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
-                ),
-              ),
-              onTap: () {
-                injector<NavigationService>()
-                    .navigateTo(AppRouter.supportCustomerPage);
+              ],
+              onMoreTap: () {
+                onMoreTap();
               },
+              moreIcon: SvgPicture.asset(
+                isExpanded
+                    ? 'assets/images/close.svg'
+                    : 'assets/images/icon_drawer.svg',
+                width: 22,
+                colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack,
+                  BlendMode.srcIn,
+                ),
+              ), // Pass the dynamic icon here
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget thumbnailBuilder(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: tokenGalleryThumbnailWidget(
+        context,
+        assetToken,
+        65,
+        useHero: false,
+      ),
+    );
+  }
+
+  Widget titleBuilder(BuildContext context, String? artistTitle) {
+    final theme = Theme.of(context);
+    return RichText(
+      text: TextSpan(
+        children: [
+          if (artistTitle != null)
+            TextSpan(
+              text: artistTitle,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                decoration: TextDecoration.underline,
+                decorationColor: AppColor.primaryBlack,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  if (assetToken.isFeralfile) {
+                    injector<NavigationService>().openFeralFileArtistPage(
+                      assetToken.artistID!,
+                    );
+                  } else {
+                    final uri = Uri.parse(
+                      assetToken.artistURL?.split(' & ').firstOrNull ?? '',
+                    );
+                    injector<NavigationService>().openUrl(uri);
+                  }
+                },
             ),
-          ],
+          if (artistTitle != null)
+            TextSpan(
+              text: ', ',
+              style: theme.textTheme.ppMori400Black14,
+            ),
+          TextSpan(
+            text: assetToken.displayTitle,
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+class DP1NowDisplayingView extends StatelessWidget {
+  const DP1NowDisplayingView(this.object, {super.key});
+
+  final DP1NowDisplayingObject object;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final assetToken = object.assetToken;
+    final device = BluetoothDeviceManager().castingBluetoothDevice;
+    return ExpandableNowDisplayingView(
+      headerBuilder: (onMoreTap, isExpanded) {
+        return NowDisplayingView(
           thumbnailBuilder: (context) {
+            if (assetToken != null) {
+              return AspectRatio(
+                aspectRatio: 1,
+                child: tokenGalleryThumbnailWidget(
+                  context,
+                  CompactedAssetToken.fromAssetToken(assetToken),
+                  65,
+                  useHero: false,
+                ),
+              );
+            }
             return AspectRatio(
               aspectRatio: 1,
-              child: tokenGalleryThumbnailWidget(
-                context,
-                assetToken,
-                65,
-                useHero: false,
+              child: Container(
+                color: AppColor.auLightGrey,
               ),
             );
           },
           titleBuilder: (context) {
-            return RichText(
-              text: TextSpan(
-                children: [
-                  if (artistTitle != null)
-                    TextSpan(
-                      text: artistTitle,
-                      style: theme.textTheme.ppMori400Black14.copyWith(
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColor.primaryBlack,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          if (assetToken.isFeralfile) {
-                            injector<NavigationService>()
-                                .openFeralFileArtistPage(
-                              assetToken.artistID!,
-                            );
-                          } else {
-                            final uri = Uri.parse(
-                              assetToken.artistURL?.split(' & ').firstOrNull ??
-                                  '',
-                            );
-                            injector<NavigationService>().openUrl(uri);
-                          }
-                        },
-                    ),
-                  if (artistTitle != null)
-                    TextSpan(
-                      text: ', ',
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                  TextSpan(
-                    text: assetToken.displayTitle,
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                ],
-              ),
-              maxLines: 1,
+            final title = assetToken?.title ?? '';
+            return Text(
+              title,
+              style: theme.textTheme.ppMori400Black14,
               overflow: TextOverflow.ellipsis,
             );
           },
+          onMoreTap: () {
+            onMoreTap();
+          },
+          moreIcon: SvgPicture.asset(
+            isExpanded
+                ? 'assets/images/close.svg'
+                : 'assets/images/icon_drawer.svg',
+            width: 22,
+            colorFilter: const ColorFilter.mode(
+              AppColor.primaryBlack,
+              BlendMode.srcIn,
+            ),
+          ),
           customAction: [
             if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
                 (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
@@ -397,143 +405,6 @@ class TokenNowDisplayingView extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class DP1NowDisplayingView extends StatelessWidget {
-  const DP1NowDisplayingView(this.object, {super.key});
-
-  final DP1NowDisplayingObject object;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final assetToken = object.assetToken;
-    final device = BluetoothDeviceManager().castingBluetoothDevice;
-    return ExpandableNowDisplayingView(
-      device: device,
-      options: [
-        // scan
-        OptionItem(
-          title: 'scan'.tr(),
-          icon: const Icon(
-            AuIcon.scan,
-          ),
-          onTap: () {
-            injector<NavigationService>().navigateTo(
-              AppRouter.scanQRPage,
-              arguments:
-                  const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
-            );
-          },
-        ),
-        if (injector<AuthService>().isBetaTester() &&
-            BluetoothDeviceManager().castingBluetoothDevice != null)
-          // FF-X1 Setting
-          OptionItem(
-            title: 'FF1 Settings',
-            icon: SvgPicture.asset('assets/images/portal_setting.svg'),
-            onTap: () {
-              injector<NavigationService>().navigateTo(
-                  AppRouter.bluetoothConnectedDeviceConfig,
-                  arguments: BluetoothConnectedDeviceConfigPayload());
-            },
-          ),
-        // account
-        OptionItem(
-          title: 'wallet'.tr(),
-          icon: const Icon(
-            AuIcon.wallet,
-          ),
-          onTap: () {
-            injector<NavigationService>().navigateTo(AppRouter.walletPage);
-          },
-        ),
-        OptionItem(
-          title: 'App Settings',
-          icon: const Icon(
-            AuIcon.settings,
-          ),
-          onTap: () {
-            injector<NavigationService>().navigateTo(AppRouter.settingsPage);
-          },
-        ),
-        // help
-        OptionItem(
-          title: 'help'.tr(),
-          icon: ValueListenableBuilder<List<int>?>(
-            valueListenable:
-                injector<CustomerSupportService>().numberOfIssuesInfo,
-            builder: (
-              BuildContext context,
-              List<int>? numberOfIssuesInfo,
-              Widget? child,
-            ) =>
-                iconWithRedDot(
-              icon: const Icon(
-                AuIcon.help,
-              ),
-              padding: const EdgeInsets.only(right: 2, top: 2),
-              withReddot:
-                  numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
-            ),
-          ),
-          onTap: () {
-            injector<NavigationService>()
-                .navigateTo(AppRouter.supportCustomerPage);
-          },
-        ),
-      ],
-      // onMoreTap: () {
-      //   injector<NavigationService>().showDeviceSettings(
-      //     tokenId: playlistItem.indexId,
-      //     artistName: playlistItem.title,
-      //   );
-      // },
-      thumbnailBuilder: (context) {
-        if (assetToken != null) {
-          return AspectRatio(
-            aspectRatio: 1,
-            child: tokenGalleryThumbnailWidget(
-              context,
-              CompactedAssetToken.fromAssetToken(assetToken),
-              65,
-              useHero: false,
-            ),
-          );
-        }
-        return AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            color: AppColor.auLightGrey,
-          ),
-        );
-      },
-      titleBuilder: (context) {
-        final title = assetToken?.title ?? '';
-        return Text(
-          title,
-          style: theme.textTheme.ppMori400Black14,
-          overflow: TextOverflow.ellipsis,
-        );
-      },
-      customAction: [
-        if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
-            (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
-                    .settings
-                    .name ==
-                AppRouter.homePage)
-          GestureDetector(
-            child: SvgPicture.asset('assets/images/run.svg'),
-            onTap: () {
-              chatModeNotifier.value = !chatModeNotifier.value;
-              // injector<RecordBloc>().add(
-              //   ResetPlaylistEvent(),
-              // );
-            },
-          ),
-      ],
     );
   }
 }
@@ -621,6 +492,70 @@ class NowDisplayingView extends StatelessWidget {
   }
 }
 
+class CustomNowDisplayingView extends StatelessWidget {
+  const CustomNowDisplayingView({
+    required this.builder,
+    this.onMoreTap,
+    this.device,
+    super.key,
+    this.customAction = const [],
+    this.moreIcon, // Added parameter for custom icon
+  });
+
+  final Widget Function(BuildContext) builder;
+  final BaseDevice? device;
+  final void Function()? onMoreTap;
+  final List<Widget> customAction;
+  final Widget? moreIcon; // Declare the new parameter
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      constraints: const BoxConstraints(
+        maxHeight: kNowDisplayingHeight,
+        minHeight: kNowDisplayingHeight,
+      ),
+      decoration: BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: builder(context),
+          ),
+          const SizedBox(width: 10),
+          ...customAction
+              .map(
+                (action) => [
+                  const SizedBox(width: 10),
+                  action,
+                ],
+              )
+              .flattened,
+          if (onMoreTap != null)
+            IconButton(
+              onPressed: () {
+                onMoreTap?.call();
+              },
+              icon: moreIcon ??
+                  SvgPicture.asset(
+                    'assets/images/icon_drawer.svg',
+                    width: 22,
+                    colorFilter: const ColorFilter.mode(
+                      AppColor.primaryBlack,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class NowDisplayingStatusView extends StatelessWidget {
   const NowDisplayingStatusView({required this.status, super.key});
 
@@ -628,37 +563,58 @@ class NowDisplayingStatusView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10),
-      constraints: const BoxConstraints(
-        maxHeight: kNowDisplayingHeight,
-        minHeight: kNowDisplayingHeight,
-      ),
-      decoration: BoxDecoration(
-        color: AppColor.auLightGrey,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(
-              status,
-              style: Theme.of(context).textTheme.ppMori400Black14,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+    return ExpandableNowDisplayingView(
+      headerBuilder: (onMoreTap, isExpanded) {
+        return CustomNowDisplayingView(
+          builder: (context) {
+            return Container(
+              constraints: const BoxConstraints(
+                maxHeight: kNowDisplayingHeight,
+                minHeight: kNowDisplayingHeight,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    status,
+                    style: Theme.of(context).textTheme.ppMori400Black14,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          },
+          onMoreTap: () {
+            onMoreTap();
+          },
+          moreIcon: SvgPicture.asset(
+            isExpanded
+                ? 'assets/images/close.svg'
+                : 'assets/images/icon_drawer.svg',
+            width: 22,
+            colorFilter: const ColorFilter.mode(
+              AppColor.primaryBlack,
+              BlendMode.srcIn,
             ),
           ),
-          IconButton(
-            onPressed: () => shouldShowNowDisplayingOnDisconnect.value = false,
-            icon: SvgPicture.asset(
-              'assets/images/closeCycle.svg',
-              width: 22,
-              height: 22,
-            ),
-          ),
-        ],
-      ),
+          customAction: [
+            if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+                (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                        .settings
+                        .name ==
+                    AppRouter.homePage)
+              GestureDetector(
+                child: SvgPicture.asset('assets/images/run.svg'),
+                onTap: () {
+                  chatModeNotifier.value = !chatModeNotifier.value;
+                  // injector<RecordBloc>().add(
+                  //   ResetPlaylistEvent(),
+                  // );
+                },
+              ),
+          ],
+        );
+      },
     );
   }
 }

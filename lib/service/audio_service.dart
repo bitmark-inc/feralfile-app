@@ -93,6 +93,7 @@ enum AudioExceptionType {
   recordingFailed,
   fileNotFound,
   noSpeech,
+  failedToParseCommand,
   unknown;
 
   String get message {
@@ -105,6 +106,8 @@ enum AudioExceptionType {
         return 'Recorded file not found';
       case AudioExceptionType.noSpeech:
         return 'No speech detected';
+      case AudioExceptionType.failedToParseCommand:
+        return "Didn't quite get that. Could you ask again how I can help you live with art?";
       case AudioExceptionType.unknown:
       default:
         return 'An unknown error occurred';
@@ -150,5 +153,11 @@ class AudioRecorderNotOpenedException implements AudioException {
 
 class AudioRecordNoSpeechException implements AudioException {
   @override
-  String get message => 'No speech detected';
+  String get message => AudioExceptionType.noSpeech.message;
+}
+
+//Failed to parse and validate command
+class AudioFailedToParseCommandException implements AudioException {
+  @override
+  String get message => AudioExceptionType.failedToParseCommand.message;
 }

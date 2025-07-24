@@ -32,7 +32,9 @@ class AiChatViewWidget extends StatefulWidget {
 
 class _AiChatViewWidgetState extends State<AiChatViewWidget> {
   final TextEditingController _textController = TextEditingController()
-    ..text = kDebugMode ? 'Display random works' : '';
+    ..text = kDebugMode
+        ? 'Please show 5 film by Aaron Penne and Aaron Penne x Boreta and Alexis André'
+        : '';
   String _sendIcon = 'assets/images/sendMessage.svg';
 
   late final List<types.Message>

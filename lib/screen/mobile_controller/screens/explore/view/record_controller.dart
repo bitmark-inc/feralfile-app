@@ -127,9 +127,6 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                           } else if (state is RecordErrorState) {
                             if (state.error is AudioPermissionDeniedException) {
                               return _noPermissionWidget(context);
-                            } else if (state.error
-                                is AudioRecordNoSpeechException) {
-                              return _noSpeechWidget(context);
                             } else if (state.error is AudioException) {
                               return _errorWidget(
                                 context,
@@ -279,28 +276,13 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
     );
   }
 
-  // AudioRecordNoSpeechException
-  Widget _noSpeechWidget(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          AudioExceptionType.noSpeech.message,
-          style: Theme.of(context).textTheme.ppMori400White12,
-        ),
-      ],
-    );
-  }
-
   Widget _errorWidget(BuildContext context, AudioException error) {
     return Center(
       child: Text(
         error.message,
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context)
-            .textTheme
-            .ppMori400Black14
-            .copyWith(color: Colors.red),
+        style: Theme.of(context).textTheme.ppMori400White12,
       ),
     );
   }
