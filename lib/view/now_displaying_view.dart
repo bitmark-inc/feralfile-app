@@ -246,13 +246,86 @@ class TokenNowDisplayingView extends StatelessWidget {
         final artistTitle =
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
-        return NowDisplayingView(
-          onMoreTap: () {
-            injector<NavigationService>().showDeviceSettings(
-              tokenId: assetToken.id,
-              artistName: artistTitle,
-            );
-          },
+        return ExpandableNowDisplayingView(
+          // onMoreTap: () {
+          //   injector<NavigationService>().showDeviceSettings(
+          //     tokenId: assetToken.id,
+          //     artistName: artistTitle,
+          //   );
+          // },
+          options: [
+            // scan
+            OptionItem(
+              title: 'scan'.tr(),
+              icon: const Icon(
+                AuIcon.scan,
+              ),
+              onTap: () {
+                injector<NavigationService>().navigateTo(
+                  AppRouter.scanQRPage,
+                  arguments:
+                      const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
+                );
+              },
+            ),
+            if (injector<AuthService>().isBetaTester() &&
+                BluetoothDeviceManager().castingBluetoothDevice != null)
+              // FF-X1 Setting
+              OptionItem(
+                title: 'FF1 Settings',
+                icon: SvgPicture.asset('assets/images/portal_setting.svg'),
+                onTap: () {
+                  injector<NavigationService>().navigateTo(
+                      AppRouter.bluetoothConnectedDeviceConfig,
+                      arguments: BluetoothConnectedDeviceConfigPayload());
+                },
+              ),
+            // account
+            OptionItem(
+              title: 'wallet'.tr(),
+              icon: const Icon(
+                AuIcon.wallet,
+              ),
+              onTap: () {
+                injector<NavigationService>().navigateTo(AppRouter.walletPage);
+              },
+            ),
+            OptionItem(
+              title: 'App Settings',
+              icon: const Icon(
+                AuIcon.settings,
+              ),
+              onTap: () {
+                injector<NavigationService>()
+                    .navigateTo(AppRouter.settingsPage);
+              },
+            ),
+            // help
+            OptionItem(
+              title: 'help'.tr(),
+              icon: ValueListenableBuilder<List<int>?>(
+                valueListenable:
+                    injector<CustomerSupportService>().numberOfIssuesInfo,
+                builder: (
+                  BuildContext context,
+                  List<int>? numberOfIssuesInfo,
+                  Widget? child,
+                ) =>
+                    iconWithRedDot(
+                  icon: const Icon(
+                    AuIcon.help,
+                  ),
+                  padding: const EdgeInsets.only(right: 2, top: 2),
+                  withReddot:
+                      numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+                ),
+              ),
+              onTap: () {
+                injector<NavigationService>()
+                    .navigateTo(AppRouter.supportCustomerPage);
+              },
+            ),
+          ],
           thumbnailBuilder: (context) {
             return AspectRatio(
               aspectRatio: 1,
@@ -306,6 +379,22 @@ class TokenNowDisplayingView extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             );
           },
+          customAction: [
+            if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+                (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                        .settings
+                        .name ==
+                    AppRouter.homePage)
+              GestureDetector(
+                child: SvgPicture.asset('assets/images/run.svg'),
+                onTap: () {
+                  chatModeNotifier.value = !chatModeNotifier.value;
+                  // injector<RecordBloc>().add(
+                  //   ResetPlaylistEvent(),
+                  // );
+                },
+              ),
+          ],
         );
       },
     );
@@ -320,7 +409,6 @@ class DP1NowDisplayingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final playlistItem = object.playlistItem;
     final assetToken = object.assetToken;
     final device = BluetoothDeviceManager().castingBluetoothDevice;
     return ExpandableNowDisplayingView(
