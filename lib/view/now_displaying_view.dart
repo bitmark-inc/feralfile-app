@@ -345,9 +345,7 @@ class DP1NowDisplayingView extends StatelessWidget {
           // FF-X1 Setting
           OptionItem(
             title: 'FF1 Settings',
-            icon: const Icon(
-              AuIcon.settings,
-            ),
+            icon: SvgPicture.asset('assets/images/portal_setting.svg'),
             onTap: () {
               injector<NavigationService>().navigateTo(
                   AppRouter.bluetoothConnectedDeviceConfig,
@@ -370,7 +368,7 @@ class DP1NowDisplayingView extends StatelessWidget {
             AuIcon.settings,
           ),
           onTap: () {
-            Navigator.of(context).pushNamed(AppRouter.settingsPage);
+            injector<NavigationService>().navigateTo(AppRouter.settingsPage);
           },
         ),
         // help
