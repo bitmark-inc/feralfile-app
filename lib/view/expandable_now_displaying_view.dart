@@ -30,12 +30,55 @@ class ExpandableNowDisplayingView extends StatefulWidget {
 }
 
 class _ExpandableNowDisplayingViewState
-    extends State<ExpandableNowDisplayingView> {
+    extends State<ExpandableNowDisplayingView>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _heightAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _heightAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
         valueListenable: isNowDisplayingExpanded,
         builder: (context, value, child) {
+          // Start animation when expanded state changes
+          if (value) {
+            _animationController.forward();
+          } else {
+            _animationController.reverse();
+          }
+
           return Container(
             decoration: BoxDecoration(
               color: AppColor.white,
@@ -65,28 +108,49 @@ class _ExpandableNowDisplayingViewState
                     ),
                   ), // Pass the dynamic icon here
                 ),
-                if (value)
-                  ListView.separated(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (BuildContext context, int index) {
-                      final option = widget.options[index];
-                      if (option.builder != null) {
-                        return option.builder!.call(context, option);
-                      }
-                      return DrawerItem(
-                        item: option,
-                        color: AppColor.primaryBlack,
-                      );
-                    },
-                    itemCount: widget.options.length,
-                    separatorBuilder: (context, index) => const Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: AppColor.primaryBlack,
-                    ),
-                  ),
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeInOut,
+                      height: _heightAnimation.value *
+                          (widget.options.length *
+                              60.0), // Approximate height for each option
+                      child: SingleChildScrollView(
+                        child: Opacity(
+                          opacity: _opacityAnimation.value,
+                          child: value
+                              ? ListView.separated(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    final option = widget.options[index];
+                                    if (option.builder != null) {
+                                      return option.builder!
+                                          .call(context, option);
+                                    }
+                                    return DrawerItem(
+                                      item: option,
+                                      color: AppColor.primaryBlack,
+                                    );
+                                  },
+                                  itemCount: widget.options.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                    color: AppColor.primaryBlack,
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           );

@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
+import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -377,6 +378,17 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         child: Stack(
           children: [
             widget.child,
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  if (_isVisible) {
+                    isNowDisplayingExpanded.value = false;
+                  }
+                },
+                child: Container(), // Transparent area
+              ),
+            ),
             ValueListenableBuilder(
               valueListenable: CustomRouteObserver.bottomSheetHeight,
               builder: (context, bottomSheetHeight, child) {
