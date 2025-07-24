@@ -378,15 +378,28 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         child: Stack(
           children: [
             widget.child,
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  if (_isVisible) {
-                    isNowDisplayingExpanded.value = false;
-                  }
-                },
-                child: Container(), // Transparent area
+            ValueListenableBuilder(
+              valueListenable: isNowDisplayingExpanded,
+              builder: (
+                context,
+                isExpanded,
+                child,
+              ) {
+                if (isExpanded) {
+                  return child ?? SizedBox();
+                }
+                return SizedBox();
+              },
+              child: Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () {
+                    if (_isVisible) {
+                      isNowDisplayingExpanded.value = false;
+                    }
+                  },
+                  child: Container(), // Transparent area
+                ),
               ),
             ),
             ValueListenableBuilder(
