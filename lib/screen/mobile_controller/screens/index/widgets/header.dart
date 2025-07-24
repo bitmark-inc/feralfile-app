@@ -6,7 +6,6 @@ const List<String> pageTitles = [
   'Playlists',
   'Channels',
   'Works',
-  'Collection'
 ];
 
 class HeaderWidget extends StatelessWidget {
@@ -15,6 +14,7 @@ class HeaderWidget extends StatelessWidget {
     required this.onPageChanged,
     super.key,
   });
+
   final int selectedIndex;
   final void Function(int) onPageChanged;
 
