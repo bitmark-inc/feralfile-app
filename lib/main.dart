@@ -345,6 +345,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
       if (scrollDelta > 10) {
         nowDisplayingVisibility.value = false;
+        isNowDisplayingExpanded.value = false;
       } else if (scrollDelta < -10) {
         nowDisplayingVisibility.value = true;
       }
