@@ -151,6 +151,10 @@ class _ExpandableNowDisplayingViewState
 
   @override
   Widget build(BuildContext context) {
+    final divider = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: addOnlyDivider(color: AppColor.auLightGrey),
+    );
     return ValueListenableBuilder(
         valueListenable: isNowDisplayingExpanded,
         builder: (context, value, child) {
@@ -174,6 +178,7 @@ class _ExpandableNowDisplayingViewState
                     isNowDisplayingExpanded.value = !value;
                   });
                 }, isNowDisplayingExpanded.value),
+                divider,
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {
@@ -182,7 +187,7 @@ class _ExpandableNowDisplayingViewState
                       curve: Curves.easeInOut,
                       height: _heightAnimation.value *
                           (widget.options.length *
-                              60.0), // Approximate height for each option
+                              56.0), // Approximate height for each option
                       child: SingleChildScrollView(
                         child: Opacity(
                           opacity: _opacityAnimation.value,
@@ -201,15 +206,14 @@ class _ExpandableNowDisplayingViewState
                                     return DrawerItem(
                                       item: option,
                                       color: AppColor.primaryBlack,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16.0,
+                                        horizontal: 10.0,
+                                      ),
                                     );
                                   },
                                   itemCount: widget.options.length,
-                                  separatorBuilder: (context, index) =>
-                                      const Divider(
-                                    height: 1,
-                                    thickness: 1,
-                                    color: AppColor.primaryBlack,
-                                  ),
+                                  separatorBuilder: (context, index) => divider,
                                 )
                               : const SizedBox.shrink(),
                         ),

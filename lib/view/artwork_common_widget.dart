@@ -6,6 +6,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -40,8 +42,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -1418,10 +1418,12 @@ class DrawerItem extends StatefulWidget {
     required this.item,
     this.color,
     super.key,
+    this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 13),
   });
 
   final OptionItem item;
   final Color? color;
+  final EdgeInsets padding;
 
   @override
   State<DrawerItem> createState() => _DrawerItemState();
@@ -1462,10 +1464,7 @@ class _DrawerItemState extends State<DrawerItem> {
       color: Colors.transparent,
       width: MediaQuery.of(context).size.width,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 13,
-        ),
+        padding: widget.padding,
         child: Row(
           children: [
             if (icon != null) ...[

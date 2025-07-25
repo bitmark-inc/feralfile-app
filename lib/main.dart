@@ -312,6 +312,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplayingOnDisconnect
         .addListener(_updateAnimationBasedOnDisplayState);
     nowDisplayingVisibility.addListener(_updateAnimationBasedOnDisplayState);
+    CustomRouteObserver.bottomSheetHeight
+        .addListener(_updateAnimationBasedOnDisplayState);
     _nowDisplayingStreamSubscription =
         NowDisplayingManager().nowDisplayingStream.listen((_) {
       _updateAnimationBasedOnDisplayState();
@@ -321,7 +323,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   void _updateAnimationBasedOnDisplayState() {
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
-        nowDisplayingVisibility.value;
+        nowDisplayingVisibility.value &&
+        CustomRouteObserver.bottomSheetHeight.value == 0;
     nowDisplayingShowing.value = shouldShow;
     if (nowDisplayingShowing.value) {
       _animationController.forward();
@@ -340,12 +343,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
       final currentScroll = notification.metrics.pixels;
       final scrollDelta = currentScroll - _lastScrollPosition;
 
-      if (scrollDelta > 10 && _isVisible) {
+      if (scrollDelta > 10) {
         nowDisplayingVisibility.value = false;
-        setState(() => _isVisible = false);
-      } else if (scrollDelta < -10 && !_isVisible) {
+      } else if (scrollDelta < -10) {
         nowDisplayingVisibility.value = true;
-        setState(() => _isVisible = true);
       }
 
       _lastScrollPosition = currentScroll;
@@ -359,6 +360,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplayingOnDisconnect
         .removeListener(_updateAnimationBasedOnDisplayState);
     nowDisplayingVisibility.removeListener(_updateAnimationBasedOnDisplayState);
+    CustomRouteObserver.bottomSheetHeight
+        .removeListener(_updateAnimationBasedOnDisplayState);
     _nowDisplayingStreamSubscription?.cancel();
     _animationController.dispose();
     super.dispose();
@@ -401,41 +404,45 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                 ),
               ),
             ),
-            ValueListenableBuilder(
-              valueListenable: CustomRouteObserver.bottomSheetHeight,
-              builder: (context, bottomSheetHeight, child) {
-                return AnimatedPositioned(
-                  duration: const Duration(milliseconds: 150),
-                  bottom: bottomSheetHeight > 0
-                      ? 10 + bottomSheetHeight
-                      : kStatusBarMarginBottom,
-                  left: 10,
-                  right: 10,
-                  child: FadeTransition(
-                    opacity: _animationController,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(
-                          0,
-                          kStatusBarMarginBottom / kNowDisplayingHeight,
+            Visibility(
+              visible: _isVisible,
+              replacement: const SizedBox.shrink(),
+              child: ValueListenableBuilder(
+                valueListenable: CustomRouteObserver.bottomSheetHeight,
+                builder: (context, bottomSheetHeight, child) {
+                  return AnimatedPositioned(
+                    duration: const Duration(milliseconds: 150),
+                    bottom: bottomSheetHeight > 0
+                        ? 10 + bottomSheetHeight
+                        : kStatusBarMarginBottom,
+                    left: 10,
+                    right: 10,
+                    child: FadeTransition(
+                      opacity: _animationController,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(
+                            0,
+                            kStatusBarMarginBottom / kNowDisplayingHeight,
+                          ),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _animationController,
+                            curve: Curves.easeInOut,
+                          ),
                         ),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: _animationController,
-                          curve: Curves.easeInOut,
-                        ),
-                      ),
-                      child: IgnorePointer(
-                        ignoring: !_isVisible,
-                        child: NowDisplaying(
-                          key: GlobalKey(),
+                        child: IgnorePointer(
+                          ignoring: !_isVisible,
+                          child: NowDisplaying(
+                            key: GlobalKey(),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ],
         ),
