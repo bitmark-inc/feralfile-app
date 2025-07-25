@@ -38,6 +38,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -374,14 +375,16 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         child: Stack(
           children: [
             widget.child,
-            ValueListenableBuilder(
-              valueListenable: isNowDisplayingExpanded,
+            MultiValueListenableBuilder(
+              valueListenables: [isNowDisplayingExpanded, nowDisplayingShowing],
               builder: (
                 context,
-                isExpanded,
+                values,
                 child,
               ) {
-                if (isExpanded) {
+                final isExpanded = values[0] as bool;
+                final isNowDisplaying = values[1] as bool;
+                if (isExpanded && isNowDisplaying) {
                   return child ?? const SizedBox();
                 }
                 return const SizedBox();

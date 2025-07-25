@@ -132,9 +132,18 @@ Future<void> setupHomeWidgetInjector() async {
       injector(),
     ),
   );
+
+  injector.registerLazySingleton<ArtblocksClient>(
+    ArtblocksClient.new,
+  );
+
+  injector.registerLazySingleton<ArtBlockService>(
+    () => ArtBlockService(injector<ArtblocksClient>()),
+  );
+
   final indexerClient = IndexerClient(Environment.indexerURL);
   injector.registerLazySingleton<NftIndexerService>(
-    () => NftIndexerService(indexerClient, injector()),
+    () => NftIndexerService(indexerClient, injector(), injector()),
   );
   injector.registerLazySingleton<RemoteConfigService>(
     () => RemoteConfigServiceImpl(
@@ -355,9 +364,17 @@ Future<void> setupInjector() async {
     () => IndexerApi(dio, baseUrl: Environment.indexerURL),
   );
 
+  injector.registerLazySingleton<ArtblocksClient>(
+    ArtblocksClient.new,
+  );
+
+  injector.registerLazySingleton<ArtBlockService>(
+    () => ArtBlockService(injector<ArtblocksClient>()),
+  );
+
   final indexerClient = IndexerClient(Environment.indexerURL);
   injector.registerLazySingleton<NftIndexerService>(
-    () => NftIndexerService(indexerClient, injector()),
+    () => NftIndexerService(indexerClient, injector(), injector()),
   );
 
   injector
@@ -447,6 +464,7 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<CloudManager>(CloudManager.new);
+  await injector<CloudManager>().init();
 
   injector.registerLazySingleton<ListPlaylistBloc>(ListPlaylistBloc.new);
 
@@ -513,13 +531,5 @@ Future<void> setupInjector() async {
       injector(),
       injector(),
     ),
-  );
-
-  injector.registerLazySingleton<ArtblocksClient>(
-    ArtblocksClient.new,
-  );
-
-  injector.registerLazySingleton<ArtBlockService>(
-    () => ArtBlockService(injector<ArtblocksClient>()),
   );
 }

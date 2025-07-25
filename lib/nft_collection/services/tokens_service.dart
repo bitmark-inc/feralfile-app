@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/clients/artblocks_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset.dart';
@@ -20,6 +21,7 @@ import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_collection/models/token.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/artblocks_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/configuration_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/utils/logging_interceptor.dart';
@@ -62,7 +64,10 @@ class NftTokensServiceImpl extends NftTokensService {
     dio ??= Dio()..interceptors.add(LoggingInterceptor());
     _indexer = IndexerApi(dio, baseUrl: _indexerUrl);
     final indexerClient = IndexerClient(_indexerUrl);
-    _indexerService = NftIndexerService(indexerClient, _indexer);
+    final artblocksClient = ArtblocksClient();
+    final artBlockService = ArtBlockService(artblocksClient);
+    _indexerService =
+        NftIndexerService(indexerClient, _indexer, artBlockService);
   }
 
   final String _indexerUrl;
@@ -323,11 +328,14 @@ class NftTokensServiceImpl extends NftTokensService {
     _isolateScopeInjector
         .registerLazySingleton(() => IndexerApi(dio, baseUrl: indexerUrl));
     final indexerClient = IndexerClient(indexerUrl);
+    final artblocksClient = ArtblocksClient();
+    final artBlockService = ArtBlockService(artblocksClient);
     _isolateScopeInjector
       ..registerLazySingleton(() => indexerClient)
+      ..registerLazySingleton(() => artBlockService)
       ..registerLazySingleton(
-        () => NftIndexerService(
-            indexerClient, _isolateScopeInjector<IndexerApi>()),
+        () => NftIndexerService(indexerClient,
+            _isolateScopeInjector<IndexerApi>(), artBlockService),
       )
       ..registerLazySingleton(() => TZKTApi(dio));
   }

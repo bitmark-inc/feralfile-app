@@ -11,7 +11,8 @@ import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/art
 import 'package:autonomy_flutter/widgetbook/mock_data/mock_asset_token.dart';
 
 class MockIndexerService extends NftIndexerService {
-  MockIndexerService(super.indexerClient, super.indexerApi);
+  MockIndexerService(
+      super.indexerClient, super.indexerApi, super.artBlockService);
 
   @override
   Future<List<AssetToken>> getNftTokens(QueryListTokensRequest request) async {

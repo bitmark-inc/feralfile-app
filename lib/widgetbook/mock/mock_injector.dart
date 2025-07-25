@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/nft_collection/database/dao/predefined_collecti
 import 'package:autonomy_flutter/nft_collection/database/nft_collection_database.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/artblocks_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/configuration_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
@@ -155,6 +156,13 @@ class MockInjector {
       );
     }
 
+    // artblocks service
+    if (!injector.isRegistered<ArtBlockService>()) {
+      injector.registerLazySingleton<ArtBlockService>(
+        () => ArtBlockService(injector.get()),
+      );
+    }
+
     // indexer service
     if (!injector.isRegistered<IndexerClient>()) {
       injector.registerLazySingleton<IndexerClient>(MockIndexerClient.new);
@@ -164,7 +172,8 @@ class MockInjector {
     }
     if (!injector.isRegistered<NftIndexerService>()) {
       injector.registerLazySingleton<NftIndexerService>(
-        () => MockIndexerService(injector.get(), injector.get()),
+        () =>
+            MockIndexerService(injector.get(), injector.get(), injector.get()),
       );
     }
 

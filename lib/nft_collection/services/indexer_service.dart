@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_collection.dart';
@@ -16,10 +15,11 @@ import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
 class NftIndexerService {
-  NftIndexerService(this._client, this._indexerApi);
+  NftIndexerService(this._client, this._indexerApi, this._artBlockService);
 
   final IndexerClient _client;
   final IndexerApi _indexerApi;
+  final ArtBlockService _artBlockService;
 
   Future<List<AssetToken>> getNftTokens(QueryListTokensRequest request) async {
     final vars = request.toJson();
@@ -50,7 +50,7 @@ class NftIndexerService {
         newAssetTokens.add(assetToken);
         continue;
       }
-      final artblockArtist = await injector<ArtBlockService>().getArtistByToken(
+      final artblockArtist = await _artBlockService.getArtistByToken(
           contractAddress: assetToken.contractAddress!.toLowerCase(),
           tokenId: assetToken.tokenId!);
       if (artblockArtist == null) {
