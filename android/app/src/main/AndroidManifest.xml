@@ -146,6 +146,17 @@
                 <data android:scheme="feralfile" />
             </intent-filter>
 
+            <!-- Branch App Links -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="link.feralfile.com"
+                    android:scheme="https" />
+            </intent-filter>
             <!-- Home widget -->
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.LAUNCH" />
