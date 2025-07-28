@@ -176,9 +176,8 @@ enum DP1ProvenanceStandard {
       case 'fa2':
         return DP1ProvenanceStandard.fa2;
       case 'other':
-        return DP1ProvenanceStandard.other;
       default:
-        throw ArgumentError('Unknown provenance standard: $value');
+        return DP1ProvenanceStandard.other;
     }
   }
 
