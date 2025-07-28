@@ -90,7 +90,7 @@ abstract class BaseTvCastService implements TvCastService {
     Duration? timeout,
   });
 
-  Map<String, dynamic> _getBody(Request request) =>
+  Map<String, dynamic> _getBody(FF1Request request) =>
       RequestBody(request).toJson();
 
   @override
@@ -99,69 +99,16 @@ abstract class BaseTvCastService implements TvCastService {
     bool shouldShowError = true,
   }) async {
     try {
-      final result = await _sendData(_getBody(request),
-          shouldShowError: shouldShowError,
-          timeout: const Duration(seconds: 10));
+      final result = await _sendData(
+        _getBody(request),
+        shouldShowError: shouldShowError,
+        timeout: const Duration(seconds: 10),
+      );
       // return _mapStatusReply(result);
       return CheckCastingStatusReply.fromJson(result);
     } catch (e) {
       log.info('Failed to get device status: $e');
       rethrow;
-    }
-  }
-
-  CheckCastingStatusReply _mapStatusReply(
-    Map<String, dynamic> result,
-  ) {
-    final state = result['state'];
-    DeviceInfoV2? connectedDevice;
-    final connectedDeviceJson = state['device'];
-    if (connectedDeviceJson != null) {
-      final deviceName = connectedDeviceJson['name'] as String;
-      final deviceId = connectedDeviceJson['id'] as String;
-      connectedDevice = DeviceInfoV2(
-        deviceId: deviceId,
-        deviceName: deviceName,
-        platform: null,
-      );
-    }
-    if (state['command'] == null) {
-      return CheckCastingStatusReply(
-        artworks: [],
-        connectedDevice: connectedDevice,
-      );
-    }
-    final commandJson = Map<String, dynamic>.from(state['command'] as Map);
-    final commandString = commandJson['Command'] as String;
-    final command = CastCommand.fromString(commandString);
-    log.info('[_mapStatusReply] command: $commandString');
-    switch (command) {
-      case CastCommand.castListArtwork:
-        final request = CastListArtworkRequest.fromJson(commandJson);
-        return CheckCastingStatusReply(
-          artworks: request.artworks,
-          connectedDevice: connectedDevice,
-        );
-      case CastCommand.castDaily:
-        return CheckCastingStatusReply(
-          artworks: [],
-          connectedDevice: connectedDevice,
-          displayKey: CastDailyWorkRequest.displayKey,
-        );
-      case CastCommand.castExhibition:
-        final request = CastExhibitionRequest.fromJson(commandJson);
-        return CheckCastingStatusReply(
-          artworks: [],
-          connectedDevice: connectedDevice,
-          exhibitionId: request.exhibitionId,
-          catalog: request.catalog,
-          catalogId: request.catalogId,
-        );
-      default:
-        return CheckCastingStatusReply(
-          artworks: [],
-          connectedDevice: connectedDevice,
-        );
     }
   }
 
@@ -412,7 +359,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request) async {
     await BluetoothDeviceManager().switchDevice(_device);
     final res = await _sendData(
-      request.toJson(),
+      RequestBody(request).toJson(),
       shouldShowError: false,
       timeout: const Duration(seconds: 10),
     );
