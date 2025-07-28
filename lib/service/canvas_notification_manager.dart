@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_notification_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
-import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -290,11 +289,6 @@ class CanvasNotificationManager {
           injector<CanvasDeviceBloc>().add(
             CanvasDeviceUpdateConnectionEvent(device, isConnected),
           );
-
-        case RelayerNotificationType.systemMetrics:
-          final message = notification.message;
-          final metrics = DeviceRealtimeMetrics.fromJson(message);
-          DeviceRealtimeMetricHelper().addMetrics(device, metrics);
       }
     } catch (e, stackTrace) {
       log.warning(

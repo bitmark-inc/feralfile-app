@@ -25,7 +25,6 @@ enum RelayerMessageType {
 
 enum RelayerNotificationType {
   status,
-  systemMetrics,
   deviceStatus,
   connection;
 
@@ -33,8 +32,6 @@ enum RelayerNotificationType {
     switch (this) {
       case RelayerNotificationType.status:
         return 'player_status';
-      case RelayerNotificationType.systemMetrics:
-        return 'system_metrics';
       case RelayerNotificationType.deviceStatus:
         return 'device_status';
       case RelayerNotificationType.connection:
@@ -46,8 +43,6 @@ enum RelayerNotificationType {
     switch (value) {
       case 'player_status':
         return RelayerNotificationType.status;
-      case 'system_metrics':
-        return RelayerNotificationType.systemMetrics;
       case 'device_status':
         return RelayerNotificationType.deviceStatus;
       case 'connection':

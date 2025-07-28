@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -126,6 +127,12 @@ class BluetoothConnectedDeviceConfigState
   late StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
 
   bool _isShowingQRCode = false;
+
+  double _minPerformanceValue = 0.0;
+  double _maxPerformanceValue = 100.0;
+
+  double _minTemperatureValue = 0.0;
+  double _maxTemperatureValue = 100.0;
 
   @override
   void initState() {
@@ -263,116 +270,126 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceConfig(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.zero,
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: MediaQuery.paddingOf(context).top + 32,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _displayOrientation(context),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _canvasSetting(context),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20,
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 1,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _wifiConfig(context),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 1,
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _deviceInfo(context),
-            ),
-          ),
+    return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+      bloc: injector<CanvasDeviceBloc>(),
+      builder: (context, state) {
+        final isBLEDeviceConnected =
+            state.isDeviceAlive(selectedDevice!) && status != null;
+        return Padding(
+          padding: EdgeInsets.zero,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.paddingOf(context).top + 32,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: _displayOrientation(context),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Divider(
+                  color: AppColor.auGreyBackground,
+                  thickness: 1,
+                  height: 40,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: _canvasSetting(context),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 20,
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Divider(
+                  color: AppColor.auGreyBackground,
+                  thickness: 1,
+                  height: 1,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: _wifiConfig(context),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Divider(
+                  color: AppColor.auGreyBackground,
+                  thickness: 1,
+                  height: 1,
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 20,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: _deviceInfo(context),
+                ),
+              ),
 
-          // Add performance monitoring section
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _performanceMonitoring(context),
-            ),
-          ),
+              // Add performance monitoring section
+              const SliverToBoxAdapter(
+                child: Divider(
+                  color: AppColor.auGreyBackground,
+                  thickness: 1,
+                  height: 40,
+                ),
+              ),
+              if (isBLEDeviceConnected) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _performanceMonitoring(context),
+                  ),
+                ),
 
-          // Temperature monitoring section
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _temperatureMonitoring(context),
-            ),
-          ),
+                // Temperature monitoring section
+                const SliverToBoxAdapter(
+                  child: Divider(
+                    color: AppColor.auGreyBackground,
+                    thickness: 1,
+                    height: 40,
+                  ),
+                ),
+              ],
+              if (isBLEDeviceConnected) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _temperatureMonitoring(context),
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: Divider(
+                    color: AppColor.auGreyBackground,
+                    thickness: 1,
+                    height: 40,
+                  ),
+                ),
+              ],
 
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
+              const SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 80,
+                ),
+              ),
+            ],
           ),
-
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 80,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -870,10 +887,8 @@ class BluetoothConnectedDeviceConfigState
   // // Enable metrics streaming from the device
   Future<void> _enableMetricsStreaming() async {
     try {
-      final device = selectedDevice!;
-      log.info('Enabling metrics streaming for device: ${device.name}');
-      _metricsStreamSubscription = DeviceRealtimeMetricHelper()
-          .startMetrics(device)
+      _metricsStreamSubscription = RealtimeMetricsManager()
+          .startRealtimeMetrics()
           .listen(_updateMetricsFromStream);
     } catch (e) {
       log.warning('Failed to enable metrics streaming: $e');
@@ -884,10 +899,7 @@ class BluetoothConnectedDeviceConfigState
   Future<void> _stopMetricsStreaming() async {
     try {
       await _metricsStreamSubscription?.cancel();
-
-      final device = selectedDevice!;
-      log.info('Disabling metrics streaming for device: ${device.name}');
-      DeviceRealtimeMetricHelper().stopMetrics(device);
+      RealtimeMetricsManager().stopRealtimeMetrics();
     } catch (e) {
       log.warning('Failed to disable metrics streaming: $e');
     }
@@ -928,6 +940,43 @@ class BluetoothConnectedDeviceConfigState
         _cpuTempPoints.removeAt(0);
         _gpuTempPoints.removeAt(0);
       }
+
+      // sort points by timestamp
+      _cpuPoints.sort((a, b) => a.x.compareTo(b.x));
+      _memoryPoints.sort((a, b) => a.x.compareTo(b.x));
+      _gpuPoints.sort((a, b) => a.x.compareTo(b.x));
+      _cpuTempPoints.sort((a, b) => a.x.compareTo(b.x));
+      _gpuTempPoints.sort((a, b) => a.x.compareTo(b.x));
+      _fpsPoints.sort((a, b) => a.x.compareTo(b.x));
+
+      final maxPerformanceValue = [
+        ..._cpuPoints.map((e) => e.y),
+        ..._memoryPoints.map((e) => e.y),
+        ..._gpuPoints.map((e) => e.y),
+      ].reduce((a, b) => a > b ? a : b);
+      final minPerformanceValue = [
+        ..._cpuPoints.map((e) => e.y),
+        ..._memoryPoints.map((e) => e.y),
+        ..._gpuPoints.map((e) => e.y),
+      ].reduce((a, b) => a < b ? a : b);
+
+      // _maxTemperatureValue = max of all temperature points
+      final maxTemperatureValue = [
+        ..._cpuTempPoints.map((e) => e.y),
+        ..._gpuTempPoints.map((e) => e.y),
+      ].reduce((a, b) => a > b ? a : b);
+
+      final minTemperatureValue = [
+        ..._cpuTempPoints.map((e) => e.y),
+        ..._gpuTempPoints.map((e) => e.y),
+      ].reduce((a, b) => a < b ? a : b);
+
+      setState(() {
+        _maxPerformanceValue = maxPerformanceValue;
+        _minPerformanceValue = minPerformanceValue;
+        _maxTemperatureValue = maxTemperatureValue;
+        _minTemperatureValue = minTemperatureValue;
+      });
     });
   }
 
@@ -983,8 +1032,8 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: 0,
-                maxY: 100,
+                minY: max(_minPerformanceValue - 10, 0),
+                maxY: min(_maxPerformanceValue + 10, 100),
                 // Percentage values 0-100
                 minX: _cpuPoints.first.x,
                 maxX: _cpuPoints.last.x,
@@ -1162,9 +1211,9 @@ class BluetoothConnectedDeviceConfigState
             padding: const EdgeInsets.all(16),
             child: LineChart(
               LineChartData(
-                minY: 30,
+                minY: _minTemperatureValue - 10,
                 // 30°C = 86°F
-                maxY: 80,
+                maxY: _maxTemperatureValue + 10,
                 // 100°C = 212°F
                 minX: _cpuTempPoints.first.x,
                 maxX: _cpuTempPoints.last.x,
@@ -1317,6 +1366,18 @@ class BluetoothConnectedDeviceConfigState
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
   }
 
+  void resetMetrics() {
+    setState(() {
+      _cpuPoints.clear();
+      _memoryPoints.clear();
+      _gpuPoints.clear();
+      _cpuTempPoints.clear();
+      _gpuTempPoints.clear();
+      _fpsPoints.clear();
+      _latestMetrics = null;
+    });
+  }
+
   Widget _buildDeviceSwitcher(BuildContext context) {
     final pairedDevices = BluetoothDeviceManager.pairedDevices;
 
@@ -1338,6 +1399,8 @@ class BluetoothConnectedDeviceConfigState
         setState(() {
           selectedDevice = device;
         });
+        // Reset metrics when switching devices
+        resetMetrics();
       },
       itemBuilder: (BuildContext context) {
         return pairedDevices.map((FFBluetoothDevice device) {

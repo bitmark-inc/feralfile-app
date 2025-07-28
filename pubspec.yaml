@@ -141,6 +141,7 @@ dependencies:
   golden_toolkit: ^0.15.0
   flutter_sound: ^9.28.0
   octo_image: ^2.1.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   retrofit_generator: ^8.0.0

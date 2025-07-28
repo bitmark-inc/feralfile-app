@@ -403,7 +403,10 @@ AppBar getCustomBackAppBar(
       automaticallyImplyLeading: false,
       centerTitle: true,
       title: title,
-      actions: actions,
+      actions: actions
+        ..add(
+          SizedBox(width: 16),
+        ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(0.25),
         child: addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),

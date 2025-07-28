@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -48,9 +49,13 @@ class BluetoothDeviceManager {
   Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    await _setupDevice(device, shouldWriteToDb: true);
+    await _ffDeviceDB.write([device.toKeyValue]);
     log.info(
       'BluetoothDeviceHelper.addDevice: added ${device.toJson()}',
+    );
+    await switchDevice(device);
+    log.info(
+      'BluetoothDeviceHelper.addDevice: switched to ${device.toJson()}',
     );
   }
 
@@ -61,6 +66,7 @@ class BluetoothDeviceManager {
     log.info(
       'BluetoothDeviceHelper.switchDevice: switched to ${device.toJson()}',
     );
+    RealtimeMetricsManager().switchRealtimeMetrics(device);
   }
 
   Future<FFBluetoothDevice> updateDeviceName(
@@ -101,10 +107,6 @@ class BluetoothDeviceManager {
     required bool shouldWriteToDb,
   }) async {
     await resetDevice();
-
-    if (shouldWriteToDb) {
-      await _ffDeviceDB.write([device.toKeyValue]);
-    }
 
     BluetoothDeviceManager().castingBluetoothDevice = device;
     await CanvasNotificationManager().connect(device);
