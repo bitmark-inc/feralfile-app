@@ -25,11 +25,19 @@ abstract class PubdocAPI {
 
   @GET('/app/apple_model_identifier.json')
   Future<String> getAppleModelIdentifier();
+
+  @GET('/app/version_compatibility.json')
+  Future<String> getVersionsCompatibilityData();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {
   Future<VersionsInfo> getVersionsInfo() async {
     final value = await getVersionContent();
     return VersionsInfo.fromJson(jsonDecode(value) as Map<String, dynamic>);
+  }
+
+  Future<Map<String, dynamic>> getVersionsCompatibility() async {
+    final value = await getVersionsCompatibilityData();
+    return jsonDecode(value) as Map<String, dynamic>;
   }
 }

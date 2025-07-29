@@ -447,7 +447,7 @@ class FFBluetoothService {
     return keepWifiResponse.topicId;
   }
 
-  Future<FFBluetoothDevice?> sendWifiCredentials({
+  Future<String?> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
     required String password,
@@ -485,17 +485,8 @@ class FFBluetoothService {
       '[sendWifi] sendWifiCredentials success, topicId: ${sendWifiCredentialResponse.topicId}',
     );
 
-    final ffBluetoothDevice = device.toFFBluetoothDevice(
-      topicId: sendWifiCredentialResponse.topicId,
-      deviceId: device.advName,
-    );
-
-    log.info(
-      '[sendWifi] sendWifiCredentials success. FFBluetoothDevice: ${ffBluetoothDevice.toJson()}',
-    );
-
     // Update device with topicId
-    return ffBluetoothDevice;
+    return sendWifiCredentialResponse.topicId;
   }
 
   // completer for connectToDevice

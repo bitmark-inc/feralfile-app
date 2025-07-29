@@ -25,8 +25,10 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -996,5 +998,102 @@ class NavigationService {
         ],
       ),
     );
+  }
+
+  // show a dialog to inform that version is not compatible, user need to update app to work with the device
+  Future<void> showVersionNotCompatibleDialog() async {
+    final packageInfo = await injector<VersionService>().getPackageInfo();
+    final version = packageInfo.version;
+    final deviceName =
+        BluetoothDeviceManager().castingBluetoothDevice?.getName ?? 'FF-X1';
+    if (context.mounted) {
+      await UIHelper.showDialog(
+        context,
+        'App Update Required',
+        PopScope(
+          canPop: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.ppMori400White14,
+                  children: [
+                    TextSpan(
+                      text: 'App Version $version is not compatible with your ',
+                    ),
+                    TextSpan(
+                      text: deviceName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text:
+                          '. Please update the app to continue using your device.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              PrimaryAsyncButton(
+                text: 'Update Now',
+                onTap: () async {
+                  // Add your update logic here
+                  await injector<VersionService>().openLatestVersion();
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  // show a dialog to inform that the device is not compatible, user need to update device to work with the app
+  Future<void> showDeviceNotCompatibleDialog() async {
+    if (context.mounted) {
+      final deviceName =
+          BluetoothDeviceManager().castingBluetoothDevice?.getName ?? 'FF-X1';
+      await UIHelper.showDialog(
+        context,
+        'Device Software Update Needed',
+        PopScope(
+          canPop: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.ppMori400White14,
+                  children: [
+                    TextSpan(
+                      text: 'Your ',
+                    ),
+                    TextSpan(
+                      text: deviceName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text: ' is running an older software version.',
+                    ),
+                    TextSpan(
+                      text:
+                          'Please update your device to ensure full functionality.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              PrimaryButton(
+                text: 'Update Device',
+                onTap: () {
+                  // Add your update logic here
+                  injector<NavigationService>().goBack();
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }

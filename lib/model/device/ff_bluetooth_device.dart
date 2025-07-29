@@ -9,6 +9,34 @@ import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+enum DeviceReleaseBranch {
+  release,
+  demo,
+  other;
+
+  static DeviceReleaseBranch fromString(String branch) {
+    switch (branch) {
+      case 'release':
+        return DeviceReleaseBranch.release;
+      case 'demo':
+        return DeviceReleaseBranch.demo;
+      default:
+        return DeviceReleaseBranch.other;
+    }
+  }
+
+  String get name {
+    switch (this) {
+      case DeviceReleaseBranch.release:
+        return 'release';
+      case DeviceReleaseBranch.demo:
+        return 'demo';
+      case DeviceReleaseBranch.other:
+        return 'other';
+    }
+  }
+}
+
 class FFBluetoothDevice extends BluetoothDevice
     implements BaseDevice, SettingObject {
   FFBluetoothDevice({
@@ -16,10 +44,15 @@ class FFBluetoothDevice extends BluetoothDevice
     required String remoteID,
     required this.topicId,
     required this.deviceId,
+    required this.branchName,
   }) : super.fromId(remoteID);
 
-  factory FFBluetoothDevice.fromBluetoothDevice(BluetoothDevice device,
-      {String? topicId, required String deviceId}) {
+  factory FFBluetoothDevice.fromBluetoothDevice(
+    BluetoothDevice device, {
+    String? topicId,
+    required String deviceId,
+    required DeviceReleaseBranch branchName,
+  }) {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
     );
@@ -28,6 +61,7 @@ class FFBluetoothDevice extends BluetoothDevice
       remoteID: device.remoteId.str,
       topicId: topicId ?? savedDevice?.topicId ?? '',
       deviceId: deviceId,
+      branchName: branchName,
     );
   }
 
@@ -39,7 +73,12 @@ class FFBluetoothDevice extends BluetoothDevice
         topicId: json['topicId'] as String,
         deviceId: json['deviceId'] != null
             ? json['deviceId'] as String
-            : json['name'] as String, // TODO: remove this fallback
+            : json['name'] as String,
+        // TODO: remove this fallback
+        branchName: json['branchName'] != null
+            ? DeviceReleaseBranch.fromString(json['branchName'] as String)
+            : DeviceReleaseBranch
+                .release, // default to release if not specified
       );
 
   @override
@@ -53,12 +92,15 @@ class FFBluetoothDevice extends BluetoothDevice
   @override
   final String deviceId; // device id
 
+  final DeviceReleaseBranch branchName;
+
   // toJson
   Map<String, dynamic> toJson() => {
         'name': name,
         'remoteID': remoteID,
         'topicId': topicId,
         'deviceId': deviceId,
+        'branchName': branchName.name,
       };
 
   // copyWith
@@ -67,12 +109,14 @@ class FFBluetoothDevice extends BluetoothDevice
     String? remoteID,
     String? topicId,
     String? deviceId,
+    DeviceReleaseBranch? branchName,
   }) {
     return FFBluetoothDevice(
       name: name ?? this.name,
       remoteID: remoteID ?? this.remoteID,
       topicId: topicId ?? this.topicId,
       deviceId: deviceId ?? this.deviceId,
+      branchName: branchName ?? this.branchName,
     );
   }
 

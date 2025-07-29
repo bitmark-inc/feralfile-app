@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notifications/notification_handler.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -73,6 +74,13 @@ class HomePageHelper {
       }
     });
     unawaited(injector<VersionService>().checkForUpdate());
+    BluetoothDeviceManager().castingDeviceStatus.addListener(
+      () async {
+        final compatibility =
+            await injector<VersionService>().checkDeviceVersionCompatibility();
+        log.info('Compatibility check result: $compatibility');
+      },
+    );
     unawaited(
       clientTokenService.refreshTokens(syncAddresses: true).then(
         (_) {

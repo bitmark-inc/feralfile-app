@@ -15,4 +15,7 @@ class MockVersionService implements VersionService {
   Future<void> showReleaseNotes({String? currentVersion}) {
     return Future.value();
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
