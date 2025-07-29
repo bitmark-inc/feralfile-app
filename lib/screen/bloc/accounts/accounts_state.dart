@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
@@ -37,11 +36,11 @@ class AccountsState {
   }
 
   List<WalletAddress>? addresses;
-  final Map<String, Pair<BigInt?, String>> addressBalances;
+  final Map<String, String> addressBalances;
 
   AccountsState copyWith({
     List<WalletAddress>? addresses,
-    Map<String, Pair<BigInt?, String>>? addressBalances,
+    Map<String, String>? addressBalances,
   }) =>
       AccountsState(
         addresses: addresses ?? this.addresses,

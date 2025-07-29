@@ -401,7 +401,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                       isNowDisplayingExpanded.value = false;
                     }
                   },
-                  child: Container(), // Transparent area
+                  child: AnimatedContainer(
+                    color: AppColor.primaryBlack.withOpacity(0.2),
+                    duration: Duration(milliseconds: 150),
+                  ), // Transparent area
                 ),
               ),
             ),

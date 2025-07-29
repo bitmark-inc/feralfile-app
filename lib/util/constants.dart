@@ -183,17 +183,6 @@ String feralFileExhibitionUrl(String slug) =>
 String feralFileArtworkUrl(String slug) =>
     '${Environment.feralFileAPIURL}/artworks/$slug';
 
-String get etherScanUrl {
-  switch (Environment.web3ChainId) {
-    case 11155111:
-      return 'https://sepolia.etherscan.io';
-    case 5:
-      return 'https://goerli.etherscan.io';
-    default:
-      return 'https://etherscan.io';
-  }
-}
-
 enum WalletApp {
   MetaMask,
   Kukai,

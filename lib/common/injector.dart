@@ -8,7 +8,6 @@
 // ignore_for_file: cascade_invocations
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
@@ -45,7 +44,6 @@ import 'package:autonomy_flutter/screen/mobile_controller/services/channels_serv
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
@@ -55,7 +53,6 @@ import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -75,7 +72,6 @@ import 'package:autonomy_flutter/service/passkey_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -310,13 +306,6 @@ Future<void> setupInjector() async {
       baseUrl: Environment.tvCastApiUrl,
     ),
   );
-
-  injector.registerLazySingleton<CurrencyExchangeApi>(
-    () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL),
-  );
-  injector.registerLazySingleton<CurrencyService>(
-    () => CurrencyServiceImpl(injector()),
-  );
   injector.registerLazySingleton<VersionService>(
     () => VersionServiceImpl(injector(), injector(), injector()),
   );
@@ -376,9 +365,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<NftIndexerService>(
     () => NftIndexerService(indexerClient, injector(), injector()),
   );
-
-  injector
-      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
 
   injector.registerLazySingleton<EthereumService>(
     () => EthereumServiceImpl(
@@ -442,10 +428,6 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<AccountsBloc>(
     () => AccountsBloc(injector(), injector()),
-  );
-
-  injector.registerLazySingleton<WalletDetailBloc>(
-    () => WalletDetailBloc(injector()),
   );
 
   injector.registerLazySingleton<BluetoothConnectBloc>(

@@ -71,8 +71,6 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/recovery_phrase/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
@@ -168,7 +166,6 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     log.info('[onGenerateRoute] Route: ${settings.name}');
     final accountsBloc = injector<AccountsBloc>();
-    final walletDetailBloc = injector<WalletDetailBloc>();
 
     final identityBloc = injector<IdentityBloc>();
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
@@ -322,22 +319,6 @@ class AppRouter {
               BlocProvider.value(value: identityBloc),
             ],
             child: const SettingsPage(),
-          ),
-        );
-
-      case linkedWalletDetailsPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider.value(
-                value: walletDetailBloc,
-              ),
-              BlocProvider.value(value: accountsBloc),
-            ],
-            child: LinkedWalletDetailPage(
-              payload: settings.arguments! as LinkedWalletDetailsPayload,
-            ),
           ),
         );
 
@@ -770,15 +751,17 @@ class AppRouter {
       case playlistDetailsPage:
         final payload = settings.arguments! as DP1PlaylistDetailsScreenPayload;
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: subscriptionBloc),
-                      BlocProvider.value(value: canvasDeviceBloc),
-                    ],
-                    child: DP1PlaylistDetailsScreen(
-                      payload: payload,
-                    )));
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+              BlocProvider.value(value: canvasDeviceBloc),
+            ],
+            child: DP1PlaylistDetailsScreen(
+              payload: payload,
+            ),
+          ),
+        );
 
       default:
         throw Exception('Invalid route: ${settings.name}');

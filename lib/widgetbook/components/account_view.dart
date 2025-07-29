@@ -1,5 +1,4 @@
 // widgetbook for accountItem
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
@@ -45,8 +44,7 @@ Widget useCaseAccountItem(BuildContext context) {
   );
   mockAccountsBloc.emit(AccountsState(
     addressBalances: {
-      address.address:
-          Pair(BigInt.from(1000000000000000000), '1 NFT'), // 1 ETH và 1 NFT
+      address.address: '1 NFT', // 1 ETH và 1 NFT
     },
   ));
 
