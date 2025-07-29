@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
@@ -10,7 +9,6 @@ import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.da
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -168,21 +166,15 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                                   text: 'Skip Setup',
                                   processingText: 'Skipping...',
                                   onTap: () async {
-                                    Pair<FFBluetoothDevice, bool>? res;
+                                    Pair<String, bool>? res;
                                     try {
                                       final topicId =
                                           await injector<FFBluetoothService>()
                                               .keepWifi(
                                         device,
                                       );
-                                      // add device to canvas
-                                      final ffdevice =
-                                          device.toFFBluetoothDevice(
-                                        topicId: topicId,
-                                        deviceId: device.advName,
-                                      );
-                                      res = Pair<FFBluetoothDevice, bool>(
-                                        ffdevice,
+                                      res = Pair<String, bool>(
+                                        topicId,
                                         false,
                                       );
                                     } on FFBluetoothError catch (e) {
@@ -242,10 +234,10 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
       device: widget.payload.device,
-      onSubmitted: (FFBluetoothDevice? device) {
+      onSubmitted: (String? topicId) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothDevicePortalPage);
-        final result = device != null ? Pair(device, true) : null;
+        final result = topicId != null ? Pair(topicId, true) : null;
         injector<NavigationService>().goBack(result: result);
       },
     );

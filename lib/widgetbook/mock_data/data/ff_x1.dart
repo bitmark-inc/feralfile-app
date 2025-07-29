@@ -7,6 +7,7 @@ class MockFFBluetoothDevice {
       remoteID: 'mock-remote-id-1',
       topicId: 'mock-topic-id-1',
       deviceId: 'mock-device-id-1',
+      branchName: DeviceReleaseBranch.release,
     );
   }
 
@@ -16,6 +17,7 @@ class MockFFBluetoothDevice {
       remoteID: 'mock-remote-id-2',
       topicId: 'mock-topic-id-2',
       deviceId: 'mock-device-id-2',
+      branchName: DeviceReleaseBranch.release,
     );
   }
 
@@ -25,6 +27,7 @@ class MockFFBluetoothDevice {
       remoteID: 'mock-remote-id-3',
       topicId: 'mock-topic-id-3',
       deviceId: 'mock-device-id-3',
+      branchName: DeviceReleaseBranch.release,
     );
   }
 

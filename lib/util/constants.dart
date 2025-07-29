@@ -408,6 +408,12 @@ class Constants {
   static const navigationPrefixes = [
     'feralfile://navigation/',
   ];
+
+  static var appStoreUrl =
+      'https://apps.apple.com/us/app/feral-file/id1544022728';
+
+  static var playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client';
 }
 
 Map<String, String> specifiedSeriesTitle = {

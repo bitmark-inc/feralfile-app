@@ -221,6 +221,9 @@ class CanvasDeviceState {
   CheckCastingStatusReply? statusOf(BaseDevice device) =>
       canvasDeviceStatus[device.deviceId];
 
+  DeviceStatus? deviceInfoOf(BaseDevice device) =>
+      deviceInfoMap[device.deviceId];
+
   bool isDeviceAlive(BaseDevice device) {
     final isAlive =
         deviceAliveMap[device.deviceId] == true && statusOf(device) != null;
