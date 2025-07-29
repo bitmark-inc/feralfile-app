@@ -1004,6 +1004,7 @@ class NavigationService {
   Future<void> showVersionNotCompatibleDialog() async {
     final packageInfo = await injector<VersionService>().getPackageInfo();
     final version = packageInfo.version;
+    final buildNumber = packageInfo.buildNumber;
     final deviceName =
         BluetoothDeviceManager().castingBluetoothDevice?.getName ?? 'FF-X1';
     if (context.mounted) {
@@ -1020,7 +1021,14 @@ class NavigationService {
                   style: Theme.of(context).textTheme.ppMori400White14,
                   children: [
                     TextSpan(
-                      text: 'App Version $version is not compatible with your ',
+                      text: 'App Version',
+                    ),
+                    TextSpan(
+                      text: ' $version ($buildNumber)',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text: ' is not compatible with your ',
                     ),
                     TextSpan(
                       text: deviceName,
@@ -1082,14 +1090,14 @@ class NavigationService {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              PrimaryButton(
-                text: 'Update Device',
-                onTap: () {
-                  // Add your update logic here
-                  injector<NavigationService>().goBack();
-                },
-              ),
+              // const SizedBox(height: 16),
+              // PrimaryButton(
+              //   text: 'Update Device',
+              //   onTap: () {
+              //     // Add your update logic here
+              //     injector<NavigationService>().goBack();
+              //   },
+              // ),
             ],
           ),
         ),
