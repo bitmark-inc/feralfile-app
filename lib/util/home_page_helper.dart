@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
@@ -76,9 +77,18 @@ class HomePageHelper {
     unawaited(injector<VersionService>().checkForUpdate());
     BluetoothDeviceManager().castingDeviceStatus.addListener(
       () async {
-        final compatibility =
-            await injector<VersionService>().checkDeviceVersionCompatibility();
-        log.info('Compatibility check result: $compatibility');
+        await Future.delayed(const Duration(milliseconds: 1000));
+        final castingDevice = BluetoothDeviceManager().castingBluetoothDevice;
+        final isAlive = castingDevice != null &&
+            injector<CanvasDeviceBloc>().state.isDeviceAlive(castingDevice);
+        if (isAlive) {
+          log.info('Casting device is alive: ${castingDevice.name}');
+          final compatibility = await injector<VersionService>()
+              .checkDeviceVersionCompatibility();
+          log.info('Compatibility check result: $compatibility');
+        } else {
+          log.info('Casting device is not alive or not set');
+        }
       },
     );
     unawaited(
