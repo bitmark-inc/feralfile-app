@@ -24,6 +24,27 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
 
+const displayingCommand = [
+  CastCommand.castDaily,
+  CastCommand.castListArtwork,
+  CastCommand.castExhibition,
+];
+
+const updateCastInfoCommand = [
+  ...displayingCommand,
+  CastCommand.updateDuration,
+  CastCommand.nextArtwork,
+  CastCommand.previousArtwork,
+  CastCommand.resumeCasting,
+  CastCommand.pauseCasting,
+];
+
+const updateDeviceStatusCommand = [
+  CastCommand.rotate,
+  CastCommand.updateArtFraming,
+  CastCommand.updateToLatestVersion,
+];
+
 enum BluetoothCommand {
   sendWifiCredentials,
   scanWifi,
@@ -874,7 +895,7 @@ class FactoryResetRequest extends BluetoothRequest {
 
 class FactoryResetResponse extends BluetoothResponse {}
 
-class SendLogRequest implements FF1Request {
+class SendLogRequest implements Request {
   SendLogRequest({required this.userId, required this.title});
 
   factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
