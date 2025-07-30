@@ -114,8 +114,6 @@ abstract class ConfigurationService {
 
   Future<void> setDoneOnboardingTime(DateTime time);
 
-  Future<void> setSubscriptionTime(DateTime time);
-
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -476,11 +474,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       KEY_DONE_ON_BOARDING_TIME,
       time.toIso8601String(),
     );
-  }
-
-  @override
-  Future<void> setSubscriptionTime(DateTime time) async {
-    await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
 
   @override

@@ -403,10 +403,6 @@ class Constants {
 
   static var playStoreUrl =
       'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client';
-
-  static List<String> hardCodeChannelIds = [
-    'df9238b3-9de5-4952-873c-c2a1457e247a',
-  ];
 }
 
 Map<String, String> specifiedSeriesTitle = {

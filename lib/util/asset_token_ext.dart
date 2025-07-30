@@ -364,8 +364,10 @@ extension AssetTokenExtension on AssetToken {
   }
 
   DP1Provenance get dp1Provenance {
-    final chain = DP1ProvenanceChain.fromString(blockchain ?? '');
-    final standard = DP1ProvenanceStandard.fromString(contractType ?? '');
+    final chain = DP1ProvenanceChain.fromString(blockchain);
+    final standard = this.isBitmarkToken
+        ? DP1ProvenanceStandard.other
+        : DP1ProvenanceStandard.fromString(contractType);
     final contractAddress = this.contractAddress!;
     final tokenId = this.tokenId;
     final dp1Contract = DP1Contract(
