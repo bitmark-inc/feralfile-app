@@ -258,7 +258,7 @@ class BluetoothConnectedDeviceConfigState
             right: 0,
             child: PrimaryAsyncButton(
               onTap: () async {
-                Navigator.of(context).pop();
+                injector<NavigationService>().popUntilHome();
                 unawaited(NowDisplayingManager().updateDisplayingNow());
               },
               text: 'finish'.tr(),
