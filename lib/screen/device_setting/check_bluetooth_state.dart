@@ -246,7 +246,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       _isScanning = true;
     });
     await injector<FFBluetoothService>().startScan(
-      timeout: const Duration(seconds: 10),
+      timeout: const Duration(seconds: 30),
       forceScan: true,
       onData: (results) async {
         final devices = results;

@@ -651,31 +651,72 @@ class FFBluetoothService {
     FutureOr<void> Function(dynamic)? onError,
     bool forceScan = false,
   }) async {
-    try {
-      if (!injector<AuthService>().isBetaTester() && !forceScan) {
-        return;
-      }
+    if (!injector<AuthService>().isBetaTester() && !forceScan) {
+      return;
+    }
+    final haftTimeout = timeout ~/ 2;
+    final deviceFound = await _startScan(
+      timeout: haftTimeout,
+      onData: onData,
+      onError: onError,
+    );
 
+    if (deviceFound) {
+      log.info('Device found during initial scan');
+      return;
+    }
+    await _startScan(
+      timeout: haftTimeout,
+      onData: onData,
+      onError: onError,
+    );
+  }
+
+  Future<bool> _startScan({
+    Duration timeout = const Duration(seconds: 30),
+    FutureOr<bool> Function(List<BluetoothDevice>)? onData,
+    FutureOr<void> Function(dynamic)? onError,
+  }) async {
+    bool foundDevice = false;
+    try {
       await listenForAdapterState();
+
+      await FlutterBluePlus.stopScan();
+
+      await Future.delayed(Duration(milliseconds: 500)); // safe delay
 
       final connectedDevices = FlutterBluePlus.connectedDevices;
       final shouldStop = await onData?.call(connectedDevices);
       if (shouldStop == true) {
         log.info('BluetoothConnectEventScan startScan: already connected');
-        return;
+        return true;
       }
       StreamSubscription<List<ScanResult>>? scanSubscription;
 
+      final now = DateTime.now();
+
       scanSubscription = FlutterBluePlus.onScanResults.listen(
         (results) async {
+          log.info(
+            'BluetoothConnectEventScan onScanResults: ${results.map((r) => '${r.device.advName}-${r.advertisementData.serviceUuids.join(',')}').join(',\n')}',
+          );
           final devices = results.map((result) => result.device).toList();
           final shouldStopScan = await onData
               ?.call(devices..addAll(FlutterBluePlus.connectedDevices));
           if (shouldStopScan == true) {
-            FlutterBluePlus.stopScan();
+            log.info(
+                'Scanned Times: ${DateTime.now().difference(now).inSeconds} seconds');
+            foundDevice = true;
+            await FlutterBluePlus.stopScan();
           }
         },
         onError: (Object error) {
+          log.info(
+            'BluetoothConnectEventScan onScanResults error: $error',
+          );
+          Sentry.captureException(
+            'BluetoothConnectEventScan onScanResults error: $error',
+          );
           onError?.call(error);
           scanSubscription?.cancel();
         },
@@ -693,12 +734,21 @@ class FFBluetoothService {
       while (FlutterBluePlus.isScanningNow) {
         await Future.delayed(const Duration(milliseconds: 1000));
       }
+      if (!foundDevice) {
+        log.info(
+          'Scanned Times: ${DateTime.now().difference(now).inSeconds} seconds',
+        );
+        Sentry.captureMessage(
+          'SDevice scan completed without finding any devices',
+        );
+      }
     } catch (e) {
       log.warning('Failed to start scan: $e');
       onError?.call(e);
     } finally {
       log.info('BluetoothConnectEventScan stopScan');
       await FlutterBluePlus.stopScan();
+      return foundDevice;
     }
   }
 

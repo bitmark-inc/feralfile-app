@@ -91,9 +91,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
         log.info('[DeeplinkService] deeplink $link is handling');
         return;
       }
+      _deepLinkHandlingMap[link] = true;
+
+      log.info('[DeeplinkService] wait for startHandleDeeplinkCompleter');
+
       await startHandleDeeplinkCompleter.future;
 
-      _deepLinkHandlingMap[link] = true;
+      log.info('[DeeplinkService] startHandleDeeplinkCompleter completed');
+
       final handlerType = DeepLinkHandlerType.fromString(link);
 
       Future<void> onFinishDeeplink() async {
