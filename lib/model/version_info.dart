@@ -42,13 +42,13 @@ class VersionInfo {
 
   factory VersionInfo.fromJson(Map<String, dynamic> json) {
     return VersionInfo(
-      requiredVersion: json['required_version'] as String,
+      requiredVersion: json['requiredVersion'] as String,
       link: json['link'] as String,
     );
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'required_version': requiredVersion,
+        'requiredVersion': requiredVersion,
         'link': link,
       };
 }

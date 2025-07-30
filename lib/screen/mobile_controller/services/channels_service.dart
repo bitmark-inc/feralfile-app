@@ -1,13 +1,17 @@
 import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_api_response.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 
 class ChannelsService {
   ChannelsService(this.api, this.apiKey);
 
   final List<Channel> _channels = [];
 
-  List<Channel> get cachedChannels => _channels;
+  List<Channel> get cachedChannels => _channels
+    ..removeWhere(
+      (channel) => Constants.hardCodeChannelIds.contains(channel.id),
+    );
 
   final DP1PlaylistApi api;
   final String apiKey;
@@ -22,6 +26,9 @@ class ChannelsService {
     );
     channels.items.sort(
         (channel1, channel2) => channel1.created.compareTo(channel2.created));
+    channels.items.removeWhere(
+      (channel) => Constants.hardCodeChannelIds.contains(channel.id),
+    );
     _channels.addAll(channels.items);
     return channels;
   }

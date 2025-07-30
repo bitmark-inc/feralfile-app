@@ -122,7 +122,7 @@ class _NowDisplayingState extends State<NowDisplaying>
   Widget _noDeviceView(BuildContext context) {
     return NowDisplayingStatusView(
       status:
-          'Unlock your personal gallery! Pair an FF1 device to display your collection and curated art on any screen.',
+          'Pair an FF1 device to display your collection and curated art on any screen.',
     );
   }
 }
