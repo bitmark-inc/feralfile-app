@@ -655,7 +655,7 @@ class FFBluetoothService {
       return;
     }
     final haftTimeout = timeout ~/ 2;
-    final deviceFound = await _startScan(
+    bool deviceFound = await _startScan(
       timeout: haftTimeout,
       onData: onData,
       onError: onError,
@@ -665,11 +665,17 @@ class FFBluetoothService {
       log.info('Device found during initial scan');
       return;
     }
-    await _startScan(
+    deviceFound = await _startScan(
       timeout: haftTimeout,
       onData: onData,
       onError: onError,
     );
+    if (!deviceFound) {
+      log.info('No device found during second scan');
+      Sentry.captureMessage(
+        'Device scan completed: device not found',
+      );
+    }
   }
 
   Future<bool> _startScan({
@@ -733,14 +739,6 @@ class FFBluetoothService {
       // wait for scan to complete
       while (FlutterBluePlus.isScanningNow) {
         await Future.delayed(const Duration(milliseconds: 1000));
-      }
-      if (!foundDevice) {
-        log.info(
-          'Scanned Times: ${DateTime.now().difference(now).inSeconds} seconds',
-        );
-        Sentry.captureMessage(
-          'SDevice scan completed without finding any devices',
-        );
       }
     } catch (e) {
       log.warning('Failed to start scan: $e');

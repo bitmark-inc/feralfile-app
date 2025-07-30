@@ -102,12 +102,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final handlerType = DeepLinkHandlerType.fromString(link);
 
       Future<void> onFinishDeeplink() async {
+        _deepLinkHandlingMap.remove(link);
         try {
           await onFinished?.call();
         } catch (e) {
           log.info('[DeeplinkService] onFinishDeeplink error: $e');
         }
-        _deepLinkHandlingMap.remove(link);
       }
 
       log.info('[DeeplinkService] handlerType $handlerType');
