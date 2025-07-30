@@ -46,6 +46,7 @@ class ExpandableNowDisplayingView extends StatefulWidget {
             AppRouter.scanQRPage,
             arguments: const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
           );
+          isNowDisplayingExpanded.value = false;
         },
       ),
       if (injector<AuthService>().isBetaTester() &&
@@ -58,6 +59,7 @@ class ExpandableNowDisplayingView extends StatefulWidget {
             injector<NavigationService>().navigateTo(
                 AppRouter.bluetoothConnectedDeviceConfig,
                 arguments: BluetoothConnectedDeviceConfigPayload());
+            isNowDisplayingExpanded.value = false;
           },
         ),
       // account
@@ -68,6 +70,7 @@ class ExpandableNowDisplayingView extends StatefulWidget {
         ),
         onTap: () {
           injector<NavigationService>().navigateTo(AppRouter.walletPage);
+          isNowDisplayingExpanded.value = false;
         },
       ),
       OptionItem(
@@ -77,6 +80,7 @@ class ExpandableNowDisplayingView extends StatefulWidget {
         ),
         onTap: () {
           injector<NavigationService>().navigateTo(AppRouter.settingsPage);
+          isNowDisplayingExpanded.value = false;
         },
       ),
       // help
@@ -101,6 +105,7 @@ class ExpandableNowDisplayingView extends StatefulWidget {
         onTap: () {
           injector<NavigationService>()
               .navigateTo(AppRouter.supportCustomerPage);
+          isNowDisplayingExpanded.value = false;
         },
       ),
     ];
