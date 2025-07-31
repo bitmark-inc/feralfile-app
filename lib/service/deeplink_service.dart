@@ -70,18 +70,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   void handleDeeplink(
-    String? link, {
+    String? rawLink, {
     Duration delay = Duration.zero,
     Function? onFinished,
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
-    if (link == 'autonomy://') {
+    if (rawLink == 'autonomy://') {
       return;
     }
 
-    if (link == null) {
+    if (rawLink == null) {
       return;
     }
+
+    final link = Uri.decodeFull(rawLink);
 
     log.info('[DeeplinkService] receive deeplink $link');
 
