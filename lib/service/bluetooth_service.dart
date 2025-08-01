@@ -6,6 +6,8 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/model/error/bluetooth_error.dart';
+import 'package:autonomy_flutter/model/error/bluetooth_response_error.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -18,7 +20,6 @@ import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -67,7 +68,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error keeping wifi: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -83,7 +84,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending wifi credentials: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -104,7 +105,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error resetting factory: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -119,7 +120,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending log: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -231,8 +232,14 @@ class FFBluetoothService {
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
         if (_connectCompleter?.isCompleted == false) {
+          final exception = FFBluetoothDisconnectedError(
+            disconnectReason: device.disconnectReason,
+          );
+          log.info(
+            'Completing _connectCompleter with error: ${device.disconnectReason}',
+          );
           _connectCompleter?.completeError(
-            'Device disconnected reason: ${device.disconnectReason}',
+            exception,
           );
         }
       }
@@ -265,6 +272,10 @@ class FFBluetoothService {
         BluetoothDeviceManager().castingBluetoothDevice != null) {
       await listenForAdapterState();
     }
+
+    FlutterBluePlus.logs.listen((event) {
+      log.info('[FlutterBluePlus]: $event');
+    });
   }
 
   Future<void> listenForAdapterState() async {
@@ -518,7 +529,7 @@ class FFBluetoothService {
       _multiConnectCompleter?.complete();
       _multiConnectCompleter = null;
     }).catchError((Object e) {
-      log.severe('Failed to connect to device: $e');
+      log.info('Failed to connect to device: $e');
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
 
       _multiConnectCompleter?.completeError(e);
@@ -542,7 +553,6 @@ class FFBluetoothService {
     await _connect(
       device,
       shouldShowError: shouldShowError,
-      autoConnect: false,
       timeout: timeout,
     );
   }
@@ -550,18 +560,10 @@ class FFBluetoothService {
   Future<void> _connect(
     BluetoothDevice device, {
     bool shouldShowError = true,
-    bool autoConnect = true,
     Duration timeout = const Duration(seconds: 30),
   }) async {
     // connect to device
-    if (device.isDisconnected ||
-        (autoConnect && !device.isAutoConnectEnabled)) {
-      // if (!autoConnect) {
-      //   log.info('Disconnecting from device: ${device.remoteId.str}');
-      //   await device.disconnect();
-      //   log.info('[_connect] device.disconnect() finished');
-      // }
-
+    if (device.isDisconnected) {
       if (_connectCompleter?.isCompleted == false) {
         log.info(
           '[connect] Already connecting to device: ${device.remoteId.str}',
@@ -573,7 +575,6 @@ class FFBluetoothService {
       try {
         await device.connect(
           timeout: timeout,
-          autoConnect: autoConnect,
           mtu: null,
         );
       } catch (e) {
@@ -592,19 +593,26 @@ class FFBluetoothService {
       }
 
       log.info(
-        '''
-[_connect] Wait for connection to complete, autoConnect = $autoConnect, device.isConnected = ${device.isConnected}
-''',
+        '''[_connect] Wait for _connectCompleter to complete''',
       );
       // Wait for connection to complete
-      if (autoConnect && device.isConnected) {
-        _connectCompleter?.complete();
-        _connectCompleter = null;
-      } else {
+      {
         if (_connectCompleter == null) {
           log.info('[_connect] _connectCompleter is null');
           return;
         }
+        final now = DateTime.now();
+
+        final future = () async {
+          while (_connectCompleter?.isCompleted == false) {
+            log.info(
+              '[_connect] Waiting for connection to complete: ${DateTime.now().difference(now).inSeconds} seconds',
+            );
+            await Future.delayed(const Duration(milliseconds: 1000));
+          }
+        };
+
+        unawaited(future());
 
         await _connectCompleter?.future.timeout(
           const Duration(seconds: 30),
@@ -627,6 +635,9 @@ class FFBluetoothService {
             Sentry.captureException(
               'Error waiting for connection to complete: $e',
             ),
+          );
+          log.info(
+            '[_connect] Connection took ${DateTime.now().difference(now).inSeconds} seconds',
           );
           if (shouldShowError) {
             unawaited(
@@ -894,88 +905,6 @@ class SendLogRequest implements FF1Request {
 
 class SendLogResponse extends BluetoothResponse {}
 
-enum FFBluetoothErrorCode {
-  userEnterWrongPassword(1),
-  wifiConnectedButNoInternet(2),
-  wifiConnectedButCannotReachServer(3),
-  // BLE_ERR_CODE_WIFI_REQUIRED
-  wifiRequired(4),
-  // BLE_ERR_CODE_DEVICE_UPDATING
-  deviceUpdating(5),
-  // BLE_ERR_CODE_VERSION_CHECK_FAILED
-  versionCheckFailed(6),
-  unknownError(255);
-
-  const FFBluetoothErrorCode(this.code);
-
-  final int code;
-}
-
-class FFBluetoothError implements Exception {
-  FFBluetoothError(this.message, {this.title = 'Error'});
-
-  final String message;
-  final String title;
-
-  static FFBluetoothError fromErrorCode(int errorCode) {
-    final error = FFBluetoothErrorCode.values
-        .firstWhereOrNull((e) => e.code == errorCode);
-    switch (error) {
-      case FFBluetoothErrorCode.userEnterWrongPassword:
-        // user enter wrong password
-        return FFBluetoothError(
-            title: 'Incorrect Wi-Fi Password',
-            'Failed to connect to Wi-Fi. Please check your password and try again.');
-      case FFBluetoothErrorCode.wifiConnectedButCannotReachServer:
-        return FFBluetoothError(
-          title: 'Server Unreachable',
-          'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
-        );
-      case FFBluetoothErrorCode.wifiConnectedButNoInternet:
-        return FFBluetoothError(
-          title: 'No Internet Access',
-          'Connected to Wi-Fi but no internet access. Please check your internet connection.',
-        );
-      case FFBluetoothErrorCode.wifiRequired:
-        return FFBluetoothError(
-          title: 'Wi-Fi Required',
-          'This device requires a Wi-Fi connection to function properly. Please connect to a Wi-Fi network.',
-        );
-      case FFBluetoothErrorCode.deviceUpdating:
-        return DeviceUpdatingError();
-
-      case FFBluetoothErrorCode.versionCheckFailed:
-        return DeviceVersionCheckFailedError();
-      default:
-        return FFBluetoothError(
-          title: 'Wi-Fi Connection Error',
-          'Unknown error occurred while connecting to Wi-Fi. Error code: $errorCode',
-        );
-    }
-  }
-
-  // toString() {
-  String toString() {
-    return message;
-  }
-}
-
-class DeviceUpdatingError extends FFBluetoothError {
-  DeviceUpdatingError()
-      : super(
-          'The device is currently updating. Please wait for the update to complete and try again.',
-          title: 'Device Updating',
-        );
-}
-
-class DeviceVersionCheckFailedError extends FFBluetoothError {
-  DeviceVersionCheckFailedError()
-      : super(
-          'The device version check failed. Please try again or contact support.',
-          title: 'Version Check Failed',
-        );
-}
-
 class ScanWifiRequest extends BluetoothRequest {
   const ScanWifiRequest();
 
@@ -1032,11 +961,6 @@ class SetTimezoneReply extends BluetoothResponse {
   factory SetTimezoneReply.fromJson(Map<String, dynamic> _) =>
       SetTimezoneReply();
 }
-
-void handleBluetoothError({
-  FFBluetoothError? error,
-  bool shouldShowError = true,
-}) {}
 
 extension FlutterBluePlusExceptionExt on FlutterBluePlusException {
   bool get canIgnore {

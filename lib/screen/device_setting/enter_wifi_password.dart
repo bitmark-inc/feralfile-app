@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/error/bluetooth_response_error.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_exception.dart';
@@ -166,7 +167,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                           'The Portal failed to connect to ${e.ssid}',
                         ),
                       );
-                    } on FFBluetoothError catch (e) {
+                    } on FFBluetoothResponseError catch (e) {
                       log.info('Failed to send wifi credentials: $e');
                       unawaited(
                         Sentry.captureException(

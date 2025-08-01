@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/error/bluetooth_response_error.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
@@ -177,7 +178,7 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                                         topicId,
                                         false,
                                       );
-                                    } on FFBluetoothError catch (e) {
+                                    } on FFBluetoothResponseError catch (e) {
                                       if (e is DeviceUpdatingError ||
                                           e is DeviceVersionCheckFailedError) {
                                         injector<NavigationService>().goBack();

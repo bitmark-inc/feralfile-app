@@ -155,6 +155,23 @@ class BluetoothDeviceManager {
       }
     }
 
+    // if no casting device is set, return the first alive device
+    final aliveDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
+      (device) => device.isAlive,
+    );
+
+    if (aliveDevice != null) {
+      castingBluetoothDevice = aliveDevice;
+      return aliveDevice;
+    }
+
+    // if no alive device is found, return first paired device
+    final firstPairedDevice = BluetoothDeviceManager.pairedDevices.firstOrNull;
+    if (firstPairedDevice != null) {
+      castingBluetoothDevice = firstPairedDevice;
+      return firstPairedDevice;
+    }
+
     return null;
   }
 
