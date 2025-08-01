@@ -7,18 +7,15 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
-import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -80,8 +77,10 @@ class _NowDisplayingState extends State<NowDisplaying>
             return NowDisplayingSuccessWidget(
               object: (nowDisplayingStatus as NowDisplayingSuccess).object,
             );
-          default:
+          case NoDevicePaired:
             return _noDeviceView(context);
+          default:
+            return SizedBox();
         }
       },
     );
@@ -244,20 +243,20 @@ class TokenNowDisplayingView extends StatelessWidget {
               thumbnailBuilder: thumbnailBuilder,
               titleBuilder: (context) => titleBuilder(context, artistTitle),
               customAction: [
-                if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
-                    (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
-                            .settings
-                            .name ==
-                        AppRouter.homePage)
-                  GestureDetector(
-                    child: SvgPicture.asset('assets/images/run.svg'),
-                    onTap: () {
-                      chatModeNotifier.value = !chatModeNotifier.value;
-                      // injector<RecordBloc>().add(
-                      //   ResetPlaylistEvent(),
-                      // );
-                    },
-                  ),
+                // if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+                //     (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                //             .settings
+                //             .name ==
+                //         AppRouter.homePage)
+                //   GestureDetector(
+                //     child: SvgPicture.asset('assets/images/run.svg'),
+                //     onTap: () {
+                //       chatModeNotifier.value = !chatModeNotifier.value;
+                //       // injector<RecordBloc>().add(
+                //       //   ResetPlaylistEvent(),
+                //       // );
+                //     },
+                //   ),
               ],
               onMoreTap: () {
                 onMoreTap();
@@ -388,20 +387,20 @@ class DP1NowDisplayingView extends StatelessWidget {
             ),
           ),
           customAction: [
-            if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
-                (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
-                        .settings
-                        .name ==
-                    AppRouter.homePage)
-              GestureDetector(
-                child: SvgPicture.asset('assets/images/run.svg'),
-                onTap: () {
-                  chatModeNotifier.value = !chatModeNotifier.value;
-                  // injector<RecordBloc>().add(
-                  //   ResetPlaylistEvent(),
-                  // );
-                },
-              ),
+            // if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+            //     (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+            //             .settings
+            //             .name ==
+            //         AppRouter.homePage)
+            //   GestureDetector(
+            //     child: SvgPicture.asset('assets/images/run.svg'),
+            //     onTap: () {
+            //       chatModeNotifier.value = !chatModeNotifier.value;
+            //       // injector<RecordBloc>().add(
+            //       //   ResetPlaylistEvent(),
+            //       // );
+            //     },
+            //   ),
           ],
         );
       },
@@ -598,20 +597,20 @@ class NowDisplayingStatusView extends StatelessWidget {
             ),
           ),
           customAction: [
-            if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
-                (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
-                        .settings
-                        .name ==
-                    AppRouter.homePage)
-              GestureDetector(
-                child: SvgPicture.asset('assets/images/run.svg'),
-                onTap: () {
-                  chatModeNotifier.value = !chatModeNotifier.value;
-                  // injector<RecordBloc>().add(
-                  //   ResetPlaylistEvent(),
-                  // );
-                },
-              ),
+            // if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+            //     (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+            //             .settings
+            //             .name ==
+            //         AppRouter.homePage)
+            //   GestureDetector(
+            //     child: SvgPicture.asset('assets/images/run.svg'),
+            //     onTap: () {
+            //       chatModeNotifier.value = !chatModeNotifier.value;
+            //       // injector<RecordBloc>().add(
+            //       //   ResetPlaylistEvent(),
+            //       // );
+            //     },
+            //   ),
           ],
         );
       },

@@ -119,6 +119,7 @@ enum DP1ProvenanceChain {
     switch (value) {
       case 'evm':
       case 'ethereum':
+      case 'eth':
         return DP1ProvenanceChain.evm;
       case 'tezos':
       case 'tez':

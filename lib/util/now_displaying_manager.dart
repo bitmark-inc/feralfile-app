@@ -58,6 +58,7 @@ class NowDisplayingManager {
       log.info('NowDisplayingManager: updateDisplayingNow');
       final device = BluetoothDeviceManager().castingBluetoothDevice;
       if (device == null) {
+        addStatus(NoDevicePaired());
         return;
       }
 
@@ -164,4 +165,8 @@ class NowDisplayingError implements NowDisplayingStatus {
   NowDisplayingError(this.error);
 
   final Object error;
+}
+
+class NoDevicePaired implements NowDisplayingStatus {
+  NoDevicePaired();
 }

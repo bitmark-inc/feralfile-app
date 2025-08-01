@@ -210,6 +210,12 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     String link, {
     Function? onFinish,
   }) async {
+    if (_isScanning) {
+      return;
+    }
+    setState(() {
+      _isScanning = true;
+    });
     final data = getDataFromLink(link);
     final deviceName = data.firstOrNull;
 
@@ -235,12 +241,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     }
 
     BluetoothDevice? resultDevice;
-    if (_isScanning) {
-      return;
-    }
-    setState(() {
-      _isScanning = true;
-    });
+
     log.info('Starting scan for device: $deviceName');
     await injector<FFBluetoothService>().startScan(
       timeout: const Duration(seconds: 30),

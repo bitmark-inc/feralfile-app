@@ -80,7 +80,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
           child: Center(
             child: Column(
               children: [
-                const SizedBox(height: 80),
+                const SizedBox(height: 60),
                 Center(
                   child: GestureDetector(
                     onTap: state is RecordProcessingState

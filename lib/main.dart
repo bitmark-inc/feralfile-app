@@ -460,7 +460,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   }
 }
 
-final RouteObserver<ModalRoute<void>> routeObserver =
+final CustomRouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
 @pragma('vm:entry-point')

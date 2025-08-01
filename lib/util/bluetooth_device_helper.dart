@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -126,6 +127,7 @@ class BluetoothDeviceManager {
     if (device == null) {
       _castingBluetoothDevice = null;
       injector<ConfigurationService>().setSelectedDeviceId(null);
+      injector<SettingsDataService>().backupUserSettings();
       return;
     }
 
@@ -136,6 +138,7 @@ class BluetoothDeviceManager {
     _castingBluetoothDevice = device;
 
     injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
+    injector<SettingsDataService>().backupUserSettings();
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {

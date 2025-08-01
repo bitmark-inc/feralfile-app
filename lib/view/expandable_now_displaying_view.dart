@@ -62,17 +62,6 @@ class ExpandableNowDisplayingView extends StatefulWidget {
             isNowDisplayingExpanded.value = false;
           },
         ),
-      // account
-      OptionItem(
-        title: 'wallet'.tr(),
-        icon: const Icon(
-          AuIcon.wallet,
-        ),
-        onTap: () {
-          injector<NavigationService>().navigateTo(AppRouter.walletPage);
-          isNowDisplayingExpanded.value = false;
-        },
-      ),
       OptionItem(
         title: 'App Settings',
         icon: const Icon(

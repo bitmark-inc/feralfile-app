@@ -150,16 +150,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
       });
     }
 
-    // backup SelectedDeviceId
-    final selectedDeviceId =
-        jsonEncode(_configurationService.getSelectedDeviceId());
-    if (currentSettings['selectedDeviceId'] != selectedDeviceId) {
-      newSettings.add({
-        'key': _keySelectedDeviceId,
-        'value': selectedDeviceId,
-      });
-    }
-
     if (newSettings.isEmpty) {
       log.info('[SettingsDataService] skip device backup: identical');
       return;
@@ -186,6 +176,16 @@ class SettingsDataServiceImpl implements SettingsDataService {
       newSettings.add({
         'key': _keyHiddenMainnetTokenIDs,
         'value': hiddenMainnetTokenIDs,
+      });
+    }
+
+    // backup SelectedDeviceId
+    final selectedDeviceId =
+        jsonEncode(_configurationService.getSelectedDeviceId());
+    if (currentSettings['selectedDeviceId'] != selectedDeviceId) {
+      newSettings.add({
+        'key': _keySelectedDeviceId,
+        'value': selectedDeviceId,
       });
     }
 

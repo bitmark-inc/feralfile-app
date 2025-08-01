@@ -29,6 +29,7 @@ class AudioService {
   Future<void> startRecording(
       {double silenceThreshold = 50,
       Duration silenceDuration = const Duration(seconds: 2),
+      Duration noSpeechDuration = const Duration(seconds: 5),
       FutureOr<void> Function()? onSilenceDetected}) async {
     _didTalk = false; // Reset the flag
     final recorder = await getRecorder();
@@ -50,7 +51,9 @@ class AudioService {
         } else {
           // Check if silence has lasted more than 3 seconds
           if (now.difference(lastLoudTime).inSeconds >=
-              silenceDuration.inSeconds) {
+              (_didTalk
+                  ? silenceDuration.inSeconds
+                  : noSpeechDuration.inSeconds)) {
             log.info('Silence detected');
             _recorderSubscription?.cancel();
             onSilenceDetected?.call();

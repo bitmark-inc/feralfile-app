@@ -62,6 +62,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
         _timer = Timer.periodic(Duration(milliseconds: 50), (_) {
           _timer?.cancel();
           shouldShowNowDisplaying.value = true;
+          nowDisplayingVisibility.value = true;
         });
         // shouldShowNowDisplaying.value = true;
       }
