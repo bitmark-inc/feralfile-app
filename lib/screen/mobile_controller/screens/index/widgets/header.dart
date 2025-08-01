@@ -20,19 +20,15 @@ class HeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-      child: Row(
-        children: pageTitles
-            .map(
-              (title) => _headerButton(
-                context,
-                title,
-                pageTitles.indexOf(title),
-              ),
-            )
-            .toList(),
-      ),
+    return Row(
+      children: pageTitles.map((title) {
+        final index = pageTitles.indexOf(title);
+        return _headerButton(
+          context,
+          title,
+          index,
+        );
+      }).toList(),
     );
   }
 
@@ -44,6 +40,14 @@ class HeaderWidget extends StatelessWidget {
       onPressed: () {
         onPageChanged(index);
       },
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.symmetric(
+          vertical: 10,
+          horizontal: ResponsiveLayout.paddingHorizontal,
+        ),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: Size.zero,
+      ),
       child: Text(
         title,
         style: isSelected

@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +15,10 @@ class ChannelItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveLayout.paddingHorizontal,
+            vertical: 16,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

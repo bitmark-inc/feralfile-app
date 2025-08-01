@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/index/widgets/
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -215,13 +216,19 @@ class _PlaylistAssetGridViewState extends State<PlaylistAssetGridView> {
   Widget _loadingView(BuildContext context) => LoadingWidget(
         backgroundColor: widget.backgroundColor,
         isInfinitySize: false,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 60),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveLayout.paddingHorizontal,
+          vertical: 60,
+        ),
       );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 60),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveLayout.paddingHorizontal,
+        vertical: 60,
+      ),
       child: Text('Playlist Empty', style: theme.textTheme.ppMori400White14),
     );
   }

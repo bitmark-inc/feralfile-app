@@ -67,13 +67,13 @@ class _ChatThreadViewState extends State<ChatThreadView> {
           Padding(
             padding: const EdgeInsets.only(left: 100),
             child: Align(
+              alignment: Alignment.centerRight,
               child: Text(
                 message,
                 style: theme.textTheme.ppMori400White12,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
-              alignment: Alignment.centerRight,
             ),
           ),
           const SizedBox(height: 6),

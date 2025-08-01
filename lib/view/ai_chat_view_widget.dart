@@ -91,6 +91,7 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
               id: const Uuid().v4(),
               text: state.transcription!,
               status: types.Status.delivered,
+              showStatus: false,
             );
             if (_currentUserMessageId == null) {
               _messages.add(userMessage);
@@ -148,6 +149,7 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
                 id: const Uuid().v4(),
                 text: state.response,
                 status: types.Status.delivered,
+                showStatus: false,
               ),
             );
             _currentUserMessageId = null; // Clear user message ID
@@ -200,11 +202,14 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
         onSendPressed: _handleSendPressed,
         user: aiChatUser,
         customBottomWidget: _isInputEnabled
-            ? CustomChatInputWidget(
-                // Replace Input with CustomChatInputWidget
-                onSendPressed: _handleSendPressed,
-                textEditingController: _textController,
-                isProcessing: _isProcessing, // Pass isProcessing state
+            ? Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: CustomChatInputWidget(
+                  // Replace Input with CustomChatInputWidget
+                  onSendPressed: _handleSendPressed,
+                  textEditingController: _textController,
+                  isProcessing: _isProcessing, // Pass isProcessing state
+                ),
               )
             : const SizedBox(),
         // Disabled input or message when limit reached
@@ -257,29 +262,18 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
 
   DefaultChatTheme get _chatTheme {
     final theme = Theme.of(context);
-    final inputPadding = const EdgeInsets.fromLTRB(0, 10, 0, 10);
     return DefaultChatTheme(
       messageInsetsVertical: 6,
       messageInsetsHorizontal: 0,
       errorIcon: const SizedBox(),
-      inputPadding: inputPadding,
+      bubbleMargin: ResponsiveLayout.pageHorizontalEdgeInsets,
       backgroundColor: Colors.transparent,
-      // bubbleMargin: EdgeInsets.all(0),
-      inputBackgroundColor: AppColor.auGreyBackground,
-      inputContainerDecoration: BoxDecoration(
-        border: Border.all(color: AppColor.auLightGrey),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      inputTextStyle: theme.textTheme.ppMori400White12,
-      inputTextColor: theme.colorScheme.secondary,
-      inputBorderRadius: BorderRadius.zero,
-      inputMargin: EdgeInsets.zero,
       sendButtonIcon: SvgPicture.asset(
         _sendIcon,
       ),
-      inputTextCursorColor: theme.colorScheme.secondary,
       emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400White12
           .copyWith(color: AppColor.auQuickSilver),
+      statusIconPadding: EdgeInsets.zero,
       dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
       dateDividerTextStyle: ResponsiveLayout.isMobile
           ? theme.textTheme.dateDividerTextStyle

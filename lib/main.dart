@@ -419,8 +419,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                     bottom: bottomSheetHeight > 0
                         ? 10 + bottomSheetHeight
                         : kStatusBarMarginBottom,
-                    left: 10,
-                    right: 10,
+                    left: ResponsiveLayout.paddingHorizontal,
+                    right: ResponsiveLayout.paddingHorizontal,
                     child: FadeTransition(
                       opacity: _animationController,
                       child: SlideTransition(

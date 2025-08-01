@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/material.dart';
 
 class EnterCommandScreen extends StatefulWidget {
@@ -37,12 +38,14 @@ class _EnterCommandScreenState extends State<EnterCommandScreen> {
                         controller: _controller,
                         style:
                             const TextStyle(color: Colors.black, fontSize: 18),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Type your command...',
-                          hintStyle: TextStyle(color: Colors.black54),
+                          hintStyle: const TextStyle(color: Colors.black54),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 14),
+                            horizontal: ResponsiveLayout.paddingHorizontal,
+                            vertical: 14,
+                          ),
                         ),
                         onSubmitted: (value) {
                           if (value.trim().isNotEmpty) {
