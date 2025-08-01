@@ -106,17 +106,9 @@ class _ChannelsPageState extends State<ChannelsPage>
 
         return Column(
           children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  AppRouter.channelDetailPage,
-                  arguments: ChannelDetailPagePayload(channel: channel),
-                );
-              },
-              child: ColoredBox(
-                color: Colors.transparent,
-                child: ChannelItem(channel: channel),
-              ),
+            ColoredBox(
+              color: Colors.transparent,
+              child: ChannelItem(channel: channel),
             ),
             if (index == channels.length - 1 && !hasMore)
               const SizedBox(

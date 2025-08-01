@@ -30,7 +30,7 @@ class _DP1ResponseVisualViewState extends State<DP1ResponseVisualView> {
               key: Key(playlist.id),
               header: PlaylistItem(
                 playlist: playlist,
-                deviderColor: AppColor.auGreyBackground,
+                dividerColor: AppColor.auGreyBackground,
               ),
               backgroundColor: AppColor.primaryBlack,
             );

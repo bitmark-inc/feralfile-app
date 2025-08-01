@@ -13,28 +13,31 @@ class PlaylistItem extends StatelessWidget {
   const PlaylistItem({
     required this.playlist,
     this.channel,
-    this.isCustomTitle = false,
-    this.deviderColor = AppColor.primaryBlack,
+    this.dividerColor = AppColor.primaryBlack,
     this.channelVisible = true,
+    this.isFromPlaylistsPage = false,
+    this.clickable = true,
     super.key,
   });
 
   final DP1Call playlist;
   final Channel? channel;
-  final bool isCustomTitle;
-  final Color deviderColor;
+  final Color dividerColor;
   final bool channelVisible;
+  final bool isFromPlaylistsPage;
+  final bool clickable;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: () {
+        if (!clickable) return;
         injector<NavigationService>().navigateTo(
           AppRouter.playlistDetailsPage,
           arguments: DP1PlaylistDetailsScreenPayload(
             playlist: playlist,
-            backTitle: isCustomTitle ? channel?.title : null,
+            backTitle: isFromPlaylistsPage ? 'Playlists' : channel?.title,
           ),
         );
       },
@@ -63,7 +66,9 @@ class PlaylistItem extends StatelessWidget {
                         AppRouter.channelDetailPage,
                         arguments: ChannelDetailPagePayload(
                           channel: channel!,
-                          backTitle: 'Playlists',
+                          backTitle: isFromPlaylistsPage
+                              ? 'Playlists'
+                              : playlist.title,
                         ),
                       );
                     },
@@ -79,7 +84,7 @@ class PlaylistItem extends StatelessWidget {
           ),
           Divider(
             height: 1,
-            color: deviderColor,
+            color: dividerColor,
           ),
         ],
       ),

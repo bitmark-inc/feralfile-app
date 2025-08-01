@@ -84,7 +84,10 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
               children: [
                 const SizedBox(height: UIConstants.detailPageHeaderPadding),
                 PlaylistItem(
-                    playlist: widget.payload.playlist, channel: channel)
+                  playlist: widget.payload.playlist,
+                  channel: channel,
+                  clickable: false,
+                )
               ],
             ),
             playlist: widget.payload.playlist,

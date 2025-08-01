@@ -11,11 +11,12 @@ import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 class ChannelDetailPagePayload {
-  ChannelDetailPagePayload(
-      {required this.channel, this.backTitle = 'Channels'});
+  ChannelDetailPagePayload({
+    required this.channel,
+    this.backTitle = 'Channels',
+  });
 
   final Channel channel;
   final String backTitle;
@@ -70,31 +71,15 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
       backgroundColor: AppColor.auGreyBackground,
       appBar: DetailPageAppBar(
         title: widget.payload.backTitle,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(left: 5),
-            child: IconButton(
-              onPressed: () {},
-              constraints: const BoxConstraints(
-                maxWidth: 44,
-                maxHeight: 44,
-                minWidth: 44,
-                minHeight: 44,
-              ),
-              icon: SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                width: 22,
-                height: 22,
-              ),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: UIConstants.detailPageHeaderPadding),
-            ChannelItem(channel: widget.payload.channel),
+            ChannelItem(
+              channel: widget.payload.channel,
+              clickable: false,
+            ),
             const SizedBox(height: UIConstants.detailPageHeaderPadding),
             Expanded(
               child: BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
@@ -147,7 +132,6 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
       isLoadingMore: isLoadingMore,
       scrollController: _scrollController,
       channel: widget.payload.channel,
-      isCustomTitle: true,
       channelVisible: false,
     );
   }

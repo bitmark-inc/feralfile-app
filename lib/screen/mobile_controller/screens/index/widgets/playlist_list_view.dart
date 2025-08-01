@@ -11,8 +11,8 @@ class PlaylistListView extends StatelessWidget {
     required this.isLoadingMore,
     required this.scrollController,
     this.channel,
-    this.isCustomTitle = false,
     this.channelVisible = true,
+    this.isFromPlaylistsPage = false,
     super.key,
   });
 
@@ -21,8 +21,8 @@ class PlaylistListView extends StatelessWidget {
   final bool isLoadingMore;
   final ScrollController scrollController;
   final Channel? channel;
-  final bool isCustomTitle;
   final bool channelVisible;
+  final bool isFromPlaylistsPage;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class PlaylistListView extends StatelessWidget {
             PlaylistItem(
               playlist: playlist,
               channel: channel,
-              isCustomTitle: isCustomTitle,
+              isFromPlaylistsPage: isFromPlaylistsPage,
               channelVisible: channelVisible,
             ),
             if (index == playlists.length - 1 && !hasMore)
