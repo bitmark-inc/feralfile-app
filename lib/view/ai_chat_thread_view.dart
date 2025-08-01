@@ -100,17 +100,9 @@ class _AiChatThreadViewState extends State<AiChatThreadView>
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOut,
-                  height: value
-                      ? (kStatusBarMarginBottom + kNowDisplayingHeight) + 8
-                      : 0,
+                  height: MediaQuery.of(context).padding.bottom +
+                      (value ? (kNowDisplayingHeight + 8) : 0),
                 );
-                if (value) {
-                  return const SizedBox(
-                    height: 100,
-                  );
-                } else {
-                  return const SizedBox();
-                }
               },
             );
           })

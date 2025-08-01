@@ -463,7 +463,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         valueListenable: nowDisplayingShowing,
         builder: (context, value, child) {
           return SizedBox(
-            height: kStatusBarMarginBottom + (value ? kNowDisplayingHeight : 0),
+            height: MediaQuery.of(context).padding.bottom +
+                (value ? kNowDisplayingHeight : 0),
           );
         },
       );

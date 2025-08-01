@@ -38,7 +38,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -289,13 +288,12 @@ class AutonomyAppScaffold extends StatefulWidget {
   State<AutonomyAppScaffold> createState() => _AutonomyAppScaffoldState();
 }
 
-const double kStatusBarMarginBottom = 20;
-
 class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   bool _isVisible = true;
   double _lastScrollPosition = 0;
+  late final ValueNotifier<bool> _shouldShowOverlay;
 
   StreamSubscription<NowDisplayingStatus?>? _nowDisplayingStreamSubscription;
 
@@ -318,6 +316,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         NowDisplayingManager().nowDisplayingStream.listen((_) {
       _updateAnimationBasedOnDisplayState();
     });
+
+    _shouldShowOverlay = ValueNotifier(false);
+    _updateOverlayVisibility();
+    isNowDisplayingExpanded.addListener(_updateOverlayVisibility);
+    nowDisplayingShowing.addListener(_updateOverlayVisibility);
   }
 
   void _updateAnimationBasedOnDisplayState() {
@@ -333,6 +336,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
       _animationController.reverse();
       setState(() => _isVisible = false);
     }
+  }
+
+  void _updateOverlayVisibility() {
+    _shouldShowOverlay.value =
+        isNowDisplayingExpanded.value && nowDisplayingShowing.value;
   }
 
   void _handleScrollUpdate(ScrollNotification notification) {
@@ -363,6 +371,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     nowDisplayingVisibility.removeListener(_updateAnimationBasedOnDisplayState);
     CustomRouteObserver.bottomSheetHeight
         .removeListener(_updateAnimationBasedOnDisplayState);
+    isNowDisplayingExpanded.removeListener(_updateOverlayVisibility);
+    nowDisplayingShowing.removeListener(_updateOverlayVisibility);
+
+    _shouldShowOverlay.dispose();
     _nowDisplayingStreamSubscription?.cancel();
     _animationController.dispose();
     super.dispose();
@@ -379,34 +391,26 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
         child: Stack(
           children: [
             widget.child,
-            MultiValueListenableBuilder(
-              valueListenables: [isNowDisplayingExpanded, nowDisplayingShowing],
-              builder: (
-                context,
-                values,
-                child,
-              ) {
-                final isExpanded = values[0] as bool;
-                final isNowDisplaying = values[1] as bool;
-                if (isExpanded && isNowDisplaying) {
-                  return child ?? const SizedBox();
-                }
-                return const SizedBox();
+            ValueListenableBuilder<bool>(
+              valueListenable: _shouldShowOverlay,
+              builder: (context, shouldShowOverlay, child) {
+                return shouldShowOverlay
+                    ? Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () {
+                            if (_isVisible) {
+                              isNowDisplayingExpanded.value = false;
+                            }
+                          },
+                          child: AnimatedContainer(
+                            color: AppColor.primaryBlack.withAlpha(51),
+                            duration: const Duration(milliseconds: 150),
+                          ), // Transparent area
+                        ),
+                      )
+                    : const SizedBox();
               },
-              child: Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    if (_isVisible) {
-                      isNowDisplayingExpanded.value = false;
-                    }
-                  },
-                  child: AnimatedContainer(
-                    color: AppColor.primaryBlack.withOpacity(0.2),
-                    duration: Duration(milliseconds: 150),
-                  ), // Transparent area
-                ),
-              ),
             ),
             Visibility(
               visible: _isVisible,
@@ -414,20 +418,21 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
               child: ValueListenableBuilder(
                 valueListenable: CustomRouteObserver.bottomSheetHeight,
                 builder: (context, bottomSheetHeight, child) {
+                  final paddingBottom = MediaQuery.of(context).padding.bottom;
                   return AnimatedPositioned(
                     duration: const Duration(milliseconds: 150),
                     bottom: bottomSheetHeight > 0
                         ? 10 + bottomSheetHeight
-                        : kStatusBarMarginBottom,
+                        : paddingBottom,
                     left: ResponsiveLayout.paddingHorizontal,
                     right: ResponsiveLayout.paddingHorizontal,
                     child: FadeTransition(
                       opacity: _animationController,
                       child: SlideTransition(
                         position: Tween<Offset>(
-                          begin: const Offset(
+                          begin: Offset(
                             0,
-                            kStatusBarMarginBottom / kNowDisplayingHeight,
+                            paddingBottom / kNowDisplayingHeight,
                           ),
                           end: Offset.zero,
                         ).animate(
