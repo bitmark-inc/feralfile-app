@@ -19,7 +19,6 @@ AppBar getBackAppBar(
   String title = '',
   TextStyle? titleStyle,
   Widget? icon,
-  Widget? titleIcon,
   Function()? action,
   List<Widget>? actions,
   bool isWhite = true,
@@ -43,18 +42,12 @@ AppBar getBackAppBar(
         ? backButton(context, onBack: onBack, color: primaryColor)
         : const SizedBox(width: 56),
     automaticallyImplyLeading: false,
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (titleIcon != null) ...[titleIcon, const SizedBox(width: 10)],
-        Text(
-          title,
-          overflow: TextOverflow.ellipsis,
-          style: titleStyle ??
-              theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
-          textAlign: TextAlign.center,
-        ),
-      ],
+    title: Text(
+      title,
+      overflow: TextOverflow.ellipsis,
+      style: titleStyle ??
+          theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
+      textAlign: TextAlign.center,
     ),
     actions: [
       ...actions ?? [],
