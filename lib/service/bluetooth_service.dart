@@ -204,6 +204,7 @@ class FFBluetoothService {
         'Connection state update for ${device.remoteId.str}: ${state.name}',
       );
       if (state == BluetoothConnectionState.connected) {
+        final hash = _connectCompleter?.hashCode;
         try {
           // add safe delay to ensure connection is stable
           await Future.delayed(const Duration(seconds: 1));
@@ -213,21 +214,24 @@ class FFBluetoothService {
           }
           _connectCompleter = null;
         } catch (e, s) {
-          log.warning('Failed to discover characteristics: $e');
+          log.warning(
+              '[onConnectionStateChanged] Failed to discover characteristics: $e');
           unawaited(
             Sentry.captureException(
-              'Failed to discover characteristics: $e',
+              '[onConnectionStateChanged] Failed to discover characteristics: $e',
               stackTrace: s,
             ),
           );
           log.info(
-            'Disconnecting from device: ${device.remoteId.str} due to error $e',
+            '[onConnectionStateChanged] Disconnecting from device: ${device.remoteId.str} due to error $e',
           );
           await device.disconnect();
-          if (_connectCompleter?.isCompleted == false) {
-            _connectCompleter?.completeError(e);
+          if (hash == _connectCompleter?.hashCode) {
+            if (_connectCompleter?.isCompleted == false) {
+              _connectCompleter?.completeError(e);
+            }
+            _connectCompleter = null;
           }
-          _connectCompleter = null;
         }
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
@@ -550,16 +554,38 @@ class FFBluetoothService {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     log.info('_connectDevice');
-    await _connect(
-      device,
-      shouldShowError: shouldShowError,
-      timeout: timeout,
-    );
+    final isDisconnectedWithSuccess = (Object e) {
+      if (e is FFBluetoothDisconnectedError &&
+          (e as FFBluetoothDisconnectedError).disconnectReason?.code == 0) {
+        return true;
+      }
+      return false;
+    };
+    try {
+      await _connect(
+        device,
+        shouldShowError: (e) {
+          if (isDisconnectedWithSuccess(e)) {
+            return false;
+          }
+          return shouldShowError;
+        },
+        timeout: timeout,
+      );
+    } catch (e) {
+      if (isDisconnectedWithSuccess(e)) {
+        log.info("Connection is not stable, retrying...");
+        await _connect(device,
+            shouldShowError: (_) => shouldShowError, timeout: timeout);
+      } else {
+        throw e;
+      }
+    }
   }
 
   Future<void> _connect(
     BluetoothDevice device, {
-    bool shouldShowError = true,
+    bool Function(Object e)? shouldShowError,
     Duration timeout = const Duration(seconds: 30),
   }) async {
     // connect to device
@@ -580,7 +606,7 @@ class FFBluetoothService {
       } catch (e) {
         log.warning('Failed to connect to device: $e');
         unawaited(Sentry.captureException('Failed to connect to device: $e'));
-        if (shouldShowError) {
+        if (shouldShowError?.call(e) ?? true) {
           unawaited(
             injector<NavigationService>().showCannotConnectToBluetoothDevice(
               device,
@@ -618,7 +644,7 @@ class FFBluetoothService {
           const Duration(seconds: 30),
           onTimeout: () {
             log.warning('Timeout waiting for connection to complete');
-            if (shouldShowError) {
+            if (shouldShowError?.call(e) ?? true) {
               unawaited(
                 injector<NavigationService>()
                     .showCannotConnectToBluetoothDevice(
@@ -639,7 +665,7 @@ class FFBluetoothService {
           log.info(
             '[_connect] Connection took ${DateTime.now().difference(now).inSeconds} seconds',
           );
-          if (shouldShowError) {
+          if (shouldShowError?.call(e) ?? true) {
             unawaited(
               injector<NavigationService>().showCannotConnectToBluetoothDevice(
                 device,
