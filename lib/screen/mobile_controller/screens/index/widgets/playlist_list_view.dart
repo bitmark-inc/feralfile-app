@@ -12,6 +12,7 @@ class PlaylistListView extends StatelessWidget {
     required this.scrollController,
     this.channel,
     this.isCustomTitle = false,
+    this.channelVisible = true,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class PlaylistListView extends StatelessWidget {
   final ScrollController scrollController;
   final Channel? channel;
   final bool isCustomTitle;
+  final bool channelVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +48,7 @@ class PlaylistListView extends StatelessWidget {
               playlist: playlist,
               channel: channel,
               isCustomTitle: isCustomTitle,
+              channelVisible: channelVisible,
             ),
             if (index == playlists.length - 1 && !hasMore)
               const SizedBox(

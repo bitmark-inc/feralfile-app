@@ -148,6 +148,7 @@ class _ChannelDetailPageState extends State<ChannelDetailPage>
       scrollController: _scrollController,
       channel: widget.payload.channel,
       isCustomTitle: true,
+      channelVisible: false,
     );
   }
 

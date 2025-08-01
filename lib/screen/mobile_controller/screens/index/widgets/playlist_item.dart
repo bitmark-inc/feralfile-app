@@ -14,6 +14,7 @@ class PlaylistItem extends StatelessWidget {
     this.channel,
     this.isCustomTitle = false,
     this.deviderColor = AppColor.primaryBlack,
+    this.channelVisible = true,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class PlaylistItem extends StatelessWidget {
   final Channel? channel;
   final bool isCustomTitle;
   final Color deviderColor;
+  final bool channelVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,7 @@ class PlaylistItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (channel != null)
+                if (channel != null && channelVisible)
                   GestureDetector(
                     onTap: () {
                       injector<NavigationService>().navigateTo(
