@@ -1505,7 +1505,7 @@ class BluetoothConnectedDeviceConfigState
                   color: Colors.transparent,
                   borderColor: AppColor.white,
                   onTap: () {
-                    injector<NavigationService>().goBack(result: false);
+                    injector<NavigationService>().goBack(result: null);
                   },
                 ),
               ),
@@ -1541,7 +1541,7 @@ class BluetoothConnectedDeviceConfigState
         await UIHelper.showInfoDialog(context, 'Restoring Factory Defaults',
             'The device is now restoring to factory settings. It may take some time to complete. Please keep the device powered on and wait until the reset is finished.');
       }
-    } else {
+    } else if (error != null) {
       await UIHelper.showInfoDialog(context, 'Factory Reset Failed',
           'Something went wrong while trying to restore the device to factory settings. ${error.toString()}');
     }
