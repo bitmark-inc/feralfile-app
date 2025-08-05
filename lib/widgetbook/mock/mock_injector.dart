@@ -21,6 +21,15 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
+import 'package:autonomy_flutter/service/audio_service.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
+import 'package:autonomy_flutter/service/mobile_controller_service.dart';
+import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
+import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -57,6 +66,15 @@ import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_client.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_playlist_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_version_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_mobile_controller_api.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_mobile_controller_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_audio_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_channels_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_dp1_playlist_api.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_dp1_playlist_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_record_bloc.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_channels_bloc.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_playlists_bloc.dart';
 import 'package:autonomy_flutter/widgetbook/mock/nft_collection/mock_nft_address_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/nft_collection/mock_nft_collection_database.dart';
 import 'package:autonomy_flutter/widgetbook/mock/nft_collection/mock_token_service.dart';
@@ -270,6 +288,74 @@ class MockInjector {
     if (!injector.isRegistered<ListPlaylistBloc>()) {
       injector.registerLazySingleton<ListPlaylistBloc>(
         ListPlaylistBloc.new,
+      );
+    }
+
+    // Mobile Controller API
+    if (!injector.isRegistered<MobileControllerAPI>()) {
+      injector.registerLazySingleton<MobileControllerAPI>(
+        MockMobileControllerAPI.new,
+      );
+    }
+
+    // Mobile Controller Service
+    if (!injector.isRegistered<MobileControllerService>()) {
+      injector.registerLazySingleton<MobileControllerService>(
+        () => MockMobileControllerService(injector<MobileControllerAPI>()),
+      );
+    }
+
+    // Audio Service
+    if (!injector.isRegistered<AudioService>()) {
+      injector.registerLazySingleton<AudioService>(
+        MockAudioService.new,
+      );
+    }
+
+    // Channels Service
+    if (!injector.isRegistered<ChannelsService>()) {
+      injector.registerLazySingleton<ChannelsService>(
+        () => MockChannelsService(injector<DP1PlaylistApi>(), 'mock-api-key'),
+      );
+    }
+
+    // DP1PlaylistApi
+    if (!injector.isRegistered<DP1PlaylistApi>()) {
+      injector.registerLazySingleton<DP1PlaylistApi>(
+        MockDP1PlaylistApi.new,
+      );
+    }
+
+    // Dp1PlaylistService
+    if (!injector.isRegistered<Dp1PlaylistService>()) {
+      injector.registerLazySingleton<Dp1PlaylistService>(
+        () =>
+            MockDp1PlaylistService(injector<DP1PlaylistApi>(), 'mock-api-key'),
+      );
+    }
+
+    // RecordBloc
+    if (!injector.isRegistered<RecordBloc>()) {
+      injector.registerLazySingleton<RecordBloc>(
+        () => MockRecordBloc(
+          injector(),
+          injector(),
+          injector(),
+        ),
+      );
+    }
+
+    // ChannelsBloc
+    if (!injector.isRegistered<ChannelsBloc>()) {
+      injector.registerFactory<ChannelsBloc>(
+        () => MockChannelsBloc(channelsService: injector()),
+      );
+    }
+
+    // PlaylistsBloc
+    if (!injector.isRegistered<PlaylistsBloc>()) {
+      injector.registerFactory<PlaylistsBloc>(
+        () => MockPlaylistsBloc(playlistService: injector()),
       );
     }
 

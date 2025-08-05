@@ -4,22 +4,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_injector.dart';
-import 'package:autonomy_flutter/widgetbook/screens/common/common.dart';
-import 'package:autonomy_flutter/widgetbook/screens/daily_work_page.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/alumni/alumni_card.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/alumni/list_alumni_view.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/artwork_view.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/exhibition/exhibition_card.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/exhibition/list_exhibition_view.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/explore_search_bar.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/featured_work/featured_work_card.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/featured_work/featured_work_view.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/filter_bar.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/filter_expanded_item.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile/sort_bar.dart';
-import 'package:autonomy_flutter/widgetbook/screens/feralfile_home_page.dart';
-import 'package:autonomy_flutter/widgetbook/screens/home/home_navigation_page_component.dart';
-import 'package:autonomy_flutter/widgetbook/screens/organize_home_page.dart';
+import 'package:autonomy_flutter/widgetbook/screens/mobile_controller_home_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,6 +50,11 @@ class WidgetbookApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final figmaDevice = DeviceInfo.genericPhone(
+            platform: TargetPlatform.iOS,
+            id: 'Figma Device',
+            name: 'Figma Device',
+            screenSize: const Size(383, 852));
         return MultiBlocProvider(
           providers: [
             BlocProvider.value(value: MockInjector.get<CanvasDeviceBloc>()),
@@ -87,8 +77,10 @@ class WidgetbookApp extends StatelessWidget {
               DeviceFrameAddon(
                 devices: [
                   ...Devices.all,
+                  // custom device
+                  figmaDevice,
                 ],
-                initialDevice: Devices.android.pixel4,
+                initialDevice: figmaDevice,
               ),
               // ViewportAddon(Viewports.all),
               // InspectorAddon(
@@ -120,110 +112,11 @@ class WidgetbookApp extends StatelessWidget {
             directories: [
               ...directories,
               WidgetbookFolder(
-                name: 'Components',
-                children: [
-                  WidgetbookFolder(name: 'Common', children: [
-                    // headerViewComponent,
-                    // loadingWidgetComponent,
-                    // backAppBarComponent,
-                    // accountItemComponent,
-                    // primaryButtonComponent,
-                    ffCastButton(),
-                    artworkDetailsHeader(),
-                  ]),
-                  WidgetbookFolder(name: 'Feralfile', children: [
-                    WidgetbookFolder(name: 'Exhibition', children: [
-                      exhibitionView(),
-                      listExhibitionView(),
-                    ]),
-                    WidgetbookFolder(name: 'Series', children: [
-                      seriesView(),
-                    ]),
-                    WidgetbookFolder(name: 'Alumni View', children: [
-                      alumniCardView(),
-                      listAlumniView(),
-                    ]),
-                    WidgetbookFolder(name: 'Common', children: [
-                      exploreSearchBar(),
-                      filterBar(),
-                      filterExpandedItem(),
-                      sortBar(),
-                    ]),
-                    WidgetbookFolder(name: 'Indexer Artwork', children: [
-                      featuredWorkCard(),
-                      featuredWorkView(),
-                    ])
-                  ]),
-                ],
-              ),
-              WidgetbookFolder(
                 name: 'Screens',
                 children: [
-                  // WidgetbookFolder(
-                  //   name: 'Wallet',
-                  //   children: [
-                  //     WalletPageComponent(),
-                  //     RecoveryPhraseWarningComponent(),
-                  //     WalletAppBarComponent(),
-                  //     AccountsViewComponent(),
-                  //     EmptyAddressListComponent(),
-                  //     NoEditAddressesListComponent(),
-                  //     ReorderableAddressesListComponent(),
-                  //     ViewAddressItemComponent(),
-                  //     EditAccountItemComponent(),
-                  //     AddressCardComponent(),
-                  //   ],
-                  // ),
-                  // WidgetbookFolder(
-                  //   name: 'Account',
-                  //   children: [
-                  //     settingsPageComponent,
-                  //   ],
-                  // ),
-                  // WidgetbookFolder(
-                  //   name: 'Account View',
-                  //   children: [homeNavigationPageComponent],
-                  // ),
-                  homeNavigationPageComponent,
-                  WidgetbookFolder(name: 'Daily Pages', children: [
-                    WidgetbookComponent(
-                      name: 'Daily Work Page',
-                      useCases: [
-                        WidgetbookUseCase(
-                          name: 'Default',
-                          builder: (context) => const DailyWorkPageComponent(),
-                        ),
-                      ],
-                    ),
-                    WidgetbookFolder(name: 'Common', children: [
-                      progressBar(),
-                      dailyProgressBar(),
-                      artworkPreviewWidget(),
-                      dailyDetails(),
-                      ffCastButton(),
-                      artworkDetailsHeader(),
-                    ]),
-                  ]),
-
-                  WidgetbookComponent(
-                    name: 'Feralfile Home Page',
-                    useCases: [
-                      WidgetbookUseCase(
-                        name: 'Default',
-                        builder: (context) =>
-                            const FeralfileHomePageComponent(),
-                      ),
-                    ],
-                  ),
-                  WidgetbookComponent(
-                    name: 'Organize Home Page',
-                    useCases: [
-                      WidgetbookUseCase(
-                        name: 'Default',
-                        builder: (context) => const OrganizeHomePageComponent(),
-                      ),
-                    ],
-                  ),
+                  WidgetbookFolder(name: 'Home Page', children: [
+                    mobileControllerHomePageComponent,
+                  ])
                 ],
               ),
             ],
