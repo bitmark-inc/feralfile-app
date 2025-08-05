@@ -296,7 +296,7 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
             const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         suffixIcon: IconButton(
           icon: Icon(
-            _isObscure ? Icons.visibility : Icons.visibility_off,
+            _isObscure ? Icons.visibility_off : Icons.visibility,
             color: AppColor.greyMedium,
           ),
           onPressed: () {

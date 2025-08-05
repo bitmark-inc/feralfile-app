@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/view/ai_chat_view_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -80,7 +81,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
           child: Center(
             child: Column(
               children: [
-                const SizedBox(height: 60),
+                // const SizedBox(height: 60),
                 Center(
                   child: GestureDetector(
                     onTap: state is RecordProcessingState
@@ -217,7 +218,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
               : isProcessing
                   ? MessageConstants.processingText
                   : MessageConstants.askAnythingText,
-          style: Theme.of(context).textTheme.ppMori400Black14,
+          style: Theme.of(context).textTheme.ppMori400Black12,
           textAlign: TextAlign.center,
         ),
       ),
@@ -226,11 +227,12 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
 
   Widget _historyChat(BuildContext context) {
     var messages = configurationService.getRecordedMessages();
-    // if (messages.isEmpty) {
-    //   messages = UIConstants.sampleHistoryAsks;
-    // }
+    if (kDebugMode && messages.isEmpty) {
+      messages = UIConstants.sampleHistoryAsks;
+    }
 
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: messages.length + 1,
       itemBuilder: (context, index) {
         if (index == messages.length) {
@@ -245,7 +247,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
               padding: ResponsiveLayout.paddingAll,
               child: Text(
                 messages[index],
-                style: theme.textTheme.ppMori400Grey14,
+                style: theme.textTheme.ppMori400Grey12,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),

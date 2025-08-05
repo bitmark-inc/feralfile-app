@@ -18,8 +18,7 @@ class _DP1ResponseVisualViewState extends State<DP1ResponseVisualView> {
     return BlocConsumer<RecordBloc, RecordState>(
       listener: (context, state) {},
       buildWhen: (previous, current) {
-        return (current is RecordSuccessState) ||
-            current is RecordInitialState;
+        return (current is RecordSuccessState) || current is RecordInitialState;
       },
       builder: (context, state) {
         if (state is RecordSuccessState) {
@@ -28,10 +27,12 @@ class _DP1ResponseVisualViewState extends State<DP1ResponseVisualView> {
             return PlaylistAssetGridView(
               playlist: playlist,
               key: Key(playlist.id),
-              header: PlaylistItem(
-                playlist: playlist,
-                dividerColor: AppColor.auGreyBackground,
-              ),
+              header: playlist.title.isEmpty
+                  ? SizedBox()
+                  : PlaylistItem(
+                      playlist: playlist,
+                      dividerColor: AppColor.auGreyBackground,
+                    ),
               backgroundColor: AppColor.primaryBlack,
             );
           }
