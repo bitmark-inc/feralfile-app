@@ -1536,8 +1536,8 @@ class BluetoothConnectedDeviceConfigState
       ),
     );
     if (error is bool) {
-      injector<NavigationService>().popUntilHome();
       if (error) {
+        injector<NavigationService>().popUntilHome();
         await UIHelper.showInfoDialog(context, 'Restoring Factory Defaults',
             'The device is now restoring to factory settings. It may take some time to complete. Please keep the device powered on and wait until the reset is finished.');
       }

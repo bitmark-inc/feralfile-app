@@ -1,8 +1,8 @@
 class UIConstants {
-  static const double recordButtonSize = 280.0;
+  static const double recordButtonSize = 223.0;
   static const double recordButtonSizeActive = 300.0;
   static const Duration animationDuration = Duration(milliseconds: 300);
-  static const double topControlsBarHeight = 150.0;
+  static const double topControlsBarHeight = 217.0;
   static const double detailPageHeaderPadding = 40.0;
   static const List<String> sampleHistoryAsks = [
     'Hey FF1, find me a 2‑hour generative art mix that feels like Bauhaus colours, then push it to the kitchen display at 6 pm.',

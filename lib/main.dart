@@ -421,9 +421,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                   final paddingBottom = MediaQuery.of(context).padding.bottom;
                   return AnimatedPositioned(
                     duration: const Duration(milliseconds: 150),
-                    bottom: bottomSheetHeight > 0
-                        ? 10 + bottomSheetHeight
-                        : paddingBottom,
+                    bottom: bottomSheetHeight > 0 ? 32 + bottomSheetHeight : 32,
                     left: ResponsiveLayout.paddingHorizontal,
                     right: ResponsiveLayout.paddingHorizontal,
                     child: FadeTransition(

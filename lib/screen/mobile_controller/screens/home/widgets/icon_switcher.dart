@@ -45,9 +45,9 @@ class IconSwitcherState extends State<IconSwitcher> {
   Widget build(BuildContext context) {
     const itemMargin = 4.0;
     final itemCount = widget.items.length;
-    const itemWidth = 56.0;
-    const itemHeight = 30.0;
-    const borderWidth = 2.0;
+    const itemWidth = 35.0;
+    const itemHeight = 22.0;
+    const borderWidth = 1.0;
     final width =
         itemWidth * itemCount + itemMargin * (itemCount - 1) + borderWidth * 2;
     const height = itemHeight;
