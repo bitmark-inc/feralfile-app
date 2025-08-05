@@ -399,70 +399,79 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
           _handleScrollUpdate(notification);
           return false; // Allow the notification to continue to be dispatched
         },
-        child: Stack(
-          children: [
-            widget.child,
-            ValueListenableBuilder<bool>(
-              valueListenable: _shouldShowOverlay,
-              builder: (context, shouldShowOverlay, child) {
-                return shouldShowOverlay
-                    ? Positioned.fill(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () {
-                            if (_isVisible) {
-                              isNowDisplayingExpanded.value = false;
-                            }
-                          },
-                          child: AnimatedContainer(
-                            color: AppColor.primaryBlack.withAlpha(51),
-                            duration: const Duration(milliseconds: 150),
-                          ), // Transparent area
-                        ),
-                      )
-                    : const SizedBox();
-              },
-            ),
-            Visibility(
-              visible: _isVisible,
-              replacement: const SizedBox.shrink(),
-              child: ValueListenableBuilder(
-                valueListenable: CustomRouteObserver.bottomSheetHeight,
-                builder: (context, bottomSheetHeight, child) {
-                  final paddingBottom = MediaQuery.of(context).padding.bottom;
-                  return AnimatedPositioned(
-                    duration: const Duration(milliseconds: 150),
-                    bottom: bottomSheetHeight > 0 ? 32 + bottomSheetHeight : 32,
-                    left: ResponsiveLayout.paddingHorizontal,
-                    right: ResponsiveLayout.paddingHorizontal,
-                    child: FadeTransition(
-                      opacity: _animationController,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: Offset(
-                            0,
-                            paddingBottom / kNowDisplayingHeight,
+        child: Listener(
+          onPointerDown: keyboardVisibilityController.isVisible
+              ? (PointerDownEvent event) {
+                  // Hide keyboard when tapping outside while keyboard is visible
+                  Timer(const Duration(milliseconds: 100), () {
+                    log.info('Hiding keyboard');
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    FocusScope.of(context).unfocus();
+                    log.info('Keyboard hidden');
+                  });
+                }
+              : null,
+          child: Stack(
+            children: [
+              widget.child,
+              ValueListenableBuilder<bool>(
+                valueListenable: _shouldShowOverlay,
+                builder: (context, shouldShowOverlay, child) {
+                  return shouldShowOverlay
+                      ? Positioned.fill(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: () {
+                              if (_isVisible) {
+                                isNowDisplayingExpanded.value = false;
+                              }
+                            },
+                            child: AnimatedContainer(
+                              color: AppColor.primaryBlack.withAlpha(51),
+                              duration: const Duration(milliseconds: 150),
+                            ), // Transparent area
                           ),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: _animationController,
-                            curve: Curves.easeInOut,
-                          ),
-                        ),
-                        child: IgnorePointer(
-                          ignoring: !_isVisible,
-                          child: NowDisplaying(
-                            key: GlobalKey(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
+                        )
+                      : const SizedBox();
                 },
               ),
-            ),
-          ],
+              Visibility(
+                visible: _isVisible,
+                replacement: const SizedBox.shrink(),
+                child: ValueListenableBuilder(
+                  valueListenable: CustomRouteObserver.bottomSheetHeight,
+                  builder: (context, bottomSheetHeight, child) {
+                    final paddingBottom = MediaQuery.of(context).padding.bottom;
+                    return AnimatedPositioned(
+                      duration: const Duration(milliseconds: 150),
+                      bottom:
+                          bottomSheetHeight > 0 ? 32 + bottomSheetHeight : 32,
+                      left: ResponsiveLayout.paddingHorizontal,
+                      right: ResponsiveLayout.paddingHorizontal,
+                      child: FadeTransition(
+                        opacity: _animationController,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(
+                              0,
+                              paddingBottom / kNowDisplayingHeight,
+                            ),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: _animationController,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
+                          child: const NowDisplaying(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
