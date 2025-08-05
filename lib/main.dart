@@ -37,6 +37,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -81,6 +82,8 @@ ValueNotifier<bool> nowDisplayingVisibility = ValueNotifier<bool>(true);
 
 // This value indicates whether the display is currently active. Its value is a combination of the three values above.
 ValueNotifier<bool> nowDisplayingShowing = ValueNotifier<bool>(false);
+
+final keyboardVisibilityController = KeyboardVisibilityController();
 
 void main() async {
   unawaited(
@@ -295,6 +298,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   double _lastScrollPosition = 0;
   late final ValueNotifier<bool> _shouldShowOverlay;
 
+  StreamSubscription<bool>? _keyboardVisibilitySubscription;
   StreamSubscription<NowDisplayingStatus?>? _nowDisplayingStreamSubscription;
 
   @override
@@ -317,6 +321,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
       _updateAnimationBasedOnDisplayState();
     });
 
+    _keyboardVisibilitySubscription =
+        keyboardVisibilityController.onChange.listen((_) {
+      _updateAnimationBasedOnDisplayState();
+    });
+
     _shouldShowOverlay = ValueNotifier(false);
     _updateOverlayVisibility();
     isNowDisplayingExpanded.addListener(_updateOverlayVisibility);
@@ -327,7 +336,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
         nowDisplayingVisibility.value &&
-        CustomRouteObserver.bottomSheetHeight.value == 0;
+        CustomRouteObserver.bottomSheetHeight.value == 0 &&
+        !keyboardVisibilityController.isVisible;
     nowDisplayingShowing.value = shouldShow;
     if (nowDisplayingShowing.value) {
       _animationController.forward();
@@ -377,6 +387,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     _shouldShowOverlay.dispose();
     _nowDisplayingStreamSubscription?.cancel();
     _animationController.dispose();
+    _keyboardVisibilitySubscription?.cancel();
     super.dispose();
   }
 
