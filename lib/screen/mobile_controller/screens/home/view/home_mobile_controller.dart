@@ -114,133 +114,103 @@ class _MobileControllerHomePageState
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top,
+          left: 0,
+          right: 0,
           child: Padding(
             padding: const EdgeInsets.only(top: 60),
-            child: _topControlsBar(context),
+            child: SizedBox(
+              child: _topControlsBar(context),
+            ),
           ),
         )
 
         // fade effect on bottom
-        // MultiValueListenableBuilder(
-        //   valueListenables: [
-        //     nowDisplayingShowing,
-        //   ],
-        //   builder: (context, values, _) {
-        //     return values.every((value) => value as bool)
-        //         ? Positioned(
-        //             bottom: 0,
-        //             left: 0,
-        //             right: 0,
-        //             child: IgnorePointer(
-        //               child: Container(
-        //                 height: 160,
-        //                 decoration: BoxDecoration(
-        //                   gradient: LinearGradient(
-        //                     begin: Alignment.topCenter,
-        //                     end: Alignment.bottomCenter,
-        //                     stops: const [0.0, 0.37, 0.37],
-        //                     colors: [
-        //                       AppColor.auGreyBackground.withAlpha(0),
-        //                       AppColor.auGreyBackground,
-        //                       AppColor.auGreyBackground,
-        //                     ],
-        //                   ),
-        //                 ),
-        //               ),
-        //             ),
-        //           )
-        //         : Container();
-        //   },
-        // ),
       ],
     );
   }
 
   Widget _topControlsBar(BuildContext context) {
     return Stack(
+      alignment: Alignment.center,
       children: [
-        Center(
-          child: _buildSwitcher(context, _currentPageIndex),
-        ),
+        _buildSwitcher(context, _currentPageIndex),
         if (_currentPageIndex == 0)
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Row(
-              children: [
-                BlocBuilder<RecordBloc, RecordState>(
-                  bloc: _recordBloc,
-                  builder: (context, state) {
-                    if (state is RecordSuccessState &&
-                        state.lastDP1Call!.items.isNotEmpty) {
-                      return FFCastButton(
-                        displayKey: state.lastDP1Call!.id,
-                        onDeviceSelected: (device) async {
-                          final lastIntent = state.lastIntent!;
-                          final lastDP1Call = state.lastDP1Call!;
-                          final deviceName = lastIntent.deviceName;
-                          final device = await BluetoothDeviceManager()
-                              .pickADeviceToDisplay(deviceName ?? '');
-                          if (device == null) {
-                            await UIHelper.showInfoDialog(
-                              context,
-                              'Device not found',
-                              'Can not find a device to display your artworks',
-                            );
-                            return;
-                          }
-                          if (BluetoothDeviceManager().castingBluetoothDevice !=
-                              device) {
-                            await BluetoothDeviceManager().switchDevice(device);
-                          }
-                          final completer = Completer<void>();
-                          injector<CanvasDeviceBloc>().add(
-                            CanvasDeviceCastDP1PlaylistEvent(
-                                device: device,
-                                playlist: lastDP1Call,
-                                intent: lastIntent,
-                                onDoneCallback: () {
-                                  completer.complete();
-                                }),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              BlocBuilder<RecordBloc, RecordState>(
+                bloc: _recordBloc,
+                builder: (context, state) {
+                  if (state is RecordSuccessState &&
+                      state.lastDP1Call!.items.isNotEmpty) {
+                    return FFCastButton(
+                      displayKey: state.lastDP1Call!.id,
+                      onDeviceSelected: (device) async {
+                        final lastIntent = state.lastIntent!;
+                        final lastDP1Call = state.lastDP1Call!;
+                        final deviceName = lastIntent.deviceName;
+                        final device = await BluetoothDeviceManager()
+                            .pickADeviceToDisplay(deviceName ?? '');
+                        if (device == null) {
+                          await UIHelper.showInfoDialog(
+                            context,
+                            'FF1 not found',
+                            'Can not find a FF1 to display your artworks',
                           );
-                          await completer.future;
-                        },
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                ),
-                ValueListenableBuilder(
-                  valueListenable: chatModeNotifier,
-                  builder: (context, chatModeView, child) {
-                    if (chatModeView) {
-                      return child ?? const SizedBox();
-                    }
-                    return const SizedBox();
-                  },
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 20),
-                      // close button
-                      GestureDetector(
-                        onTap: () {
-                          _recordBloc.add(ResetPlaylistEvent());
-                          chatModeNotifier.value = false;
-                        },
-                        child: SvgPicture.asset(
-                          'assets/images/close.svg',
-                          colorFilter: const ColorFilter.mode(
-                            AppColor.white,
-                            BlendMode.srcIn,
-                          ),
+                          return;
+                        }
+                        if (BluetoothDeviceManager().castingBluetoothDevice !=
+                            device) {
+                          await BluetoothDeviceManager().switchDevice(device);
+                        }
+                        final completer = Completer<void>();
+                        injector<CanvasDeviceBloc>().add(
+                          CanvasDeviceCastDP1PlaylistEvent(
+                              device: device,
+                              playlist: lastDP1Call,
+                              intent: lastIntent,
+                              onDoneCallback: () {
+                                completer.complete();
+                              }),
+                        );
+                        await completer.future;
+                      },
+                    );
+                  }
+                  return const SizedBox();
+                },
+              ),
+              ValueListenableBuilder(
+                valueListenable: chatModeNotifier,
+                builder: (context, chatModeView, child) {
+                  if (chatModeView) {
+                    return child ?? const SizedBox();
+                  }
+                  return const SizedBox();
+                },
+                child: Row(
+                  children: [
+                    const SizedBox(width: 20),
+                    // close button
+                    GestureDetector(
+                      onTap: () {
+                        _recordBloc.add(ResetPlaylistEvent());
+                        chatModeNotifier.value = false;
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/close.svg',
+                        colorFilter: const ColorFilter.mode(
+                          AppColor.white,
+                          BlendMode.srcIn,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+            ],
           ),
       ],
     );

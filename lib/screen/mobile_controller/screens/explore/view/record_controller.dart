@@ -1,5 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/extensions/record_processing_status_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -8,6 +10,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/ai_chat_thread_view.dart';
 import 'package:autonomy_flutter/view/ai_chat_view_widget.dart';
+import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -15,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:uuid/uuid.dart';
 
 ValueNotifier<bool> chatModeNotifier = ValueNotifier<bool>(false);
@@ -113,19 +117,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
                               AudioException(state.response),
                             );
                           }
-                          if (state is RecordProcessingState) {
-                            return Center(
-                              child: Text(
-                                state.processingMessage,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .ppMori400Grey14
-                                    .copyWith(color: Colors.white),
-                              ),
-                            );
-                          } else if (state is RecordErrorState) {
+                          if (state is RecordErrorState) {
                             if (state.error is AudioPermissionDeniedException) {
                               return _noPermissionWidget(context);
                             } else if (state.error is AudioException) {
@@ -175,11 +167,23 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       children: [
         Container(
           color: AppColor.primaryBlack,
-          height: UIConstants.topControlsBarHeight,
+          height: 130 + MediaQuery.of(context).padding.top,
         ),
         AiChatThreadView(
           initialMessages: [],
         ),
+        ValueListenableBuilder(
+          valueListenable: nowDisplayingShowing,
+          builder: (context, value, child) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              height: MediaQuery.of(context).padding.bottom +
+                  UIConstants.nowDisplayingBarBottomPadding +
+                  (value ? (kNowDisplayingHeight + 8) : 0),
+            );
+          },
+        )
       ],
     );
   }
@@ -216,7 +220,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
           isRecording
               ? MessageConstants.recordingText
               : isProcessing
-                  ? MessageConstants.processingText
+                  ? state.status.message
                   : MessageConstants.askAnythingText,
           style: Theme.of(context).textTheme.ppMori400Black12,
           textAlign: TextAlign.center,
@@ -231,31 +235,71 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
       messages = UIConstants.sampleHistoryAsks;
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      itemCount: messages.length + 1,
-      itemBuilder: (context, index) {
-        if (index == messages.length) {
-          return const SizedBox(height: 100);
-        }
+    return Stack(
+      children: [
+        ListView.builder(
+          padding: EdgeInsets.zero,
+          itemCount: messages.length + 1,
+          itemBuilder: (context, index) {
+            if (index == messages.length) {
+              return const SizedBox(height: 100);
+            }
 
-        final theme = Theme.of(context);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: ResponsiveLayout.paddingAll,
-              child: Text(
-                messages[index],
-                style: theme.textTheme.ppMori400Grey12,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            addDivider(color: AppColor.primaryBlack, height: 1),
-          ],
-        );
-      },
+            final theme = Theme.of(context);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: ResponsiveLayout.paddingAll,
+                  child: Text(
+                    messages[index],
+                    style: theme.textTheme.ppMori400Grey12,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                addDivider(color: AppColor.primaryBlack, height: 1),
+              ],
+            );
+          },
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: MultiValueListenableBuilder(
+            valueListenables: [
+              nowDisplayingShowing,
+            ],
+            builder: (context, values, _) {
+              return values.every((value) => value as bool)
+                  ? Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: IgnorePointer(
+                        child: Container(
+                          height: 160,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.0, 0.37, 0.37],
+                              colors: [
+                                AppColor.auGreyBackground.withAlpha(0),
+                                AppColor.auGreyBackground,
+                                AppColor.auGreyBackground,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container();
+            },
+          ),
+        ),
+      ],
     );
   }
 

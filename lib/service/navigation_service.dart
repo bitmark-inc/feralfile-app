@@ -979,12 +979,12 @@ class NavigationService {
       BluetoothDevice device, Function? onTap) async {
     return UIHelper.showDialog(
       context,
-      'The Portal is All Set',
+      'The FF1 is All Set',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+            'Your FF1 is already set up and connected. You can head to settings to make changes or check the status.',
             style: Theme.of(context).textTheme.ppMori400White14,
           ),
           const SizedBox(height: 16),
@@ -1063,7 +1063,7 @@ class NavigationService {
           BluetoothDeviceManager().castingBluetoothDevice?.getName ?? 'FF-X1';
       await UIHelper.showDialog(
         context,
-        'Device Software Update Needed',
+        'FF1 Software Update Needed',
         PopScope(
           canPop: false,
           child: Column(
@@ -1085,7 +1085,7 @@ class NavigationService {
                     ),
                     TextSpan(
                       text:
-                          'Please update your device to ensure full functionality.',
+                          'Please update your FF1 to ensure full functionality.',
                     ),
                   ],
                 ),

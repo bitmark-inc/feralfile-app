@@ -198,6 +198,19 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
         messages: _messages.reversed.toList(),
         // Use internal _messages list
         customMessageBuilder: _customMessageBuilder,
+        avatarBuilder: (types.User user) {
+          if (user.id == aiChatUser.id) {
+            return SizedBox();
+          } else if (user.id == aiChatBot.id) {
+            return Container(
+              color: Colors.amber,
+            );
+          }
+          return const SizedBox.shrink();
+        },
+        dateHeaderBuilder: (dateHeader) {
+          return SizedBox();
+        },
         bubbleBuilder: _bubbleBuilder,
         onSendPressed: _handleSendPressed,
         user: aiChatUser,
@@ -274,10 +287,9 @@ class _AiChatViewWidgetState extends State<AiChatViewWidget> {
       emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400White12
           .copyWith(color: AppColor.auQuickSilver),
       statusIconPadding: EdgeInsets.zero,
-      dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
-      dateDividerTextStyle: ResponsiveLayout.isMobile
-          ? theme.textTheme.dateDividerTextStyle
-          : theme.textTheme.dateDividerTextStyle14,
+      dateDividerMargin: const EdgeInsets.symmetric(vertical: 0),
+      dateDividerTextStyle:
+          theme.textTheme.dateDividerTextStyle.copyWith(color: Colors.amber),
       primaryColor: Colors.transparent,
       sentMessageBodyTextStyle: theme.textTheme.ppMori400White12,
       secondaryColor: AppColor.chatSecondaryColor,

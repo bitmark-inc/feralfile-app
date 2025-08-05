@@ -72,15 +72,15 @@ class FFBluetoothResponseError implements FFError {
 class DeviceUpdatingError extends FFBluetoothResponseError {
   DeviceUpdatingError()
       : super(
-          'The device is currently updating. Please wait for the update to complete and try again.',
-          title: 'Device Updating',
+          'The FF1 is currently updating. Please wait for the update to complete and try again.',
+          title: 'FF1 is Updating',
         );
 }
 
 class DeviceVersionCheckFailedError extends FFBluetoothResponseError {
   DeviceVersionCheckFailedError()
       : super(
-          'The device version check failed. Please try again or contact support.',
+          'The FF1 version check failed. Please try again or contact support.',
           title: 'Version Check Failed',
         );
 }

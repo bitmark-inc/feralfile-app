@@ -18,7 +18,7 @@ class DP1Call {
       dpVersion: json['dpVersion'] as String,
       id: json['id'] as String,
       slug: json['slug'] as String? ?? 'slug',
-      title: json['title'] as String,
+      title: json['title'] as String? ?? '',
       created: DateTime.parse(json['created'] as String),
       defaults: json['defaults'] as Map<String, dynamic>,
       items: (json['items'] as List<dynamic>)

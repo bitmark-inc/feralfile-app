@@ -28,6 +28,7 @@ class PlaylistListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       controller: scrollController,
       itemCount: playlists.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {

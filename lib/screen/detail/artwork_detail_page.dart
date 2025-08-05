@@ -464,6 +464,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         builder: (context, value, child) {
           return SizedBox(
             height: MediaQuery.of(context).padding.bottom +
+                UIConstants.nowDisplayingBarBottomPadding +
                 (value ? kNowDisplayingHeight : 0),
           );
         },

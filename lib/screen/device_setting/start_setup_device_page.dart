@@ -129,81 +129,36 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                       final canSkipNetworkSetup =
                           widget.payload.canSkipNetworkSetup;
                       if (canSkipNetworkSetup) {
-                        await UIHelper.showDialog(
+                        Pair<String, bool>? res;
+                        try {
+                          final topicId =
+                              await injector<FFBluetoothService>().keepWifi(
+                            device,
+                          );
+                          res = Pair<String, bool>(
+                            topicId,
+                            true, // indicates that it from onboarding
+                          );
+                        } on FFBluetoothResponseError catch (e) {
+                          if (e is DeviceUpdatingError ||
+                              e is DeviceVersionCheckFailedError) {
+                            injector<NavigationService>().goBack();
+                          }
+                          final context = injector<NavigationService>().context;
+                          await (UIHelper.showInfoDialog(
+                              context, e.title, e.message));
+                        } on Exception catch (e) {
+                          await UIHelper.showInfoDialog(
                             context,
-                            'Internet Already Connected',
-                            Column(
-                              children: [
-                                Text(
-                                  'We’ve detected that your device is already connected to the internet.\nWould you like to skip the network setup or continue anyway?',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .ppMori400White14,
-                                ),
-                                const SizedBox(height: 36),
-                                PrimaryAsyncButton(
-                                  text: 'Continue Setup',
-                                  color: Colors.transparent,
-                                  borderColor: AppColor.white,
-                                  textColor: AppColor.white,
-                                  onTap: () {
-                                    injector<NavigationService>().goBack();
-                                    unawaited(
-                                      Navigator.of(context).pushNamed(
-                                        AppRouter.scanWifiNetworkPage,
-                                        arguments: ScanWifiNetworkPagePayload(
-                                          device,
-                                          onWifiSelected,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                PrimaryAsyncButton(
-                                  color: Colors.transparent,
-                                  borderColor: AppColor.white,
-                                  textColor: AppColor.white,
-                                  text: 'Skip Setup',
-                                  processingText: 'Skipping...',
-                                  onTap: () async {
-                                    Pair<String, bool>? res;
-                                    try {
-                                      final topicId =
-                                          await injector<FFBluetoothService>()
-                                              .keepWifi(
-                                        device,
-                                      );
-                                      res = Pair<String, bool>(
-                                        topicId,
-                                        false,
-                                      );
-                                    } on FFBluetoothResponseError catch (e) {
-                                      if (e is DeviceUpdatingError ||
-                                          e is DeviceVersionCheckFailedError) {
-                                        injector<NavigationService>().goBack();
-                                      }
-                                      final context =
-                                          injector<NavigationService>().context;
-                                      await (UIHelper.showInfoDialog(
-                                          context, e.title, e.message));
-                                    } on Exception catch (e) {
-                                      await UIHelper.showInfoDialog(
-                                        context,
-                                        'Error',
-                                        'Failed to skip internet setup: $e',
-                                      );
-                                    } finally {
-                                      injector<NavigationService>().popUntil(
-                                        AppRouter.bluetoothDevicePortalPage,
-                                      );
-                                      injector<NavigationService>()
-                                          .goBack(result: res);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ));
+                            'Error',
+                            'Failed to skip internet setup: $e',
+                          );
+                        } finally {
+                          injector<NavigationService>().popUntil(
+                            AppRouter.bluetoothDevicePortalPage,
+                          );
+                          injector<NavigationService>().goBack(result: res);
+                        }
                       } else {
                         unawaited(
                           Navigator.of(context).pushNamed(

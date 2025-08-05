@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/r
 import 'package:autonomy_flutter/view/ai_chat_view_widget.dart';
 import 'package:autonomy_flutter/view/dp1_response_visual_view.dart';
 import 'package:autonomy_flutter/view/keep_alive_widget.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -94,17 +93,7 @@ class _AiChatThreadViewState extends State<AiChatThreadView>
                 ),
               );
             }
-            return ValueListenableBuilder(
-              valueListenable: nowDisplayingShowing,
-              builder: (context, value, child) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  height: MediaQuery.of(context).padding.bottom +
-                      (value ? (kNowDisplayingHeight + 8) : 0),
-                );
-              },
-            );
+            return const SizedBox.shrink();
           })
         ],
       ),

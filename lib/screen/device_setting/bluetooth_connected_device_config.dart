@@ -270,6 +270,7 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceConfig(BuildContext context) {
+    final isFromOnboarding = widget.payload.isFromOnboarding;
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       builder: (context, state) {
@@ -315,48 +316,33 @@ class BluetoothConnectedDeviceConfigState
                   height: 1,
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                  child: _wifiConfig(context),
-                ),
-              ),
-              const SliverToBoxAdapter(
-                child: Divider(
-                  color: AppColor.auGreyBackground,
-                  thickness: 1,
-                  height: 1,
-                ),
-              ),
-              const SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 20,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                  child: _deviceInfo(context),
-                ),
-              ),
-
-              // Add performance monitoring section
-              const SliverToBoxAdapter(
-                child: Divider(
-                  color: AppColor.auGreyBackground,
-                  thickness: 1,
-                  height: 40,
-                ),
-              ),
-              if (isBLEDeviceConnected) ...[
+              if (!isFromOnboarding) ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                    child: _performanceMonitoring(context),
+                    child: _wifiConfig(context),
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: Divider(
+                    color: AppColor.auGreyBackground,
+                    thickness: 1,
+                    height: 1,
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 20,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _deviceInfo(context),
                   ),
                 ),
 
-                // Temperature monitoring section
+                // Add performance monitoring section
                 const SliverToBoxAdapter(
                   child: Divider(
                     color: AppColor.auGreyBackground,
@@ -364,23 +350,39 @@ class BluetoothConnectedDeviceConfigState
                     height: 40,
                   ),
                 ),
-              ],
-              if (isBLEDeviceConnected) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                    child: _temperatureMonitoring(context),
+                if (isBLEDeviceConnected) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _performanceMonitoring(context),
+                    ),
                   ),
-                ),
-                const SliverToBoxAdapter(
-                  child: Divider(
-                    color: AppColor.auGreyBackground,
-                    thickness: 1,
-                    height: 40,
-                  ),
-                ),
-              ],
 
+                  // Temperature monitoring section
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      color: AppColor.auGreyBackground,
+                      thickness: 1,
+                      height: 40,
+                    ),
+                  ),
+                ],
+                if (isBLEDeviceConnected) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _temperatureMonitoring(context),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      color: AppColor.auGreyBackground,
+                      thickness: 1,
+                      height: 40,
+                    ),
+                  ),
+                ],
+              ],
               const SliverToBoxAdapter(
                 child: SizedBox(
                   height: 80,

@@ -41,52 +41,53 @@ class PlaylistItem extends StatelessWidget {
           ),
         );
       },
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: ResponsiveLayout.paddingHorizontal,
-              vertical: 16,
-            ),
-            child: Row(
-              children: [
-                // Playlist info
-                Expanded(
-                  child: Text(
-                    playlist.title,
-                    style: theme.textTheme.ppMori400White12,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (channel != null && channelVisible)
-                  GestureDetector(
-                    onTap: () {
-                      injector<NavigationService>().navigateTo(
-                        AppRouter.channelDetailPage,
-                        arguments: ChannelDetailPagePayload(
-                          channel: channel!,
-                          backTitle: isFromPlaylistsPage
-                              ? 'Playlists'
-                              : playlist.title,
-                        ),
-                      );
-                    },
+      child: Container(
+        color: Colors.transparent,
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveLayout.paddingHorizontal,
+                vertical: 16,
+              ),
+              child: Row(
+                children: [
+                  // Playlist info
+                  Expanded(
                     child: Text(
-                      channel!.title,
-                      style: theme.textTheme.ppMori400Grey12.copyWith(
-                        decoration: TextDecoration.underline,
-                      ),
+                      playlist.title,
+                      style: theme.textTheme.ppMori400White12,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-              ],
+                  if (channel != null && channelVisible)
+                    GestureDetector(
+                      onTap: () {
+                        injector<NavigationService>().navigateTo(
+                          AppRouter.channelDetailPage,
+                          arguments: ChannelDetailPagePayload(
+                            channel: channel!,
+                            backTitle: isFromPlaylistsPage
+                                ? 'Playlists'
+                                : playlist.title,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        channel!.title,
+                        style: theme.textTheme.ppMori400Grey12,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Divider(
-            height: 1,
-            color: dividerColor,
-          ),
-        ],
+            Divider(
+              height: 1,
+              color: dividerColor,
+            ),
+          ],
+        ),
       ),
     );
   }
