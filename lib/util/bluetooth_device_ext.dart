@@ -11,9 +11,7 @@ import 'package:sentry/sentry.dart';
 
 extension BluetoothDeviceExtension on BluetoothDevice {
   FFBluetoothDevice toFFBluetoothDevice(
-      {String? topicId,
-      required String deviceId,
-      required DeviceReleaseBranch branchName}) {
+      {String? topicId, required String deviceId, required String branchName}) {
     return FFBluetoothDevice.fromBluetoothDevice(this,
         topicId: topicId, deviceId: deviceId, branchName: branchName);
   }

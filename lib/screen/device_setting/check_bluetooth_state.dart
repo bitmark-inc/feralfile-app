@@ -232,8 +232,8 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
     final branchNameRaw = data.atIndexOrNull(3);
 
     final branchName = branchNameRaw != null
-        ? DeviceReleaseBranch.fromString(branchNameRaw)
-        : DeviceReleaseBranch.release;
+        ? branchNameRaw
+        : DeviceReleaseBranch.release.name;
     final version = data.atIndexOrNull(4);
 
     final compatible = await injector<VersionService>()

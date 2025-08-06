@@ -51,7 +51,7 @@ class FFBluetoothDevice extends BluetoothDevice
     BluetoothDevice device, {
     String? topicId,
     required String deviceId,
-    required DeviceReleaseBranch branchName,
+    required String branchName,
   }) {
     final savedDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
       (e) => e.remoteID == device.remoteId.str,
@@ -74,11 +74,10 @@ class FFBluetoothDevice extends BluetoothDevice
         deviceId: json['deviceId'] != null
             ? json['deviceId'] as String
             : json['name'] as String,
-        // TODO: remove this fallback
         branchName: json['branchName'] != null
-            ? DeviceReleaseBranch.fromString(json['branchName'] as String)
+            ? json['branchName'] as String
             : DeviceReleaseBranch
-                .release, // default to release if not specified
+                .release.name, // default to release if not specified
       );
 
   @override
@@ -92,7 +91,7 @@ class FFBluetoothDevice extends BluetoothDevice
   @override
   final String deviceId; // device id
 
-  final DeviceReleaseBranch branchName;
+  final String branchName;
 
   // toJson
   Map<String, dynamic> toJson() => {
@@ -100,7 +99,7 @@ class FFBluetoothDevice extends BluetoothDevice
         'remoteID': remoteID,
         'topicId': topicId,
         'deviceId': deviceId,
-        'branchName': branchName.name,
+        'branchName': branchName,
       };
 
   // copyWith
@@ -109,7 +108,7 @@ class FFBluetoothDevice extends BluetoothDevice
     String? remoteID,
     String? topicId,
     String? deviceId,
-    DeviceReleaseBranch? branchName,
+    String? branchName,
   }) {
     return FFBluetoothDevice(
       name: name ?? this.name,
@@ -150,5 +149,17 @@ extension FFBluetoothDeviceExt on FFBluetoothDevice {
   bool get isAlive {
     final state = injector<CanvasDeviceBloc>().state;
     return state.isDeviceAlive(this);
+  }
+
+  bool get isReleaseBranch {
+    return branchName == DeviceReleaseBranch.release.name;
+  }
+
+  bool get isDemoBranch {
+    return branchName == DeviceReleaseBranch.demo.name;
+  }
+
+  bool get isOtherBranch {
+    return branchName == DeviceReleaseBranch.other.name;
   }
 }

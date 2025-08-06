@@ -148,6 +148,10 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   void afterFirstLayout(BuildContext context) {
+    if (widget.payload.isFromOnboarding) {
+      // If this screen is opened from onboarding, we don't need to enable metrics streaming
+      return;
+    }
     _enableMetricsStreaming();
   }
 
@@ -216,31 +220,33 @@ class BluetoothConnectedDeviceConfigState
                   });
                 },
               ),
-        actions: [
-          _buildDeviceSwitcher(context),
-          BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-            bloc: injector<CanvasDeviceBloc>(),
-            buildWhen: (previous, current) {
-              return previous.isDeviceAlive(selectedDevice!) !=
-                  current.isDeviceAlive(selectedDevice!);
-            },
-            builder: (context, state) {
-              return GestureDetector(
-                onTap: () {
-                  _showOption(context, state);
-                },
-                child: SvgPicture.asset(
-                  'assets/images/more_circle.svg',
-                  width: 22,
-                  colorFilter: const ColorFilter.mode(
-                    AppColor.white,
-                    BlendMode.srcIn,
-                  ),
+        actions: widget.payload.isFromOnboarding
+            ? []
+            : [
+                _buildDeviceSwitcher(context),
+                BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: injector<CanvasDeviceBloc>(),
+                  buildWhen: (previous, current) {
+                    return previous.isDeviceAlive(selectedDevice!) !=
+                        current.isDeviceAlive(selectedDevice!);
+                  },
+                  builder: (context, state) {
+                    return GestureDetector(
+                      onTap: () {
+                        _showOption(context, state);
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/more_circle.svg',
+                        width: 22,
+                        colorFilter: const ColorFilter.mode(
+                          AppColor.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ],
+              ],
       ),
       backgroundColor: AppColor.primaryBlack,
       body: SafeArea(child: _body(context)),
@@ -653,9 +659,7 @@ class BluetoothConnectedDeviceConfigState
     final device = selectedDevice!;
     final version = status?.installedVersion;
     final installedVersion = status?.installedVersion ?? version;
-    final branchName = device.branchName == DeviceReleaseBranch.release
-        ? ''
-        : '${device.branchName.name}';
+    final branchName = device.isReleaseBranch ? '' : ' (${device.branchName})';
     final theme = Theme.of(context);
     final deviceId = device.deviceId;
     final connectedWifi = status?.connectedWifi;

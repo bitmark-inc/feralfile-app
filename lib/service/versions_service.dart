@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
-import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -50,7 +49,7 @@ abstract class VersionService {
   /// Check version compatibility with FFBluetoothDevice
   /// Returns VersionCompatibilityResult to indicate if app needs update or downgrade
   Future<VersionCompatibilityResult> checkDeviceVersionCompatibility({
-    DeviceReleaseBranch? dBranch,
+    String? dBranch,
     String? dVersion,
     bool requiredDeviceUpdate = true,
   });
@@ -79,7 +78,7 @@ class VersionServiceImpl implements VersionService {
 
   @override
   Future<VersionCompatibilityResult> checkDeviceVersionCompatibility({
-    DeviceReleaseBranch? dBranch,
+    String? dBranch,
     String? dVersion,
     bool requiredDeviceUpdate = true,
   }) async {
@@ -110,7 +109,7 @@ class VersionServiceImpl implements VersionService {
   }
 
   Future<VersionCompatibilityResult> _checkDeviceVersionCompatibility(
-    DeviceReleaseBranch branchName,
+    String branchName,
     String deviceVersion,
   ) async {
     try {
@@ -126,14 +125,14 @@ class VersionServiceImpl implements VersionService {
       final fullAppVersion = '$appVersion($buildNumber)';
 
       log.info('Checking app version compatibility:');
-      log.info('Branch: ${branchName.name}');
+      log.info('Branch: ${branchName}');
       log.info('Device version: $deviceVersion');
       log.info('App version: $fullAppVersion');
 
       // Get branch data
-      final branchData = versionCompatibilityData[branchName.name];
+      final branchData = versionCompatibilityData[branchName];
       if (branchData == null) {
-        log.info('No compatibility data found for branch: ${branchName.name}');
+        log.info('No compatibility data found for branch: ${branchName}');
         return VersionCompatibilityResult.unknown;
       }
 
