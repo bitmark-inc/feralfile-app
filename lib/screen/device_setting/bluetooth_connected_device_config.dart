@@ -650,11 +650,14 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceInfo(BuildContext context) {
+    final device = selectedDevice!;
     final version = status?.installedVersion;
     final installedVersion = status?.installedVersion ?? version;
+    final branchName = device.branchName == DeviceReleaseBranch.release
+        ? ''
+        : '${device.branchName.name}';
     final theme = Theme.of(context);
-    final device = selectedDevice!;
-    final deviceName = device.name;
+    final deviceId = device.deviceId;
     final connectedWifi = status?.connectedWifi;
 
     final divider = addDivider(
@@ -731,13 +734,13 @@ class BluetoothConnectedDeviceConfigState
 
                   _deviceInfoItem(
                     context,
-                    title: 'Device Name:',
+                    title: 'Device Id:',
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
                           child: Text(
-                            deviceName,
+                            deviceId,
                             style: theme.textTheme.ppMori400White14.copyWith(
                               color: isBLEDeviceConnected
                                   ? AppColor.white
@@ -747,7 +750,7 @@ class BluetoothConnectedDeviceConfigState
                         ),
                         _copyButton(
                           context,
-                          deviceName,
+                          deviceId,
                         ),
                       ],
                     ),
@@ -766,7 +769,7 @@ class BluetoothConnectedDeviceConfigState
                         ),
                         children: [
                           TextSpan(
-                            text: installedVersion ?? '-',
+                            text: (installedVersion ?? '-') + branchName,
                           ),
                         ],
                       ),

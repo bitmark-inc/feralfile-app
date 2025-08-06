@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -43,6 +44,7 @@ class BluetoothDeviceManager {
 
   Future<void> resetDevice() async {
     BluetoothDeviceManager().castingBluetoothDevice = null;
+    BluetoothDeviceManager().castingDeviceStatus.value = null;
     await CanvasNotificationManager().disconnectAll();
   }
 
@@ -91,9 +93,8 @@ class BluetoothDeviceManager {
     await resetDevice();
     if (devices.isNotEmpty) {
       await switchDevice(devices.first);
-    } else {
-      // if no device is paired, hide now displaying (like when user tap on close)
-    }
+    } else {}
+    await NowDisplayingManager().updateDisplayingNow();
   }
 
   FFBluetoothDevice? findDeviceByRemoteId(String remoteId) {
