@@ -1,20 +1,25 @@
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DetailPageAppBar(
-      {super.key, required this.title, this.actions = const []});
+      {super.key,
+      required this.title,
+      this.actions = const [],
+      this.statusBarColor});
 
   final String title;
   final List<Widget> actions;
+  final Color? statusBarColor;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final appBar = Container(
       color: AppColor.auGreyBackground,
       padding: const EdgeInsets.all(10),
       child: SafeArea(
@@ -35,6 +40,16 @@ class DetailPageAppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
+    );
+
+    final systemUiOverlayStyle = SystemUiOverlayStyle(
+      statusBarColor: statusBarColor ?? AppColor.auGreyBackground,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemUiOverlayStyle,
+      child: appBar,
     );
   }
 
