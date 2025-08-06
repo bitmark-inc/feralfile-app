@@ -191,7 +191,11 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   Widget _askAnythingWidget(BuildContext context, RecordState state) {
     final isRecording = state is RecordRecordingState;
     final isProcessing = state is RecordProcessingState;
-
+    final text = isRecording
+        ? MessageConstants.recordingText
+        : isProcessing
+            ? state.status.message
+            : MessageConstants.askAnythingText;
     return ColoredBox(
       color: Colors.transparent,
       child: AnimatedContainer(
@@ -217,11 +221,7 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         ),
         alignment: Alignment.center,
         child: Text(
-          isRecording
-              ? MessageConstants.recordingText
-              : isProcessing
-                  ? state.status.message
-                  : MessageConstants.askAnythingText,
+          text.toUpperCase(),
           style: Theme.of(context).textTheme.ppMori400Black12,
           textAlign: TextAlign.center,
         ),
