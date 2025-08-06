@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -78,8 +79,15 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
   }
 
   List<String> getDataFromLink(String link) {
-    final uri = Uri.parse(link);
-    final path = Uri.decodeComponent(uri.pathSegments.last);
+    final prefix = Constants.bluetoothConnectDeepLinks.firstWhereOrNull(
+          (prefix) => link.startsWith(prefix),
+        ) ??
+        '';
+    String path = link.replaceFirst(prefix, '');
+    if (path.startsWith('/')) {
+      path = path.substring(1); // Remove leading slash if present
+    }
+    final encodedPath = Uri.decodeFull(path);
     final data = path.split('|');
     // Dont remove empty elements, as they are used to indicate the absence of a value
     // ..removeWhere(
