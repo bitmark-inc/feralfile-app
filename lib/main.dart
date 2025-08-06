@@ -84,6 +84,8 @@ ValueNotifier<bool> nowDisplayingVisibility = ValueNotifier<bool>(true);
 ValueNotifier<bool> nowDisplayingShowing = ValueNotifier<bool>(false);
 
 final keyboardVisibilityController = KeyboardVisibilityController();
+final ValueNotifier<bool> shouldHideKeyboardOnTap = ValueNotifier<bool>(
+    true); // This value notifies if keyboard should be hidden on tap
 
 void main() async {
   unawaited(
@@ -400,7 +402,8 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
           return false; // Allow the notification to continue to be dispatched
         },
         child: Listener(
-          onPointerDown: keyboardVisibilityController.isVisible
+          onPointerDown: keyboardVisibilityController.isVisible &&
+                  shouldHideKeyboardOnTap.value
               ? (PointerDownEvent event) {
                   // Hide keyboard when tapping outside while keyboard is visible
                   Timer(const Duration(milliseconds: 100), () {

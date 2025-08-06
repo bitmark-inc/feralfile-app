@@ -72,9 +72,11 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
+    shouldHideKeyboardOnTap.value = false;
     showKeyboard();
     _keyboardSubscription = _controller.onChange.listen((bool isVisible) {
       if (!isVisible && !_isExpanded) {
+        shouldHideKeyboardOnTap.value = true;
         Navigator.of(context).pop();
       }
     });
