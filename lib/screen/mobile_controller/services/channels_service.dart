@@ -26,6 +26,20 @@ class ChannelsService {
     int? limit,
   }) async {
     final List<Channel> listChannels = [];
+    if (remoteConfigChannelIds != null) {
+      final future = remoteConfigChannelIds!
+          .map(
+            (id) => api.getPlaylistGroupById(id),
+          )
+          .toList();
+      final channels = await Future.wait(future);
+      return DP1ChannelsResponse(
+        channels,
+        false, // hasMore is false because we fetched all remote config channels
+        null, // cursor is null because we fetched all channels
+      );
+    }
+
     String? currentCursor = cursor;
 
     while (true) {
