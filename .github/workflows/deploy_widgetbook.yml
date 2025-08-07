@@ -49,29 +49,8 @@ jobs:
       - name: Code Generation
         run: dart run build_runner build -d
 
-      - name: Build Web
-        run: flutter build web --target=lib/widgetbook/main.dart --release
-
-      - name: Debug Cloudflare
-        run: |
-          ACCOUNT_ID="${{ secrets.WIDGETBOOK_CLOUDFLARE_ACCOUNT_ID }}"
-          TOKEN="${{ secrets.WIDGETBOOK_CLOUDFLARE_API_TOKEN }}"
-          echo "Account ID first 4: ${ACCOUNT_ID:0:4}"
-          echo "Account ID last 4: ${ACCOUNT_ID: -4}"
-          echo "Token first 4: ${TOKEN:0:4}"
-          echo "Token last 4: ${TOKEN: -4}"
-
       - name: Install the CLI
         run: dart pub global activate widgetbook_cli
 
       - name: Upload to Widgetbook Cloud
         run: widgetbook cloud build push --api-key 7173a26cdfc50b0fd0c41ed20a5ca5226d49b2b0cf4391c704edf135857faa82 --actor feralfile-CI
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.WIDGETBOOK_CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.WIDGETBOOK_CLOUDFLARE_ACCOUNT_ID }}
-          projectName: feralfile-widgetbook
-          directory: build/web
-          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
