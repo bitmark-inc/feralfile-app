@@ -26,36 +26,39 @@ class ChannelItem extends StatelessWidget {
           arguments: ChannelDetailPagePayload(channel: channel),
         );
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: ResponsiveLayout.paddingHorizontal,
-              vertical: 16,
+      child: Container(
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveLayout.paddingHorizontal,
+                vertical: 16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    channel.title,
+                    style: theme.textTheme.ppMori400White12,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    channel.summary ?? '',
+                    style: theme.textTheme.ppMori400Grey12,
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  channel.title,
-                  style: theme.textTheme.ppMori400White12,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  channel.summary ?? '',
-                  style: theme.textTheme.ppMori400Grey12,
-                ),
-              ],
+            const Divider(
+              height: 1,
+              color: AppColor.primaryBlack,
             ),
-          ),
-          const Divider(
-            height: 1,
-            color: AppColor.primaryBlack,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

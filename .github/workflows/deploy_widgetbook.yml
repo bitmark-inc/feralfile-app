@@ -46,9 +46,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Code Generation
-        run: dart run build_runner build -d
-
       - name: Build Web
         run: flutter build web --target=lib/widgetbook/main.dart --release
 
