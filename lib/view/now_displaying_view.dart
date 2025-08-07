@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -302,19 +301,6 @@ class TokenNowDisplayingView extends StatelessWidget {
                 decoration: TextDecoration.underline,
                 decorationColor: AppColor.primaryBlack,
               ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  if (assetToken.isFeralfile) {
-                    injector<NavigationService>().openFeralFileArtistPage(
-                      assetToken.artistID!,
-                    );
-                  } else {
-                    final uri = Uri.parse(
-                      assetToken.artistURL?.split(' & ').firstOrNull ?? '',
-                    );
-                    injector<NavigationService>().openUrl(uri);
-                  }
-                },
             ),
           if (artistTitle != null)
             TextSpan(

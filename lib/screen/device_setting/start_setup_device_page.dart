@@ -5,11 +5,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/error/bluetooth_response_error.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -25,11 +28,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 class BluetoothDevicePortalPagePayload {
   BluetoothDevicePortalPagePayload({
     required this.device,
+    required this.branchName,
     this.canSkipNetworkSetup = true,
   });
 
   final BluetoothDevice device;
   final bool canSkipNetworkSetup;
+  final String branchName;
 }
 
 class BluetoothDevicePortalPage extends StatefulWidget {
@@ -187,14 +192,30 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
 
   FutureOr<void> onWifiSelected(WifiPoint accessPoint) {
     log.info('onWifiSelected: $accessPoint');
+    final device = widget.payload.device;
+    final branchName = widget.payload.branchName;
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
-      device: widget.payload.device,
-      onSubmitted: (String? topicId) {
-        injector<NavigationService>()
-            .popUntil(AppRouter.bluetoothDevicePortalPage);
-        final result = topicId != null ? Pair(topicId, true) : null;
-        injector<NavigationService>().goBack(result: result);
+      device: device,
+      onSubmitted: (String? topicId) async {
+        final res = topicId != null ? Pair(topicId, true) : null;
+        if (res != null) {
+          final ffDevice = device.toFFBluetoothDevice(
+            topicId: res.first,
+            deviceId: device.advName,
+            branchName: branchName,
+          );
+          await BluetoothDeviceManager().addDevice(ffDevice);
+          injector<NavigationService>()
+              .popUntil(AppRouter.bluetoothDevicePortalPage);
+
+          unawaited(injector<NavigationService>().popAndPushNamed(
+            AppRouter.bluetoothConnectedDeviceConfig,
+            arguments: BluetoothConnectedDeviceConfigPayload(
+              isFromOnboarding: true,
+            ),
+          ));
+        }
       },
     );
     injector<NavigationService>()

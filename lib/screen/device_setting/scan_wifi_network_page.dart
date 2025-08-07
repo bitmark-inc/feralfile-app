@@ -150,7 +150,7 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
                   if (_isScanning) ...[
                     SliverToBoxAdapter(
                       child: Text(
-                        'Getting WiFi networks from Portal. Please wait a moment...',
+                        'Getting WiFi networks from your FF1. Please wait a moment...',
                         style: Theme.of(context).textTheme.ppMori400White14,
                       ),
                     ),
@@ -163,28 +163,28 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
                           children: [
                             if (widget.payload.device.isConnected) ...[
                               Text(
-                                'Cannot get available networks from Portal',
+                                'Cannot get available networks from your FF1',
                                 style: Theme.of(context)
                                     .textTheme
                                     .ppMori700White14,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'There might be an issue with the WiFi module on your Portal. Please try restarting your Portal and scan again.',
+                                'There might be an issue with the WiFi module on your FF1. Please try restarting your FF1 and scan again.',
                                 style: Theme.of(context)
                                     .textTheme
                                     .ppMori400White14,
                               ),
                             ] else ...[
                               Text(
-                                'Unable to Connect to Portal',
+                                'Unable to Connect to FF1',
                                 style: Theme.of(context)
                                     .textTheme
                                     .ppMori700White14,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Connection to the Portal could not be established',
+                                'Connection to the FF1 could not be established',
                                 style: Theme.of(context)
                                     .textTheme
                                     .ppMori400White14,
@@ -199,13 +199,13 @@ class ScanWifiNetworkPageState extends State<ScanWifiNetworkPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'No wifi networks found by Portal',
+                              'No wifi networks found by FF1',
                               style:
                                   Theme.of(context).textTheme.ppMori700White14,
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'There might be an issue with the WiFi module on your Portal. Please try restarting your Portal and scan again.',
+                              'There might be an issue with the WiFi module on your FF1. Please try restarting your FF1 and scan again.',
                               style:
                                   Theme.of(context).textTheme.ppMori400White14,
                             ),

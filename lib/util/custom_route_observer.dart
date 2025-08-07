@@ -104,9 +104,26 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
   }
 
   @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didRemove(route, previousRoute);
+    currentRoute = previousRoute;
+    onCurrentRouteChanged();
+
+    if (route is ModalBottomSheetRoute) {
+      bottomSheetVisibility.value = false;
+      bottomSheetHeight.value = 0;
+    }
+  }
+
+  @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
     currentRoute = newRoute;
     onCurrentRouteChanged();
+
+    if (oldRoute is ModalBottomSheetRoute) {
+      bottomSheetVisibility.value = false;
+      bottomSheetHeight.value = 0;
+    }
   }
 }

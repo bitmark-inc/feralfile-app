@@ -285,17 +285,11 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
       // go to setting wifi page
 
-      Pair<String, bool>? res;
-
       // device is already setup and connected to internet
       // so we can skip the wifi setup
       if (topicId != null &&
           topicId.isNotEmpty &&
           isConnectedToInternet == true) {
-        res = Pair(
-          topicId,
-          true,
-        );
         final ffDevice = resultDevice!.toFFBluetoothDevice(
           topicId: topicId,
           deviceId: resultDevice!.advName,
@@ -303,11 +297,22 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         );
         // add device to canvas
         await BluetoothDeviceManager().addDevice(ffDevice);
-        await injector<NavigationService>().showThePortalIsSet(ffDevice, null);
+
         // Hide QR code on device
         unawaited(injector<CanvasClientServiceV2>()
             .showPairingQRCode(ffDevice, false));
+
+        await injector<NavigationService>().showThePortalIsSet(ffDevice, null);
+
+        unawaited(injector<NavigationService>().navigateTo(
+          AppRouter.bluetoothConnectedDeviceConfig,
+          arguments: BluetoothConnectedDeviceConfigPayload(
+            isFromOnboarding: true,
+          ),
+        ));
       } else {
+        Pair<String, bool>? res;
+
         if (topicId != null && topicId.isNotEmpty) {
           // add device to canvas
           final device = resultDevice!.toFFBluetoothDevice(
@@ -324,28 +329,28 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           arguments: BluetoothDevicePortalPagePayload(
             device: resultDevice!,
             canSkipNetworkSetup: isConnectedToInternet,
+            branchName: branchName,
           ),
         );
 
         res = r == null ? null : r as Pair<String, bool>;
-        if (res != null) {
-          final ffDevice = resultDevice!.toFFBluetoothDevice(
-            topicId: res.first,
-            deviceId: resultDevice!.advName,
-            branchName: branchName,
-          );
-          await BluetoothDeviceManager().addDevice(ffDevice);
-        }
-      }
-
-      // after setting wifi, go to device setting page
-      if (res is Pair<String, bool>) {
-        unawaited(injector<NavigationService>().navigateTo(
-          AppRouter.bluetoothConnectedDeviceConfig,
-          arguments: BluetoothConnectedDeviceConfigPayload(
-            isFromOnboarding: res.second,
-          ),
-        ));
+        // if (res != null) {
+        //   final ffDevice = resultDevice!.toFFBluetoothDevice(
+        //     topicId: res.first,
+        //     deviceId: resultDevice!.advName,
+        //     branchName: branchName,
+        //   );
+        //   await BluetoothDeviceManager().addDevice(ffDevice);
+        // }
+        //
+        // if (res is Pair<String, bool>) {
+        //   unawaited(injector<NavigationService>().navigateTo(
+        //     AppRouter.bluetoothConnectedDeviceConfig,
+        //     arguments: BluetoothConnectedDeviceConfigPayload(
+        //       isFromOnboarding: res.second,
+        //     ),
+        //   ));
+        // }
       }
 
       log.info(

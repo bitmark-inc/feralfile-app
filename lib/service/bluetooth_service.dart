@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -207,6 +208,11 @@ class FFBluetoothService {
         final hash = _connectCompleter?.hashCode;
         try {
           // add safe delay to ensure connection is stable
+          if (Platform.isAndroid) {
+            await device.requestConnectionPriority(
+                connectionPriorityRequest: ConnectionPriority.high);
+          }
+
           await Future.delayed(const Duration(seconds: 1));
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {
@@ -600,6 +606,10 @@ class FFBluetoothService {
       log.info('[connect] Connecting to device: ${device.remoteId.str}');
       try {
         await device.disconnect();
+
+        if (Platform.isAndroid) {
+          // Request high connection priority for Android devices
+        }
         await Future.delayed(const Duration(milliseconds: 500));
         await device.connect(
           timeout: timeout,
@@ -631,16 +641,18 @@ class FFBluetoothService {
         }
         final now = DateTime.now();
 
-        final future = () async {
-          while (_connectCompleter?.isCompleted == false) {
-            log.info(
-              '[_connect] Waiting for connection to complete: ${DateTime.now().difference(now).inSeconds} seconds',
-            );
-            await Future.delayed(const Duration(milliseconds: 1000));
-          }
-        };
-
-        unawaited(future());
+        final timer = Timer.periodic(
+          const Duration(seconds: 1),
+          (Timer timer) {
+            if (_connectCompleter?.isCompleted == true) {
+              timer.cancel();
+            } else {
+              log.info(
+                '[_connect] Waiting for connection to complete: ${DateTime.now().difference(now).inSeconds} seconds',
+              );
+            }
+          },
+        );
 
         await _connectCompleter?.future.timeout(
           const Duration(seconds: 30),
@@ -659,6 +671,7 @@ class FFBluetoothService {
           },
         ).catchError((Object e) {
           log.warning('Error waiting for connection to complete: $e');
+          timer.cancel();
           unawaited(
             Sentry.captureException(
               'Error waiting for connection to complete: $e',
@@ -678,6 +691,7 @@ class FFBluetoothService {
           throw e;
         });
         log.info('Connected to device: ${device.remoteId.str}');
+        timer.cancel();
       }
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
