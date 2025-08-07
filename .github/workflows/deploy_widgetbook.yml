@@ -49,6 +49,9 @@ jobs:
       - name: Code Generation
         run: dart run build_runner build -d
 
+      - name: Build Web
+        run: flutter build web --target=lib/widgetbook/main.dart --release
+
       - name: Install the CLI
         run: dart pub global activate widgetbook_cli
 
