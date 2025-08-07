@@ -208,12 +208,11 @@ class FFBluetoothService {
         final hash = _connectCompleter?.hashCode;
         try {
           // add safe delay to ensure connection is stable
+          await Future.delayed(const Duration(seconds: 1));
           if (Platform.isAndroid) {
             await device.requestConnectionPriority(
                 connectionPriorityRequest: ConnectionPriority.high);
           }
-
-          await Future.delayed(const Duration(seconds: 1));
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {
             _connectCompleter?.complete();
@@ -610,7 +609,7 @@ class FFBluetoothService {
         if (Platform.isAndroid) {
           // Request high connection priority for Android devices
         }
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 1000));
         await device.connect(
           timeout: timeout,
           mtu: null,
