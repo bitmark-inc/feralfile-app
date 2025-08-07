@@ -9,9 +9,10 @@ class ChannelsService {
 
   final List<Channel> _channels = [];
 
-  List<String>? get remoteConfigChannelIds =>
-      injector<RemoteConfigService>().getConfig<List<String>?>(
-          ConfigGroup.dp1Playlist, ConfigKey.dp1PlaylistChannelIds, null);
+  List<String>? get remoteConfigChannelIds => injector<RemoteConfigService>()
+      .getConfig<List<dynamic>?>(
+          ConfigGroup.dp1Playlist, ConfigKey.dp1PlaylistChannelIds, null)
+      ?.cast<String>();
 
   List<Channel> get cachedChannels => _channels
     ..removeWhere(

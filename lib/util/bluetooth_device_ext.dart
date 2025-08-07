@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -57,6 +58,11 @@ extension BluetoothDeviceExtension on BluetoothDevice {
           log.info('All attempts to discover characteristics failed');
           unawaited(Sentry.captureException(e));
           rethrow;
+        }
+        if (Platform.isAndroid) {
+          // On Android, clear the GATT cache if the device is not connected
+          log.info('Clearing GATT cache for device: ${remoteId.str}');
+          await this.clearGattCache();
         }
         // Wait a bit before the next attempt
         await Future<void>.delayed(Duration(seconds: 1));

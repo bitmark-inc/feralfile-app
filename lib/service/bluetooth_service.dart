@@ -599,6 +599,8 @@ class FFBluetoothService {
       _connectCompleter = Completer<void>();
       log.info('[connect] Connecting to device: ${device.remoteId.str}');
       try {
+        await device.disconnect();
+        await Future.delayed(const Duration(milliseconds: 500));
         await device.connect(
           timeout: timeout,
           mtu: null,

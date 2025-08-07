@@ -148,11 +148,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'tester': {
       'beta_tester': <String>[],
     },
-    'dp1_playlist': {
-      'channel_ids': [
-        'df9238b3-9de5-4952-873c-c2a1457e247a',
-      ]
-    }
+    'dp1_playlist': {'channel_ids': null}
   };
 
   static Map<String, dynamic>? _configs;

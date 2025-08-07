@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/screen/mobile_controller/models/channel.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -93,6 +94,7 @@ class ChannelsBloc extends Bloc<ChannelsEvent, ChannelsState> {
         ),
       );
     } catch (e) {
+      log.info('Error loading channels: $e');
       emit(
         state.copyWith(
           status: ChannelsStateStatus.error,
