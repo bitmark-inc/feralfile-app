@@ -34,6 +34,7 @@ class ChannelsService {
           )
           .toList();
       final channels = await Future.wait(future);
+      _channels.addAll(channels);
       return DP1ChannelsResponse(
         channels,
         false, // hasMore is false because we fetched all remote config channels
