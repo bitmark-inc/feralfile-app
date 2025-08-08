@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/identity.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -447,8 +448,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                     final paddingBottom = MediaQuery.of(context).padding.bottom;
                     return AnimatedPositioned(
                       duration: const Duration(milliseconds: 150),
-                      bottom:
-                          bottomSheetHeight > 0 ? 32 + bottomSheetHeight : 32,
+                      bottom: bottomSheetHeight > 0
+                          ? 10 + bottomSheetHeight
+                          : (paddingBottom +
+                              UIConstants.nowDisplayingBarBottomPadding),
                       left: ResponsiveLayout.paddingHorizontal,
                       right: ResponsiveLayout.paddingHorizontal,
                       child: FadeTransition(
