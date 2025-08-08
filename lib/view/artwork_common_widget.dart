@@ -17,12 +17,10 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
@@ -219,11 +217,6 @@ Widget tokenGalleryThumbnailWidget(
                     ),
               ),
               errorWidget: (context, url, error) {
-                if (error is Exception && error.isNetworkIssue) {
-                  unawaited(
-                    injector<NetworkIssueManager>().showNetworkIssueWarning(),
-                  );
-                }
                 return ImageExt.customNetwork(
                   token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
                   fadeInDuration: Duration.zero,

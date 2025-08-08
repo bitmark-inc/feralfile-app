@@ -152,7 +152,7 @@ class SendWifiCredentialsPageState extends State<SendWifiCredentialsPage>
                       if (topicId == null) {
                         throw FailedToConnectToWifiException(ssid, bleDevice);
                       }
-                      widget.payload.onSubmitted?.call(topicId);
+                      await widget.payload.onSubmitted?.call(topicId);
                     } on FailedToConnectToWifiException catch (e) {
                       log.info('Failed to connect to wifi: $e');
                       unawaited(

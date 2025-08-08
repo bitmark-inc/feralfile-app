@@ -320,6 +320,10 @@ class ConnectingExceptionInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.isNetworkIssue) {
+      Sentry.captureException(
+        '[ConnectingExceptionInterceptor] Network issue detected: ${err.message}',
+        stackTrace: StackTrace.current,
+      );
       log.warning('ConnectingExceptionInterceptor timeout');
       unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
       return;
