@@ -144,6 +144,23 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                             topicId,
                             true, // indicates that it from onboarding
                           );
+
+                          final ffDevice = device.toFFBluetoothDevice(
+                            topicId: res.first,
+                            deviceId: device.advName,
+                            branchName: widget.payload.branchName,
+                          );
+                          await BluetoothDeviceManager().addDevice(ffDevice);
+                          injector<NavigationService>()
+                              .popUntil(AppRouter.bluetoothDevicePortalPage);
+
+                          unawaited(
+                              injector<NavigationService>().popAndPushNamed(
+                            AppRouter.bluetoothConnectedDeviceConfig,
+                            arguments: BluetoothConnectedDeviceConfigPayload(
+                              isFromOnboarding: true,
+                            ),
+                          ));
                         } on FFBluetoothResponseError catch (e) {
                           if (e is DeviceUpdatingError ||
                               e is DeviceVersionCheckFailedError) {
@@ -159,10 +176,12 @@ class BluetoothDevicePortalPageState extends State<BluetoothDevicePortalPage>
                             'Failed to skip internet setup: $e',
                           );
                         } finally {
-                          injector<NavigationService>().popUntil(
-                            AppRouter.bluetoothDevicePortalPage,
-                          );
-                          injector<NavigationService>().goBack(result: res);
+                          if (res == null) {
+                            injector<NavigationService>().popUntil(
+                              AppRouter.bluetoothDevicePortalPage,
+                            );
+                            injector<NavigationService>().goBack(result: res);
+                          }
                         }
                       } else {
                         unawaited(
