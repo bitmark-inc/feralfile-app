@@ -38,7 +38,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
+// import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -517,7 +517,7 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 
       TextButton buildInfo(String text, String value) => TextButton(
             onPressed: () async {
-              Vibrate.feedback(FeedbackType.light);
+              // Vibrate.feedback(FeedbackType.light);
               final uri = Uri.tryParse(value);
               if (uri != null && await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.inAppWebView);

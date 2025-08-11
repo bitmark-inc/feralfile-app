@@ -127,7 +127,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     const appBarHeight = kToolbarHeight + 20;
     _appBarBottomDy ??= appBarHeight + MediaQuery.of(context).padding.top;
     _detector = ShakeDetector.autoStart(
-      onPhoneShake: () async {
+      onPhoneShake: (event) async {
         await _exitFullScreen();
       },
     );
@@ -351,7 +351,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 color: Colors.transparent,
                               ),
                             ),
-                            _nowDisplayingSpace(),
+                            _nowDisplayingSpace(context),
                           ],
                         ),
                     ],
@@ -459,12 +459,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _webViewController = webViewController;
   }
 
-  Widget _nowDisplayingSpace() => ValueListenableBuilder(
+  Widget _nowDisplayingSpace(BuildContext context) => ValueListenableBuilder(
         valueListenable: nowDisplayingShowing,
-        builder: (context, value, child) {
-          return SizedBox(
+        builder: (context, isNowDisplayingShowing, child) {
+          final value = isNowDisplayingShowing || _isInfoExpand;
+          return Container(
             height: MediaQuery.of(context).padding.bottom +
-                UIConstants.nowDisplayingBarBottomPadding +
+                (value ? UIConstants.nowDisplayingBarBottomPadding : 0) +
                 (value ? kNowDisplayingHeight : 0),
           );
         },
@@ -502,7 +503,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             ],
           ),
         ),
-        if (!_isInfoExpand) _nowDisplayingSpace(),
+        if (!_isInfoExpand) _nowDisplayingSpace(context),
       ],
     );
   }

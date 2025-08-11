@@ -43,7 +43,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
+// import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -79,7 +79,7 @@ class UIHelper {
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
     EdgeInsets? padding,
     EdgeInsets? paddingTitle,
     bool withCloseIcon = false,
@@ -97,9 +97,9 @@ class UIHelper {
       );
     }
 
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
+    // if (feedback != null) {
+    //   Vibrate.feedback(feedback);
+    // }
 
     return showModalBottomSheet<T>(
       context: context,
@@ -187,7 +187,7 @@ class UIHelper {
     bool isDismissible = false,
     bool isRoundCorner = true,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
     EdgeInsets? padding,
   }) async {
     log.info('[UIHelper] showPostcardInfoDialog: $title');
@@ -201,9 +201,9 @@ class UIHelper {
       );
     }
 
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
+    // if (feedback != null) {
+    //   Vibrate.feedback(feedback);
+    // }
 
     return await showModalBottomSheet<dynamic>(
       context: context,
@@ -260,7 +260,7 @@ class UIHelper {
     List<Widget> contents, {
     bool isDismissible = true,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
   }) async {
     log.info('[UIHelper] showPostcardDialogWithConfetti');
     currentDialogTitle = 'showPostcardDialogWithConfetti';
@@ -281,9 +281,9 @@ class UIHelper {
       );
     }
 
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
+    // if (feedback != null) {
+    //   Vibrate.feedback(feedback);
+    // }
 
     await Navigator.push(
       context,
@@ -361,7 +361,7 @@ class UIHelper {
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
   }) async {
     final theme = Theme.of(context);
 
@@ -372,9 +372,9 @@ class UIHelper {
       );
     }
 
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
+    // if (feedback != null) {
+    //   Vibrate.feedback(feedback);
+    // }
 
     final height = MediaQuery.of(context).size.height > 800 ? 689 : 600;
 
@@ -420,7 +420,7 @@ class UIHelper {
     String? title,
     Color? backgroundColor,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
     String? name,
   }) async {
     final theme = Theme.of(context);
@@ -433,9 +433,9 @@ class UIHelper {
       );
     }
 
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
+    // if (feedback != null) {
+    //   Vibrate.feedback(feedback);
+    // }
 
     return showModalBottomSheet<dynamic>(
       context: context,
@@ -578,7 +578,7 @@ class UIHelper {
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
   }) async {
     final theme = Theme.of(context);
     final bottomSheetKey = GlobalKey();
@@ -589,9 +589,9 @@ class UIHelper {
       );
     }
 
-    if (feedback != null) {
-      Vibrate.feedback(feedback);
-    }
+    // if (feedback != null) {
+    //   Vibrate.feedback(feedback);
+    // }
 
     await showModalBottomSheet<dynamic>(
       context: context,
@@ -643,7 +643,7 @@ class UIHelper {
     int autoDismissAfter = 0,
     String? closeButton,
     Function? onClose,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
     String? actionButton,
     Function? onAction,
     Widget? descriptionWidget,
@@ -690,7 +690,7 @@ class UIHelper {
         ),
       ),
       isDismissible: isDismissible,
-      feedback: feedback,
+      // feedback: feedback,
     );
   }
 
@@ -702,7 +702,7 @@ class UIHelper {
     int autoDismissAfter = 0,
     String? closeButton,
     Function? onClose,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
     String? actionButton,
     Function? onAction,
     Widget? descriptionWidget,
@@ -751,7 +751,7 @@ class UIHelper {
         ),
       ),
       isDismissible: isDismissible,
-      feedback: feedback,
+      // feedback: feedback,
     );
   }
 
@@ -817,7 +817,7 @@ class UIHelper {
     int autoDismissAfter = 0,
     String closeButton = '',
     VoidCallback? onClose,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
   }) async {
     log.info('[UIHelper] showInfoDialog: $title, $description');
     final theme = Theme.of(context);
@@ -863,7 +863,7 @@ class UIHelper {
         ),
       ),
       isDismissible: isDismissible,
-      feedback: feedback,
+      // feedback: feedback,
     );
   }
 
@@ -1610,7 +1610,7 @@ class UIHelper {
     showSimpleNotificationToast(
       key: const Key('subscription_upgraded'),
       content: 'upgraded_notification_body'.tr(),
-      vibrateFeedbackType: FeedbackType.warning,
+      // vibrateFeedbackType: FeedbackType.warning,
     );
   }
 

@@ -449,9 +449,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                     return AnimatedPositioned(
                       duration: const Duration(milliseconds: 150),
                       bottom: bottomSheetHeight > 0
-                          ? 10 + bottomSheetHeight
-                          : (paddingBottom +
-                              UIConstants.nowDisplayingBarBottomPadding),
+                          ? bottomSheetHeight +
+                              paddingBottom +
+                              UIConstants.nowDisplayingBarBottomPadding
+                          : paddingBottom +
+                              UIConstants.nowDisplayingBarBottomPadding,
                       left: ResponsiveLayout.paddingHorizontal,
                       right: ResponsiveLayout.paddingHorizontal,
                       child: FadeTransition(

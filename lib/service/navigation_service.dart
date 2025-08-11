@@ -49,7 +49,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
+// import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -166,6 +166,26 @@ class NavigationService {
     if (Platform.isAndroid) {
       final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
       await settings.applicationDetails();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
+  Future<void> openDeviceSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.apnSettings();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
+  Future<void> openAccountSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.apnSettings();
     } else {
       final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
       await settings.appSettings();
@@ -546,7 +566,7 @@ class NavigationService {
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
   }) async {
     await UIHelper.showFlexibleDialog(
       context,
@@ -555,7 +575,7 @@ class NavigationService {
       isRoundCorner: isRoundCorner,
       backgroundColor: backgroundColor,
       autoDismissAfter: autoDismissAfter,
-      feedback: feedback,
+      // feedback: feedback,
     );
   }
 
