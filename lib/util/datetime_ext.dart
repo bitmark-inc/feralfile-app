@@ -74,4 +74,10 @@ extension DateTimeExt on DateTime {
     final lifetime = DateTime.parse(configTime);
     return isAtSameMomentAs(lifetime);
   }
+
+  DateTime get localTimeWithoutShift {
+    // Convert to local time without applying timezone shift
+    return DateTime(year, month, day, hour, minute, second, millisecond)
+        .toLocal();
+  }
 }

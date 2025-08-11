@@ -16,7 +16,7 @@ class LoadingWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      color: backgroundColor ?? AppColor.primaryBlack,
+      color: backgroundColor ?? AppColor.auGreyBackground,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

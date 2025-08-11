@@ -88,11 +88,21 @@ class SelectItemState extends State<SelectDeviceConfigView> {
             if (!widget.isEnable) {
               return;
             }
+
+            final currentIndex = _selectedIndex;
+
             setState(() {
               _selectedIndex = index;
             });
-            if (item.onSelected != null) {
-              await item.onSelected!();
+
+            try {
+              await item.onSelected?.call();
+            } catch (e) {
+              if (mounted) {
+                setState(() {
+                  _selectedIndex = currentIndex;
+                });
+              }
             }
           },
           child: Column(

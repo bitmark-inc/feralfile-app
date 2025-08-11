@@ -52,7 +52,10 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     super.initState();
     _scrollController = ScrollController();
     _canvasDeviceBloc = injector<CanvasDeviceBloc>();
-    _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
+    _paging = Paging(
+        offset: 0,
+        limit: widget.tokenIDs.length,
+        total: widget.tokenIDs.length);
     log.info('paging initState: ${_paging.offset}');
     unawaited(_fetchFeaturedTokens(context, _paging));
     _scrollController.addListener(() {
@@ -140,9 +143,11 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                   bloc: _canvasDeviceBloc,
                   builder: (context, canvasDeviceState) {
                     final displayKey = widget.tokenIDs.displayKey;
-                    final isPlaylistCasting = canvasDeviceState
-                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
-                        null;
+                    final device = canvasDeviceState
+                        .lastSelectedActiveDeviceForKey(displayKey ?? '');
+                    final isPlaylistCasting = device == null
+                        ? false
+                        : canvasDeviceState.isDeviceAlive(device);
                     if (isPlaylistCasting && _shouldShowControllerBar) {
                       return Padding(
                         padding: const EdgeInsets.all(15),
@@ -191,76 +196,10 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final token = _featureTokens![index];
-                        return BlocBuilder<IdentityBloc, IdentityState>(
-                          builder: (context, state) {
-                            final artistName =
-                                state.identityMap[token.artistName] ??
-                                    token.artistName ??
-                                    token.artistID ??
-                                    '';
-                            return GestureDetector(
-                              onTap: () {
-                                _onTapArtwork(context, token);
-                              },
-                              child: ColoredBox(
-                                color: Colors.transparent,
-                                child: Column(
-                                  children: [
-                                    Builder(
-                                      builder: (context) {
-                                        final thumbnailUrl =
-                                            token.thumbnailURL ?? '';
-                                        final width =
-                                            _imageSize[thumbnailUrl]?.width;
-                                        final height =
-                                            _imageSize[thumbnailUrl]?.height;
-                                        double? aspectRatio;
-                                        if (width != null &&
-                                            height != null &&
-                                            height != 0) {
-                                          aspectRatio = width / height;
-                                        }
-                                        return AspectRatio(
-                                          aspectRatio: aspectRatio ?? 1.0,
-                                          // Provide a default aspect
-                                          // ratio if null
-                                          child: CachedNetworkImage(
-                                            imageUrl: token.thumbnailURL ?? '',
-                                            cacheManager:
-                                                injector<CacheManager>(),
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error),
-                                            placeholder: (context, url) =>
-                                                SizedBox(
-                                              height: height,
-                                              child: const LoadingWidget(),
-                                            ),
-                                            imageBuilder:
-                                                (context, imageProvider) =>
-                                                    Image(
-                                              image: imageProvider,
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    _infoHeader(
-                                      context,
-                                      token,
-                                      artistName,
-                                      false,
-                                      context.read<CanvasDeviceBloc>().state,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                        return FeaturedWorkCard(
+                          token: token,
+                          onTap: _onTapArtwork,
+                          imageSize: _imageSize[token.thumbnailURL],
                         );
                       },
                       childCount: _featureTokens?.length ?? 0,
@@ -294,7 +233,8 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   ) async {
     final bloc = context.read<IdentityBloc>();
 
-    final tokens = await injector<TokensService>().fetchManualTokens(tokenIds);
+    final tokens =
+        await injector<NftTokensService>().fetchManualTokens(tokenIds);
     final addresses = <String>[];
     for (final token in tokens) {
       addresses
@@ -432,6 +372,83 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
       ),
     );
   }
+}
+
+class FeaturedWorkCard extends StatelessWidget {
+  const FeaturedWorkCard({
+    required this.token,
+    required this.onTap,
+    final this.imageSize,
+    super.key,
+  });
+
+  final AssetToken token;
+  final Function(BuildContext context, AssetToken token) onTap;
+  final Size? imageSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<IdentityBloc, IdentityState>(
+      builder: (context, state) {
+        final artistName = state.identityMap[token.artistName] ??
+            token.artistName ??
+            token.artistID ??
+            '';
+        return GestureDetector(
+          onTap: () {
+            onTap(context, token);
+          },
+          child: ColoredBox(
+            color: Colors.transparent,
+            child: Column(
+              children: [
+                Builder(
+                  builder: (context) {
+                    final thumbnailUrl = token.thumbnailURL ?? '';
+                    final width = imageSize?.width;
+                    final height = imageSize?.height;
+                    double? aspectRatio;
+                    if (width != null && height != null && height != 0) {
+                      aspectRatio = width / height;
+                    }
+                    return AspectRatio(
+                      aspectRatio: aspectRatio ?? 1.0,
+                      // Provide a default aspect
+                      // ratio if null
+                      child: CachedNetworkImage(
+                        imageUrl: token.thumbnailURL ?? '',
+                        cacheManager: injector<CacheManager>(),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                        placeholder: (context, url) => SizedBox(
+                          height: height,
+                          child: const LoadingWidget(),
+                        ),
+                        imageBuilder: (context, imageProvider) => Image(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _infoHeader(
+                  context,
+                  token,
+                  artistName,
+                  false,
+                  context.read<CanvasDeviceBloc>().state,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Widget _infoHeader(
     BuildContext context,
@@ -451,7 +468,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
           Expanded(
             child: ArtworkDetailsHeader(
               title: asset.displayTitle ?? '',
-              onTitleTap: () => _onTapArtwork(context, asset),
+              onTitleTap: () => onTap(context, asset),
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null && asset.isFeralfile
                   ? () => unawaited(

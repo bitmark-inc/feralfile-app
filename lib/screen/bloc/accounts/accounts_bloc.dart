@@ -11,7 +11,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -55,10 +54,10 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<GetAccountBalanceEvent>((event, emit) async {
-      final addressBalances = <String, Pair<BigInt?, String>>{};
+      final addressBalances = <String, String>{};
       for (final address in event.addresses) {
         try {
-          final balance = await getAddressBalance(address);
+          final balance = await getNftBalance(address);
           addressBalances[address] = balance;
           emit(
             state.copyWith(

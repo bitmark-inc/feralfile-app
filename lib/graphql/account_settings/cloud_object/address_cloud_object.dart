@@ -4,11 +4,9 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.da
 import 'package:autonomy_flutter/model/wallet_address.dart';
 
 class WalletAddressCloudObject {
-  final AccountSettingsDB _accountSettingsDB;
+  final CloudDB _accountSettingsDB;
 
   WalletAddressCloudObject(this._accountSettingsDB);
-
-  AccountSettingsDB get db => _accountSettingsDB;
 
   Future<void> deleteAddress(WalletAddress address) async {
     // address is also the key
@@ -55,5 +53,9 @@ class WalletAddressCloudObject {
 
   Future<void> download() async {
     await _accountSettingsDB.download();
+  }
+
+  void clearCache() {
+    _accountSettingsDB.clearCache();
   }
 }

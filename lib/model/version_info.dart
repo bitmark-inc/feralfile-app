@@ -7,26 +7,27 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-part 'version_info.g.dart';
-
 @JsonSerializable()
 class VersionsInfo {
   VersionInfo productionIOS;
   VersionInfo productionAndroid;
-  VersionInfo devIOS;
-  VersionInfo devAndroid;
 
   VersionsInfo({
     required this.productionIOS,
     required this.productionAndroid,
-    required this.devIOS,
-    required this.devAndroid,
   });
 
-  factory VersionsInfo.fromJson(Map<String, dynamic> json) =>
-      _$VersionsInfoFromJson(json);
+  factory VersionsInfo.fromJson(Map<String, dynamic> json) => VersionsInfo(
+        productionIOS:
+            VersionInfo.fromJson(json['productionIOS'] as Map<String, dynamic>),
+        productionAndroid: VersionInfo.fromJson(
+            json['productionAndroid'] as Map<String, dynamic>),
+      );
 
-  Map<String, dynamic> toJson() => _$VersionsInfoToJson(this);
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'productionIOS': productionIOS.toJson(),
+        'productionAndroid': productionAndroid.toJson(),
+      };
 }
 
 @JsonSerializable()
@@ -39,8 +40,15 @@ class VersionInfo {
     required this.link,
   });
 
-  factory VersionInfo.fromJson(Map<String, dynamic> json) =>
-      _$VersionInfoFromJson(json);
+  factory VersionInfo.fromJson(Map<String, dynamic> json) {
+    return VersionInfo(
+      requiredVersion: json['requiredVersion'] as String,
+      link: json['link'] as String,
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$VersionInfoToJson(this);
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'requiredVersion': requiredVersion,
+        'link': link,
+      };
 }

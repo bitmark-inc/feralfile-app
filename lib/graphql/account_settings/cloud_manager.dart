@@ -11,22 +11,27 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudManager {
+  CloudManager() {}
+
+  Future<void> init() async {
+    await _init();
+  }
+
   late final String _deviceId;
   late final String _flavor;
 
   late final WalletAddressCloudObject _walletAddressObject;
 
   // this settings is for one device
-  late final AccountSettingsDB _deviceSettingsDB;
+  late final CloudDB _deviceSettingsDB;
 
   // this settings is shared across all devices
-  late final AccountSettingsDB _userSettingsDB;
+  late final CloudDB _userSettingsDB;
 
   late final PlaylistCloudObject _playlistCloudObject;
 
-  CloudManager() {
-    unawaited(_init());
-  }
+  //save ff device
+  late final CloudDB _ffDeviceCloudDB;
 
   Future<void> _getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -41,23 +46,27 @@ class CloudManager {
     await _getBackupId();
 
     /// Wallet Address
-    final addressAccountSettingsDB = AccountSettingsDBImpl(injector(),
+    final addressCloudDB = CloudDBImpl(injector(),
         [_flavor, _commonKeyPrefix, _db, _walletAddressKeyPrefix].join('.'));
 
-    _walletAddressObject = WalletAddressCloudObject(addressAccountSettingsDB);
+    _walletAddressObject = WalletAddressCloudObject(addressCloudDB);
 
     /// device settings
-    _deviceSettingsDB = AccountSettingsDBImpl(injector(),
+    _deviceSettingsDB = CloudDBImpl(injector(),
         [_flavor, _deviceId, _settings, _settingsDataKeyPrefix].join('.'));
 
     /// user settings
-    _userSettingsDB = AccountSettingsDBImpl(
+    _userSettingsDB = CloudDBImpl(
         injector(), [_flavor, _commonKeyPrefix, _settings, _db].join('.'));
 
     /// playlist
-    final playlistAccountSettingsDB = AccountSettingsDBImpl(injector(),
+    final playlistCloudDB = CloudDBImpl(injector(),
         [_flavor, _commonKeyPrefix, _db, _playlistKeyPrefix].join('.'));
-    _playlistCloudObject = PlaylistCloudObject(playlistAccountSettingsDB);
+    _playlistCloudObject = PlaylistCloudObject(playlistCloudDB);
+
+    /// ff device
+    _ffDeviceCloudDB = CloudDBImpl(injector(),
+        [_flavor, _commonKeyPrefix, _db, _ffDeviceKeyPrefix].join('.'));
   }
 
   // this will be shared across all physical devices
@@ -78,31 +87,41 @@ class CloudManager {
   // this for saving playlist data
   static const _playlistKeyPrefix = 'playlist';
 
+  // this for saving ff device data
+  static const _ffDeviceKeyPrefix = 'ff_device';
+
   WalletAddressCloudObject get addressObject => _walletAddressObject;
 
-  AccountSettingsDB get deviceSettingsDB => _deviceSettingsDB;
+  CloudDB get deviceSettingsDB => _deviceSettingsDB;
 
-  AccountSettingsDB get userSettingsDB => _userSettingsDB;
+  CloudDB get userSettingsDB => _userSettingsDB;
 
   PlaylistCloudObject get playlistCloudObject => _playlistCloudObject;
+
+  CloudDB get ffDeviceDB => _ffDeviceCloudDB;
 
   Future<void> downloadAll({bool includePlaylists = false}) async {
     log.info('[CloudManager] downloadAll');
     if (includePlaylists) {
-      unawaited(_playlistCloudObject.db.download());
+      unawaited(playlistCloudObject.download());
     }
     unawaited(injector<SettingsDataService>().restoreSettingsData());
     await Future.wait([
-      _walletAddressObject.download(),
+      addressObject.download(),
     ]);
+
+    await deviceSettingsDB.download();
+
+    await ffDeviceDB.download();
     log.info('[CloudManager] downloadAll done');
   }
 
   void clearCache() {
-    _walletAddressObject.db.clearCache();
+    _walletAddressObject.clearCache();
     _deviceSettingsDB.clearCache();
     _userSettingsDB.clearCache();
-    _playlistCloudObject.db.clearCache();
+    _playlistCloudObject.clearCache();
+    _ffDeviceCloudDB.clearCache();
   }
 
   Future<void> deleteAll() async {

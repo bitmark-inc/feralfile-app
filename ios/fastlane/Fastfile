@@ -87,30 +87,6 @@ platform :ios do
 			release_notes: ENV["RELEASE_NOTES"],
 			notify_testers: true)
 
-		sentry_create_release(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			version: ENV["APP_VERSION"],
-			build: next_build_number.to_s,
-			app_identifier: app_identifier
-		)
-
-		sentry_upload_dsym(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			dsym_path: './ipas/Runner Inhouse.app.dSYM.zip'
-		)
-
-		sentry_finalize_release(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			version: ENV["APP_VERSION"],
-			build: next_build_number.to_s,
-			app_identifier: app_identifier
-    	)
 	end
 
     lane :build_appcenter_test do
@@ -178,14 +154,14 @@ platform :ios do
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Adhoc.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Adhoc_Notification.mobileprovision")
 
-        update_info_plist(
-            xcodeproj: "Runner.xcodeproj",
-            plist_path: "Runner/Info.plist",
-            block: proc do |plist|
-                urlScheme = plist["branch_key"]
-                urlScheme["live"] = ENV["BRANCH_KEY"]
-            end
-        )
+#         update_info_plist(
+#             xcodeproj: "Runner.xcodeproj",
+#             plist_path: "Runner/Info.plist",
+#             block: proc do |plist|
+#                 urlScheme = plist["branch_key"]
+#                 urlScheme["live"] = ENV["BRANCH_KEY"]
+#             end
+#         )
 
         if env == 'test'
 		    build_appcenter_test
@@ -247,51 +223,6 @@ platform :ios do
 			build_number: next_build_number.to_s,
 			skip_submission: true,
 		)
-
-		sentry_create_release(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			version: ENV["APP_VERSION"],
-			build: next_build_number.to_s,
-			app_identifier: app_identifier
-		)
-
-# 		sentry_set_commits(
-# 			auth_token: ENV["SENTRY_AUTH"],
-# 			org_slug: 'bitmark-inc',
-# 			project_slug: 'autonomy-client-flutter',
-# 			auto: true,
-# 			version: ENV["APP_VERSION"],
-# 			build: next_build_number.to_s,
-# 			app_identifier: app_identifier
-#     	)
-
-		sentry_upload_dsym(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			dsym_path: './ipas/Runner.app.dSYM.zip'
-		)
-
-# 		sentry_create_deploy(
-# 			auth_token: ENV["SENTRY_AUTH"],
-# 			org_slug: 'bitmark-inc',
-# 			project_slug: 'autonomy-client-flutter',
-# 			started: dep_start,
-# 			finished: Time.now.to_i,
-# 			env: "Production",
-# 			version: ENV["APP_VERSION"],
-#     	)
-
-		sentry_finalize_release(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			version: ENV["APP_VERSION"],
-			build: next_build_number.to_s,
-			app_identifier: app_identifier
-    	)
   	end
 
 	lane :citestflight do
@@ -319,14 +250,14 @@ platform :ios do
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Feral_File_app_widget.mobileprovision")
 
-		update_info_plist(
-          xcodeproj: "Runner.xcodeproj",
-          plist_path: "Runner/Info.plist",
-          block: proc do |plist|
-            urlScheme = plist["branch_key"]
-            urlScheme["live"] = ENV["BRANCH_KEY"]
-          end
-        )
+# 		update_info_plist(
+#           xcodeproj: "Runner.xcodeproj",
+#           plist_path: "Runner/Info.plist",
+#           block: proc do |plist|
+#             urlScheme = plist["branch_key"]
+#             urlScheme["live"] = ENV["BRANCH_KEY"]
+#           end
+#         )
 
 		build_testflight
 

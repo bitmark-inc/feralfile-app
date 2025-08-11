@@ -116,7 +116,7 @@ class FileInfo {
         status: json['status'] as String,
         version: json['version'] as String?,
         metadata: json['metadata'] == null ||
-                (json['metadata'] as Map<String, dynamic>).isEmpty ||
+                (json['metadata'] as Map).isEmpty ||
                 (json['metadata'] as Map<String, dynamic>)['urlOverwrite'] ==
                     null
             ? null

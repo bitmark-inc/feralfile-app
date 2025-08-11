@@ -3,28 +3,30 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call_request.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
-  Future<CheckDeviceStatusReply> status(
-    CheckDeviceStatusRequest request, {
+  Future<CheckCastingStatusReply> status(
+    CheckCastingStatusRequest request, {
     bool shouldShowError = true,
   });
+
+  Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request);
 
   Future<ConnectReplyV2> connect(ConnectRequestV2 request);
 
   Future<DisconnectReplyV2> disconnect(DisconnectRequestV2 request);
 
-  Future<CastListArtworkReply> castListArtwork(CastListArtworkRequest request);
+  Future<CastListArtworkReply> castListArtwork(DP1CallRequest request);
 
   Future<PauseCastingReply> pauseCasting(PauseCastingRequest request);
 
@@ -42,14 +44,8 @@ abstract class TvCastService {
 
   Future<SendLogReply> getSupport(SendLogRequest request);
 
-  Future<GetVersionReply> getVersion(
-    GetVersionRequest request,
-  );
-
-  Future<ScanWifiReply> scanWifi(ScanWifiRequest request);
-
-  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
-    GetBluetoothDeviceStatusRequest request,
+  Future<GetDeviceStatusReply> getDeviceStatus(
+    GetDeviceStatusRequest request,
   );
 
   Future<UpdateArtFramingReply> updateArtFraming(
@@ -59,8 +55,6 @@ abstract class TvCastService {
   Future<UpdateDisplaySettingsReply> updateDisplaySettings(
     UpdateDisplaySettingsRequest request,
   );
-
-  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request);
 
   Future<UpdateToLatestVersionReply> updateToLatestVersion(
     UpdateToLatestVersionRequest request,
@@ -74,20 +68,16 @@ abstract class TvCastService {
 
   Future<GestureReply> drag(DragGestureRequest request);
 
-  Future<EnableMetricsStreamingReply> enableMetricsStreaming(
-    EnableMetricsStreamingRequest request,
-  );
-
-  Future<DisableMetricsStreamingReply> disableMetricsStreaming(
-    DisableMetricsStreamingRequest request,
-  );
-
   Future<ShowPairingQRCodeReply> showPairingQRCode(
     ShowPairingQRCodeRequest request,
   );
 
   Future<void> safeShutdown(
     SafeShutdownRequest request,
+  );
+
+  Future<DeviceRealtimeMetricsReply> deviceMetrics(
+    DeviceRealtimeMetricsRequest request,
   );
 }
 
@@ -100,17 +90,26 @@ abstract class BaseTvCastService implements TvCastService {
     Duration? timeout,
   });
 
-  Map<String, dynamic> _getBody(Request request) =>
+  Map<String, dynamic> _getBody(FF1Request request) =>
       RequestBody(request).toJson();
 
   @override
-  Future<CheckDeviceStatusReply> status(
-    CheckDeviceStatusRequest request, {
+  Future<CheckCastingStatusReply> status(
+    CheckCastingStatusRequest request, {
     bool shouldShowError = true,
   }) async {
-    final result =
-        await _sendData(_getBody(request), shouldShowError: shouldShowError);
-    return CheckDeviceStatusReply.fromJson(result);
+    try {
+      final result = await _sendData(
+        _getBody(request),
+        shouldShowError: shouldShowError,
+        timeout: const Duration(seconds: 10),
+      );
+      // return _mapStatusReply(result);
+      return CheckCastingStatusReply.fromJson(result);
+    } catch (e) {
+      log.info('Failed to get device status: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -132,9 +131,9 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<CastListArtworkReply> castListArtwork(
-    CastListArtworkRequest request,
+    DP1CallRequest request,
   ) async {
-    final result = await _sendData(_getBody(request));
+    final result = await sendDP1Call(request);
     return CastListArtworkReply.fromJson(result);
   }
 
@@ -191,28 +190,16 @@ abstract class BaseTvCastService implements TvCastService {
   }
 
   @override
-  Future<GetVersionReply> getVersion(GetVersionRequest request) async {
-    final result = await _sendData(_getBody(request));
-    return GetVersionReply.fromJson(result);
-  }
-
-  @override
-  Future<ScanWifiReply> scanWifi(ScanWifiRequest request) async {
-    final result = await _sendData(_getBody(request),
-        timeout: const Duration(seconds: 10));
-    return ScanWifiReply.fromJson(result);
-  }
-
-  @override
-  Future<GetBluetoothDeviceStatusReply> getBluetoothDeviceStatus(
-    GetBluetoothDeviceStatusRequest request,
+  Future<GetDeviceStatusReply> getDeviceStatus(
+    GetDeviceStatusRequest request,
   ) async {
     final result = await _sendData(
       _getBody(request),
       timeout: const Duration(seconds: 15),
       shouldShowError: false,
     );
-    return GetBluetoothDeviceStatusReply.fromJson(result);
+
+    return GetDeviceStatusReply.fromJson(result);
   }
 
   @override
@@ -229,12 +216,6 @@ abstract class BaseTvCastService implements TvCastService {
   ) async {
     final result = await _sendData(_getBody(request));
     return UpdateDisplaySettingsReply.fromJson(result);
-  }
-
-  @override
-  Future<SetTimezoneReply> setTimezone(SetTimezoneRequest request) async {
-    final result = await _sendData(_getBody(request));
-    return SetTimezoneReply.fromJson(result);
   }
 
   @override
@@ -280,50 +261,6 @@ abstract class BaseTvCastService implements TvCastService {
   }
 
   @override
-  Future<EnableMetricsStreamingReply> enableMetricsStreaming(
-    EnableMetricsStreamingRequest request,
-  ) async {
-    try {
-      final result = await _sendData(_getBody(request));
-      log.info('Enabling metrics streaming');
-
-      // Start monitoring system metrics if it's a Bluetooth device
-      if (this is BluetoothCastService) {
-        final bluetoothDevice = (this as BluetoothCastService)._device;
-        await injector<FFBluetoothService>()
-            .startSystemMetricsMonitoring(bluetoothDevice);
-      }
-
-      return EnableMetricsStreamingReply.fromJson(result);
-    } catch (e) {
-      log.warning('Failed to enable metrics streaming: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<DisableMetricsStreamingReply> disableMetricsStreaming(
-    DisableMetricsStreamingRequest request,
-  ) async {
-    try {
-      final result = await _sendData(_getBody(request));
-      log.info('Disabling metrics streaming');
-
-      // Stop monitoring system metrics if it's a Bluetooth device
-      if (this is BluetoothCastService) {
-        final bluetoothDevice = (this as BluetoothCastService)._device;
-        await injector<FFBluetoothService>()
-            .stopSystemMetricsMonitoring(bluetoothDevice);
-      }
-
-      return DisableMetricsStreamingReply.fromJson(result);
-    } catch (e) {
-      log.warning('Failed to disable metrics streaming: $e');
-      rethrow;
-    }
-  }
-
-  @override
   Future<ShowPairingQRCodeReply> showPairingQRCode(
     ShowPairingQRCodeRequest request,
   ) async {
@@ -340,13 +277,26 @@ abstract class BaseTvCastService implements TvCastService {
       rethrow;
     }
   }
+
+  @override
+  Future<DeviceRealtimeMetricsReply> deviceMetrics(
+    DeviceRealtimeMetricsRequest request,
+  ) async {
+    try {
+      final result = await _sendData(_getBody(request));
+      return DeviceRealtimeMetricsReply.fromJson(result);
+    } catch (e) {
+      log.info('Failed to get device metrics: $e');
+      rethrow;
+    }
+  }
 }
 
 class TvCastServiceImpl extends BaseTvCastService {
   TvCastServiceImpl(this._api, this._device);
 
   final TvCastApi _api;
-  final CanvasDevice _device;
+  final FFBluetoothDevice _device;
 
   void _handleError(Object error) {
     final context = injector<NavigationService>().context;
@@ -359,9 +309,6 @@ class TvCastServiceImpl extends BaseTvCastService {
             error.error! as FeralfileError,
           ),
         );
-      } else if (error.isBranchError) {
-        final feralfileError = error.branchError;
-        unawaited(UIHelper.showTVConnectError(context, feralfileError));
       }
     } else {
       unawaited(
@@ -379,15 +326,25 @@ class TvCastServiceImpl extends BaseTvCastService {
   @override
   Future<Map<String, dynamic>> _sendData(
     Map<String, dynamic> body, {
-    bool shouldShowError = true,
+    bool shouldShowError = false,
     Duration? timeout,
   }) async {
     try {
-      final result = await _api.request(
-        locationId: _device.locationId,
+      final resultFuture = _api.request(
         topicId: _device.topicId,
         body: body,
       );
+      final result = await resultFuture.timeout(
+        timeout ?? const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      ).catchError((Object error) {
+        if (error is TimeoutException) {
+          throw TimeoutException('Request timed out');
+        }
+        throw error;
+      });
       return (result['message'] as Map).cast<String, dynamic>();
     } catch (e) {
       unawaited(Sentry.captureException(e));
@@ -397,38 +354,16 @@ class TvCastServiceImpl extends BaseTvCastService {
       rethrow;
     }
   }
-}
-
-class BluetoothCastService extends BaseTvCastService {
-  BluetoothCastService(this._device);
-
-  final FFBluetoothDevice _device;
 
   @override
-  Future<Map<String, dynamic>> _sendData(
-    Map<String, dynamic> body, {
-    bool shouldShowError = true,
-    Duration? timeout,
-  }) async {
-    final command = body['command'] as String;
-    final request = Map<String, dynamic>.from(body['request'] as Map);
-    try {
-      final res = await injector<FFBluetoothService>().sendCommand(
-        device: _device,
-        command: command,
-        request: request,
-        timeout: timeout,
-        shouldShowError: shouldShowError,
-      );
-      log.info('[BluetoothCastService] sendCommand $command');
-      return res;
-    } catch (e) {
-      unawaited(
-        Sentry.captureException(
-          '[BluetoothCastService] sendCommand $command failed with error:  $e',
-        ),
-      );
-      rethrow;
-    }
+  Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request) async {
+    await BluetoothDeviceManager().switchDevice(_device);
+    final res = await _sendData(
+      RequestBody(request).toJson(),
+      shouldShowError: false,
+      timeout: const Duration(seconds: 10),
+    );
+    log.info('[TvCastServiceImpl] sendDP1Call response: $res');
+    return res;
   }
 }

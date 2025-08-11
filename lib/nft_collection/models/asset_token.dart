@@ -226,7 +226,9 @@ class AssetToken {
 
   String? get mimeType => asset?.mimeType;
 
-  String? get medium => asset?.medium;
+  String? get medium => asset?.mimeType != null && asset!.mimeType!.isNotEmpty
+      ? mediumFromMimeType(asset!.mimeType!)
+      : asset?.medium;
 
   int? get maxEdition => asset?.maxEdition;
 
@@ -253,6 +255,8 @@ class AssetToken {
   String? get originalFileURL => asset?.originalFileURL;
 
   String? get artworkMetadata => asset?.artworkMetadata;
+
+  bool get isBitmarkToken => id.startsWith('bmk-');
 
   String? get saleModel {
     final latestSaleModel = projectMetadata?.latest.initialSaleModel?.trim();
@@ -403,7 +407,7 @@ class ProjectMetadata {
         latest.title,
         latest.description,
         latest.mimeType,
-        mediumFromMimeType(latest.mimeType),
+        latest.medium,
         latest.maxEdition,
         latest.source,
         latest.sourceUrl,

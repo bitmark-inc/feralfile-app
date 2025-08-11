@@ -6,12 +6,10 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/alumni_details/alumni_details_bloc.dart';
@@ -59,6 +57,9 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/home/view/home_mobile_controller.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/channel_detail.page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/dp1_playlist_details.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
@@ -70,8 +71,6 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/recovery_phrase/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
@@ -79,8 +78,6 @@ import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -104,7 +101,9 @@ class AppRouter {
   static const newOnboardingPage = 'new_onboarding_page';
   static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
-  static const homePageNoTransition = 'home_page_no_transition';
+  static const oldHomePage = 'old_home_page';
+  static const recordControllerPage = 'record_controller_page';
+  static const enterCommandPage = 'enter_command_page';
   static const artworkDetailsPage = 'artwork_details_page';
   static const galleryPage = 'gallery_page';
   static const settingsPage = 'settings_page';
@@ -124,7 +123,6 @@ class AppRouter {
   static const githubDocPage = 'github_doc_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
-  static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
@@ -162,11 +160,12 @@ class AppRouter {
       'bluetooth_connected_device_config';
   static const handleBluetoothDeviceScanDeeplinkScreen =
       'handle_bluetooth_device_scan_deeplink_screen';
+  static const channelDetailPage = 'channel_detail_page';
+  static const playlistDetailsPage = 'playlist_details_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     log.info('[onGenerateRoute] Route: ${settings.name}');
     final accountsBloc = injector<AccountsBloc>();
-    final walletDetailBloc = injector<WalletDetailBloc>();
 
     final identityBloc = injector<IdentityBloc>();
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
@@ -236,8 +235,7 @@ class AppRouter {
             ),
           ),
         );
-
-      case homePageNoTransition:
+      case oldHomePage:
         final payload = settings.arguments as HomeNavigationPagePayload?;
         return PageRouteBuilder(
           settings: settings,
@@ -266,7 +264,6 @@ class AppRouter {
         );
 
       case homePage:
-        final payload = settings.arguments as HomeNavigationPagePayload?;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => MultiBlocProvider(
@@ -274,31 +271,11 @@ class AppRouter {
               BlocProvider(
                 create: (_) => HomeBloc(),
               ),
-              BlocProvider(create: (_) => identityBloc),
-              BlocProvider.value(value: royaltyBloc),
-              BlocProvider.value(
-                value: subscriptionBloc,
-              ),
               BlocProvider.value(value: canvasDeviceBloc),
-              BlocProvider.value(value: listPlaylistBloc),
-
-              /// The page itself doesn't need to use the bloc.
-              /// This will create bloc instance to receive and handle
-              /// event disconnect from dApp
+              BlocProvider.value(value: subscriptionBloc),
             ],
-            child: HomeNavigationPage(
-              key: homePageKey,
-              payload: HomeNavigationPagePayload(
-                startedTab: payload?.startedTab,
-              ),
-            ),
+            child: const MobileControllerHomePage(),
           ),
-        );
-
-      case accessMethodPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => const AccessMethodPage(),
         );
 
       case AppRouter.testArtwork:
@@ -342,22 +319,6 @@ class AppRouter {
               BlocProvider.value(value: identityBloc),
             ],
             child: const SettingsPage(),
-          ),
-        );
-
-      case linkedWalletDetailsPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider.value(
-                value: walletDetailBloc,
-              ),
-              BlocProvider.value(value: accountsBloc),
-            ],
-            child: LinkedWalletDetailPage(
-              payload: settings.arguments! as LinkedWalletDetailsPayload,
-            ),
           ),
         );
 
@@ -569,22 +530,6 @@ class AppRouter {
           ),
         );
 
-      case subscriptionPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) => UpgradesBloc(
-                  injector(),
-                  injector(),
-                ),
-              ),
-            ],
-            child: const SubscriptionPage(),
-          ),
-        );
-
       case dataManagementPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -723,10 +668,10 @@ class AppRouter {
         );
 
       case bluetoothDevicePortalPage:
-        final device = settings.arguments! as FFBluetoothDevice;
+        final payload = settings.arguments! as BluetoothDevicePortalPagePayload;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BluetoothDevicePortalPage(device: device),
+          builder: (context) => BluetoothDevicePortalPage(payload: payload),
         );
 
       case scanWifiNetworkPage:
@@ -767,7 +712,7 @@ class AppRouter {
               BlocProvider.value(value: identityBloc),
               BlocProvider(create: (_) => royaltyBloc),
             ],
-            child: NowDisplayingPage(),
+            child: const NowDisplayingPage(),
           ),
         );
 
@@ -787,6 +732,34 @@ class AppRouter {
           builder: (context) => HandleBluetoothDeviceScanDeeplinkScreen(
             payload: settings.arguments!
                 as HandleBluetoothDeviceScanDeeplinkScreenPayload,
+          ),
+        );
+
+      case channelDetailPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
+            child: ChannelDetailPage(
+              payload: settings.arguments! as ChannelDetailPagePayload,
+            ),
+          ),
+        );
+
+      case playlistDetailsPage:
+        final payload = settings.arguments! as DP1PlaylistDetailsScreenPayload;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+              BlocProvider.value(value: canvasDeviceBloc),
+            ],
+            child: DP1PlaylistDetailsScreen(
+              payload: payload,
+            ),
           ),
         );
 

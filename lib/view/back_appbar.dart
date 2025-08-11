@@ -12,13 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-AppBar getBackAppBar(BuildContext context, {
+AppBar getBackAppBar(
+  BuildContext context, {
   required Function()? onBack,
   String backTitle = 'BACK',
   String title = '',
   TextStyle? titleStyle,
   Widget? icon,
-  Widget? titleIcon,
   Function()? action,
   List<Widget>? actions,
   bool isWhite = true,
@@ -42,18 +42,12 @@ AppBar getBackAppBar(BuildContext context, {
         ? backButton(context, onBack: onBack, color: primaryColor)
         : const SizedBox(width: 56),
     automaticallyImplyLeading: false,
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (titleIcon != null) ...[titleIcon, const SizedBox(width: 10)],
-        Text(
-          title,
-          overflow: TextOverflow.ellipsis,
-          style: titleStyle ??
-              theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
-          textAlign: TextAlign.center,
-        ),
-      ],
+    title: Text(
+      title,
+      overflow: TextOverflow.ellipsis,
+      style: titleStyle ??
+          theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
+      textAlign: TextAlign.center,
     ),
     actions: [
       ...actions ?? [],
@@ -74,7 +68,7 @@ AppBar getBackAppBar(BuildContext context, {
               ),
         )
       else
-        const SizedBox(width: 44),
+        const SizedBox(width: 16),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
     surfaceTintColor: surfaceTintColor ?? Colors.transparent,
@@ -82,24 +76,24 @@ AppBar getBackAppBar(BuildContext context, {
     elevation: 0,
     bottom: withDivider
         ? PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(
-          color: isWhite ? null : AppColor.auGreyBackground),
-    )
+            preferredSize: const Size.fromHeight(1),
+            child: addOnlyDivider(
+                color: isWhite ? null : AppColor.auGreyBackground),
+          )
         : null,
   );
 }
 
 AppBar getTitleEditAppBar(BuildContext context,
     {required TextEditingController controller,
-      required FocusNode focusNode,
-      required Function(String value) onSubmit,
-      String backTitle = 'BACK',
-      bool hasBack = true,
-      Widget? icon,
-      Widget? titleIcon,
-      bool hasAction = true,
-      bool isWhite = true}) {
+    required FocusNode focusNode,
+    required Function(String value) onSubmit,
+    String backTitle = 'BACK',
+    bool hasBack = true,
+    Widget? icon,
+    Widget? titleIcon,
+    bool hasAction = true,
+    bool isWhite = true}) {
   final theme = Theme.of(context);
 
   final primaryColor = isWhite ? AppColor.auGrey : AppColor.white;
@@ -159,7 +153,8 @@ AppBar getTitleEditAppBar(BuildContext context,
   );
 }
 
-AppBar getCloseAppBar(BuildContext context, {
+AppBar getCloseAppBar(
+  BuildContext context, {
   required Function()? onClose,
   String title = '',
   TextStyle? titleStyle,
@@ -204,16 +199,15 @@ AppBar getCloseAppBar(BuildContext context, {
     elevation: 0,
     bottom: withBottomDivider
         ? PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(
-          color: isWhite ? null : AppColor.auGreyBackground),
-    )
+            preferredSize: const Size.fromHeight(1),
+            child: addOnlyDivider(
+                color: isWhite ? null : AppColor.auGreyBackground),
+          )
         : null,
   );
 }
 
-AppBar getDarkEmptyAppBar([Color? statusBarColor]) =>
-    AppBar(
+AppBar getDarkEmptyAppBar([Color? statusBarColor]) => AppBar(
       systemOverlayStyle: _systemUiOverlayDarkStyle(statusBarColor),
       backgroundColor: statusBarColor ?? AppColor.primaryBlack,
       toolbarHeight: 0,
@@ -222,8 +216,7 @@ AppBar getDarkEmptyAppBar([Color? statusBarColor]) =>
       scrolledUnderElevation: 0,
     );
 
-AppBar getLightEmptyAppBar([Color? statusBarColor]) =>
-    AppBar(
+AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
       systemOverlayStyle: systemUiOverlayLightStyle(statusBarColor),
       backgroundColor: Colors.transparent,
       toolbarHeight: 0,
@@ -249,7 +242,8 @@ SystemUiOverlayStyle systemUiOverlayLightStyle(Color? statusBarColor) =>
       statusBarBrightness: Brightness.light,
     );
 
-AppBar getDoneAppBar(BuildContext context, {
+AppBar getDoneAppBar(
+  BuildContext context, {
   required String title,
   Function()? onDone,
   Function()? onCancel,
@@ -292,7 +286,7 @@ AppBar getDoneAppBar(BuildContext context, {
                 style: (onDone != null)
                     ? theme.textTheme.ppMori700Black14
                     : theme.textTheme.ppMori700Black14
-                    .copyWith(color: AppColor.disabledColor),
+                        .copyWith(color: AppColor.disabledColor),
               ),
             ),
           ),
@@ -310,7 +304,8 @@ AppBar getDoneAppBar(BuildContext context, {
   );
 }
 
-AppBar getCustomDoneAppBar(BuildContext context, {
+AppBar getCustomDoneAppBar(
+  BuildContext context, {
   required Widget title,
   Function()? onDone,
   Function()? onCancel,
@@ -365,7 +360,8 @@ AppBar getCustomDoneAppBar(BuildContext context, {
   );
 }
 
-AppBar getPlaylistAppBar(BuildContext context, {
+AppBar getCustomBackAppBar(
+  BuildContext context, {
   required Widget title,
   required List<Widget> actions,
   double adjustLeftTitleWith = 0.0,
@@ -400,14 +396,18 @@ AppBar getPlaylistAppBar(BuildContext context, {
       automaticallyImplyLeading: false,
       centerTitle: true,
       title: title,
-      actions: actions,
+      actions: actions
+        ..add(
+          SizedBox(width: 16),
+        ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(0.25),
         child: addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
       ),
     );
 
-AppBar getFFAppBar(BuildContext context, {
+AppBar getFFAppBar(
+  BuildContext context, {
   required Function()? onBack,
   Widget? title,
   Widget? action,
@@ -424,22 +424,22 @@ AppBar getFFAppBar(BuildContext context, {
       scrolledUnderElevation: 0,
       leading: onBack != null
           ? Semantics(
-        label: 'BACK',
-        child: IconButton(
-          onPressed: () => Navigator.pop(context),
-          constraints: const BoxConstraints(
-            maxWidth: 44,
-            maxHeight: 44,
-            minWidth: 44,
-            minHeight: 44,
-          ),
-          icon: SvgPicture.asset(
-            'assets/images/ff_back_dark.svg',
-            width: 28,
-            height: 28,
-          ),
-        ),
-      )
+              label: 'BACK',
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
+                icon: SvgPicture.asset(
+                  'assets/images/ff_back_dark.svg',
+                  width: 28,
+                  height: 28,
+                ),
+              ),
+            )
           : const SizedBox(width: 44),
       automaticallyImplyLeading: false,
       title: title,
@@ -456,7 +456,7 @@ AppBar getFFAppBar(BuildContext context, {
 }
 
 Widget backButton(BuildContext context,
-    {required Function() onBack, Color? color}) =>
+        {required Function() onBack, Color? color}) =>
     Semantics(
         label: 'Back Button',
         child: IconButton(

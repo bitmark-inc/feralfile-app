@@ -52,48 +52,57 @@ class ResponsiveLayout extends StatelessWidget {
           ? Constants.paddingTablet
           : Constants.paddingTabletLandScape;
 
-  static double get padding => isMobile
-      ? 15
+  static double get paddingVertical => isMobile
+      ? 12
+      : isTablet
+          ? 20
+          : 30;
+
+  static double get paddingHorizontal => isMobile
+      ? 12
       : isTablet
           ? 20
           : 30;
 
   static EdgeInsets get pageEdgeInsets => EdgeInsets.only(
-        top: padding,
-        left: padding,
-        right: padding,
+        top: paddingVertical,
+        left: paddingVertical,
+        right: paddingVertical,
       );
 
   static EdgeInsets get pageEdgeInsetsWithSubmitButton => EdgeInsets.fromLTRB(
-        padding,
-        padding,
-        padding,
+        paddingVertical,
+        paddingVertical,
+        paddingVertical,
         32,
       );
 
   static EdgeInsets get pageHorizontalEdgeInsetsWithSubmitButton =>
       EdgeInsets.fromLTRB(
-        padding,
+        paddingVertical,
         0,
-        padding,
+        paddingVertical,
         32,
       );
 
   static EdgeInsets get pageEdgeInsetsNotBottom => EdgeInsets.fromLTRB(
-        padding,
-        padding,
-        padding,
+        paddingVertical,
+        paddingVertical,
+        paddingVertical,
         0,
       );
 
   static EdgeInsets get tappableForwardRowEdgeInsets => EdgeInsets.fromLTRB(
-        padding,
+        paddingVertical,
         20,
-        padding,
+        paddingVertical,
         20,
       );
 
   static EdgeInsets get pageHorizontalEdgeInsets =>
-      EdgeInsets.symmetric(horizontal: padding);
-  static EdgeInsets get paddingAll => EdgeInsets.all(padding);
+      EdgeInsets.symmetric(horizontal: paddingHorizontal);
+  static EdgeInsets get paddingAll => EdgeInsets.symmetric(
+        horizontal: paddingHorizontal,
+        vertical: paddingVertical,
+      );
 }

@@ -3,6 +3,20 @@ import 'dart:async';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+enum HiveStoreId {
+  announcement(10),
+  draftCustomerSupport(11),
+  indexerIdentity(12);
+
+  final int typeId;
+
+  const HiveStoreId(this.typeId);
+}
+
+abstract class HiveObject {
+  String get hiveId;
+}
+
 abstract class HiveStoreObjectService<T> {
   Future<void> init(String key);
 

@@ -20,7 +20,7 @@ class GetDailyAssetTokenEvent extends DailyWorkEvent {}
 
 class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
   final FeralFileService _feralfileService;
-  final IndexerService _indexerService;
+  final NftIndexerService _indexerService;
 
   DailyWorkBloc(this._feralfileService, this._indexerService)
       : super(DailiesWorkState(

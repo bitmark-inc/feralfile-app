@@ -8,6 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
@@ -24,8 +26,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
-import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 
 class DataManagementPage extends StatefulWidget {
   const DataManagementPage({super.key});
@@ -118,7 +118,6 @@ class _DataManagementPageState extends State<DataManagementPage> {
             injector(),
             injector<NftCollectionBloc>().database,
             injector(),
-            injector(),
           ),
           child: const ForgetExistView(),
         ),
@@ -135,7 +134,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
         //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
         'rebuild'.tr(),
         () async {
-          await injector<TokensService>().purgeCachedGallery();
+          await injector<NftTokensService>().purgeCachedGallery();
           await injector<CacheManager>().emptyCache();
           await DefaultCacheManager().emptyCache();
           await injector<ClientTokenService>()
@@ -149,7 +148,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
           Navigator.of(context).popUntil(
             (route) =>
                 route.settings.name == AppRouter.homePage ||
-                route.settings.name == AppRouter.homePageNoTransition,
+                route.settings.name == AppRouter.homePage,
           );
         },
         'cancel'.tr(),

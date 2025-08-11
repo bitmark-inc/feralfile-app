@@ -11,22 +11,23 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
+import 'package:autonomy_flutter/model/draft_customer_support.dart';
+import 'package:autonomy_flutter/model/identity.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
-import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
+import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
 import 'package:autonomy_flutter/view/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -37,6 +38,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -69,10 +71,22 @@ Future<void> callbackDispatcher() async {
   });
 }
 
+// This value notifies which screen should be shown
 ValueNotifier<bool> shouldShowNowDisplaying = ValueNotifier<bool>(false);
+
+// This value notifies if user did tap on close icon to hide now displaying
 ValueNotifier<bool> shouldShowNowDisplayingOnDisconnect =
     ValueNotifier<bool>(true);
+
+// This value notifies if now displaying is visible on scroll
 ValueNotifier<bool> nowDisplayingVisibility = ValueNotifier<bool>(true);
+
+// This value indicates whether the display is currently active. Its value is a combination of the three values above.
+ValueNotifier<bool> nowDisplayingShowing = ValueNotifier<bool>(false);
+
+final keyboardVisibilityController = KeyboardVisibilityController();
+final ValueNotifier<bool> shouldHideKeyboardOnTap = ValueNotifier<bool>(
+    true); // This value notifies if keyboard should be hidden on tap
 
 void main() async {
   unawaited(
@@ -82,6 +96,7 @@ void main() async {
         (options) {
           options
             ..dsn = Environment.sentryDSN
+            ..debug = false
             ..enableAutoSessionTracking = true
             ..tracesSampleRate = 0.25
             ..attachStacktrace = true
@@ -125,7 +140,8 @@ Future<void> runFeralFileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   log.info(
-      "Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}");
+    'Initial Route: ${WidgetsBinding.instance.platformDispatcher.defaultRouteName}',
+  );
 
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
@@ -135,7 +151,6 @@ Future<void> runFeralFileApp() async {
   await FlutterDownloader.initialize();
   await Hive.initFlutter();
   _registerHiveAdapter();
-  await ObjectBox.create();
 
   FlutterDownloader.registerCallback(downloadCallback);
   try {
@@ -151,8 +166,11 @@ Future<void> runFeralFileApp() async {
       statusBarColor: AppColor.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: AppColor.auGreyBackground,
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     showErrorDialogFromException(
@@ -167,8 +185,9 @@ Future<void> runFeralFileApp() async {
 
 void _registerHiveAdapter() {
   Hive
-    ..registerAdapter(CanvasDeviceAdapter())
-    ..registerAdapter(AnnouncementLocalAdapter());
+    ..registerAdapter(AnnouncementLocalAdapter())
+    ..registerAdapter(DraftCustomerSupportAdapter())
+    ..registerAdapter(IndexerIdentityAdapter());
 }
 
 Future<void> _setupWorkManager() async {
@@ -194,19 +213,6 @@ Future<void> _startBackgroundUpdate() async {
   );
 }
 
-Future<void> _connectToBluetoothDevice() async {
-  try {
-    final bluetoothDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice;
-    if (bluetoothDevice != null) {
-      await injector<FFBluetoothService>().connectToDevice(bluetoothDevice,
-          shouldShowError: false, shouldChangeNowDisplayingStatus: true);
-    }
-  } catch (e) {
-    log.info('Error in connecting to connected device: $e');
-  }
-}
-
 Future<void> _setupApp() async {
   try {
     await setupLogger();
@@ -216,7 +222,6 @@ Future<void> _setupApp() async {
   }
   await setupInjector();
   unawaited(_setupWorkManager());
-  unawaited(_connectToBluetoothDevice());
   unawaited(injector<DeeplinkService>().setup());
   runApp(
     SDTFScope(
@@ -294,11 +299,10 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
   late AnimationController _animationController;
   bool _isVisible = true;
   double _lastScrollPosition = 0;
+  late final ValueNotifier<bool> _shouldShowOverlay;
 
-  // 40: padding bottom of app bar
-  // 45: height of app bar
-  // 10: space between app bar and now displaying
-  static const double kStatusBarMarginBottom = 40 + 45 + 10;
+  StreamSubscription<bool>? _keyboardVisibilitySubscription;
+  StreamSubscription<NowDisplayingStatus?>? _nowDisplayingStreamSubscription;
 
   @override
   void initState() {
@@ -313,22 +317,43 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplayingOnDisconnect
         .addListener(_updateAnimationBasedOnDisplayState);
     nowDisplayingVisibility.addListener(_updateAnimationBasedOnDisplayState);
+    CustomRouteObserver.bottomSheetHeight
+        .addListener(_updateAnimationBasedOnDisplayState);
+    _nowDisplayingStreamSubscription =
+        NowDisplayingManager().nowDisplayingStream.listen((_) {
+      _updateAnimationBasedOnDisplayState();
+    });
+
+    _keyboardVisibilitySubscription =
+        keyboardVisibilityController.onChange.listen((_) {
+      _updateAnimationBasedOnDisplayState();
+    });
+
+    _shouldShowOverlay = ValueNotifier(false);
+    _updateOverlayVisibility();
+    isNowDisplayingExpanded.addListener(_updateOverlayVisibility);
+    nowDisplayingShowing.addListener(_updateOverlayVisibility);
   }
 
   void _updateAnimationBasedOnDisplayState() {
-    final hasDevice =
-        injector<FFBluetoothService>().castingBluetoothDevice != null;
     final shouldShow = shouldShowNowDisplaying.value &&
         shouldShowNowDisplayingOnDisconnect.value &&
-        nowDisplayingVisibility.value;
-    final isBetaTester = injector<AuthService>().isBetaTester();
-    if (shouldShow && hasDevice && isBetaTester) {
+        nowDisplayingVisibility.value &&
+        CustomRouteObserver.bottomSheetHeight.value == 0 &&
+        !keyboardVisibilityController.isVisible;
+    nowDisplayingShowing.value = shouldShow;
+    if (nowDisplayingShowing.value) {
       _animationController.forward();
       setState(() => _isVisible = true);
     } else {
       _animationController.reverse();
       setState(() => _isVisible = false);
     }
+  }
+
+  void _updateOverlayVisibility() {
+    _shouldShowOverlay.value =
+        isNowDisplayingExpanded.value && nowDisplayingShowing.value;
   }
 
   void _handleScrollUpdate(ScrollNotification notification) {
@@ -339,12 +364,11 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
       final currentScroll = notification.metrics.pixels;
       final scrollDelta = currentScroll - _lastScrollPosition;
 
-      if (scrollDelta > 10 && _isVisible) {
+      if (scrollDelta > 10) {
         nowDisplayingVisibility.value = false;
-        setState(() => _isVisible = false);
-      } else if (scrollDelta < -10 && !_isVisible) {
+        isNowDisplayingExpanded.value = false;
+      } else if (scrollDelta < -10) {
         nowDisplayingVisibility.value = true;
-        setState(() => _isVisible = true);
       }
 
       _lastScrollPosition = currentScroll;
@@ -357,7 +381,16 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     shouldShowNowDisplaying.removeListener(_updateAnimationBasedOnDisplayState);
     shouldShowNowDisplayingOnDisconnect
         .removeListener(_updateAnimationBasedOnDisplayState);
+    nowDisplayingVisibility.removeListener(_updateAnimationBasedOnDisplayState);
+    CustomRouteObserver.bottomSheetHeight
+        .removeListener(_updateAnimationBasedOnDisplayState);
+    isNowDisplayingExpanded.removeListener(_updateOverlayVisibility);
+    nowDisplayingShowing.removeListener(_updateOverlayVisibility);
+
+    _shouldShowOverlay.dispose();
+    _nowDisplayingStreamSubscription?.cancel();
     _animationController.dispose();
+    _keyboardVisibilitySubscription?.cancel();
     super.dispose();
   }
 
@@ -369,53 +402,91 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
           _handleScrollUpdate(notification);
           return false; // Allow the notification to continue to be dispatched
         },
-        child: Stack(
-          children: [
-            widget.child,
-            ValueListenableBuilder(
-              valueListenable: CustomRouteObserver.bottomSheetHeight,
-              builder: (context, bottomSheetHeight, child) {
-                return AnimatedPositioned(
-                  duration: const Duration(milliseconds: 150),
-                  bottom: bottomSheetHeight > 0
-                      ? 10 + bottomSheetHeight
-                      : kStatusBarMarginBottom,
-                  left: 10,
-                  right: 10,
-                  child: FadeTransition(
-                    opacity: _animationController,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(
-                          0,
-                          kStatusBarMarginBottom / kNowDisplayingHeight,
-                        ),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: _animationController,
-                          curve: Curves.easeInOut,
+        child: Listener(
+          onPointerDown: keyboardVisibilityController.isVisible &&
+                  shouldHideKeyboardOnTap.value
+              ? (PointerDownEvent event) {
+                  // Hide keyboard when tapping outside while keyboard is visible
+                  Timer(const Duration(milliseconds: 100), () {
+                    log.info('Hiding keyboard');
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    FocusScope.of(context).unfocus();
+                    log.info('Keyboard hidden');
+                  });
+                }
+              : null,
+          child: Stack(
+            children: [
+              widget.child,
+              ValueListenableBuilder<bool>(
+                valueListenable: _shouldShowOverlay,
+                builder: (context, shouldShowOverlay, child) {
+                  return shouldShowOverlay
+                      ? Positioned.fill(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: () {
+                              if (_isVisible) {
+                                isNowDisplayingExpanded.value = false;
+                              }
+                            },
+                            child: AnimatedContainer(
+                              color: AppColor.primaryBlack.withAlpha(51),
+                              duration: const Duration(milliseconds: 150),
+                            ), // Transparent area
+                          ),
+                        )
+                      : const SizedBox();
+                },
+              ),
+              Visibility(
+                visible: _isVisible,
+                replacement: const SizedBox.shrink(),
+                child: ValueListenableBuilder(
+                  valueListenable: CustomRouteObserver.bottomSheetHeight,
+                  builder: (context, bottomSheetHeight, child) {
+                    final paddingBottom = MediaQuery.of(context).padding.bottom;
+                    return AnimatedPositioned(
+                      duration: const Duration(milliseconds: 150),
+                      bottom: bottomSheetHeight > 0
+                          ? bottomSheetHeight +
+                              paddingBottom +
+                              UIConstants.nowDisplayingBarBottomPadding
+                          : paddingBottom +
+                              UIConstants.nowDisplayingBarBottomPadding,
+                      left: ResponsiveLayout.paddingHorizontal,
+                      right: ResponsiveLayout.paddingHorizontal,
+                      child: FadeTransition(
+                        opacity: _animationController,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(
+                              0,
+                              paddingBottom / kNowDisplayingHeight,
+                            ),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: _animationController,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
+                          child: const NowDisplaying(),
                         ),
                       ),
-                      child: IgnorePointer(
-                        ignoring: !_isVisible,
-                        child: NowDisplaying(
-                          key: GlobalKey(),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-final RouteObserver<ModalRoute<void>> routeObserver =
+final CustomRouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
 @pragma('vm:entry-point')

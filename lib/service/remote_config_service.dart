@@ -147,7 +147,8 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     },
     'tester': {
       'beta_tester': <String>[],
-    }
+    },
+    'dp1_playlist': {'channel_ids': null}
   };
 
   static Map<String, dynamic>? _configs;
@@ -227,6 +228,7 @@ enum ConfigGroup {
   videoSettings,
   localCacheConfig,
   tester,
+  dp1Playlist,
 }
 
 // ConfigGroup getString extension
@@ -263,6 +265,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'local_cache_config';
       case ConfigGroup.tester:
         return 'tester';
+      case ConfigGroup.dp1Playlist:
+        return 'dp1_playlist';
     }
   }
 }
@@ -307,6 +311,7 @@ enum ConfigKey {
   featuredWorksLastUpdated,
   foreWord,
   betaTester,
+  dp1PlaylistChannelIds,
 }
 
 // ConfigKey getString extension
@@ -391,6 +396,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'foreword';
       case ConfigKey.betaTester:
         return 'beta_tester';
+      case ConfigKey.dp1PlaylistChannelIds:
+        return 'channel_ids';
     }
   }
 }

@@ -11,31 +11,18 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/branch_api.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/playlist_activation.dart';
-import 'package:autonomy_flutter/screen/activation/playlist_activation/playlist_activation_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/device_setting/check_bluetooth_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
-import 'package:autonomy_flutter/util/gift_handler.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -46,23 +33,19 @@ abstract class DeeplinkService {
 
   void handleDeeplink(String? link, {Duration delay, Function? onFinished});
 
-  // void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
-
   Future<void> handleReferralCode(String referralCode);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
-  final ConfigurationService _configurationService;
-  final NavigationService _navigationService;
-  final BranchApi _branchApi;
-
-  final Map<String, bool> _deepLinkHandlingMap = {};
-
   DeeplinkServiceImpl(
     this._configurationService,
     this._navigationService,
-    this._branchApi,
   );
+
+  final ConfigurationService _configurationService;
+  final NavigationService _navigationService;
+
+  final Map<String, bool> _deepLinkHandlingMap = {};
 
   @override
   Future<void> setup() async {
@@ -87,18 +70,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   void handleDeeplink(
-    String? link, {
+    String? rawLink, {
     Duration delay = Duration.zero,
     Function? onFinished,
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
-    if (link == 'autonomy://') {
+    if (rawLink == 'autonomy://') {
       return;
     }
 
-    if (link == null) {
+    if (rawLink == null) {
       return;
     }
+
+    final link = Uri.decodeFull(rawLink);
 
     log.info('[DeeplinkService] receive deeplink $link');
 
@@ -108,18 +93,23 @@ class DeeplinkServiceImpl extends DeeplinkService {
         log.info('[DeeplinkService] deeplink $link is handling');
         return;
       }
+      _deepLinkHandlingMap[link] = true;
+
+      log.info('[DeeplinkService] wait for startHandleDeeplinkCompleter');
+
       await startHandleDeeplinkCompleter.future;
 
-      _deepLinkHandlingMap[link] = true;
+      log.info('[DeeplinkService] startHandleDeeplinkCompleter completed');
+
       final handlerType = DeepLinkHandlerType.fromString(link);
 
       Future<void> onFinishDeeplink() async {
+        _deepLinkHandlingMap.remove(link);
         try {
           await onFinished?.call();
         } catch (e) {
           log.info('[DeeplinkService] onFinishDeeplink error: $e');
         }
-        _deepLinkHandlingMap.remove(link);
       }
 
       log.info('[DeeplinkService] handlerType $handlerType');
@@ -129,8 +119,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
         case DeepLinkHandlerType.homeWidget:
           await _handleHomeWidgetDeeplink(link);
         case DeepLinkHandlerType.bluetoothConnect:
-          await _handleBluetoothConnectDeeplink(link,
-              onFinish: onFinishDeeplink);
+          await _handleBluetoothConnectDeeplink(
+            link,
+            onFinish: onFinishDeeplink,
+          );
         case DeepLinkHandlerType.linkArtist:
           await _handleLinkArtistDeeplink(link);
         case DeepLinkHandlerType.unknown:
@@ -191,19 +183,23 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<void> _handleBluetoothConnectDeeplink(String link,
-      {Function? onFinish}) async {
+  Future<void> _handleBluetoothConnectDeeplink(
+    String link, {
+    Function? onFinish,
+  }) async {
     final prefix = Constants.bluetoothConnectDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (prefix == null) {
       log.info(
-          '[DeeplinkService] _handleBluetoothConnectDeeplink prefix not found');
+        '[DeeplinkService] _handleBluetoothConnectDeeplink prefix not found',
+      );
       return;
     }
     unawaited(
-        injector<ConfigurationService>().setDidShowLiveWithArt(true).then((_) {
-      log.info('setDidShowLiveWithArt to true');
-    }));
+      injector<ConfigurationService>().setDidShowLiveWithArt(true).then((_) {
+        log.info('setDidShowLiveWithArt to true');
+      }),
+    );
 
     await injector<NavigationService>().navigateTo(
       AppRouter.handleBluetoothDeviceScanDeeplinkScreen,
@@ -245,115 +241,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
-  // Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {
-  //   log.info('[DeeplinkService] _handleBranchDeeplink');
-  //   final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
-  //       .firstWhereOrNull((prefix) => link.startsWith(prefix));
-  //   if (callingBranchDeepLinkPrefix != null) {
-  //     try {
-  //       final response =
-  //           await _branchApi.getParams(Environment.branchKey, link);
-  //       await handleBranchDeeplinkData(
-  //           response['data'] as Map<dynamic, dynamic>,
-  //           onFinish: onFinish);
-  //     } catch (e, s) {
-  //       unawaited(Sentry.captureException('Branch deeplink error: $e',
-  //           stackTrace: s));
-  //       log.info('[DeeplinkService] _handleBranchDeeplink error $e');
-  //       await _navigationService.showCannotResolveBranchLink();
-  //     }
-  //     return true;
-  //   }
-  //   return false;
-  // }
-
-  // TODO: handle onFinish is only for feralfile_display.
-  // Please handle for other cases if needed
-  @override
-  Future<void> handleBranchDeeplinkData(
-    Map<dynamic, dynamic> data, {
-    Function? onFinish,
-  }) async {
-    final navigatePath = data['navigation_route'];
-    if (navigatePath != null) {
-      await _navigationService.navigatePath(navigatePath as String);
-    }
-    log.info('[DeeplinkService] handleBranchDeeplinkData $data');
-    log.info('source: ${data['source']}');
-    final source = data['source'];
-    switch (source) {
-      case 'feralfile_display':
-        {
-          final reportId = data['reportId'];
-          if (reportId != null) {
-            await _handleFeralFileDisplayReport(reportId as String);
-          } else {
-            final deviceRawPayload = data['device'] as Map<dynamic, dynamic>;
-            final Map<String, dynamic> payload = {};
-            deviceRawPayload.forEach((key, value) {
-              payload[key.toString()] = value;
-            });
-            final device = CanvasDevice.fromJson(payload);
-            await _handleFeralFileDisplayConnecting(device, onFinish);
-          }
-        }
-
-      case 'gift_membership':
-        final giftCode = data['gift_code'] as String;
-        await GiftHandler.handleGiftMembership(giftCode);
-
-      case 'referral_code':
-        final referralCode = data['referralCode'];
-        log.info('[DeeplinkService] referralCode: $referralCode');
-        await handleReferralCode(referralCode as String);
-
-      case 'playlist_activation':
-        try {
-          log.info('[DeeplinkService] playlist_activation');
-          unawaited(
-              injector<ConfigurationService>().setDidShowLiveWithArt(true));
-          final expiredAt = int.tryParse(data['expired_at'] as String);
-          log.info('[DeeplinkService] expiredAt: $expiredAt');
-          if (expiredAt != null) {
-            final expiredAtDate =
-                DateTime.fromMillisecondsSinceEpoch(expiredAt);
-            if (expiredAtDate.isBefore(DateTime.now())) {
-              log.info('[DeeplinkService] playlist_activation expired');
-              unawaited(_navigationService.showPlaylistActivationExpired());
-              break;
-            }
-          }
-          log.info('[DeeplinkService] playlist_activation not expired');
-          final playlistJson = (data['playlist'] as Map<dynamic, dynamic>)
-              .map((key, value) => MapEntry(key.toString(), value));
-
-          final playlist = PlayListModel.fromJson(playlistJson)
-              .copyWith(source: PlayListSource.activation);
-          final activationName = data['activation_name'];
-          final activationSource = data['activation_source'];
-          final thumbnailURL = data['activation_thumbnail'];
-          final activation = PlaylistActivation(
-            playListModel: playlist,
-            name: activationName as String,
-            source: activationSource as String,
-            thumbnailURL: thumbnailURL as String,
-          );
-          log.info('[DeeplinkService] playlist_activation $activation');
-          await _navigationService.navigateTo(
-            AppRouter.playlistActivationPage,
-            arguments: PlaylistActivationPagePayload(
-              activation: activation,
-            ),
-          );
-        } catch (e) {
-          log.info('[DeeplinkService] playlist_activation error $e');
-        }
-      default:
-        log.info('[DeeplinkService] source not found');
-    }
-    _deepLinkHandlingMap.remove(data['~referring_link']);
-  }
-
   @override
   Future<void> handleReferralCode(String referralCode) async {
     log.info('[DeeplinkService] handleReferralCode $referralCode');
@@ -367,7 +254,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } catch (e, s) {
       log.info('[DeeplinkService] _handleReferralCode error $e');
       unawaited(
-          Sentry.captureException('Referral code error: $e', stackTrace: s));
+        Sentry.captureException('Referral code error: $e', stackTrace: s),
+      );
       if (e is DioException) {
         if (e.isAlreadySetReferralCode) {
           log.info('[DeeplinkService] referral code already set');
@@ -375,76 +263,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _configurationService.setReferralCode('');
         }
       }
-    }
-  }
-
-  Future _handleFeralFileDisplayReport(String reportId) async {
-    await _navigationService.navigateTo(
-      AppRouter.supportThreadPage,
-      arguments: NewIssuePayload(
-        reportIssueType: ReportIssueType.Bug,
-        artworkReportID: reportId,
-      ),
-    );
-  }
-
-  Future<void> _handleFeralFileDisplayConnecting(
-    CanvasDevice device,
-    Function? onFinish,
-  ) async {
-    final canvasClient = injector<CanvasClientServiceV2>();
-    try {
-      final result = await canvasClient.addQrDevice(device);
-      final isSuccessful = result != null;
-      if (isSuccessful) {
-        onFinish?.call(device);
-      }
-      if (!_navigationService.context.mounted) {
-        return;
-      }
-      if (CustomRouteObserver.currentRoute?.settings.name ==
-          AppRouter.scanQRPage) {
-        /// in case scan when open scanQRPage,
-        /// scan with navigation home page does not go to this flow
-        _navigationService.goBack(result: result);
-        if (!isSuccessful) {
-          await _navigationService.showCannotConnectTv();
-        } else {
-          showSimpleNotificationToast(
-            key: const Key('connected_to_canvas'),
-            content: '${'connected_to_display'.tr()} ',
-            addOnTextSpan: [
-              TextSpan(
-                text: device.name,
-                style: Theme.of(_navigationService.context)
-                    .textTheme
-                    .ppMori400FFYellow14
-                    .copyWith(color: AppColor.feralFileLightBlue),
-              )
-            ],
-          );
-        }
-        return;
-      }
-      if (isSuccessful) {
-        showSimpleNotificationToast(
-          key: const Key('connected_to_canvas'),
-          content: '${'connected_to_display'.tr()} ',
-          addOnTextSpan: [
-            TextSpan(
-              text: device.name,
-              style: Theme.of(_navigationService.context)
-                  .textTheme
-                  .ppMori400FFYellow14
-                  .copyWith(color: AppColor.feralFileLightBlue),
-            )
-          ],
-        );
-      } else {
-        await _navigationService.showCannotConnectTv();
-      }
-    } catch (e) {
-      log.info('[DeeplinkService] feralfile_display error $e');
     }
   }
 }

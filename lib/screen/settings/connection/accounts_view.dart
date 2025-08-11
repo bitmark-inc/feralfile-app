@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_state.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -32,8 +31,11 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountsView extends StatefulWidget {
-  const AccountsView(
-      {required this.isInSettingsPage, super.key, this.scrollController});
+  const AccountsView({
+    required this.isInSettingsPage,
+    super.key,
+    this.scrollController,
+  });
 
   final bool isInSettingsPage;
   final ScrollController? scrollController;
@@ -80,17 +82,17 @@ class _AccountsViewState extends State<AccountsView> {
             return _noEditAddressesListWidget(walletAddresses);
           }
 
-          return ReorderableListView.builder(
+          return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            scrollController: widget.scrollController,
-            onReorder: (int oldIndex, int newIndex) {
-              _accountsBloc.add(
-                ChangeAccountOrderEvent(
-                  newOrder: newIndex,
-                  oldOrder: oldIndex,
-                ),
-              );
-            },
+            controller: widget.scrollController,
+            // onReorder: (int oldIndex, int newIndex) {
+            //   _accountsBloc.add(
+            //     ChangeAccountOrderEvent(
+            //       newOrder: newIndex,
+            //       oldOrder: oldIndex,
+            //     ),
+            //   );
+            // },
             itemCount: walletAddresses.length + 1,
             itemBuilder: (context, index) {
               if (index == walletAddresses.length) {
@@ -229,14 +231,6 @@ class _AccountsViewState extends State<AccountsView> {
   Widget _viewAddressItem(WalletAddress address) => accountItem(
         context,
         address,
-        onTap: () async {
-          await Navigator.of(context).pushNamed(
-            AppRouter.linkedWalletDetailsPage,
-            arguments: LinkedWalletDetailsPayload(
-              address: address,
-            ),
-          );
-        },
       );
 
   Widget _editAccountItem(WalletAddress address) {
@@ -288,29 +282,30 @@ class _AccountsViewState extends State<AccountsView> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'address_empty'.tr(),
-                style: Theme.of(context).textTheme.ppMori400Black14,
-              ),
-              const SizedBox(height: 36),
-              PrimaryButton(
-                text: 'add_display_address'.tr(),
-                onTap: () async {
-                  unawaited(
-                    Navigator.of(context).popAndPushNamed(
-                      AppRouter.viewExistingAddressPage,
-                      arguments: ViewExistingAddressPayload(false),
-                    ),
-                  );
-                },
-              ),
-            ],
-          )),
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'address_empty'.tr(),
+              style: Theme.of(context).textTheme.ppMori400Black14,
+            ),
+            const SizedBox(height: 36),
+            PrimaryButton(
+              text: 'add_display_address'.tr(),
+              onTap: () async {
+                unawaited(
+                  Navigator.of(context).popAndPushNamed(
+                    AppRouter.viewExistingAddressPage,
+                    arguments: ViewExistingAddressPayload(false),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 

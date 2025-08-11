@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.bitmark.autonomy_flutter">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -59,15 +58,7 @@
         <meta-data
             android:name="com.onesignal.NotificationServiceExtension"
             android:value="com.bitmark.autonomy_flutter.service.NotificationServiceExtension" /> <!-- Branch init -->
-        <meta-data
-            android:name="io.branch.sdk.BranchKey"
-            android:value="${branchKey}" />
-        <meta-data
-            android:name="io.branch.sdk.BranchKey.test"
-            android:value="${branchKeyTest}" />
-        <meta-data
-            android:name="io.branch.sdk.TestMode"
-            android:value="${branchTestMode}" />
+
 
         <activity
             android:name="com.bitmark.autonomywallet.MainActivity"
@@ -162,48 +153,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="link.autonomy.io"
-                    android:scheme="https" />
-                <data
-                    android:host="autonomy-app.app.link"
-                    android:scheme="https" />
-                <data
-                    android:host="autonomy-app-alternate.app.link"
-                    android:scheme="https" />
-                <data
-                    android:host="app.feralfile.com"
-                    android:scheme="https" />
-                <data
-                    android:host="feralfile-app.app.link"
-                    android:scheme="https" />
-                <data
-                    android:host="feralfile-app-alternate.app.link"
-                    android:scheme="https" />
-
-                <data
                     android:host="link.feralfile.com"
                     android:scheme="https" />
             </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="autonomy-app.test.app.link"
-                    android:scheme="https" />
-                <data
-                    android:host="autonomy-app-alternate.test.app.link"
-                    android:scheme="https" />
-                <data
-                    android:host="feralfile-app.test-app.link"
-                    android:scheme="https" />
-                <data
-                    android:host="feralfile-app-alternate.test-app.link"
-                    android:scheme="https" />
-            </intent-filter>
-
             <!-- Home widget -->
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.LAUNCH" />

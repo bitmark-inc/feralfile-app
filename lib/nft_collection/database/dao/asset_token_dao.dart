@@ -21,14 +21,74 @@ final _dateTimeConverter = DateTimeConverter();
 final _nullableDateTimeConverter = NullableDateTimeConverter();
 final _tokenOwnersConverter = TokenOwnersConverter();
 
-@dao
-class AssetTokenDao {
-  AssetTokenDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database);
+abstract class AssetTokenDao {
+  Future<List<AssetToken>> findAllAssetTokens();
 
+  Future<List<AssetToken>> findAllAssetTokensByFilter({
+    required String filter,
+    bool withHidden = false,
+  });
+
+  Future<List<AssetToken>> findAllAssetTokensWithoutOffset(
+    List<String> owners,
+  );
+
+  Future<List<AssetToken>> findAllPendingAssetTokens();
+
+  Future<DateTime?> getLastRefreshedTime();
+
+  Future<List<AssetToken>> findAllAssetTokensByOwners(
+    List<String> owners,
+    int limit,
+    int lastTime,
+    String id,
+  );
+
+  Future<List<AssetToken>> findAllAssetTokensBeforeByOwners(
+    List<String> owners,
+    int lastTime,
+    String id,
+  );
+
+  Future<List<AssetToken>> findAllAssetTokensByOwnersAndContractAddress(
+    List<String> owners,
+    String contractAddress,
+    int limit,
+    int lastTime,
+    String id,
+  );
+
+  Future<List<AssetToken>> findAllAssetTokensByArtistID({
+    required String artistID,
+    bool withHidden = false,
+    String filter = "",
+  });
+
+  Future<List<AssetToken>> findAllAssetTokensByMimeTypesOrMediums({
+    required List<String> mimeTypes,
+    required List<String> mediums,
+    bool isInMimeTypes = true,
+    bool withHidden = false,
+    String filter = "",
+  });
+
+  Future<List<AssetToken>> findAllAssetTokensByTokenIDs(
+    List<String> ids,
+  );
+
+  Future<AssetToken?> findAssetTokenByIdAndOwner(String id, String owner);
+
+  Future<List<String>> findAllAssetTokenIDsByOwner(String owner);
+}
+
+// Implementation class for database operations
+class DatabaseAssetTokenDao implements AssetTokenDao {
   final sqflite.DatabaseExecutor database;
-
   final StreamController<String> changeListener;
+  final QueryAdapter _queryAdapter;
+
+  DatabaseAssetTokenDao(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database);
 
   static AssetToken
       Function(Map<String, Object?>) mapper = (Map<String, Object?>
@@ -91,8 +151,7 @@ class AssetTokenDao {
         ),
       );
 
-  final QueryAdapter _queryAdapter;
-
+  @override
   Future<List<AssetToken>> findAllAssetTokens() async {
     return _queryAdapter.queryList(
       'SELECT * , Asset.lastRefreshedTime as assetLastRefresh, Token.lastRefreshedTime as tokenLastRefresh FROM Token LEFT JOIN Asset ON Token.indexID = Asset.indexID ORDER BY lastActivityTime DESC, id DESC',

@@ -1,99 +1,26 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
-import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
+import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
+import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 const double kNowDisplayingHeight = 60;
-
-abstract class NowDisplayingStatus {}
-
-// Connect to device
-class ConnectingToDevice implements NowDisplayingStatus {
-  ConnectingToDevice(this.device);
-
-  final FFBluetoothDevice device;
-}
-
-class ConnectSuccess implements NowDisplayingStatus {
-  ConnectSuccess(this.device);
-
-  final FFBluetoothDevice device;
-}
-
-class ConnectFailed implements NowDisplayingStatus {
-  ConnectFailed(this.device, this.error);
-
-  final FFBluetoothDevice device;
-  final Object error;
-}
-
-class ConnectionLostAndReconnecting implements NowDisplayingStatus {
-  ConnectionLostAndReconnecting(this.device);
-
-  final FFBluetoothDevice device;
-}
-
-// Now displaying
-class NowDisplayingSuccess implements NowDisplayingStatus {
-  NowDisplayingSuccess(this.object);
-
-  final NowDisplayingObject object;
-}
-
-class NowDisplayingError implements NowDisplayingStatus {
-  NowDisplayingError(this.error);
-
-  final Object error;
-}
-
-class GettingNowDisplayingObject implements NowDisplayingStatus {}
-
-class ExhibitionDisplaying {
-  ExhibitionDisplaying({
-    this.exhibition,
-    this.catalogId,
-    this.catalog,
-    this.artwork,
-  });
-
-  final Exhibition? exhibition;
-  final String? catalogId;
-  final ExhibitionCatalog? catalog;
-  final Artwork? artwork;
-}
-
-class NowDisplayingObject {
-  NowDisplayingObject({
-    this.assetToken,
-    this.exhibitionDisplaying,
-    this.dailiesWorkState,
-  });
-
-  final AssetToken? assetToken;
-  final ExhibitionDisplaying? exhibitionDisplaying;
-  final DailiesWorkState? dailiesWorkState;
-}
 
 class NowDisplaying extends StatefulWidget {
   const NowDisplaying({super.key});
@@ -102,9 +29,10 @@ class NowDisplaying extends StatefulWidget {
   State<NowDisplaying> createState() => _NowDisplayingState();
 }
 
-class _NowDisplayingState extends State<NowDisplaying> {
+class _NowDisplayingState extends State<NowDisplaying>
+    with AfterLayoutMixin<NowDisplaying> {
   final NowDisplayingManager _manager = NowDisplayingManager();
-  NowDisplayingStatus? nowDisplayingStatus;
+  late NowDisplayingStatus nowDisplayingStatus;
 
   @override
   void initState() {
@@ -112,10 +40,6 @@ class _NowDisplayingState extends State<NowDisplaying> {
     nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
       (status) {
-        if (nowDisplayingStatus is NowDisplayingSuccess &&
-            status is ConnectSuccess) {
-          return;
-        }
         if (mounted) {
           setState(
             () {
@@ -128,85 +52,57 @@ class _NowDisplayingState extends State<NowDisplaying> {
   }
 
   @override
+  void afterFirstLayout(BuildContext context) {}
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: injector<CanvasDeviceBloc>(),
       listener: (context, state) {},
       builder: (context, state) {
-        if (!injector<AuthService>().isBetaTester()) {
-          return const SizedBox();
-        }
         final nowDisplayingStatus = this.nowDisplayingStatus;
-        if (nowDisplayingStatus == null) {
-          return const SizedBox();
-        }
 
         switch (nowDisplayingStatus.runtimeType) {
-          case ConnectingToDevice:
-            return _connectingToDeviceView(context, nowDisplayingStatus);
-          case ConnectSuccess:
-            return _connectSuccessView(context, nowDisplayingStatus);
-          case ConnectFailed:
+          case DeviceDisconnected:
             return _connectFailedView(context, nowDisplayingStatus);
-          case ConnectionLostAndReconnecting:
-            return _connectionLostAndReconnectingView(
+          case ConnectionLost:
+            return _connectionLostView(
               context,
               nowDisplayingStatus,
             );
-          case GettingNowDisplayingObject:
-            return _gettingNowDisplayingObjectView(context);
           case NowDisplayingError:
             return _getNowDisplayingErrorView(context, nowDisplayingStatus);
           case NowDisplayingSuccess:
             return NowDisplayingSuccessWidget(
               object: (nowDisplayingStatus as NowDisplayingSuccess).object,
             );
+          case NoDevicePaired:
+            return _noDeviceView(context);
           default:
-            return const SizedBox();
+            return SizedBox();
         }
       },
     );
   }
 
-  Widget _connectingToDeviceView(
-    BuildContext context,
-    NowDisplayingStatus status,
-  ) {
-    final device = (status as ConnectingToDevice).device;
-    final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connecting to $deviceName',
-    );
-  }
-
-  Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectSuccess).device;
-    final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connected to $deviceName',
-    );
-  }
-
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectFailed).device;
+    final device = (status as DeviceDisconnected).device;
     final deviceName =
         device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Unable to connect to $deviceName. Check connection.',
+      status: 'Device $deviceName is offline or disconnected.',
     );
   }
 
-  Widget _connectionLostAndReconnectingView(
+  Widget _connectionLostView(
     BuildContext context,
     NowDisplayingStatus status,
   ) {
-    final device = (status as ConnectionLostAndReconnecting).device;
+    final device = (status as ConnectionLost).device;
     final deviceName =
         device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Connection to $deviceName lost, Attempting to reconnect...',
+      status: 'Connection to $deviceName lost.',
     );
   }
 
@@ -220,9 +116,11 @@ class _NowDisplayingState extends State<NowDisplaying> {
     );
   }
 
-  Widget _gettingNowDisplayingObjectView(BuildContext context) {
-    return const NowDisplayingStatusView(
-      status: 'Getting now displaying object...',
+  // there no device setuped
+  Widget _noDeviceView(BuildContext context) {
+    return NowDisplayingStatusView(
+      status:
+          'Pair an FF1 to display your collection and curated art on any screen.',
     );
   }
 }
@@ -230,7 +128,7 @@ class _NowDisplayingState extends State<NowDisplaying> {
 class NowDisplayingSuccessWidget extends StatefulWidget {
   const NowDisplayingSuccessWidget({required this.object, super.key});
 
-  final NowDisplayingObject object;
+  final NowDisplayingObjectBase object;
 
   @override
   State<NowDisplayingSuccessWidget> createState() =>
@@ -247,13 +145,36 @@ class _NowDisplayingSuccessWidgetState
   @override
   Widget build(BuildContext context) {
     final nowDisplaying = widget.object;
+    if (nowDisplaying is DP1NowDisplayingObject) {
+      return _dp1NowDisplayingView(context, nowDisplaying);
+    } else if (nowDisplaying is NowDisplayingObject) {
+      return _nowDisplayingView(context, nowDisplaying);
+    }
+
+    return const SizedBox();
+  }
+
+  Widget _dp1NowDisplayingView(
+    BuildContext context,
+    DP1NowDisplayingObject nowDisplaying,
+  ) {
+    return GestureDetector(
+      child: DP1NowDisplayingView(
+        nowDisplaying,
+      ),
+      onTap: () {
+        injector<NavigationService>().navigateTo(AppRouter.nowDisplayingPage);
+      },
+    );
+  }
+
+  Widget _nowDisplayingView(
+    BuildContext context,
+    NowDisplayingObject nowDisplaying,
+  ) {
     final assetToken = nowDisplaying.assetToken;
     if (assetToken != null) {
       return _tokenNowDisplayingView(context, assetToken);
-    }
-    final exhibitionDisplaying = nowDisplaying.exhibitionDisplaying;
-    if (exhibitionDisplaying != null) {
-      return _exhibitionNowDisplayingView(context, exhibitionDisplaying);
     }
     if (nowDisplaying.dailiesWorkState != null) {
       return _dailyWorkNowDisplayingView(
@@ -299,28 +220,6 @@ Widget _dailyWorkNowDisplayingView(
   );
 }
 
-Widget _exhibitionNowDisplayingView(
-  BuildContext context,
-  ExhibitionDisplaying exhibitionDisplaying,
-) {
-  return GestureDetector(
-    child: NowDisplayingExhibitionView(exhibitionDisplaying),
-    onTap: () {
-      final exhibition = exhibitionDisplaying.exhibition;
-      final artwork = exhibitionDisplaying.artwork;
-      if (artwork != null) {
-        injector<NavigationService>().navigateTo(
-          AppRouter.nowDisplayingPage,
-        );
-      } else if (exhibition != null) {
-        injector<NavigationService>().navigateTo(
-          AppRouter.nowDisplayingPage,
-        );
-      }
-    },
-  );
-}
-
 class TokenNowDisplayingView extends StatelessWidget {
   const TokenNowDisplayingView(this.assetToken, {super.key});
 
@@ -331,153 +230,164 @@ class TokenNowDisplayingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _identityBloc.add(GetIdentityEvent([assetToken.artistTitle ?? '']));
-    final theme = Theme.of(context);
     return BlocBuilder<IdentityBloc, IdentityState>(
       bloc: _identityBloc,
       builder: (context, state) {
         final artistTitle =
             assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistTitle;
-        return NowDisplayingView(
-          onMoreTap: () {
-            injector<NavigationService>().showDeviceSettings(
-              tokenId: assetToken.id,
-              artistName: artistTitle,
-            );
-          },
-          thumbnailBuilder: (context) {
-            return AspectRatio(
-              aspectRatio: 1,
-              child: tokenGalleryThumbnailWidget(
-                context,
-                assetToken,
-                65,
-                useHero: false,
-              ),
-            );
-          },
-          titleBuilder: (context) {
-            return RichText(
-              text: TextSpan(
-                children: [
-                  if (artistTitle != null)
-                    TextSpan(
-                      text: artistTitle,
-                      style: theme.textTheme.ppMori400Black14.copyWith(
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColor.primaryBlack,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          if (assetToken.isFeralfile) {
-                            injector<NavigationService>()
-                                .openFeralFileArtistPage(
-                              assetToken.artistID!,
-                            );
-                          } else {
-                            final uri = Uri.parse(
-                              assetToken.artistURL?.split(' & ').firstOrNull ??
-                                  '',
-                            );
-                            injector<NavigationService>().openUrl(uri);
-                          }
-                        },
-                    ),
-                  if (artistTitle != null)
-                    TextSpan(
-                      text: ', ',
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                  TextSpan(
-                    text: assetToken.displayTitle,
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+        return ExpandableNowDisplayingView(
+          headerBuilder: (onMoreTap, isExpanded) {
+            return NowDisplayingView(
+              thumbnailBuilder: thumbnailBuilder,
+              titleBuilder: (context) => titleBuilder(context, artistTitle),
+              customAction: [
+                // if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+                //     (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+                //             .settings
+                //             .name ==
+                //         AppRouter.homePage)
+                //   GestureDetector(
+                //     child: SvgPicture.asset('assets/images/run.svg'),
+                //     onTap: () {
+                //       chatModeNotifier.value = !chatModeNotifier.value;
+                //       // injector<RecordBloc>().add(
+                //       //   ResetPlaylistEvent(),
+                //       // );
+                //     },
+                //   ),
+              ],
+              onMoreTap: () {
+                onMoreTap();
+              },
+              moreIcon: SvgPicture.asset(
+                isExpanded
+                    ? 'assets/images/close.svg'
+                    : 'assets/images/icon_drawer.svg',
+                width: 22,
+                colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack,
+                  BlendMode.srcIn,
+                ),
+              ), // Pass the dynamic icon here
             );
           },
         );
       },
     );
   }
+
+  Widget thumbnailBuilder(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: tokenGalleryThumbnailWidget(
+        context,
+        assetToken,
+        65,
+        useHero: false,
+      ),
+    );
+  }
+
+  Widget titleBuilder(BuildContext context, String? artistTitle) {
+    final theme = Theme.of(context);
+    return RichText(
+      text: TextSpan(
+        children: [
+          if (artistTitle != null)
+            TextSpan(
+              text: artistTitle,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                decoration: TextDecoration.underline,
+                decorationColor: AppColor.primaryBlack,
+              ),
+            ),
+          if (artistTitle != null)
+            TextSpan(
+              text: ', ',
+              style: theme.textTheme.ppMori400Black14,
+            ),
+          TextSpan(
+            text: assetToken.displayTitle,
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
 }
 
-class NowDisplayingExhibitionView extends StatelessWidget {
-  const NowDisplayingExhibitionView(this.exhibitionDisplaying, {super.key});
+class DP1NowDisplayingView extends StatelessWidget {
+  const DP1NowDisplayingView(this.object, {super.key});
 
-  final ExhibitionDisplaying exhibitionDisplaying;
+  final DP1NowDisplayingObject object;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final exhibition = exhibitionDisplaying.exhibition;
-    final artwork = exhibitionDisplaying.artwork?.copyWith(
-      series: exhibitionDisplaying.artwork?.series
-          ?.copyWith(exhibition: exhibition),
-    );
-    final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
-    final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses == null
-        ? false
-        : injector<AuthService>().isLinkArtist(artistAddresses);
-    return NowDisplayingView(
-      onMoreTap: artwork?.indexerTokenId == null
-          ? null
-          : isUserArtist
-              ? () {
-                  injector<NavigationService>().openArtistDisplaySetting(
-                    artwork: artwork!,
-                  );
-                }
-              : () {
-                  injector<NavigationService>().showDeviceSettings(
-                    tokenId: artwork?.indexerTokenId ?? '',
-                    artistName: artwork?.series?.artistAlumni?.alias,
-                  );
-                },
-      thumbnailBuilder: (context) {
-        return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
-      },
-      titleBuilder: (context) {
-        if (artwork != null) {
-          return RichText(
-            text: TextSpan(
-              children: [
-                if (artwork.series?.artistAlumni?.alias != null)
-                  TextSpan(
-                    text: artwork.series?.artistAlumni?.alias ?? '',
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColor.primaryBlack,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        injector<NavigationService>().openFeralFileArtistPage(
-                          artwork.series?.artistAlumniAccountID ?? '',
-                        );
-                      },
-                  ),
-                if (artwork.series?.artistAlumni?.alias != null)
-                  TextSpan(
-                    text: ', ',
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                TextSpan(
-                  text: artwork.series?.title ?? '',
-                  style: theme.textTheme.ppMori400Black14,
+    final assetToken = object.assetToken;
+    final device = BluetoothDeviceManager().castingBluetoothDevice;
+    return ExpandableNowDisplayingView(
+      headerBuilder: (onMoreTap, isExpanded) {
+        return NowDisplayingView(
+          thumbnailBuilder: (context) {
+            if (assetToken != null) {
+              return AspectRatio(
+                aspectRatio: 1,
+                child: tokenGalleryThumbnailWidget(
+                  context,
+                  CompactedAssetToken.fromAssetToken(assetToken),
+                  65,
+                  useHero: false,
                 ),
-              ],
+              );
+            }
+            return AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                color: AppColor.auLightGrey,
+              ),
+            );
+          },
+          titleBuilder: (context) {
+            final title = assetToken?.title ?? '';
+            return Text(
+              title,
+              style: theme.textTheme.ppMori400Black14,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+          onMoreTap: () {
+            onMoreTap();
+          },
+          moreIcon: SvgPicture.asset(
+            isExpanded
+                ? 'assets/images/close.svg'
+                : 'assets/images/icon_drawer.svg',
+            width: 22,
+            colorFilter: const ColorFilter.mode(
+              AppColor.primaryBlack,
+              BlendMode.srcIn,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          );
-        }
-        return Text(
-          exhibition?.title ?? '',
-          style: theme.textTheme.ppMori400Black14,
-          overflow: TextOverflow.ellipsis,
+          ),
+          customAction: [
+            // if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+            //     (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+            //             .settings
+            //             .name ==
+            //         AppRouter.homePage)
+            //   GestureDetector(
+            //     child: SvgPicture.asset('assets/images/run.svg'),
+            //     onTap: () {
+            //       chatModeNotifier.value = !chatModeNotifier.value;
+            //       // injector<RecordBloc>().add(
+            //       //   ResetPlaylistEvent(),
+            //       // );
+            //     },
+            //   ),
+          ],
         );
       },
     );
@@ -489,31 +399,37 @@ class NowDisplayingView extends StatelessWidget {
     required this.thumbnailBuilder,
     required this.titleBuilder,
     this.onMoreTap,
+    this.device,
     super.key,
+    this.customAction = const [],
+    this.moreIcon, // Added parameter for custom icon
   });
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final BaseDevice? device;
   final void Function()? onMoreTap;
+  final List<Widget> customAction;
+  final Widget? moreIcon; // Declare the new parameter
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       constraints: const BoxConstraints(
         maxHeight: kNowDisplayingHeight,
         minHeight: kNowDisplayingHeight,
       ),
       decoration: BoxDecoration(
-        color: AppColor.feralFileLightBlue,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 65),
+            constraints: const BoxConstraints(maxWidth: 65, minWidth: 65),
             child: thumbnailBuilder(context),
           ),
           const SizedBox(width: 10),
@@ -523,25 +439,101 @@ class NowDisplayingView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Now Displaying:',
+                  'Now Displaying: ${device?.name ?? ''}',
                   style: theme.textTheme.ppMori400Black14,
                   overflow: TextOverflow.ellipsis,
                 ),
-                titleBuilder(context),
+                Expanded(child: titleBuilder(context)),
               ],
             ),
           ),
+          const SizedBox(width: 10),
+          ...customAction
+              .map(
+                (action) => [
+                  const SizedBox(width: 10),
+                  action,
+                ],
+              )
+              .flattened,
           if (onMoreTap != null)
             IconButton(
-              onPressed: onMoreTap,
-              icon: SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                width: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColor.primaryBlack,
-                  BlendMode.srcIn,
-                ),
-              ),
+              onPressed: () {
+                onMoreTap?.call();
+              },
+              icon: moreIcon ??
+                  SvgPicture.asset(
+                    'assets/images/icon_drawer.svg',
+                    width: 22,
+                    colorFilter: const ColorFilter.mode(
+                      AppColor.primaryBlack,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomNowDisplayingView extends StatelessWidget {
+  const CustomNowDisplayingView({
+    required this.builder,
+    this.onMoreTap,
+    this.device,
+    super.key,
+    this.customAction = const [],
+    this.moreIcon, // Added parameter for custom icon
+  });
+
+  final Widget Function(BuildContext) builder;
+  final BaseDevice? device;
+  final void Function()? onMoreTap;
+  final List<Widget> customAction;
+  final Widget? moreIcon; // Declare the new parameter
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      constraints: const BoxConstraints(
+        maxHeight: kNowDisplayingHeight,
+        minHeight: kNowDisplayingHeight,
+      ),
+      decoration: BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: builder(context),
+          ),
+          const SizedBox(width: 10),
+          ...customAction
+              .map(
+                (action) => [
+                  const SizedBox(width: 10),
+                  action,
+                ],
+              )
+              .flattened,
+          if (onMoreTap != null)
+            IconButton(
+              onPressed: () {
+                onMoreTap?.call();
+              },
+              icon: moreIcon ??
+                  SvgPicture.asset(
+                    'assets/images/icon_drawer.svg',
+                    width: 22,
+                    colorFilter: const ColorFilter.mode(
+                      AppColor.primaryBlack,
+                      BlendMode.srcIn,
+                    ),
+                  ),
             ),
         ],
       ),
@@ -556,37 +548,58 @@ class NowDisplayingStatusView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10),
-      constraints: const BoxConstraints(
-        maxHeight: kNowDisplayingHeight,
-        minHeight: kNowDisplayingHeight,
-      ),
-      decoration: BoxDecoration(
-        color: AppColor.auLightGrey,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(
-              status,
-              style: Theme.of(context).textTheme.ppMori400Black14,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+    return ExpandableNowDisplayingView(
+      headerBuilder: (onMoreTap, isExpanded) {
+        return CustomNowDisplayingView(
+          builder: (context) {
+            return Container(
+              constraints: const BoxConstraints(
+                maxHeight: kNowDisplayingHeight,
+                minHeight: kNowDisplayingHeight,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    status,
+                    style: Theme.of(context).textTheme.ppMori400Black14,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          },
+          onMoreTap: () {
+            onMoreTap();
+          },
+          moreIcon: SvgPicture.asset(
+            isExpanded
+                ? 'assets/images/close.svg'
+                : 'assets/images/icon_drawer.svg',
+            width: 22,
+            colorFilter: const ColorFilter.mode(
+              AppColor.primaryBlack,
+              BlendMode.srcIn,
             ),
           ),
-          IconButton(
-            onPressed: () => shouldShowNowDisplayingOnDisconnect.value = false,
-            icon: SvgPicture.asset(
-              'assets/images/closeCycle.svg',
-              width: 22,
-              height: 22,
-            ),
-          ),
-        ],
-      ),
+          customAction: [
+            // if (CustomRouteObserver.currentRoute is CupertinoPageRoute &&
+            //     (CustomRouteObserver.currentRoute! as CupertinoPageRoute)
+            //             .settings
+            //             .name ==
+            //         AppRouter.homePage)
+            //   GestureDetector(
+            //     child: SvgPicture.asset('assets/images/run.svg'),
+            //     onTap: () {
+            //       chatModeNotifier.value = !chatModeNotifier.value;
+            //       // injector<RecordBloc>().add(
+            //       //   ResetPlaylistEvent(),
+            //       // );
+            //     },
+            //   ),
+          ],
+        );
+      },
     );
   }
 }

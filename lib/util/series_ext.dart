@@ -18,6 +18,8 @@ extension FFSeriesExt on FFSeries {
 
   bool get isVideo => medium == 'video';
 
+  bool get isFeralfileFrame => metadata?['onchainRenderer'] == true;
+
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
   bool get isSingle =>
@@ -50,6 +52,9 @@ extension FFSeriesExt on FFSeries {
     final uri = (thumbnailDisplay?.isNotEmpty ?? false)
         ? thumbnailDisplay!
         : thumbnailURI;
+    if (uri == null || uri.isEmpty) {
+      return null;
+    }
     return getFFUrl(uri);
   }
 

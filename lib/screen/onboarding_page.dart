@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
+import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -183,8 +184,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   Future<void> _goToTargetScreen(BuildContext context) async {
     log.info('[_goToTargetScreen] start');
     unawaited(
-      Navigator.of(context)
-          .pushReplacementNamed(AppRouter.homePageNoTransition),
+      Navigator.of(context).pushReplacementNamed(AppRouter.homePage),
     );
     await injector<ConfigurationService>().setDoneOnboarding(true);
   }
@@ -218,6 +218,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (!mounted) {
       return;
     }
+    CanvasNotificationManager().start();
     await _goToTargetScreen(context);
   }
 
@@ -350,36 +351,39 @@ class _OnboardingPageState extends State<OnboardingPage>
   Widget build(BuildContext context) => Scaffold(
         appBar: getDarkEmptyAppBar(Colors.transparent),
         backgroundColor: AppColor.primaryBlack,
-        body: Padding(
-          padding:
-              ResponsiveLayout.pageHorizontalEdgeInsets.copyWith(bottom: 40),
-          child: Stack(
-            children: [
-              _onboardingLogo,
-              Positioned.fill(
-                child: Column(
-                  children: [
-                    const Spacer(),
-                    ValueListenableBuilder(
-                      valueListenable: _passkeyService.isShowingLoginDialog,
-                      builder: (context, value, child) {
-                        if (value) {
-                          return const SizedBox();
-                        }
-                        return PrimaryButton(
-                          text: 'h_loading...'.tr(),
-                          isProcessing: true,
-                          enabled: false,
-                          disabledColor: AppColor.auGreyBackground,
-                          textColor: AppColor.white,
-                          indicatorColor: AppColor.white,
-                        );
-                      },
-                    ),
-                  ],
+        body: SafeArea(
+          top: false,
+          child: Padding(
+            padding:
+                ResponsiveLayout.pageHorizontalEdgeInsets.copyWith(bottom: 40),
+            child: Stack(
+              children: [
+                _onboardingLogo,
+                Positioned.fill(
+                  child: Column(
+                    children: [
+                      const Spacer(),
+                      ValueListenableBuilder(
+                        valueListenable: _passkeyService.isShowingLoginDialog,
+                        builder: (context, value, child) {
+                          if (value) {
+                            return const SizedBox();
+                          }
+                          return PrimaryButton(
+                            text: 'h_loading...'.tr(),
+                            isProcessing: true,
+                            enabled: false,
+                            disabledColor: AppColor.auGreyBackground,
+                            textColor: AppColor.white,
+                            indicatorColor: AppColor.white,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );

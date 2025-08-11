@@ -83,6 +83,13 @@ class LoggingInterceptor extends Interceptor {
       final message = response.toString();
       apiLog.fine('API Response: $message');
     }
+
+    final headers = response.headers.map;
+
+    final cfRay = headers['cf-ray'];
+    if (cfRay != null && cfRay.isNotEmpty) {
+      apiLog.info('CF-Ray: ${cfRay.join(', ')}');
+    }
   }
 
   String cURLRepresentation(RequestOptions options) {
@@ -313,6 +320,10 @@ class ConnectingExceptionInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.isNetworkIssue) {
+      Sentry.captureException(
+        '[ConnectingExceptionInterceptor] Network issue detected: ${err.message}',
+        stackTrace: StackTrace.current,
+      );
       log.warning('ConnectingExceptionInterceptor timeout');
       unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
       return;
@@ -360,5 +371,25 @@ class TVKeyInterceptor extends Interceptor {
     } finally {
       handler.next(exp);
     }
+  }
+}
+
+class MobileControllerAuthInterceptor extends Interceptor {
+  MobileControllerAuthInterceptor(this.apiKey);
+
+  final String apiKey;
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['X-API-KEY'] = apiKey;
+    handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    log.info(
+      '[MobileControllerAuthInterceptor]Error: ${err.message} ',
+    );
+    handler.next(err);
   }
 }

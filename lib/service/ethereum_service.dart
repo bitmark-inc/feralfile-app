@@ -15,8 +15,6 @@ import 'package:web3dart/web3dart.dart';
 const double gWeiFactor = 1000000000;
 
 abstract class EthereumService {
-  Future<EtherAmount> getBalance(String address, {bool doRetry = false});
-
   Future<String> getFeralFileTokenMetadata(
     EthereumAddress contract,
     Uint8List data,
@@ -31,21 +29,6 @@ class EthereumServiceImpl extends EthereumService {
 
   final Web3Client _web3Client;
   final NetworkIssueManager _networkIssueManager;
-
-  @override
-  Future<EtherAmount> getBalance(String address, {bool doRetry = false}) async {
-    if (address == '') {
-      return EtherAmount.zero();
-    }
-
-    final ethAddress = EthereumAddress.fromHex(address);
-    final amount = await _networkIssueManager.retryOnConnectIssueTx(
-      () => _web3Client.getBalance(ethAddress),
-      maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0,
-    );
-
-    return amount;
-  }
 
   @override
   Future<String> getFeralFileTokenMetadata(

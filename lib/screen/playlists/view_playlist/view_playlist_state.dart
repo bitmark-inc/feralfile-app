@@ -2,39 +2,23 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 
 abstract class ViewPlaylistEvent {}
 
-class GetPlayList extends ViewPlaylistEvent {
-  final PlayListModel? playListModel;
-
-  GetPlayList({this.playListModel});
-}
-
-class ChangeRename extends ViewPlaylistEvent {
-  final bool value;
-
-  ChangeRename({required this.value});
-}
-
 class SavePlaylist extends ViewPlaylistEvent {
-  final String? name;
+  final PlayListModel playlist;
 
-  SavePlaylist({this.name});
+  SavePlaylist({required this.playlist});
 }
 
 class ViewPlaylistState {
-  PlayListModel? playListModel;
-  bool? isRename;
+  PlayListModel playListModel;
 
   ViewPlaylistState({
-    this.playListModel,
-    this.isRename,
+    required this.playListModel,
   });
 
   ViewPlaylistState copyWith({
     PlayListModel? playListModel,
-    bool? isRename,
   }) =>
       ViewPlaylistState(
         playListModel: playListModel ?? this.playListModel,
-        isRename: isRename ?? this.isRename,
       );
 }

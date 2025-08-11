@@ -49,7 +49,7 @@ class HomeWidgetService {
     }
   }
 
-  Future<void> updateWidget(
+  Future<void> _updateWidget(
       {required Map<String, String> data, bool shouldUpdate = true}) async {
     try {
       await Future.wait(
@@ -115,14 +115,14 @@ class HomeWidgetService {
 
     // Update widget with combined data
     if (combinedData.isNotEmpty) {
-      await updateWidget(data: combinedData);
+      await _updateWidget(data: combinedData);
     }
   }
 
   Future<Map<String, String>?> _formatDailyTokenData(
       DailyToken dailyToken) async {
     try {
-      final assetTokens = await injector<IndexerService>()
+      final assetTokens = await injector<NftIndexerService>()
           .getNftTokens(QueryListTokensRequest(ids: [dailyToken.indexId]));
       if (assetTokens.isEmpty) {
         log.info(
