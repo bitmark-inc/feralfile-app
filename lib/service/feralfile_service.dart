@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -178,6 +179,8 @@ abstract class FeralFileService {
   Future<Artwork?> getFirstViewableArtwork(String seriesId);
 
   Future<Artwork> getArtwork(String artworkId);
+
+  Future<Artwork?> getSourceArtwork(String artworkId);
 
   Future<DailyToken?> getCurrentDailiesToken();
 
@@ -519,7 +522,7 @@ class FeralFileServiceImpl extends FeralFileService {
   String _getThumbnailURI(FFSeries series, int artworkIndex) =>
       series.uniqueThumbnailPath != null
           ? '${series.uniqueThumbnailPath}/$artworkIndex-large.jpg'
-          : series.thumbnailURI;
+          : series.thumbnailURI ?? '';
 
   Future<FeralFileListResponse<Artwork>> _fakeSeriesArtworks(
       String seriesId, Exhibition exhibition,
@@ -605,6 +608,30 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
+  Future<Artwork?> getSourceArtwork(String artworkId) async {
+    sourceExhibition ??= await getSourceExhibition();
+    if (sourceExhibition == null) {
+      throw Exception('Source exhibition is not available');
+    }
+
+    if (sourceExhibition!.series == null) {
+      final series = await _sourceExhibitionAPI.getSourceExhibitionSeries();
+      sourceExhibition = sourceExhibition!.copyWith(series: series);
+    }
+    final response = sourceExhibition!.series
+        ?.firstWhereOrNull(
+          (series) =>
+              series.artworks?.any((artwork) => artwork.id == artworkId) ??
+              false,
+        )
+        ?.artworks
+        ?.firstWhereOrNull(
+          (artwork) => artwork.id == artworkId,
+        );
+    return response;
+  }
+
+  @override
   Future<List<FFSeries>> getListSeries(String exhibitionId,
       {bool includeFirstArtwork = false}) async {
     if (exhibitionId == SOURCE_EXHIBITION_ID) {
@@ -643,7 +670,11 @@ class FeralFileServiceImpl extends FeralFileService {
 
     final exhibition = await _sourceExhibitionAPI.getSourceExhibitionInfo();
     final series = await _sourceExhibitionAPI.getSourceExhibitionSeries();
-    sourceExhibition = exhibition.copyWith(series: series);
+    final seriesWithExhibition = series.map((s) {
+      // Ensure each series has the exhibition reference
+      return s.copyWith(exhibition: exhibition);
+    }).toList();
+    sourceExhibition = exhibition.copyWith(series: seriesWithExhibition);
     return sourceExhibition!;
   }
 

@@ -191,6 +191,9 @@ class AuthService {
   }
 
   bool isLinkArtist(List<String> addresses) {
+    if (addresses.isEmpty) {
+      return false;
+    }
     final linkAddresses = _jwt?.linkAddresses ?? [];
     final isArtist =
         addresses.every((element) => linkAddresses.contains(element));

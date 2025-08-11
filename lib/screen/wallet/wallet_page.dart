@@ -117,7 +117,7 @@ class _WalletPageState extends State<WalletPage>
           final debug = await isAppCenterBuild();
           if (debug && mounted) {
             unawaited(
-              Navigator.of(context).popAndPushNamed(AppRouter.accessMethodPage),
+              Navigator.of(context).popAndPushNamed(AppRouter.widgetBookScreen),
             );
           }
         },

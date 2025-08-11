@@ -1,7 +1,8 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
@@ -28,30 +29,16 @@ const double kNowDisplayingHeight = 60;
 
 abstract class NowDisplayingStatus {}
 
-// Connect to device
-class ConnectingToDevice implements NowDisplayingStatus {
-  ConnectingToDevice(this.device);
+class ConnectionLost implements NowDisplayingStatus {
+  ConnectionLost(this.device);
 
-  final FFBluetoothDevice device;
+  final BaseDevice device;
 }
 
-class ConnectSuccess implements NowDisplayingStatus {
-  ConnectSuccess(this.device);
+class DeviceDisconnected implements NowDisplayingStatus {
+  DeviceDisconnected(this.device);
 
-  final FFBluetoothDevice device;
-}
-
-class ConnectFailed implements NowDisplayingStatus {
-  ConnectFailed(this.device, this.error);
-
-  final FFBluetoothDevice device;
-  final Object error;
-}
-
-class ConnectionLostAndReconnecting implements NowDisplayingStatus {
-  ConnectionLostAndReconnecting(this.device);
-
-  final FFBluetoothDevice device;
+  final BaseDevice device;
 }
 
 // Now displaying
@@ -102,7 +89,8 @@ class NowDisplaying extends StatefulWidget {
   State<NowDisplaying> createState() => _NowDisplayingState();
 }
 
-class _NowDisplayingState extends State<NowDisplaying> {
+class _NowDisplayingState extends State<NowDisplaying>
+    with AfterLayoutMixin<NowDisplaying> {
   final NowDisplayingManager _manager = NowDisplayingManager();
   NowDisplayingStatus? nowDisplayingStatus;
 
@@ -112,10 +100,6 @@ class _NowDisplayingState extends State<NowDisplaying> {
     nowDisplayingStatus = _manager.nowDisplayingStatus;
     _manager.nowDisplayingStream.listen(
       (status) {
-        if (nowDisplayingStatus is NowDisplayingSuccess &&
-            status is ConnectSuccess) {
-          return;
-        }
         if (mounted) {
           setState(
             () {
@@ -126,6 +110,9 @@ class _NowDisplayingState extends State<NowDisplaying> {
       },
     );
   }
+
+  @override
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
@@ -142,14 +129,10 @@ class _NowDisplayingState extends State<NowDisplaying> {
         }
 
         switch (nowDisplayingStatus.runtimeType) {
-          case ConnectingToDevice:
-            return _connectingToDeviceView(context, nowDisplayingStatus);
-          case ConnectSuccess:
-            return _connectSuccessView(context, nowDisplayingStatus);
-          case ConnectFailed:
+          case DeviceDisconnected:
             return _connectFailedView(context, nowDisplayingStatus);
-          case ConnectionLostAndReconnecting:
-            return _connectionLostAndReconnectingView(
+          case ConnectionLost:
+            return _connectionLostView(
               context,
               nowDisplayingStatus,
             );
@@ -168,45 +151,24 @@ class _NowDisplayingState extends State<NowDisplaying> {
     );
   }
 
-  Widget _connectingToDeviceView(
-    BuildContext context,
-    NowDisplayingStatus status,
-  ) {
-    final device = (status as ConnectingToDevice).device;
-    final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connecting to $deviceName',
-    );
-  }
-
-  Widget _connectSuccessView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectSuccess).device;
-    final deviceName =
-        device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
-    return NowDisplayingStatusView(
-      status: 'Connected to $deviceName',
-    );
-  }
-
   Widget _connectFailedView(BuildContext context, NowDisplayingStatus status) {
-    final device = (status as ConnectFailed).device;
+    final device = (status as DeviceDisconnected).device;
     final deviceName =
         device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Unable to connect to $deviceName. Check connection.',
+      status: 'Device $deviceName is offline or disconnected.',
     );
   }
 
-  Widget _connectionLostAndReconnectingView(
+  Widget _connectionLostView(
     BuildContext context,
     NowDisplayingStatus status,
   ) {
-    final device = (status as ConnectionLostAndReconnecting).device;
+    final device = (status as ConnectionLost).device;
     final deviceName =
         device.name.isNotEmpty == true ? device.name : 'Portal (FF-X1)';
     return NowDisplayingStatusView(
-      status: 'Connection to $deviceName lost, Attempting to reconnect...',
+      status: 'Connection to $deviceName lost.',
     );
   }
 
@@ -419,25 +381,36 @@ class NowDisplayingExhibitionView extends StatelessWidget {
     );
     final thumbnailUrl = artwork?.smallThumbnailURL ?? exhibition?.coverUrl;
     final artistAddresses = artwork?.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses == null
-        ? false
-        : injector<AuthService>().isLinkArtist(artistAddresses);
+    final isUserArtist = artistAddresses != null &&
+        injector<AuthService>().isLinkArtist(artistAddresses);
     return NowDisplayingView(
-      onMoreTap: artwork?.indexerTokenId == null
-          ? null
-          : isUserArtist
-              ? () {
-                  injector<NavigationService>().openArtistDisplaySetting(
-                    artwork: artwork!,
-                  );
-                }
-              : () {
-                  injector<NavigationService>().showDeviceSettings(
-                    tokenId: artwork?.indexerTokenId ?? '',
-                    artistName: artwork?.series?.artistAlumni?.alias,
-                  );
-                },
+      onMoreTap: artwork?.indexerTokenId != null && isUserArtist
+          ? () {
+              injector<NavigationService>().openArtistDisplaySetting(
+                artwork: artwork,
+              );
+            }
+          : () {
+              injector<NavigationService>().showDeviceSettings(
+                tokenId: artwork?.indexerTokenId,
+                artistName: artwork?.series?.artistAlumni?.alias,
+              );
+            },
       thumbnailBuilder: (context) {
+        final url = thumbnailUrl ?? '';
+        if (url.isEmpty) {
+          return const SizedBox();
+        }
+        if (url.isSvgImage()) {
+          return SvgPicture.network(
+            url,
+            height: 65,
+            width: 65,
+            fit: BoxFit.cover,
+            placeholderBuilder: (context) =>
+                const GalleryThumbnailPlaceholder(),
+          );
+        }
         return FFCacheNetworkImage(imageUrl: thumbnailUrl ?? '');
       },
       titleBuilder: (context) {
@@ -527,7 +500,7 @@ class NowDisplayingView extends StatelessWidget {
                   style: theme.textTheme.ppMori400Black14,
                   overflow: TextOverflow.ellipsis,
                 ),
-                titleBuilder(context),
+                Expanded(child: titleBuilder(context)),
               ],
             ),
           ),

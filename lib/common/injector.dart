@@ -7,7 +7,6 @@
 
 // ignore_for_file: cascade_invocations
 
-import 'package:autonomy_flutter/common/database.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -21,7 +20,6 @@ import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/user_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
@@ -58,7 +56,6 @@ import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
@@ -310,7 +307,7 @@ Future<void> setupInjector() async {
   );
   injector.registerLazySingleton<CustomerSupportService>(
     () => CustomerSupportServiceImpl(
-      ObjectBox.draftCustomerSupport,
+      DraftCustomerSupportStore(),
       CustomerSupportApi(
         customerSupportDio(
           dioOptions.copyWith(
@@ -323,6 +320,7 @@ Future<void> setupInjector() async {
       injector(),
     ),
   );
+  await injector<CustomerSupportService>().init();
 
   injector.registerLazySingleton<DomainService>(DomainServiceImpl.new);
 
@@ -376,13 +374,8 @@ Future<void> setupInjector() async {
   );
   injector.registerLazySingleton<DeviceInfoService>(DeviceInfoService.new);
 
-  injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
-    HiveStoreObjectServiceImpl.new,
-  );
-  await injector<HiveStoreObjectService<CanvasDevice>>()
-      .init('local.canvas_device');
   injector.registerLazySingleton<CanvasClientServiceV2>(
-    () => CanvasClientServiceV2(injector(), injector(), injector()),
+    () => CanvasClientServiceV2(injector(), injector()),
   );
 
   injector.registerLazySingleton<FeralFileService>(
@@ -394,7 +387,6 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<DeeplinkService>(
     () => DeeplinkServiceImpl(
-      injector(),
       injector(),
       injector(),
     ),
@@ -421,12 +413,14 @@ Future<void> setupInjector() async {
   injector.registerFactory<PredefinedCollectionBloc>(
     PredefinedCollectionBloc.new,
   );
+  final identityStore = IndexerIdentityStore();
+  await identityStore.init('');
   injector.registerLazySingleton<IdentityBloc>(
-    () => IdentityBloc(ObjectBox.identityBox, injector()),
+    () => IdentityBloc(identityStore, injector()),
   );
 
   injector.registerLazySingleton<CanvasDeviceBloc>(
-    () => CanvasDeviceBloc(injector(), injector()),
+    () => CanvasDeviceBloc(injector()),
   );
   injector.registerLazySingleton<SubscriptionBloc>(
     () => SubscriptionBloc(injector()),

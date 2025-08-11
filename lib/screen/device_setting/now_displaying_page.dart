@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -155,9 +156,8 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
       return false;
     }
     final artistAddresses = artwork.series?.artistAlumni?.addressesList;
-    final isUserArtist = artistAddresses == null
-        ? false
-        : injector<AuthService>().isLinkArtist(artistAddresses);
+    final isUserArtist = artistAddresses != null &&
+        injector<AuthService>().isLinkArtist(artistAddresses);
     return isUserArtist;
   }
 
@@ -173,24 +173,20 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
         },
         title: 'now_displaying'.tr(),
         isWhite: false,
-        icon: tokenId != null
-            ? SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                width: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColor.white,
-                  BlendMode.srcIn,
-                ),
-              )
-            : null,
-        action: isArtist
-            ? () {
-                injector<NavigationService>().openArtistDisplaySetting(
+        icon: SvgPicture.asset(
+          'assets/images/more_circle.svg',
+          width: 22,
+          colorFilter: const ColorFilter.mode(
+            AppColor.white,
+            BlendMode.srcIn,
+          ),
+        ),
+        action: tokenId != null && isArtist
+            ? () => injector<NavigationService>().openArtistDisplaySetting(
                   artwork: getArtwork(nowDisplayingStatus),
-                );
-              }
+                )
             : () => injector<NavigationService>().showDeviceSettings(
-                  tokenId: tokenId!,
+                  tokenId: tokenId,
                   artistName: artistName,
                 ),
       ),
@@ -217,15 +213,11 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
           }
         }
         return _tokenNowDisplaying(context);
-      case ConnectingToDevice:
-        return Text('Connecting to device',
+      case DeviceDisconnected:
+        return Text('Device disconnected',
             style: theme.textTheme.ppMori400White14);
-      case ConnectFailed:
-        return Text('Failed to connect to device',
-            style: theme.textTheme.ppMori400White14);
-      case ConnectionLostAndReconnecting:
-        return Text('Connection lost, reconnecting',
-            style: theme.textTheme.ppMori400White14);
+      case ConnectionLost:
+        return Text('Connection lost', style: theme.textTheme.ppMori400White14);
       default:
         return Text('Unknown state', style: theme.textTheme.ppMori400White14);
     }
@@ -516,7 +508,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
                 await Navigator.of(context).pushReplacementNamed(
                   AppRouter.ffArtworkPreviewPage,
                   arguments: FeralFileArtworkPreviewPagePayload(
-                    artwork: artwork,
+                    artworkId: artwork.id,
                     isFromExhibition: true,
                   ),
                 );
@@ -537,8 +529,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
   }
 
   Widget _interactButton(BuildContext context) {
-    final state = injector<CanvasDeviceBloc>().state;
-    final castingDevice = state.devices.firstOrNull;
+    final castingDevice = BluetoothDeviceManager().castingBluetoothDevice;
     return PrimaryButton(
       onTap: () {
         injector<NavigationService>().navigateTo(

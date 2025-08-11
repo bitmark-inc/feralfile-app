@@ -140,9 +140,11 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                   bloc: _canvasDeviceBloc,
                   builder: (context, canvasDeviceState) {
                     final displayKey = widget.tokenIDs.displayKey;
-                    final isPlaylistCasting = canvasDeviceState
-                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
-                        null;
+                    final device = canvasDeviceState
+                        .lastSelectedActiveDeviceForKey(displayKey ?? '');
+                    final isPlaylistCasting = device == null
+                        ? false
+                        : canvasDeviceState.isDeviceAlive(device);
                     if (isPlaylistCasting && _shouldShowControllerBar) {
                       return Padding(
                         padding: const EdgeInsets.all(15),

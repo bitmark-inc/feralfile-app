@@ -6,27 +6,35 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/model/identity.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/identity.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
-import 'package:autonomy_flutter/objectbox.g.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 part 'identity_state.dart';
 
+class IndexerIdentityStore extends HiveStoreObjectServiceImpl<IndexerIdentity> {
+  static const String _key = 'indexerIdentityStoreKey';
+
+  @override
+  Future<void> init(String key) async {
+    await super.init(_key);
+  }
+}
+
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
-  final Box<IndexerIdentity> _identityBox;
+  final IndexerIdentityStore _identityStore;
   final IndexerService _indexerService;
 
   static const localIdentityCacheDuration = Duration(days: 1);
 
-  IdentityBloc(this._identityBox, this._indexerService)
+  IdentityBloc(this._identityStore, this._indexerService)
       : super(IdentityState({})) {
     on<GetIdentityEvent>((event, emit) async {
       try {
-        Map<String, String> resultFromDB = {};
-        List<String> unknownIdentities = [];
+        final resultFromDB = <String, String>{};
+        final unknownIdentities = <String>[];
 
         // Try to get from the database first.
         await Future.forEach<String>(event.addresses, (address) async {
@@ -34,10 +42,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
             return;
           }
 
-          final identity = _identityBox
-              .query(IndexerIdentity_.accountNumber.equals(address))
-              .build()
-              .findFirst();
+          final identity = _identityStore.get(address);
           if (identity != null) {
             if (identity.queriedAt
                     .add(localIdentityCacheDuration)
@@ -51,7 +56,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
               resultFromDB[address] = identity.name;
             } else {
               // Remove those item from the database
-              await _identityBox.removeAsync(identity.id);
+              await _identityStore.delete(identity.hiveId);
               // Re-query from the API
               unknownIdentities.add(address);
             }
@@ -67,16 +72,19 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
         if (unknownIdentities.isEmpty) {
           return;
         }
-        Map<String, String> resultFromAPI = {};
+        final resultFromAPI = <String, String>{};
         // Get from the API
         await Future.forEach(unknownIdentities, (address) async {
           try {
             final request = QueryIdentityRequest(account: address);
             final identity = await _indexerService.getIdentity(request);
             final indexerIdentity = IndexerIdentity(
-                identity.accountNumber, identity.blockchain, identity.name);
+              identity.accountNumber,
+              identity.blockchain,
+              identity.name,
+            );
             resultFromAPI[address] = identity.name;
-            await _identityBox.putAsync(indexerIdentity);
+            await _identityStore.save(indexerIdentity, indexerIdentity.hiveId);
           } catch (_) {
             // Ignore bad API responses
             return;
@@ -84,13 +92,13 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
         });
 
         if (resultFromAPI.isNotEmpty) {
-          Map<String, String> result = {}
+          final result = <String, String>{}
             ..addAll(resultFromDB)
             ..addAll(resultFromAPI);
           emit(IdentityState(result));
         }
       } catch (error) {
-        log.warning("Error during getting the identities: $error");
+        log.warning('Error during getting the identities: $error');
         emit(state);
       }
     });
@@ -102,8 +110,11 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
           final request = QueryIdentityRequest(account: address);
           final identity = await _indexerService.getIdentity(request);
           final indexerIdentity = IndexerIdentity(
-              identity.accountNumber, identity.blockchain, identity.name);
-          await _identityBox.putAsync(indexerIdentity);
+            identity.accountNumber,
+            identity.blockchain,
+            identity.name,
+          );
+          await _identityStore.save(indexerIdentity, indexerIdentity.hiveId);
         } catch (_) {
           // Ignore bad API responses
           return;
@@ -112,7 +123,11 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
     });
 
     on<RemoveAllEvent>((event, emit) async {
-      await _identityBox.removeAllAsync();
+      await _identityStore.clear();
     });
+  }
+
+  Future<void> clear() async {
+    await _identityStore.clear();
   }
 }

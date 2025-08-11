@@ -7,8 +7,9 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:hive_flutter/adapters.dart' as adapters;
 import 'package:json_annotation/json_annotation.dart';
-import 'package:objectbox/objectbox.dart';
 
 part 'draft_customer_support.g.dart';
 
@@ -23,8 +24,7 @@ extension RawValue on CSMessageType {
   String get rawValue => toString().split('.').last;
 }
 
-@Entity()
-class DraftCustomerSupport {
+class DraftCustomerSupport implements HiveObject {
   DraftCustomerSupport({
     required this.uuid,
     required this.issueID,
@@ -36,17 +36,17 @@ class DraftCustomerSupport {
     this.rating = 0,
   });
 
-  @Id()
-  int id = 0;
   String uuid;
   String issueID;
   String type;
   String data; // jsonData
-  @Property(type: PropertyType.date)
   DateTime createdAt;
   String reportIssueType;
   String mutedMessages;
   int rating;
+
+  @override
+  String get hiveId => uuid; // ObjectBox requires an id, but we don't use it
 }
 
 extension Supporter on DraftCustomerSupport {
@@ -91,4 +91,40 @@ class LocalAttachment {
   String fileName;
 
   Map<String, dynamic> toJson() => _$LocalAttachmentToJson(this);
+}
+
+class DraftCustomerSupportAdapter
+    extends adapters.TypeAdapter<DraftCustomerSupport> {
+  @override
+  final int typeId = HiveStoreId.draftCustomerSupport.typeId;
+
+  @override
+  DraftCustomerSupport read(adapters.BinaryReader reader) {
+    final json = jsonDecode(reader.readString()) as Map<String, dynamic>;
+    return DraftCustomerSupport(
+      uuid: json['uuid'] as String,
+      issueID: json['issueID'] as String,
+      type: json['type'] as String,
+      data: json['data'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      reportIssueType: json['reportIssueType'] as String,
+      mutedMessages: json['mutedMessages'] as String? ?? '',
+      rating: (json['rating'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  @override
+  void write(adapters.BinaryWriter writer, DraftCustomerSupport obj) {
+    final json = {
+      'uuid': obj.uuid,
+      'issueID': obj.issueID,
+      'type': obj.type,
+      'data': obj.data,
+      'createdAt': obj.createdAt.toIso8601String(),
+      'reportIssueType': obj.reportIssueType,
+      'mutedMessages': obj.mutedMessages,
+      'rating': obj.rating,
+    };
+    writer.writeString(jsonEncode(json));
+  }
 }

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
@@ -34,11 +34,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    unawaited(_fetchDevice());
-  }
-
-  Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 
   @override
@@ -108,8 +103,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   itemCount: devices.length,
                   itemBuilder: (BuildContext context, int index) {
                     final device = devices[index];
-                    final isControlling =
-                        device.deviceId == connectedDevice?.deviceId;
                     if (device is FFBluetoothDevice) {
                       return _bluetoothDeviceItemBuilder(
                         context: context,
@@ -118,10 +111,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                             device.deviceId == connectedDevice?.deviceId,
                       );
                     } else {
-                      return _deviceItemBuilder(
-                        context: context,
-                        device: device as CanvasDevice,
-                        isControlling: isControlling,
+                      return Text(
+                        'device_not_supported'.tr(),
+                        style: theme.textTheme.ppMori400White14,
                       );
                     }
                   },
@@ -168,39 +160,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     );
   }
 
-  Widget _deviceItemBuilder({
-    required BuildContext context,
-    required CanvasDevice device,
-    bool? isControlling,
-  }) {
-    return Column(
-      children: [
-        Builder(
-          builder: (context) => StreamDrawerItem(
-            item: OptionItem(
-              title: device.name,
-              onTap: () {
-                log.info('device selected: ${device.deviceId}');
-                widget.onDeviceSelected?.call(device);
-                Navigator.pop(context);
-              },
-            ),
-            backgroundColor: isControlling == null
-                ? AppColor.white
-                : isControlling
-                    ? AppColor.feralFileLightBlue
-                    : AppColor.disabledColor,
-            isControlling: isControlling ?? false,
-            onRotateClicked: () => onRotate(context),
-          ),
-        ),
-        const SizedBox(
-          height: 15,
-        ),
-      ],
-    );
-  }
-
   Widget _bluetoothDeviceItemBuilder({
     required BuildContext context,
     required FFBluetoothDevice device,
@@ -211,7 +170,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         Builder(
           builder: (context) => StreamDrawerItem(
             item: OptionItem(
-              title: device.name + '(${device.deviceId})',
+              title: '${device.name}(${device.deviceId})',
               onTap: () {
                 widget.onDeviceSelected?.call(device);
                 Navigator.pop(context);
@@ -248,6 +207,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
 
   Future<void> onDisconnect() async {
     final allDevices = _canvasDeviceBloc.state.devices.toList();
-    _canvasDeviceBloc.add(CanvasDeviceDisconnectEvent(allDevices));
+    // _canvasDeviceBloc.add(CanvasDeviceDisconnectedEvent(allDevices));
   }
 }

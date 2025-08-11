@@ -83,6 +83,13 @@ class LoggingInterceptor extends Interceptor {
       final message = response.toString();
       apiLog.fine('API Response: $message');
     }
+
+    final headers = response.headers.map;
+
+    final cfRay = headers['cf-ray'];
+    if (cfRay != null && cfRay.isNotEmpty) {
+      apiLog.info('CF-Ray: ${cfRay.join(', ')}');
+    }
   }
 
   String cURLRepresentation(RequestOptions options) {

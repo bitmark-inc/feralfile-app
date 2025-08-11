@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/wallet_address.dart';
@@ -85,6 +84,7 @@ import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
+import 'package:autonomy_flutter/widgetbook/components/widgetbook_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -162,6 +162,7 @@ class AppRouter {
       'bluetooth_connected_device_config';
   static const handleBluetoothDeviceScanDeeplinkScreen =
       'handle_bluetooth_device_scan_deeplink_screen';
+  static const widgetBookScreen = 'widget_book_screen';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     log.info('[onGenerateRoute] Route: ${settings.name}');
@@ -723,10 +724,10 @@ class AppRouter {
         );
 
       case bluetoothDevicePortalPage:
-        final device = settings.arguments! as FFBluetoothDevice;
+        final payload = settings.arguments! as BluetoothDevicePortalPagePayload;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BluetoothDevicePortalPage(device: device),
+          builder: (context) => BluetoothDevicePortalPage(payload: payload),
         );
 
       case scanWifiNetworkPage:
@@ -788,6 +789,12 @@ class AppRouter {
             payload: settings.arguments!
                 as HandleBluetoothDeviceScanDeeplinkScreenPayload,
           ),
+        );
+
+      case widgetBookScreen:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const WidgetbookScreen(),
         );
 
       default:

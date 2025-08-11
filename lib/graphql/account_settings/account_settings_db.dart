@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/util/log.dart';
 
 enum OnConflict { override, skip }
 
-abstract class AccountSettingsDB {
+abstract class CloudDB {
   Future<void> download({List<String>? keys});
 
   Future<void> uploadCurrentCache();
@@ -33,14 +33,16 @@ abstract class AccountSettingsDB {
 
   Map<String, String> get allInstance;
 
+  Future<void> deleteAll();
+
   void clearCache();
 }
 
-class AccountSettingsDBImpl implements AccountSettingsDB {
+class CloudDBImpl implements CloudDB {
   final AccountSettingsClient _client;
   final String _prefix;
 
-  AccountSettingsDBImpl(this._client, this._prefix);
+  CloudDBImpl(this._client, this._prefix);
 
   final Map<String, String> _caches = {};
 
@@ -94,6 +96,11 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       settings.removeWhere(
           (element) => _caches.containsKey(_removePrefix(element['key']!)));
     }
+
+    if (settings.isEmpty) {
+      return;
+    }
+
     final settingsFullKeys = settings
         .map((e) => {'key': getFullKey(e['key']!), 'value': e['value']!})
         .toList();
@@ -171,4 +178,10 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
 
   @override
   String get migrateKey => _migrateKey;
+
+  @override
+  Future<void> deleteAll() async {
+    _caches.clear();
+    await _client.delete(vars: {'search': '$_prefix.'});
+  }
 }

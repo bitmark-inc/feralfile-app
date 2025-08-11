@@ -2,10 +2,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/playlist_cloud_object.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/nft_collection/database/dao/dao.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 
 abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();
@@ -65,7 +65,7 @@ class PlayListServiceImp implements PlaylistService {
     if (_didFetch) {
       return;
     }
-    await _playlistCloudObject.db.download();
+    await _playlistCloudObject.download();
     _didFetch = true;
   }
 

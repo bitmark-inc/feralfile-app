@@ -34,6 +34,8 @@ extension ExhibitionExt on Exhibition {
 
   bool get isCrawlShow => id == CrawlHelper.exhibitionID;
 
+  bool get isSourceExhibition => id == SOURCE_EXHIBITION_ID;
+
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
@@ -205,9 +207,11 @@ extension ArtworkExt on Artwork {
     return getFFUrl(uri, variant: CloudFlareVariant.l.value);
   }
 
+  bool get isFeralfileFrame => series?.isFeralfileFrame ?? false;
+
   String get previewURL {
     final displayUri =
-        Platform.isAndroid ? previewDisplay['DASH'] : previewDisplay['HLS'];
+        Platform.isAndroid ? (previewDisplay?['DASH']) : previewDisplay?['HLS'];
     String uri;
     if (displayUri?.isNotEmpty == true) {
       final bandWidth = injector<RemoteConfigService>().getConfig<double?>(
@@ -221,6 +225,9 @@ extension ArtworkExt on Artwork {
     }
     return getFFUrl(uri);
   }
+
+  bool get isCrystallineWork =>
+      series?.exhibitionID == JohnGerrardHelper.exhibitionID;
 
   String _urlWithClientBandwidthHint(String uri, double? bandwidth) {
     final queryParameters = <String, String>{};
@@ -285,7 +292,10 @@ extension ArtworkExt on Artwork {
   }
 
   String? get indexerTokenId {
-    final chain = series!.exhibition!.mintBlockchain.toLowerCase();
+    final chain = series?.exhibition?.mintBlockchain.toLowerCase();
+    if (chain == null || chain.isEmpty) {
+      return null;
+    }
     // normal case: tezos or ethereum chain
     if (['tezos', 'ethereum'].contains(chain)) {
       final contract = series!.exhibition!.contracts?.firstWhereOrNull(
