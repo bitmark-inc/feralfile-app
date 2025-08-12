@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -134,23 +133,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       setState(() {
         _selectedIndex = index;
       });
-      final isWidgetAdded = await injector<HomeWidgetService>()
-          .isWidgetAdded()
-          .timeout(const Duration(seconds: 10), onTimeout: () => false);
+
       await UIHelper.showCenterMenu(
         context,
         routeSettings: const RouteSettings(name: UIHelper.homeMenu),
         options: [
-          if (!isWidgetAdded)
-            OptionItem(
-              title: 'Install Feral File Widget',
-              icon: const Icon(
-                AuIcon.add,
-              ),
-              onTap: () {
-                injector<NavigationService>().showHowToInstallDailyWidget();
-              },
-            ),
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(

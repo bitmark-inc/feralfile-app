@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -164,7 +163,6 @@ class HomePageHelper {
     await _remoteConfig.loadConfigs(forceRefresh: true);
     unawaited(NowDisplayingManager().updateDisplayingNow());
 
-    unawaited(injector<HomeWidgetService>().updateDailyTokensToHomeWidget());
     _triggerShowAnnouncement();
   }
 

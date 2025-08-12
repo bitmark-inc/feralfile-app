@@ -61,7 +61,6 @@ import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
@@ -449,8 +448,6 @@ Future<void> setupInjector() async {
   await injector<CloudManager>().init();
 
   injector.registerLazySingleton<ListPlaylistBloc>(ListPlaylistBloc.new);
-
-  injector.registerLazySingleton<HomeWidgetService>(HomeWidgetService.new);
 
   injector.registerLazySingleton<MobileControllerAPI>(
     () => MobileControllerAPI(
