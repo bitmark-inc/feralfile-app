@@ -136,11 +136,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		7F7693282D02A05C0085C68C /* Daily Widget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Daily Widget";
-			sourceTree = "<group>";
-		};
 		7F843EE62D069DBE006E71F3 /* notification */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -245,7 +240,6 @@
 				7F7693432D02A10A0085C68C /* Daily WidgetExtension.entitlements */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
-				7F7693282D02A05C0085C68C /* Daily Widget */,
 				7F843EE62D069DBE006E71F3 /* notification */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
