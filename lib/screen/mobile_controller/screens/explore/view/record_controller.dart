@@ -1,8 +1,11 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/constants/ui_constants.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/record_processing_status_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/dp1_playlist_details.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
@@ -18,6 +21,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_svg/svg.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,7 +35,11 @@ class RecordControllerScreen extends StatefulWidget {
 }
 
 class _RecordControllerScreenState extends State<RecordControllerScreen>
-    with AutomaticKeepAliveClientMixin {
+    with
+        AutomaticKeepAliveClientMixin,
+        RouteAware,
+        WidgetsBindingObserver,
+        AfterLayoutMixin<RecordControllerScreen> {
   final MobileControllerService mobileControllerService =
       injector<MobileControllerService>();
   final AudioService audioService = injector<AudioService>();
@@ -43,11 +51,47 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   void initState() {
     recordBloc = context.read<RecordBloc>();
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    recordBloc.add(
+      StartRecordingEvent(),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Register the route observer
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Unsubscribe from the route observer
+    routeObserver.unsubscribe(this);
+    // Stop the recording when disposing the screen
+    recordBloc.add(StopRecordingEvent());
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Scaffold(
+        backgroundColor: AppColor.auGreyBackground,
+        body: _buildBody(context),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: chatModeNotifier,
       builder: (context, chatModeView, child) {
@@ -56,7 +100,17 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
           child: BlocConsumer<RecordBloc, RecordState>(
             listener: (context, state) {
               if (state is RecordSuccessState) {
-                chatModeNotifier.value = true;
+                final dp1Playlist = state.lastDP1Call;
+                if (dp1Playlist == null || dp1Playlist.items.isEmpty) {
+                  return;
+                }
+                injector<NavigationService>().navigateTo(
+                  AppRouter.dp1PlaylistDetailsPage,
+                  arguments: DP1PlaylistDetailsScreenPayload(
+                    playlist: dp1Playlist,
+                    backTitle: 'Index',
+                  ),
+                );
               }
             },
             builder: (context, state) {
@@ -77,8 +131,34 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
   Widget _recordView(BuildContext context, RecordState state) {
     return Column(
       children: [
-        const SizedBox(
+        SizedBox(
+          height: MediaQuery.of(context).padding.top,
+        ),
+        SizedBox(
           height: UIConstants.topControlsBarHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  // Handle back button tap
+                  injector<NavigationService>().goBack();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 15, top: 16),
+                  child: SvgPicture.asset(
+                    'assets/images/close.svg',
+                    width: 22,
+                    colorFilter: const ColorFilter.mode(
+                      AppColor.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         Expanded(
           flex: 6,
@@ -212,9 +292,9 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
           boxShadow: isRecording
               ? [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.5),
-                    blurRadius: 30,
-                    spreadRadius: 10,
+                    color: AppColor.feralFileLightBlue.withOpacity(0.7),
+                    blurRadius: 50,
+                    spreadRadius: 20,
                   ),
                 ]
               : [],

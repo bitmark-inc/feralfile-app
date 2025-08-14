@@ -23,7 +23,7 @@ class ExpandableNowDisplayingView extends StatefulWidget {
   // final BaseDevice? device;
   // final List<Widget> customAction;
   final List<OptionItem>? _options;
-  final Widget Function(Function onMoreTap, bool isExpanded) headerBuilder;
+  final Widget Function(Function? onMoreTap, bool isExpanded) headerBuilder;
 
   const ExpandableNowDisplayingView({
     required this.headerBuilder,

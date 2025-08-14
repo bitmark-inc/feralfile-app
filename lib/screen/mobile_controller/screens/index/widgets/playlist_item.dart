@@ -34,7 +34,7 @@ class PlaylistItem extends StatelessWidget {
       onTap: () {
         if (!clickable) return;
         injector<NavigationService>().navigateTo(
-          AppRouter.playlistDetailsPage,
+          AppRouter.dp1PlaylistDetailsPage,
           arguments: DP1PlaylistDetailsScreenPayload(
             playlist: playlist,
             backTitle: isFromPlaylistsPage ? 'Playlists' : channel?.title,

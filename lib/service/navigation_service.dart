@@ -48,8 +48,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-// import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart'; // import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -74,6 +73,9 @@ class NavigationService {
   BuildContext get context => navigatorKey.currentContext!;
 
   bool get mounted => navigatorKey.currentContext?.mounted == true;
+
+  // current route
+  Route<dynamic>? get currentRoute => CustomRouteObserver.currentRoute.value;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info('NavigationService.navigateTo: $routeName');
@@ -275,6 +277,40 @@ class NavigationService {
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePage,
     );
+  }
+
+  /// Pop to a specific route if it exists in the stack, otherwise push a new route
+  ///
+  /// [routeName] - The route name to navigate to
+  /// [arguments] - Optional arguments for the route
+  /// [pushIfNotExists] - Whether to push the route if it doesn't exist in stack (default: true)
+  ///
+  /// Returns true if popped to existing route, false if pushed new route
+  Future<bool> popToRouteOrPush(String routeName, {Object? arguments}) async {
+    log.info('NavigationService.popToRouteOrPush: $routeName');
+
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return false;
+    }
+
+    // Check if the route exists in the current stack
+    final isRouteInStack = CustomRouteObserver.isRouteInStack(routeName);
+
+    if (isRouteInStack) {
+      // Route exists in stack, pop to it
+      log.info('Route $routeName found in stack, popping to it');
+      navigatorKey.currentState?.popUntil(
+        (route) => route.settings.name == routeName,
+      );
+      return true;
+    } else {
+      // Route doesn't exist in stack, push new route
+      log.info('Route $routeName not found in stack, pushing new route');
+      await navigatorKey.currentState
+          ?.pushNamed(routeName, arguments: arguments);
+      return false;
+    }
   }
 
   Future<void> waitTooLongDialog() async {
@@ -942,9 +978,7 @@ class NavigationService {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
         navigatorKey.currentContext != null) {
-      final currentRoute = CustomRouteObserver.currentRoute;
-      if (currentRoute != null &&
-          currentRoute.settings.name == UIHelper.artDisplaySettingModal) {
+      if (currentRoute?.isArtDisplaySettingModalShowing ?? false) {
         Navigator.pop(navigatorKey.currentContext!);
       }
     }

@@ -57,6 +57,8 @@ import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/indexer_collection/indexer_collection_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/view/record_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/home/view/home_mobile_controller.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channel_details/channel_detail.page.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlist_details/dp1_playlist_details.dart';
@@ -161,7 +163,8 @@ class AppRouter {
   static const handleBluetoothDeviceScanDeeplinkScreen =
       'handle_bluetooth_device_scan_deeplink_screen';
   static const channelDetailPage = 'channel_detail_page';
-  static const playlistDetailsPage = 'playlist_details_page';
+  static const dp1PlaylistDetailsPage = 'do1_playlist_details_page';
+  static const voiceCommandPage = 'voice_command_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     log.info('[onGenerateRoute] Route: ${settings.name}');
@@ -748,7 +751,7 @@ class AppRouter {
           ),
         );
 
-      case playlistDetailsPage:
+      case dp1PlaylistDetailsPage:
         final payload = settings.arguments! as DP1PlaylistDetailsScreenPayload;
         return CupertinoPageRoute(
           settings: settings,
@@ -760,6 +763,19 @@ class AppRouter {
             child: DP1PlaylistDetailsScreen(
               payload: payload,
             ),
+          ),
+        );
+
+      case voiceCommandPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(
+                value: injector<RecordBloc>(),
+              ),
+            ],
+            child: const RecordControllerScreen(),
           ),
         );
 

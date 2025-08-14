@@ -25,25 +25,19 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_login_view.dart';
 import 'package:autonomy_flutter/view/passkey/passkey_register_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/slide_router.dart';
 import 'package:card_swiper/card_swiper.dart';
-import 'package:confetti/confetti.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -125,286 +119,57 @@ class UIHelper {
         curve: Curves.easeOutQuart,
         reverseCurve: Curves.easeOutQuart,
       ),
-      builder: (context) => Container(
-        key: bottomSheetKey,
-        color: Colors.transparent,
-        child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-          child: Container(
-            decoration: BoxDecoration(
-              color: backgroundColor ?? theme.auGreyBackground,
-              borderRadius: isRoundCorner
-                  ? const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )
-                  : null,
-            ),
-            padding: padding ??
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: paddingTitle ?? const EdgeInsets.all(0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: theme.primaryTextTheme.ppMori700White24,
-                          ),
-                        ),
-                        if (withCloseIcon)
-                          IconButton(
-                            onPressed: () => hideInfoDialog(context),
-                            icon: SvgPicture.asset(
-                              'assets/images/circle_close.svg',
-                              width: 22,
-                              height: 22,
+      builder: (context) => SafeArea(
+        child: Container(
+          key: bottomSheetKey,
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              padding: padding ??
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: paddingTitle ?? const EdgeInsets.all(0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: theme.primaryTextTheme.ppMori700White24,
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: spacing),
-                  content,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<dynamic> showPostCardDialog(
-    BuildContext context,
-    String title,
-    Widget content, {
-    bool isDismissible = false,
-    bool isRoundCorner = true,
-    int autoDismissAfter = 0,
-    // FeedbackType? feedback = FeedbackType.selection,
-    EdgeInsets? padding,
-  }) async {
-    log.info('[UIHelper] showPostcardInfoDialog: $title');
-    currentDialogTitle = title;
-    final theme = Theme.of(context);
-
-    if (autoDismissAfter > 0) {
-      Future.delayed(
-        Duration(seconds: autoDismissAfter),
-        () => hideInfoDialog(context),
-      );
-    }
-
-    // if (feedback != null) {
-    //   Vibrate.feedback(feedback);
-    // }
-
-    return await showModalBottomSheet<dynamic>(
-      context: context,
-      isDismissible: isDismissible,
-      backgroundColor: Colors.transparent,
-      enableDrag: false,
-      constraints: BoxConstraints(
-        maxWidth: ResponsiveLayout.isMobile
-            ? double.infinity
-            : Constants.maxWidthModalTablet,
-      ),
-      isScrollControlled: true,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
-        color: Colors.transparent,
-        child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: isRoundCorner
-                  ? const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )
-                  : null,
-            ),
-            padding: padding ??
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Text(
-                      title,
-                      style: theme.primaryTextTheme.moMASans700Black18,
-                    ),
-                  ),
-                  addDivider(height: 40, color: AppColor.chatPrimaryColor),
-                  content,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<void> showPostcardDialogWithConfetti(
-    BuildContext context,
-    List<Widget> contents, {
-    bool isDismissible = true,
-    int autoDismissAfter = 0,
-    // FeedbackType? feedback = FeedbackType.selection,
-  }) async {
-    log.info('[UIHelper] showPostcardDialogWithConfetti');
-    currentDialogTitle = 'showPostcardDialogWithConfetti';
-
-    const backgroundColor = AppColor.white;
-    const defaultSeparator = Divider(
-      height: 1,
-      thickness: 1,
-      color: Color.fromRGBO(227, 227, 227, 1),
-    );
-    final confettiController =
-        ConfettiController(duration: const Duration(seconds: 15));
-    Future.delayed(const Duration(milliseconds: 300), confettiController.play);
-    if (autoDismissAfter > 0) {
-      Future.delayed(
-        Duration(seconds: autoDismissAfter),
-        () => hideInfoDialog(context),
-      );
-    }
-
-    // if (feedback != null) {
-    //   Vibrate.feedback(feedback);
-    // }
-
-    await Navigator.push(
-      context,
-      SlidableRoute(
-        color: AppColor.primaryBlack.withOpacity(0.4),
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        hideInfoDialog(context);
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: DecoratedBox(
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                        color: backgroundColor,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 15,
-                          right: 15,
-                          bottom: 50,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (BuildContext context, int index) {
-                                final item = contents[index];
-
-                                return Column(
-                                  children: [
-                                    item,
-                                    defaultSeparator,
-                                  ],
-                                );
-                              },
-                              itemCount: contents.length,
+                          if (withCloseIcon)
+                            IconButton(
+                              onPressed: () => hideInfoDialog(context),
+                              icon: SvgPicture.asset(
+                                'assets/images/circle_close.svg',
+                                width: 22,
+                                height: 22,
+                              ),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: spacing),
+                    content,
+                  ],
+                ),
               ),
-              AllConfettiWidget(controller: confettiController),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<void> showScrollableDialog(
-    BuildContext context,
-    Widget content, {
-    bool isDismissible = false,
-    bool isRoundCorner = true,
-    Color? backgroundColor,
-    int autoDismissAfter = 0,
-    // FeedbackType? feedback = FeedbackType.selection,
-  }) async {
-    final theme = Theme.of(context);
-
-    if (autoDismissAfter > 0) {
-      Future.delayed(
-        Duration(seconds: autoDismissAfter),
-        () => hideInfoDialog(context),
-      );
-    }
-
-    // if (feedback != null) {
-    //   Vibrate.feedback(feedback);
-    // }
-
-    final height = MediaQuery.of(context).size.height > 800 ? 689 : 600;
-
-    await showModalBottomSheet<dynamic>(
-      context: context,
-      isDismissible: isDismissible,
-      backgroundColor: Colors.transparent,
-      enableDrag: false,
-      constraints: BoxConstraints(
-        maxWidth: ResponsiveLayout.isMobile
-            ? double.infinity
-            : Constants.maxWidthModalTablet,
-      ),
-      isScrollControlled: true,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
-        color: Colors.transparent,
-        height: height.toDouble(),
-        child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: backgroundColor ?? theme.auGreyBackground,
-              borderRadius: isRoundCorner
-                  ? const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )
-                  : null,
             ),
-            child: content,
           ),
         ),
       ),
@@ -461,55 +226,57 @@ class UIHelper {
         curve: Curves.easeOutQuart,
         reverseCurve: Curves.easeOutQuart,
       ),
-      builder: (context) => ColoredBox(
-        key: bottomSheetKey,
-        color: Colors.transparent,
-        child: ClipPath(
-          clipper: isRoundCorner ? AutonomyTopRightRectangleClipper() : null,
-          child: Container(
-            decoration: BoxDecoration(
-              color: backgroundColor ?? theme.auGreyBackground,
-              borderRadius: isRoundCorner
-                  ? const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )
-                  : null,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (closeable) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 13),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            title ?? '',
-                            style: theme.textTheme.ppMori700White14,
-                          ),
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            constraints: const BoxConstraints(
-                              maxWidth: 44,
-                              maxHeight: 44,
-                              minWidth: 44,
-                              minHeight: 44,
+      builder: (context) => SafeArea(
+        child: ColoredBox(
+          key: bottomSheetKey,
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: isRoundCorner ? AutonomyTopRightRectangleClipper() : null,
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (closeable) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(left: 13),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              title ?? '',
+                              style: theme.textTheme.ppMori700White14,
                             ),
-                            icon: const Icon(
-                              AuIcon.close,
-                              size: 18,
-                              color: AppColor.white,
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              constraints: const BoxConstraints(
+                                maxWidth: 44,
+                                maxHeight: 44,
+                                minWidth: 44,
+                                minHeight: 44,
+                              ),
+                              icon: const Icon(
+                                AuIcon.close,
+                                size: 18,
+                                color: AppColor.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
+                    content,
                   ],
-                  content,
-                ],
+                ),
               ),
             ),
           ),
@@ -526,7 +293,7 @@ class UIHelper {
   }) async {
     final theme = Theme.of(context);
     final hasRetry = onRetry != null;
-    final res = await showDialog(
+    final res = await showDialog<T?>(
       context,
       'network_issue'.tr(),
       Column(
@@ -568,7 +335,7 @@ class UIHelper {
         ],
       ),
     );
-    return res as T?;
+    return res;
   }
 
   static Future<dynamic> showFlexibleDialog(
@@ -617,19 +384,21 @@ class UIHelper {
         curve: Curves.easeOutQuart,
         reverseCurve: Curves.easeOutQuart,
       ),
-      builder: (context) => ClipPath(
-        clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
-          decoration: BoxDecoration(
-            color: backgroundColor ?? theme.auGreyBackground,
-            borderRadius: isRoundCorner
-                ? const BorderRadius.only(
-                    topRight: Radius.circular(20),
-                  )
-                : null,
+      builder: (context) => SafeArea(
+        child: ClipPath(
+          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+            decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: isRoundCorner
+                  ? const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )
+                  : null,
+            ),
+            child: content,
           ),
-          child: content,
         ),
       ),
     );
@@ -1422,59 +1191,61 @@ class UIHelper {
         curve: Curves.easeOutQuart,
         reverseCurve: Curves.easeOutQuart,
       ),
-      builder: (context) => ColoredBox(
-        key: bottomSheetKey,
-        color: AppColor.auGreyBackground,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 13),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title ?? '',
-                    style: theme.textTheme.ppMori700White14,
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    constraints: const BoxConstraints(
-                      maxWidth: 44,
-                      maxHeight: 44,
-                      minWidth: 44,
-                      minHeight: 44,
+      builder: (context) => SafeArea(
+        child: ColoredBox(
+          key: bottomSheetKey,
+          color: AppColor.auGreyBackground,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 13),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title ?? '',
+                      style: theme.textTheme.ppMori700White14,
                     ),
-                    icon: const Icon(
-                      AuIcon.close,
-                      size: 18,
-                      color: AppColor.white,
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
+                      icon: const Icon(
+                        AuIcon.close,
+                        size: 18,
+                        color: AppColor.white,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (BuildContext context, int index) {
-                final option = options[index];
-                if (option.builder != null) {
-                  return option.builder!.call(context, option);
-                }
-                return DrawerItem(
-                  item: option,
-                  color: AppColor.white,
-                );
-              },
-              itemCount: options.length,
-              separatorBuilder: (context, index) => const Divider(
-                height: 1,
-                thickness: 1,
-                color: AppColor.primaryBlack,
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (BuildContext context, int index) {
+                  final option = options[index];
+                  if (option.builder != null) {
+                    return option.builder!.call(context, option);
+                  }
+                  return DrawerItem(
+                    item: option,
+                    color: AppColor.white,
+                  );
+                },
+                itemCount: options.length,
+                separatorBuilder: (context, index) => const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppColor.primaryBlack,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1546,20 +1317,22 @@ class UIHelper {
       ),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
-        color: Colors.transparent,
+      builder: (context) => SafeArea(
         child: Container(
-          decoration: BoxDecoration(
-            color: backgroundColor ?? theme.auGreyBackground,
-            borderRadius: borderRadius ??
-                const BorderRadius.only(
-                  topRight: Radius.circular(20),
-                ),
-          ),
-          padding: padding ??
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-          child: SingleChildScrollView(
-            child: child,
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: borderRadius ??
+                  const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                  ),
+            ),
+            padding: padding ??
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+            child: SingleChildScrollView(
+              child: child,
+            ),
           ),
         ),
       ),

@@ -1473,7 +1473,7 @@ class BluetoothConnectedDeviceConfigState
       // reboot
       if (isDeviceAlive)
         OptionItem(
-          title: 'Reboot',
+          title: 'Restart',
           icon: const Icon(
             Icons.restart_alt,
             size: 24,

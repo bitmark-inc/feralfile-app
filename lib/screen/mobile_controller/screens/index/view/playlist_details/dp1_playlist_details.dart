@@ -74,6 +74,7 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
   Widget _body(BuildContext context) {
     final channel = injector<Dp1PlaylistService>()
         .getChannelByPlaylistId(widget.payload.playlist.id);
+    final playlist = widget.payload.playlist;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -83,14 +84,15 @@ class _DP1PlaylistDetailsScreenState extends State<DP1PlaylistDetailsScreen> {
             header: Column(
               children: [
                 const SizedBox(height: UIConstants.detailPageHeaderPadding),
-                PlaylistItem(
-                  playlist: widget.payload.playlist,
-                  channel: channel,
-                  clickable: false,
-                )
+                if (playlist.title.isNotEmpty)
+                  PlaylistItem(
+                    playlist: playlist,
+                    channel: channel,
+                    clickable: false,
+                  )
               ],
             ),
-            playlist: widget.payload.playlist,
+            playlist: playlist,
             padding: const EdgeInsets.only(bottom: 120),
           ),
         ),
