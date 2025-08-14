@@ -9,11 +9,9 @@ extension RecordProcessingStatusEx on RecordProcessingStatus {
       case RecordProcessingStatus.transcribed:
         return MessageConstants.recordProcessingText;
       case RecordProcessingStatus.intentReceived:
+      case RecordProcessingStatus.dp1CallReceived:
         return MessageConstants.recordIntentReceivedText;
       case RecordProcessingStatus.thinking:
-      case RecordProcessingStatus.dp1CallReceived:
-      case RecordProcessingStatus.switchingDevice:
-      case RecordProcessingStatus.displaying:
         return '';
     }
   }

@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/ai_chat_thread_view.dart';
 import 'package:autonomy_flutter/view/ai_chat_view_widget.dart';
@@ -276,6 +277,9 @@ class _RecordControllerScreenState extends State<RecordControllerScreen>
         : isProcessing
             ? state.status.message
             : MessageConstants.askAnythingText;
+    log.info(
+      'RecordControllerScreen: _askAnythingWidget: isRecording: $isRecording, isProcessing: $isProcessing, text: $text---',
+    );
     return ColoredBox(
       color: Colors.transparent,
       child: AnimatedContainer(

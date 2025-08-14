@@ -6,8 +6,6 @@ enum RecordProcessingStatus {
   thinking,
   intentReceived,
   dp1CallReceived,
-  switchingDevice,
-  displaying,
 }
 
 class RecordState {

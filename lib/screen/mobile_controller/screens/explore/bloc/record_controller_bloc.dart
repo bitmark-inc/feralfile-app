@@ -2,13 +2,10 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/extensions/record_processing_status_ext.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/intent.dart';
 import 'package:autonomy_flutter/service/audio_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -30,6 +27,12 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
     on<ResetPlaylistEvent>((event, emit) {
       emit(const RecordInitialState());
     });
+  }
+
+  @override
+  void add(RecordEvent event) {
+    log.info('[RecordBloc] Adding event: $event');
+    super.add(event);
   }
 
   final MobileControllerService service;
@@ -263,74 +266,6 @@ class RecordBloc extends AuBloc<RecordEvent, RecordState> {
       ));
     }
     return;
-
-    final deviceName = intent.deviceName as String?;
-    final device =
-        await BluetoothDeviceManager().pickADeviceToDisplay(deviceName ?? '');
-
-    if (device == null) {
-      emit(
-        RecordErrorState(
-          error: AudioException('No device selected'),
-        ),
-      );
-      return;
-    }
-
-    try {
-      await _ensureDeviceConnection(device, deviceName, emit);
-      await _displayToDevice(device, dp1Call, intent, deviceName, emit);
-    } catch (e) {
-      log.info('Error while displaying to ${deviceName ?? 'FF-X1'}: $e');
-      emit(
-        RecordErrorState(
-          error: AudioException(
-            'Error while displaying to ${deviceName ?? 'FF-X1'}',
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> _ensureDeviceConnection(
-    FFBluetoothDevice device,
-    String? deviceName,
-    Emitter<RecordState> emit,
-  ) async {
-    if (BluetoothDeviceManager().castingBluetoothDevice != device) {
-      emit(
-        RecordProcessingState(
-          status: RecordProcessingStatus.switchingDevice,
-          statusMessage: 'Switching to ${deviceName ?? 'FF-X1'}...',
-        ),
-      );
-      await BluetoothDeviceManager().switchDevice(device);
-    }
-  }
-
-  Future<void> _displayToDevice(
-    FFBluetoothDevice device,
-    DP1Call dp1Call,
-    DP1Intent intent,
-    String? deviceName,
-    Emitter<RecordState> emit,
-  ) async {
-    emit(
-      RecordProcessingState(
-        status: RecordProcessingStatus.displaying,
-        statusMessage: 'Displaying to ${deviceName ?? 'FF-X1'}...',
-      ),
-    );
-
-    await injector<CanvasClientServiceV2>()
-        .castPlaylist(device, dp1Call, intent);
-
-    // emit(
-    //   RecordSuccessState().copyWith(
-    //     lastIntent: intent,
-    //     lastDP1Call: dp1Call,
-    //   ),
-    // );
   }
 
   Future<void> _handleResponse(
