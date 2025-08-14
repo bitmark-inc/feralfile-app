@@ -35,6 +35,7 @@ enum CastCommand {
   castDaily,
   updateDisplaySettings,
   shutdown,
+  reboot,
   deviceMetrics;
 
   static CastCommand fromString(String command) {
@@ -83,6 +84,8 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case 'shutdown':
         return CastCommand.shutdown;
+      case 'reboot':
+        return CastCommand.reboot;
       case 'deviceMetrics':
         return CastCommand.deviceMetrics;
       default:
@@ -136,6 +139,8 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case const (SafeShutdownRequest):
         return CastCommand.shutdown;
+      case const (SafeRestartRequest):
+        return CastCommand.reboot;
       case const (DeviceRealtimeMetricsRequest):
         return CastCommand.deviceMetrics;
       default:
@@ -1101,6 +1106,16 @@ class SafeShutdownRequest implements FF1Request {
 
   factory SafeShutdownRequest.fromJson(Map<String, dynamic> json) =>
       SafeShutdownRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class SafeRestartRequest implements FF1Request {
+  SafeRestartRequest();
+
+  factory SafeRestartRequest.fromJson(Map<String, dynamic> json) =>
+      SafeRestartRequest();
 
   @override
   Map<String, dynamic> toJson() => {};

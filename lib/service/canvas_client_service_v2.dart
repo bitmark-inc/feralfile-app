@@ -412,6 +412,23 @@ class CanvasClientServiceV2 {
     }
   }
 
+  Future<bool> safeRestart(BaseDevice device) async {
+    try {
+      final stub = _getStub(device);
+      final request = SafeRestartRequest();
+      await stub.safeRestart(request);
+      return true;
+    } catch (e) {
+      log.info('CanvasClientService: safeRestart error: $e');
+      unawaited(
+        Sentry.captureException(
+          'CanvasClientService: safeRestart error: $e',
+        ),
+      );
+      return false;
+    }
+  }
+
   Future<DeviceRealtimeMetrics> getDeviceRealtimeMetrics(
     BaseDevice device,
   ) async {

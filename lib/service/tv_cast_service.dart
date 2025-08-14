@@ -76,6 +76,10 @@ abstract class TvCastService {
     SafeShutdownRequest request,
   );
 
+  Future<void> safeRestart(
+    SafeRestartRequest request,
+  );
+
   Future<DeviceRealtimeMetricsReply> deviceMetrics(
     DeviceRealtimeMetricsRequest request,
   );
@@ -274,6 +278,16 @@ abstract class BaseTvCastService implements TvCastService {
       await _sendData(_getBody(request));
     } catch (e) {
       log.warning('Failed to perform safe shutdown: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> safeRestart(SafeRestartRequest request) async {
+    try {
+      await _sendData(_getBody(request));
+    } catch (e) {
+      log.warning('Failed to perform safe restart: $e');
       rethrow;
     }
   }

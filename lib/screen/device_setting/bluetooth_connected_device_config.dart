@@ -1470,6 +1470,18 @@ class BluetoothConnectedDeviceConfigState
             _onPowerOffSelected();
           },
         ),
+      // reboot
+      if (isDeviceAlive)
+        OptionItem(
+          title: 'Reboot',
+          icon: const Icon(
+            Icons.restart_alt,
+            size: 24,
+          ),
+          onTap: () {
+            _onRebootSelected();
+          },
+        ),
       // OptionItem(
       //   title: 'Send Log',
       //   icon: Icon(AuIcon.help),
@@ -1598,6 +1610,56 @@ class BluetoothConnectedDeviceConfigState
                     final device = selectedDevice!;
                     await injector<CanvasClientServiceV2>()
                         .safeShutdown(device);
+                    injector<NavigationService>().goBack();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onRebootSelected() {
+    UIHelper.showCenterDialog(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Restart',
+            style: Theme.of(context).textTheme.ppMori700White16,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Are you sure you want to restart the device?',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 36),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'cancel'.tr(),
+                  textColor: AppColor.white,
+                  color: Colors.transparent,
+                  borderColor: AppColor.white,
+                  onTap: () {
+                    injector<NavigationService>().goBack();
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'OK',
+                  textColor: AppColor.white,
+                  borderColor: AppColor.white,
+                  color: Colors.transparent,
+                  onTap: () async {
+                    final device = selectedDevice!;
+                    await injector<CanvasClientServiceV2>().safeRestart(device);
                     injector<NavigationService>().goBack();
                   },
                 ),
