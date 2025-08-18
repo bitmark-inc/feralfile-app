@@ -152,6 +152,9 @@ class _NowDisplayingSuccessWidgetState
     BuildContext context,
     DP1NowDisplayingObject nowDisplaying,
   ) {
+    return DP1NowDisplayingView(
+      nowDisplaying,
+    );
     return GestureDetector(
       child: DP1NowDisplayingView(
         nowDisplaying,

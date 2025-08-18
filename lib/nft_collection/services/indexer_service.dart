@@ -21,6 +21,12 @@ class NftIndexerService {
   final IndexerApi _indexerApi;
   final ArtBlockService _artBlockService;
 
+  /*
+  getNftTokens
+  params: QueryListTokensRequest
+  return: List<AssetToken>
+  description: Get the list of asset tokens from the indexer
+  */
   Future<List<AssetToken>> getNftTokens(QueryListTokensRequest request) async {
     final vars = request.toJson();
     final result = await _client.query(

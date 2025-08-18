@@ -173,7 +173,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         children: [
           const SizedBox(height: 16),
           Text(
-            'Scanning for device...',
+            'Scanning for FF1...',
             style: Theme.of(context).textTheme.ppMori700White16,
           ),
           const SizedBox(height: 16),
@@ -194,7 +194,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
           ),
           const SizedBox(height: 16),
           Text(
-            'Device not found',
+            'FF1 not found',
             style: Theme.of(context).textTheme.ppMori700White16,
           ),
           const SizedBox(height: 16),
@@ -243,7 +243,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
             requiredDeviceUpdate: false);
     if (compatible == VersionCompatibilityResult.needUpdateApp) {
       log.info(
-        'Device version is not compatible with the app. Please update the app.',
+        'FF1 version is not compatible with the app. Please update the app.',
       );
       return;
     }

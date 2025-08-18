@@ -26,8 +26,9 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
-import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:autonomy_flutter/view/now_displaying/expandable_now_displaying_view.dart';
+import 'package:autonomy_flutter/view/now_displaying/now_displaying_bar.dart';
+import 'package:autonomy_flutter/view/now_displaying/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -347,7 +348,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     return Material(
       child: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
-          _handleScrollUpdate(notification);
+          // _handleScrollUpdate(notification);
           return false; // Allow the notification to continue to be dispatched
         },
         child: Listener(
@@ -419,7 +420,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                               curve: Curves.easeOut,
                             ),
                           ),
-                          child: const NowDisplaying(),
+                          child: const NowDisplayingBar(),
                         ),
                       ),
                     );

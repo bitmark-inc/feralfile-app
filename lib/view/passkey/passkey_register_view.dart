@@ -166,8 +166,8 @@ class _PasskeyRegisterViewState extends State<PasskeyRegisterView> {
             final jwt = await _login();
             return jwt;
           },
-          text: 'continue'.tr(),
-          processingText: 'continue'.tr(),
+          text: 'login_with_passkey'.tr(),
+          processingText: 'login_with_passkey'.tr(),
         ),
       ],
     );

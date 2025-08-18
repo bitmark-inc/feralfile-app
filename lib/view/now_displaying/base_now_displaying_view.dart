@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/model/device/base_device.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:autonomy_flutter/view/now_displaying/now_displaying_view.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +8,7 @@ class NowDisplayingView extends StatelessWidget {
   const NowDisplayingView({
     required this.thumbnailBuilder,
     required this.titleBuilder,
+    required this.artistBuilder,
     this.device,
     super.key,
     this.customAction = const [],
@@ -15,6 +16,7 @@ class NowDisplayingView extends StatelessWidget {
 
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
+  final Widget Function(BuildContext) artistBuilder;
   final BaseDevice? device;
   final List<Widget> customAction;
 
@@ -44,10 +46,11 @@ class NowDisplayingView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Now Displaying: ${device?.name ?? ''}',
-                  style: theme.textTheme.ppMori400Black14,
-                  overflow: TextOverflow.ellipsis,
+                Text('STUDIO',
+                    style:
+                        theme.textTheme.ppMori700Black14.copyWith(fontSize: 6)),
+                Expanded(
+                  child: artistBuilder(context),
                 ),
                 Expanded(child: titleBuilder(context)),
               ],

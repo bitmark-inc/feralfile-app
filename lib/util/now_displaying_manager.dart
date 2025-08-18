@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
@@ -95,34 +96,20 @@ class NowDisplayingManager {
   Future<NowDisplayingObjectBase?> getNowDisplayingObject(
     CheckCastingStatusReply status,
   ) async {
-    if (status.artworks.isNotEmpty) {
-      final index = status.currentArtworkIndex;
-      if (index == null) {
-        return null;
-      }
-      AssetToken? assetToken;
-      final tokenId = status.artworks[index].token?.id;
-      if (tokenId != null) {
-        assetToken = await _fetchAssetToken(tokenId);
-      }
-      return NowDisplayingObject(assetToken: assetToken);
-    } else if (status.displayKey == CastDailyWorkRequest.displayKey) {
+    if (status.displayKey == CastDailyWorkRequest.displayKey) {
       return NowDisplayingObject(
         dailiesWorkState: injector<DailyWorkBloc>().state,
       );
     } else if (status.items?.isNotEmpty ?? false) {
       // DP1
-      final index = status.index;
-      final playlistItem = status.items![index!];
-
-      AssetToken? assetToken;
-
-      final tokenId = playlistItem.indexId;
-      assetToken = await _fetchAssetToken(tokenId);
+      final index = status.index!;
+      final assetTokens =
+          await _fetchAssetTokens(status.items!.map((e) => e.indexId).toList());
 
       return DP1NowDisplayingObject(
-        playlistItem: playlistItem,
-        assetToken: assetToken,
+        index: index,
+        dp1Items: status.items!,
+        assetTokens: assetTokens,
       );
     }
     return null;
@@ -133,6 +120,12 @@ class NowDisplayingManager {
     final assetToken =
         await injector<NftIndexerService>().getNftTokens(request);
     return assetToken.isNotEmpty ? assetToken.first : null;
+  }
+
+  Future<List<AssetToken>> _fetchAssetTokens(List<String> tokenIds) async {
+    final assetTokens = await injector<NftTokensService>()
+        .getManualTokens(indexerIds: tokenIds);
+    return assetTokens;
   }
 }
 

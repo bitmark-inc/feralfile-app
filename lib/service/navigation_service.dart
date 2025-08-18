@@ -992,7 +992,7 @@ class NavigationService {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Welcome back! It looks like you’re starting fresh. Would you like to create a new account using this passkey?',
+            'Welcome back! It looks like you’re starting fresh. Would you like to contniue?',
             style: Theme.of(context).textTheme.ppMori400White14,
           ),
           const SizedBox(height: 36),

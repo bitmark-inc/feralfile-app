@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/expandable_now_displaying_view.dart';
+import 'package:autonomy_flutter/view/now_displaying/dragable_sheet_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -118,7 +118,7 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
             AppRouter.scanQRPage,
             arguments: const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL),
           );
-          isNowDisplayingExpanded.value = false;
+          isNowDisplayingBarExpanded.value = false;
         },
       ),
       if (injector<AuthService>().isBetaTester() &&
@@ -128,13 +128,15 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
           title: 'FF1 Settings',
           icon: SvgPicture.asset(
             'assets/images/portal_setting.svg',
-            colorFilter: ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+            colorFilter:
+                const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
           ),
           onTap: () {
             injector<NavigationService>().navigateTo(
-                AppRouter.bluetoothConnectedDeviceConfig,
-                arguments: BluetoothConnectedDeviceConfigPayload());
-            isNowDisplayingExpanded.value = false;
+              AppRouter.bluetoothConnectedDeviceConfig,
+              arguments: BluetoothConnectedDeviceConfigPayload(),
+            );
+            isNowDisplayingBarExpanded.value = false;
           },
         ),
       OptionItem(
@@ -144,7 +146,7 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
         ),
         onTap: () {
           injector<NavigationService>().navigateTo(AppRouter.settingsPage);
-          isNowDisplayingExpanded.value = false;
+          isNowDisplayingBarExpanded.value = false;
         },
       ),
       // help
@@ -169,7 +171,7 @@ class _ListDirectoryPageState extends State<ListDirectoryPage>
         onTap: () {
           injector<NavigationService>()
               .navigateTo(AppRouter.supportCustomerPage);
-          isNowDisplayingExpanded.value = false;
+          isNowDisplayingBarExpanded.value = false;
         },
       ),
     ];

@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/ai_chat_thread_view.dart';
 import 'package:autonomy_flutter/view/ai_chat_view_widget.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:autonomy_flutter/view/now_displaying/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
