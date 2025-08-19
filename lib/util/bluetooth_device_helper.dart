@@ -93,8 +93,9 @@ class BluetoothDeviceManager {
     await resetDevice();
     if (devices.isNotEmpty) {
       await switchDevice(devices.first);
-    } else {}
-    await NowDisplayingManager().updateDisplayingNow();
+    } else {
+      BluetoothDeviceManager().castingBluetoothDevice = null;
+    }
   }
 
   FFBluetoothDevice? findDeviceByRemoteId(String remoteId) {
@@ -123,21 +124,13 @@ class BluetoothDeviceManager {
   FFBluetoothDevice? _castingBluetoothDevice;
 
   set castingBluetoothDevice(FFBluetoothDevice? device) {
-    if (device == null) {
-      _castingBluetoothDevice = null;
-      injector<ConfigurationService>().setSelectedDeviceId(null);
-      injector<SettingsDataService>().backupUserSettings();
-      return;
-    }
-
     if (device == _castingBluetoothDevice) {
       return;
     }
-
     _castingBluetoothDevice = device;
-
-    injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
+    injector<ConfigurationService>().setSelectedDeviceId(device?.deviceId);
     injector<SettingsDataService>().backupUserSettings();
+    NowDisplayingManager().updateDisplayingNow();
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {

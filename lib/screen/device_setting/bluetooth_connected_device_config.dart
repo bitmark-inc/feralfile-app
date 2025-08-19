@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -126,7 +125,7 @@ class BluetoothConnectedDeviceConfigState
 
   DeviceRealtimeMetrics? _latestMetrics;
 
-  late StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
+  StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
 
   bool _isShowingQRCode = false;
 
@@ -291,7 +290,6 @@ class BluetoothConnectedDeviceConfigState
             child: PrimaryAsyncButton(
               onTap: () async {
                 injector<NavigationService>().popUntilHome();
-                unawaited(NowDisplayingManager().updateDisplayingNow());
               },
               text: 'finish'.tr(),
               color: AppColor.white,

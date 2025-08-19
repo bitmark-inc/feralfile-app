@@ -34,7 +34,7 @@ class NowDisplayingManager {
   Stream<NowDisplayingStatus> get nowDisplayingStream =>
       _streamController.stream;
 
-  void addStatus(NowDisplayingStatus status) {
+  void _addStatus(NowDisplayingStatus status) {
     log.info('NowDisplayingManager: $status');
     nowDisplayingStatus = status;
     _streamController.add(status);
@@ -59,12 +59,12 @@ class NowDisplayingManager {
       log.info('NowDisplayingManager: updateDisplayingNow');
       final device = BluetoothDeviceManager().castingBluetoothDevice;
       if (device == null) {
-        addStatus(NoDevicePaired());
+        _addStatus(NoDevicePaired());
         return;
       }
 
       if (!device.isAlive) {
-        addStatus(DeviceDisconnected(device));
+        _addStatus(DeviceDisconnected(device));
         return;
       }
 
@@ -84,11 +84,11 @@ class NowDisplayingManager {
         return;
       }
       nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
-      addStatus(nowDisplayingStatus);
+      _addStatus(nowDisplayingStatus);
     } catch (e) {
       log.info('NowDisplayingManager: updateDisplayingNow error: $e');
       if (addStatusOnError) {
-        addStatus(NowDisplayingError(e));
+        _addStatus(NowDisplayingError(e));
       }
     }
   }
