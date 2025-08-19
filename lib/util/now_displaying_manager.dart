@@ -6,9 +6,7 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -109,19 +107,13 @@ class NowDisplayingManager {
           await _fetchAssetTokens(status.items!.map((e) => e.indexId).toList());
 
       return DP1NowDisplayingObject(
-          index: index,
-          dp1Items: status.items!,
-          assetTokens: assetTokens,
-          connectedDevice: device);
+        index: index,
+        dp1Items: status.items!,
+        assetTokens: assetTokens,
+        connectedDevice: device,
+      );
     }
     return null;
-  }
-
-  Future<AssetToken?> _fetchAssetToken(String tokenId) async {
-    final request = QueryListTokensRequest(ids: [tokenId]);
-    final assetToken =
-        await injector<NftIndexerService>().getNftTokens(request);
-    return assetToken.isNotEmpty ? assetToken.first : null;
   }
 
   Future<List<AssetToken>> _fetchAssetTokens(List<String> tokenIds) async {

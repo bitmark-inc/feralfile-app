@@ -126,7 +126,9 @@ class FFBluetoothDevice extends BluetoothDevice
     }
     return other is FFBluetoothDevice &&
         other.remoteID == remoteID &&
-        other.topicId == topicId;
+        other.topicId == topicId &&
+        other.name == name &&
+        other.branchName == branchName;
   }
 
   @override

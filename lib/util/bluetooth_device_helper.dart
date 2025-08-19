@@ -80,6 +80,7 @@ class BluetoothDeviceManager {
     log.info(
       'BluetoothDeviceHelper.updateDeviceName: updated ${device.toJson()} to ${updatedDevice.toJson()}',
     );
+    castingBluetoothDevice = updatedDevice;
     return updatedDevice;
   }
 
@@ -127,8 +128,11 @@ class BluetoothDeviceManager {
     if (device == _castingBluetoothDevice) {
       return;
     }
-    injector<ConfigurationService>().setSelectedDeviceId(device?.deviceId);
-    injector<SettingsDataService>().backupUserSettings();
+    injector<ConfigurationService>()
+        .setSelectedDeviceId(device?.deviceId)
+        .then((_) {
+      injector<SettingsDataService>().backupUserSettings();
+    });
     _castingBluetoothDevice = device;
     NowDisplayingManager().updateDisplayingNow();
   }
@@ -165,34 +169,6 @@ class BluetoothDeviceManager {
     if (firstPairedDevice != null) {
       castingBluetoothDevice = firstPairedDevice;
       return firstPairedDevice;
-    }
-
-    return null;
-  }
-
-  Future<FFBluetoothDevice?> pickADeviceToDisplay(String deviceName) async {
-    final listDevice = BluetoothDeviceManager.pairedDevices;
-    if (listDevice.isEmpty) {
-      return null;
-    }
-    if (listDevice.length == 1) {
-      return listDevice.first;
-    }
-
-    final device = listDevice.firstWhereOrNull(
-      (device) => device.name == deviceName,
-    );
-    if (device != null) {
-      return device;
-    }
-
-    final aliveDevices = _castingBluetoothDevice?.isAlive == true
-        ? _castingBluetoothDevice!
-        : listDevice.firstWhereOrNull(
-            (device) => device.isAlive,
-          );
-    if (aliveDevices != null) {
-      return aliveDevices;
     }
 
     return null;

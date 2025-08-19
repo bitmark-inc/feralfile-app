@@ -129,11 +129,11 @@ class BluetoothConnectedDeviceConfigState
 
   bool _isShowingQRCode = false;
 
-  double _minPerformanceValue = 0.0;
-  double _maxPerformanceValue = 100.0;
+  double _minPerformanceValue = 0;
+  double _maxPerformanceValue = 100;
 
-  double _minTemperatureValue = 0.0;
-  double _maxTemperatureValue = 100.0;
+  double _minTemperatureValue = 0;
+  double _maxTemperatureValue = 100;
 
   @override
   void initState() {
@@ -824,8 +824,7 @@ class BluetoothConnectedDeviceConfigState
                     ),
                     divider,
                   ],
-                  if (_latestMetrics?.screen?.height != null &&
-                      _latestMetrics?.screen?.width != null) ...[
+                  ...[
                     _deviceInfoItem(
                       context,
                       title: 'Screen Resolution',
@@ -852,12 +851,14 @@ class BluetoothConnectedDeviceConfigState
                     divider,
                   ],
                   // refresh rate
-                  if (_latestMetrics?.screen?.refreshRate != null) ...[
+                  ...[
                     _deviceInfoItem(
                       context,
                       title: 'Refresh Rate',
                       child: Text(
-                        '${_latestMetrics!.screen!.refreshRate} Hz',
+                        _latestMetrics?.screen?.refreshRate == null
+                            ? '--'
+                            : '${_latestMetrics!.screen!.refreshRate} Hz',
                         style: theme.textTheme.ppMori400White14.copyWith(
                           color: isBLEDeviceConnected
                               ? AppColor.white
@@ -1055,123 +1056,123 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 16),
 
         // Performance chart
-        if (_cpuPoints.length > 1)
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColor.auGreyBackground,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: LineChart(
-              LineChartData(
-                minY: max(_minPerformanceValue - 10, 0),
-                maxY: min(_maxPerformanceValue + 10, 100),
-                // Percentage values 0-100
-                minX: _cpuPoints.first.x,
-                maxX: _cpuPoints.last.x,
-                clipData: const FlClipData.all(),
-                gridData: FlGridData(
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) {
-                    return const FlLine(
-                      color: AppColor.feralFileMediumGrey,
-                      strokeWidth: 1,
-                    );
-                  },
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  _createLineData(_cpuPoints, cpuColor, 'CPU'),
-                  _createLineData(_memoryPoints, memoryColor, 'Memory'),
-                  _createLineData(_gpuPoints, gpuColor, 'GPU'),
-                ],
-                titlesData: FlTitlesData(
-                  bottomTitles: const AxisTitles(),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: 25,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}%',
-                          style: theme.textTheme.ppMori400White12,
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(
-                      reservedSize: 30,
-                    ),
-                  ),
-                ),
-                lineTouchData: LineTouchData(
-                  touchCallback:
-                      (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                    if (event is FlTapDownEvent) {
-                      HapticFeedback.lightImpact();
-                    }
-                  },
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipRoundedRadius: 8,
-                    tooltipPadding: const EdgeInsets.all(12),
-                    tooltipMargin: 8,
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      // Sort spots by barIndex to ensure consistent order
-                      final sortedSpots =
-                          List<LineBarSpot>.from(touchedBarSpots)
-                            ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-
-                      // Get timestamp from the first spot (all spots have the same timestamp)
-                      final timestamp = sortedSpots.isNotEmpty
-                          ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
-                          : '';
-
-                      return sortedSpots.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final barSpot = entry.value;
-
-                        final metric = barSpot.barIndex == 0
-                            ? 'CPU'
-                            : barSpot.barIndex == 1
-                                ? 'Memory'
-                                : 'GPU';
-                        final color = barSpot.barIndex == 0
-                            ? cpuColor
-                            : barSpot.barIndex == 1
-                                ? memoryColor
-                                : gpuColor;
-
-                        return LineTooltipItem(
-                          '$metric: ${barSpot.y.toStringAsFixed(1)}%',
-                          TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                          children: index == sortedSpots.length - 1
-                              ? [
-                                  TextSpan(
-                                    text: timestamp,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ]
-                              : null,
-                        );
-                      }).toList();
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: LineChart(
+            LineChartData(
+              minY: _cpuPoints.isEmpty ? 0 : max(_minPerformanceValue - 10, 0),
+              maxY: _cpuPoints.isEmpty
+                  ? 100
+                  : min(_maxPerformanceValue + 10, 100),
+              // Percentage values 0-100
+              minX: _cpuPoints.isEmpty ? 0 : _cpuPoints.first.x,
+              maxX: _cpuPoints.isEmpty ? 100 : _cpuPoints.last.x,
+              clipData: const FlClipData.all(),
+              gridData: FlGridData(
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) {
+                  return const FlLine(
+                    color: AppColor.feralFileMediumGrey,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                _createLineData(_cpuPoints, cpuColor, 'CPU'),
+                _createLineData(_memoryPoints, memoryColor, 'Memory'),
+                _createLineData(_gpuPoints, gpuColor, 'GPU'),
+              ],
+              titlesData: FlTitlesData(
+                bottomTitles: const AxisTitles(),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: 25,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}%',
+                        style: theme.textTheme.ppMori400White12,
+                      );
                     },
                   ),
+                ),
+                rightTitles: const AxisTitles(),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(
+                    reservedSize: 30,
+                  ),
+                ),
+              ),
+              lineTouchData: LineTouchData(
+                touchCallback:
+                    (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                  if (event is FlTapDownEvent) {
+                    HapticFeedback.lightImpact();
+                  }
+                },
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipRoundedRadius: 8,
+                  tooltipPadding: const EdgeInsets.all(12),
+                  tooltipMargin: 8,
+                  getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                    // Sort spots by barIndex to ensure consistent order
+                    final sortedSpots = List<LineBarSpot>.from(touchedBarSpots)
+                      ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+
+                    // Get timestamp from the first spot (all spots have the same timestamp)
+                    final timestamp = sortedSpots.isNotEmpty
+                        ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
+                        : '';
+
+                    return sortedSpots.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final barSpot = entry.value;
+
+                      final metric = barSpot.barIndex == 0
+                          ? 'CPU'
+                          : barSpot.barIndex == 1
+                              ? 'Memory'
+                              : 'GPU';
+                      final color = barSpot.barIndex == 0
+                          ? cpuColor
+                          : barSpot.barIndex == 1
+                              ? memoryColor
+                              : gpuColor;
+
+                      return LineTooltipItem(
+                        '$metric: ${barSpot.y.toStringAsFixed(1)}%',
+                        TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        children: index == sortedSpots.length - 1
+                            ? [
+                                TextSpan(
+                                  text: timestamp,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ]
+                            : null,
+                      );
+                    }).toList();
+                  },
                 ),
               ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -1234,122 +1235,120 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 16),
 
         // Temperature chart
-        if (_cpuTempPoints.length > 1)
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColor.auGreyBackground,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: LineChart(
-              LineChartData(
-                minY: _minTemperatureValue - 10,
-                // 30°C = 86°F
-                maxY: _maxTemperatureValue + 10,
-                // 100°C = 212°F
-                minX: _cpuTempPoints.first.x,
-                maxX: _cpuTempPoints.last.x,
-                clipData: const FlClipData.all(),
-                gridData: FlGridData(
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) {
-                    return const FlLine(
-                      color: AppColor.feralFileMediumGrey,
-                      strokeWidth: 1,
-                    );
-                  },
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: LineChart(
+            LineChartData(
+              minY: _cpuTempPoints.isEmpty ? 0 : _minTemperatureValue - 10,
+              // 30°C = 86°F
+              maxY: _cpuTempPoints.isEmpty ? 100 : _maxTemperatureValue + 10,
+              // 100°C = 212°F
+              minX: _cpuTempPoints.isEmpty ? 0 : _cpuTempPoints.first.x,
+              maxX: _cpuTempPoints.isEmpty ? 100 : _cpuTempPoints.last.x,
+              clipData: const FlClipData.all(),
+              gridData: FlGridData(
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) {
+                  return const FlLine(
+                    color: AppColor.feralFileMediumGrey,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                _createLineData(
+                  _cpuTempPoints,
+                  cpuTempColor,
+                  'CPU Temp',
                 ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  _createLineData(
-                    _cpuTempPoints,
-                    cpuTempColor,
-                    'CPU Temp',
-                  ),
-                  _createLineData(
-                    _gpuTempPoints,
-                    gpuTempColor,
-                    'GPU Temp',
-                  ),
-                ],
-                titlesData: FlTitlesData(
-                  bottomTitles: const AxisTitles(),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: 20, // ~20°C = 36°F interval
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}$tempUnit',
-                          style: theme.textTheme.ppMori400White12,
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(),
-                  topTitles: const AxisTitles(),
+                _createLineData(
+                  _gpuTempPoints,
+                  gpuTempColor,
+                  'GPU Temp',
                 ),
-                lineTouchData: LineTouchData(
-                  touchCallback:
-                      (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                    if (event is FlTapDownEvent) {
-                      HapticFeedback.lightImpact();
-                    }
-                  },
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipRoundedRadius: 8,
-                    tooltipPadding: const EdgeInsets.all(12),
-                    tooltipMargin: 8,
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      // Sort spots by barIndex to ensure consistent order
-                      final sortedSpots =
-                          List<LineBarSpot>.from(touchedBarSpots)
-                            ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-
-                      // Get timestamp from the first spot (all spots have the same timestamp)
-                      final timestamp = sortedSpots.isNotEmpty
-                          ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
-                          : '';
-
-                      return sortedSpots.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final barSpot = entry.value;
-
-                        final metric =
-                            barSpot.barIndex == 0 ? 'CPU Temp' : 'GPU Temp';
-                        final color =
-                            barSpot.barIndex == 0 ? cpuTempColor : gpuTempColor;
-                        final value = barSpot.y;
-
-                        return LineTooltipItem(
-                          '$metric: ${value.toStringAsFixed(1)}$tempUnit',
-                          TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                          children: index == sortedSpots.length - 1
-                              ? [
-                                  TextSpan(
-                                    text: timestamp,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ]
-                              : null,
-                        );
-                      }).toList();
+              ],
+              titlesData: FlTitlesData(
+                bottomTitles: const AxisTitles(),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: 20, // ~20°C = 36°F interval
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}$tempUnit',
+                        style: theme.textTheme.ppMori400White12,
+                      );
                     },
                   ),
+                ),
+                rightTitles: const AxisTitles(),
+                topTitles: const AxisTitles(),
+              ),
+              lineTouchData: LineTouchData(
+                touchCallback:
+                    (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                  if (event is FlTapDownEvent) {
+                    HapticFeedback.lightImpact();
+                  }
+                },
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipRoundedRadius: 8,
+                  tooltipPadding: const EdgeInsets.all(12),
+                  tooltipMargin: 8,
+                  getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                    // Sort spots by barIndex to ensure consistent order
+                    final sortedSpots = List<LineBarSpot>.from(touchedBarSpots)
+                      ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+
+                    // Get timestamp from the first spot (all spots have the same timestamp)
+                    final timestamp = sortedSpots.isNotEmpty
+                        ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
+                        : '';
+
+                    return sortedSpots.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final barSpot = entry.value;
+
+                      final metric =
+                          barSpot.barIndex == 0 ? 'CPU Temp' : 'GPU Temp';
+                      final color =
+                          barSpot.barIndex == 0 ? cpuTempColor : gpuTempColor;
+                      final value = barSpot.y;
+
+                      return LineTooltipItem(
+                        '$metric: ${value.toStringAsFixed(1)}$tempUnit',
+                        TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        children: index == sortedSpots.length - 1
+                            ? [
+                                TextSpan(
+                                  text: timestamp,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ]
+                            : null,
+                      );
+                    }).toList();
+                  },
                 ),
               ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -1378,6 +1377,22 @@ class BluetoothConnectedDeviceConfigState
     Color color,
     String label,
   ) {
+    // If no data points, return empty line with dotted style
+    if (points.isEmpty) {
+      return LineChartBarData(
+        spots: [
+          FlSpot(0, 0),
+          FlSpot(100, 0),
+        ],
+        dotData: const FlDotData(show: false),
+        color: color.withOpacity(0.3),
+        barWidth: 1,
+        isCurved: false,
+        dashArray: [5, 5], // Create dotted line effect
+        belowBarData: BarAreaData(show: false),
+      );
+    }
+
     return LineChartBarData(
       spots: points,
       dotData: const FlDotData(

@@ -388,10 +388,11 @@ class _TokenNowDisplayingState extends State<TokenNowDisplaying> {
             color: AppColor.primaryBlack,
             height: 1,
           ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: _interactButton(context),
-          ),
+          if (assetToken.canInteract)
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: _interactButton(context),
+            ),
         ],
       ),
     );
