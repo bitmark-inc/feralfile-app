@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -45,6 +46,7 @@ class FeralFileWebview extends StatefulWidget {
 
 class FeralFileWebviewState extends State<FeralFileWebview> {
   late WebViewController _webViewController;
+  double _loadingProgress = 0.0;
 
   @override
   void initState() {
@@ -56,10 +58,43 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
     );
   }
 
+  Widget _buildLoadingWidget() {
+    return Container(
+      color: widget.backgroundColor,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LoadingWidget(
+              backgroundColor: widget.backgroundColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => WebViewWidget(
-        key: Key(widget.uri.toString()),
-        controller: _webViewController,
+  Widget build(BuildContext context) => Stack(
+        children: [
+          AnimatedOpacity(
+            opacity: _loadingProgress > 0.0 ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: WebViewWidget(
+              key: Key(widget.uri.toString()),
+              controller: _webViewController,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              child: AnimatedOpacity(
+                opacity: _loadingProgress < 1.0 ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: _buildLoadingWidget(),
+              ),
+            ),
+          )
+        ],
       );
 
   @override
@@ -108,11 +143,22 @@ class FeralFileWebviewState extends State<FeralFileWebview> {
       })
       ..setNavigationDelegate(
         NavigationDelegate(
+          onProgress: (progress) {
+            setState(() {
+              _loadingProgress = progress / 100;
+            });
+          },
           onPageStarted: (url) async {
+            setState(() {
+              _loadingProgress = 0.0;
+            });
             unawaited(webViewController.skipPrint());
             widget.onStarted?.call(webViewController);
           },
           onPageFinished: (url) async {
+            setState(() {
+              _loadingProgress = 1.0;
+            });
             widget.onLoaded?.call(webViewController);
             if (widget.isMute) {
               await webViewController.mute();
