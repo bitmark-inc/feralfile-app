@@ -78,13 +78,12 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     final object = nowDisplayingStatus.object;
 
     if (object is NowDisplayingObject) {
-      final assetToken =
-          object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
+      final assetToken = object.dailiesWorkState.assetTokens.firstOrNull;
       if (assetToken != null) _onUpdateAssetToken(assetToken);
     }
     if (object is DP1NowDisplayingObject) {
       final assetToken = object.assetToken;
-      if (assetToken != null) _onUpdateAssetToken(assetToken);
+      _onUpdateAssetToken(assetToken);
     }
   }
 
@@ -111,11 +110,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     if (object is DP1NowDisplayingObject) {
       return object.playlistItem.indexId;
     } else if (object is NowDisplayingObject) {
-      if (object.assetToken != null) {
-        return object.assetToken!.id;
-      } else if (object.dailiesWorkState != null) {
-        return object.dailiesWorkState!.assetTokens.firstOrNull?.id;
-      }
+      return object.dailiesWorkState.assetTokens.firstOrNull?.id;
     }
 
     return null;
@@ -131,8 +126,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
     if (object is DP1NowDisplayingObject) {
       return object.playlistItem.title;
     } else if (object is NowDisplayingObject) {
-      final assetToken =
-          object.assetToken ?? object.dailiesWorkState?.assetTokens.firstOrNull;
+      final assetToken = object.dailiesWorkState.assetTokens.firstOrNull;
       if (assetToken != null) {
         return assetToken.artistName;
       }
@@ -201,11 +195,7 @@ class NowDisplayingPageState extends State<NowDisplayingPage> {
       case NowDisplayingSuccess:
         final object = (nowDisplayingStatus! as NowDisplayingSuccess).object;
         if (object is DP1NowDisplayingObject) {
-          final assetToken = object.assetToken;
-          if (assetToken != null) {
-            return _tokenNowDisplaying(context);
-          }
-          return const SizedBox();
+          return _tokenNowDisplaying(context);
         } else if (object is NowDisplayingObject) {
           return _tokenNowDisplaying(context);
         }

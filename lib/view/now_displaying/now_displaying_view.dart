@@ -1,9 +1,7 @@
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
@@ -169,46 +167,26 @@ class _NowDisplayingSuccessWidgetState
     BuildContext context,
     NowDisplayingObject nowDisplaying,
   ) {
-    final assetToken = nowDisplaying.assetToken;
-    if (assetToken != null) {
-      return _tokenNowDisplayingView(context, assetToken);
-    }
     if (nowDisplaying.dailiesWorkState != null) {
       return _dailyWorkNowDisplayingView(
         context,
-        nowDisplaying.dailiesWorkState!,
+        nowDisplaying,
       );
     }
     return const SizedBox();
   }
-}
-
-Widget _tokenNowDisplayingView(BuildContext context, AssetToken assetToken) {
-  return GestureDetector(
-    child: TokenNowDisplayingView(
-      CompactedAssetToken.fromAssetToken(assetToken),
-    ),
-    onTap: () {
-      const pageName = AppRouter.nowDisplayingPage;
-      injector<NavigationService>().navigateTo(
-        pageName,
-      );
-    },
-  );
 }
 
 Widget _dailyWorkNowDisplayingView(
   BuildContext context,
-  DailiesWorkState state,
+  NowDisplayingObject object,
 ) {
-  final assetToken = state.assetTokens.firstOrNull;
+  final assetToken = object.assetTokens.firstOrNull;
   if (assetToken == null) {
     return const SizedBox();
   }
   return GestureDetector(
-    child: TokenNowDisplayingView(
-      CompactedAssetToken.fromAssetToken(assetToken),
-    ),
+    child: TokenNowDisplayingView(object),
     onTap: () {
       injector<NavigationService>().navigateTo(
         AppRouter.nowDisplayingPage,

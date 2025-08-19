@@ -274,7 +274,7 @@ class BluetoothConnectedDeviceConfigState
                   final isDeviceAlive = state.isDeviceAlive(selectedDevice!);
                   return AnimatedOpacity(
                     opacity: isDeviceAlive ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 500),
                     child: LoadingWidget(
                       backgroundColor: Colors.black.withOpacity(0.8),
                       text: 'FF1 is getting ready',

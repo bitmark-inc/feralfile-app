@@ -173,7 +173,7 @@ class HandleBluetoothDeviceScanDeeplinkScreenState
         children: [
           const SizedBox(height: 16),
           Text(
-            'Scanning for FF1...',
+            'Scanning for FF1',
             style: Theme.of(context).textTheme.ppMori700White16,
           ),
           const SizedBox(height: 16),

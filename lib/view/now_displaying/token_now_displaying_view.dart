@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -13,13 +14,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TokenNowDisplayingView extends StatelessWidget {
-  TokenNowDisplayingView(this.assetToken, {super.key}) {
-    _identityBloc.add(GetIdentityEvent([assetToken.artistTitle ?? '']));
+  TokenNowDisplayingView(this.object, {super.key}) {
+    final assetTokens = object.assetTokens;
+    final identities =
+        assetTokens.map((assetToken) => assetToken.artistName ?? '');
+    _identityBloc.add(GetIdentityEvent(identities));
   }
 
-  final CompactedAssetToken assetToken;
+  final NowDisplayingObject object;
 
   IdentityBloc get _identityBloc => injector<IdentityBloc>();
+
+  AssetToken get assetToken => object.assetTokens.first;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +33,10 @@ class TokenNowDisplayingView extends StatelessWidget {
       bloc: _identityBloc,
       builder: (context, state) {
         final artistTitle =
-            assetToken.artistTitle?.toIdentityOrMask(state.identityMap) ??
-                assetToken.artistTitle;
+            assetToken.artistName?.toIdentityOrMask(state.identityMap) ??
+                assetToken.artistName;
         return NowDisplayingView(
+          device: object.connectedDevice,
           thumbnailBuilder: thumbnailBuilder,
           titleBuilder: (context) => titleBuilder(context),
           artistBuilder: (context) => Text(
@@ -73,7 +80,7 @@ class TokenNowDisplayingView extends StatelessWidget {
       aspectRatio: 1,
       child: tokenGalleryThumbnailWidget(
         context,
-        assetToken,
+        CompactedAssetToken.fromAssetToken(assetToken),
         65,
         useHero: false,
       ),

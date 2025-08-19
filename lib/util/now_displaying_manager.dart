@@ -79,7 +79,7 @@ class NowDisplayingManager {
       if (status == null) {
         throw Exception('Failed to get Now Displaying');
       }
-      final nowDisplaying = await getNowDisplayingObject(status);
+      final nowDisplaying = await getNowDisplayingObject(status, device);
       if (nowDisplaying == null) {
         return;
       }
@@ -95,9 +95,11 @@ class NowDisplayingManager {
 
   Future<NowDisplayingObjectBase?> getNowDisplayingObject(
     CheckCastingStatusReply status,
+    BaseDevice device,
   ) async {
     if (status.displayKey == CastDailyWorkRequest.displayKey) {
       return NowDisplayingObject(
+        connectedDevice: device,
         dailiesWorkState: injector<DailyWorkBloc>().state,
       );
     } else if (status.items?.isNotEmpty ?? false) {
@@ -107,10 +109,10 @@ class NowDisplayingManager {
           await _fetchAssetTokens(status.items!.map((e) => e.indexId).toList());
 
       return DP1NowDisplayingObject(
-        index: index,
-        dp1Items: status.items!,
-        assetTokens: assetTokens,
-      );
+          index: index,
+          dp1Items: status.items!,
+          assetTokens: assetTokens,
+          connectedDevice: device);
     }
     return null;
   }

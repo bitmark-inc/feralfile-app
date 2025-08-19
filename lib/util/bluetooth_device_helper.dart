@@ -109,8 +109,8 @@ class BluetoothDeviceManager {
   }) async {
     await resetDevice();
 
-    BluetoothDeviceManager().castingBluetoothDevice = device;
     await CanvasNotificationManager().connect(device);
+    BluetoothDeviceManager().castingBluetoothDevice = device;
   }
 
   // Casting device status
@@ -127,9 +127,9 @@ class BluetoothDeviceManager {
     if (device == _castingBluetoothDevice) {
       return;
     }
-    _castingBluetoothDevice = device;
     injector<ConfigurationService>().setSelectedDeviceId(device?.deviceId);
     injector<SettingsDataService>().backupUserSettings();
+    _castingBluetoothDevice = device;
     NowDisplayingManager().updateDisplayingNow();
   }
 

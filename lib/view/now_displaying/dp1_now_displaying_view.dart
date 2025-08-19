@@ -32,6 +32,7 @@ class DP1NowDisplayingView extends StatelessWidget {
             assetToken.artistName?.toIdentityOrMask(state.identityMap) ??
                 assetToken.artistName;
         return NowDisplayingView(
+          device: object.connectedDevice,
           thumbnailBuilder: (context) {
             return AspectRatio(
               aspectRatio: 1,

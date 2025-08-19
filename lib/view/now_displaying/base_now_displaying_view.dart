@@ -9,7 +9,7 @@ class NowDisplayingView extends StatelessWidget {
     required this.thumbnailBuilder,
     required this.titleBuilder,
     required this.artistBuilder,
-    this.device,
+    required this.device,
     super.key,
     this.customAction = const [],
   });
@@ -17,7 +17,7 @@ class NowDisplayingView extends StatelessWidget {
   final Widget Function(BuildContext) thumbnailBuilder;
   final Widget Function(BuildContext) titleBuilder;
   final Widget Function(BuildContext) artistBuilder;
-  final BaseDevice? device;
+  final BaseDevice device;
   final List<Widget> customAction;
 
   @override
@@ -46,9 +46,12 @@ class NowDisplayingView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('STUDIO',
-                    style:
-                        theme.textTheme.ppMori700Black14.copyWith(fontSize: 6)),
+                Text(
+                  device.name,
+                  style: theme.textTheme.ppMori700Black14.copyWith(
+                    fontSize: 6,
+                  ),
+                ),
                 Expanded(
                   child: artistBuilder(context),
                 ),
