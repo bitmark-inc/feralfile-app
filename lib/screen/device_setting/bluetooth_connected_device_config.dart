@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -100,11 +101,11 @@ class BluetoothConnectedDeviceConfigState
         RouteAware,
         WidgetsBindingObserver,
         AfterLayoutMixin<BluetoothConnectedDeviceConfig> {
-  DeviceStatus? status;
+  DeviceStatus? deviceStatus;
   FFBluetoothDevice? selectedDevice;
   Timer? _connectionStatusTimer;
 
-  // bool _isBLEDeviceConnected = false;
+  bool _isBLEDeviceConnected = false;
 
   NotificationCallback? cb;
 
@@ -141,7 +142,7 @@ class BluetoothConnectedDeviceConfigState
     WidgetsBinding.instance.addObserver(this);
 
     selectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
-    status = BluetoothDeviceManager().castingDeviceStatus.value;
+    deviceStatus = BluetoothDeviceManager().castingDeviceStatus.value;
     BluetoothDeviceManager()
         .castingDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
@@ -160,7 +161,7 @@ class BluetoothConnectedDeviceConfigState
     final status = BluetoothDeviceManager().castingDeviceStatus.value;
     if (mounted) {
       setState(() {
-        this.status = status;
+        this.deviceStatus = status;
       });
     }
   }
@@ -258,6 +259,30 @@ class BluetoothConnectedDeviceConfigState
     return Stack(
       children: [
         _deviceConfig(context),
+        if (widget.payload.isFromOnboarding && !_isBLEDeviceConnected)
+          Positioned.fill(
+            child: BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
+                bloc: injector<CanvasDeviceBloc>(),
+                listener: (context, state) {
+                  final isDeviceAlive = state.isDeviceAlive(selectedDevice!);
+                  if (mounted && !_isBLEDeviceConnected && isDeviceAlive) {
+                    setState(() {
+                      _isBLEDeviceConnected = isDeviceAlive;
+                    });
+                  }
+                },
+                builder: (context, state) {
+                  final isDeviceAlive = state.isDeviceAlive(selectedDevice!);
+                  return AnimatedOpacity(
+                    opacity: isDeviceAlive ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: LoadingWidget(
+                      backgroundColor: Colors.black.withOpacity(0.8),
+                      text: 'FF1 is getting ready',
+                    ),
+                  );
+                }),
+          ),
         if (widget.payload.isFromOnboarding)
           Positioned(
             bottom: 15,
@@ -282,7 +307,7 @@ class BluetoothConnectedDeviceConfigState
       bloc: injector<CanvasDeviceBloc>(),
       builder: (context, state) {
         final isBLEDeviceConnected =
-            state.isDeviceAlive(selectedDevice!) && status != null;
+            state.isDeviceAlive(selectedDevice!) && deviceStatus != null;
         return Padding(
           padding: EdgeInsets.zero,
           child: CustomScrollView(
@@ -467,13 +492,13 @@ class BluetoothConnectedDeviceConfigState
             ),
             const SizedBox(height: 16),
             _displayOrientationPreview(
-              status?.screenRotation,
+              deviceStatus?.screenRotation,
             ),
             const SizedBox(height: 16),
             PrimaryAsyncButton(
               text: 'rotate'.tr(),
               color: AppColor.white,
-              enabled: state.isDeviceAlive(blDevice) && status != null,
+              enabled: state.isDeviceAlive(blDevice) && deviceStatus != null,
               onTap: () async {
                 final response = await injector<CanvasClientServiceV2>()
                     .rotateCanvas(blDevice);
@@ -577,7 +602,7 @@ class BluetoothConnectedDeviceConfigState
       },
       builder: (context, state) {
         final isEnabled =
-            state.isDeviceAlive(selectedDevice!) && status != null;
+            state.isDeviceAlive(selectedDevice!) && deviceStatus != null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -658,12 +683,12 @@ class BluetoothConnectedDeviceConfigState
 
   Widget _deviceInfo(BuildContext context) {
     final device = selectedDevice!;
-    final version = status?.installedVersion;
-    final installedVersion = status?.installedVersion ?? version;
+    final version = deviceStatus?.installedVersion;
+    final installedVersion = deviceStatus?.installedVersion ?? version;
     final branchName = device.isReleaseBranch ? '' : ' (${device.branchName})';
     final theme = Theme.of(context);
     final deviceId = device.deviceId;
-    final connectedWifi = status?.connectedWifi;
+    final connectedWifi = deviceStatus?.connectedWifi;
 
     final divider = addDivider(
       height: 16,
@@ -786,7 +811,7 @@ class BluetoothConnectedDeviceConfigState
                   // Check if the device is connected to WiFi
                   // If not connected, show "Not connected" message
                   // If connected, show the connected WiFi name
-                  if (status != null) ...[
+                  if (deviceStatus != null) ...[
                     _deviceInfoItem(
                       context,
                       title: 'Device Wifi Network',
@@ -810,7 +835,7 @@ class BluetoothConnectedDeviceConfigState
                         builder: (context) {
                           final resolution =
                               _latestMetrics?.screen?.sizeOnOrientation(
-                            status?.screenRotation ??
+                            deviceStatus?.screenRotation ??
                                 ScreenOrientation.landscape,
                           );
                           return Text(
