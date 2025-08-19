@@ -53,6 +53,8 @@ class _TwoStopDraggableSheetState extends State<TwoStopDraggableSheet> {
       initialChildSize: widget.minSize,
       minChildSize: widget.minSize,
       maxChildSize: widget.maxSize,
+      snap: true,
+      snapSizes: [widget.minSize, widget.maxSize],
       builder: (context, scrollController) {
         return Stack(
           children: [
@@ -61,11 +63,18 @@ class _TwoStopDraggableSheetState extends State<TwoStopDraggableSheet> {
               builder: (context, value, child) {
                 return Container(
                   child: value
-                      ? widget.expandedBuilder(context, scrollController)
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          controller: scrollController,
+                          child: widget.expandedBuilder(
+                            context,
+                            scrollController,
+                          ),
+                        )
                       : SingleChildScrollView(
                           child: widget.collapsedBuilder(
                               context, scrollController),
-                          physics: AlwaysScrollableScrollPhysics(),
+                          physics: const AlwaysScrollableScrollPhysics(),
                           controller: scrollController,
                         ),
                 );

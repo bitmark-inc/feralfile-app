@@ -26,7 +26,7 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
-import 'package:autonomy_flutter/view/now_displaying/expandable_now_displaying_view.dart';
+import 'package:autonomy_flutter/view/now_displaying/dragable_sheet_view.dart';
 import 'package:autonomy_flutter/view/now_displaying/now_displaying_bar.dart';
 import 'package:autonomy_flutter/view/now_displaying/now_displaying_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -280,7 +280,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
     _shouldShowOverlay = ValueNotifier(false);
     _updateOverlayVisibility();
-    isNowDisplayingExpanded.addListener(_updateOverlayVisibility);
+    isNowDisplayingBarExpanded.addListener(_updateOverlayVisibility);
     nowDisplayingShowing.addListener(_updateOverlayVisibility);
   }
 
@@ -302,7 +302,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
   void _updateOverlayVisibility() {
     _shouldShowOverlay.value =
-        isNowDisplayingExpanded.value && nowDisplayingShowing.value;
+        isNowDisplayingBarExpanded.value && nowDisplayingShowing.value;
   }
 
   void _handleScrollUpdate(ScrollNotification notification) {
@@ -315,7 +315,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
 
       if (scrollDelta > 10) {
         nowDisplayingVisibility.value = false;
-        isNowDisplayingExpanded.value = false;
+        isNowDisplayingBarExpanded.value = false;
       } else if (scrollDelta < -10) {
         nowDisplayingVisibility.value = true;
       }
@@ -333,7 +333,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
     nowDisplayingVisibility.removeListener(_updateAnimationBasedOnDisplayState);
     CustomRouteObserver.bottomSheetHeight
         .removeListener(_updateAnimationBasedOnDisplayState);
-    isNowDisplayingExpanded.removeListener(_updateOverlayVisibility);
+    isNowDisplayingBarExpanded.removeListener(_updateOverlayVisibility);
     nowDisplayingShowing.removeListener(_updateOverlayVisibility);
 
     _shouldShowOverlay.dispose();
@@ -376,7 +376,7 @@ class _AutonomyAppScaffoldState extends State<AutonomyAppScaffold>
                             behavior: HitTestBehavior.translucent,
                             onTap: () {
                               if (_isVisible) {
-                                isNowDisplayingExpanded.value = false;
+                                isNowDisplayingBarExpanded.value = false;
                               }
                             },
                             child: AnimatedContainer(
