@@ -1,7 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/now_displaying/base_now_displaying_view.dart';
@@ -57,35 +60,30 @@ class DP1NowDisplayingView extends StatelessWidget {
             );
           },
           customAction: [
-            // if (!isExpanded ||
-            //     (injector<NavigationService>()
-            //         .currentRoute
-            //         ?.isRecordScreenShowing ??
-            //         false))
-            //   ValueListenableBuilder(
-            //     valueListenable: CustomRouteObserver.currentRoute,
-            //     builder: (context, route, child) {
-            //       if (route?.isRecordScreenShowing ?? false) {
-            //         return const SizedBox.shrink();
-            //       }
-            //       return child!;
-            //     },
-            //     child: GestureDetector(
-            //       child: Container(
-            //         height: 22,
-            //         width: 22,
-            //         decoration: BoxDecoration(
-            //           color: AppColor.feralFileLightBlue,
-            //           borderRadius: BorderRadius.circular(50),
-            //         ),
-            //       ),
-            //       onTap: () {
-            //         injector<NavigationService>().popToRouteOrPush(
-            //           AppRouter.voiceCommandPage,
-            //         );
-            //       },
-            //     ),
-            //   ),
+            ValueListenableBuilder(
+              valueListenable: CustomRouteObserver.currentRoute,
+              builder: (context, route, child) {
+                if (route?.isRecordScreenShowing ?? false) {
+                  return const SizedBox.shrink();
+                }
+                return child!;
+              },
+              child: GestureDetector(
+                child: Container(
+                  height: 22,
+                  width: 22,
+                  decoration: BoxDecoration(
+                    color: AppColor.feralFileLightBlue,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+                onTap: () {
+                  injector<NavigationService>().popToRouteOrPush(
+                    AppRouter.voiceCommandPage,
+                  );
+                },
+              ),
+            ),
           ],
         );
       },
