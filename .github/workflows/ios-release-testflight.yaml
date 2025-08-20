@@ -87,8 +87,14 @@ jobs:
       - name: Show available runtimes
         run: xcrun simctl list runtimes
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Select Xcode 16.1
+        run: sudo xcode-select -s /Applications/Xcode_16.1.app
+
+      - name: Verify Xcode
+        run: |
+          xcode-select -p
+          xcodebuild -version
+          xcodebuild -showsdks
 
       # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
       - name: Build and deploy with Fastlane
