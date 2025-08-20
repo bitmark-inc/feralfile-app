@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
@@ -815,20 +816,28 @@ class FFBluetoothService {
     log.info('[factoryReset] res: $res');
   }
 
-  Future<void> sendLog(FFBluetoothDevice device) async {
-    if (device.isDisconnected) {
-      await connectToDevice(device, timeout: Duration(seconds: 10));
-    }
-    final userId = injector<AuthService>().getUserId();
-    final message = device.getName;
-    final request = SendLogRequest(userId: userId!, title: message);
-    final res = await sendCommand(
-        device: device,
-        command: BluetoothCommand.sendLog,
-        request: request.toJson(),
-        timeout: const Duration(seconds: 30));
+  Future<void> sendLog(FFBluetoothDevice device, String? title) async {
+    try {
+      if (device.isDisconnected) {
+        await connectToDevice(device, timeout: Duration(seconds: 10));
+      }
+      final userId = injector<AuthService>().getUserId();
+      final message = title ?? device.getName;
+      final apiKey = Environment.supportApiKey;
+      final request =
+          SendLogRequest(userId: userId!, title: message, apiKey: apiKey);
+      final res = await sendCommand(
+          device: device,
+          command: BluetoothCommand.sendLog,
+          request: request.toJson(),
+          timeout: const Duration(seconds: 30));
 
-    log.info('[sendLog] res: $res');
+      log.info('[sendLog] res: $res');
+    } catch (e) {
+      rethrow;
+    } finally {
+      await device.disconnect();
+    }
   }
 }
 
@@ -927,19 +936,23 @@ class FactoryResetRequest extends BluetoothRequest {
 class FactoryResetResponse extends BluetoothResponse {}
 
 class SendLogRequest implements FF1Request {
-  SendLogRequest({required this.userId, required this.title});
+  SendLogRequest(
+      {required this.userId, required this.title, required this.apiKey});
 
   factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
         userId: json['userId'] as String,
+        apiKey: json['apiKey'] as String,
         title: json['title'] as String?,
       );
 
   final String userId;
   final String? title;
+  final String apiKey;
 
   @override
   Map<String, dynamic> toJson() => {
         'userId': userId,
+        'apiKey': apiKey,
         'title': title,
       };
 }

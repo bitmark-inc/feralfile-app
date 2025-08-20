@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -101,7 +102,7 @@ class BluetoothConnectedDeviceConfigState
         WidgetsBindingObserver,
         AfterLayoutMixin<BluetoothConnectedDeviceConfig> {
   DeviceStatus? deviceStatus;
-  FFBluetoothDevice? selectedDevice;
+  late FFBluetoothDevice selectedDevice;
   Timer? _connectionStatusTimer;
 
   bool _isBLEDeviceConnected = false;
@@ -140,7 +141,7 @@ class BluetoothConnectedDeviceConfigState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    selectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
+    selectedDevice = BluetoothDeviceManager().castingBluetoothDevice!;
     deviceStatus = BluetoothDeviceManager().castingDeviceStatus.value;
     BluetoothDeviceManager()
         .castingDeviceStatus
@@ -1388,7 +1389,8 @@ class BluetoothConnectedDeviceConfigState
         color: color.withOpacity(0.3),
         barWidth: 1,
         isCurved: false,
-        dashArray: [5, 5], // Create dotted line effect
+        dashArray: [5, 5],
+        // Create dotted line effect
         belowBarData: BarAreaData(show: false),
       );
     }
@@ -1520,13 +1522,13 @@ class BluetoothConnectedDeviceConfigState
             _onRebootSelected();
           },
         ),
-      // OptionItem(
-      //   title: 'Send Log',
-      //   icon: Icon(AuIcon.help),
-      //   onTap: () {
-      //     _onSendLogSelected();
-      //   },
-      // ),
+      OptionItem(
+        title: 'Send Log',
+        icon: Icon(AuIcon.help),
+        onTap: () async {
+          await _onSendLogSelected();
+        },
+      ),
       if (kDebugMode)
         OptionItem(
           title: 'Factory Reset',
@@ -1707,5 +1709,29 @@ class BluetoothConnectedDeviceConfigState
         ],
       ),
     );
+  }
+
+  Future<void> _onSendLogSelected() async {
+    final theme = Theme.of(context);
+    try {
+      final device = selectedDevice;
+      await injector<FFBluetoothService>().sendLog(device, null);
+      UIHelper.showDialog(
+          context,
+          'Log sent',
+          Text(
+            'Log sent to support',
+            style: theme.textTheme.ppMori400White14,
+          ));
+    } catch (e) {
+      log.info('Error sending log: $e');
+      UIHelper.showDialog(
+          context,
+          'Failed to send log',
+          Text(
+            'Failed to send log to support. Error: $e',
+            style: theme.textTheme.ppMori400White14,
+          ));
+    }
   }
 }

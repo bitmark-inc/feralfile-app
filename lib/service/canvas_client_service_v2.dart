@@ -282,14 +282,6 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<void> sendLog(BaseDevice device, String? title) async {
-    final stub = _getStub(device);
-    final user = injector<AuthService>().getUserId();
-    final request = SendLogRequest(userId: user ?? '', title: title);
-    final response = await stub.getSupport(request);
-    log.info('CanvasClientService: Get Support Success ${response.ok}');
-  }
-
   Future<bool> updateArtFraming(
     BaseDevice device,
     ArtFraming artFraming,

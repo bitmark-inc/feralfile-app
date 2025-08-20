@@ -42,8 +42,6 @@ abstract class TvCastService {
 
   Future<RotateReply> rotate(RotateRequest request);
 
-  Future<SendLogReply> getSupport(SendLogRequest request);
-
   Future<GetDeviceStatusReply> getDeviceStatus(
     GetDeviceStatusRequest request,
   );
@@ -185,12 +183,6 @@ abstract class BaseTvCastService implements TvCastService {
   Future<RotateReply> rotate(RotateRequest request) async {
     final result = await _sendData(_getBody(request));
     return RotateReply.fromJson(result);
-  }
-
-  @override
-  Future<SendLogReply> getSupport(SendLogRequest request) async {
-    final result = await _sendData(_getBody(request));
-    return SendLogReply.fromJson(result);
   }
 
   @override

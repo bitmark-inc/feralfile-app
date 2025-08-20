@@ -25,7 +25,6 @@ enum CastCommand {
   disconnect,
   sendKeyboardEvent,
   rotate,
-  sendLog,
   getDeviceStatus,
   updateArtFraming,
   updateToLatestVersion,
@@ -66,8 +65,6 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case 'rotate':
         return CastCommand.rotate;
-      case 'sendLog':
-        return CastCommand.sendLog;
       case 'getDeviceStatus':
         return CastCommand.getDeviceStatus;
       case 'updateArtFraming':
@@ -127,8 +124,6 @@ enum CastCommand {
         return CastCommand.updateArtFraming;
       case const (UpdateToLatestVersionRequest):
         return CastCommand.updateToLatestVersion;
-      case const (SendLogRequest):
-        return CastCommand.sendLog;
       case const (TapGestureRequest):
         return CastCommand.tapGesture;
       case const (DragGestureRequest):
@@ -740,36 +735,6 @@ class RotateReply extends Reply {
 
   @override
   Map<String, dynamic> toJson() => {'orientation': orientation};
-}
-
-class SendLogRequest implements FF1Request {
-  SendLogRequest({required this.userId, required this.title});
-
-  factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
-        userId: json['userId'] as String,
-        title: json['title'] as String?,
-      );
-
-  final String userId;
-  final String? title;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'userId': userId,
-        'title': title,
-      };
-}
-
-class SendLogReply extends ReplyWithOK {
-  SendLogReply({required super.ok});
-
-  factory SendLogReply.fromJson(Map<String, dynamic> json) =>
-      SendLogReply(ok: json['ok'] as bool);
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'ok': ok,
-      };
 }
 
 extension OrientationExtension on Orientation {
