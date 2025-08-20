@@ -46,7 +46,7 @@ enum BluetoothCommand {
       case BluetoothCommand.factoryReset:
         return 'factory_reset';
       case BluetoothCommand.sendLog:
-        return 'send_log';
+        return 'submit_logs';
       case BluetoothCommand.setTimezone:
         return 'set_time';
     }
@@ -210,10 +210,6 @@ class FFBluetoothService {
         try {
           // add safe delay to ensure connection is stable
           await Future.delayed(const Duration(seconds: 1));
-          if (Platform.isAndroid) {
-            await device.requestConnectionPriority(
-                connectionPriorityRequest: ConnectionPriority.high);
-          }
           await device.discoverCharacteristics();
           if (_connectCompleter?.isCompleted == false) {
             _connectCompleter?.complete();
