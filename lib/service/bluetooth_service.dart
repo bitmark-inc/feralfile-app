@@ -46,7 +46,7 @@ enum BluetoothCommand {
       case BluetoothCommand.factoryReset:
         return 'factory_reset';
       case BluetoothCommand.sendLog:
-        return 'submit_logs';
+        return 'send_log';
       case BluetoothCommand.setTimezone:
         return 'set_time';
     }

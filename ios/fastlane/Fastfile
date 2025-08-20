@@ -204,6 +204,7 @@ platform :ios do
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: true,
+			destination: "generic/platform=iOS",
 			export_options: {
 				method: "app-store",
 				provisioningProfiles: {

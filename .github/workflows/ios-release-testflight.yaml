@@ -81,6 +81,15 @@ jobs:
 
       - uses: mathieu-bour/setup-sentry-cli@main
 
+      - name: Show installed SDKs
+        run: xcodebuild -showsdks
+
+      - name: Show available runtimes
+        run: xcrun simctl list runtimes
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
       # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
       - name: Build and deploy with Fastlane
         env:
