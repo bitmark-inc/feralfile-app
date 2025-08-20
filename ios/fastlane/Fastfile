@@ -201,10 +201,10 @@ platform :ios do
 			scheme: "production",
 			export_method: "app-store",
 			workspace: "Runner.xcworkspace",
+			sdk: "iphoneos18.1",
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: true,
-			sdk: "iphoneos",
 			export_options: {
 				method: "app-store",
 				provisioningProfiles: {
