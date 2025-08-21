@@ -1,0 +1,163 @@
+{
+  "primitives/base": {
+    "colors": {
+      "black": {
+        "$type": "color",
+        "$value": "#000000"
+      },
+      "white": {
+        "$type": "color",
+        "$value": "#ffffff"
+      },
+      "mediumGrey": {
+        "$type": "color",
+        "$value": "#b7b7b7"
+      },
+      "lightGrey": {
+        "$type": "color",
+        "$value": "#e3e3e3"
+      },
+      "darkGrey": {
+        "$type": "color",
+        "$value": "#4a4a4a"
+      },
+      "darkDarkGrey": {
+        "$type": "color",
+        "$value": "#232323"
+      },
+      "lightBlue": {
+        "$type": "color",
+        "$value": "#b9e5ff"
+      }
+    },
+    "fontWeight": {
+      "regular": {
+        "$type": "text",
+        "$value": "Regular"
+      },
+      "bold": {
+        "$type": "text",
+        "$value": "Bold"
+      }
+    },
+    "fontFamily": {
+      "ppMori": {
+        "$type": "text",
+        "$value": "PP Mori"
+      }
+    },
+    "fontSize": {
+      "body": {
+        "$type": "dimension",
+        "$value": "20px"
+      },
+      "small": {
+        "$type": "dimension",
+        "$value": "16px"
+      },
+      "h1": {
+        "$type": "dimension",
+        "$value": "48px"
+      },
+      "mobileH1": {
+        "$type": "dimension",
+        "$value": "28px"
+      },
+      "mobileBody": {
+        "$type": "dimension",
+        "$value": "16px"
+      },
+      "mobileSmall": {
+        "$type": "dimension",
+        "$value": "12px"
+      },
+      "large": {
+        "$type": "dimension",
+        "$value": "36px"
+      }
+    },
+    "letterSpacing": {
+      "0": {
+        "$type": "dimension",
+        "$value": "0px"
+      }
+    },
+    "lineHeight": {
+      "body": {
+        "$type": "dimension",
+        "$value": "26px"
+      },
+      "small": {
+        "$type": "dimension",
+        "$value": "19.2px"
+      },
+      "h1": {
+        "$type": "dimension",
+        "$value": "52.8px"
+      },
+      "mobileH1": {
+        "$type": "dimension",
+        "$value": "30.8px"
+      },
+      "mobileBody": {
+        "$type": "dimension",
+        "$value": "19.2px"
+      },
+      "mobileSmall": {
+        "$type": "dimension",
+        "$value": "14.4px"
+      },
+      "large": {
+        "$type": "dimension",
+        "$value": "39.6px"
+      }
+    },
+    "spacing": {
+      "pagePadding": {
+        "$type": "dimension",
+        "$value": "40px"
+      },
+      "sectionPadding": {
+        "$type": "dimension",
+        "$value": "140px"
+      },
+      "cardPadding": {
+        "$type": "dimension",
+        "$value": "20px"
+      }
+    }
+  },
+  "primaryButton/base": {
+    "activeBgColor": {
+      "$type": "color",
+      "$value": "{colors.lightBlue}"
+    },
+    "disableBgColor": {
+      "$type": "color",
+      "$value": "{colors.mediumGrey}"
+    },
+    "hoverOpacity": {
+      "$type": "number",
+      "$value": 90
+    },
+    "paddingHorizontal": {
+      "$type": "dimension",
+      "$value": "28px"
+    },
+    "paddingVertical": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "borderRadius": {
+      "$type": "dimension",
+      "$value": "100px"
+    }
+  },
+  "$themes": [],
+  "$metadata": {
+    "tokenSetOrder": [
+      "primitives/base",
+      "primaryButton/base"
+    ]
+  }
+}
