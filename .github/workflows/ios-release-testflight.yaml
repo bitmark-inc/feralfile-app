@@ -81,10 +81,19 @@ jobs:
           cd ios/
           pod install
 
+      - name: Fix deployment targets
+        run: |
+          cd ios/
+          # Force update deployment target for all pods
+          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 9.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
+          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 10.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
+          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 11.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
+          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
+
       - uses: mathieu-bour/setup-sentry-cli@main
 
       - name: Install Platform
-        run: xcodebuild -downloadPlatform iOS -buildVersion <18.1|18.2|18.3>
+        run: xcodebuild -downloadPlatform iOS -buildVersion 18.1
 
       - name: Show installed SDKs
         run: xcodebuild -showsdks
