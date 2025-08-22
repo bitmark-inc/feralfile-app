@@ -290,9 +290,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final isConnected = event.isConnected;
         final newState = state.updateDeviceAlive(device, isConnected);
         emit(newState);
-        if (!isConnected) {
-          NowDisplayingManager().updateDisplayingNow();
-        }
+        NowDisplayingManager().updateDisplayingNow();
       },
     );
 

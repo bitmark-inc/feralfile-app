@@ -202,7 +202,7 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   Widget build(BuildContext context) {
-    final name = selectedDevice?.name;
+    final name = selectedDevice.name;
     return Scaffold(
       appBar: getCustomBackAppBar(
         context,
@@ -229,8 +229,8 @@ class BluetoothConnectedDeviceConfigState
                 BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                   bloc: injector<CanvasDeviceBloc>(),
                   buildWhen: (previous, current) {
-                    return previous.isDeviceAlive(selectedDevice!) !=
-                        current.isDeviceAlive(selectedDevice!);
+                    return previous.isDeviceAlive(selectedDevice) !=
+                        current.isDeviceAlive(selectedDevice);
                   },
                   builder: (context, state) {
                     return GestureDetector(
