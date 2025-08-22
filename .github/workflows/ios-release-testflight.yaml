@@ -83,10 +83,13 @@ jobs:
 
       - uses: mathieu-bour/setup-sentry-cli@main
 
+      - name: Install Platform
+        run: xcodebuild -downloadPlatform iOS -buildVersion <18.1|18.2|18.3>
+
       - name: Show installed SDKs
         run: xcodebuild -showsdks
 
-      - name: Show available runtimes
+      - name: Show available runtimes`
         run: xcrun simctl list runtimes
 
       - name: Verify Xcode
