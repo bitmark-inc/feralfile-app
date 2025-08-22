@@ -261,6 +261,8 @@ class FFBluetoothService {
         final device = event.device;
         final value = event.value;
         if (characteristic.isWifiConnectCharacteristic) {
+          log.info(
+              'WifiConnectCharacteristic receive data: ${value.join(', ')}');
           BluetoothNotificationService().handleNotification(value, device);
         }
       },
