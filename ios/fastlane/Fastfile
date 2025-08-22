@@ -15,6 +15,9 @@
 
 default_platform(:ios)
 
+ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] = '60'
+ENV['FASTLANE_XCODEBUILD_SETTINGS_RETRIES'] = '6'
+
 platform :ios do
 	def get_max_appcenter_build
 		appcenter_info = appcenter_fetch_version_number(
