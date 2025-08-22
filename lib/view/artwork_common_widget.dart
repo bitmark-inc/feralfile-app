@@ -1442,7 +1442,8 @@ class _DrawerItemState extends State<DrawerItem> {
     final icon = !item.isEnable
         ? item.iconOnDisable
         : isProcessing
-            ? (item.iconOnProcessing ?? item.icon)
+            ? (item.iconOnProcessing ??
+                loadingIndicator(valueColor: AppColor.disabledColor, size: 14))
             : item.icon;
     final titleStyle = !item.isEnable
         ? (item.titleStyleOnDisable ?? defaultDisabledTextStyle)
