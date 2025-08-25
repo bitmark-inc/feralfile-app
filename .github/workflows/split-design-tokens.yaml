@@ -1,12 +1,10 @@
-name: Split Tokens
+name: Split Design Tokens
 
 on:
-  push:
-    paths:
-      - "lib/design/app.tokens.json"
+  workflow_call:
 
 jobs:
-  split:
+  split-tokens:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +19,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq -y
 
-      - name: Split tokens into multiple files
+      - name: Split design tokens into multiple files
         run: |
           mkdir -p lib/design/tokens
           for key in $(jq -r '.["$metadata"].tokenSetOrder[]' lib/design/app.tokens.json); do
@@ -30,7 +28,7 @@ jobs:
             jq "{ \"$clean_key\": .[\"$key\"] }" lib/design/app.tokens.json > "lib/design/tokens/${clean_key}.json"
           done
 
-      - name: Commit split tokens
+      - name: Commit split design tokens
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
