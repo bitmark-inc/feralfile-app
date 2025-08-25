@@ -1,10 +1,10 @@
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/error/now_displaying_error.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/view/now_displaying/dp1_now_displaying_view.dart';
 import 'package:autonomy_flutter/view/now_displaying/now_displaying_status_view.dart';
@@ -112,7 +112,7 @@ class _NowDisplayingState extends State<NowDisplaying>
     }
 
     return NowDisplayingStatusView(
-      status: 'Error: $error',
+      status: error.toString(),
     );
   }
 

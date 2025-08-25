@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/model/error/now_displaying_error.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
@@ -86,10 +87,14 @@ class NowDisplayingManager {
       }
       final nowDisplaying = await getNowDisplayingObject(status, device);
       if (nowDisplaying == null) {
-        return;
+        final status = NowDisplayingError(
+          CannotGetNowDisplayingException(),
+        );
+        _addStatus(status);
+      } else {
+        nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
+        _addStatus(nowDisplayingStatus);
       }
-      nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
-      _addStatus(nowDisplayingStatus);
     } catch (e) {
       log.info('NowDisplayingManager: updateDisplayingNow error: $e');
       unawaited(Sentry.captureException(e));
