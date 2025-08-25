@@ -33,5 +33,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add lib/design/tokens/*.json
-          git commit -m "chore: update split tokens" || echo "No changes"
-          git push
+          git commit -m "chore: update split design tokens" || echo "No changes"
+          git push --force-with-lease origin HEAD:${{ github.head_ref }}
