@@ -61,7 +61,6 @@ import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -216,8 +215,6 @@ Future<void> setupInjector() async {
   injector.registerLazySingleton<AddressService>(
     () => AddressService(injector(), injector()),
   );
-
-  injector.registerLazySingleton<KeychainService>(KeychainService.new);
 
   injector.registerLazySingleton(
     () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL),
