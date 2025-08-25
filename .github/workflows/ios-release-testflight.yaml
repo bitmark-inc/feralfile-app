@@ -81,15 +81,6 @@ jobs:
           cd ios/
           pod install
 
-      - name: Fix deployment targets
-        run: |
-          cd ios/
-          # Force update deployment target for all pods
-          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 9.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
-          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 10.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
-          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 11.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
-          find Pods -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} \;
-
       - uses: mathieu-bour/setup-sentry-cli@main
 
       #      - name: Install Platform
@@ -129,3 +120,11 @@ jobs:
           bundle exec fastlane citestflight env:${{ env.FASTLAN_ENV }}
 
         working-directory: ios
+
+      - name: Verify Swift and iOS versions
+        run: |
+          cd ios/
+          echo "Checking Swift version in Pods..."
+          find Pods -name "*.pbxproj" -exec grep -l "SWIFT_VERSION" {} \; | head -5 | xargs -I {} grep "SWIFT_VERSION" {}
+          echo "Checking iOS deployment targets in Pods..."
+          find Pods -name "*.pbxproj" -exec grep -l "IPHONEOS_DEPLOYMENT_TARGET" {} \; | head -5 | xargs -I {} grep "IPHONEOS_DEPLOYMENT_TARGET" {}
