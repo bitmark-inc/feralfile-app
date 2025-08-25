@@ -13,7 +13,7 @@ class BackButtonTokens {
     BackButtonTokens._();
 
     static const color = Color(0xFFA0A0A0);
-    static const fontSize = 12;
+    static const fontSize = 14;
     static const gap = 20;
     static const height = 47;
     static const iconSize = 12;
