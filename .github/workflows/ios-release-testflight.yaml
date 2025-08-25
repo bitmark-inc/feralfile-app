@@ -83,8 +83,8 @@ jobs:
 
       - uses: mathieu-bour/setup-sentry-cli@main
 
-      #      - name: Install Platform
-      #        run: xcodebuild -downloadPlatform iOS -buildVersion 18.1
+      - name: Install Platform
+        run: xcodebuild -downloadPlatform iOS -buildVersion 18.5
 
       - name: Show installed SDKs
         run: xcodebuild -showsdks
