@@ -218,16 +218,7 @@ platform :ios do
 			},
 			configuration: "Release-production",
 			skip_profile_detection: true,
-			output_directory: "./ipas",
-			# Thêm build settings để tránh lỗi Swift
-			xcargs: "ENABLE_BITCODE=NO CLANG_ENABLE_MODULE_DEBUGGING=NO IPHONEOS_DEPLOYMENT_TARGET=13.0 SWIFT_VERSION=5.0",
-			build_settings: {
-				"ENABLE_BITCODE" => "NO",
-				"CLANG_ENABLE_MODULE_DEBUGGING" => "NO",
-				"IPHONEOS_DEPLOYMENT_TARGET" => "13.0",
-				"SWIFT_VERSION" => "5.0",
-				"ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES" => "YES"
-			})
+			output_directory: "./ipas")
 
 		upload_to_testflight(
 			api_key: api_key,
