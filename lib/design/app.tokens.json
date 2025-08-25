@@ -136,7 +136,7 @@
     },
     "fontSize": {
       "$type": "dimension",
-      "$value": "{Small.fontSize}"
+      "$value": "14px"
     },
     "padding": {
       "$type": "dimension",
