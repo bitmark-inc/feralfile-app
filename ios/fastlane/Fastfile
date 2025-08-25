@@ -219,8 +219,8 @@ platform :ios do
 			configuration: "Release-production",
 			skip_profile_detection: true,
 			output_directory: "./ipas",
-			# Thêm build settings để tránh lỗi Swift
-			xcargs: "ENABLE_BITCODE=NO CLANG_ENABLE_MODULE_DEBUGGING=NO IPHONEOS_DEPLOYMENT_TARGET=13.0 SWIFT_VERSION=5.0",
+			# Build settings and provisioning updates to avoid CI signing failures
+			xcargs: "-allowProvisioningUpdates ENABLE_BITCODE=NO CLANG_ENABLE_MODULE_DEBUGGING=NO IPHONEOS_DEPLOYMENT_TARGET=13.0 SWIFT_VERSION=5.0 DEVELOPMENT_TEAM=Z5CE7A3A7N CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"Apple Distribution\" PROVISIONING_PROFILE_SPECIFIER=Autonomy_Wallet_Appstore",
 			build_settings: {
 				"ENABLE_BITCODE" => "NO",
 				"CLANG_ENABLE_MODULE_DEBUGGING" => "NO",
