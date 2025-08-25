@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/model/error/now_displaying_error.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
@@ -13,7 +14,9 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry/sentry.dart';
 
 class NowDisplayingManager {
   factory NowDisplayingManager() => _instance;
@@ -74,17 +77,27 @@ class NowDisplayingManager {
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
         );
       }
+
+      if (status?.ok == false) {
+        throw CheckCastingStatusException(status?.error ?? ReplyError.unknown);
+      }
+
       if (status == null) {
         throw Exception('Failed to get Now Displaying');
       }
       final nowDisplaying = await getNowDisplayingObject(status, device);
       if (nowDisplaying == null) {
-        return;
+        final status = NowDisplayingError(
+          CannotGetNowDisplayingException(),
+        );
+        _addStatus(status);
+      } else {
+        nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
+        _addStatus(nowDisplayingStatus);
       }
-      nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
-      _addStatus(nowDisplayingStatus);
     } catch (e) {
       log.info('NowDisplayingManager: updateDisplayingNow error: $e');
+      unawaited(Sentry.captureException(e));
       if (addStatusOnError) {
         _addStatus(NowDisplayingError(e));
       }

@@ -339,8 +339,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (!ok) {
           throw Exception('Failed to cast to device');
         }
+
         final currentDeviceState = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
+          ok: true,
           items: event.artwork,
           index: 0,
           isPaused: false,
@@ -393,6 +395,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         }
         final currentDeviceStatus = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           exhibitionId: event.castRequest.exhibitionId,
           catalogId: event.castRequest.catalogId,
@@ -429,6 +432,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         }
         final currentDeviceStatus = state.canvasDeviceStatus[device.deviceId];
         final status = CheckCastingStatusReply(
+          ok: true,
           artworks: [],
           displayKey: CastDailyWorkRequest.displayKey,
           connectedDevice: currentDeviceStatus?.connectedDevice,

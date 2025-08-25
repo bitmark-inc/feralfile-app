@@ -15,14 +15,6 @@ struct Constant {
             return "Feral File"
         }
     }
-
-    static var keychainGroup: String {
-        if isInhouse() {
-            return "Z5CE7A3A7N.com.bitmark.autonomy-wallet.inhouse.keychain"
-        } else {
-            return "Z5CE7A3A7N.com.bitmark.autonomywallet.keychain"
-        }
-    }
     
     static let deviceIDKey: String = "device_id_key"
 

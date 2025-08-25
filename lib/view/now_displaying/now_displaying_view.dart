@@ -1,5 +1,6 @@
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/error/now_displaying_error.dart';
 import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -103,8 +104,15 @@ class _NowDisplayingState extends State<NowDisplaying>
     NowDisplayingStatus nowDisplayingStatus,
   ) {
     final error = (nowDisplayingStatus as NowDisplayingError).error;
+
+    if (error is CheckCastingStatusException) {
+      return NowDisplayingStatusView(
+        status: error.error.message,
+      );
+    }
+
     return NowDisplayingStatusView(
-      status: 'Error: $error',
+      status: error.toString(),
     );
   }
 
