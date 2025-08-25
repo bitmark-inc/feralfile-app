@@ -271,6 +271,12 @@
         "$type": "dimension",
         "$value": "0px"
       }
+    },
+    "spacing": {
+      "mainPaddingHorizontal": {
+        "$type": "dimension",
+        "$value": "12px"
+      }
     }
   },
   "backButton/base": {
