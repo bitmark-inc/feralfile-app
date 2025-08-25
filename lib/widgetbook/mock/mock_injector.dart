@@ -1,4 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
+import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
 import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
@@ -21,25 +23,23 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
+import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
-import 'package:autonomy_flutter/service/audio_service.dart';
-import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
-import 'package:autonomy_flutter/service/mobile_controller_service.dart';
-import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
-import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
-import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
-import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -54,27 +54,27 @@ import 'package:autonomy_flutter/widgetbook/mock/dao/mock_token_dao.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_accounts_bloc.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_address_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_announcement_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_audio_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_canvas_client_service.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_channels_bloc.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_channels_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_client_token_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_cloud_manager.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_configuration_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_customer_support.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_dp1_playlist_api.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_dp1_playlist_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_ethereum_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_feralfile_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_api.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_client.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_indexer_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_playlist_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_version_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_mobile_controller_api.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_mobile_controller_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_audio_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_channels_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_dp1_playlist_api.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_dp1_playlist_service.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_record_bloc.dart';
-import 'package:autonomy_flutter/widgetbook/mock/mock_channels_bloc.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_playlist_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/mock_playlists_bloc.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_record_bloc.dart';
+import 'package:autonomy_flutter/widgetbook/mock/mock_version_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/nft_collection/mock_nft_address_service.dart';
 import 'package:autonomy_flutter/widgetbook/mock/nft_collection/mock_nft_collection_database.dart';
 import 'package:autonomy_flutter/widgetbook/mock/nft_collection/mock_token_service.dart';
@@ -398,7 +398,7 @@ class MockDataSetup {
 
     final mockCanvasDeviceStatus = <String, CheckCastingStatusReply>{
       for (final device in canvasDevices)
-        device.deviceId: CheckCastingStatusReply(artworks: []),
+        device.deviceId: CheckCastingStatusReply(artworks: [], ok: true),
     };
 
     injector<CanvasDeviceBloc>()

@@ -13,7 +13,9 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry/sentry.dart';
 
 class NowDisplayingManager {
   factory NowDisplayingManager() => _instance;
@@ -74,6 +76,11 @@ class NowDisplayingManager {
           'NowDisplayingManager: updateDisplayingNow error: $e, retrying',
         );
       }
+
+      if (status?.ok == false) {
+        throw CheckCastingStatusException(status?.error ?? ReplyError.unknown);
+      }
+
       if (status == null) {
         throw Exception('Failed to get Now Displaying');
       }
@@ -85,6 +92,7 @@ class NowDisplayingManager {
       _addStatus(nowDisplayingStatus);
     } catch (e) {
       log.info('NowDisplayingManager: updateDisplayingNow error: $e');
+      unawaited(Sentry.captureException(e));
       if (addStatusOnError) {
         _addStatus(NowDisplayingError(e));
       }
