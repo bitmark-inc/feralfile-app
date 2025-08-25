@@ -1,0 +1,39 @@
+name: Split Tokens
+
+on:
+  push:
+    paths:
+      - "lib/design/app.tokens.json"
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      - name: Split tokens into multiple files
+        run: |
+          mkdir -p lib/design/tokens
+          for key in $(jq -r '.$metadata.tokenSetOrder[]' lib/design/app.tokens.json); do
+            clean_key=$(echo $key | sed 's/\/base$//')   # remove trailing /base
+            echo "Exporting $key -> $clean_key ..."
+            jq "{ \"$clean_key\": .[\"$key\"] }" lib/design/app.tokens.json > "lib/design/tokens/${clean_key}.json"
+          done
+
+      - name: Commit splitted tokens
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add lib/design/tokens/*.json
+          git commit -m "chore: update splitted tokens" || echo "No changes"
+          git push
