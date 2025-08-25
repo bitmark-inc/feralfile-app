@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir -p lib/design/tokens
           for key in $(jq -r '.["$metadata"].tokenSetOrder[]' lib/design/app.tokens.json); do
-            clean_key=$(echo $key | sed 's/\/base$//')   # remove trailing /base
+            clean_key=$(echo $key | cut -d'/' -f1)
             echo "Exporting $key -> $clean_key ..."
             jq "{ \"$clean_key\": .[\"$key\"] }" lib/design/app.tokens.json > "lib/design/tokens/${clean_key}.json"
           done
