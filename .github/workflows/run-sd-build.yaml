@@ -7,10 +7,10 @@ on:
 
 jobs:
   call-split-tokens:
-    if: github.head_ref == 'feat/design-tokens'
-    uses: bitmark-inc/feralfile-app/.github/workflows/split-design-tokens.yaml@main
+    if: github.head_ref == 'feat/design-tokens-test'
+    uses: bitmark-inc/feralfile-app/.github/workflows/split-design-tokens.yaml@main-test
 
   call-build-tokens:
-    if: github.head_ref == 'feat/design-tokens'
+    if: github.head_ref == 'feat/design-tokens-test'
     needs: call-split-tokens
-    uses: bitmark-inc/feralfile-app/.github/workflows/parse-style-tokens.yaml@main
+    uses: bitmark-inc/feralfile-app/.github/workflows/parse-style-tokens.yaml@main-test
