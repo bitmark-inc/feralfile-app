@@ -66,22 +66,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.bold}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.h1}"
-      },
-      "letterSpacing": {
-        "$type": "dimension",
-        "$value": "{letterSpacings.0}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.1}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "H2": {
@@ -92,22 +76,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.bold}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.h2}"
-      },
-      "letterSpacing": {
-        "$type": "dimension",
-        "$value": "{letterSpacings.0}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.1}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "H3": {
@@ -118,22 +86,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.bold}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.h3}"
-      },
-      "letterSpacing": {
-        "$type": "dimension",
-        "$value": "{letterSpacings.0}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.1}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "Title": {
@@ -144,18 +96,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.regular}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.title}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.0}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "Body": {
@@ -166,18 +106,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.regular}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.body}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.0}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "Small": {
@@ -188,18 +116,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.regular}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.small}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.0}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "Mono": {
@@ -210,18 +126,6 @@
       "fontWeight": {
         "$type": "text",
         "$value": "{fontWeights.regular}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSizes.body}"
-      },
-      "paragraphSpacing": {
-        "$type": "dimension",
-        "$value": "{paragraphSpacings.0}"
-      },
-      "paragraphIndent": {
-        "$type": "dimension",
-        "$value": "{paragraphIndents.0}"
       }
     },
     "fontSizes": {
