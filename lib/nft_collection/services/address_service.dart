@@ -4,8 +4,8 @@ import 'package:autonomy_flutter/nft_collection/models/address_collection.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 
-class AddressService {
-  AddressService(this._database);
+class NftAddressService {
+  NftAddressService(this._database);
 
   final NftCollectionDatabase _database;
 
@@ -20,7 +20,7 @@ class AddressService {
           )
           .toList(),
     );
-    await ncInjector<TokensService>().reindexAddresses(addresses);
+    await ncInjector<NftTokensService>().reindexAddresses(addresses);
   }
 
   Future<void> deleteAddresses(List<String> addresses) async {

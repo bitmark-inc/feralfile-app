@@ -18,6 +18,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: lines_longer_than_80_chars
 
+const DP_VERSION = '1.0.0';
+
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
@@ -57,7 +59,7 @@ const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
 const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
 
 const TEIA_ART_CONTRACT_ADDRESSES = ['KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton'];
-const OPENSEA_ASSET_PREFIX = 'https://opensea.io/assets/';
+const OPENSEA_ASSET_PREFIX = 'https://opensea.io/item/ethereum';
 const OBJKT_ASSET_PREFIX_MAINNET = 'https://objkt.com/asset/';
 const OBJKT_ASSET_PREFIX_TESTNET = 'https://ghostnet.objkt.com/asset/';
 const TEIA_ART_ASSET_PREFIX = 'https://teia.art/objkt/';
@@ -180,17 +182,6 @@ String feralFileExhibitionUrl(String slug) =>
 
 String feralFileArtworkUrl(String slug) =>
     '${Environment.feralFileAPIURL}/artworks/$slug';
-
-String get etherScanUrl {
-  switch (Environment.web3ChainId) {
-    case 11155111:
-      return 'https://sepolia.etherscan.io';
-    case 5:
-      return 'https://goerli.etherscan.io';
-    default:
-      return 'https://etherscan.io';
-  }
-}
 
 enum WalletApp {
   MetaMask,
@@ -406,6 +397,12 @@ class Constants {
   static const navigationPrefixes = [
     'feralfile://navigation/',
   ];
+
+  static var appStoreUrl =
+      'https://apps.apple.com/us/app/feral-file/id1544022728';
+
+  static var playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client';
 }
 
 Map<String, String> specifiedSeriesTitle = {

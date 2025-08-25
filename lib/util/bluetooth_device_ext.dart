@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
@@ -11,9 +12,9 @@ import 'package:sentry/sentry.dart';
 
 extension BluetoothDeviceExtension on BluetoothDevice {
   FFBluetoothDevice toFFBluetoothDevice(
-      {String? topicId, required String deviceId}) {
+      {String? topicId, required String deviceId, required String branchName}) {
     return FFBluetoothDevice.fromBluetoothDevice(this,
-        topicId: topicId, deviceId: deviceId);
+        topicId: topicId, deviceId: deviceId, branchName: branchName);
   }
 
   BluetoothCharacteristic? get wifiConnectCharacteristic =>
@@ -37,10 +38,46 @@ extension BluetoothDeviceExtension on BluetoothDevice {
   }
 
   Future<void> discoverCharacteristics() async {
+    const timeouts = [
+      Duration(seconds: 5),
+      Duration(seconds: 10),
+      Duration(seconds: 15)
+    ];
+
+    for (int i = 0; i < timeouts.length; i++) {
+      try {
+        log.info(
+            'Attempt ${i + 1}/${timeouts.length} to discover characteristics for device: ${remoteId.str} with timeout: ${timeouts[i]}s');
+        await _discoverCharacteristics(timeout: timeouts[i]);
+        log.info('Successfully discovered characteristics on attempt ${i + 1}');
+        return; // Success, exit the retry loop
+      } catch (e) {
+        log.warning('Attempt ${i + 1} failed: $e');
+        if (i == timeouts.length - 1) {
+          // Last attempt failed, rethrow the exception
+          log.info('All attempts to discover characteristics failed');
+          unawaited(Sentry.captureException(e));
+          rethrow;
+        }
+        if (Platform.isAndroid) {
+          // On Android, clear the GATT cache if the device is not connected
+          log.info('Clearing GATT cache for device: ${remoteId.str}');
+          await this.clearGattCache();
+        }
+        // Wait a bit before the next attempt
+        await Future<void>.delayed(Duration(seconds: 1));
+      }
+    }
+  }
+
+  Future<void> _discoverCharacteristics({required Duration timeout}) async {
     try {
-      log.info('Discovering characteristics for device: ${remoteId.str}');
+      log.info(
+          'Discovering characteristics for device: ${remoteId.str} with timeout: ${timeout}s');
       await Future<void>.delayed(const Duration(seconds: 1));
-      final discoveredServices = await discoverServices(timeout: 30);
+      final discoveredServices = await discoverServices(
+          timeout: timeout.inSeconds); // Convert to milliseconds
+
       final services = <BluetoothService>[]
         ..clear()
         ..addAll(discoveredServices);
@@ -52,7 +89,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
       if (primaryService == null) {
         log.warning('Primary service not found');
         unawaited(Sentry.captureMessage('Primary service not found'));
-        return;
+        throw Exception('Primary service not found');
       } else {
         log.info('Primary service found: ${primaryService.uuid}');
       }
@@ -64,7 +101,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
 
       if (commandService == null) {
         unawaited(Sentry.captureMessage('Command service not found'));
-        return;
+        throw Exception('Command service not found');
       }
       final wifiConnectChar = commandService.characteristics.firstWhere(
         (characteristic) => characteristic.isWifiConnectCharacteristic,
@@ -98,6 +135,7 @@ extension BluetoothDeviceExtension on BluetoothDevice {
     } catch (e) {
       log.warning('Error discovering characteristics: $e');
       unawaited(Sentry.captureException(e));
+      rethrow; // Rethrow to allow retry logic to handle it
     }
   }
 }

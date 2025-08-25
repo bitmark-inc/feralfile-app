@@ -9,9 +9,11 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
@@ -33,10 +35,18 @@ class SupportCustomerPage extends StatefulWidget {
 
 class _SupportCustomerPageState extends State<SupportCustomerPage>
     with RouteAware, WidgetsBindingObserver {
+  bool _isDocsVisible = false;
+
   @override
   void initState() {
     super.initState();
     unawaited(injector<CustomerSupportService>().getChatThreads());
+    // Trigger fade in animation after a frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _isDocsVisible = true;
+      });
+    });
   }
 
   @override
@@ -65,7 +75,8 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
         title: 'how_can_we_help'.tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -77,6 +88,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             const SizedBox(height: 30),
             addOnlyDivider(),
             _resourcesWidget(),
+            Expanded(child: _docsWebviewWidget(context))
           ],
         ),
       ),
@@ -155,6 +167,17 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           ],
         );
       },
+    );
+  }
+
+  Widget _docsWebviewWidget(BuildContext context) {
+    final url = injector<RemoteConfigService>().getConfig<String>(
+        ConfigGroup.documentation,
+        ConfigKey.docsUrl,
+        'https://docs.feralfile.com/ff1?from=app');
+    final uri = Uri.parse(url);
+    return FeralFileWebview(
+      uri: uri,
     );
   }
 }

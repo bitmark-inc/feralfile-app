@@ -256,6 +256,8 @@ class AssetToken {
 
   String? get artworkMetadata => asset?.artworkMetadata;
 
+  bool get isBitmarkToken => id.startsWith('bmk-');
+
   String? get saleModel {
     final latestSaleModel = projectMetadata?.latest.initialSaleModel?.trim();
     return latestSaleModel?.isNotEmpty == true

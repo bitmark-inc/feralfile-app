@@ -3,20 +3,19 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
+import 'package:autonomy_flutter/model/device/base_device.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
-import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:autonomy_flutter/model/now_displaying_object.dart';
 import 'package:autonomy_flutter/nft_collection/models/models.dart';
-import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
+import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/now_displaying_view.dart';
+import 'package:sentry/sentry.dart';
 
 class NowDisplayingManager {
   factory NowDisplayingManager() => _instance;
@@ -28,26 +27,26 @@ class NowDisplayingManager {
 
   Timer? _onDisconnectTimer;
 
-  NowDisplayingStatus? nowDisplayingStatus;
-  final StreamController<NowDisplayingStatus?> _streamController =
+  NowDisplayingStatus nowDisplayingStatus = InitialNowDisplayingStatus();
+  final StreamController<NowDisplayingStatus> _streamController =
       StreamController.broadcast();
 
-  Stream<NowDisplayingStatus?> get nowDisplayingStream =>
+  Stream<NowDisplayingStatus> get nowDisplayingStream =>
       _streamController.stream;
 
-  void addStatus(NowDisplayingStatus status) {
+  void _addStatus(NowDisplayingStatus status) {
     log.info('NowDisplayingManager: $status');
     nowDisplayingStatus = status;
     _streamController.add(status);
     _onDisconnectTimer?.cancel();
     if (status is DeviceDisconnected) {
-      _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
-      });
+      // _onDisconnectTimer = Timer(const Duration(seconds: 5), () {
+      //   shouldShowNowDisplayingOnDisconnect.value = false;
+      // });
     } else if (status is ConnectionLost) {
-      _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
-        shouldShowNowDisplayingOnDisconnect.value = false;
-      });
+      // _onDisconnectTimer = Timer(const Duration(seconds: 10), () {
+      //   shouldShowNowDisplayingOnDisconnect.value = false;
+      // });
     } else if (status is NowDisplayingSuccess) {
       shouldShowNowDisplayingOnDisconnect.value = true;
     }
@@ -60,11 +59,12 @@ class NowDisplayingManager {
       log.info('NowDisplayingManager: updateDisplayingNow');
       final device = BluetoothDeviceManager().castingBluetoothDevice;
       if (device == null) {
+        _addStatus(NoDevicePaired());
         return;
       }
 
       if (!device.isAlive) {
-        addStatus(DeviceDisconnected(device));
+        _addStatus(DeviceDisconnected(device));
         return;
       }
 
@@ -84,70 +84,84 @@ class NowDisplayingManager {
       if (status == null) {
         throw Exception('Failed to get Now Displaying');
       }
-      final nowDisplaying = await getNowDisplayingObject(status);
+      final nowDisplaying = await getNowDisplayingObject(status, device);
       if (nowDisplaying == null) {
         return;
       }
       nowDisplayingStatus = NowDisplayingSuccess(nowDisplaying);
-      addStatus(nowDisplayingStatus!);
+      _addStatus(nowDisplayingStatus);
     } catch (e) {
       log.info('NowDisplayingManager: updateDisplayingNow error: $e');
+      unawaited(Sentry.captureException(e));
       if (addStatusOnError) {
-        addStatus(NowDisplayingError(e));
+        _addStatus(NowDisplayingError(e));
       }
     }
   }
 
-  Future<NowDisplayingObject?> getNowDisplayingObject(
+  Future<NowDisplayingObjectBase?> getNowDisplayingObject(
     CheckCastingStatusReply status,
+    BaseDevice device,
   ) async {
-    if (status.exhibitionId != null) {
-      final exhibitionId = status.exhibitionId!;
-      final exhibition = await injector<FeralFileService>().getExhibition(
-        exhibitionId,
+    if (status.displayKey == CastDailyWorkRequest.displayKey) {
+      return NowDisplayingObject(
+        connectedDevice: device,
+        dailiesWorkState: injector<DailyWorkBloc>().state,
       );
-      final catalogId = status.catalogId;
-      final catalog = status
-          .catalog; // catalogId != null ? ExhibitionCatalog.artwork : null;
-      Artwork? artwork;
-      if (catalog == ExhibitionCatalog.artwork) {
-        artwork = exhibition.isSourceExhibition
-            ? await injector<FeralFileService>().getSourceArtwork(catalogId!)
-            : await injector<FeralFileService>().getArtwork(
-                catalogId!,
-              );
-      }
-      final exhibitionDisplaying = ExhibitionDisplaying(
-        exhibition: exhibition,
-        catalogId: catalogId,
-        catalog: catalog,
-        artwork: artwork,
+    } else if (status.items?.isNotEmpty ?? false) {
+      // DP1
+      final index = status.index!;
+      final assetTokens =
+          await _fetchAssetTokens(status.items!.map((e) => e.indexId).toList());
+
+      return DP1NowDisplayingObject(
+        index: index,
+        dp1Items: status.items!,
+        assetTokens: assetTokens,
+        connectedDevice: device,
       );
-      return NowDisplayingObject(exhibitionDisplaying: exhibitionDisplaying);
-    } else if (status.artworks.isNotEmpty) {
-      final index = status.currentArtworkIndex;
-      if (index == null) {
-        return null;
-      }
-      final tokenId = status.artworks[index].token?.id;
-      if (tokenId == null) {
-        return null;
-      }
-      final assetToken = await _fetchAssetToken(tokenId);
-      return NowDisplayingObject(assetToken: assetToken);
-    } else {
-      if (status.displayKey == CastDailyWorkRequest.displayKey) {
-        return NowDisplayingObject(
-          dailiesWorkState: injector<DailyWorkBloc>().state,
-        );
-      }
     }
     return null;
   }
 
-  Future<AssetToken?> _fetchAssetToken(String tokenId) async {
-    final request = QueryListTokensRequest(ids: [tokenId]);
-    final assetToken = await injector<IndexerService>().getNftTokens(request);
-    return assetToken.isNotEmpty ? assetToken.first : null;
+  Future<List<AssetToken>> _fetchAssetTokens(List<String> tokenIds) async {
+    final assetTokens = await injector<NftTokensService>()
+        .getManualTokens(indexerIds: tokenIds);
+    return assetTokens;
   }
+}
+
+abstract class NowDisplayingStatus {}
+
+class InitialNowDisplayingStatus implements NowDisplayingStatus {
+  InitialNowDisplayingStatus();
+}
+
+class ConnectionLost implements NowDisplayingStatus {
+  ConnectionLost(this.device);
+
+  final BaseDevice device;
+}
+
+class DeviceDisconnected implements NowDisplayingStatus {
+  DeviceDisconnected(this.device);
+
+  final BaseDevice device;
+}
+
+// Now displaying
+class NowDisplayingSuccess implements NowDisplayingStatus {
+  NowDisplayingSuccess(this.object);
+
+  final NowDisplayingObjectBase object;
+}
+
+class NowDisplayingError implements NowDisplayingStatus {
+  NowDisplayingError(this.error);
+
+  final Object error;
+}
+
+class NoDevicePaired implements NowDisplayingStatus {
+  NoDevicePaired();
 }

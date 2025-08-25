@@ -6,6 +6,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -15,13 +17,10 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/network_issue_manager.dart';
-import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_alumni_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
@@ -39,9 +38,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:autonomy_flutter/nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
+// import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -220,11 +217,6 @@ Widget tokenGalleryThumbnailWidget(
                     ),
               ),
               errorWidget: (context, url, error) {
-                if (error is Exception && error.isNetworkIssue) {
-                  unawaited(
-                    injector<NetworkIssueManager>().showNetworkIssueWarning(),
-                  );
-                }
                 return ImageExt.customNetwork(
                   token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
                   fadeInDuration: Duration.zero,
@@ -525,7 +517,7 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 
       TextButton buildInfo(String text, String value) => TextButton(
             onPressed: () async {
-              Vibrate.feedback(FeedbackType.light);
+              // Vibrate.feedback(FeedbackType.light);
               final uri = Uri.tryParse(value);
               if (uri != null && await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.inAppWebView);
@@ -1024,8 +1016,6 @@ Widget tokenOwnership(
         MetaDataItem(
           title: 'token_holder'.tr(),
           value: alias.isNotEmpty ? alias : ownerAddress.maskOnly(5),
-          tapLink:
-              addressURL(ownerAddress, CryptoType.fromAddress(ownerAddress)),
           forceSafariVC: true,
         ),
         divider,
@@ -1418,10 +1408,12 @@ class DrawerItem extends StatefulWidget {
     required this.item,
     this.color,
     super.key,
+    this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 13),
   });
 
   final OptionItem item;
   final Color? color;
+  final EdgeInsets padding;
 
   @override
   State<DrawerItem> createState() => _DrawerItemState();
@@ -1450,7 +1442,8 @@ class _DrawerItemState extends State<DrawerItem> {
     final icon = !item.isEnable
         ? item.iconOnDisable
         : isProcessing
-            ? (item.iconOnProcessing ?? item.icon)
+            ? (item.iconOnProcessing ??
+                loadingIndicator(valueColor: AppColor.disabledColor, size: 14))
             : item.icon;
     final titleStyle = !item.isEnable
         ? (item.titleStyleOnDisable ?? defaultDisabledTextStyle)
@@ -1462,10 +1455,7 @@ class _DrawerItemState extends State<DrawerItem> {
       color: Colors.transparent,
       width: MediaQuery.of(context).size.width,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 13,
-        ),
+        padding: widget.padding,
         child: Row(
           children: [
             if (icon != null) ...[

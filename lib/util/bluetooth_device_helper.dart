@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/service/canvas_notification_manager.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -42,15 +44,20 @@ class BluetoothDeviceManager {
 
   Future<void> resetDevice() async {
     BluetoothDeviceManager().castingBluetoothDevice = null;
+    BluetoothDeviceManager().castingDeviceStatus.value = null;
     await CanvasNotificationManager().disconnectAll();
   }
 
   Future<void> addDevice(
     FFBluetoothDevice device,
   ) async {
-    await _setupDevice(device, shouldWriteToDb: true);
+    await _ffDeviceDB.write([device.toKeyValue]);
     log.info(
       'BluetoothDeviceHelper.addDevice: added ${device.toJson()}',
+    );
+    await switchDevice(device);
+    log.info(
+      'BluetoothDeviceHelper.addDevice: switched to ${device.toJson()}',
     );
   }
 
@@ -61,6 +68,20 @@ class BluetoothDeviceManager {
     log.info(
       'BluetoothDeviceHelper.switchDevice: switched to ${device.toJson()}',
     );
+    RealtimeMetricsManager().switchRealtimeMetrics(device);
+  }
+
+  Future<FFBluetoothDevice> updateDeviceName(
+    FFBluetoothDevice device,
+    String newName,
+  ) async {
+    final updatedDevice = device.copyWith(name: newName);
+    await _ffDeviceDB.write([updatedDevice.toKeyValue]);
+    log.info(
+      'BluetoothDeviceHelper.updateDeviceName: updated ${device.toJson()} to ${updatedDevice.toJson()}',
+    );
+    castingBluetoothDevice = updatedDevice;
+    return updatedDevice;
   }
 
   Future<void> removeDevice(String deviceId) async {
@@ -74,8 +95,7 @@ class BluetoothDeviceManager {
     if (devices.isNotEmpty) {
       await switchDevice(devices.first);
     } else {
-      // if no device is paired, hide now displaying (like when user tap on close)
-      shouldShowNowDisplayingOnDisconnect.value = false;
+      BluetoothDeviceManager().castingBluetoothDevice = null;
     }
   }
 
@@ -90,12 +110,8 @@ class BluetoothDeviceManager {
   }) async {
     await resetDevice();
 
-    if (shouldWriteToDb) {
-      await _ffDeviceDB.write([device.toKeyValue]);
-    }
-
-    BluetoothDeviceManager().castingBluetoothDevice = device;
     await CanvasNotificationManager().connect(device);
+    BluetoothDeviceManager().castingBluetoothDevice = device;
   }
 
   // Casting device status
@@ -109,19 +125,16 @@ class BluetoothDeviceManager {
   FFBluetoothDevice? _castingBluetoothDevice;
 
   set castingBluetoothDevice(FFBluetoothDevice? device) {
-    if (device == null) {
-      _castingBluetoothDevice = null;
-      injector<ConfigurationService>().setSelectedDeviceId(null);
-      return;
-    }
-
     if (device == _castingBluetoothDevice) {
       return;
     }
-
+    injector<ConfigurationService>()
+        .setSelectedDeviceId(device?.deviceId)
+        .then((_) {
+      injector<SettingsDataService>().backupUserSettings();
+    });
     _castingBluetoothDevice = device;
-
-    injector<ConfigurationService>().setSelectedDeviceId(device.deviceId);
+    NowDisplayingManager().updateDisplayingNow();
   }
 
   FFBluetoothDevice? get castingBluetoothDevice {
@@ -139,6 +152,23 @@ class BluetoothDeviceManager {
         castingBluetoothDevice = device;
         return device;
       }
+    }
+
+    // if no casting device is set, return the first alive device
+    final aliveDevice = BluetoothDeviceManager.pairedDevices.firstWhereOrNull(
+      (device) => device.isAlive,
+    );
+
+    if (aliveDevice != null) {
+      castingBluetoothDevice = aliveDevice;
+      return aliveDevice;
+    }
+
+    // if no alive device is found, return first paired device
+    final firstPairedDevice = BluetoothDeviceManager.pairedDevices.firstOrNull;
+    if (firstPairedDevice != null) {
+      castingBluetoothDevice = firstPairedDevice;
+      return firstPairedDevice;
     }
 
     return null;

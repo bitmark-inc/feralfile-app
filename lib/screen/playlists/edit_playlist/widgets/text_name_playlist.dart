@@ -1,45 +1,66 @@
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/view/text_field.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
-class TextNamePlaylist extends StatefulWidget {
-  final Function(String)? onEditPlaylistName;
+class FFTextName extends StatefulWidget {
+  final Function(String)? onSubmit;
   final FocusNode? focusNode;
 
-  const TextNamePlaylist({
-    required this.playList,
+  const FFTextName({
+    required this.title,
     super.key,
-    this.onEditPlaylistName,
+    this.onSubmit,
     this.focusNode,
   });
 
-  final PlayListModel? playList;
+  final String title;
 
   @override
-  State<TextNamePlaylist> createState() => _TextNamePlaylistState();
+  State<FFTextName> createState() => _FFTextNameState();
 }
 
-class _TextNamePlaylistState extends State<TextNamePlaylist> {
+class _FFTextNameState extends State<FFTextName> {
   final _playlistNameC = TextEditingController();
+
+  late FocusNode _focusNode;
 
   @override
   void initState() {
-    _playlistNameC.text = widget.playList?.name ?? '';
+    _playlistNameC.text = widget.title;
+    _focusNode = widget.focusNode ?? FocusNode();
+    _focusNode.addListener(listener);
     super.initState();
+  }
+
+  // on update widget
+  @override
+  void didUpdateWidget(covariant FFTextName oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.title != widget.title) {
+      _playlistNameC.text = widget.title;
+    }
+  }
+
+  void listener() {
+    if (_focusNode.hasFocus == false) {
+      final value = _playlistNameC.text.trim();
+      if (value.isEmpty) {
+        _playlistNameC.text = widget.title;
+      } else {
+        widget.onSubmit?.call(value);
+      }
+    }
   }
 
   @override
   void dispose() {
     _playlistNameC.dispose();
+    _focusNode.removeListener(listener);
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant TextNamePlaylist oldWidget) {
-    _playlistNameC.text = widget.playList?.name ?? '';
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -55,8 +76,8 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
           .copyWith(color: AppColor.disabledColor),
       textAlign: TextAlign.center,
       border: InputBorder.none,
-      onChanged: (value) {
-        widget.onEditPlaylistName?.call(value);
+      onFieldSubmitted: (value) {
+        widget.onSubmit?.call(value);
       },
     );
   }

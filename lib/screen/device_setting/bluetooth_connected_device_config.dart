@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -11,24 +12,27 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/device_config.dart';
 import 'package:autonomy_flutter/screen/device_setting/enter_wifi_password.dart';
 import 'package:autonomy_flutter/screen/device_setting/scan_wifi_network_page.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/service/bluetooth_notification_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/device_realtime_metric_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/now_displaying_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,11 +79,8 @@ enum ScreenOrientation {
 
 class BluetoothConnectedDeviceConfigPayload {
   BluetoothConnectedDeviceConfigPayload({
-    required this.device,
     this.isFromOnboarding = false,
   });
-
-  final FFBluetoothDevice device;
 
   final bool isFromOnboarding;
 }
@@ -100,11 +101,11 @@ class BluetoothConnectedDeviceConfigState
         RouteAware,
         WidgetsBindingObserver,
         AfterLayoutMixin<BluetoothConnectedDeviceConfig> {
-  DeviceStatus? status;
-  FFBluetoothDevice? selectedDevice;
+  DeviceStatus? deviceStatus;
+  late FFBluetoothDevice selectedDevice;
   Timer? _connectionStatusTimer;
 
-  // bool _isBLEDeviceConnected = false;
+  bool _isBLEDeviceConnected = false;
 
   NotificationCallback? cb;
 
@@ -125,17 +126,23 @@ class BluetoothConnectedDeviceConfigState
 
   DeviceRealtimeMetrics? _latestMetrics;
 
-  late StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
+  StreamSubscription<DeviceRealtimeMetrics>? _metricsStreamSubscription;
 
   bool _isShowingQRCode = false;
+
+  double _minPerformanceValue = 0;
+  double _maxPerformanceValue = 100;
+
+  double _minTemperatureValue = 0;
+  double _maxTemperatureValue = 100;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    selectedDevice = BluetoothDeviceManager().castingBluetoothDevice;
-    status = BluetoothDeviceManager().castingDeviceStatus.value;
+    selectedDevice = BluetoothDeviceManager().castingBluetoothDevice!;
+    deviceStatus = BluetoothDeviceManager().castingDeviceStatus.value;
     BluetoothDeviceManager()
         .castingDeviceStatus
         .addListener(_bluetoothDeviceStatusListener);
@@ -143,6 +150,10 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   void afterFirstLayout(BuildContext context) {
+    if (widget.payload.isFromOnboarding) {
+      // If this screen is opened from onboarding, we don't need to enable metrics streaming
+      return;
+    }
     _enableMetricsStreaming();
   }
 
@@ -150,7 +161,7 @@ class BluetoothConnectedDeviceConfigState
     final status = BluetoothDeviceManager().castingDeviceStatus.value;
     if (mounted) {
       setState(() {
-        this.status = status;
+        this.deviceStatus = status;
       });
     }
   }
@@ -191,98 +202,53 @@ class BluetoothConnectedDeviceConfigState
 
   @override
   Widget build(BuildContext context) {
+    final name = selectedDevice.name;
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCustomBackAppBar(
         context,
-        onBack: () {
-          injector<NavigationService>().goBack();
-        },
-        title: 'configure_device'.tr(),
-        isWhite: false,
-        actions: [
-          _buildDeviceSwitcher(context),
-          BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-            bloc: injector<CanvasDeviceBloc>(),
-            buildWhen: (previous, current) {
-              return previous.isDeviceAlive(selectedDevice!) !=
-                  current.isDeviceAlive(selectedDevice!);
-            },
-            builder: (context, state) {
-              return GestureDetector(
-                onTap: () {
-                  _showOption(context, state);
-                },
-                child: SvgPicture.asset(
-                  'assets/images/more_circle.svg',
-                  width: 22,
-                  colorFilter: const ColorFilter.mode(
-                    AppColor.white,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              );
-              if (!state.isDeviceAlive(selectedDevice!)) {
-                return const SizedBox.shrink();
-              }
-              return GestureDetector(
-                onTap: () {
-                  UIHelper.showCenterDialog(
-                    context,
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Power Off',
-                          style: Theme.of(context).textTheme.ppMori700White16,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Are you sure you want to power off the device?',
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
-                        const SizedBox(height: 36),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: PrimaryAsyncButton(
-                                text: 'cancel'.tr(),
-                                textColor: AppColor.white,
-                                color: Colors.transparent,
-                                borderColor: AppColor.white,
-                                onTap: () {
-                                  injector<NavigationService>().goBack();
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: PrimaryAsyncButton(
-                                text: 'OK',
-                                textColor: AppColor.white,
-                                borderColor: AppColor.white,
-                                color: Colors.transparent,
-                                onTap: () async {
-                                  final device = selectedDevice!;
-                                  await injector<CanvasClientServiceV2>()
-                                      .safeShutdown(device);
-                                  injector<NavigationService>().goBack();
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+        title: name == null
+            ? Text('configure_device'.tr())
+            : FFTextName(
+                title: name,
+                onSubmit: (String newName) async {
+                  final device = selectedDevice!;
+                  final newDevice =
+                      await BluetoothDeviceManager().updateDeviceName(
+                    device,
+                    newName,
                   );
+                  setState(() {
+                    selectedDevice = newDevice;
+                  });
                 },
-                child: const Icon(
-                  Icons.power_settings_new,
-                  size: 24,
+              ),
+        actions: widget.payload.isFromOnboarding
+            ? []
+            : [
+                _buildDeviceSwitcher(context),
+                BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: injector<CanvasDeviceBloc>(),
+                  buildWhen: (previous, current) {
+                    return previous.isDeviceAlive(selectedDevice) !=
+                        current.isDeviceAlive(selectedDevice);
+                  },
+                  builder: (context, state) {
+                    return GestureDetector(
+                      onTap: () {
+                        _showOption(context, state);
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/more_circle.svg',
+                        width: 22,
+                        colorFilter: const ColorFilter.mode(
+                          AppColor.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ],
+              ],
       ),
       backgroundColor: AppColor.primaryBlack,
       body: SafeArea(child: _body(context)),
@@ -293,6 +259,30 @@ class BluetoothConnectedDeviceConfigState
     return Stack(
       children: [
         _deviceConfig(context),
+        if (widget.payload.isFromOnboarding && !_isBLEDeviceConnected)
+          Positioned.fill(
+            child: BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
+                bloc: injector<CanvasDeviceBloc>(),
+                listener: (context, state) {
+                  final isDeviceAlive = state.isDeviceAlive(selectedDevice!);
+                  if (mounted && !_isBLEDeviceConnected && isDeviceAlive) {
+                    setState(() {
+                      _isBLEDeviceConnected = isDeviceAlive;
+                    });
+                  }
+                },
+                builder: (context, state) {
+                  final isDeviceAlive = state.isDeviceAlive(selectedDevice!);
+                  return AnimatedOpacity(
+                    opacity: isDeviceAlive ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 500),
+                    child: LoadingWidget(
+                      backgroundColor: Colors.black.withOpacity(0.8),
+                      text: 'FF1 is getting ready',
+                    ),
+                  );
+                }),
+          ),
         if (widget.payload.isFromOnboarding)
           Positioned(
             bottom: 15,
@@ -300,8 +290,7 @@ class BluetoothConnectedDeviceConfigState
             right: 0,
             child: PrimaryAsyncButton(
               onTap: () async {
-                Navigator.of(context).pop();
-                unawaited(NowDisplayingManager().updateDisplayingNow());
+                injector<NavigationService>().popUntilHome();
               },
               text: 'finish'.tr(),
               color: AppColor.white,
@@ -312,116 +301,128 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceConfig(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.zero,
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: MediaQuery.paddingOf(context).top + 32,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _displayOrientation(context),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _canvasSetting(context),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20,
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 1,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _wifiConfig(context),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 1,
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _deviceInfo(context),
-            ),
-          ),
+    final isFromOnboarding = widget.payload.isFromOnboarding;
+    return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+      bloc: injector<CanvasDeviceBloc>(),
+      builder: (context, state) {
+        final isBLEDeviceConnected =
+            state.isDeviceAlive(selectedDevice!) && deviceStatus != null;
+        return Padding(
+          padding: EdgeInsets.zero,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.paddingOf(context).top + 32,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: _displayOrientation(context),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Divider(
+                  color: AppColor.auGreyBackground,
+                  thickness: 1,
+                  height: 40,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: _canvasSetting(context),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 20,
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Divider(
+                  color: AppColor.auGreyBackground,
+                  thickness: 1,
+                  height: 1,
+                ),
+              ),
+              if (!isFromOnboarding) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _wifiConfig(context),
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: Divider(
+                    color: AppColor.auGreyBackground,
+                    thickness: 1,
+                    height: 1,
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 20,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _deviceInfo(context),
+                  ),
+                ),
 
-          // Add performance monitoring section
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _performanceMonitoring(context),
-            ),
-          ),
+                // Add performance monitoring section
+                const SliverToBoxAdapter(
+                  child: Divider(
+                    color: AppColor.auGreyBackground,
+                    thickness: 1,
+                    height: 40,
+                  ),
+                ),
+                if (isBLEDeviceConnected) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _performanceMonitoring(context),
+                    ),
+                  ),
 
-          // Temperature monitoring section
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
+                  // Temperature monitoring section
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      color: AppColor.auGreyBackground,
+                      thickness: 1,
+                      height: 40,
+                    ),
+                  ),
+                ],
+                if (isBLEDeviceConnected) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _temperatureMonitoring(context),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      color: AppColor.auGreyBackground,
+                      thickness: 1,
+                      height: 40,
+                    ),
+                  ),
+                ],
+              ],
+              const SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 80,
+                ),
+              ),
+            ],
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _temperatureMonitoring(context),
-            ),
-          ),
-
-          const SliverToBoxAdapter(
-            child: Divider(
-              color: AppColor.auGreyBackground,
-              thickness: 1,
-              height: 40,
-            ),
-          ),
-
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 80,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -490,13 +491,13 @@ class BluetoothConnectedDeviceConfigState
             ),
             const SizedBox(height: 16),
             _displayOrientationPreview(
-              status?.screenRotation,
+              deviceStatus?.screenRotation,
             ),
             const SizedBox(height: 16),
             PrimaryAsyncButton(
               text: 'rotate'.tr(),
               color: AppColor.white,
-              enabled: state.isDeviceAlive(blDevice) && status != null,
+              enabled: state.isDeviceAlive(blDevice) && deviceStatus != null,
               onTap: () async {
                 final response = await injector<CanvasClientServiceV2>()
                     .rotateCanvas(blDevice);
@@ -600,7 +601,7 @@ class BluetoothConnectedDeviceConfigState
       },
       builder: (context, state) {
         final isEnabled =
-            state.isDeviceAlive(selectedDevice!) && status != null;
+            state.isDeviceAlive(selectedDevice!) && deviceStatus != null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -650,7 +651,7 @@ class BluetoothConnectedDeviceConfigState
     final payload = SendWifiCredentialsPagePayload(
       wifiAccessPoint: accessPoint,
       device: blDevice,
-      onSubmitted: (FFBluetoothDevice? device) {
+      onSubmitted: (_) {
         injector<NavigationService>()
             .popUntil(AppRouter.bluetoothConnectedDeviceConfig);
       },
@@ -680,15 +681,13 @@ class BluetoothConnectedDeviceConfigState
   }
 
   Widget _deviceInfo(BuildContext context) {
-    final version = status?.installedVersion;
-    final installedVersion = status?.installedVersion ?? version;
-    final latestVersion = status?.latestVersion;
-    final isUpToDate =
-        installedVersion == latestVersion || latestVersion == null;
-    final theme = Theme.of(context);
     final device = selectedDevice!;
-    final deviceId = device.name;
-    final connectedWifi = status?.connectedWifi;
+    final version = deviceStatus?.installedVersion;
+    final installedVersion = deviceStatus?.installedVersion ?? version;
+    final branchName = device.isReleaseBranch ? '' : ' (${device.branchName})';
+    final theme = Theme.of(context);
+    final deviceId = device.deviceId;
+    final connectedWifi = deviceStatus?.connectedWifi;
 
     final divider = addDivider(
       height: 16,
@@ -764,7 +763,7 @@ class BluetoothConnectedDeviceConfigState
 
                   _deviceInfoItem(
                     context,
-                    title: 'Device ID:',
+                    title: 'Device Id:',
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -799,21 +798,8 @@ class BluetoothConnectedDeviceConfigState
                         ),
                         children: [
                           TextSpan(
-                            text: installedVersion ?? '-',
+                            text: (installedVersion ?? '-') + branchName,
                           ),
-                          if (installedVersion != null)
-                            if (isUpToDate)
-                              const TextSpan(
-                                text: ' - Up to date',
-                                style: TextStyle(color: AppColor.disabledColor),
-                              )
-                            else
-                              const TextSpan(
-                                text: ' - Update available',
-                                style: TextStyle(
-                                  color: AppColor.disabledColor,
-                                ),
-                              ),
                         ],
                       ),
                     ),
@@ -824,7 +810,7 @@ class BluetoothConnectedDeviceConfigState
                   // Check if the device is connected to WiFi
                   // If not connected, show "Not connected" message
                   // If connected, show the connected WiFi name
-                  if (status != null) ...[
+                  if (deviceStatus != null) ...[
                     _deviceInfoItem(
                       context,
                       title: 'Device Wifi Network',
@@ -839,8 +825,7 @@ class BluetoothConnectedDeviceConfigState
                     ),
                     divider,
                   ],
-                  if (_latestMetrics?.screen?.height != null &&
-                      _latestMetrics?.screen?.width != null) ...[
+                  ...[
                     _deviceInfoItem(
                       context,
                       title: 'Screen Resolution',
@@ -848,7 +833,7 @@ class BluetoothConnectedDeviceConfigState
                         builder: (context) {
                           final resolution =
                               _latestMetrics?.screen?.sizeOnOrientation(
-                            status?.screenRotation ??
+                            deviceStatus?.screenRotation ??
                                 ScreenOrientation.landscape,
                           );
                           return Text(
@@ -867,12 +852,14 @@ class BluetoothConnectedDeviceConfigState
                     divider,
                   ],
                   // refresh rate
-                  if (_latestMetrics?.screen?.refreshRate != null) ...[
+                  ...[
                     _deviceInfoItem(
                       context,
                       title: 'Refresh Rate',
                       child: Text(
-                        '${_latestMetrics!.screen!.refreshRate} Hz',
+                        _latestMetrics?.screen?.refreshRate == null
+                            ? '--'
+                            : '${_latestMetrics!.screen!.refreshRate} Hz',
                         style: theme.textTheme.ppMori400White14.copyWith(
                           color: isBLEDeviceConnected
                               ? AppColor.white
@@ -896,21 +883,6 @@ class BluetoothConnectedDeviceConfigState
                         setState(() {
                           _isShowingQRCode = !_isShowingQRCode;
                         });
-                      },
-                    ),
-                  ],
-
-                  // Update Button
-                  if (!isUpToDate) ...[
-                    const SizedBox(height: 16),
-                    PrimaryAsyncButton(
-                      text: 'Update to latest version v.$latestVersion',
-                      color: AppColor.white,
-                      enabled: isBLEDeviceConnected,
-                      onTap: () async {
-                        final device = selectedDevice!;
-                        await injector<CanvasClientServiceV2>()
-                            .updateToLatestVersion(device);
                       },
                     ),
                   ],
@@ -950,10 +922,8 @@ class BluetoothConnectedDeviceConfigState
   // // Enable metrics streaming from the device
   Future<void> _enableMetricsStreaming() async {
     try {
-      final device = selectedDevice!;
-      log.info('Enabling metrics streaming for device: ${device.name}');
-      _metricsStreamSubscription = DeviceRealtimeMetricHelper()
-          .startMetrics(device)
+      _metricsStreamSubscription = RealtimeMetricsManager()
+          .startRealtimeMetrics()
           .listen(_updateMetricsFromStream);
     } catch (e) {
       log.warning('Failed to enable metrics streaming: $e');
@@ -964,10 +934,7 @@ class BluetoothConnectedDeviceConfigState
   Future<void> _stopMetricsStreaming() async {
     try {
       await _metricsStreamSubscription?.cancel();
-
-      final device = selectedDevice!;
-      log.info('Disabling metrics streaming for device: ${device.name}');
-      DeviceRealtimeMetricHelper().stopMetrics(device);
+      RealtimeMetricsManager().stopRealtimeMetrics();
     } catch (e) {
       log.warning('Failed to disable metrics streaming: $e');
     }
@@ -1008,6 +975,43 @@ class BluetoothConnectedDeviceConfigState
         _cpuTempPoints.removeAt(0);
         _gpuTempPoints.removeAt(0);
       }
+
+      // sort points by timestamp
+      _cpuPoints.sort((a, b) => a.x.compareTo(b.x));
+      _memoryPoints.sort((a, b) => a.x.compareTo(b.x));
+      _gpuPoints.sort((a, b) => a.x.compareTo(b.x));
+      _cpuTempPoints.sort((a, b) => a.x.compareTo(b.x));
+      _gpuTempPoints.sort((a, b) => a.x.compareTo(b.x));
+      _fpsPoints.sort((a, b) => a.x.compareTo(b.x));
+
+      final maxPerformanceValue = [
+        ..._cpuPoints.map((e) => e.y),
+        ..._memoryPoints.map((e) => e.y),
+        ..._gpuPoints.map((e) => e.y),
+      ].reduce((a, b) => a > b ? a : b);
+      final minPerformanceValue = [
+        ..._cpuPoints.map((e) => e.y),
+        ..._memoryPoints.map((e) => e.y),
+        ..._gpuPoints.map((e) => e.y),
+      ].reduce((a, b) => a < b ? a : b);
+
+      // _maxTemperatureValue = max of all temperature points
+      final maxTemperatureValue = [
+        ..._cpuTempPoints.map((e) => e.y),
+        ..._gpuTempPoints.map((e) => e.y),
+      ].reduce((a, b) => a > b ? a : b);
+
+      final minTemperatureValue = [
+        ..._cpuTempPoints.map((e) => e.y),
+        ..._gpuTempPoints.map((e) => e.y),
+      ].reduce((a, b) => a < b ? a : b);
+
+      setState(() {
+        _maxPerformanceValue = maxPerformanceValue;
+        _minPerformanceValue = minPerformanceValue;
+        _maxTemperatureValue = maxTemperatureValue;
+        _minTemperatureValue = minTemperatureValue;
+      });
     });
   }
 
@@ -1053,123 +1057,123 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 16),
 
         // Performance chart
-        if (_cpuPoints.length > 1)
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColor.auGreyBackground,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: LineChart(
-              LineChartData(
-                minY: 0,
-                maxY: 100,
-                // Percentage values 0-100
-                minX: _cpuPoints.first.x,
-                maxX: _cpuPoints.last.x,
-                clipData: const FlClipData.all(),
-                gridData: FlGridData(
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) {
-                    return const FlLine(
-                      color: AppColor.feralFileMediumGrey,
-                      strokeWidth: 1,
-                    );
-                  },
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  _createLineData(_cpuPoints, cpuColor, 'CPU'),
-                  _createLineData(_memoryPoints, memoryColor, 'Memory'),
-                  _createLineData(_gpuPoints, gpuColor, 'GPU'),
-                ],
-                titlesData: FlTitlesData(
-                  bottomTitles: const AxisTitles(),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: 25,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}%',
-                          style: theme.textTheme.ppMori400White12,
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(
-                      reservedSize: 30,
-                    ),
-                  ),
-                ),
-                lineTouchData: LineTouchData(
-                  touchCallback:
-                      (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                    if (event is FlTapDownEvent) {
-                      HapticFeedback.lightImpact();
-                    }
-                  },
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipRoundedRadius: 8,
-                    tooltipPadding: const EdgeInsets.all(12),
-                    tooltipMargin: 8,
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      // Sort spots by barIndex to ensure consistent order
-                      final sortedSpots =
-                          List<LineBarSpot>.from(touchedBarSpots)
-                            ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-
-                      // Get timestamp from the first spot (all spots have the same timestamp)
-                      final timestamp = sortedSpots.isNotEmpty
-                          ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
-                          : '';
-
-                      return sortedSpots.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final barSpot = entry.value;
-
-                        final metric = barSpot.barIndex == 0
-                            ? 'CPU'
-                            : barSpot.barIndex == 1
-                                ? 'Memory'
-                                : 'GPU';
-                        final color = barSpot.barIndex == 0
-                            ? cpuColor
-                            : barSpot.barIndex == 1
-                                ? memoryColor
-                                : gpuColor;
-
-                        return LineTooltipItem(
-                          '$metric: ${barSpot.y.toStringAsFixed(1)}%',
-                          TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                          children: index == sortedSpots.length - 1
-                              ? [
-                                  TextSpan(
-                                    text: timestamp,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ]
-                              : null,
-                        );
-                      }).toList();
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: LineChart(
+            LineChartData(
+              minY: _cpuPoints.isEmpty ? 0 : max(_minPerformanceValue - 10, 0),
+              maxY: _cpuPoints.isEmpty
+                  ? 100
+                  : min(_maxPerformanceValue + 10, 100),
+              // Percentage values 0-100
+              minX: _cpuPoints.isEmpty ? 0 : _cpuPoints.first.x,
+              maxX: _cpuPoints.isEmpty ? 100 : _cpuPoints.last.x,
+              clipData: const FlClipData.all(),
+              gridData: FlGridData(
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) {
+                  return const FlLine(
+                    color: AppColor.feralFileMediumGrey,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                _createLineData(_cpuPoints, cpuColor, 'CPU'),
+                _createLineData(_memoryPoints, memoryColor, 'Memory'),
+                _createLineData(_gpuPoints, gpuColor, 'GPU'),
+              ],
+              titlesData: FlTitlesData(
+                bottomTitles: const AxisTitles(),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: 25,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}%',
+                        style: theme.textTheme.ppMori400White12,
+                      );
                     },
                   ),
+                ),
+                rightTitles: const AxisTitles(),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(
+                    reservedSize: 30,
+                  ),
+                ),
+              ),
+              lineTouchData: LineTouchData(
+                touchCallback:
+                    (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                  if (event is FlTapDownEvent) {
+                    HapticFeedback.lightImpact();
+                  }
+                },
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipRoundedRadius: 8,
+                  tooltipPadding: const EdgeInsets.all(12),
+                  tooltipMargin: 8,
+                  getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                    // Sort spots by barIndex to ensure consistent order
+                    final sortedSpots = List<LineBarSpot>.from(touchedBarSpots)
+                      ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+
+                    // Get timestamp from the first spot (all spots have the same timestamp)
+                    final timestamp = sortedSpots.isNotEmpty
+                        ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
+                        : '';
+
+                    return sortedSpots.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final barSpot = entry.value;
+
+                      final metric = barSpot.barIndex == 0
+                          ? 'CPU'
+                          : barSpot.barIndex == 1
+                              ? 'Memory'
+                              : 'GPU';
+                      final color = barSpot.barIndex == 0
+                          ? cpuColor
+                          : barSpot.barIndex == 1
+                              ? memoryColor
+                              : gpuColor;
+
+                      return LineTooltipItem(
+                        '$metric: ${barSpot.y.toStringAsFixed(1)}%',
+                        TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        children: index == sortedSpots.length - 1
+                            ? [
+                                TextSpan(
+                                  text: timestamp,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ]
+                            : null,
+                      );
+                    }).toList();
+                  },
                 ),
               ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -1232,122 +1236,120 @@ class BluetoothConnectedDeviceConfigState
         const SizedBox(height: 16),
 
         // Temperature chart
-        if (_cpuTempPoints.length > 1)
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColor.auGreyBackground,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: LineChart(
-              LineChartData(
-                minY: 30,
-                // 30°C = 86°F
-                maxY: 80,
-                // 100°C = 212°F
-                minX: _cpuTempPoints.first.x,
-                maxX: _cpuTempPoints.last.x,
-                clipData: const FlClipData.all(),
-                gridData: FlGridData(
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) {
-                    return const FlLine(
-                      color: AppColor.feralFileMediumGrey,
-                      strokeWidth: 1,
-                    );
-                  },
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: AppColor.auGreyBackground,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: LineChart(
+            LineChartData(
+              minY: _cpuTempPoints.isEmpty ? 0 : _minTemperatureValue - 10,
+              // 30°C = 86°F
+              maxY: _cpuTempPoints.isEmpty ? 100 : _maxTemperatureValue + 10,
+              // 100°C = 212°F
+              minX: _cpuTempPoints.isEmpty ? 0 : _cpuTempPoints.first.x,
+              maxX: _cpuTempPoints.isEmpty ? 100 : _cpuTempPoints.last.x,
+              clipData: const FlClipData.all(),
+              gridData: FlGridData(
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) {
+                  return const FlLine(
+                    color: AppColor.feralFileMediumGrey,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                _createLineData(
+                  _cpuTempPoints,
+                  cpuTempColor,
+                  'CPU Temp',
                 ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  _createLineData(
-                    _cpuTempPoints,
-                    cpuTempColor,
-                    'CPU Temp',
-                  ),
-                  _createLineData(
-                    _gpuTempPoints,
-                    gpuTempColor,
-                    'GPU Temp',
-                  ),
-                ],
-                titlesData: FlTitlesData(
-                  bottomTitles: const AxisTitles(),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: 20, // ~20°C = 36°F interval
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}$tempUnit',
-                          style: theme.textTheme.ppMori400White12,
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(),
-                  topTitles: const AxisTitles(),
+                _createLineData(
+                  _gpuTempPoints,
+                  gpuTempColor,
+                  'GPU Temp',
                 ),
-                lineTouchData: LineTouchData(
-                  touchCallback:
-                      (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                    if (event is FlTapDownEvent) {
-                      HapticFeedback.lightImpact();
-                    }
-                  },
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipRoundedRadius: 8,
-                    tooltipPadding: const EdgeInsets.all(12),
-                    tooltipMargin: 8,
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      // Sort spots by barIndex to ensure consistent order
-                      final sortedSpots =
-                          List<LineBarSpot>.from(touchedBarSpots)
-                            ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-
-                      // Get timestamp from the first spot (all spots have the same timestamp)
-                      final timestamp = sortedSpots.isNotEmpty
-                          ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
-                          : '';
-
-                      return sortedSpots.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final barSpot = entry.value;
-
-                        final metric =
-                            barSpot.barIndex == 0 ? 'CPU Temp' : 'GPU Temp';
-                        final color =
-                            barSpot.barIndex == 0 ? cpuTempColor : gpuTempColor;
-                        final value = barSpot.y;
-
-                        return LineTooltipItem(
-                          '$metric: ${value.toStringAsFixed(1)}$tempUnit',
-                          TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                          children: index == sortedSpots.length - 1
-                              ? [
-                                  TextSpan(
-                                    text: timestamp,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ]
-                              : null,
-                        );
-                      }).toList();
+              ],
+              titlesData: FlTitlesData(
+                bottomTitles: const AxisTitles(),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: 20, // ~20°C = 36°F interval
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}$tempUnit',
+                        style: theme.textTheme.ppMori400White12,
+                      );
                     },
                   ),
+                ),
+                rightTitles: const AxisTitles(),
+                topTitles: const AxisTitles(),
+              ),
+              lineTouchData: LineTouchData(
+                touchCallback:
+                    (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                  if (event is FlTapDownEvent) {
+                    HapticFeedback.lightImpact();
+                  }
+                },
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipRoundedRadius: 8,
+                  tooltipPadding: const EdgeInsets.all(12),
+                  tooltipMargin: 8,
+                  getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                    // Sort spots by barIndex to ensure consistent order
+                    final sortedSpots = List<LineBarSpot>.from(touchedBarSpots)
+                      ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+
+                    // Get timestamp from the first spot (all spots have the same timestamp)
+                    final timestamp = sortedSpots.isNotEmpty
+                        ? '\nTime: ${_formatTimestamp(sortedSpots.first.x)}'
+                        : '';
+
+                    return sortedSpots.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final barSpot = entry.value;
+
+                      final metric =
+                          barSpot.barIndex == 0 ? 'CPU Temp' : 'GPU Temp';
+                      final color =
+                          barSpot.barIndex == 0 ? cpuTempColor : gpuTempColor;
+                      final value = barSpot.y;
+
+                      return LineTooltipItem(
+                        '$metric: ${value.toStringAsFixed(1)}$tempUnit',
+                        TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        children: index == sortedSpots.length - 1
+                            ? [
+                                TextSpan(
+                                  text: timestamp,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ]
+                            : null,
+                      );
+                    }).toList();
+                  },
                 ),
               ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -1376,6 +1378,23 @@ class BluetoothConnectedDeviceConfigState
     Color color,
     String label,
   ) {
+    // If no data points, return empty line with dotted style
+    if (points.isEmpty) {
+      return LineChartBarData(
+        spots: [
+          FlSpot(0, 0),
+          FlSpot(100, 0),
+        ],
+        dotData: const FlDotData(show: false),
+        color: color.withOpacity(0.3),
+        barWidth: 1,
+        isCurved: false,
+        dashArray: [5, 5],
+        // Create dotted line effect
+        belowBarData: BarAreaData(show: false),
+      );
+    }
+
     return LineChartBarData(
       spots: points,
       dotData: const FlDotData(
@@ -1395,6 +1414,18 @@ class BluetoothConnectedDeviceConfigState
   String _formatTimestamp(double timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
+  }
+
+  void resetMetrics() {
+    setState(() {
+      _cpuPoints.clear();
+      _memoryPoints.clear();
+      _gpuPoints.clear();
+      _cpuTempPoints.clear();
+      _gpuTempPoints.clear();
+      _fpsPoints.clear();
+      _latestMetrics = null;
+    });
   }
 
   Widget _buildDeviceSwitcher(BuildContext context) {
@@ -1418,6 +1449,8 @@ class BluetoothConnectedDeviceConfigState
         setState(() {
           selectedDevice = device;
         });
+        // Reset metrics when switching devices
+        resetMetrics();
       },
       itemBuilder: (BuildContext context) {
         return pairedDevices.map((FFBluetoothDevice device) {
@@ -1477,20 +1510,33 @@ class BluetoothConnectedDeviceConfigState
             _onPowerOffSelected();
           },
         ),
-      // OptionItem(
-      //   title: 'Send Log',
-      //   icon: Icon(AuIcon.help),
-      //   onTap: () {
-      //     _onSendLogSelected();
-      //   },
-      // ),
+      // reboot
+      if (isDeviceAlive)
+        OptionItem(
+          title: 'Restart',
+          icon: const Icon(
+            Icons.restart_alt,
+            size: 24,
+          ),
+          onTap: () {
+            _onRebootSelected();
+          },
+        ),
       OptionItem(
-        title: 'Factory Reset',
-        icon: Icon(Icons.restart_alt),
-        onTap: () {
-          _onFactoryResetSelected();
+        title: 'Send Log',
+        icon: Icon(AuIcon.help),
+        onTap: () async {
+          await _onSendLogSelected();
         },
       ),
+      if (kDebugMode)
+        OptionItem(
+          title: 'Factory Reset',
+          icon: Icon(Icons.restart_alt),
+          onTap: () {
+            _onFactoryResetSelected();
+          },
+        ),
       OptionItem.emptyOptionItem,
     ];
     unawaited(UIHelper.showDrawerAction(context,
@@ -1522,7 +1568,7 @@ class BluetoothConnectedDeviceConfigState
                   color: Colors.transparent,
                   borderColor: AppColor.white,
                   onTap: () {
-                    injector<NavigationService>().goBack(result: false);
+                    injector<NavigationService>().goBack(result: null);
                   },
                 ),
               ),
@@ -1541,7 +1587,7 @@ class BluetoothConnectedDeviceConfigState
                       await BluetoothDeviceManager()
                           .removeDevice(device.deviceId);
                       injector<NavigationService>().goBack(result: true);
-                    } catch (e, s) {
+                    } catch (e) {
                       injector<NavigationService>().goBack(result: e);
                     }
                   },
@@ -1553,26 +1599,14 @@ class BluetoothConnectedDeviceConfigState
       ),
     );
     if (error is bool) {
-      injector<NavigationService>().popUntilHome();
       if (error) {
+        injector<NavigationService>().popUntilHome();
         await UIHelper.showInfoDialog(context, 'Restoring Factory Defaults',
             'The device is now restoring to factory settings. It may take some time to complete. Please keep the device powered on and wait until the reset is finished.');
       }
-    } else {
+    } else if (error != null) {
       await UIHelper.showInfoDialog(context, 'Factory Reset Failed',
           'Something went wrong while trying to restore the device to factory settings. ${error.toString()}');
-    }
-  }
-
-  Future<void> _onSendLogSelected() async {
-    try {
-      final device = selectedDevice!;
-      final res = await injector<FFBluetoothService>().sendLog(device);
-      unawaited(UIHelper.showInfoDialog(context, 'Logs Sent Successfully',
-          'Your logs have been sent. Thank you for helping us improve the device.'));
-    } catch (e) {
-      await UIHelper.showInfoDialog(context, 'Failed to send logs',
-          'We couldn’t send the logs due to a connection issue or unexpected error. ${e.toString()}');
     }
   }
 
@@ -1625,5 +1659,79 @@ class BluetoothConnectedDeviceConfigState
         ],
       ),
     );
+  }
+
+  void _onRebootSelected() {
+    UIHelper.showCenterDialog(
+      context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Restart',
+            style: Theme.of(context).textTheme.ppMori700White16,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Are you sure you want to restart the device?',
+            style: Theme.of(context).textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 36),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'cancel'.tr(),
+                  textColor: AppColor.white,
+                  color: Colors.transparent,
+                  borderColor: AppColor.white,
+                  onTap: () {
+                    injector<NavigationService>().goBack();
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryAsyncButton(
+                  text: 'OK',
+                  textColor: AppColor.white,
+                  borderColor: AppColor.white,
+                  color: Colors.transparent,
+                  onTap: () async {
+                    final device = selectedDevice!;
+                    await injector<CanvasClientServiceV2>().safeRestart(device);
+                    injector<NavigationService>().goBack();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _onSendLogSelected() async {
+    final theme = Theme.of(context);
+    try {
+      final device = selectedDevice;
+      await injector<FFBluetoothService>().sendLog(device, null);
+      UIHelper.showDialog(
+          context,
+          'Log sent',
+          Text(
+            'Log sent to support',
+            style: theme.textTheme.ppMori400White14,
+          ));
+    } catch (e) {
+      log.info('Error sending log: $e');
+      UIHelper.showDialog(
+          context,
+          'Failed to send log',
+          Text(
+            'Failed to send log to support. Error: $e',
+            style: theme.textTheme.ppMori400White14,
+          ));
+    }
   }
 }

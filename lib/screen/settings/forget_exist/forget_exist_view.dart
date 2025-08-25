@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -33,62 +34,157 @@ class ForgetExistView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '• ',
-                      style: theme.primaryTextTheme.ppMori400White14,
-                    ),
-                    Expanded(
-                      child: RichText(
-                        textScaler: MediaQuery.textScalerOf(context),
-                        text: TextSpan(
-                          style: theme.primaryTextTheme.ppMori400White14,
-                          children: <TextSpan>[
-                            TextSpan(
-                                text: 'action_irrevocable'.tr(),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            TextSpan(
-                              text: ' ${'accounts_delete'.tr()}',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                      'This will permanently:',
+                      style: theme.textTheme.ppMori700White14,
+                    )
                   ],
+                ),
+                const SizedBox(
+                  height: 12,
                 ),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '• ',
-                      style: theme.primaryTextTheme.ppMori400White14,
+                    Container(
+                      width: 24,
                     ),
                     Expanded(
-                      child: Text(
-                        'this_not_effect'.tr(),
-                        style: theme.primaryTextTheme.ppMori400White14,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: dotIcon(color: AppColor.white, size: 6),
+                              ),
+                              const SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(
+                                child: RichText(
+                                  maxLines: 3,
+                                  textScaler: MediaQuery.textScalerOf(context),
+                                  text: TextSpan(
+                                    style:
+                                        theme.primaryTextTheme.ppMori400White14,
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                        text:
+                                            'Remove your art addresses (view-only) and all app data on this device.',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: dotIcon(color: AppColor.white, size: 6),
+                              ),
+                              const SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  'Unpair this device from any FF1 you’ve connected.',
+                                  style:
+                                      theme.primaryTextTheme.ppMori400White14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: dotIcon(color: AppColor.white, size: 6),
+                              ),
+                              const SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Delete your playlists from Feral File and stop sharing them:',
+                                      style: theme
+                                          .primaryTextTheme.ppMori400White14,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(
+                                          width: 24,
+                                        ),
+                                        Text(
+                                          'o ',
+                                          style: theme.primaryTextTheme
+                                              .ppMori400White12,
+                                        ),
+                                        const SizedBox(
+                                          width: 8,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            'Others may briefly see cached copies; they won’t update and will disappear after refresh.',
+                                            style: theme
+                                                .textTheme.ppMori400White14,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(
+                                          width: 24,
+                                        ),
+                                        Text(
+                                          'o ',
+                                          style: theme.primaryTextTheme
+                                              .ppMori400White12,
+                                        ),
+                                        const SizedBox(
+                                          width: 8,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            'If someone republished one of your playlists under their own feed, that copy will continue under their control (not yours).',
+                                            style: theme
+                                                .textTheme.ppMori400White14,
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
+                    )
                   ],
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '• ',
-                      style: theme.primaryTextTheme.ppMori400White14,
-                    ),
-                    Expanded(
-                      child: Text(
-                        'active_subscription'.tr(),
-                        style: theme.primaryTextTheme.ppMori400White14,
-                      ),
-                    ),
-                  ],
+                const SizedBox(
+                  height: 16,
                 ),
-                const SizedBox(height: 16),
+                Text(
+                  'Once you continue, we can’t recover this data.',
+                  style: theme.textTheme.ppMori700White14,
+                ),
+                const SizedBox(height: 36),
                 GestureDetector(
                   onTap: () => context
                       .read<ForgetExistBloc>()
@@ -127,8 +223,8 @@ class ForgetExistView extends StatelessWidget {
                 ),
                 PrimaryButton(
                   text: state.isProcessing == true
-                      ? 'forgetting'.tr()
-                      : 'h_confirm'.tr(),
+                      ? 'Deleting'.tr()
+                      : 'Delete my information '.tr(),
                   color: state.isProcessing == null && state.isChecked
                       ? null
                       : theme.disableColor,

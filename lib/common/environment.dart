@@ -54,11 +54,12 @@ class Environment {
       'TZKT_MAINNET_URL',
       'TZKT_TESTNET_URL',
       'ACCOUNT_SETTING_URL',
+      'MOBILE_CONTROLLER_URL',
+      'ARTBLOCKS_GRAPHQL_URL', // Add new key for Artblocks GraphQL URL
     ];
     const secretKeys = [
       'CHAT_SERVER_HMAC_KEY',
       'METRIC_SECRET_KEY',
-      'BRANCH_KEY',
       'AU_CLAIM_SECRET_KEY',
       'FERAL_FILE_SECRET_KEY_TESTNET',
       'FERAL_FILE_SECRET_KEY_MAINNET',
@@ -67,6 +68,7 @@ class Environment {
       'ONESIGNAL_APP_ID',
       'TV_API_KEY',
       'SUPPORT_API_KEY',
+      'MOBILE_CONTROLLER_KEY',
     ];
     final missingKeys = <String>[];
     for (final key in keys) {
@@ -198,8 +200,6 @@ class Environment {
   static String get metricSecretKey =>
       _readKey('METRIC_SECRET_KEY', '', isSecret: true);
 
-  static String get branchKey => _readKey('BRANCH_KEY', '', isSecret: true);
-
   static String get auClaimSecretKey =>
       _readKey('AU_CLAIM_SECRET_KEY', '', isSecret: true);
 
@@ -227,4 +227,23 @@ class Environment {
 
   static String get supportApiKey =>
       _readKey('SUPPORT_API_KEY', '', isSecret: true);
+
+  //mobileControllerAPIURL
+  static String get mobileControllerAPIURL =>
+      _readKey('MOBILE_CONTROLLER_URL', '');
+
+  static String get mobileControllerApiKey =>
+      _readKey('MOBILE_CONTROLLER_KEY', '', isSecret: true);
+
+  static String get dp1FeedUrl => _readKey('DP1_FEED_URL', '');
+
+  static String get dp1FeedApiKey => _readKey(
+        'DP1_FEED_API_KEY',
+        '',
+        isSecret: true,
+      );
+
+  // Artblocks GraphQL URL
+  static String get artblocksGraphQLURL =>
+      _readKey('ARTBLOCKS_GRAPHQL_URL', '');
 }

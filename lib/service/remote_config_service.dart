@@ -19,7 +19,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   static const String keyRights = 'rights';
   final RemoteConfigApi _api;
 
-  static const Map<String, dynamic> _defaults = <String, dynamic>{
+  static Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
       'enable': true,
       'allow_view_only': true,
@@ -147,7 +147,11 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     },
     'tester': {
       'beta_tester': <String>[],
-    }
+    },
+    'dp1_playlist': {'channel_ids': null},
+    ConfigGroup.documentation.name: {
+      ConfigKey.docsUrl.name: 'https://docs.feralfile.com/ff1?from=app',
+    },
   };
 
   static Map<String, dynamic>? _configs;
@@ -227,6 +231,8 @@ enum ConfigGroup {
   videoSettings,
   localCacheConfig,
   tester,
+  dp1Playlist,
+  documentation,
 }
 
 // ConfigGroup getString extension
@@ -263,6 +269,10 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'local_cache_config';
       case ConfigGroup.tester:
         return 'tester';
+      case ConfigGroup.dp1Playlist:
+        return 'dp1_playlist';
+      case ConfigGroup.documentation:
+        return 'documentation';
     }
   }
 }
@@ -307,6 +317,8 @@ enum ConfigKey {
   featuredWorksLastUpdated,
   foreWord,
   betaTester,
+  dp1PlaylistChannelIds,
+  docsUrl,
 }
 
 // ConfigKey getString extension
@@ -391,6 +403,10 @@ extension ConfigKeyExtension on ConfigKey {
         return 'foreword';
       case ConfigKey.betaTester:
         return 'beta_tester';
+      case ConfigKey.dp1PlaylistChannelIds:
+        return 'channel_ids';
+      case ConfigKey.docsUrl:
+        return 'docs_url';
     }
   }
 }

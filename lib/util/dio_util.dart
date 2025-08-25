@@ -41,6 +41,15 @@ Dio tvCastDio(BaseOptions options) {
   return dio;
 }
 
+Dio mobileControllerDio(BaseOptions options) {
+  final dio = baseDio(options);
+  dio.interceptors
+      .add(MobileControllerAuthInterceptor(Environment.mobileControllerApiKey));
+  dio.addSentry(failedRequestStatusCodes: [SentryStatusCode.range(400, 599)]);
+
+  return dio;
+}
+
 Dio chatDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.chatServerHmacKey));

@@ -202,7 +202,7 @@ class ArtistArtworkDisplaySettingBloc extends AuBloc<
           ids: [state.tokenId],
         );
         final assetToken =
-            await injector<IndexerService>().getNftTokens(request);
+            await injector<NftIndexerService>().getNftTokens(request);
         final setting =
             assetToken.firstOrNull?.attributes?.artistDisplaySetting ??
                 ArtistDisplaySetting();

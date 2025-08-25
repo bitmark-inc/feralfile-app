@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/nft_collection/models/provenance.dart';
 import 'package:autonomy_flutter/nft_collection/services/address_service.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -68,7 +69,7 @@ extension AssetTokenExtension on AssetToken {
   String get secondaryMarketURL {
     switch (blockchain) {
       case 'ethereum':
-        return '$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId';
+        return '$OPENSEA_ASSET_PREFIX/$contractAddress/$tokenId';
       case 'tezos':
         if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
           return '$TEIA_ART_ASSET_PREFIX$tokenId';
@@ -234,6 +235,17 @@ extension AssetTokenExtension on AssetToken {
     }
   }
 
+  bool get canInteract {
+    final supportInteractMedium = [
+      RenderingType.svg,
+      RenderingType.audio,
+      RenderingType.video,
+      RenderingType.pdf,
+      RenderingType.modelViewer,
+    ];
+    return supportInteractMedium.contains(getMimeType);
+  }
+
   String? getGalleryThumbnailUrl({bool usingThumbnailID = true}) {
     if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
       return null;
@@ -358,8 +370,24 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> hasLocalAddress() async {
     final owner = this.owner;
     final collectionAddresses =
-        await injector<AddressService>().getAllAddresses();
+        await injector<NftAddressService>().getAllAddresses();
     return collectionAddresses.any((element) => element.address == owner);
+  }
+
+  DP1Provenance get dp1Provenance {
+    final chain = DP1ProvenanceChain.fromString(blockchain);
+    final standard = this.isBitmarkToken
+        ? DP1ProvenanceStandard.other
+        : DP1ProvenanceStandard.fromString(contractType);
+    final contractAddress = this.contractAddress!;
+    final tokenId = this.tokenId;
+    final dp1Contract = DP1Contract(
+        chain: chain,
+        standard: standard,
+        address: contractAddress,
+        tokenId: tokenId!);
+    return DP1Provenance(
+        type: DP1ProvenanceType.onChain, contract: dp1Contract);
   }
 }
 
@@ -525,7 +553,7 @@ extension AssetExt on Asset {
     String? thumbnailID,
     DateTime? lastRefreshedTime,
     String? artistID,
-    String? artistNam,
+    String? artistName,
     String? artistURL,
     String? artists,
     String? assetID,
@@ -551,7 +579,7 @@ extension AssetExt on Asset {
         thumbnailID ?? this.thumbnailID,
         lastRefreshedTime ?? this.lastRefreshedTime,
         artistID ?? this.artistID,
-        artistName ?? artistName,
+        artistName ?? this.artistName,
         artistURL ?? this.artistURL,
         artists ?? this.artists,
         assetID ?? this.assetID,

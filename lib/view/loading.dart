@@ -7,16 +7,17 @@ import 'package:gif_view/gif_view.dart';
 class LoadingWidget extends StatelessWidget {
   final bool invertColors;
   final Color? backgroundColor;
+  final String? text;
 
   const LoadingWidget(
-      {super.key, this.invertColors = false, this.backgroundColor});
+      {super.key, this.invertColors = false, this.backgroundColor, this.text});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      color: backgroundColor ?? AppColor.primaryBlack,
+      color: backgroundColor ?? AppColor.auGreyBackground,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -30,7 +31,7 @@ class LoadingWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'loading'.tr(),
+              text ?? 'loading'.tr(),
               style: ResponsiveLayout.isMobile
                   ? theme.textTheme.ppMori400White12
                   : theme.textTheme.ppMori400White14,

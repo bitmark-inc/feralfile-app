@@ -172,6 +172,7 @@ class PrimaryAsyncButton extends StatefulWidget {
   final bool enabled;
   final String? processingText;
   final Color? borderColor;
+  final double borderRadius;
 
   const PrimaryAsyncButton(
       {super.key,
@@ -182,6 +183,7 @@ class PrimaryAsyncButton extends StatefulWidget {
       this.width,
       this.enabled = true,
       this.borderColor,
+      this.borderRadius = 32,
       this.processingText});
 
   @override
@@ -228,6 +230,147 @@ class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
         enabled: widget.enabled && !_isProcessing,
         isProcessing: _isProcessing,
       );
+}
+
+class CustomPrimaryButton extends StatelessWidget {
+  final Function()? onTap;
+  final Color? color;
+  final Color? disabledColor;
+  final Color? textColor;
+  final bool isProcessing;
+  final bool enabled;
+  final Color? indicatorColor;
+  final EdgeInsetsGeometry padding;
+  final double borderRadius;
+  final Color? borderColor;
+  final Widget child;
+
+  const CustomPrimaryButton({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.color,
+    this.disabledColor,
+    this.enabled = true,
+    this.isProcessing = false,
+    this.borderColor,
+    this.indicatorColor,
+    this.padding = const EdgeInsets.symmetric(vertical: 13),
+    this.borderRadius = 32,
+    this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final disabledColor = this.disabledColor ?? AppColor.disabledColor;
+    return SizedBox(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              enabled ? color ?? AppColor.feralFileLightBlue : disabledColor,
+          shadowColor: Colors.transparent,
+          padding: padding,
+          disabledForegroundColor: disabledColor,
+          disabledBackgroundColor: disabledColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+            side: BorderSide(
+              color: borderColor ?? Colors.transparent,
+            ),
+          ),
+        ),
+        onPressed: enabled ? onTap : null,
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isProcessing)
+                Container(
+                  height: 12,
+                  width: 12,
+                  margin: const EdgeInsets.only(right: 8),
+                  child: CircularProgressIndicator(
+                    color: indicatorColor ?? theme.colorScheme.primary,
+                    backgroundColor: theme.colorScheme.surface,
+                    strokeWidth: 2,
+                  ),
+                )
+              else
+                const SizedBox(),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomPrimaryAsyncButton extends StatefulWidget {
+  final Function()? onTap;
+  final Widget child;
+  final Color? color;
+  final bool enabled;
+  final String? processingText;
+  final Color? borderColor;
+  final EdgeInsetsGeometry padding;
+
+  const CustomPrimaryAsyncButton({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.color,
+    this.enabled = true,
+    this.processingText,
+    this.borderColor,
+    this.padding = const EdgeInsets.symmetric(vertical: 2),
+  });
+
+  @override
+  State<CustomPrimaryAsyncButton> createState() =>
+      _CustomPrimaryAsyncButtonState();
+}
+
+class _CustomPrimaryAsyncButtonState extends State<CustomPrimaryAsyncButton> {
+  bool _isProcessing = false;
+
+  late final String randomKey;
+
+  @override
+  void initState() {
+    super.initState();
+    randomKey = DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPrimaryButton(
+      onTap: () {
+        withDebounce(
+          key: randomKey,
+          () async {
+            setState(() {
+              _isProcessing = true;
+            });
+            await widget.onTap?.call();
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _isProcessing = false;
+            });
+          },
+        );
+      },
+      child: widget.child,
+      color: widget.color,
+      borderColor: widget.borderColor,
+      enabled: widget.enabled && !_isProcessing,
+      isProcessing: _isProcessing,
+      padding: widget.padding,
+    );
+  }
 }
 
 class TextAsyncButton extends StatefulWidget {

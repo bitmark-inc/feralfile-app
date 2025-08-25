@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
-import 'package:autonomy_flutter/model/device/base_device.dart';
+import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call_request.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:dio/dio.dart';
@@ -19,11 +20,13 @@ abstract class TvCastService {
     bool shouldShowError = true,
   });
 
+  Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request);
+
   Future<ConnectReplyV2> connect(ConnectRequestV2 request);
 
   Future<DisconnectReplyV2> disconnect(DisconnectRequestV2 request);
 
-  Future<CastListArtworkReply> castListArtwork(CastListArtworkRequest request);
+  Future<CastListArtworkReply> castListArtwork(DP1CallRequest request);
 
   Future<PauseCastingReply> pauseCasting(PauseCastingRequest request);
 
@@ -38,8 +41,6 @@ abstract class TvCastService {
   Future<KeyboardEventReply> keyboardEvent(KeyboardEventRequest request);
 
   Future<RotateReply> rotate(RotateRequest request);
-
-  Future<SendLogReply> getSupport(SendLogRequest request);
 
   Future<GetDeviceStatusReply> getDeviceStatus(
     GetDeviceStatusRequest request,
@@ -73,6 +74,10 @@ abstract class TvCastService {
     SafeShutdownRequest request,
   );
 
+  Future<void> safeRestart(
+    SafeRestartRequest request,
+  );
+
   Future<DeviceRealtimeMetricsReply> deviceMetrics(
     DeviceRealtimeMetricsRequest request,
   );
@@ -87,7 +92,7 @@ abstract class BaseTvCastService implements TvCastService {
     Duration? timeout,
   });
 
-  Map<String, dynamic> _getBody(Request request) =>
+  Map<String, dynamic> _getBody(FF1Request request) =>
       RequestBody(request).toJson();
 
   @override
@@ -96,74 +101,16 @@ abstract class BaseTvCastService implements TvCastService {
     bool shouldShowError = true,
   }) async {
     try {
-      final result = await _sendData(_getBody(request),
-          shouldShowError: shouldShowError,
-          timeout: const Duration(seconds: 10));
+      final result = await _sendData(
+        _getBody(request),
+        shouldShowError: shouldShowError,
+        timeout: const Duration(seconds: 10),
+      );
       // return _mapStatusReply(result);
       return CheckCastingStatusReply.fromJson(result);
     } catch (e) {
       log.info('Failed to get device status: $e');
       rethrow;
-    }
-  }
-
-  CheckCastingStatusReply _mapStatusReply(
-    Map<String, dynamic> result,
-  ) {
-    final state = result['state'];
-    DeviceInfoV2? connectedDevice;
-    final connectedDeviceJson = state['device'];
-    if (connectedDeviceJson != null) {
-      final deviceName = connectedDeviceJson['name'] as String;
-      final deviceId = connectedDeviceJson['id'] as String;
-      connectedDevice = DeviceInfoV2(
-        deviceId: deviceId,
-        deviceName: deviceName,
-        platform: null,
-      );
-    }
-    if (state['command'] == null) {
-      return CheckCastingStatusReply(
-        ok: true,
-        artworks: [],
-        connectedDevice: connectedDevice,
-      );
-    }
-    final commandJson = Map<String, dynamic>.from(state['command'] as Map);
-    final commandString = commandJson['Command'] as String;
-    final command = CastCommand.fromString(commandString);
-    log.info('[_mapStatusReply] command: $commandString');
-    switch (command) {
-      case CastCommand.castListArtwork:
-        final request = CastListArtworkRequest.fromJson(commandJson);
-        return CheckCastingStatusReply(
-          ok: true,
-          artworks: request.artworks,
-          connectedDevice: connectedDevice,
-        );
-      case CastCommand.castDaily:
-        return CheckCastingStatusReply(
-          ok: true,
-          artworks: [],
-          connectedDevice: connectedDevice,
-          displayKey: CastDailyWorkRequest.displayKey,
-        );
-      case CastCommand.castExhibition:
-        final request = CastExhibitionRequest.fromJson(commandJson);
-        return CheckCastingStatusReply(
-          ok: true,
-          artworks: [],
-          connectedDevice: connectedDevice,
-          exhibitionId: request.exhibitionId,
-          catalog: request.catalog,
-          catalogId: request.catalogId,
-        );
-      default:
-        return CheckCastingStatusReply(
-          ok: true,
-          artworks: [],
-          connectedDevice: connectedDevice,
-        );
     }
   }
 
@@ -186,9 +133,9 @@ abstract class BaseTvCastService implements TvCastService {
 
   @override
   Future<CastListArtworkReply> castListArtwork(
-    CastListArtworkRequest request,
+    DP1CallRequest request,
   ) async {
-    final result = await _sendData(_getBody(request));
+    final result = await sendDP1Call(request);
     return CastListArtworkReply.fromJson(result);
   }
 
@@ -236,12 +183,6 @@ abstract class BaseTvCastService implements TvCastService {
   Future<RotateReply> rotate(RotateRequest request) async {
     final result = await _sendData(_getBody(request));
     return RotateReply.fromJson(result);
-  }
-
-  @override
-  Future<SendLogReply> getSupport(SendLogRequest request) async {
-    final result = await _sendData(_getBody(request));
-    return SendLogReply.fromJson(result);
   }
 
   @override
@@ -334,6 +275,16 @@ abstract class BaseTvCastService implements TvCastService {
   }
 
   @override
+  Future<void> safeRestart(SafeRestartRequest request) async {
+    try {
+      await _sendData(_getBody(request));
+    } catch (e) {
+      log.warning('Failed to perform safe restart: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<DeviceRealtimeMetricsReply> deviceMetrics(
     DeviceRealtimeMetricsRequest request,
   ) async {
@@ -351,7 +302,7 @@ class TvCastServiceImpl extends BaseTvCastService {
   TvCastServiceImpl(this._api, this._device);
 
   final TvCastApi _api;
-  final BaseDevice _device;
+  final FFBluetoothDevice _device;
 
   void _handleError(Object error) {
     final context = injector<NavigationService>().context;
@@ -364,9 +315,6 @@ class TvCastServiceImpl extends BaseTvCastService {
             error.error! as FeralfileError,
           ),
         );
-      } else if (error.isBranchError) {
-        final feralfileError = error.branchError;
-        unawaited(UIHelper.showTVConnectError(context, feralfileError));
       }
     } else {
       unawaited(
@@ -411,5 +359,17 @@ class TvCastServiceImpl extends BaseTvCastService {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>> sendDP1Call(DP1CallRequest request) async {
+    await BluetoothDeviceManager().switchDevice(_device);
+    final res = await _sendData(
+      RequestBody(request).toJson(),
+      shouldShowError: false,
+      timeout: const Duration(seconds: 10),
+    );
+    log.info('[TvCastServiceImpl] sendDP1Call response: $res');
+    return res;
   }
 }

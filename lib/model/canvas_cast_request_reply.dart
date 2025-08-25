@@ -8,11 +8,13 @@ import 'package:autonomy_flutter/model/device/device_display_setting.dart';
 import 'package:autonomy_flutter/model/device/device_status.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/device_setting/bluetooth_connected_device_config.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_call_request.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/models/dp1_item.dart';
 import 'package:flutter/material.dart';
 
 enum CastCommand {
   checkStatus,
-  castListArtwork,
+  displayPlaylist,
   pauseCasting,
   resumeCasting,
   nextArtwork,
@@ -23,7 +25,6 @@ enum CastCommand {
   disconnect,
   sendKeyboardEvent,
   rotate,
-  sendLog,
   getDeviceStatus,
   updateArtFraming,
   updateToLatestVersion,
@@ -33,14 +34,15 @@ enum CastCommand {
   castDaily,
   updateDisplaySettings,
   shutdown,
+  reboot,
   deviceMetrics;
 
   static CastCommand fromString(String command) {
     switch (command) {
       case 'checkStatus':
         return CastCommand.checkStatus;
-      case 'castListArtwork':
-        return CastCommand.castListArtwork;
+      case 'displayPlaylist':
+        return CastCommand.displayPlaylist;
       case 'castDaily':
         return CastCommand.castDaily;
       case 'pauseCasting':
@@ -63,8 +65,6 @@ enum CastCommand {
         return CastCommand.sendKeyboardEvent;
       case 'rotate':
         return CastCommand.rotate;
-      case 'sendLog':
-        return CastCommand.sendLog;
       case 'getDeviceStatus':
         return CastCommand.getDeviceStatus;
       case 'updateArtFraming':
@@ -81,6 +81,8 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case 'shutdown':
         return CastCommand.shutdown;
+      case 'reboot':
+        return CastCommand.reboot;
       case 'deviceMetrics':
         return CastCommand.deviceMetrics;
       default:
@@ -88,12 +90,12 @@ enum CastCommand {
     }
   }
 
-  static CastCommand fromRequest(Request request) {
+  static CastCommand fromRequest(FF1Request request) {
     switch (request.runtimeType) {
       case const (CheckCastingStatusRequest):
         return CastCommand.checkStatus;
-      case const (CastListArtworkRequest):
-        return CastCommand.castListArtwork;
+      case const (DP1CallRequest):
+        return CastCommand.displayPlaylist;
       case const (CastDailyWorkRequest):
         return CastCommand.castDaily;
       case const (PauseCastingRequest):
@@ -122,8 +124,6 @@ enum CastCommand {
         return CastCommand.updateArtFraming;
       case const (UpdateToLatestVersionRequest):
         return CastCommand.updateToLatestVersion;
-      case const (SendLogRequest):
-        return CastCommand.sendLog;
       case const (TapGestureRequest):
         return CastCommand.tapGesture;
       case const (DragGestureRequest):
@@ -134,6 +134,8 @@ enum CastCommand {
         return CastCommand.updateDisplaySettings;
       case const (SafeShutdownRequest):
         return CastCommand.shutdown;
+      case const (SafeRestartRequest):
+        return CastCommand.reboot;
       case const (DeviceRealtimeMetricsRequest):
         return CastCommand.deviceMetrics;
       default:
@@ -145,7 +147,7 @@ enum CastCommand {
 class RequestBody {
   RequestBody(this.request) : command = CastCommand.fromRequest(request);
   final CastCommand command;
-  final Request request;
+  final FF1Request request;
 
   Map<String, dynamic> toJson() => {
         'command': command.toString().split('.').last,
@@ -206,7 +208,7 @@ class ReplyWithOK extends Reply {
       };
 }
 
-abstract class Request {
+abstract class FF1Request {
   Map<String, dynamic> toJson();
 }
 
@@ -246,7 +248,7 @@ class DeviceInfoV2 {
 }
 
 // Class representing ConnectRequestV2 message
-class ConnectRequestV2 implements Request {
+class ConnectRequestV2 implements FF1Request {
   ConnectRequestV2({required this.clientDevice, required this.primaryAddress});
 
   factory ConnectRequestV2.fromJson(Map<String, dynamic> json) =>
@@ -289,7 +291,7 @@ class ConnectReplyV2 extends ReplyWithOK {
 }
 
 // Class representing DisconnectRequestV2 message
-class DisconnectRequestV2 implements Request {
+class DisconnectRequestV2 implements FF1Request {
   DisconnectRequestV2();
 
   factory DisconnectRequestV2.fromJson(Map<String, dynamic> json) =>
@@ -308,7 +310,7 @@ class DisconnectReplyV2 extends ReplyWithOK {
 }
 
 // Class representing CastAssetToken message
-class CastAssetToken implements Request {
+class CastAssetToken implements FF1Request {
   CastAssetToken({required this.id});
 
   factory CastAssetToken.fromJson(Map<String, dynamic> json) => CastAssetToken(
@@ -323,7 +325,7 @@ class CastAssetToken implements Request {
 }
 
 // Class representing CastArtwork message
-class CastArtwork implements Request {
+class CastArtwork implements FF1Request {
   CastArtwork({required this.url, required this.mimetype});
 
   factory CastArtwork.fromJson(Map<String, dynamic> json) => CastArtwork(
@@ -369,7 +371,7 @@ class PlayArtworkV2 {
 }
 
 // Class representing CastListArtworkRequest message
-class CastListArtworkRequest implements Request {
+class CastListArtworkRequest implements FF1Request {
   CastListArtworkRequest({
     required this.artworks,
     this.startTime,
@@ -394,7 +396,7 @@ class CastListArtworkRequest implements Request {
 }
 
 // Class representing CheckDeviceStatusRequest message
-class CheckCastingStatusRequest implements Request {
+class CheckCastingStatusRequest implements FF1Request {
   CheckCastingStatusRequest();
 
   factory CheckCastingStatusRequest.fromJson(Map<String, dynamic> json) =>
@@ -418,6 +420,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
     this.displayKey,
     this.deviceSettings,
     super.error,
+    this.items,
   }) : isPaused = isPaused ?? false;
 
   factory CheckCastingStatusReply.fromJson(Map<String, dynamic> json) =>
@@ -448,6 +451,15 @@ class CheckCastingStatusReply extends ReplyWithOK {
                 json['deviceSettings'] as Map<String, dynamic>,
               )
             : null,
+        items: json['items'] == null
+            ? null
+            : List<DP1Item>.from(
+                (json['items'] as List).map(
+                  (x) => DP1Item.fromJson(
+                    Map<String, dynamic>.from(x as Map),
+                  ),
+                ),
+              ),
         error: json['error'] != null
             ? ReplyError.fromString(json['error'] as String)
             : null,
@@ -469,6 +481,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
   ExhibitionCatalog? catalog;
   String? displayKey;
   DeviceDisplaySetting? deviceSettings;
+  final List<DP1Item>? items;
 
   @override
   Map<String, dynamic> toJson() => {
@@ -497,6 +510,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
     ExhibitionCatalog? catalog,
     String? displayKey,
     DeviceDisplaySetting? deviceSettings,
+    List<DP1Item>? items,
     ReplyError? error,
   }) {
     return CheckCastingStatusReply(
@@ -510,6 +524,7 @@ class CheckCastingStatusReply extends ReplyWithOK {
       catalog: catalog ?? this.catalog,
       displayKey: displayKey ?? this.displayKey,
       deviceSettings: deviceSettings ?? this.deviceSettings,
+      items: items ?? this.items,
       error: error ?? super.error,
     );
   }
@@ -529,7 +544,7 @@ class CastListArtworkReply extends ReplyWithOK {
 }
 
 // Class representing PauseCastingRequest message
-class PauseCastingRequest implements Request {
+class PauseCastingRequest implements FF1Request {
   PauseCastingRequest();
 
   factory PauseCastingRequest.fromJson(Map<String, dynamic> json) =>
@@ -548,7 +563,7 @@ class PauseCastingReply extends ReplyWithOK {
 }
 
 // Class representing ResumeCastingRequest message
-class ResumeCastingRequest implements Request {
+class ResumeCastingRequest implements FF1Request {
   ResumeCastingRequest({this.startTime});
 
   factory ResumeCastingRequest.fromJson(Map<String, dynamic> json) =>
@@ -572,7 +587,7 @@ class ResumeCastingReply extends ReplyWithOK {
 }
 
 // Class representing NextArtworkRequest message
-class NextArtworkRequest implements Request {
+class NextArtworkRequest implements FF1Request {
   NextArtworkRequest({this.startTime});
 
   factory NextArtworkRequest.fromJson(Map<String, dynamic> json) =>
@@ -596,7 +611,7 @@ class NextArtworkReply extends ReplyWithOK {
 }
 
 // Class representing PreviousArtworkRequest message
-class PreviousArtworkRequest implements Request {
+class PreviousArtworkRequest implements FF1Request {
   PreviousArtworkRequest({this.startTime});
 
   factory PreviousArtworkRequest.fromJson(Map<String, dynamic> json) =>
@@ -620,7 +635,7 @@ class PreviousArtworkReply extends ReplyWithOK {
 }
 
 // Class representing UpdateDurationRequest message
-class UpdateDurationRequest implements Request {
+class UpdateDurationRequest implements FF1Request {
   UpdateDurationRequest({required this.artworks});
 
   factory UpdateDurationRequest.fromJson(Map<String, dynamic> json) =>
@@ -688,7 +703,7 @@ enum ExhibitionCatalog {
 }
 
 // Class representing CastExhibitionRequest message
-class CastExhibitionRequest implements Request {
+class CastExhibitionRequest implements FF1Request {
   CastExhibitionRequest({
     required this.catalog,
     this.exhibitionId,
@@ -721,7 +736,7 @@ class CastExhibitionReply extends ReplyWithOK {
       CastExhibitionReply(ok: json['ok'] as bool);
 }
 
-class KeyboardEventRequest implements Request {
+class KeyboardEventRequest implements FF1Request {
   KeyboardEventRequest({required this.code});
 
   @override
@@ -740,7 +755,7 @@ class KeyboardEventReply extends ReplyWithOK {
       KeyboardEventReply(ok: json['ok'] as bool);
 }
 
-class RotateRequest implements Request {
+class RotateRequest implements FF1Request {
   RotateRequest({required this.clockwise});
 
   factory RotateRequest.fromJson(Map<String, dynamic> json) =>
@@ -765,36 +780,6 @@ class RotateReply extends Reply {
   Map<String, dynamic> toJson() => {'orientation': orientation};
 }
 
-class SendLogRequest implements Request {
-  SendLogRequest({required this.userId, required this.title});
-
-  factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
-        userId: json['userId'] as String,
-        title: json['title'] as String?,
-      );
-
-  final String userId;
-  final String? title;
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'userId': userId,
-        'title': title,
-      };
-}
-
-class SendLogReply extends ReplyWithOK {
-  SendLogReply({required super.ok});
-
-  factory SendLogReply.fromJson(Map<String, dynamic> json) =>
-      SendLogReply(ok: json['ok'] as bool);
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'ok': ok,
-      };
-}
-
 extension OrientationExtension on Orientation {
   String get name {
     switch (this) {
@@ -817,7 +802,7 @@ extension OrientationExtension on Orientation {
   }
 }
 
-class GetDeviceStatusRequest implements Request {
+class GetDeviceStatusRequest implements FF1Request {
   GetDeviceStatusRequest();
 
   factory GetDeviceStatusRequest.fromJson(Map<String, dynamic> json) =>
@@ -842,7 +827,7 @@ class GetDeviceStatusReply extends Reply {
   Map<String, dynamic> toJson() => deviceStatus.toJson();
 }
 
-class UpdateToLatestVersionRequest implements Request {
+class UpdateToLatestVersionRequest implements FF1Request {
   UpdateToLatestVersionRequest();
 
   factory UpdateToLatestVersionRequest.fromJson(Map<String, dynamic> json) =>
@@ -904,7 +889,7 @@ enum ArtFraming {
   }
 }
 
-class UpdateArtFramingRequest implements Request {
+class UpdateArtFramingRequest implements FF1Request {
   UpdateArtFramingRequest({required this.artFraming});
 
   factory UpdateArtFramingRequest.fromJson(Map<String, dynamic> json) =>
@@ -926,7 +911,7 @@ class UpdateArtFramingReply extends ReplyWithOK {
       UpdateArtFramingReply(ok: json['ok'] as bool);
 }
 
-class TapGestureRequest implements Request {
+class TapGestureRequest implements FF1Request {
   TapGestureRequest();
 
   @override
@@ -944,7 +929,7 @@ class GestureReply extends ReplyWithOK {
       GestureReply(ok: json['ok'] as bool);
 }
 
-class DragGestureRequest implements Request {
+class DragGestureRequest implements FF1Request {
   DragGestureRequest({required this.cursorOffsets});
 
   @override
@@ -985,7 +970,7 @@ class CursorOffset {
       };
 }
 
-class EmptyRequest implements Request {
+class EmptyRequest implements FF1Request {
   EmptyRequest();
 
   factory EmptyRequest.fromJson(Map<String, dynamic> json) => EmptyRequest();
@@ -1026,7 +1011,7 @@ class CastDailyWorkReply extends ReplyWithOK {
 }
 
 // Class representing EnableMetricsStreamingRequest message
-class EnableMetricsStreamingRequest implements Request {
+class EnableMetricsStreamingRequest implements FF1Request {
   EnableMetricsStreamingRequest();
 
   factory EnableMetricsStreamingRequest.fromJson(Map<String, dynamic> json) =>
@@ -1045,7 +1030,7 @@ class EnableMetricsStreamingReply extends ReplyWithOK {
 }
 
 // Class representing DisableMetricsStreamingRequest message
-class DisableMetricsStreamingRequest implements Request {
+class DisableMetricsStreamingRequest implements FF1Request {
   DisableMetricsStreamingRequest();
 
   factory DisableMetricsStreamingRequest.fromJson(Map<String, dynamic> json) =>
@@ -1064,7 +1049,7 @@ class DisableMetricsStreamingReply extends ReplyWithOK {
 }
 
 // Class representing ShowPairingQRCodeRequest message
-class ShowPairingQRCodeRequest implements Request {
+class ShowPairingQRCodeRequest implements FF1Request {
   ShowPairingQRCodeRequest({required this.show});
 
   factory ShowPairingQRCodeRequest.fromJson(Map<String, dynamic> json) =>
@@ -1098,7 +1083,7 @@ class ShowPairingQRCodeReply extends Reply {
       };
 }
 
-class UpdateDisplaySettingsRequest implements Request {
+class UpdateDisplaySettingsRequest implements FF1Request {
   UpdateDisplaySettingsRequest({
     required this.tokenId,
     required this.setting,
@@ -1124,11 +1109,21 @@ class UpdateDisplaySettingsReply extends ReplyWithOK {
       UpdateDisplaySettingsReply(ok: json['ok'] as bool);
 }
 
-class SafeShutdownRequest implements Request {
+class SafeShutdownRequest implements FF1Request {
   SafeShutdownRequest();
 
   factory SafeShutdownRequest.fromJson(Map<String, dynamic> json) =>
       SafeShutdownRequest();
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class SafeRestartRequest implements FF1Request {
+  SafeRestartRequest();
+
+  factory SafeRestartRequest.fromJson(Map<String, dynamic> json) =>
+      SafeRestartRequest();
 
   @override
   Map<String, dynamic> toJson() => {};
@@ -1345,7 +1340,7 @@ extension DeviceScreenExtension on DeviceScreen {
   }
 }
 
-class DeviceRealtimeMetricsRequest implements Request {
+class DeviceRealtimeMetricsRequest implements FF1Request {
   DeviceRealtimeMetricsRequest();
 
   @override

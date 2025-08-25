@@ -222,7 +222,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
                         _canvasDeviceBloc.add(
                           CanvasDeviceCastListArtworkEvent(
                             device,
-                            listPlayArtwork,
+                            [],
+                            // listPlayArtwork,
                             onDone: completer.complete,
                           ),
                         );

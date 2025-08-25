@@ -16,8 +16,6 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/bloc/artist_artwork_display_settings/artist_artwork_display_setting_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -70,6 +68,7 @@ class AuthService {
   }
 
   bool isBetaTester() {
+    return true; // public for all users
     if (kDebugMode) return true;
     try {
       final isBetaTesterFromLocalConfig =
@@ -153,7 +152,6 @@ class AuthService {
       unawaited(_configurationService.setIAPJWT(null));
     }
     injector<SubscriptionBloc>().add(GetSubscriptionEvent());
-    injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
   Future<void> setAuthToken(JWT? jwt, {String? receiptData}) async {

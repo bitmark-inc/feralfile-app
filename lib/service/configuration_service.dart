@@ -79,10 +79,6 @@ abstract class ConfigurationService {
 
   bool isDoneOnboarding();
 
-  DateTime? getLastTimeAskForSubscription();
-
-  Future<void> setLastTimeAskForSubscription(DateTime date);
-
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
   Future<void> updateTempStorageHiddenTokenIDs(
@@ -117,8 +113,6 @@ abstract class ConfigurationService {
   Future<void> setShowTokenDebugInfo(bool show);
 
   Future<void> setDoneOnboardingTime(DateTime time);
-
-  Future<void> setSubscriptionTime(DateTime time);
 
   // Do at once
 
@@ -164,6 +158,12 @@ abstract class ConfigurationService {
   String? getSelectedDeviceId();
 
   Future<void> setSelectedDeviceId(String? deviceId);
+
+  List<String> getRecordedMessages();
+
+  Future<void> addRecordedMessage(String message);
+
+  Future<void> setRecordedMessages(List<String> messages);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -261,6 +261,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'sent_tezos_artwork_metric';
 
   static const String POSTCARD_MINT = 'postcard_mint';
+
+  static const String KEY_RECORDED_MESSAGES = 'recorded_messages';
 
   final SharedPreferences _preferences;
 
@@ -379,20 +381,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
 
   @override
-  DateTime? getLastTimeAskForSubscription() {
-    final d = _preferences.getInt(KEY_LAST_TIME_ASK_SUBSCRIPTION);
-    return d != null ? DateTime.fromMillisecondsSinceEpoch(d) : null;
-  }
-
-  @override
-  Future<void> setLastTimeAskForSubscription(DateTime date) async {
-    await _preferences.setInt(
-      KEY_LAST_TIME_ASK_SUBSCRIPTION,
-      date.millisecondsSinceEpoch,
-    );
-  }
-
-  @override
   Future<void> reload() => _preferences.reload();
 
   @override
@@ -486,11 +474,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       KEY_DONE_ON_BOARDING_TIME,
       time.toIso8601String(),
     );
-  }
-
-  @override
-  Future<void> setSubscriptionTime(DateTime time) async {
-    await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
 
   @override
@@ -651,6 +634,26 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return _preferences.remove(KEY_SELECTED_DEVICE_ID);
     }
     return _preferences.setString(KEY_SELECTED_DEVICE_ID, deviceId);
+  }
+
+  @override
+  List<String> getRecordedMessages() =>
+      _preferences.getStringList(KEY_RECORDED_MESSAGES) ?? [];
+
+  @override
+  Future<void> addRecordedMessage(String message) async {
+    var currentMessages = getRecordedMessages();
+    if (currentMessages.length >= 20) {
+      currentMessages = currentMessages.sublist(0, 19);
+    }
+
+    currentMessages.insert(0, message);
+    await setRecordedMessages(currentMessages);
+  }
+
+  @override
+  Future<void> setRecordedMessages(List<String> messages) async {
+    await _preferences.setStringList(KEY_RECORDED_MESSAGES, messages);
   }
 }
 

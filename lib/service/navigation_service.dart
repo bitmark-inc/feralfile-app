@@ -25,8 +25,10 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_ext.dart';
+import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -46,8 +48,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart'; // import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -72,6 +73,9 @@ class NavigationService {
   BuildContext get context => navigatorKey.currentContext!;
 
   bool get mounted => navigatorKey.currentContext?.mounted == true;
+
+  // current route
+  Route<dynamic>? get currentRoute => CustomRouteObserver.currentRoute.value;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info('NavigationService.navigateTo: $routeName');
@@ -160,6 +164,36 @@ class NavigationService {
     }
   }
 
+  Future<void> openMicrophoneSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.applicationDetails();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
+  Future<void> openDeviceSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.apnSettings();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
+  Future<void> openAccountSettings() async {
+    if (Platform.isAndroid) {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusAndroid;
+      await settings.apnSettings();
+    } else {
+      final settings = OpenSettingsPlus.shared! as OpenSettingsPlusIOS;
+      await settings.appSettings();
+    }
+  }
+
   Future<void> showAppLoadError() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -226,7 +260,7 @@ class NavigationService {
     navigatorKey.currentState?.popUntil(
       (route) =>
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
     );
   }
 
@@ -241,8 +275,42 @@ class NavigationService {
       (route) =>
           route.settings.name == AppRouter.settingsPage ||
           route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition,
+          route.settings.name == AppRouter.homePage,
     );
+  }
+
+  /// Pop to a specific route if it exists in the stack, otherwise push a new route
+  ///
+  /// [routeName] - The route name to navigate to
+  /// [arguments] - Optional arguments for the route
+  /// [pushIfNotExists] - Whether to push the route if it doesn't exist in stack (default: true)
+  ///
+  /// Returns true if popped to existing route, false if pushed new route
+  Future<bool> popToRouteOrPush(String routeName, {Object? arguments}) async {
+    log.info('NavigationService.popToRouteOrPush: $routeName');
+
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return false;
+    }
+
+    // Check if the route exists in the current stack
+    final isRouteInStack = CustomRouteObserver.isRouteInStack(routeName);
+
+    if (isRouteInStack) {
+      // Route exists in stack, pop to it
+      log.info('Route $routeName found in stack, popping to it');
+      navigatorKey.currentState?.popUntil(
+        (route) => route.settings.name == routeName,
+      );
+      return true;
+    } else {
+      // Route doesn't exist in stack, push new route
+      log.info('Route $routeName not found in stack, pushing new route');
+      await navigatorKey.currentState
+          ?.pushNamed(routeName, arguments: arguments);
+      return false;
+    }
   }
 
   Future<void> waitTooLongDialog() async {
@@ -294,78 +362,6 @@ class NavigationService {
         context,
         'unknown_link'.tr(),
         'unknown_link_desc'.tr(),
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
-  }
-
-  Future<void> showCannotResolveBranchLink() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'can_not_resolve_branch_link'.tr(),
-        'can_not_resolve_branch_link_desc'.tr(),
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
-  }
-
-  Future<void> showMembershipGiftCodeEmpty() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'can_not_get_gift_code'.tr(),
-        'can_not_get_gift_code_desc'.tr(),
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
-  }
-
-  Future<void> showFailToRedeemMembership() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'fail_to_redeem_membership'.tr(),
-        'fail_to_redeem_membership_desc'.tr(),
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
-  }
-
-  Future<void> showRedeemMembershipCodeUsed() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'fail_to_redeem_membership'.tr(),
-        'redeem_code_used_desc'.tr(),
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
-  }
-
-  Future<void> showPremiumUserCanNotClaim() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'fail_to_redeem_membership'.tr(),
-        'premium_user_can_not_claim'.tr(),
-        onClose: () => UIHelper.hideInfoDialog(context),
-      );
-    }
-  }
-
-  Future<void> showRedeemMembershipSuccess() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showInfoDialog(
-        context,
-        'redeem_membership_success'.tr(),
-        'redeem_membership_success_desc'.tr(),
         onClose: () => UIHelper.hideInfoDialog(context),
       );
     }
@@ -471,30 +467,30 @@ class NavigationService {
 
     switch (pair.first) {
       case AppRouter.dailyWorkPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.daily;
       case AppRouter.featuredPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.featured;
       case AppRouter.artworksPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.artworks;
       case AppRouter.exhibitionsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.exhibitions;
       case AppRouter.artistsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.artists;
       case AppRouter.curatorsPage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.explore;
         exploreTab = FeralfileHomeTab.curators;
       case AppRouter.organizePage:
-        route = AppRouter.homePageNoTransition;
+        route = AppRouter.homePage;
         homeNavigationTab = HomeNavigatorTab.collection;
       default:
         route = pair.first;
@@ -606,7 +602,7 @@ class NavigationService {
     bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
-    FeedbackType? feedback = FeedbackType.selection,
+    // FeedbackType? feedback = FeedbackType.selection,
   }) async {
     await UIHelper.showFlexibleDialog(
       context,
@@ -615,7 +611,7 @@ class NavigationService {
       isRoundCorner: isRoundCorner,
       backgroundColor: backgroundColor,
       autoDismissAfter: autoDismissAfter,
-      feedback: feedback,
+      // feedback: feedback,
     );
   }
 
@@ -959,7 +955,7 @@ class NavigationService {
       }
 
       final tokenConfiguration = tokenId != null
-          ? await injector<IndexerService>().getTokenConfiguration(tokenId)
+          ? await injector<NftIndexerService>().getTokenConfiguration(tokenId)
           : null;
 
       unawaited(
@@ -982,9 +978,7 @@ class NavigationService {
     if (navigatorKey.currentState != null &&
         navigatorKey.currentState!.mounted == true &&
         navigatorKey.currentContext != null) {
-      final currentRoute = CustomRouteObserver.currentRoute;
-      if (currentRoute != null &&
-          currentRoute.settings.name == UIHelper.artDisplaySettingModal) {
+      if (currentRoute?.isArtDisplaySettingModalShowing ?? false) {
         Navigator.pop(navigatorKey.currentContext!);
       }
     }
@@ -998,7 +992,7 @@ class NavigationService {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Welcome back! It looks like you’re starting fresh. Would you like to create a new account using this passkey?',
+            'Welcome back! It looks like you’re starting fresh. Would you like to contniue?',
             style: Theme.of(context).textTheme.ppMori400White14,
           ),
           const SizedBox(height: 36),
@@ -1039,12 +1033,12 @@ class NavigationService {
       BluetoothDevice device, Function? onTap) async {
     return UIHelper.showDialog(
       context,
-      'The Portal is All Set',
+      'The FF1 is All Set',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your device is already set up and connected. You can head to settings to make changes or check the status.',
+            'Your FF1 is already set up and connected. You can head to settings to make changes or check the status.',
             style: Theme.of(context).textTheme.ppMori400White14,
           ),
           const SizedBox(height: 16),
@@ -1058,5 +1052,110 @@ class NavigationService {
         ],
       ),
     );
+  }
+
+  // show a dialog to inform that version is not compatible, user need to update app to work with the device
+  Future<void> showVersionNotCompatibleDialog() async {
+    final packageInfo = await injector<VersionService>().getPackageInfo();
+    final version = packageInfo.version;
+    final buildNumber = packageInfo.buildNumber;
+    final deviceName =
+        BluetoothDeviceManager().castingBluetoothDevice?.getName ?? 'FF-X1';
+    if (context.mounted) {
+      await UIHelper.showDialog(
+        context,
+        'App Update Required',
+        PopScope(
+          canPop: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.ppMori400White14,
+                  children: [
+                    TextSpan(
+                      text: 'App Version',
+                    ),
+                    TextSpan(
+                      text: ' $version ($buildNumber)',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text: ' is not compatible with your ',
+                    ),
+                    TextSpan(
+                      text: deviceName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text:
+                          '. Please update the app to continue using your device.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              PrimaryAsyncButton(
+                text: 'Update Now',
+                onTap: () async {
+                  // Add your update logic here
+                  await injector<VersionService>().openLatestVersion();
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  // show a dialog to inform that the device is not compatible, user need to update device to work with the app
+  Future<void> showDeviceNotCompatibleDialog() async {
+    if (context.mounted) {
+      final deviceName =
+          BluetoothDeviceManager().castingBluetoothDevice?.getName ?? 'FF-X1';
+      await UIHelper.showDialog(
+        context,
+        'FF1 Software Update Needed',
+        PopScope(
+          canPop: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.ppMori400White14,
+                  children: [
+                    TextSpan(
+                      text: 'Your ',
+                    ),
+                    TextSpan(
+                      text: deviceName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
+                      text: ' is running an older software version.',
+                    ),
+                    TextSpan(
+                      text:
+                          'Please update your FF1 to ensure full functionality.',
+                    ),
+                  ],
+                ),
+              ),
+              // const SizedBox(height: 16),
+              // PrimaryButton(
+              //   text: 'Update Device',
+              //   onTap: () {
+              //     // Add your update logic here
+              //     injector<NavigationService>().goBack();
+              //   },
+              // ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }

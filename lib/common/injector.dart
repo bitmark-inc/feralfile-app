@@ -8,11 +8,11 @@
 // ignore_for_file: cascade_invocations
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/gateway/branch_api.dart';
-import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/gateway/dp1_playlist_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/mobile_controller_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/remote_config_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
@@ -22,8 +22,10 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/indexer_api.dart';
 import 'package:autonomy_flutter/nft_collection/data/api/tzkt_api.dart';
+import 'package:autonomy_flutter/nft_collection/graphql/clients/artblocks_client.dart';
 import 'package:autonomy_flutter/nft_collection/graphql/clients/indexer_client.dart';
 import 'package:autonomy_flutter/nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/nft_collection/services/artblocks_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/indexer_service.dart';
 import 'package:autonomy_flutter/nft_collection/services/tokens_service.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -34,41 +36,41 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart'
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/home/list_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/explore/bloc/record_controller_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/channels/bloc/channels_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/playlists/bloc/playlists_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/screens/index/view/works/bloc/works_bloc.dart';
+import 'package:autonomy_flutter/screen/mobile_controller/services/channels_service.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
+import 'package:autonomy_flutter/service/audio_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
+import 'package:autonomy_flutter/service/dp1_playlist_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/home_widget_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mobile_controller_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/passkey_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/user_interactivity_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
@@ -125,9 +127,18 @@ Future<void> setupHomeWidgetInjector() async {
       injector(),
     ),
   );
+
+  injector.registerLazySingleton<ArtblocksClient>(
+    ArtblocksClient.new,
+  );
+
+  injector.registerLazySingleton<ArtBlockService>(
+    () => ArtBlockService(injector<ArtblocksClient>()),
+  );
+
   final indexerClient = IndexerClient(Environment.indexerURL);
-  injector.registerLazySingleton<IndexerService>(
-    () => IndexerService(indexerClient, injector()),
+  injector.registerLazySingleton<NftIndexerService>(
+    () => NftIndexerService(indexerClient, injector(), injector()),
   );
   injector.registerLazySingleton<RemoteConfigService>(
     () => RemoteConfigServiceImpl(
@@ -140,6 +151,9 @@ Future<void> setupInjector() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   injector.registerLazySingleton(NavigationService.new);
+
+  // Setup NFT collection dependencies
+  // setupNftCollectionDependencies();
 
   injector.registerLazySingleton<NetworkIssueManager>(NetworkIssueManager.new);
 
@@ -157,8 +171,9 @@ Future<void> setupInjector() async {
     apiLogger: apiLog,
     dio: dio,
   );
-  injector
-      .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
+  injector.registerLazySingleton<NftTokensService>(
+    () => NftCollection.tokenService,
+  );
   injector.registerLazySingleton(() => NftCollection.prefs);
   injector.registerLazySingleton(() => NftCollection.database);
   injector.registerLazySingleton(() => NftCollection.addressService);
@@ -231,7 +246,6 @@ Future<void> setupInjector() async {
       ? Environment.tzktTestnetURL
       : Environment.tzktMainnetURL;
   injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
-  injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
     () => PubdocAPI(dio, baseUrl: Environment.pubdocURL),
   );
@@ -280,10 +294,6 @@ Future<void> setupInjector() async {
     ),
   );
 
-  injector.registerLazySingleton<IAPService>(
-    () => IAPServiceImpl(injector(), injector()),
-  );
-
   injector.registerLazySingleton(
     () => TvCastApi(
       tvCastDio(
@@ -295,15 +305,8 @@ Future<void> setupInjector() async {
       baseUrl: Environment.tvCastApiUrl,
     ),
   );
-
-  injector.registerLazySingleton<CurrencyExchangeApi>(
-    () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL),
-  );
-  injector.registerLazySingleton<CurrencyService>(
-    () => CurrencyServiceImpl(injector()),
-  );
-  injector.registerLazySingleton(
-    () => VersionService(injector(), injector(), injector()),
+  injector.registerLazySingleton<VersionService>(
+    () => VersionServiceImpl(injector(), injector(), injector()),
   );
   injector.registerLazySingleton<CustomerSupportService>(
     () => CustomerSupportServiceImpl(
@@ -333,12 +336,12 @@ Future<void> setupInjector() async {
   );
 
   injector.registerLazySingleton<ClientTokenService>(
-    () => ClientTokenService(
-      injector(),
+    () => ClientTokenServiceImpl(
       injector(),
       injector(),
     ),
   );
+
   injector.registerLazySingleton<FeralFileApi>(
     () => FeralFileApi(
       feralFileDio(dioOptions),
@@ -349,13 +352,18 @@ Future<void> setupInjector() async {
     () => IndexerApi(dio, baseUrl: Environment.indexerURL),
   );
 
-  final indexerClient = IndexerClient(Environment.indexerURL);
-  injector.registerLazySingleton<IndexerService>(
-    () => IndexerService(indexerClient, injector()),
+  injector.registerLazySingleton<ArtblocksClient>(
+    ArtblocksClient.new,
   );
 
-  injector
-      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
+  injector.registerLazySingleton<ArtBlockService>(
+    () => ArtBlockService(injector<ArtblocksClient>()),
+  );
+
+  final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<NftIndexerService>(
+    () => NftIndexerService(indexerClient, injector(), injector()),
+  );
 
   injector.registerLazySingleton<EthereumService>(
     () => EthereumServiceImpl(
@@ -392,21 +400,9 @@ Future<void> setupInjector() async {
     ),
   );
 
-  injector.registerLazySingleton<PendingTokenService>(
-    () => PendingTokenService(
-      injector(),
-      injector(),
-      injector(),
-      NftCollection.database.assetTokenDao,
-      NftCollection.database.tokenDao,
-      NftCollection.database.assetDao,
-    ),
-  );
   injector.registerFactory<AddNewPlaylistBloc>(
     () => AddNewPlaylistBloc(injector()),
   );
-  injector
-      .registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc(injector()));
   injector.registerFactory<EditPlaylistBloc>(EditPlaylistBloc.new);
 
   injector.registerFactory<CollectionProBloc>(CollectionProBloc.new);
@@ -423,7 +419,7 @@ Future<void> setupInjector() async {
     () => CanvasDeviceBloc(injector()),
   );
   injector.registerLazySingleton<SubscriptionBloc>(
-    () => SubscriptionBloc(injector()),
+    SubscriptionBloc.new,
   );
   injector.registerLazySingleton<DailyWorkBloc>(
     () => DailyWorkBloc(injector(), injector()),
@@ -431,10 +427,6 @@ Future<void> setupInjector() async {
 
   injector.registerLazySingleton<AccountsBloc>(
     () => AccountsBloc(injector(), injector()),
-  );
-
-  injector.registerLazySingleton<WalletDetailBloc>(
-    () => WalletDetailBloc(injector()),
   );
 
   injector.registerLazySingleton<BluetoothConnectBloc>(
@@ -448,17 +440,75 @@ Future<void> setupInjector() async {
     () => AnnouncementServiceImpl(injector(), injector(), injector()),
   );
 
-  injector.registerLazySingleton<UpgradesBloc>(
-    () => UpgradesBloc(injector(), injector()),
-  );
-
   injector.registerLazySingleton<AccountSettingsClient>(
     () => AccountSettingsClient(Environment.accountSettingUrl),
   );
 
   injector.registerLazySingleton<CloudManager>(CloudManager.new);
+  await injector<CloudManager>().init();
 
   injector.registerLazySingleton<ListPlaylistBloc>(ListPlaylistBloc.new);
 
-  injector.registerLazySingleton<HomeWidgetService>(HomeWidgetService.new);
+  injector.registerLazySingleton<MobileControllerAPI>(
+    () => MobileControllerAPI(
+      mobileControllerDio(
+        dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.mobileControllerAPIURL,
+    ),
+  );
+
+  injector.registerLazySingleton<MobileControllerService>(
+    () => MobileControllerService(injector()),
+  );
+
+  injector.registerLazySingleton<AudioService>(
+    AudioService.new,
+  );
+
+  injector.registerFactory<PlaylistsBloc>(
+    () => PlaylistsBloc(playlistService: injector()),
+  );
+
+  injector.registerLazySingleton<ChannelsService>(
+    () => ChannelsService(injector(), Environment.dp1FeedApiKey),
+  );
+
+  injector.registerFactory<ChannelsBloc>(
+    () => ChannelsBloc(channelsService: injector()),
+  );
+
+  injector.registerLazySingleton<DP1PlaylistApi>(
+    () => DP1PlaylistApi(
+      baseDio(
+        dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.dp1FeedUrl,
+    ),
+  );
+
+  injector.registerLazySingleton<Dp1PlaylistService>(
+    () => Dp1PlaylistService(injector(), Environment.dp1FeedApiKey),
+  );
+
+  injector.registerFactory<WorksBloc>(
+    () => WorksBloc(
+      dp1PlaylistService: injector(),
+      indexerService: injector(),
+    ),
+  );
+
+  injector.registerLazySingleton<RecordBloc>(
+    () => RecordBloc(
+      injector(),
+      injector(),
+      injector(),
+    ),
+  );
 }

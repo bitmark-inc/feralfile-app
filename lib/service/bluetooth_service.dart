@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/device/ff_bluetooth_device.dart';
+import 'package:autonomy_flutter/model/error/bluetooth_error.dart';
+import 'package:autonomy_flutter/model/error/bluetooth_response_error.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/bluetooth_connect/bluetooth_connect_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -18,32 +22,10 @@ import 'package:autonomy_flutter/util/byte_builder_ext.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/timezone.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry/sentry.dart';
-
-const displayingCommand = [
-  CastCommand.castDaily,
-  CastCommand.castListArtwork,
-  CastCommand.castExhibition,
-];
-
-const updateCastInfoCommand = [
-  ...displayingCommand,
-  CastCommand.updateDuration,
-  CastCommand.nextArtwork,
-  CastCommand.previousArtwork,
-  CastCommand.resumeCasting,
-  CastCommand.pauseCasting,
-];
-
-const updateDeviceStatusCommand = [
-  CastCommand.rotate,
-  CastCommand.updateArtFraming,
-  CastCommand.updateToLatestVersion,
-];
 
 enum BluetoothCommand {
   sendWifiCredentials,
@@ -88,7 +70,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error keeping wifi: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -104,7 +86,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending wifi credentials: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -125,7 +107,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error resetting factory: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -140,7 +122,7 @@ enum BluetoothCommand {
     return (data) {
       if (data.errorCode != 0) {
         log.warning('Error sending log: ${data.errorCode}');
-        final error = FFBluetoothError.fromErrorCode(data.errorCode);
+        final error = FFBluetoothResponseError.fromErrorCode(data.errorCode);
         completer.completeError(
           error,
         );
@@ -224,6 +206,7 @@ class FFBluetoothService {
         'Connection state update for ${device.remoteId.str}: ${state.name}',
       );
       if (state == BluetoothConnectionState.connected) {
+        final hash = _connectCompleter?.hashCode;
         try {
           // add safe delay to ensure connection is stable
           await Future.delayed(const Duration(seconds: 1));
@@ -233,27 +216,36 @@ class FFBluetoothService {
           }
           _connectCompleter = null;
         } catch (e, s) {
-          log.warning('Failed to discover characteristics: $e');
+          log.warning(
+              '[onConnectionStateChanged] Failed to discover characteristics: $e');
           unawaited(
             Sentry.captureException(
-              'Failed to discover characteristics: $e',
+              '[onConnectionStateChanged] Failed to discover characteristics: $e',
               stackTrace: s,
             ),
           );
           log.info(
-            'Disconnecting from device: ${device.remoteId.str} due to error $e',
+            '[onConnectionStateChanged] Disconnecting from device: ${device.remoteId.str} due to error $e',
           );
           await device.disconnect();
-          if (_connectCompleter?.isCompleted == false) {
-            _connectCompleter?.completeError(e);
+          if (hash == _connectCompleter?.hashCode) {
+            if (_connectCompleter?.isCompleted == false) {
+              _connectCompleter?.completeError(e);
+            }
+            _connectCompleter = null;
           }
-          _connectCompleter = null;
         }
       } else if (state == BluetoothConnectionState.disconnected) {
         log.warning('Device disconnected reason: ${device.disconnectReason}');
         if (_connectCompleter?.isCompleted == false) {
+          final exception = FFBluetoothDisconnectedError(
+            disconnectReason: device.disconnectReason,
+          );
+          log.info(
+            'Completing _connectCompleter with error: ${device.disconnectReason}',
+          );
           _connectCompleter?.completeError(
-            'Device disconnected reason: ${device.disconnectReason}',
+            exception,
           );
         }
       }
@@ -286,6 +278,10 @@ class FFBluetoothService {
         BluetoothDeviceManager().castingBluetoothDevice != null) {
       await listenForAdapterState();
     }
+
+    FlutterBluePlus.logs.listen((event) {
+      log.info('[FlutterBluePlus]: $event');
+    });
   }
 
   Future<void> listenForAdapterState() async {
@@ -468,7 +464,7 @@ class FFBluetoothService {
     return keepWifiResponse.topicId;
   }
 
-  Future<FFBluetoothDevice?> sendWifiCredentials({
+  Future<String?> sendWifiCredentials({
     required BluetoothDevice device,
     required String ssid,
     required String password,
@@ -506,17 +502,8 @@ class FFBluetoothService {
       '[sendWifi] sendWifiCredentials success, topicId: ${sendWifiCredentialResponse.topicId}',
     );
 
-    final ffBluetoothDevice = device.toFFBluetoothDevice(
-      topicId: sendWifiCredentialResponse.topicId,
-      deviceId: device.advName,
-    );
-
-    log.info(
-      '[sendWifi] sendWifiCredentials success. FFBluetoothDevice: ${ffBluetoothDevice.toJson()}',
-    );
-
     // Update device with topicId
-    return ffBluetoothDevice;
+    return sendWifiCredentialResponse.topicId;
   }
 
   // completer for connectToDevice
@@ -548,7 +535,7 @@ class FFBluetoothService {
       _multiConnectCompleter?.complete();
       _multiConnectCompleter = null;
     }).catchError((Object e) {
-      log.severe('Failed to connect to device: $e');
+      log.info('Failed to connect to device: $e');
       unawaited(Sentry.captureException('Failed to connect to device: $e'));
 
       _multiConnectCompleter?.completeError(e);
@@ -569,29 +556,42 @@ class FFBluetoothService {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     log.info('_connectDevice');
-    await _connect(
-      device,
-      shouldShowError: shouldShowError,
-      autoConnect: false,
-      timeout: timeout,
-    );
+    final isDisconnectedWithSuccess = (Object e) {
+      if (e is FFBluetoothDisconnectedError &&
+          (e as FFBluetoothDisconnectedError).disconnectReason?.code == 0) {
+        return true;
+      }
+      return false;
+    };
+    try {
+      await _connect(
+        device,
+        shouldShowError: (e) {
+          if (isDisconnectedWithSuccess(e)) {
+            return false;
+          }
+          return shouldShowError;
+        },
+        timeout: timeout,
+      );
+    } catch (e) {
+      if (isDisconnectedWithSuccess(e)) {
+        log.info("Connection is not stable, retrying...");
+        await _connect(device,
+            shouldShowError: (_) => shouldShowError, timeout: timeout);
+      } else {
+        throw e;
+      }
+    }
   }
 
   Future<void> _connect(
     BluetoothDevice device, {
-    bool shouldShowError = true,
-    bool autoConnect = true,
+    bool Function(Object e)? shouldShowError,
     Duration timeout = const Duration(seconds: 30),
   }) async {
     // connect to device
-    if (device.isDisconnected ||
-        (autoConnect && !device.isAutoConnectEnabled)) {
-      // if (!autoConnect) {
-      //   log.info('Disconnecting from device: ${device.remoteId.str}');
-      //   await device.disconnect();
-      //   log.info('[_connect] device.disconnect() finished');
-      // }
-
+    if (device.isDisconnected) {
       if (_connectCompleter?.isCompleted == false) {
         log.info(
           '[connect] Already connecting to device: ${device.remoteId.str}',
@@ -601,15 +601,20 @@ class FFBluetoothService {
       _connectCompleter = Completer<void>();
       log.info('[connect] Connecting to device: ${device.remoteId.str}');
       try {
+        await device.disconnect();
+
+        if (Platform.isAndroid) {
+          // Request high connection priority for Android devices
+        }
+        await Future.delayed(const Duration(milliseconds: 1000));
         await device.connect(
           timeout: timeout,
-          autoConnect: autoConnect,
           mtu: null,
         );
       } catch (e) {
         log.warning('Failed to connect to device: $e');
         unawaited(Sentry.captureException('Failed to connect to device: $e'));
-        if (shouldShowError) {
+        if (shouldShowError?.call(e) ?? true) {
           unawaited(
             injector<NavigationService>().showCannotConnectToBluetoothDevice(
               device,
@@ -622,25 +627,34 @@ class FFBluetoothService {
       }
 
       log.info(
-        '''
-[_connect] Wait for connection to complete, autoConnect = $autoConnect, device.isConnected = ${device.isConnected}
-''',
+        '''[_connect] Wait for _connectCompleter to complete''',
       );
       // Wait for connection to complete
-      if (autoConnect && device.isConnected) {
-        _connectCompleter?.complete();
-        _connectCompleter = null;
-      } else {
+      {
         if (_connectCompleter == null) {
           log.info('[_connect] _connectCompleter is null');
           return;
         }
+        final now = DateTime.now();
+
+        final timer = Timer.periodic(
+          const Duration(seconds: 1),
+          (Timer timer) {
+            if (_connectCompleter?.isCompleted == true) {
+              timer.cancel();
+            } else {
+              log.info(
+                '[_connect] Waiting for connection to complete: ${DateTime.now().difference(now).inSeconds} seconds',
+              );
+            }
+          },
+        );
 
         await _connectCompleter?.future.timeout(
           const Duration(seconds: 30),
           onTimeout: () {
             log.warning('Timeout waiting for connection to complete');
-            if (shouldShowError) {
+            if (shouldShowError?.call(e) ?? true) {
               unawaited(
                 injector<NavigationService>()
                     .showCannotConnectToBluetoothDevice(
@@ -653,12 +667,16 @@ class FFBluetoothService {
           },
         ).catchError((Object e) {
           log.warning('Error waiting for connection to complete: $e');
+          timer.cancel();
           unawaited(
             Sentry.captureException(
               'Error waiting for connection to complete: $e',
             ),
           );
-          if (shouldShowError) {
+          log.info(
+            '[_connect] Connection took ${DateTime.now().difference(now).inSeconds} seconds',
+          );
+          if (shouldShowError?.call(e) ?? true) {
             unawaited(
               injector<NavigationService>().showCannotConnectToBluetoothDevice(
                 device,
@@ -669,6 +687,7 @@ class FFBluetoothService {
           throw e;
         });
         log.info('Connected to device: ${device.remoteId.str}');
+        timer.cancel();
       }
     } else {
       log.info('Device already connected: ${device.remoteId.str}');
@@ -681,31 +700,78 @@ class FFBluetoothService {
     FutureOr<void> Function(dynamic)? onError,
     bool forceScan = false,
   }) async {
-    try {
-      if (!injector<AuthService>().isBetaTester() && !forceScan) {
-        return;
-      }
+    if (!injector<AuthService>().isBetaTester() && !forceScan) {
+      return;
+    }
+    final haftTimeout = timeout ~/ 2;
+    bool deviceFound = await _startScan(
+      timeout: haftTimeout,
+      onData: onData,
+      onError: onError,
+    );
 
+    if (deviceFound) {
+      log.info('Device found during initial scan');
+      return;
+    }
+    deviceFound = await _startScan(
+      timeout: haftTimeout,
+      onData: onData,
+      onError: onError,
+    );
+    if (!deviceFound) {
+      log.info('No device found during second scan');
+      Sentry.captureMessage(
+        'Device scan completed: device not found',
+      );
+    }
+  }
+
+  Future<bool> _startScan({
+    Duration timeout = const Duration(seconds: 30),
+    FutureOr<bool> Function(List<BluetoothDevice>)? onData,
+    FutureOr<void> Function(dynamic)? onError,
+  }) async {
+    bool foundDevice = false;
+    try {
       await listenForAdapterState();
+
+      await FlutterBluePlus.stopScan();
+
+      await Future.delayed(Duration(milliseconds: 500)); // safe delay
 
       final connectedDevices = FlutterBluePlus.connectedDevices;
       final shouldStop = await onData?.call(connectedDevices);
       if (shouldStop == true) {
         log.info('BluetoothConnectEventScan startScan: already connected');
-        return;
+        return true;
       }
       StreamSubscription<List<ScanResult>>? scanSubscription;
 
+      final now = DateTime.now();
+
       scanSubscription = FlutterBluePlus.onScanResults.listen(
         (results) async {
+          log.info(
+            'BluetoothConnectEventScan onScanResults: ${results.map((r) => '${r.device.advName}-${r.advertisementData.serviceUuids.join(',')}').join(',\n')}',
+          );
           final devices = results.map((result) => result.device).toList();
           final shouldStopScan = await onData
               ?.call(devices..addAll(FlutterBluePlus.connectedDevices));
           if (shouldStopScan == true) {
-            FlutterBluePlus.stopScan();
+            log.info(
+                'Scanned Times: ${DateTime.now().difference(now).inSeconds} seconds');
+            foundDevice = true;
+            await FlutterBluePlus.stopScan();
           }
         },
         onError: (Object error) {
+          log.info(
+            'BluetoothConnectEventScan onScanResults error: $error',
+          );
+          Sentry.captureException(
+            'BluetoothConnectEventScan onScanResults error: $error',
+          );
           onError?.call(error);
           scanSubscription?.cancel();
         },
@@ -729,6 +795,7 @@ class FFBluetoothService {
     } finally {
       log.info('BluetoothConnectEventScan stopScan');
       await FlutterBluePlus.stopScan();
+      return foundDevice;
     }
   }
 
@@ -745,20 +812,28 @@ class FFBluetoothService {
     log.info('[factoryReset] res: $res');
   }
 
-  Future<void> sendLog(FFBluetoothDevice device) async {
-    if (device.isDisconnected) {
-      await connectToDevice(device, timeout: Duration(seconds: 10));
-    }
-    final userId = injector<AuthService>().getUserId();
-    final message = device.getName;
-    final request = SendLogRequest(userId: userId!, title: message);
-    final res = await sendCommand(
-        device: device,
-        command: BluetoothCommand.sendLog,
-        request: request.toJson(),
-        timeout: const Duration(seconds: 30));
+  Future<void> sendLog(FFBluetoothDevice device, String? title) async {
+    try {
+      if (device.isDisconnected) {
+        await connectToDevice(device, timeout: Duration(seconds: 10));
+      }
+      final userId = injector<AuthService>().getUserId();
+      final message = title ?? device.getName;
+      final apiKey = Environment.supportApiKey;
+      final request =
+          SendLogRequest(userId: userId!, title: message, apiKey: apiKey);
+      final res = await sendCommand(
+          device: device,
+          command: BluetoothCommand.sendLog,
+          request: request.toJson(),
+          timeout: const Duration(seconds: 30));
 
-    log.info('[sendLog] res: $res');
+      log.info('[sendLog] res: $res');
+    } catch (e) {
+      rethrow;
+    } finally {
+      await device.disconnect();
+    }
   }
 }
 
@@ -856,107 +931,29 @@ class FactoryResetRequest extends BluetoothRequest {
 
 class FactoryResetResponse extends BluetoothResponse {}
 
-class SendLogRequest implements Request {
-  SendLogRequest({required this.userId, required this.title});
+class SendLogRequest implements FF1Request {
+  SendLogRequest(
+      {required this.userId, required this.title, required this.apiKey});
 
   factory SendLogRequest.fromJson(Map<String, dynamic> json) => SendLogRequest(
         userId: json['userId'] as String,
+        apiKey: json['apiKey'] as String,
         title: json['title'] as String?,
       );
 
   final String userId;
   final String? title;
+  final String apiKey;
 
   @override
   Map<String, dynamic> toJson() => {
         'userId': userId,
+        'apiKey': apiKey,
         'title': title,
       };
 }
 
 class SendLogResponse extends BluetoothResponse {}
-
-enum FFBluetoothErrorCode {
-  userEnterWrongPassword(1),
-  wifiConnectedButNoInternet(2),
-  wifiConnectedButCannotReachServer(3),
-  // BLE_ERR_CODE_WIFI_REQUIRED
-  wifiRequired(4),
-  // BLE_ERR_CODE_DEVICE_UPDATING
-  deviceUpdating(5),
-  // BLE_ERR_CODE_VERSION_CHECK_FAILED
-  versionCheckFailed(6),
-  unknownError(255);
-
-  const FFBluetoothErrorCode(this.code);
-
-  final int code;
-}
-
-class FFBluetoothError implements Exception {
-  FFBluetoothError(this.message, {this.title = 'Error'});
-
-  final String message;
-  final String title;
-
-  static FFBluetoothError fromErrorCode(int errorCode) {
-    final error = FFBluetoothErrorCode.values
-        .firstWhereOrNull((e) => e.code == errorCode);
-    switch (error) {
-      case FFBluetoothErrorCode.userEnterWrongPassword:
-        // user enter wrong password
-        return FFBluetoothError(
-            title: 'Incorrect Wi-Fi Password',
-            'Failed to connect to Wi-Fi. Please check your password and try again.');
-      case FFBluetoothErrorCode.wifiConnectedButCannotReachServer:
-        return FFBluetoothError(
-          title: 'Server Unreachable',
-          'Connected to Wi-Fi but cannot reach our server. Please check your internet connection.',
-        );
-      case FFBluetoothErrorCode.wifiConnectedButNoInternet:
-        return FFBluetoothError(
-          title: 'No Internet Access',
-          'Connected to Wi-Fi but no internet access. Please check your internet connection.',
-        );
-      case FFBluetoothErrorCode.wifiRequired:
-        return FFBluetoothError(
-          title: 'Wi-Fi Required',
-          'This device requires a Wi-Fi connection to function properly. Please connect to a Wi-Fi network.',
-        );
-      case FFBluetoothErrorCode.deviceUpdating:
-        return DeviceUpdatingError();
-
-      case FFBluetoothErrorCode.versionCheckFailed:
-        return DeviceVersionCheckFailedError();
-      default:
-        return FFBluetoothError(
-          title: 'Wi-Fi Connection Error',
-          'Unknown error occurred while connecting to Wi-Fi. Error code: $errorCode',
-        );
-    }
-  }
-
-  // toString() {
-  String toString() {
-    return message;
-  }
-}
-
-class DeviceUpdatingError extends FFBluetoothError {
-  DeviceUpdatingError()
-      : super(
-          'The device is currently updating. Please wait for the update to complete and try again.',
-          title: 'Device Updating',
-        );
-}
-
-class DeviceVersionCheckFailedError extends FFBluetoothError {
-  DeviceVersionCheckFailedError()
-      : super(
-          'The device version check failed. Please try again or contact support.',
-          title: 'Version Check Failed',
-        );
-}
 
 class ScanWifiRequest extends BluetoothRequest {
   const ScanWifiRequest();
@@ -1014,11 +1011,6 @@ class SetTimezoneReply extends BluetoothResponse {
   factory SetTimezoneReply.fromJson(Map<String, dynamic> _) =>
       SetTimezoneReply();
 }
-
-void handleBluetoothError({
-  FFBluetoothError? error,
-  bool shouldShowError = true,
-}) {}
 
 extension FlutterBluePlusExceptionExt on FlutterBluePlusException {
   bool get canIgnore {

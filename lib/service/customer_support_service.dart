@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/draft_customer_support.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/bluetooth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/util/bluetooth_device_helper.dart';
@@ -401,7 +401,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             final castingDevice =
                 BluetoothDeviceManager().castingBluetoothDevice;
             if (castingDevice != null) {
-              await injector<CanvasClientServiceV2>()
+              await injector<FFBluetoothService>()
                   .sendLog(castingDevice, data.text);
               log.info('[CS-Service] send log from FF Device success');
             }

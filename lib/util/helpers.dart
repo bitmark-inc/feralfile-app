@@ -5,24 +5,38 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 
 int compareVersion(String version1, String version2) {
-  final ver1 =
-      version1.split(".").map((e) => int.tryParse(e)).whereNotNull().toList();
-  final ver2 =
-      version2.split(".").map((e) => int.tryParse(e)).whereNotNull().toList();
+  List<int> parseVersion(String version) {
+    final regex = RegExp(r'^([\d.]+)(?:\((\d+)\))?$');
+    final match = regex.firstMatch(version.trim());
 
-  var i = 0;
-  while (i < ver1.length && i < ver2.length) {
-    final result = ver1[i] - ver2[i];
-    if (result != 0) {
-      return result;
+    if (match == null) return [];
+
+    final base = match.group(1)!;
+    final build = match.group(2);
+
+    final baseParts = base.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    if (build != null) {
+      baseParts.add(int.tryParse(build) ?? 0); // Add build number as 4th part
     }
-    i++;
+    return baseParts;
   }
-  return ver1.length - ver2.length;
+
+  final ver1 = parseVersion(version1);
+  final ver2 = parseVersion(version2);
+
+  final maxLength = ver1.length > ver2.length ? ver1.length : ver2.length;
+
+  for (int i = 0; i < maxLength; i++) {
+    final v1 = i < ver1.length ? ver1[i] : 0;
+    final v2 = i < ver2.length ? ver2[i] : 0;
+    final diff = v1 - v2;
+    if (diff != 0) return diff;
+  }
+
+  return 0; // equal
 }
 
 Future<http.Response> callRequest(Uri uri) async {

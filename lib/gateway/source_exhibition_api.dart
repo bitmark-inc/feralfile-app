@@ -53,7 +53,7 @@ extension SourceExhibitionAPIHelper on SourceExhibitionAPI {
         final firstArtwork = artworkWithSeries.first;
         return e.copyWith(artwork: firstArtwork, artworks: artworkWithSeries);
       }).toList();
-    } catch (e) {
+    } catch (e, s) {
       log.info('Error fetching source exhibition series: $e');
       return [];
     }

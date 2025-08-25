@@ -6,25 +6,28 @@ part of 'source_exhibition_api.dart';
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element
 
 class _SourceExhibitionAPI implements SourceExhibitionAPI {
   _SourceExhibitionAPI(
     this._dio, {
     this.baseUrl,
+    this.errorLogger,
   });
 
   final Dio _dio;
 
   String? baseUrl;
 
+  final ParseErrorLogger? errorLogger;
+
   @override
   Future<String> getSourceExhibition() async {
-    const _extra = <String, dynamic>{};
+    final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<String>(_setStreamType<String>(Options(
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<String>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -39,18 +42,25 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
             baseUrl: _combineBaseUrls(
           _dio.options.baseUrl,
           baseUrl,
-        ))));
-    final value = _result.data!;
-    return value;
+        )));
+    final _result = await _dio.fetch<String>(_options);
+    late String _value;
+    try {
+      _value = _result.data!;
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
   Future<String> getSourceSeries() async {
-    const _extra = <String, dynamic>{};
+    final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<String>(_setStreamType<String>(Options(
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<String>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -65,9 +75,16 @@ class _SourceExhibitionAPI implements SourceExhibitionAPI {
             baseUrl: _combineBaseUrls(
           _dio.options.baseUrl,
           baseUrl,
-        ))));
-    final value = _result.data!;
-    return value;
+        )));
+    final _result = await _dio.fetch<String>(_options);
+    late String _value;
+    try {
+      _value = _result.data!;
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

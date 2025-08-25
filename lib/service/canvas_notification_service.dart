@@ -36,6 +36,9 @@ class CanvasNotificationService {
         throw Exception('User not authenticated');
       }
 
+      _reconnectTimer?.cancel();
+      _stopPingTimer();
+
       final apiKey = Environment.tvKey;
       final topicId = _device.topicId;
       final clientId = userId;
@@ -45,13 +48,16 @@ class CanvasNotificationService {
 
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
+      log.info(
+          '[CanvasNotificationService] Device ${_device.name} connecting to ${wsUrl.replaceAll(apiKey, '***')}');
+
       final completer = Completer<bool>();
       _channel!.stream.listen(
-        (data) {
+        (message) {
           if (!completer.isCompleted) {
             completer.complete(true);
           }
-          _handleMessage(data);
+          _handleMessage(message);
         },
         onError: (Object error) {
           if (!completer.isCompleted) {
@@ -61,9 +67,11 @@ class CanvasNotificationService {
         },
         onDone: _handleDisconnect,
       );
+
       _isConnected = await completer.future;
 
       if (_isConnected) {
+        _reconnectTimer?.cancel();
         _startPingTimer();
         _lastError = null;
       }
@@ -113,7 +121,15 @@ class CanvasNotificationService {
 
   void _scheduleReconnect() {
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 5), connect);
+    log.info(
+        '[CanvasNotificationService] Device ${_device.name} scheduling reconnect');
+    _reconnectTimer = Timer(const Duration(seconds: 5), () async {
+      log.info(
+          '[CanvasNotificationService] Device ${_device.name} attempting to reconnect');
+      if (_reconnectTimer?.isActive ?? false) {
+        await connect();
+      }
+    });
   }
 
   void _sendPing() {
@@ -128,6 +144,8 @@ class CanvasNotificationService {
     await _channel?.sink.close();
     _channel = null;
     _isConnected = false;
+    log.info(
+        '[CanvasNotificationService] Device ${_device.name} called disconnect');
   }
 
   bool get isConnected => _isConnected;

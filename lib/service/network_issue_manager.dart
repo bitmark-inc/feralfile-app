@@ -4,9 +4,11 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry/sentry.dart';
 import 'package:synchronized/synchronized.dart';
 
 class NetworkIssueManager {
@@ -74,6 +76,9 @@ class NetworkIssueManager {
     try {
       return await fn();
     } on Exception catch (e) {
+      log.info('Network issue detected: $e');
+      unawaited(Sentry.captureException('Network issue detected: $e',
+          stackTrace: StackTrace.current));
       if (e.isNetworkIssue && maxRetries > 0) {
         final context =
             injector<NavigationService>().navigatorKey.currentContext;

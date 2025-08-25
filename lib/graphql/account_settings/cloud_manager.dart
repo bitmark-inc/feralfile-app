@@ -11,8 +11,10 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudManager {
-  CloudManager() {
-    unawaited(_init());
+  CloudManager() {}
+
+  Future<void> init() async {
+    await _init();
   }
 
   late final String _deviceId;

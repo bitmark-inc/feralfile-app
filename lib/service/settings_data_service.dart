@@ -48,9 +48,11 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
   // user settings
   static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
+  static const _keySelectedDeviceId = 'selectedDeviceId';
 
   static const _userSettingsKeys = [
     _keyHiddenMainnetTokenIDs,
+    _keySelectedDeviceId,
   ];
 
   @override
@@ -99,6 +101,10 @@ class SettingsDataServiceImpl implements SettingsDataService {
           [],
       true,
       override: true,
+    );
+
+    await _configurationService.setSelectedDeviceId(
+      data[_keySelectedDeviceId] as String?,
     );
 
     final legacyPlaylists = (data[_keyPlaylists] as List<dynamic>?)
@@ -170,6 +176,16 @@ class SettingsDataServiceImpl implements SettingsDataService {
       newSettings.add({
         'key': _keyHiddenMainnetTokenIDs,
         'value': hiddenMainnetTokenIDs,
+      });
+    }
+
+    // backup SelectedDeviceId
+    final selectedDeviceId =
+        jsonEncode(_configurationService.getSelectedDeviceId());
+    if (currentSettings['selectedDeviceId'] != selectedDeviceId) {
+      newSettings.add({
+        'key': _keySelectedDeviceId,
+        'value': selectedDeviceId,
       });
     }
 
