@@ -6,10 +6,16 @@ on:
 jobs:
   split-tokens:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -18,6 +24,20 @@ jobs:
 
       - name: Install jq
         run: sudo apt-get install jq -y
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase on latest main
+        run: |
+          git fetch origin main
+          if ! git rebase origin/main; then
+            echo "❌ Rebase failed, aborting"
+            git rebase --abort
+            exit 1
+          fi
 
       - name: Split design tokens into multiple files
         run: |
@@ -30,8 +50,12 @@ jobs:
 
       - name: Commit split design tokens
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
           git add lib/design/tokens/*.json
-          git commit -m "chore: update split tokens" || echo "No changes"
-          git push
+          if git diff --cached --quiet; then
+            echo "✅ No changes to design tokens"
+          else
+            echo "Design tokens is split, committing..."
+            git commit -m "chore: update split design tokens"
+            git push --force-with-lease origin HEAD:${{ github.head_ref }}
+            echo "✅ Design tokens committed and pushed"
+          fi
