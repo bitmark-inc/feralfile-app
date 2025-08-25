@@ -20,9 +20,11 @@ jobs:
         with:
           flutter-version: "3.27.2"
           channel: stable
-      - uses: maxim-lobanov/setup-xcode@v1
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.1"
+          xcode-version: latest-stable
 
       - name: Set env
         run: |
@@ -81,20 +83,28 @@ jobs:
 
       - uses: mathieu-bour/setup-sentry-cli@main
 
+      - name: Install Platform
+        run: xcodebuild -downloadPlatform iOS -buildVersion 18.5
+
       - name: Show installed SDKs
         run: xcodebuild -showsdks
 
-      - name: Show available runtimes
+      - name: Show available runtimes`
         run: xcrun simctl list runtimes
-
-      - name: Select Xcode 16.1
-        run: sudo xcode-select -s /Applications/Xcode_16.1.app
 
       - name: Verify Xcode
         run: |
           xcode-select -p
           xcodebuild -version
           xcodebuild -showsdks
+
+      - name: Verify Swift and iOS versions
+        run: |
+          cd ios/
+          echo "Checking Swift version in Pods..."
+          find Pods -name "*.pbxproj" -exec grep -l "SWIFT_VERSION" {} \; | head -5 | xargs -I {} grep "SWIFT_VERSION" {}
+          echo "Checking iOS deployment targets in Pods..."
+          find Pods -name "*.pbxproj" -exec grep -l "IPHONEOS_DEPLOYMENT_TARGET" {} \; | head -5 | xargs -I {} grep "IPHONEOS_DEPLOYMENT_TARGET" {}
 
       # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
       - name: Build and deploy with Fastlane

@@ -15,6 +15,9 @@
 
 default_platform(:ios)
 
+ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] = '60'
+ENV['FASTLANE_XCODEBUILD_SETTINGS_RETRIES'] = '6'
+
 platform :ios do
 	def get_max_appcenter_build
 		appcenter_info = appcenter_fetch_version_number(
@@ -201,7 +204,6 @@ platform :ios do
 			scheme: "production",
 			export_method: "app-store",
 			workspace: "Runner.xcworkspace",
-			sdk: "iphoneos18.1",
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: true,
@@ -250,15 +252,6 @@ platform :ios do
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Feral_File_app_widget.mobileprovision")
-
-# 		update_info_plist(
-#           xcodeproj: "Runner.xcodeproj",
-#           plist_path: "Runner/Info.plist",
-#           block: proc do |plist|
-#             urlScheme = plist["branch_key"]
-#             urlScheme["live"] = ENV["BRANCH_KEY"]
-#           end
-#         )
 
 		build_testflight
 

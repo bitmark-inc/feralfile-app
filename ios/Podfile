@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-# platform :ios, '12.0'
+# platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -27,6 +27,10 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+install! 'cocoapods', 
+  :deterministic_uuids => false,
+  :disable_input_output_paths => true
+
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
@@ -40,17 +44,18 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-  target.build_configurations.each do |config|
-        # You can remove unused permissions here
-        # for more information: https://github.com/Baseflow/flutter-permission-handler/blob/main/permission_handler_apple/ios/Classes/PermissionHandlerEnums.h
-        # e.g. when you don't need camera permission, just add 'PERMISSION_CAMERA=0'
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
-          '$(inherited)',
-          ## dart: PermissionGroup.camera
-          'PERMISSION_CAMERA=1',
-          'PERMISSION_LOCATION=1',
-          'PERMISSION_MICROPHONE=1'
-        ]
-      end
+    target.build_configurations.each do |config|
+      
+      # You can remove unused permissions here
+      # for more information: https://github.com/Baseflow/flutter-permission-handler/blob/main/permission_handler_apple/ios/Classes/PermissionHandlerEnums.h
+      # e.g. when you don't need camera permission, just add 'PERMISSION_CAMERA=0'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        ## dart: PermissionGroup.camera
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_LOCATION=1',
+        'PERMISSION_MICROPHONE=1'
+      ]
+    end
   end
 end
