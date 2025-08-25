@@ -313,7 +313,7 @@
       "$value": "1px"
     }
   },
-  "typography/Mode 1": {
+  "typography/base": {
     "H1": {
       "fontFamily": {
         "$type": "text",
@@ -502,7 +502,7 @@
     "tokenSetOrder": [
       "primitives/base",
       "backButton/base",
-      "typography/Mode 1"
+      "typography/base"
     ]
   }
 }
