@@ -98,6 +98,14 @@ jobs:
           xcodebuild -version
           xcodebuild -showsdks
 
+      - name: Verify Swift and iOS versions
+        run: |
+          cd ios/
+          echo "Checking Swift version in Pods..."
+          find Pods -name "*.pbxproj" -exec grep -l "SWIFT_VERSION" {} \; | head -5 | xargs -I {} grep "SWIFT_VERSION" {}
+          echo "Checking iOS deployment targets in Pods..."
+          find Pods -name "*.pbxproj" -exec grep -l "IPHONEOS_DEPLOYMENT_TARGET" {} \; | head -5 | xargs -I {} grep "IPHONEOS_DEPLOYMENT_TARGET" {}
+
       # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
       - name: Build and deploy with Fastlane
         env:
@@ -120,11 +128,3 @@ jobs:
           bundle exec fastlane citestflight env:${{ env.FASTLAN_ENV }}
 
         working-directory: ios
-
-      - name: Verify Swift and iOS versions
-        run: |
-          cd ios/
-          echo "Checking Swift version in Pods..."
-          find Pods -name "*.pbxproj" -exec grep -l "SWIFT_VERSION" {} \; | head -5 | xargs -I {} grep "SWIFT_VERSION" {}
-          echo "Checking iOS deployment targets in Pods..."
-          find Pods -name "*.pbxproj" -exec grep -l "IPHONEOS_DEPLOYMENT_TARGET" {} \; | head -5 | xargs -I {} grep "IPHONEOS_DEPLOYMENT_TARGET" {}
