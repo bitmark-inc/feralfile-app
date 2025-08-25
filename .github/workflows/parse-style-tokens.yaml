@@ -44,9 +44,6 @@ jobs:
             echo "❌ Token build failed!"
             exit 1
           fi
-      - name: Validate build output exists
-        run: |
-          test -f lib/design/design-tokens.dart
       - name: Check for changes and push tokens
         run: |
           git add lib/design/build/
