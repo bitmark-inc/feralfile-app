@@ -306,7 +306,7 @@
     },
     "padding": {
       "$type": "dimension",
-      "$value": "15px"
+      "$value": "{spacing.mainPaddingHorizontal}"
     },
     "strokeWeight": {
       "$type": "dimension",
